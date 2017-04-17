@@ -40,7 +40,7 @@ from flask_babel import lazy_gettext as _
 from datetime import date
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, Text, Boolean,
-    DateTime, Date, Table, Numeric,
+    DateTime, Date, Table, Numeric, LargeBinary,
     create_engine, MetaData, desc, asc, select, and_, func, update
 )
 from sqlalchemy.ext.compiler import compiles
@@ -2881,10 +2881,12 @@ class KeytabRepository(Model):
 
   __tablename__ = 'keytabrepo'
   id = Column(Integer, primary_key=True)
-  name = Column(String(256))
+  name = Column(String(256), nullable=False)
+  file = Column(LargeBinary)
   uploaded_time = Column(Numeric(precision=3))
+  principal = Column(String(256), nullable=False)
   user_id = Column(
-    Integer, ForeignKey('ab_user.id'), nullable=True
+    Integer, ForeignKey('ab_user.id'), nullable=False
   )
 
   user = relationship(
@@ -2897,6 +2899,7 @@ class KeytabRepository(Model):
     return {
       'name': self.name,
       'uploadedTime': self.uploaded_time,
+      'principal': self.principal,
       'userId': self.user_id,
       'user': self.user.username
     }

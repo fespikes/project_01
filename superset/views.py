@@ -2801,28 +2801,33 @@ class Superset(BaseSupersetView):
     @has_access_api
     @expose("/upload_keytab", methods= ['GET','POST'])
     def upload_keytab(self):
-      upload_dir = config.get('KEYTABS_UPLOAD_DIR')
-      if not os.path.exists(upload_dir):
-        try:
-          os.makedirs(upload_dir)
-        except OSError as exc:
-          return json_error_response(MAKING_UPLOAD_DIR_FAILED_ERR, status=500)
+      # upload_dir = config.get('KEYTABS_UPLOAD_DIR')
+      # if not os.path.exists(upload_dir):
+      #   try:
+      #     os.makedirs(upload_dir)
+      #   except OSError as e:
+      #     logging.exception(e)
+      #     return json_error_response(MAKING_UPLOAD_DIR_FAILED_ERR, status=500)
       if request.method == 'POST':
         file = request.files['file']
-        if file and utils.allowed_keytab(file.filename, [keytab.name for keytab in g.user.keytabs]):
+        principal = request.form.get('principal')
+        if file and utils.allowed_keytab(file.filename, [keytab.name for keytab in g.user.keytabs]) and principal:
           filename = secure_filename(file.filename)
           try:
-            file.save(os.path.join(upload_dir, filename))
+            # file.save(os.path.join(upload_dir, filename))
             session = db.session()
             keytab = models.KeytabRepository(
               name=filename,
+              file=file.read(),
               uploaded_time=utils.now_as_float(),
+              principal=principal,
               user_id=int(g.user.get_id())
             )
             session.add(keytab)
             session.commit()
             return "UPLOADED_SUCCESSFUL"
-          except IOError:
+          except IOError as exc:
+            logging.exception(exc)
             return json_error_response(KEYTAB_UPLOAD_FAILED_ERR, status=500)
         else :
           return json_error_response(KEYTAB_FILE_EXISTS)
@@ -2833,6 +2838,7 @@ class Superset(BaseSupersetView):
           <title>Upload new File</title>
           <h1>Upload new File</h1>
           <form action="" method=post enctype=multipart/form-data>
+            <p>Principal<input type=text name=principal>
             <p><input type=file name=file>
                <input type=submit value=Upload>
           </form>
