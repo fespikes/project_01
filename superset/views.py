@@ -12,6 +12,7 @@ import sys
 import time
 import traceback
 import zlib
+import os
 
 import functools
 import sqlalchemy as sqla
@@ -41,6 +42,7 @@ from superset import (
 from superset.source_registry import SourceRegistry
 from superset.models import DatasourceAccessRequest as DAR
 from superset.sql_parse import SupersetQuery
+from werkzeug.utils import secure_filename
 
 config = app.config
 log_this = models.Log.log_this
@@ -109,7 +111,9 @@ ACCESS_REQUEST_MISSING_ERR = __(
     "The access requests seem to have been deleted")
 USER_MISSING_ERR = __("The user seems to have been deleted")
 DATASOURCE_ACCESS_ERR = __("You don't have access to this datasource")
-
+MAKING_UPLOAD_DIR_FAILED_ERR = __("Error occurred when creating keytab directory")
+KEYTAB_UPLOAD_FAILED_ERR = __("Uploading keytab failed")
+KEYTAB_FILE_EXISTS = __("Keytab file already exists")
 
 def get_database_access_error_msg(database_name):
     return __("This view requires the database %(name)s or "
@@ -2793,6 +2797,46 @@ class Superset(BaseSupersetView):
         number = {'dashboard': 1, 'slice': 2, 'connection': 3, 'table': 4}
         return self.render_template('superset/statistics.html', number=number)
 
+    @api
+    @has_access_api
+    @expose("/upload_keytab", methods= ['GET','POST'])
+    def upload_keytab(self):
+      upload_dir = config.get('KEYTABS_UPLOAD_DIR')
+      if not os.path.exists(upload_dir):
+        try:
+          os.makedirs(upload_dir)
+        except OSError as exc:
+          return json_error_response(MAKING_UPLOAD_DIR_FAILED_ERR, status=500)
+      if request.method == 'POST':
+        file = request.files['file']
+        if file and utils.allowed_keytab(file.filename, [keytab.name for keytab in g.user.keytabs]):
+          filename = secure_filename(file.filename)
+          try:
+            file.save(os.path.join(upload_dir, filename))
+            session = db.session()
+            keytab = models.KeytabRepository(
+              name=filename,
+              uploaded_time=utils.now_as_float(),
+              user_id=int(g.user.get_id())
+            )
+            session.add(keytab)
+            session.commit()
+            return "UPLOADED_SUCCESSFUL"
+          except IOError:
+            return json_error_response(KEYTAB_UPLOAD_FAILED_ERR, status=500)
+        else :
+          return json_error_response(KEYTAB_FILE_EXISTS)
+
+
+      return '''
+          <!doctype html>
+          <title>Upload new File</title>
+          <h1>Upload new File</h1>
+          <form action="" method=post enctype=multipart/form-data>
+            <p><input type=file name=file>
+               <input type=submit value=Upload>
+          </form>
+          '''
 # if config['DRUID_IS_ACTIVE']:
 #     appbuilder.add_link(
 #         "Refresh Druid Metadata",

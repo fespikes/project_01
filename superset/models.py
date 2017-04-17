@@ -2875,3 +2875,28 @@ class DailyNumber(Model):
             )
             db.session.add(new_row)
         db.session.commit()
+
+class KeytabRepository(Model):
+  """ORM object used to store keytab infomation"""
+
+  __tablename__ = 'keytabrepo'
+  id = Column(Integer, primary_key=True)
+  name = Column(String(256))
+  uploaded_time = Column(Numeric(precision=3))
+  user_id = Column(
+    Integer, ForeignKey('ab_user.id'), nullable=True
+  )
+
+  user = relationship(
+    'User',
+    backref=backref('keytabs', cascade='all, delete-orphan'),
+    foreign_keys=[user_id]
+  )
+
+  def to_dict(self):
+    return {
+      'name': self.name,
+      'uploadedTime': self.uploaded_time,
+      'userId': self.user_id,
+      'user': self.user.username
+    }

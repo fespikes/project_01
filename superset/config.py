@@ -282,3 +282,8 @@ SMTP_MAIL_FROM = 'superset@superset.com'
 
 if not CACHE_DEFAULT_TIMEOUT:
     CACHE_DEFAULT_TIMEOUT = CACHE_CONFIG.get('CACHE_DEFAULT_TIMEOUT')
+
+# ---------------------------------------------------
+# kerberos settings
+# ---------------------------------------------------
+KEYTABS_UPLOAD_DIR = '/Users/Shannon/Downloads/keytabs'
