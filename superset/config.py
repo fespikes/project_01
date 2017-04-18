@@ -286,4 +286,11 @@ if not CACHE_DEFAULT_TIMEOUT:
 # ---------------------------------------------------
 # kerberos settings
 # ---------------------------------------------------
-KEYTABS_UPLOAD_DIR = '/Users/Shannon/Downloads/keytabs'
+KEYTABS_TMP_DIR = '/Users/Shannon/Downloads/keytabs'
+KINIT_PATH = 'kinit'
+CCACHE_BASE_DIR = '/Users/Shannon/Downloads/ccaches'
+
+# ---------------------------------------------------
+# filebrowser settings
+# ---------------------------------------------------
+UPLOAD_CHUNK_SIZE = 1024 * 1024 * 64

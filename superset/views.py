@@ -15,6 +15,7 @@ import zlib
 import os
 
 import functools
+import uuid
 import sqlalchemy as sqla
 
 from flask import (
@@ -37,7 +38,7 @@ from wtforms.validators import ValidationError
 import superset
 from superset import (
     app, appbuilder, cache, db, models, sm, sql_lab, sql_parse,
-    results_backend, security, viz, utils,
+    results_backend, security, viz, utils, kt_renewer
 )
 from superset.source_registry import SourceRegistry
 from superset.models import DatasourceAccessRequest as DAR
@@ -2797,17 +2798,30 @@ class Superset(BaseSupersetView):
         number = {'dashboard': 1, 'slice': 2, 'connection': 3, 'table': 4}
         return self.render_template('superset/statistics.html', number=number)
 
+    @staticmethod
+    def init_keytab(keytab_id):
+      temp_dir = os.path.join(config.get('KEYTABS_TMP_DIR'), str(uuid.uuid4()))
+      ccache_dir = config.get("CCACHE_BASE_DIR")
+      try:
+        os.makedirs(temp_dir)
+        if not (os.path.exists(ccache_dir)):
+          os.makedirs(ccache_dir)
+      except OSError as e:
+        logging.exception(e)
+      keytab = db.session.query(models.KeytabRepository).filter_by(id=int(keytab_id)).one()
+      file = keytab.file
+      file_path = str(os.path.join(temp_dir, keytab.name))
+      f = open(file_path, "wb")
+      f.write(file)
+      f.close()
+
+      kt_renewer.kinit(config.get('KINIT_PATH'), file_path, str(os.path.join(ccache_dir, str(uuid.uuid4()))),
+                       keytab.principal)
+
     @api
     @has_access_api
     @expose("/upload_keytab", methods= ['GET','POST'])
     def upload_keytab(self):
-      # upload_dir = config.get('KEYTABS_UPLOAD_DIR')
-      # if not os.path.exists(upload_dir):
-      #   try:
-      #     os.makedirs(upload_dir)
-      #   except OSError as e:
-      #     logging.exception(e)
-      #     return json_error_response(MAKING_UPLOAD_DIR_FAILED_ERR, status=500)
       if request.method == 'POST':
         file = request.files['file']
         principal = request.form.get('principal')
@@ -2825,6 +2839,7 @@ class Superset(BaseSupersetView):
             )
             session.add(keytab)
             session.commit()
+            self.init_keytab(keytab.id)
             return "UPLOADED_SUCCESSFUL"
           except IOError as exc:
             logging.exception(exc)
@@ -2843,6 +2858,10 @@ class Superset(BaseSupersetView):
                <input type=submit value=Upload>
           </form>
           '''
+
+
+
+
 # if config['DRUID_IS_ACTIVE']:
 #     appbuilder.add_link(
 #         "Refresh Druid Metadata",
