@@ -11,7 +11,7 @@ import threading
 import time
 
 from superset.libs.i18n import smart_str
-from django.utils.translation import ugettext as _
+from flask_babel import lazy_gettext as _
 from superset.libs.rest import http_client, resource
 from superset.libs.hadoop.fs import normpath, SEEK_SET, SEEK_CUR, SEEK_END
 from superset.libs.hadoop.fs.hadoopfs import Hdfs
@@ -116,7 +116,7 @@ class WebHdfs(Hdfs):
 
   @property
   def user(self):
-    return self.user
+    return self._user
 
   @property
   def trash_path(self):
@@ -128,13 +128,13 @@ class WebHdfs(Hdfs):
 
   def _getparams(self):
     return {
-      "user.name" : self.user,
-      "doas" : self.user
+      # "user.name" : self._user,
+      # "doas" : self._user
     }
 
   def setuser(self, user):
     """Set a new user. Return the current user."""
-    curr = self.user
+    curr = self._user
     self._thread_local.user = user
     return curr
 
@@ -797,15 +797,6 @@ def safe_octal(octal_value):
   except TypeError:
     return str(octal_value)
 
-
-def _get_service_url(fs_defaultfs):
-
-  netloc = Hdfs.urlsplit(fs_defaultfs)[1]
-  host = netloc.split(':')[0]
-  port = DEFAULT_NN_HTTP_PORT
-  return "http://%s:%s/webhdfs/v1" % (host, port)
-
-
 def test_fs_configuration(webhdfs):
   """
   This is a config validation method. Returns a list of
@@ -818,10 +809,10 @@ def test_fs_configuration(webhdfs):
   try:
     statbuf = fs.stats('/')
     if statbuf.user != DEFAULT_HDFS_SUPERUSER:
-      return [(_get_service_url(fs.fs_defaultfs()), _("Filesystem root '/' should be owned by 'hdfs'"))]
+      return [(fs.uri(), _("Filesystem root '/' should be owned by 'hdfs'"))]
   except Exception as ex:
     LOG.info("%s -- Validation error: %s" % (fs, ex))
-    return [(_get_service_url(fs.fs_defaultfs()), _('Failed to access filesystem root'))]
+    return [(fs.uri(), _('Failed to access filesystem root'))]
 
   # Write a file
   tmpname = fs.mktemp(prefix='hdfs_config_validation')
@@ -829,7 +820,7 @@ def test_fs_configuration(webhdfs):
     fs.create(tmpname)
   except Exception as ex:
     LOG.info("%s -- Validation error: %s" % (fs, ex))
-    return [(_get_service_url(fs.fs_defaultfs()),
+    return [(fs.uri(),
             _('Failed to create temporary file "%s"') % tmpname)]
 
   # Check superuser has super power
@@ -838,7 +829,7 @@ def test_fs_configuration(webhdfs):
       fs.chown(tmpname, fs.superuser)
     except Exception as ex:
       LOG.info("%s -- Validation error: %s" % (fs, ex))
-      return [(_get_service_url(fs.fs_defaultfs()),
+      return [(fs.uri(),
               'Failed to chown file. Please make sure that the filesystem root '
               'is owned by the cluster superuser ("hdfs" in most cases).')]
   finally:
@@ -846,7 +837,7 @@ def test_fs_configuration(webhdfs):
       fs.remove(tmpname)
     except Exception as ex:
       LOG.error("Failed to remove '%s': %s" % (tmpname, ex))
-      return [(_get_service_url(fs.fs_defaultfs()),
+      return [(fs.uri(),
               _('Failed to remove temporary file "%s"') % tmpname)]
 
   return [ ]

@@ -35,7 +35,7 @@ import threading
 from thrift.transport import TTransport
 
 from superset.libs.i18n import smart_str, force_unicode
-from django.utils.translation import ugettext as _
+from flask_babel import lazy_gettext as _
 
 from superset.libs.hadoop.fs import normpath, SEEK_SET, SEEK_CUR, SEEK_END
 from superset.libs.hadoop.fs.exceptions import PermissionDeniedException

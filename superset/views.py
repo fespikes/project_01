@@ -44,6 +44,9 @@ from superset.source_registry import SourceRegistry
 from superset.models import DatasourceAccessRequest as DAR
 from superset.sql_parse import SupersetQuery
 from werkzeug.utils import secure_filename
+from superset.libs.hadoop.fs.exceptions import WebHdfsException
+from superset.libs.hadoop.fs import webhdfs
+from superset.utils import fs_cache
 
 config = app.config
 log_this = models.Log.log_this
@@ -51,6 +54,8 @@ log_action = models.Log.log_action
 log_number = models.DailyNumber.log_number
 can_access = utils.can_access
 QueryStatus = models.QueryStatus
+
+
 
 
 class BaseSupersetView(BaseView):
@@ -307,7 +312,6 @@ class DashboardFilter(SupersetFilter):
             )
         )
         return query
-
 
 def validate_json(form, field):  # noqa
     try:
@@ -2798,68 +2802,210 @@ class Superset(BaseSupersetView):
         number = {'dashboard': 1, 'slice': 2, 'connection': 3, 'table': 4}
         return self.render_template('superset/statistics.html', number=number)
 
-    @staticmethod
-    def init_keytab(keytab_id):
-      temp_dir = os.path.join(config.get('KEYTABS_TMP_DIR'), str(uuid.uuid4()))
-      ccache_dir = config.get("CCACHE_BASE_DIR")
-      try:
-        os.makedirs(temp_dir)
-        if not (os.path.exists(ccache_dir)):
-          os.makedirs(ccache_dir)
-      except OSError as e:
-        logging.exception(e)
-      keytab = db.session.query(models.KeytabRepository).filter_by(id=int(keytab_id)).one()
-      file = keytab.file
-      file_path = str(os.path.join(temp_dir, keytab.name))
-      f = open(file_path, "wb")
-      f.write(file)
-      f.close()
-
-      kt_renewer.kinit(config.get('KINIT_PATH'), file_path, str(os.path.join(ccache_dir, str(uuid.uuid4()))),
-                       keytab.principal)
-
-    @api
-    @has_access_api
-    @expose("/upload_keytab", methods= ['GET','POST'])
-    def upload_keytab(self):
-      if request.method == 'POST':
-        file = request.files['file']
-        principal = request.form.get('principal')
-        if file and utils.allowed_keytab(file.filename, [keytab.name for keytab in g.user.keytabs]) and principal:
-          filename = secure_filename(file.filename)
-          try:
-            # file.save(os.path.join(upload_dir, filename))
-            session = db.session()
-            keytab = models.KeytabRepository(
-              name=filename,
-              file=file.read(),
-              uploaded_time=utils.now_as_float(),
-              principal=principal,
-              user_id=int(g.user.get_id())
-            )
-            session.add(keytab)
-            session.commit()
-            self.init_keytab(keytab.id)
-            return "UPLOADED_SUCCESSFUL"
-          except IOError as exc:
-            logging.exception(exc)
-            return json_error_response(KEYTAB_UPLOAD_FAILED_ERR, status=500)
-        else :
-          return json_error_response(KEYTAB_FILE_EXISTS)
 
 
-      return '''
-          <!doctype html>
-          <title>Upload new File</title>
-          <h1>Upload new File</h1>
-          <form action="" method=post enctype=multipart/form-data>
-            <p>Principal<input type=text name=principal>
-            <p><input type=file name=file>
-               <input type=submit value=Upload>
-          </form>
-          '''
+def init_keytab(keytab_id, principal):
+  temp_dir = os.path.join(config.get('KEYTABS_TMP_DIR'), str(uuid.uuid4()))
+  ccache_dir = config.get("CCACHE_BASE_DIR")
+  try:
+    os.makedirs(temp_dir)
+    if not (os.path.exists(ccache_dir)):
+      os.makedirs(ccache_dir)
+  except OSError as e:
+    logging.exception(e)
+  keytab = db.session.query(models.Keytab).filter_by(id=int(keytab_id)).one()
+  file = keytab.file
+  file_path = str(os.path.join(temp_dir, keytab.name))
+  f = open(file_path, "wb")
+  f.write(file)
+  f.close()
+
+  kt_renewer.kinit(config.get('KINIT_PATH'), file_path, str(os.path.join(ccache_dir, str(uuid.uuid4()))),
+                   principal)
+  # kt_renewer.kinit(config.get('KINIT_PATH'), file_path, principal)
+  logging.info("kinit keytab %s" % keytab.name)
+
+def generate_fs(obj):
+
+    return webhdfs.WebHdfs(url=obj.httpfs_uri,
+                   fs_defaultfs=obj.fs_defaultfs,
+                   logical_name=obj.logical_name,
+                   security_enabled=obj.security_enabled,
+                   hdfs_user=g.user.username)
+
+def add_to_fs_cache(obj):
+
+  fs_cache[obj.connection_name] = generate_fs(obj)
+  logging.info("Webhdfs generated and added to fs_cache")
+  return fs_cache[obj.connection_name]
+
+def remove_from_fs_cache(obj):
+
+  if fs_cache.has_key(obj.connection_name):
+    del fs_cache[obj.connection_name]
+  logging.info("Removed from cache")
+
+def get_fs_from_cache(connection_name):
+
+  if not fs_cache.has_key(connection_name):
+    connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
+    init_keytab(connection.keytab_id, connection.principal)
+    add_to_fs_cache(connection)
+  return fs_cache[connection_name]
 
 
+def listdir_paged(fs, path, pagenum, pagesize):
+  if not fs.isdir(path):
+    raise Exception("Not a directory: %s" % (path,))
+
+  all_stats = fs.listdir_stats(path)
+  stats_dict = {'stats' : [s.to_json_dict() for s in all_stats]}
+  return  stats_dict
+
+
+class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
+
+  datamodel = SQLAInterface(models.HDFSConnection)
+  list_title = _("List HDFSConnection")
+  show_title = _("Show HDFSConnection")
+  add_title = _("Add HDFSConnection")
+  edit_title = _("Edit HDFSConnection")
+  list_columns = ['connection_name', 'security_enabled', 'creator', 'modified']
+  edit_columns = ['connection_name', 'httpfs_uri', 'fs_defaultfs', 'logical_name', 'security_enabled', 'principal', 'keytab']
+  show_columns = edit_columns + ['creator', 'modified']
+  add_columns = edit_columns
+  label_columns = {
+    "connection_name": _("Connection Name"),
+    "httpfs_uri": _("Httpfs URI"),
+    "fs_defaultfs": _("FS DefaultFS"),
+    "logical_name": _("Logical Name"),
+    "security_enabled": _("Security Enabled"),
+    "principal": _("Principal"),
+    "keytab": _("Keytab"),
+    "creator": _("Creator"),
+    "modified": _("Modified")
+  }
+
+
+
+
+  def post_add(self, obj):
+    init_keytab(obj.keytab_id, obj.principal)
+    add_to_fs_cache(obj)
+    action_str = 'Add hdfs connection: {}'.format(repr(obj))
+    log_action(action_str, obj, obj.id)
+
+  def post_update(self, obj):
+    init_keytab(obj.keytab_id, obj.principal)
+    add_to_fs_cache(obj)
+    action_str = 'Update hdfs connection: {}'.format(repr(obj))
+    log_action(action_str, obj, obj.id)
+
+  def post_delete(self, obj):
+
+    remove_from_fs_cache(obj)
+    action_str = 'Delete hdfs connection: {}'.format(repr(obj))
+    log_action(action_str, obj, obj.id)
+
+
+  @api
+  @has_access_api
+  @expose("/<connection_name>/filebrowser/")
+  def index(self, connection_name):
+    path = '/user/' + g.user.username
+    fs = get_fs_from_cache(connection_name)
+    try:
+      if not fs.isdir(path):
+        path = '/'
+    except Exception:
+      pass
+
+    return self._view(fs, path)
+
+  @staticmethod
+  def _view(fs, path):
+
+    try:
+      stats = fs.stats(path)
+      if stats.isDir:
+        return Response(json.dumps(listdir_paged(fs, path, 0, 0)), 200)
+    except (IOError, WebHdfsException) as e:
+      msg = _("Cannot access: %(path)s. " % {'path': path})
+      if "Connection refused" in e.message:
+        msg += _("The HDFS Rest service is not available.")
+
+      return msg
+
+  @api
+  @has_access_api
+  @expose("/<connection_name>/filebrowser/view/<path>")
+  def view(self, connection_name, path):
+    fs = get_fs_from_cache(connection_name)
+    return self._view(fs, path)
+
+  def listdir(self):
+    return
+
+  def display(self):
+    return
+
+  def download_hdfs_file(self):
+    return
+
+  def status(self):
+    return
+
+
+
+
+
+class KeytabModelView(SupersetModelView, DeleteMixin):
+
+  datamodel = SQLAInterface(models.Keytab)
+  list_title = _("List Keytab")
+  show_title = _("Show Keytab")
+  add_title = _("Add Keytab")
+  list_columns = ["name", "creator", "modified"]
+  show_columns = list_columns
+  search_exclude_columns = ['file']
+  edit_columns = ["name"]
+
+  add_template = "superset/models/keytab/add.html"
+  #edit_template = "superset/models/database/edit.html"
+
+  label_columns = {
+    "name": _("Name"),
+    "creator": _("Creator"),
+    "modified": _("Modified"),
+    "file": _("File")
+  }
+
+  @api
+  @has_access_api
+  @expose("/add", methods=['GET', 'POST'])
+  def add(self):
+    if request.method == 'POST':
+      file = request.files['file']
+
+      if file and utils.allowed_keytab(file.filename):
+        filename = secure_filename(file.filename)
+        try:
+          # file.save(os.path.join(upload_dir, filename))
+          session = db.session()
+          keytab = models.Keytab(
+            name=filename,
+            file=file.read(),
+          )
+          session.add(keytab)
+          session.commit()
+          return redirect("/keytabmodelview/list")
+          # self.init_keytab(keytab.id)
+        except IOError as exc:
+          logging.exception(exc)
+          return json_error_response(KEYTAB_UPLOAD_FAILED_ERR, status=500)
+      else:
+        return json_error_response(KEYTAB_FILE_EXISTS)
+    return self.render_template(self.add_template)
 
 
 # if config['DRUID_IS_ACTIVE']:
@@ -2944,6 +3090,23 @@ appbuilder.add_view(
     category="Sources",
     category_label=__("Sources"),
     icon='fa-table',)
+
+appbuilder.add_view(
+  HdfsConnectionModelView,
+  "HDFSConnections",
+  label=_("HDFS Connections"),
+  category="Sources",
+  category_label=_("Sources"),
+  icon=''
+)
+
+appbuilder.add_view(
+  KeytabModelView,
+  "Keytabs",
+  label=_("Keytab Settings"),
+  category="Settings",
+  category_label=_("Settings")
+)
 
 appbuilder.add_link(
     'SQL Editor',

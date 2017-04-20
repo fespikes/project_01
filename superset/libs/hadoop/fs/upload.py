@@ -14,7 +14,7 @@ import logging
 import time
 
 from django.core.files.uploadhandler import FileUploadHandler, StopFutureHandlers, StopUpload
-from django.utils.translation import ugettext as _
+from flask_babel import lazy_gettext as _
 
 
 from superset.config import UPLOAD_CHUNK_SIZE

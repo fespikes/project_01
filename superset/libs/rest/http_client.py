@@ -106,7 +106,7 @@ class HttpClient(object):
       self._session.headers.update(headers)
     return self._session.headers.copy()
 
-  def execute(self, http_method, path, params=None, data=None, headers=None, allow_redirects=False, urlencode=True, username=None):
+  def execute(self, http_method, path, params=None, data=None, headers=None, allow_redirects=False, urlencode=True):
     """
     Submit an HTTP request.
     @param http_method: GET, POST, PUT, DELETE
@@ -124,8 +124,6 @@ class HttpClient(object):
       path = urllib.quote(smart_str(path))
     url = self._make_url(path, params)
 
-    if not username:
-      url = url + "?user.name=" + username
     if http_method in ("GET", "DELETE"):
       if data is not None:
         self.logger.warn("GET and DELETE methods do not pass any data. Path '%s'" % path)

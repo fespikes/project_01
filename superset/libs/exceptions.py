@@ -2,7 +2,6 @@
 import sys
 import traceback
 
-from thrift.transport.TTransport import TTransportException
 
 
 class StructuredException(Exception):
@@ -45,9 +44,3 @@ class MessageException(StructuredException):
       data=dict(filename=filename),
       error_code=error_code)
 
-class StructuredThriftTransportException(StructuredException, TTransportException):
-  def __init__(self, ex, *args, **kwargs):
-    kwargs['data'] = ex
-    kwargs['message'] = ex.message
-    kwargs['code'] = "THRIFTTRANSPORT"
-    StructuredException.__init__(self, *args, **kwargs)

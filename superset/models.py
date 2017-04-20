@@ -60,6 +60,8 @@ from superset.source_registry import SourceRegistry
 from superset.viz import viz_types
 from superset.jinja_context import get_template_processor
 from superset.utils import wrap_clause_in_parens, DTTM_ALIAS, QueryStatus
+
+
 # from superset.utils import flasher, MetricPermException, DimSelector
 
 config = app.config
@@ -2876,30 +2878,50 @@ class DailyNumber(Model):
             db.session.add(new_row)
         db.session.commit()
 
-class KeytabRepository(Model):
+class Keytab(Model, AuditMixinNullable):
   """ORM object used to store keytab infomation"""
 
-  __tablename__ = 'keytabrepo'
+  __tablename__ = 'keytabs'
+  type = 'table'
+
   id = Column(Integer, primary_key=True)
   name = Column(String(256), nullable=False)
   file = Column(LargeBinary)
-  uploaded_time = Column(Numeric(precision=3))
-  principal = Column(String(256), nullable=False)
-  user_id = Column(
-    Integer, ForeignKey('ab_user.id'), nullable=False
-  )
 
-  user = relationship(
-    'User',
-    backref=backref('keytabs', cascade='all, delete-orphan'),
-    foreign_keys=[user_id]
-  )
+  def __repr__(self):
+    return self.name
 
-  def to_dict(self):
-    return {
-      'name': self.name,
-      'uploadedTime': self.uploaded_time,
-      'principal': self.principal,
-      'userId': self.user_id,
-      'user': self.user.username
-    }
+
+class HDFSConnection(Model, AuditMixinNullable):
+  """An ORM object that stores HDFS related information"""
+
+  __tablename__ = 'hdfsconns'
+  type = 'table'
+
+  id = Column(Integer, primary_key=True)
+  connection_name = Column(String(256), unique=True)
+  httpfs_uri = Column(String(1024), nullable=False)
+  fs_defaultfs = Column(String(512), nullable=False)
+  logical_name = Column(String(512), nullable=False)
+  security_enabled = Column(Boolean, default=True)
+  principal = Column(String(512), nullable=False)
+  keytab_id = Column(Integer, ForeignKey('keytabs.id'))
+  keytab = relationship(
+    'Keytab',
+    backref=backref('hdfsconns'),
+    foreign_keys=[keytab_id])
+
+  def __repr__(self):
+    return self.connection_name
+
+  @property
+  def name(self):
+    return self.connection_name
+
+  def set_httpfs_uri(self, uri):
+    self.httpfs_uri = uri
+
+
+
+
+

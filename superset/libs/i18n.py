@@ -9,8 +9,6 @@ import logging
 import os
 import re
 
-import django.utils.encoding
-
 SITE_ENCODING = 'UTF-8'
 REPLACEMENT_CHAR = u'\ufffd'
 DEFAULT_LANG = 'en_US.UTF-8'
@@ -30,28 +28,19 @@ def validate_encoding(encoding):
     return False
 
 def smart_unicode(s, strings_only=False, errors='strict'):
-  """
-  Wrapper around Django's version, while supplying our configured encoding.
-  Decode char array to unicode.
-  """
-  return django.utils.encoding.smart_unicode(
-        s, get_site_encoding(), strings_only, errors)
+  if not s:
+    return s.encode(SITE_ENCODING)
+  return ''
 
 def force_unicode(s, strings_only=False, errors='strict'):
-  """
-  Wrapper around Django's version, while supplying our configured encoding.
-  Decode char array to unicode.
-  """
-  return django.utils.encoding.force_unicode(
-        s, get_site_encoding(), strings_only, errors)
+  if not s:
+    return s.encode(SITE_ENCODING)
+  return ''
 
 def smart_str(s, strings_only=False, errors='strict'):
-  """
-  Wrapper around Django's version, while supplying our configured encoding.
-  Encode unicode into char array.
-  """
-  return django.utils.encoding.smart_str(
-        s, get_site_encoding(), strings_only, errors)
+  if not s:
+    return s.encode(SITE_ENCODING)
+  return ''
 
 
 _CACHED_ENV = None

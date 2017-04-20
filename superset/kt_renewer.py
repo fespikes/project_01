@@ -2,6 +2,7 @@ import logging
 import subprocess
 import sys
 import time
+import os
 
 def kinit(kinit_path, keytab_path, ccache_path, principle):
   cmdv = [
@@ -14,11 +15,15 @@ def kinit(kinit_path, keytab_path, ccache_path, principle):
 
   logging.info("Initting kerberos from keytab:" + " ".join(cmdv))
 
+  env = os.environ.copy()
+  env['KRB5CCNAME'] = ccache_path
+
   subp = subprocess.Popen(cmdv,
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE,
                           close_fds=True,
-                          bufsize=-1)
+                          bufsize=-1,
+                          env=env)
 
   subp.wait()
   if subp.returncode != 0:
