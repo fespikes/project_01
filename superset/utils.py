@@ -517,3 +517,17 @@ def get_email_address_list(address_string):
 
 def allowed_keytab(filename):
   return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_KEYTAB_SUFFIX
+
+def coerce_bool(value):
+  if isinstance(value, bool):
+    return value
+
+  try:
+    upper = value.upper()
+  except:
+    upper = value
+  if upper in ("FALSE", "0", "NO", "OFF", "NAY", "", None):
+    return False
+  if upper in ("TRUE", "1", "YES", "ON", "YEA"):
+    return True
+  raise Exception("Could not coerce %r to boolean value" % (value,))

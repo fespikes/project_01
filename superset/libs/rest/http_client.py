@@ -12,7 +12,6 @@ from requests_kerberos import HTTPKerberosAuth, OPTIONAL
 
 from superset.libs.i18n import smart_str
 
-
 LOG = logging.getLogger(__name__)
 
 

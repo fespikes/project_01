@@ -59,8 +59,6 @@ class WebHdfs(Hdfs):
     self._client = self._make_client(url, security_enabled, ssl_cert_ca_verify)
     self._root = resource.Resource(self._client)
 
-    # To store user info
-    self._thread_local = threading.local()
 
     LOG.debug("Initializing Hadoop WebHdfs: %s (security: %s, superuser: %s)" % (self._url, self._security_enabled, self._superuser))
 
@@ -135,7 +133,6 @@ class WebHdfs(Hdfs):
   def setuser(self, user):
     """Set a new user. Return the current user."""
     curr = self._user
-    self._thread_local.user = user
     return curr
 
   def listdir_stats(self, path, glob=None):

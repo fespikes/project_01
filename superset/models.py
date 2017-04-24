@@ -2908,7 +2908,7 @@ class HDFSConnection(Model, AuditMixinNullable):
   keytab_id = Column(Integer, ForeignKey('keytabs.id'))
   keytab = relationship(
     'Keytab',
-    backref=backref('hdfsconns'),
+    backref=backref('hdfsconns', lazy='joined'),
     foreign_keys=[keytab_id])
 
   def __repr__(self):

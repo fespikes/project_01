@@ -37,7 +37,7 @@ def init():
     '-p', '--port', default=config.get("SUPERSET_WEBSERVER_PORT"),
     help="Specify the port on which to run the web server")
 @manager.option(
-    '-w', '--workers', default=config.get("SUPERSET_WORKERS", 2),
+    '-w', '--workers', default=config.get("SUPERSET_WORKERS", 1),
     help="Number of gunicorn web server workers to fire up")
 @manager.option(
     '-t', '--timeout', default=config.get("SUPERSET_WEBSERVER_TIMEOUT"),

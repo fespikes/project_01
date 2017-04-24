@@ -13,10 +13,13 @@ import time
 import traceback
 import zlib
 import os
+import operator
+import posixpath
 
 import functools
 import uuid
 import sqlalchemy as sqla
+from multiprocessing import Process, Queue
 
 from flask import (
     g, request, redirect, flash, Response, render_template, Markup)
@@ -35,18 +38,17 @@ from sqlalchemy import create_engine
 from werkzeug.routing import BaseConverter
 from wtforms.validators import ValidationError
 
-import superset
+
 from superset import (
     app, appbuilder, cache, db, models, sm, sql_lab, sql_parse,
-    results_backend, security, viz, utils, kt_renewer
+    results_backend, security, viz, utils, kt_renewer, cli
 )
 from superset.source_registry import SourceRegistry
 from superset.models import DatasourceAccessRequest as DAR
 from superset.sql_parse import SupersetQuery
 from werkzeug.utils import secure_filename
 from superset.libs.hadoop.fs.exceptions import WebHdfsException
-from superset.libs.hadoop.fs import webhdfs
-from superset.utils import fs_cache
+from superset.filebrowser import *
 
 config = app.config
 log_this = models.Log.log_this
@@ -2803,64 +2805,26 @@ class Superset(BaseSupersetView):
         return self.render_template('superset/statistics.html', number=number)
 
 
+# def _massage_stats(fs, stats):
+#   """
+#   Massage a stats record as returned by the filesystem implementation
+#   into the format that the views would like it in.
+#   """
+#   path = stats['path']
+#   normalized = hadoopfs.Hdfs.normpath(path)
+#   return {
+#     'path': normalized,
+#     'name': stats['name'],
+#     'stats': stats.to_json_dict(),
+#     'mtime': datetime.fromtimestamp(stats['mtime']).strftime('%B %d, %Y %I:%M %p'),
+#     'humansize': filesizeformat(stats['size']),
+#     'type': rwx.filetype(stats['mode']),
+#     'rwx': rwx(stats['mode'], stats['aclBit']),
+#     'mode': stringformat(stats['mode'], "o"),
+#     'url': make_absolute(request, "view", dict(path=normalized)),
+#     'is_sentry_managed': fs.is_sentry_managed(path)
+#   }
 
-def init_keytab(keytab_id, principal):
-  temp_dir = os.path.join(config.get('KEYTABS_TMP_DIR'), str(uuid.uuid4()))
-  ccache_dir = config.get("CCACHE_BASE_DIR")
-  try:
-    os.makedirs(temp_dir)
-    if not (os.path.exists(ccache_dir)):
-      os.makedirs(ccache_dir)
-  except OSError as e:
-    logging.exception(e)
-  keytab = db.session.query(models.Keytab).filter_by(id=int(keytab_id)).one()
-  file = keytab.file
-  file_path = str(os.path.join(temp_dir, keytab.name))
-  f = open(file_path, "wb")
-  f.write(file)
-  f.close()
-
-  kt_renewer.kinit(config.get('KINIT_PATH'), file_path, str(os.path.join(ccache_dir, str(uuid.uuid4()))),
-                   principal)
-  # kt_renewer.kinit(config.get('KINIT_PATH'), file_path, principal)
-  logging.info("kinit keytab %s" % keytab.name)
-
-def generate_fs(obj):
-
-    return webhdfs.WebHdfs(url=obj.httpfs_uri,
-                   fs_defaultfs=obj.fs_defaultfs,
-                   logical_name=obj.logical_name,
-                   security_enabled=obj.security_enabled,
-                   hdfs_user=g.user.username)
-
-def add_to_fs_cache(obj):
-
-  fs_cache[obj.connection_name] = generate_fs(obj)
-  logging.info("Webhdfs generated and added to fs_cache")
-  return fs_cache[obj.connection_name]
-
-def remove_from_fs_cache(obj):
-
-  if fs_cache.has_key(obj.connection_name):
-    del fs_cache[obj.connection_name]
-  logging.info("Removed from cache")
-
-def get_fs_from_cache(connection_name):
-
-  if not fs_cache.has_key(connection_name):
-    connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
-    init_keytab(connection.keytab_id, connection.principal)
-    add_to_fs_cache(connection)
-  return fs_cache[connection_name]
-
-
-def listdir_paged(fs, path, pagenum, pagesize):
-  if not fs.isdir(path):
-    raise Exception("Not a directory: %s" % (path,))
-
-  all_stats = fs.listdir_stats(path)
-  stats_dict = {'stats' : [s.to_json_dict() for s in all_stats]}
-  return  stats_dict
 
 
 class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
@@ -2886,17 +2850,14 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
     "modified": _("Modified")
   }
 
-
-
-
   def post_add(self, obj):
-    init_keytab(obj.keytab_id, obj.principal)
+    init_keytab(obj.keytab, obj.principal)
     add_to_fs_cache(obj)
     action_str = 'Add hdfs connection: {}'.format(repr(obj))
     log_action(action_str, obj, obj.id)
 
   def post_update(self, obj):
-    init_keytab(obj.keytab_id, obj.principal)
+    init_keytab(obj.keytab, obj.principal)
     add_to_fs_cache(obj)
     action_str = 'Update hdfs connection: {}'.format(repr(obj))
     log_action(action_str, obj, obj.id)
@@ -2912,36 +2873,29 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
   @has_access_api
   @expose("/<connection_name>/filebrowser/")
   def index(self, connection_name):
+
+    connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
     path = '/user/' + g.user.username
-    fs = get_fs_from_cache(connection_name)
+    fs = get_fs_from_cache(connection)
+
     try:
       if not fs.isdir(path):
         path = '/'
-    except Exception:
-      pass
+    except Exception as e:
+      logging.error(e)
 
-    return self._view(fs, path)
-
-  @staticmethod
-  def _view(fs, path):
-
-    try:
-      stats = fs.stats(path)
-      if stats.isDir:
-        return Response(json.dumps(listdir_paged(fs, path, 0, 0)), 200)
-    except (IOError, WebHdfsException) as e:
-      msg = _("Cannot access: %(path)s. " % {'path': path})
-      if "Connection refused" in e.message:
-        msg += _("The HDFS Rest service is not available.")
-
-      return msg
+    return view(request, fs, path)
 
   @api
   @has_access_api
-  @expose("/<connection_name>/filebrowser/view/<path>")
-  def view(self, connection_name, path):
+  @expose("/<connection_name>/filebrowser/view/")
+  @expose("/<connection_name>/filebrowser/view/<path:path>")
+  def view(self, connection_name, path=None):
+    if not path:
+      path = ''
+    path = '/' + path
     fs = get_fs_from_cache(connection_name)
-    return self._view(fs, path)
+    return view(request, fs, path)
 
   def listdir(self):
     return
@@ -2999,7 +2953,6 @@ class KeytabModelView(SupersetModelView, DeleteMixin):
           session.add(keytab)
           session.commit()
           return redirect("/keytabmodelview/list")
-          # self.init_keytab(keytab.id)
         except IOError as exc:
           logging.exception(exc)
           return json_error_response(KEYTAB_UPLOAD_FAILED_ERR, status=500)
