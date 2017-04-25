@@ -47,8 +47,13 @@ from superset.source_registry import SourceRegistry
 from superset.models import DatasourceAccessRequest as DAR
 from superset.sql_parse import SupersetQuery
 from werkzeug.utils import secure_filename
-from superset.libs.hadoop.fs.exceptions import WebHdfsException
 from superset.filebrowser import *
+from superset.filebrowser import view as f_view
+
+from superset.utils import (get_database_access_error_msg,
+                            get_datasource_access_error_msg,
+                            get_datasource_exist_error_msg,
+                            json_error_response)
 
 config = app.config
 log_this = models.Log.log_this
@@ -58,7 +63,15 @@ can_access = utils.can_access
 QueryStatus = models.QueryStatus
 
 
-
+def get_error_msg():
+  if config.get("SHOW_STACKTRACE"):
+    error_msg = traceback.format_exc()
+  else:
+    error_msg = "FATAL ERROR \n"
+    error_msg += (
+      "Stacktrace is hidden. Change the SHOW_STACKTRACE "
+      "configuration setting to enable it")
+  return error_msg
 
 class BaseSupersetView(BaseView):
     def can_access(self, permission_name, view_name):
@@ -123,36 +136,6 @@ MAKING_UPLOAD_DIR_FAILED_ERR = __("Error occurred when creating keytab directory
 KEYTAB_UPLOAD_FAILED_ERR = __("Uploading keytab failed")
 KEYTAB_FILE_EXISTS = __("Keytab file already exists")
 
-def get_database_access_error_msg(database_name):
-    return __("This view requires the database %(name)s or "
-              "`all_datasource_access` permission", name=database_name)
-
-
-def get_datasource_access_error_msg(datasource_name):
-    return __("This endpoint requires the datasource %(name)s, database or "
-              "`all_datasource_access` permission", name=datasource_name)
-
-
-def get_datasource_exist_error_mgs(full_name):
-    return __("Datasource %(name)s already exists", name=full_name)
-
-
-def get_error_msg():
-    if config.get("SHOW_STACKTRACE"):
-        error_msg = traceback.format_exc()
-    else:
-        error_msg = "FATAL ERROR \n"
-        error_msg += (
-            "Stacktrace is hidden. Change the SHOW_STACKTRACE "
-            "configuration setting to enable it")
-    return error_msg
-
-
-def json_error_response(msg, status=None):
-    data = {'error': msg}
-    status = status if status else 500
-    return Response(
-        json.dumps(data), status=status, mimetype="application/json")
 
 
 def api(f):
@@ -732,7 +715,7 @@ class TableModelView(SupersetModelView, DeleteMixin):  # noqa
         ).scalar()
         # table object is already added to the session
         if number_of_existing_tables > 1:
-            raise Exception(get_datasource_exist_error_mgs(table.full_name))
+            raise Exception(get_datasource_exist_error_msg(table.full_name))
 
         # Fail before adding if the table can't be found
         try:
@@ -2886,16 +2869,18 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
 
     return view(request, fs, path)
 
-  @api
-  @has_access_api
+  # @api
+  # @has_access_api
   @expose("/<connection_name>/filebrowser/view/")
   @expose("/<connection_name>/filebrowser/view/<path:path>")
   def view(self, connection_name, path=None):
+    connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
+
     if not path:
       path = ''
     path = '/' + path
-    fs = get_fs_from_cache(connection_name)
-    return view(request, fs, path)
+    fs = get_fs_from_cache(connection)
+    return f_view(request, fs, path)
 
   def listdir(self):
     return
@@ -2907,6 +2892,10 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
     return
 
   def status(self):
+    return
+
+  @expose("/<connnection_name>/filebrowser/upload/file")
+  def upload_file(self, connection_name):
     return
 
 

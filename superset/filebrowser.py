@@ -6,8 +6,10 @@ import posixpath
 import json
 import copy
 import threading
+import datetime
+import urlparse
 
-from flask import Response
+from flask import Response, url_for
 from flask_babel import lazy_gettext as _
 
 from requests_kerberos.exceptions import KerberosExchangeError
@@ -17,7 +19,9 @@ from superset.libs.hadoop.fs import webhdfs, hadoopfs
 from superset.utils import fs_cache
 from superset.libs import paginator
 from superset.libs.hadoop.fs.exceptions import WebHdfsException
-
+from superset.libs.filebrowser.rwx import  filetype, rwx
+from superset.libs.filebrowser import xxd
+from superset.utils import json_error_response
 
 config = app.config
 lock = threading.Lock()
@@ -49,7 +53,7 @@ def generate_fs(obj):
                        fs_defaultfs=obj.fs_defaultfs,
                        logical_name=obj.logical_name,
                        security_enabled=obj.security_enabled,
-                       hdfs_user=obj.creator)
+                       hdfs_user='hdfs')
       fs.listdir('/tmp')
       return fs
     except KerberosExchangeError as e:
@@ -124,8 +128,55 @@ def listdir_paged(request, fs, path):
 
   stats_dict = {'stats' : [s.to_json_dict() for s in all_stats]}
 
+  page.object_list = [ _massage_stats(request, s) for s in shown_stats ]
 
-  return  stats_dict
+  data = {
+    'path': path,
+    'files': page.object_list,
+    'page': _massage_page(page),
+    'pagesize': pagesize,
+    'sortby': sortby,
+    'descending': descending_param,
+
+  }
+
+  return data
+
+def _massage_stats(request, stats):
+  path = stats['path']
+  normalized = hadoopfs.Hdfs.normpath(path)
+  return {
+    'path': normalized,
+    'name': stats['name'],
+    'stats': stats.to_json_dict(),
+    'mtime': datetime.date.fromtimestamp(stats['mtime']).strftime('%B %d, %Y %I:%M %p'),
+    'size': stats['size'],
+    'type': filetype(stats['mode']),
+    'rwx': rwx(stats['mode'], stats['aclBit']),
+    'mode': stats['mode'],
+    'url': _make_url(request.url_root, normalized)
+  }
+
+def _make_url(url, path):
+  if '/view/' not in url:
+    if path == '/':
+      return url + 'view/'
+    else:
+      return url + 'view' + path
+  else:
+    return url
+
+
+def _massage_page(page):
+  return {
+    'number': page.number,
+    'num_pages': page.num_pages(),
+    'previous_page_number': page.previous_page_number(),
+    'next_page_number': page.next_page_number(),
+    'start_index': page.start_index(),
+    'end_index': page.end_index(),
+    'total_count': page.total_count()
+  }
 
 
 def view(request, fs, path):
@@ -138,4 +189,18 @@ def view(request, fs, path):
     if "Connection refused" in e.message:
       msg += _("The HDFS Rest service is not available.")
 
-    return msg
+    return json_error_response(msg)
+
+
+def stat(request, fs, path):
+  if not fs.exists(path):
+    return json_error_response(_("File not found: %(path)s" % {'path': path}))
+  stats = fs.stats(path)
+  return Response(json.dumps(_massage_stats(request, stats)))
+
+def display(request, fs, path):
+  if not fs.isfile(path):
+    return json_error_response(_("Not a file: '%(path)s'") % {'path': path})
+
+  stats = fs.stats(path)
+

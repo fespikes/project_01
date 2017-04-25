@@ -28,17 +28,17 @@ def validate_encoding(encoding):
     return False
 
 def smart_unicode(s, strings_only=False, errors='strict'):
-  if not s:
+  if s:
     return s.encode(SITE_ENCODING)
   return ''
 
 def force_unicode(s, strings_only=False, errors='strict'):
-  if not s:
+  if s:
     return s.encode(SITE_ENCODING)
   return ''
 
 def smart_str(s, strings_only=False, errors='strict'):
-  if not s:
+  if s:
     return s.encode(SITE_ENCODING)
   return ''
 

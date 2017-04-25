@@ -25,7 +25,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.utils import formatdate
-from flask import flash, Markup, render_template
+from flask import flash, Markup, render_template, Response
 from flask_babel import gettext as __
 from past.builtins import basestring
 # from pydruid.utils.having import Having
@@ -531,3 +531,23 @@ def coerce_bool(value):
   if upper in ("TRUE", "1", "YES", "ON", "YEA"):
     return True
   raise Exception("Could not coerce %r to boolean value" % (value,))
+
+def get_database_access_error_msg(database_name):
+    return __("This view requires the database %(name)s or "
+              "`all_datasource_access` permission", name=database_name)
+
+
+def get_datasource_access_error_msg(datasource_name):
+  return __("This endpoint requires the datasource %(name)s, database or "
+            "`all_datasource_access` permission", name=datasource_name)
+
+
+def get_datasource_exist_error_msg(full_name):
+  return __("Datasource %(name)s already exists", name=full_name)
+
+
+def json_error_response(msg, status=None):
+  data = {'error': msg}
+  status = status if status else 500
+  return Response(
+    json.dumps(data), status=status, mimetype="application/json")
