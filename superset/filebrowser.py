@@ -180,16 +180,11 @@ def _massage_page(page):
 
 
 def view(request, fs, path):
-  try:
-    stats = fs.stats(path)
-    if stats.isDir:
-      return Response(json.dumps(listdir_paged(request, fs, path)), 200)
-  except (IOError, WebHdfsException) as e:
-    msg = _("Cannot access: %(path)s. " % {'path': path})
-    if "Connection refused" in e.message:
-      msg += _("The HDFS Rest service is not available.")
-
-    return json_error_response(msg)
+  stats = fs.stats(path)
+  if stats.isDir:
+    return Response(json.dumps(listdir_paged(request, fs, path)), 200)
+  else:
+    return json_error_response(_("File preview not supported, please download it"))
 
 
 def stat(request, fs, path):

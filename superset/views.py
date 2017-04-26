@@ -2865,10 +2865,19 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
     try:
       if not fs.isdir(path):
         path = '/'
-    except Exception as e:
-      logging.error(e)
+      return f_view(request, fs, path)
+    except (IOError, WebHdfsException, KerberosExchangeError) as e:
+      try:
+        fs_new = add_to_fs_cache(connection)
+        return f_view(request, fs_new, path)
+      except (IOError, WebHdfsException, KerberosExchangeError) as ex:
+        msg = _("Cannot access: %(path)s. " % {'path': path})
+        if "Connection refused" in e.message:
+          msg += _("The HDFS Rest service is not available.")
 
-    return view(request, fs, path)
+        return json_error_response(msg)
+
+
 
   # @api
   # @has_access_api
@@ -2881,7 +2890,19 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
       path = ''
     path = '/' + path
     fs = get_fs_from_cache(connection)
-    return f_view(request, fs, path)
+
+    try:
+      return f_view(request, fs, path)
+    except (IOError, WebHdfsException, KerberosExchangeError) as e:
+      try:
+        fs_new = add_to_fs_cache(connection)
+        return f_view(request, fs_new, path)
+      except (IOError, WebHdfsException, KerberosExchangeError) as ex:
+        msg = _("Cannot access: %(path)s. " % {'path': path})
+        if "Connection refused" in e.message:
+          msg += _("The HDFS Rest service is not available.")
+
+        return json_error_response(msg)
 
   def listdir(self):
     return
