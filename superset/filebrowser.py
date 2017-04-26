@@ -58,7 +58,7 @@ def generate_fs(obj):
                        fs_defaultfs=obj.fs_defaultfs,
                        logical_name=obj.logical_name,
                        security_enabled=obj.security_enabled,
-                       hdfs_user='hdfs')
+                       hdfs_user=obj.created_by.username)
       fs.listdir('/tmp')
       return fs
     except KerberosExchangeError as e:

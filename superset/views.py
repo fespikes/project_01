@@ -28,7 +28,7 @@ from flask_appbuilder.actions import action
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.decorators import has_access, has_access_api
 from flask_appbuilder.widgets import ListWidget
-from flask_appbuilder.models.sqla.filters import BaseFilter
+from flask_appbuilder.models.sqla.filters import (BaseFilter, FilterStartsWith, FilterEqualFunction)
 from flask_appbuilder.security.sqla import models as ab_models
 
 from flask_babel import gettext as __
@@ -160,6 +160,8 @@ def api(f):
 
     return functools.update_wrapper(wraps, f)
 
+def get_user():
+  return g.user
 
 def check_ownership(obj, raise_if_false=True):
     """Meant to be used in `pre_update` hooks on models to enforce ownership
@@ -272,7 +274,6 @@ class SliceFilter(SupersetFilter):
         perms = self.get_view_menus('datasource_access')
         # TODO(bogdan): add `schema_access` support here
         return query.filter(self.model.perm.in_(perms))
-
 
 class DashboardFilter(SupersetFilter):
 
@@ -2835,6 +2836,13 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
     "modified": _("Modified")
   }
 
+  base_filters = [['created_by', FilterEqualFunction, get_user]]
+  add_form_query_rel_fields = {
+    'keytab': [['created_by', FilterEqualFunction, get_user]]
+  }
+
+  edit_form_query_rel_fields =  add_form_query_rel_fields
+
   def post_add(self, obj):
     init_keytab(obj.keytab, obj.principal)
     add_to_fs_cache(obj)
@@ -2959,6 +2967,7 @@ class KeytabModelView(SupersetModelView, DeleteMixin):
   show_columns = list_columns
   search_exclude_columns = ['file']
   edit_columns = ["name"]
+  base_filters = [['created_by', FilterEqualFunction, get_user]]
 
   add_template = "superset/models/keytab/add.html"
   #edit_template = "superset/models/database/edit.html"
