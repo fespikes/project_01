@@ -8,9 +8,12 @@ import copy
 import threading
 import datetime
 import urlparse
+import mimetypes
 
 from flask import Response, url_for
 from flask_babel import lazy_gettext as _
+
+from werkzeug.http import http_date
 
 from requests_kerberos.exceptions import KerberosExchangeError
 
@@ -25,6 +28,8 @@ from superset.utils import json_error_response
 
 config = app.config
 lock = threading.Lock()
+
+DOWNLOAD_CHUNK_SIZE = 64 * 1024 * 1024 # 64MB
 
 def init_keytab(keytab, principal):
   temp_dir = os.path.join(config.get('KEYTABS_TMP_DIR'), str(uuid.uuid4()))
@@ -193,12 +198,6 @@ def stat(request, fs, path):
   stats = fs.stats(path)
   return Response(json.dumps(_massage_stats(request, stats)))
 
-def display(request, fs, path):
-  if not fs.isfile(path):
-    return json_error_response(_("Not a file: '%(path)s'") % {'path': path})
-
-  stats = fs.stats(path)
-
 
 def upload_file(request, fs):
   response = {'status': -1, 'data': ''}
@@ -209,9 +208,7 @@ def upload_file(request, fs):
   if fs.isdir(dest) and posixpath.sep in file.filename:
     return json_error_response(_("Sorry, no '%(sep)s' in the filename %(name)s." % {'sep': posixpath.sep,
                                                                                         'name': file.filename}))
-  #
-  dest = fs.join(dest, file.filename)
-  # tmp_file = '/tmp/' + file.filename
+
   path = fs.mkswap(file.filename, suffix='tmp', basedir=dest)
   upload_tmp_success = False
   try:
@@ -229,6 +226,7 @@ def upload_file(request, fs):
     logging.exception(_("Error storing upload data in temporary file '%s'" % (path,)))
     fs.remove(path, True)
 
+  dest = fs.join(dest, file.filename)
   if upload_tmp_success:
     try:
       fs.rename(path, dest)
@@ -254,3 +252,30 @@ def upload_file(request, fs):
     return response
   else:
     return json_error_response(_("Upload file failed."))
+
+def download(request, fs, path):
+  if not fs.exists(path):
+    return json_error_response(_("File not found: %(path)s.") % {'path': path}, 404)
+  if not fs.isfile(path):
+    return json_error_response(_("'%(path)s' is not a file.") % {'path': path})
+
+  content_type = mimetypes.guess_type(path)[0] or 'application/octet-stream'
+  stats = fs.stats(path)
+  mtime = stats['mtime']
+  size = stats['size']
+
+  fh = fs.open(path)
+
+  response = Response(_file_reader(fh), content_type=content_type)
+  response.headers['Last-Modified'] = http_date(stats['mtime'])
+  response.headers['Content-Length'] = stats['size']
+  response.headers['Content-Disposition'] = 'attachment; filename=' + os.path.basename(path)
+  return response
+
+def _file_reader(fh):
+  while True:
+    chunk = fh.read(DOWNLOAD_CHUNK_SIZE)
+    if chunk == '':
+      fh.close()
+      break
+    yield chunk

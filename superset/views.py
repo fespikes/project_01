@@ -50,6 +50,7 @@ from werkzeug.utils import secure_filename
 from superset.filebrowser import *
 from superset.filebrowser import view as f_view
 from superset.filebrowser import upload_file as f_upload_file
+from superset.filebrowser import download as f_download
 
 from superset.utils import (get_database_access_error_msg,
                             get_datasource_access_error_msg,
@@ -2910,8 +2911,13 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
   def display(self):
     return
 
-  def download_hdfs_file(self):
-    return
+  @expose("/<connection_name>/filebrowser/download", methods=['GET'])
+  def download_hdfs_file(self, connection_name):
+    connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
+    fs = get_fs_from_cache(connection)
+    path = request.args.get('path')
+    return f_download(request, fs, path)
+
 
   def status(self):
     return
@@ -2942,10 +2948,6 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
              <input type=submit value=Upload>
         </form>
         '''
-
-
-
-
 
 class KeytabModelView(SupersetModelView, DeleteMixin):
 
