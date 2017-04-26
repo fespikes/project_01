@@ -126,7 +126,7 @@ class WebHdfs(Hdfs):
 
   def _getparams(self):
     return {
-      # "user.name" : self._user,
+      "user.name" : self._user,
     }
 
   def setuser(self, user):

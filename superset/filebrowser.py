@@ -204,3 +204,58 @@ def display(request, fs, path):
 
   stats = fs.stats(path)
 
+
+def upload_file(request, fs):
+  response = {'status': -1, 'data': ''}
+
+  file = request.files['file']
+  dest = request.form['dest']
+
+  if fs.isdir(dest) and posixpath.sep in file.filename:
+    return json_error_response(_("Sorry, no '%(sep)s' in the filename %(name)s." % {'sep': posixpath.sep,
+                                                                                        'name': file.filename}))
+  #
+  dest = fs.join(dest, file.filename)
+  # tmp_file = '/tmp/' + file.filename
+  path = fs.mkswap(file.filename, suffix='tmp', basedir=dest)
+  upload_tmp_success = False
+  try:
+
+    if fs.exists(path):
+      fs.delete(path)
+
+    hdfs_file = fs.open(path, 'w')
+    hdfs_file.write(file.read())
+    hdfs_file.flush()
+    hdfs_file.close()
+
+    upload_tmp_success = True
+  except IOError:
+    logging.exception(_("Error storing upload data in temporary file '%s'" % (path,)))
+    fs.remove(path, True)
+
+  if upload_tmp_success:
+    try:
+      fs.rename(path, dest)
+      response['status'] = 0
+    except IOError as ex:
+      already_exists = False
+      try:
+        already_exists = fs.exists(dest)
+      except Exception:
+        pass
+      if already_exists:
+        msg = _('Destination %(name)s already exists.') % {'name': dest}
+      else:
+        msg = _('Copy to %(name)s failed: %(error)s') % {'name': dest, 'error': ex}
+
+      return json_error_response(msg)
+
+    response.update({
+      'path': dest,
+      'result': _massage_stats(request, fs.stats(dest)),
+      'next': request.args.get('next')
+    })
+    return response
+  else:
+    return json_error_response(_("Upload file failed."))

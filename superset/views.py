@@ -49,6 +49,7 @@ from superset.sql_parse import SupersetQuery
 from werkzeug.utils import secure_filename
 from superset.filebrowser import *
 from superset.filebrowser import view as f_view
+from superset.filebrowser import upload_file as f_upload_file
 
 from superset.utils import (get_database_access_error_msg,
                             get_datasource_access_error_msg,
@@ -2871,8 +2872,8 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
 
   # @api
   # @has_access_api
-  @expose("/<connection_name>/filebrowser/view/")
-  @expose("/<connection_name>/filebrowser/view/<path:path>")
+  @expose("/<connection_name>/filebrowser/view/", methods=['GET'])
+  @expose("/<connection_name>/filebrowser/view/<path:path>", methods=['GET'])
   def view(self, connection_name, path=None):
     connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
 
@@ -2894,9 +2895,32 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
   def status(self):
     return
 
-  @expose("/<connnection_name>/filebrowser/upload/file")
+
+  #get is just for test
+  @expose("/<connection_name>/filebrowser/upload/file", methods=['POST', 'GET'])
   def upload_file(self, connection_name):
-    return
+    if request.method == 'POST':
+      connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
+      fs = get_fs_from_cache(connection)
+      response = {'status': -1, 'data': ''}
+      try:
+        resp = f_upload_file(request, fs)
+        response.update(resp)
+      except Exception as ex:
+        response['data'] = str(ex)
+
+      return Response(json.dumps(response))
+    else :
+      return  '''
+        <!doctype html>
+        <title>Upload new File</title>
+        <h1>Upload new File</h1>
+        <form method=post enctype=multipart/form-data>
+          <p><input type=file name=file>
+             <input type=text name=dest>
+             <input type=submit value=Upload>
+        </form>
+        '''
 
 
 

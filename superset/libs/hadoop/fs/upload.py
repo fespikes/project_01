@@ -51,7 +51,7 @@ class HDFStemporaryUploadedFile(object):
 
     if self._fs.exists(self._path):
       self._fs._delete(self._path)
-    self._file = self._fs.open(self._path, 'w')
+    self._file = self._fs.read(self._path, 'w')
 
     self._do_cleanup = True
 
