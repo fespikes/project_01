@@ -2796,29 +2796,6 @@ class Superset(BaseSupersetView):
         number = {'dashboard': 1, 'slice': 2, 'connection': 3, 'table': 4}
         return self.render_template('superset/statistics.html', number=number)
 
-
-# def _massage_stats(fs, stats):
-#   """
-#   Massage a stats record as returned by the filesystem implementation
-#   into the format that the views would like it in.
-#   """
-#   path = stats['path']
-#   normalized = hadoopfs.Hdfs.normpath(path)
-#   return {
-#     'path': normalized,
-#     'name': stats['name'],
-#     'stats': stats.to_json_dict(),
-#     'mtime': datetime.fromtimestamp(stats['mtime']).strftime('%B %d, %Y %I:%M %p'),
-#     'humansize': filesizeformat(stats['size']),
-#     'type': rwx.filetype(stats['mode']),
-#     'rwx': rwx(stats['mode'], stats['aclBit']),
-#     'mode': stringformat(stats['mode'], "o"),
-#     'url': make_absolute(request, "view", dict(path=normalized)),
-#     'is_sentry_managed': fs.is_sentry_managed(path)
-#   }
-
-
-
 class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
 
   datamodel = SQLAInterface(models.HDFSConnection)
