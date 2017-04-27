@@ -51,6 +51,12 @@ from superset.filebrowser import *
 from superset.filebrowser import view as f_view
 from superset.filebrowser import upload_file as f_upload_file
 from superset.filebrowser import download as f_download
+from superset.filebrowser import rename as f_rename
+from superset.filebrowser import mkdir as f_mkdir
+from superset.filebrowser import touch as f_touch
+from superset.filebrowser import move as f_move
+from superset.filebrowser import copy as f_copy
+
 
 from superset.utils import (get_database_access_error_msg,
                             get_datasource_access_error_msg,
@@ -2907,9 +2913,9 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
         fs_new = add_to_fs_cache(connection)
         return f_view(request, fs_new, path)
       except (IOError, WebHdfsException, KerberosExchangeError) as ex:
-        msg = _("Cannot access: %(path)s. " % {'path': path})
+        msg = __("Cannot access: %(path)s. " % {'path': path})
         if "Connection refused" in e.message:
-          msg += _("The HDFS Rest service is not available.")
+          msg += __("The HDFS Rest service is not available.")
 
         return json_error_response(msg)
 
@@ -2956,6 +2962,41 @@ class HdfsConnectionModelView(SupersetModelView, DeleteMixin):
              <input type=submit value=Upload>
         </form>
         '''
+
+  @expose("/<connection_name>/filebrowser/rename")
+  def rename(self, connection_name):
+    connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
+    fs = get_fs_from_cache(connection)
+
+    return f_rename(request, fs)
+
+  @expose("/<connection_name>/filebrowser/mkdir")
+  def mkdir(self, connection_name):
+    connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
+    fs = get_fs_from_cache(connection)
+
+    return f_mkdir(request, fs)
+
+  @expose("/<connection_name>/filebrowser/touch")
+  def touch(self, connection_name):
+    connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
+    fs = get_fs_from_cache(connection)
+
+    return f_touch(request, fs)
+
+  @expose("/<connection_name>/filebrowser/move")
+  def move(self, connection_name):
+    connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
+    fs = get_fs_from_cache(connection)
+
+    return f_move(request, fs)
+
+  @expose("/<connection_name>/filebrowser/copy")
+  def copy(self, connection_name):
+    connection = db.session.query(models.HDFSConnection).filter_by(connection_name=str(connection_name)).one()
+    fs = get_fs_from_cache(connection)
+
+    return f_copy(request, fs, g.user.username)
 
 class KeytabModelView(SupersetModelView, DeleteMixin):
 

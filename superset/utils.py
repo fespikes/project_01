@@ -551,3 +551,10 @@ def json_error_response(msg, status=None):
   status = status if status else 500
   return Response(
     json.dumps(data), status=status, mimetype="application/json")
+
+def json_success_response(msg, status=None):
+  data = {'message': msg}
+  status = status if status else 200
+  return Response(
+    json.dumps(data), status=status, mimetype="application/json"
+  )
