@@ -45,7 +45,7 @@ class WebHdfs(Hdfs):
                security_enabled=False,
                ssl_cert_ca_verify=True,
                temp_dir="/tmp",
-               umask=01022):
+               umask=0o01022):
     self._url = url
     self._superuser = hdfs_superuser
     self._user = hdfs_user
@@ -429,11 +429,11 @@ class WebHdfs(Hdfs):
 
 
   def getDefaultFilePerms(self):
-    return 0666 & (01777 ^ self.umask)
+    return 0x0666 & (0x01777 ^ self.umask)
 
 
   def getDefaultDirPerms(self):
-    return 01777 & (01777 ^ self.umask)
+    return 0x01777 & (0x01777 ^ self.umask)
 
 
   def create(self, path, overwrite=False, blocksize=None, replication=None, permission=None, data=None):

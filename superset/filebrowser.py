@@ -6,7 +6,7 @@ import posixpath
 import json
 import threading
 import datetime
-import urlparse
+import urllib.parse
 import mimetypes
 
 from flask import Response, url_for
@@ -77,7 +77,7 @@ def remove_from_fs_cache(obj):
 
 def get_fs_from_cache(connection):
 
-  if not fs_cache.has_key(connection.connection_name):
+  if connection.connection_name not in fs_cache:
 
     add_to_fs_cache(connection)
   return fs_cache[connection.connection_name]

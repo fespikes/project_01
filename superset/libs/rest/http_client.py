@@ -2,7 +2,7 @@
 import logging
 import posixpath
 import requests
-import urllib
+from urllib.parse import quote,urlencode
 
 from werkzeug.urls import iri_to_uri
 
@@ -120,7 +120,7 @@ class HttpClient(object):
     """
     # Prepare URL and params
     if urlencode:
-      path = urllib.quote(smart_str(path))
+      path = quote(smart_str(path))
     url = self._make_url(path, params)
 
     if http_method in ("GET", "DELETE"):
@@ -152,6 +152,6 @@ class HttpClient(object):
     if path:
       res += posixpath.normpath('/' + path.lstrip('/'))
     if params:
-      param_str = urllib.urlencode(params)
+      param_str = urlencode(params)
       res += '?' + param_str
     return iri_to_uri(res)

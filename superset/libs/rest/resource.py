@@ -57,7 +57,7 @@ class Resource(object):
           'application/json' in resp.headers.get('content-type'):
       try:
         return resp.json()
-      except Exception, ex:
+      except Exception as ex:
         self._client.logger.exception('JSON decode error: %s' % resp.content)
         raise ex
     else:

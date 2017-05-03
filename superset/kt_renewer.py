@@ -25,8 +25,8 @@ def kinit(kinit_path, keytab_path, principle):
   if subp.returncode != 0:
     logging.error("Couldn't init from keytab: 'kinit' exited with %s.\n%s\n%s" % (
       subp.returncode,
-      "\n".join(subp.stdout.readlines()),
-      "\n".join(subp.stderr.readlines())
+      "\n".join(str(subp.stdout.readlines())),
+      "\n".join(str(subp.stderr.readlines()))
     ))
 
 
