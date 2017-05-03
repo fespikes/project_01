@@ -1,7 +1,7 @@
 """The main config file for Superset
 
-All configuration in this file can be overridden by providing a superset_config
-in your PYTHONPATH as there is a ``from superset_config import *``
+All configuration in this file can be overridden by providing a pilot
+in your PYTHONPATH as there is a ``from pilot import *``
 at the end of this file.
 """
 from __future__ import absolute_import
@@ -17,7 +17,7 @@ from dateutil import tz
 from flask_appbuilder.security.manager import AUTH_DB
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DATA_DIR = os.path.join(os.path.expanduser('~'), '.superset')
+DATA_DIR = os.path.join(os.path.expanduser('~'), 'pilot')
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
@@ -30,24 +30,25 @@ with open(PACKAGE_FILE) as package_file:
     VERSION_STRING = json.load(package_file)['version']
 
 ROW_LIMIT = 50000
-SUPERSET_WORKERS = 2
+SUPERSET_WORKERS = 4
 
 SUPERSET_WEBSERVER_ADDRESS = '0.0.0.0'
-SUPERSET_WEBSERVER_PORT = 8088
+SUPERSET_WEBSERVER_PORT = 8086
 SUPERSET_WEBSERVER_TIMEOUT = 60
 
 CUSTOM_SECURITY_MANAGER = None
 # ---------------------------------------------------------
 
 # Your App secret key
-SECRET_KEY = '=== Transwarp Studio Inceptor ==='  # noqa
+SECRET_KEY = '=== Transwarp Studio Pilot ==='  # noqa
 
 # The SQLAlchemy connection string.
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(DATA_DIR, 'superset.db')
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(DATA_DIR, 'pilot.db')
+
 # If use mysql, the database should be existed and change its charset to 'utf8':
-# 'alter database superset character set utf8'
-# and  'charset=utf8' should be in uri
-#SQLALCHEMY_DATABASE_URI = 'mysql://username:password@lcoalhost:3306/database?charset=utf8'
+# 'create/alter database db character set utf8'
+# and 'charset=utf8' should be in uri
+#SQLALCHEMY_DATABASE_URI = 'mysql://username:password@localhost:3306/db?charset=utf8'
 
 # The limit of queries fetched for query search
 QUERY_SEARCH_LIMIT = 1000
@@ -68,7 +69,7 @@ ENABLE_PROXY_FIX = False
 # GLOBALS FOR APP Builder
 # ------------------------------
 # Uncomment to setup Your App name
-APP_NAME = "Superset"
+APP_NAME = "Pilot"
 
 # Uncomment to setup an App icon
 APP_ICON = "/static/assets/images/superset-logo@2x.png"
@@ -125,14 +126,13 @@ PUBLIC_ROLE_LIKE_GAMMA = False
 # Babel config for translations
 # ---------------------------------------------------
 # Setup default language
-BABEL_DEFAULT_LOCALE = 'en'
+BABEL_DEFAULT_LOCALE = 'zh'
 # Your application default translation path
 BABEL_DEFAULT_FOLDER = 'babel/translations'
 # The allowed translation for you app
 LANGUAGES = {
     'en': {'flag': 'us', 'name': 'English'},
-    # 'fr': {'flag': 'fr', 'name': 'French'},
-    # 'zh': {'flag': 'cn', 'name': 'Chinese'},
+     'zh': {'flag': 'cn', 'name': 'Chinese'},
 }
 # ---------------------------------------------------
 # Image and file configuration
@@ -148,8 +148,10 @@ IMG_UPLOAD_URL = '/static/uploads/'
 # Setup image size default is (300, 200, True)
 # IMG_SIZE = (300, 200, True)
 
-CACHE_DEFAULT_TIMEOUT = 60
-CACHE_CONFIG = {'CACHE_TYPE': 'simple'}
+CACHE_DEFAULT_TIMEOUT = 60 * 60
+CACHE_CONFIG = {'CACHE_TYPE': 'filesystem',
+                'CACHE_THRESHOLD': 500,
+                'CACHE_DIR': '/tmp/pilot_cache'}
 
 # CORS Options
 ENABLE_CORS = False
@@ -192,16 +194,15 @@ LOG_LEVEL = 'DEBUG'
 # Enable Time Rotate Log Handler
 # ---------------------------------------------------
 # LOG_LEVEL = DEBUG, INFO, WARNING, ERROR, CRITICAL
-
 ENABLE_TIME_ROTATE = False
 TIME_ROTATE_LOG_LEVEL = 'DEBUG'
-FILENAME = os.path.join(DATA_DIR, 'superset.log')
+FILENAME = '/var/log/pilot/pilot.log'
 ROLLOVER = 'midnight'
 INTERVAL = 1
 BACKUP_COUNT = 30
 
 # Set this API key to enable Mapbox visualizations
-MAPBOX_API_KEY = ""
+MAPBOX_API_KEY = "This is the key for Mapbox visualizations"
 
 # Maximum number of rows returned in the SQL editor
 SQL_MAX_ROW = 1000
@@ -263,9 +264,9 @@ try:
     if CONFIG_PATH_ENV_VAR in os.environ:
         # Explicitly import config module that is not in pythonpath; useful
         # for case where app is being executed via pex.
-        imp.load_source('superset_config', os.environ[CONFIG_PATH_ENV_VAR])
+        imp.load_source('pilot_config', os.environ[CONFIG_PATH_ENV_VAR])
 
-    from superset_config import *  # noqa
+    from pilot_config import *  # noqa
     print('Loaded your LOCAL configuration')
 except ImportError:
     pass
@@ -275,10 +276,10 @@ EMAIL_NOTIFICATIONS = False  # all the emails are sent using dryrun
 SMTP_HOST = 'localhost'
 SMTP_STARTTLS = True
 SMTP_SSL = False
-SMTP_USER = 'superset'
+SMTP_USER = 'pilot'
 SMTP_PORT = 25
-SMTP_PASSWORD = 'superset'
-SMTP_MAIL_FROM = 'superset@superset.com'
+SMTP_PASSWORD = 'pilot'
+SMTP_MAIL_FROM = 'pilot@pilot.com'
 
 if not CACHE_DEFAULT_TIMEOUT:
     CACHE_DEFAULT_TIMEOUT = CACHE_CONFIG.get('CACHE_DEFAULT_TIMEOUT')

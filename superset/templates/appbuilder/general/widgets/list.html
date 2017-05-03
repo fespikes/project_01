@@ -1,0 +1,76 @@
+{% import 'appbuilder/general/lib.html' as lib %}
+{% extends 'appbuilder/general/widgets/base_list.html' %}
+
+
+    {% block begin_content scoped %}
+        <div class="table-responsive">
+        <table class="responsive-title">
+    {% endblock %}
+
+    {% block begin_loop_header scoped %}
+        <thead>
+        <tr>
+        {% if actions %}
+        <th class="action-checkbox">
+            <input id="check_all" class="action_check_all responsive-checkbox" name="check_all" type="checkbox">
+        </th>
+        {% endif %}
+
+        {% for item in include_columns %}
+            {% if item in order_columns %}
+                {% set res = item | get_link_order(modelview_name) %}
+                    {% if res == 2 %}
+                    <th><a href={{ item | link_order(modelview_name) }}>{{label_columns.get(item)}}
+                    <i class="icon"></i></a></th>
+                {% elif res == 1 %}
+                    <th><a href={{ item | link_order(modelview_name) }}>{{label_columns.get(item)}}
+                    <i class="icon"></i></a></th>
+                {% else %}
+                    <th><a href={{ item | link_order(modelview_name) }}>{{label_columns.get(item)}}
+                    <i class="icon"></i></a></th>
+                {% endif %}
+            {% else %}
+                <th>{{label_columns.get(item)}}</th>
+            {% endif %}
+        {% endfor %}
+
+        {% if can_show or can_edit or can_delete %}
+            <th class="col-md-1 col-lg-1 col-sm-1" ></th>
+        {% endif %}
+
+        </tr>
+        </thead>
+    {% endblock %}
+
+    {% block begin_loop_values %}
+        {% for item in value_columns %}
+            {% set pk = pks[loop.index-1] %}
+            <tr>
+                {% if actions %}
+                <td>
+                    <input id="{{pk}}" class="action_check responsive-checkbox" name="rowid" value="{{pk}}" type="checkbox">
+                </td>
+                {% endif %}
+
+                {% for value in include_columns %}
+                    <td>
+                    {{ item[value]|safe }}
+                    </td>
+                {% endfor %}
+
+                {% if can_show or can_edit or can_delete %}
+                    <td class=""><center>
+                    {{ lib.btn_crud(can_show, can_edit, can_delete, pk, modelview_name, filters) }}
+                    </center></td>
+                {% endif %}
+
+            </tr>
+        {% endfor %}
+    {% endblock %}
+
+    {% block end_content scoped %}
+        </table>
+            {{ lib.render_pagination(page, page_size, count, modelview_name) }}
+        </div>
+    {% endblock %}
+

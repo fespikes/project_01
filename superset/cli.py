@@ -14,6 +14,7 @@ from flask_migrate import MigrateCommand
 from flask_script import Manager
 
 from superset import app, db, data, security
+from superset.models import DailyNumber
 
 config = app.config
 
