@@ -16,7 +16,7 @@ class WebHdfsStat(object):
   """
 
   def __init__(self, file_status, parent_path):
-    self.name = decode_fs_path(file_status['pathSuffix'])
+    self.name = file_status['pathSuffix']
     self.path = Hdfs.join(parent_path, self.name)
     self.isDir = file_status['type'] == 'DIRECTORY'
     self.type = file_status['type']

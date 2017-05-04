@@ -29,12 +29,18 @@ def validate_encoding(encoding):
 
 def smart_unicode(s, strings_only=False, errors='strict'):
   if s:
-    return s.encode(SITE_ENCODING)
+    if not isinstance(s,bytes):
+      return s.encode(SITE_ENCODING)
+    else:
+      return s
   return ''
 
 def force_unicode(s, strings_only=False, errors='strict'):
   if s:
-    return s.encode(SITE_ENCODING)
+    if not isinstance(s,bytes):
+      return s.encode(SITE_ENCODING)
+    else:
+      return s
   return ''
 
 def smart_str(s, strings_only=False, errors='strict'):

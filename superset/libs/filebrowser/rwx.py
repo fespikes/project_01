@@ -51,7 +51,7 @@ def rwx(mode, aclBit=False):
   I couldn't find much extant code along these lines;
   this is similar in spirit to the google-able "pathinfo.py".
   """
-  bools = expand_mode(mode)
+  bools = list(expand_mode(mode))
   s = list("rwxrwxrwxt")
   for (i, v) in enumerate(bools[:-1]):
     if not v:
