@@ -146,11 +146,9 @@ ACCESS_REQUEST_MISSING_ERR = __(
     "The access requests seem to have been deleted")
 USER_MISSING_ERR = __("The user seems to have been deleted")
 DATASOURCE_ACCESS_ERR = __("You don't have access to this datasource")
-<<<<<<< HEAD
 MAKING_UPLOAD_DIR_FAILED_ERR = __("Error occurred when creating keytab directory")
 KEYTAB_UPLOAD_FAILED_ERR = __("Uploading keytab failed")
 KEYTAB_FILE_EXISTS = __("Keytab file already exists")
-=======
 OBJECT_NOT_FOUND = __("Not found this object")
 ONLINE_SUCCESS = __("Change to online success")
 OFFLINE_SUCCESS = __("Change to offline success")
@@ -161,7 +159,6 @@ ERROR_REQUEST_PARAM = __("Error request parameter")
 ERROR_CLASS_TYPE = __("Error model type")
 NO_USER = __("Can't get user")
 NO_PERMISSION = __("No permission for 'online' and 'offline'")
->>>>>>> master
 
 
 
