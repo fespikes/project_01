@@ -6,7 +6,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    
 };
 
 class SliceEdit extends React.Component {
@@ -49,13 +48,13 @@ class SliceEdit extends React.Component {
 
     render() {
         return (
-            <div id="popup" className="popup">
+            <div id="popup" className="popup" style={{display:'none'}}>
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="glyphicon glyphicon-share"></i>
-                                <span>基本信息</span>
+                                <i className="icon"></i>
+                                <span>工作表基本信息</span>
                             </div>
                             <div className="header-right">
                                 <i className="glyphicon glyphicon-remove" onClick={this.closeDialog}></i>

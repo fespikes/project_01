@@ -3,14 +3,12 @@ import { render } from 'react-dom';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
-import { operate, SliceEdit } from './components/Slice';
+import { Operate, SliceEdit } from './components/Slice';
 
 const $ = window.$ = require('jquery');
+var popupEl = render(<SliceEdit />, document.getElementById('popup_root'));
 
-
-$(".slice-edit-popup").click(function () {
-	
-	var popupEl = render(<SliceEdit />, document.getElementById('popup_root'));
+$(".slice-edit-popup").on('click',function () {
 	if(popupEl) {
 		popupEl.showDialog();	
 	}

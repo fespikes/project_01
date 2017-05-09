@@ -22,8 +22,8 @@ import uuid
 import sqlalchemy as sqla
 from multiprocessing import Process, Queue
 
-from flask import (
-    g, request, redirect, flash, Response, render_template, Markup)
+from flask import (g, request, redirect, flash,
+                   Response, render_template, Markup, abort)
 from flask_appbuilder import ModelView, CompactCRUDMixin, BaseView, expose
 from flask_appbuilder.actions import action
 from flask_appbuilder.models.sqla.interface import SQLAInterface
@@ -206,9 +206,9 @@ def check_ownership(obj, raise_if_false=True):
         if raise_if_false:
             raise security_exception
         return False
-    roles = (r.name for r in get_user_roles())
-    if 'Admin' in roles:
-        return True
+    # roles = (r.name for r in get_user_roles())
+    # if 'Admin' in roles:
+    #     return True
     session = db.create_scoped_session()
     orig_obj = session.query(obj.__class__).filter_by(id=obj.id).first()
     owner_names = (user.username for user in orig_obj.owners)
@@ -368,6 +368,10 @@ class SupersetModelView(ModelView):
     filter = None
     only_favorite = False        # all or favorite
 
+    def populate_obj(self, obj, values):
+        for key, value in values.items():
+            setattr(obj, key, value)
+
     def query_own_or_online(self, class_name, user_id, only_favorite):
         query = (
             db.session.query(self.model, User.username, FavStar.obj_id)
@@ -395,6 +399,56 @@ class SupersetModelView(ModelView):
             )
 
         return query
+
+    def get_request_data(self):
+        data = request.data
+        return json.loads(data)
+
+    def get_object(self, obj_id):
+        obj_id = int(obj_id)
+        obj = db.session.query(self.model).filter_by(id=obj_id).one()
+        if not obj:
+            abort(404)
+        else:
+            return obj
+
+    def get_available_dashboards(self, user_id):
+        user_id = int(user_id)
+        dashs = db.session.query(models.Dashboard) \
+            .filter_by(created_by_fk=user_id).all()
+        return dashs
+
+    def get_available_slices(self, user_id):
+        user_id = int(user_id)
+        slices = (
+            db.session.query(models.Slice)
+                .filter(
+                or_(models.Slice.created_by_fk == user_id,
+                    models.Slice.online == 1)
+            ).all()
+        )
+        return slices
+
+    def dashboards_to_dict(self, dashs):
+        dashs_list = []
+        for dash in dashs:
+            row = {'id': dash.id, 'dashboard_title': dash.dashboard_title}
+            dashs_list.append(row)
+        return dashs_list
+
+    def slices_to_dict(self, slices):
+        slices_list = []
+        for slice in slices:
+            row = {'id': slice.id, 'slice_name': slice.slice_name}
+            slices_list.append(row)
+        return slices_list
+
+    def tables_to_dict(self, tables):
+        tables_list = []
+        for table in tables:
+            row = {'id': table.id, 'table_name': table.table_name}
+            tables_list.append(row)
+        return tables_list
 
 
 class TableColumnInlineView(CompactCRUDMixin, SupersetModelView):  # noqa
@@ -459,48 +513,6 @@ class TableColumnInlineView(CompactCRUDMixin, SupersetModelView):  # noqa
         'database_expression': _("Database Expression")
     }
 
-# class DruidColumnInlineView(CompactCRUDMixin, SupersetModelView):  # noqa
-#     datamodel = SQLAInterface(models.DruidColumn)
-#     edit_columns = [
-#         'column_name', 'description', 'dimension_spec_json', 'datasource',
-#         'groupby', 'count_distinct', 'sum', 'min', 'max']
-#     add_columns = edit_columns
-#     list_columns = [
-#         'column_name', 'type', 'groupby', 'filterable', 'count_distinct',
-#         'sum', 'min', 'max']
-#     can_delete = False
-#     page_size = 500
-#     label_columns = {
-#         'column_name': _("Column"),
-#         'type': _("Type"),
-#         'datasource': _("Datasource"),
-#         'groupby': _("Groupable"),
-#         'filterable': _("Filterable"),
-#         'count_distinct': _("Count Distinct"),
-#         'sum': _("Sum"),
-#         'min': _("Min"),
-#         'max': _("Max"),
-#     }
-#     description_columns = {
-#         'dimension_spec_json': utils.markdown(
-#             "this field can be used to specify  "
-#             "a `dimensionSpec` as documented [here]"
-#             "(http://druid.io/docs/latest/querying/dimensionspecs.html). "
-#             "Make sure to input valid JSON and that the "
-#             "`outputName` matches the `column_name` defined "
-#             "above.",
-#             True),
-#     }
-#
-#     def post_update(self, col):
-#         col.generate_metrics()
-#         utils.validate_json(col.dimension_spec_json)
-#
-#     def post_add(self, col):
-#         self.post_update(col)
-#
-# appbuilder.add_view_no_menu(DruidColumnInlineView)
-
 
 class SqlMetricInlineView(CompactCRUDMixin, SupersetModelView):  # noqa
     datamodel = SQLAInterface(models.SqlMetric)
@@ -547,48 +559,9 @@ class SqlMetricInlineView(CompactCRUDMixin, SupersetModelView):  # noqa
         if metric.is_restricted:
             security.merge_perm(sm, 'metric_access', metric.get_perm())
 
-# class DruidMetricInlineView(CompactCRUDMixin, SupersetModelView):  # noqa
-#     datamodel = SQLAInterface(models.DruidMetric)
-#     list_columns = ['metric_name', 'verbose_name', 'metric_type']
-#     edit_columns = [
-#         'metric_name', 'description', 'verbose_name', 'metric_type', 'json',
-#         'datasource', 'd3format', 'is_restricted']
-#     add_columns = edit_columns
-#     page_size = 500
-#     validators_columns = {
-#         'json': [validate_json],
-#     }
-#     description_columns = {
-#         'metric_type': utils.markdown(
-#             "use `postagg` as the metric type if you are defining a "
-#             "[Druid Post Aggregation]"
-#             "(http://druid.io/docs/latest/querying/post-aggregations.html)",
-#             True),
-#         'is_restricted': _("Whether the access to this metric is restricted "
-#                            "to certain roles. Only roles with the permission "
-#                            "'metric access on XXX (the name of this metric)' "
-#                            "are allowed to access this metric"),
-#     }
-#     label_columns = {
-#         'metric_name': _("Metric"),
-#         'description': _("Description"),
-#         'verbose_name': _("Verbose Name"),
-#         'metric_type': _("Type"),
-#         'json': _("JSON"),
-#         'datasource': _("Druid Datasource"),
-#     }
-#
-#     def post_add(self, metric):
-#         utils.init_metrics_perm(superset, [metric])
-#
-#     def post_update(self, metric):
-#         utils.init_metrics_perm(superset, [metric])
-#
-#
-# appbuilder.add_view_no_menu(DruidMetricInlineView)
-
 
 class DatabaseView(SupersetModelView, DeleteMixin):  # noqa
+    model = models.Database
     datamodel = SQLAInterface(models.Database)
     list_title = _("List Database")
     show_title = _("Show Database")
@@ -647,46 +620,178 @@ class DatabaseView(SupersetModelView, DeleteMixin):  # noqa
         'changed_on': _("Changed On"),
     }
 
-    def pre_add(self, db):
-        db.set_sqlalchemy_uri(db.sqlalchemy_uri)
-        security.merge_perm(sm, 'database_access', db.perm)
-        for schema in db.all_schema_names():
-            security.merge_perm(
-                sm, 'schema_access', utils.get_schema_perm(db, schema))
+    # used for order column
+    str_to_column = {
+        'title': Database.database_name,
+        'time': Database.changed_on,
+        'owner': User.username
+    }
+
+    def add_(self):
+        user_id = g.user.get_id()
+        json_data = self.get_request_data()
+        obj = self.populate_database(user_id, json_data)
+        try:
+            self.pre_add(obj)
+        except Exception as e:
+            flash(str(e), "danger")
+        else:
+            if self.datamodel.add(obj):
+                self.post_add(obj)
+
+    def show_(self):
+        json_data = self.get_request_data()
+        obj_id = json_data.get('id', 0)
+        obj = self.get_object(obj_id)
+        response = {}
+        response['id'] = obj.id
+        response['database_name'] = obj.database_name
+        response['sqlalchemy_uri'] = obj.sqlalchemy_uri
+        return json.dumps(response)
+
+    def populate_database(self, user_id, data):
+        user_id = int(user_id)
+        obj_id = int(data.get('id', 0))
+        if obj_id:
+            obj = self.get_object(obj_id)
+            obj.changed_by_fk = user_id
+            obj.changed_on = datetime.now()
+        else:
+            obj = models.Database()
+            obj.created_by_fk = user_id
+            obj.created_on = datetime.now()
+        values = {}
+        values['database_name'] = data.get('database_name')
+        values['sqlalchemy_uri'] = data.get('sqlalchemy_uri')
+        self.populate_obj(obj, values)
+        return obj
+
+    def update_(self):
+        user_id = g.user.get_id()
+        json_data = self.get_request_data()
+        obj = self.populate_database(user_id, json_data)
+        try:
+            self.pre_update(obj)
+        except Exception as e:
+            flash(str(e), "danger")
+        else:
+            if self.datamodel.edit(obj):
+                self.post_update(obj)
+
+    def delete_(self):
+        json_data = self.get_request_data()
+        obj_id = json_data.get('id', 0)
+        obj = self.get_object(obj_id)
+        try:
+            self.pre_delete(obj)
+        except Exception as e:
+            flash(str(e), "danger")
+        else:
+            if self.datamodel.delete(obj):
+                self.post_delete(obj)
+            flash(*self.datamodel.message)
+            self.update_redirect()
+
+    def pre_add(self, obj):
+        if obj.test_uri(obj.sqlalchemy_uri):
+            obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
+        else:
+            raise Exception("Not a valid connection")
 
     def post_add(self, obj):
+        self.add_or_edit_database_account(db)
+        security.merge_perm(sm, 'database_access', obj.perm)
+        for schema in obj.all_schema_names():
+            security.merge_perm(
+                sm, 'schema_access', utils.get_schema_perm(db, schema))
         # log user aciton
-        action_str = 'Add connection: {}'.format(repr(obj))
+        action_str = 'Add connection: {}'.format(repr(db))
         log_action('add', action_str, 'database', obj.id)
         # log database number
         log_number('database', g.user.get_id())
-        self.add_database_account(obj)
 
-    def add_database_account(self, obj):
+    def pre_update(self, obj):
+        self.pre_add(obj)
+
+    def post_update(self, obj):
+        self.add_or_edit_database_account(db)
+        # log user action
+        action_str = 'Edit connection: {}'.format(repr(db))
+        log_action('edit', action_str, 'database', obj.id)
+
+    def pre_delete(self, obj):
+        db.session.query(models.DatabaseAccount) \
+            .filter(models.DatabaseAccount.database_id == obj.id) \
+            .delete(synchronize_session=False)
+        db.session.commit()
+
+    def post_delete(self, obj):
+        # log user action
+        action_str = 'Delete connection: {}'.format(repr(db))
+        log_action('delete', action_str, 'database', obj.id)
+        # log database number
+        log_number('database', g.user.get_id())
+
+    def add_or_edit_database_account(self, obj):
         url = sqla.engine.url.make_url(obj.sqlalchemy_uri_decrypted)
         user_id = g.user.get_id()
         db_account = models.DatabaseAccount
         db_account.insert_or_update_account(
             user_id, obj.id, url.username, url.password)
 
-    def pre_update(self, db):
-        self.pre_add(db)
+    def get_database_list(self, order_column, order_direction,
+                       page, page_size, filter_str):
+        """Return the database(connection) list"""
+        query = (
+            db.session.query(Database, User)
+            .filter(Database.created_by_fk == User.id)
+        )
 
-    def post_update(self, obj):
-        # log user action
-        action_str = 'Edit connection: {}'.format(repr(obj))
-        log_action('edit', action_str, 'database', obj.id)
+        if filter_str:
+            filter_str = '%{}%'.format(filter_str.lower())
+            query = query.filter(
+                or_(
+                    Database.database_name.ilike(filter_str),
+                    User.username.ilike(filter_str)
+                )
+            )
+        count = query.count()
 
-    def post_delete(self, obj):
-        # log user action
-        action_str = 'Delete connection: {}'.format(repr(obj))
-        log_action('delete', action_str, 'database', obj.id)
-        # log database number
-        log_number('database', g.user.get_id())
-        db.session.query(models.DatabaseAccount) \
-            .filter(models.DatabaseAccount.database_id == obj.id) \
-            .delete(synchronize_session=False)
-        db.session.commit()
+        if order_column:
+            try:
+                column = self.str_to_column.get(order_column)
+            except KeyError:
+                logging.error('Error order column name: \'{}\' passed to get_database_list()'
+                              .format(order_column))
+            else:
+                if order_direction == 'desc':
+                    query = query.order_by(column.desc())
+                else:
+                    query = query.order_by(column)
+
+        if page is not None and page >= 0 and page_size and page_size > 0:
+            query = query.limit(page_size).offset(page * page_size)
+
+        rs = query.all()
+        data = []
+        for database, user in rs:
+            line = {
+                'id': database.id,
+                'title': database.database_name,
+                'type': database.backend,
+                'owner': user.username,
+                'time': str(database.changed_on)
+            }
+            data.append(line)
+
+        response = {}
+        response['count'] = count
+        response['order_column'] = order_column
+        response['order_direction'] = 'desc' if order_direction == 'desc' else 'asc'
+        response['page'] = page
+        response['page_size'] = page_size
+        response['data'] = data
+        return response
 
 # appbuilder.add_link(
 #     'Import Dashboards',
@@ -711,6 +816,7 @@ class DatabaseTablesAsync(DatabaseView):
 
 
 class TableModelView(SupersetModelView, DeleteMixin):  # noqa
+    model = models.SqlaTable
     datamodel = SQLAInterface(models.SqlaTable)
     list_title = _("List Table")
     show_title = _("Show Table")
@@ -758,6 +864,75 @@ class TableModelView(SupersetModelView, DeleteMixin):  # noqa
         'offset': _("Offset"),
         'cache_timeout': _("Cache Timeout"),
     }
+
+    # used for order column
+    str_to_column = {
+        'title': SqlaTable.table_name,
+        'time': SqlaTable.changed_on,
+        'owner': User.username
+    }
+
+    def get_table_list(self, order_column, order_direction,
+                       page, page_size, filter_str, type=None):
+        """Return the table list"""
+        query = (
+            db.session.query(SqlaTable, Database, User)
+            .filter(SqlaTable.database_id == Database.id,
+                    SqlaTable.created_by_fk == User.id)
+        )
+
+        # todo add column backend for filter
+        # if type:      # hdfs, inceptor, mysql
+        #     query = query.filter(Database.backend.like(type))
+        if filter_str:
+            filter_str = '%{}%'.format(filter_str.lower())
+            query = query.filter(
+                or_(
+                    SqlaTable.table_name.ilike(filter_str),
+                    Database.database_name.ilike(filter_str),
+                    User.username.ilike(filter_str)
+                )
+            )
+        count = query.count()
+
+        if order_column:
+            try:
+                column = self.str_to_column.get(order_column)
+            except KeyError:
+                logging.error('Error order column name: \'{}\' passed to get_table_list()'
+                              .format(order_column))
+            else:
+                if order_direction == 'desc':
+                    query = query.order_by(column.desc())
+                else:
+                    query = query.order_by(column)
+
+        if page is not None and page >= 0 and page_size and page_size > 0:
+            query = query.limit(page_size).offset(page * page_size)
+
+        rs = query.all()
+        data = []
+        for table, database, user in rs:
+            line = {
+                'id': table.id,
+                'title': table.table_name,
+                'link': table.explore_url,
+                'type': database.backend,
+                'connection': database.database_name,
+                'owner': user.username,
+                'time': str(table.changed_on)
+            }
+            data.append(line)
+
+        response = {}
+        response['count'] = count
+        response['order_column'] = order_column
+        response['order_direction'] = 'desc' if order_direction == 'desc' else 'asc'
+        response['page'] = page
+        response['page_size'] = page_size
+        response['type'] = type
+        response['data'] = data
+        return response
 
     def pre_add(self, table):
         number_of_existing_tables = db.session.query(
@@ -813,67 +988,6 @@ class TableModelView(SupersetModelView, DeleteMixin):  # noqa
         log_action('delete', action_str, 'table', table.id)
         # log table number
         log_number('table', g.user.get_id())
-
-# class AccessRequestsModelView(SupersetModelView, DeleteMixin):
-#     datamodel = SQLAInterface(DAR)
-#     list_columns = [
-#         'username'FormWidget, 'user_roles', 'datasource_link',
-#         'roles_with_datasource', 'created_on']
-#     order_columns = ['username', 'datasource_link']
-#     base_order = ('changed_on', 'desc')
-#     label_columns = {
-#         'username': _("User"),
-#         'user_roles': _("User Roles"),
-#         'database': _("Database URL"),
-#         'datasource_link': _("Datasource"),
-#         'roles_with_datasource': _("Roles to grant"),
-#         'created_on': _("Created On"),
-#     }
-
-# appbuilder.add_view(
-#     AccessRequestsModelView,
-#     "Access requests",
-#     label=__("Access requests"),
-#     category="Security",
-#     category_label=__("Security"),
-#     icon='fa-table',)
-
-
-# class DruidClusterModelView(SupersetModelView, DeleteMixin):  # noqa
-#     datamodel = SQLAInterface(models.DruidCluster)
-#     add_columns = [
-#         'cluster_name',
-#         'coordinator_host', 'coordinator_port', 'coordinator_endpoint',
-#         'broker_host', 'broker_port', 'broker_endpoint', 'cache_timeout',
-#     ]
-#     edit_columns = add_columns
-#     list_columns = ['cluster_name', 'metadata_last_refreshed']
-#     label_columns = {
-#         'cluster_name': _("Cluster"),
-#         'coordinator_host': _("Coordinator Host"),
-#         'coordinator_port': _("Coordinator Port"),
-#         'coordinator_endpoint': _("Coordinator Endpoint"),
-#         'broker_host': _("Broker Host"),
-#         'broker_port': _("Broker Port"),
-#         'broker_endpoint': _("Broker Endpoint"),
-#     }
-#
-#     def pre_add(self, cluster):
-#         security.merge_perm(sm, 'database_access', cluster.perm)
-#
-#     def pre_update(self, cluster):
-#         self.pre_add(cluster)
-#
-#
-# if config['DRUID_IS_ACTIVE']:
-#     appbuilder.add_view(
-#         DruidClusterModelView,
-#         name="Druid Clusters",
-#         label=__("Druid Clusters"),
-#         icon="fa-cubes",
-#         category="Sources",
-#         category_label=__("Sources"),
-#         category_icon='fa-database',)
 
 
 class SliceModelView(SupersetModelView, DeleteMixin):  # noqa
@@ -975,6 +1089,72 @@ class SliceModelView(SupersetModelView, DeleteMixin):  # noqa
         return self.render_template(self.list_template,
                                     title=self.list_title,
                                     widgets=widgets)
+
+    def show_(self):
+        user_id = g.user.get_id()
+        data = self.get_request_data()
+        obj_id = data.get('id')
+        obj = self.get_object(obj_id)
+        response = {}
+        response['id'] = obj.id
+        response['slice_name'] = obj.slice_name
+        response['description'] = obj.description
+        response['dashboards'] = self.dashboards_to_dict(obj.dashboards)
+        response['created_on'] = str(obj.created_on)
+        response['changed_on'] = str(obj.changed_on)
+        response['created_by_user'] = \
+            obj.created_by.username if obj.created_by else None
+        response['changed_by_user'] = \
+            obj.changed_by.username if obj.changed_by else None
+        available_dashs = self.get_available_dashboards(user_id)
+        response['available_dashboards'] = self.dashboards_to_dict(available_dashs)
+        return json.dumps(response)
+
+    def populate_slice(self, user_id, json_data):
+        user_id = int(user_id)
+        obj_id = json_data.get('id')
+        obj = self.get_object(obj_id)
+
+        values = {}
+        values['slice_name'] = json_data.get('slice_name')
+        values['description'] = json_data.get('description')
+        dashs_list = json_data.get('dashboards')
+        dashboards = []
+        for dash_dict in dashs_list:
+            dash_obj = db.session.query(models.Dashboard) \
+                .filter_by(dashboard_title=dash_dict.get('dashboard_title')).one()
+            dashboards.append(dash_obj)
+        values['dashboards'] = dashboards
+        values['changed_by_fk'] = user_id
+        values['changed_on'] = datetime.now()
+        self.populate_obj(obj, values)
+        return obj
+
+    def update_(self):
+        user_id = g.user.get_id()
+        json_data = self.get_request_data()
+        obj = self.populate_slice(user_id, json_data)
+        try:
+            self.pre_update(obj)
+        except Exception as e:
+            flash(str(e), "danger")
+        else:
+            if self.datamodel.edit(obj):
+                self.post_update(obj)
+
+    def delete_(self):
+        data = self.get_request_data()
+        obj_id = data.get('id')
+        obj = self.get_object(obj_id)
+        try:
+            self.pre_delete(obj)
+        except Exception as e:
+            flash(str(e), "danger")
+        else:
+            if self.datamodel.delete(obj):
+                self.post_delete(obj)
+            flash(*self.datamodel.message)
+            self.update_redirect()
 
     def pre_update(self, obj):
         check_ownership(obj)
@@ -1331,6 +1511,92 @@ class DashboardModelView(SupersetModelView, DeleteMixin):  # noqa
         response['data'] = data
         return response
 
+    def available_slices_json(self):
+        """Called by frontend"""
+        user_id = g.user.get_id()
+        slices = self.get_available_slices(user_id)
+        d = self.slices_to_dict(slices)
+        return json.dumps({'available_slices': d})
+
+    def add_(self):
+        user_id = g.user.get_id()
+        json_data = self.get_request_data()
+        obj = self.populate_dashboard(user_id, json_data)
+        try:
+            self.pre_add(obj)
+        except Exception as e:
+            flash(str(e), "danger")
+        else:
+            if self.datamodel.add(obj):
+                self.post_add(obj)
+
+    def show_(self):
+        user_id = g.user.get_id()
+        data = self.get_request_data()
+        obj_id = data.get('id')
+        obj = self.get_object(obj_id)
+        response = {}
+        response['id'] = obj.id
+        response['dashboard_title'] = obj.dashboard_title
+        response['description'] = obj.description
+        response['slices'] = self.slices_to_dict(obj.slices)
+        response['datasources'] = self.tables_to_dict(obj.datasources)
+        available_slices = self.get_available_slices(user_id)
+        response['available_slices'] = self.slices_to_dict(available_slices)
+        return json.dumps(response)
+
+    def populate_dashboard(self, user_id, json_data):
+        user_id = int(user_id)
+        obj_id = json_data.get('id')
+        if obj_id:  # edit
+            obj = self.get_object(obj_id)
+            obj.changed_by_fk = user_id
+            obj.changed_on = datetime.now()
+        else:   # add
+            obj = models.Dashboard()
+            obj.created_by_fk = user_id
+            obj.created_on = datetime.now()
+
+        values = {}
+        values['dashboard_title'] = json_data.get('dashboard_title')
+        values['description'] = json_data.get('description')
+        slices_list = json_data.get('slices')
+        slices = []
+        for slice_dict in slices_list:
+            slice_obj = db.session.query(models.Slice) \
+                .filter_by(id=slice_dict.get('id')).one()
+            slices.append(slice_obj)
+        values['slices'] = slices
+        values['changed_by_fk'] = user_id
+        values['changed_on'] = datetime.now()
+        self.populate_obj(obj, values)
+        return obj
+
+    def update_(self):
+        user_id = g.user.get_id()
+        json_data = self.get_request_data()
+        obj = self.populate_dashboard(user_id, json_data)
+        try:
+            self.pre_update(obj)
+        except Exception as e:
+            flash(str(e), "danger")
+        else:
+            if self.datamodel.edit(obj):
+                self.post_update(obj)
+
+    def delete_(self):
+        json_data = self.get_request_data()
+        obj_id = json_data.get(id)
+        obj = self.get_object(obj_id)
+        try:
+            self.pre_delete(obj)
+        except Exception as e:
+            flash(str(e), "danger")
+        else:
+            if self.datamodel.delete(obj):
+                self.post_delete(obj)
+            flash(*self.datamodel.message)
+
     @expose("/action/<action>/<dashboard_id>")
     def dashbaord_online_or_offline(self, action, dashboard_id):
         obj = db.session.query(models.Dashboard) \
@@ -1394,82 +1660,6 @@ appbuilder.add_view(
 class QueryView(SupersetModelView):
     datamodel = SQLAInterface(models.Query)
     list_columns = ['user', 'database', 'status', 'start_time', 'end_time']
-
-# appbuilder.add_view(
-#     QueryView,
-#     "Queries",
-#     label=__("Queries"),
-#     category="Manage",
-#     category_label=__("Manage"),
-#     icon="fa-search")
-
-
-# class DruidDatasourceModelView(SupersetModelView, DeleteMixin):  # noqa
-#     datamodel = SQLAInterface(models.DruidDatasource)
-#     list_widget = ListWidgetWithCheckboxes
-#     list_columns = [
-#         'datasource_link', 'cluster', 'changed_by_', 'changed_on_', 'offset']
-#     order_columns = [
-#         'datasource_link', 'changed_on_', 'offset']
-#     related_views = [DruidColumnInlineView, DruidMetricInlineView]
-#     edit_columns = [
-#         'datasource_name', 'cluster', 'description', 'owner',
-#         'is_featured', 'is_hidden', 'filter_select_enabled',
-#         'default_endpoint', 'offset', 'cache_timeout']
-#     add_columns = edit_columns
-#     show_columns = add_columns + ['perm']
-#     page_size = 500
-#     base_order = ('datasource_name', 'asc')
-#     description_columns = {
-#         'offset': _("Timezone offset (in hours) for this datasource"),
-#         'description': Markup(
-#             "Supports <a href='"
-#             "https://daringfireball.net/projects/markdown/' target='_blank'>markdown</a>"),
-#     }
-#     base_filters = [['id', DatasourceFilter, lambda: []]]
-#     label_columns = {
-#         'datasource_link': _("Data Source"),
-#         'cluster': _("Cluster"),
-#         'description': _("Description"),
-#         'owner': _("Owner"),
-#         'is_featured': _("Is Featured"),
-#         'is_hidden': _("Is Hidden"),
-#         'filter_select_enabled': _("Enable Filter Select"),
-#         'default_endpoint': _("Default Endpoint"),
-#         'offset': _("Time Offset"),
-#         'cache_timeout': _("Cache Timeout"),
-#     }
-#
-#     def pre_add(self, datasource):
-#         number_of_existing_datasources = db.session.query(
-#             sqla.func.count('*')).filter(
-#             models.DruidDatasource.datasource_name ==
-#                 datasource.datasource_name,
-#             models.DruidDatasource.cluster_name == datasource.cluster.id
-#         ).scalar()
-#
-#         # table object is already added to the session
-#         if number_of_existing_datasources > 1:
-#             raise Exception(get_datasource_exist_error_mgs(
-#                 datasource.full_name))
-#
-#     def post_add(self, datasource):
-#         datasource.generate_metrics()
-#         security.merge_perm(sm, 'datasource_access', datasource.get_perm())
-#         if datasource.schema:
-#             security.merge_perm(sm, 'schema_access', datasource.schema_perm)
-#
-#     def post_update(self, datasource):
-#         self.post_add(datasource)
-#
-# if config['DRUID_IS_ACTIVE']:
-#     appbuilder.add_view(
-#         DruidDatasourceModelView,
-#         "Druid Datasources",
-#         label=__("Druid Datasources"),
-#         category="Sources",
-#         category_label=__("Sources"),
-#         icon="fa-cube")
 
 
 @app.route('/health')
@@ -1730,15 +1920,34 @@ class Superset(BaseSupersetView):
         session.commit()
         return redirect('/accessrequestsmodelview/list/')
 
-    def get_viz(self, slice_id=None, args=None, datasource_type=None,
-                datasource_id=None):
+    def temp_table(self, database_id, full_tb_name):
+        """A temp table for slice"""
+        table = SqlaTable()
+        table.id = 0
+        if '.' in full_tb_name:
+            table.schema, table.table_name = full_tb_name.split('.')
+        else:
+            table.table_name = full_tb_name
+        table.database_id = database_id
+        table.database = db.session.query(models.Database) \
+            .filter_by(id=database_id).first()
+        table.filter_select_enabled = True
+        table.set_temp_columns_and_metrics()
+        return table
+
+    def get_viz(self, slice_id=None, args=None,
+                datasource_type=None, datasource_id=None,
+                database_id=None, full_tb_name=None):
         if slice_id:
             slc = db.session.query(models.Slice).filter_by(id=slice_id).one()
             return slc.get_viz()
         else:
             viz_type = args.get('viz_type', 'table')
-            datasource = SourceRegistry.get_datasource(
-                datasource_type, datasource_id, db.session)
+            if database_id and full_tb_name:
+                datasource = self.temp_table(database_id, full_tb_name)
+            else:
+                datasource = SourceRegistry.get_datasource(
+                    datasource_type, datasource_id, db.session)
             viz_obj = viz.viz_types[viz_type](
                 datasource, request.args if request.args else args)
             return viz_obj
@@ -1749,26 +1958,31 @@ class Superset(BaseSupersetView):
         viz_obj = self.get_viz(slice_id)
         return redirect(viz_obj.get_url(**request.args))
 
-    # @log_this
     @has_access_api
     @expose("/explore_json/<datasource_type>/<datasource_id>/")
     def explore_json(self, datasource_type, datasource_id):
         """render the chart of slice"""
+        # todo modify the url with parameters: datasource_id, full_tb_name
+        database_id = request.args.get('database_id')
+        full_tb_name = request.args.get('full_tb_name')
         try:
+            # todo midify get_viz with parameters: database_id, full_tb_name
             viz_obj = self.get_viz(
                 datasource_type=datasource_type,
                 datasource_id=datasource_id,
+                database_id=database_id,
+                full_tb_name=full_tb_name,
                 args=request.args)
         except Exception as e:
             logging.exception(e)
             return json_error_response(utils.error_msg_from_exception(e))
 
-        if not self.datasource_access(viz_obj.datasource):
-            return Response(
-                json.dumps(
-                    {'error': DATASOURCE_ACCESS_ERR}),
-                status=404,
-                mimetype="application/json")
+        # if not self.datasource_access(viz_obj.datasource):
+        #     return Response(
+        #         json.dumps(
+        #             {'error': DATASOURCE_ACCESS_ERR}),
+        #         status=404,
+        #         mimetype="application/json")
 
         payload = {}
         status = 200
@@ -1811,37 +2025,13 @@ class Superset(BaseSupersetView):
             return redirect('/dashboardmodelview/list/')
         return self.render_template('superset/import_dashboards.html')
 
-    def add_table(self, database_id, schema, table_name):
-        """add table at backend when choice source table for new slice"""
-        if '.' in table_name:
-            schema, table_name = table_name.split('.')
-        tb = SourceRegistry.get_table(
-            db.session, 'table', table_name, schema, database_id)
-        if tb:
-            return 'table', tb.id
-
-        tb = models.SqlaTable(table_name=table_name)
-        tb.schema = schema
-        tb.database_id = database_id
-        tb.database = db.session.query(models.Database)\
-            .filter_by(id=database_id).first()
-        db.session.merge(tb)
-        db.session.commit()
-        tb.fetch_metadata()
-        new_tb = SourceRegistry.get_table(
-            db.session, 'table', table_name, schema, database_id)
-        return 'table', new_tb.id
-
-    # Todo: add parameters in expose url: 'database_id','table_name'
-    # "/explore/<datasource_type>/<datasource_id>/<database_id>/<table_name>"
-    # then add_table()
-    # @log_this
     @has_access
     @expose("/explore/<datasource_type>/<datasource_id>/")
     def explore(self, datasource_type, datasource_id):
         """render the parameters of slice"""
         viz_type = request.args.get("viz_type")
         slice_id = request.args.get('slice_id')
+
         slc = None
         user_id = g.user.get_id() if g.user else None
 
@@ -1852,29 +2042,36 @@ class Superset(BaseSupersetView):
         datasource_class = SourceRegistry.sources[datasource_type]
         datasources = db.session.query(datasource_class).all()
         datasources = sorted(datasources, key=lambda ds: ds.full_name)
+        databases = db.session.query(models.Database)\
+            .filter_by(expose_in_sqllab=1).all()
+        databases = sorted(databases, key=lambda d: d.name)
 
+        database_id = request.args.get('database_id')
+        full_tb_name = request.args.get('full_tb_name')
         try:
             viz_obj = self.get_viz(
                 datasource_type=datasource_type,
                 datasource_id=datasource_id,
+                database_id=database_id,
+                full_tb_name=full_tb_name,
                 args=request.args)
         except Exception as e:
             flash('{}'.format(e), "alert")
             return redirect(error_redirect)
 
-        if not viz_obj.datasource:
-            flash(DATASOURCE_MISSING_ERR, "alert")
-            return redirect(error_redirect)
-
-        if not self.datasource_access(viz_obj.datasource):
-            flash(
-                __(get_datasource_access_error_msg(viz_obj.datasource.name)),
-                "danger")
-            return redirect(
-                'superset/request_access/?'
-                'datasource_type={datasource_type}&'
-                'datasource_id={datasource_id}&'
-                ''.format(**locals()))
+        # if not viz_obj.datasource:
+        #     flash(DATASOURCE_MISSING_ERR, "alert")
+        #     return redirect(error_redirect)
+        #
+        # if not self.datasource_access(viz_obj.datasource):
+        #     flash(
+        #         __(get_datasource_access_error_msg(viz_obj.datasource.name)),
+        #         "danger")
+        #     return redirect(
+        #         'superset/request_access/?'
+        #         'datasource_type={datasource_type}&'
+        #         'datasource_id={datasource_id}&'
+        #         ''.format(**locals()))
 
         if not viz_type and viz_obj.datasource.default_endpoint:
             return redirect(viz_obj.datasource.default_endpoint)
@@ -1892,7 +2089,8 @@ class Superset(BaseSupersetView):
 
         # find out if user is in explore v2 beta group
         # and set flag `is_in_explore_v2_beta`
-        is_in_explore_v2_beta = sm.find_role('explore-v2-beta') in get_user_roles()
+        #is_in_explore_v2_beta = sm.find_role('explore-v2-beta') in get_user_roles()
+        is_in_explore_v2_beta = False
 
         # handle different endpoints
         if request.args.get("csv") == "true":
@@ -1931,11 +2129,14 @@ class Superset(BaseSupersetView):
                 slice=slc,
                 table_name=table_name)
         else:
+            preview_data = viz_obj.datasource.preview_data()
             return self.render_template(
                 "superset/explore.html",
                 viz=viz_obj,
                 slice=slc,
                 datasources=datasources,
+                databases=databases,
+                preview_data=preview_data,
                 can_add=slice_add_perm,
                 can_edit=slice_edit_perm,
                 can_download=slice_download_perm,
@@ -2012,6 +2213,8 @@ class Superset(BaseSupersetView):
 
         datasource_type = args.get('datasource_type')
         datasource_id = args.get('datasource_id')
+        database_id = args.get('database_id')
+        full_tb_name = args.get('full_tb_name')
 
         if action in ('saveas'):
             d.pop('slice_id')  # don't save old slice_id
@@ -2023,6 +2226,8 @@ class Superset(BaseSupersetView):
         slc.datasource_type = datasource_type
         slc.datasource_id = datasource_id
         slc.slice_name = slice_name
+        slc.database_id = database_id
+        slc.full_table_name = full_tb_name
 
         if action in ('saveas') and slice_add_perm:
             self.save_slice(slc)
