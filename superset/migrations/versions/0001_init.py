@@ -262,6 +262,22 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('connection_name')
     )
+    op.create_table('hdfs_connection2',
+    sa.Column('created_on', sa.DateTime(), nullable=True),
+    sa.Column('changed_on', sa.DateTime(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('connection_name', sa.String(length=256), nullable=False),
+    sa.Column('database_id', sa.Integer(), sa.ForeignKey("dbs.id"), nullable=True),
+    sa.Column('webhdfs_url', sa.String(length=256), nullable=False),
+    sa.Column('fs_defaultfs', sa.String(length=256), nullable=False),
+    sa.Column('logical_name', sa.String(length=256), nullable=False),
+    sa.Column('principal', sa.String(length=256), nullable=False),
+    sa.Column('keytab_file', sa.LargeBinary(), nullable=True),
+    sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
+    sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
+    sa.ForeignKeyConstraint(['database_id'], ['dbs.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
 
     # ### end Alembic commands ###
 
@@ -285,4 +301,5 @@ def downgrade():
     op.drop_table('daily_number')
     op.drop_table('keytabs')
     op.drop_table('hdfsconns')
+    op.drop_table('hdfs_connection2')
     # ### end Alembic commands ###

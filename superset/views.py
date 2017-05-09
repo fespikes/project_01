@@ -69,6 +69,8 @@ from superset.models import Database, SqlaTable, Slice, \
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 
+from superset.hdfsmodule.views import *
+
 config = app.config
 log_this = models.Log.log_this
 log_action = models.Log.log_action
@@ -3851,6 +3853,7 @@ class KeytabModelView(SupersetModelView, DeleteMixin):
 #     category="Manage",
 #     category_label=__("Manage"),
 #     category_icon='')
+
 
 # appbuilder.add_view_no_menu(CssTemplateAsyncModelView)
 
