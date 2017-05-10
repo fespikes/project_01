@@ -558,3 +558,10 @@ def json_success_response(msg, status=None):
   return Response(
     json.dumps(data), status=status, mimetype="application/json"
   )
+
+def get_hdfs_user_from_principal(principal):
+    split_list = principal.split('/', 1)
+    if len(split_list) > 1:
+        return split_list[0]
+    else:
+        return None

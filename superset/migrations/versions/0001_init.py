@@ -272,6 +272,7 @@ def upgrade():
     sa.Column('fs_defaultfs', sa.String(length=256), nullable=False),
     sa.Column('logical_name', sa.String(length=256), nullable=False),
     sa.Column('principal', sa.String(length=256), nullable=False),
+    sa.Column('hdfs_user', sa.String(length=256), nullable=False),
     sa.Column('keytab_file', sa.LargeBinary(), nullable=True),
     sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
     sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),

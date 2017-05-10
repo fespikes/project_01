@@ -17,6 +17,7 @@ class HDFSConnection2(Model, AuditMixinNullable):
   fs_defaultfs = Column(String(256), nullable=False)
   logical_name = Column(String(256), nullable=False)
   principal = Column(String(256), nullable=False)
+  hdfs_user = Column(String(256), nullable=False)
   keytab_file = Column(LargeBinary)
   database = relationship(
     'Database',

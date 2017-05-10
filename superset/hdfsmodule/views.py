@@ -1,7 +1,11 @@
-from superset import (app, db)
 from flask import (g, request)
 from flask_restful import Resource, Api, reqparse
+
+from superset import (app, db)
+from superset.hdfsmodule.filebrowser import Filebrowser
 from superset.hdfsmodule.models import HDFSConnection2
+from superset.utils import get_hdfs_user_from_principal
+
 from werkzeug import secure_filename
 from configobj import ConfigObj
 import os
@@ -57,6 +61,11 @@ class HDFSConnRes(Resource):
         hdfsconnection2.connection_name = args['connection_name']
         hdfsconnection2.database_id = args['database_id']
         hdfsconnection2.principal = args['principal']
+        hdfs_user = get_hdfs_user_from_principal(args['principal'])
+        if hdfs_user:
+            hdfsconnection2.hdfs_user = hdfs_user
+        else:
+            return "can not extract the hdfs user from principal",400
 
         config_file = request.files['config_file']
         if mutex.acquire(1):
@@ -82,4 +91,26 @@ class HDFSConnRes(Resource):
 
         return "succeed to add a new hdfs connection",201
 
+hdfsfilebrowser_get_parser = reqparse.RequestParser()
+hdfsfilebrowser_get_parser.add_argument(
+    'connection_name',
+    type=str,
+    location=['args', 'form'],
+    required=True,
+    help="connection_name is required"
+)
+
+
+class HDFSFileBrowserRes(Resource):
+    def __init__(self):
+        self.filebrowser = Filebrowser()
+
+    def get(self):
+        args = hdfsfilebrowser_get_parser.parse_args(strict=True)
+
+        connection = db.session.query(HDFSConnection2).filter_by(connection_name=args['connection_name']).one()
+        fs = self.filebrowser.get_fs_from_cache(connection)
+        return self.filebrowser.view(request, fs, "/user/" + get_hdfs_user_from_principal(connection.principal))
+
 api.add_resource(HDFSConnRes,"/hdfsconnection")
+api.add_resource(HDFSFileBrowserRes,"/hdfsfilebrowser")
