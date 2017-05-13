@@ -23,3 +23,21 @@ class HDFSConnection2(Model, AuditMixinNullable):
     'Database',
     backref=backref('hdfs_connection2', lazy='joined'),
     foreign_keys=[database_id])
+
+class HDFSTable(Model, AuditMixinNullable):
+  __tablename__ = "hdfs_table"
+  type = 'table'
+
+  id = Column(Integer, primary_key=True)
+  hdfs_path = Column(String(256), nullable=False)
+  hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection2.id'))
+  hdfsconnection = relationship(
+    'HDFSConnection2',
+    backref=backref('ref_hdfs_connection', lazy='joined'),
+    foreign_keys=[hdfs_connection_id]
+  )
+  table_id = Column(Integer, ForeignKey('tables.id'))
+  table = relationship(
+    'SqlaTable',
+    backref=backref('ref_hdfs_table', cascade='all, delete-orphan'),
+    foreign_keys=[table_id])

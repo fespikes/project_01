@@ -2,8 +2,9 @@ from flask import (g, request)
 from flask_restful import Resource, Api, reqparse
 
 from superset import (app, db)
+from superset.models import Database, SqlaTable
 from superset.hdfsmodule.filebrowser import Filebrowser
-from superset.hdfsmodule.models import HDFSConnection2
+from superset.hdfsmodule.models import HDFSConnection2, HDFSTable
 from superset.utils import get_hdfs_user_from_principal
 
 from werkzeug import secure_filename
@@ -112,5 +113,74 @@ class HDFSFileBrowserRes(Resource):
         fs = self.filebrowser.get_fs_from_cache(connection)
         return self.filebrowser.view(request, fs, "/user/" + get_hdfs_user_from_principal(connection.principal))
 
-api.add_resource(HDFSConnRes,"/hdfsconnection")
-api.add_resource(HDFSFileBrowserRes,"/hdfsfilebrowser")
+hdfstable_post_parser = reqparse.RequestParser()
+hdfstable_post_parser.add_argument(
+    'hdfs_path',
+    type=str,
+    location=['json'],
+    required=True,
+    help="hdfs path is required"
+)
+hdfstable_post_parser.add_argument(
+    'hdfs_connection_id',
+    type=int,
+    location=['json'],
+    required=True,
+    help="hdfs connection id is required"
+)
+hdfstable_post_parser.add_argument(
+    'column_des',
+    type=dict,
+    location=['json'],
+    required=True,
+    help="column des is required"
+)
+hdfstable_post_parser.add_argument(
+    'table_name',
+    type=str,
+    location=['json'],
+    required=True,
+    help="table name is required"
+)
+
+
+class HDFSTableRes(Resource):
+    def get(self):
+        pass
+
+    def post(self):
+        args = hdfstable_post_parser.parse_args(strict=True)
+
+        hdfstable = HDFSTable()
+        hdfstable.hdfs_path = args['hdfs_path']
+        hdfstable.hdfs_connection_id = args['hdfs_connection_id']
+
+        column_desc = args['column_des']
+        table_name = args['table_name']
+
+        create_sql = "create external table " + table_name + "("
+        for column_name, column_type in column_desc.items():
+            create_sql = create_sql + column_name + " " + column_type + ","
+        create_sql = create_sql[:-1] + ") row format delimited fields terminated by ',' location '" + hdfstable.hdfs_path + "'"
+
+        database = db.session.query(Database).filter(Database.id == HDFSConnection2.database_id, HDFSConnection2.id == hdfstable.hdfs_connection_id).one()
+        engine = database.get_sqla_engine()
+        engine.execute("drop table if exists " + table_name)
+        engine.execute(create_sql)
+
+        sqlaTable = SqlaTable()
+        sqlaTable.table_name = table_name
+        sqlaTable.database_id = database.id
+
+        db.session.add(sqlaTable)
+        db.session.commit()
+
+        hdfstable.table_id = sqlaTable.id
+        db.session.add(hdfstable)
+        db.session.commit()
+
+        return "succeed to add a new hdfs table",201
+
+api.add_resource(HDFSConnRes, "/hdfsconnection")
+api.add_resource(HDFSFileBrowserRes, "/hdfsfilebrowser")
+api.add_resource(HDFSTableRes, "/hdfstable")

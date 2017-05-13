@@ -279,6 +279,19 @@ def upgrade():
     sa.ForeignKeyConstraint(['database_id'], ['dbs.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('hdfs_table',
+    sa.Column('created_on', sa.DateTime(), nullable=True),
+    sa.Column('changed_on', sa.DateTime(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('hdfs_path', sa.String(length=256), nullable=False),
+    sa.Column('hdfs_connection_id', sa.Integer(), sa.ForeignKey("hdfs_connection2.id"), nullable=True),
+    sa.Column('table_id', sa.Integer(), sa.ForeignKey("tables.id"), nullable=True),
+    sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
+    sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
+    sa.ForeignKeyConstraint(['hdfs_connection_id'], ['hdfs_connection2.id'], ),
+    sa.ForeignKeyConstraint(['table_id'], ['tables.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
 
     # ### end Alembic commands ###
 
@@ -303,4 +316,5 @@ def downgrade():
     op.drop_table('keytabs')
     op.drop_table('hdfsconns')
     op.drop_table('hdfs_connection2')
+    op.drop_table('hdfs_table')
     # ### end Alembic commands ###
