@@ -405,8 +405,8 @@ class WebHdfs(Hdfs):
     path = Hdfs.normpath(path)
     params = self._getparams()
     params['op'] = 'OPEN'
-    params['offset'] = long(offset)
-    params['length'] = long(length)
+    params['offset'] = int(offset)
+    params['length'] = int(length)
     if bufsize is not None:
       params['bufsize'] = bufsize
     try:

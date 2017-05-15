@@ -21,7 +21,7 @@ class HDFSConnection2(Model, AuditMixinNullable):
   keytab_file = Column(LargeBinary)
   database = relationship(
     'Database',
-    backref=backref('hdfs_connection2', lazy='joined'),
+    backref=backref('hdfs_connection2', lazy='dynamic'),
     foreign_keys=[database_id])
 
 class HDFSTable(Model, AuditMixinNullable):

@@ -1,7 +1,8 @@
-from flask import (g, request)
+from flask import (flash, request)
+from flask_babel import lazy_gettext as _
 from flask_restful import Resource, Api, reqparse
 
-from superset import (app, db)
+from superset import (app, db, security, sm)
 from superset.models import Database, SqlaTable
 from superset.hdfsmodule.filebrowser import Filebrowser
 from superset.hdfsmodule.models import HDFSConnection2, HDFSTable
@@ -113,6 +114,40 @@ class HDFSFileBrowserRes(Resource):
         fs = self.filebrowser.get_fs_from_cache(connection)
         return self.filebrowser.view(request, fs, "/user/" + get_hdfs_user_from_principal(connection.principal))
 
+hdfsfilepreview_get_parser = reqparse.RequestParser()
+hdfsfilepreview_get_parser.add_argument(
+    'connection_name',
+    type=str,
+    location=['args', 'form',  'headers'],
+    required=True,
+    help="connection name is required"
+)
+hdfsfilepreview_get_parser.add_argument(
+    'hdfs_path',
+    type=str,
+    location=['args', 'form', 'headers'],
+    required=True,
+    help="hdfs path is required"
+)
+hdfsfilepreview_get_parser.add_argument(
+    'separator',
+    type=str,
+    location=['args', 'form', 'headers'],
+    help="separator is required"
+)
+
+
+class HDFSFilePreview(Resource):
+    def __init__(self):
+        self.filebrowser = Filebrowser()
+
+    def get(self):
+        args = hdfsfilepreview_get_parser.parse_args(strict=True)
+
+        connection = db.session.query(HDFSConnection2).filter_by(connection_name=args['connection_name']).one()
+        fs = self.filebrowser.get_fs_from_cache(connection)
+        return self.filebrowser.read(fs, args['hdfs_path'], args['separator'])
+
 hdfstable_post_parser = reqparse.RequestParser()
 hdfstable_post_parser.add_argument(
     'hdfs_path',
@@ -175,12 +210,27 @@ class HDFSTableRes(Resource):
         db.session.add(sqlaTable)
         db.session.commit()
 
+        self.merge_perm(sqlaTable)
+
         hdfstable.table_id = sqlaTable.id
         db.session.add(hdfstable)
         db.session.commit()
 
         return "succeed to add a new hdfs table",201
 
+    @staticmethod
+    def merge_perm(table):
+        table.fetch_metadata()
+        security.merge_perm(sm, 'datasource_access', table.get_perm())
+        if table.schema:
+            security.merge_perm(sm, 'schema_access', table.schema_perm)
+        flash(_(
+            "The table was created. As part of this two phase configuration "
+            "process, you should now click the edit button by "
+            "the new table to configure it."),
+            "info")
+
 api.add_resource(HDFSConnRes, "/hdfsconnection")
 api.add_resource(HDFSFileBrowserRes, "/hdfsfilebrowser")
+api.add_resource(HDFSFilePreview, "/hdfsfilepreview")
 api.add_resource(HDFSTableRes, "/hdfstable")

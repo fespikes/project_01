@@ -58,6 +58,28 @@ class Filebrowser:
     else:
       return json_error_response(gettext("File preview not supported, please download it"))
 
+  def read(self, fs, path, separator):
+    stats = fs.stats(path)
+    if stats.isDir:
+      return json_error_response(gettext("Not a file"))
+    else:
+      rs = fs.read(path, 0, stats["size"]).decode()
+      rows = rs.split("\n")
+
+      if separator is None:
+        separator = ','
+
+      data = {}
+      for row_index in range(len(rows)):
+        if rows[row_index].strip():
+          columns = rows[row_index].split(separator)
+          key = "row" + str(row_index)
+          data[key] = []
+          for column_index in range(len(columns)):
+            data[key].append(columns[column_index])
+      return Response(json.dumps(data, 200))
+
+
 
 def listdir_paged(request, fs, path):
   if not fs.isdir(path):
