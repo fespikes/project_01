@@ -30,6 +30,7 @@ class HDFSTable(Model, AuditMixinNullable):
 
   id = Column(Integer, primary_key=True)
   hdfs_path = Column(String(256), nullable=False)
+  separator = Column(String(256), nullable=False)
   hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection2.id'))
   hdfsconnection = relationship(
     'HDFSConnection2',
