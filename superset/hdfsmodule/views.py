@@ -53,13 +53,57 @@ hdfsconn_post_parser.add_argument(
     help="keytab file is required"
 )
 
+hdfsconn_put_parser = reqparse.RequestParser()
+hdfsconn_put_parser.add_argument(
+    'database_id',
+    type=int,
+    location=['args', 'form'],
+    help="database id is required"
+)
+hdfsconn_put_parser.add_argument(
+    'config_file',
+    location=['files'],
+    help="config file is required"
+)
+hdfsconn_put_parser.add_argument(
+    'principal',
+    type=str,
+    location=['args', 'form'],
+    help="principal is required"
+)
+hdfsconn_put_parser.add_argument(
+    'keytab_file',
+    location=['files'],
+    help="keytab file is required"
+)
 
 class HDFSConnRes(Resource):
-    def get(self):
-        pass
+    def get(self, hdfsconnection_id=None):
+
+        hdfsconnection_list = []
+        rs = []
+
+        if hdfsconnection_id is not None:
+            hdfsconnection = db.session.query(HDFSConnection2).get(hdfsconnection_id)
+            if hdfsconnection is not None:
+                hdfsconnection_list.append(hdfsconnection)
+        else:
+            hdfsconnection_list = db.session.query(HDFSConnection2).all()
+
+        if hdfsconnection_list == []:
+            return "no hdfs connection satisfied the condition found", 404
+
+        for index in range(len(hdfsconnection_list)):
+            data = {'id':hdfsconnection_list[index].id, 'connection_name':hdfsconnection_list[index].connection_name, 'changed_on':hdfsconnection_list[index].changed_on.strftime('%Y-%m-%d %H:%M:%S')}
+            rs.append(data)
+
+        return json.dumps(rs), 200
 
     def post(self):
         args = hdfsconn_post_parser.parse_args(strict=True)
+
+        if db.session.query(HDFSConnection2).filter_by(connection_name=args['connection_name']).one_or_none() is not None:
+            return "the hdfs connection with the same name has already been created", 400
 
         hdfsconnection2 = HDFSConnection2()
         hdfsconnection2.connection_name = args['connection_name']
@@ -72,20 +116,9 @@ class HDFSConnRes(Resource):
             return "can not extract the hdfs user from principal", 400
 
         config_file = request.files['config_file']
-        if mutex.acquire(1):
-            filename = secure_filename(config_file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            config_file.save(filepath)
-
-            config = ConfigObj(filepath)
-            hdfsconnection2.webhdfs_url = config['hadoop']['hdfs_clusters']['default']['webhdfs_url']
-            hdfsconnection2.fs_defaultfs = config['hadoop']['hdfs_clusters']['default']['fs_defaultfs']
-            hdfsconnection2.logical_name = config['hadoop']['hdfs_clusters']['default']['logical_name']
-
-            os.remove(filepath)
-            mutex.release()
-        else:
-            return "can not get the mutex lock", 400
+        rs = self.analyse_config_file(config_file, hdfsconnection2)
+        if not rs[0]:
+            return rs[1], 400
 
         keytab_file = request.files['keytab_file']
         hdfsconnection2.keytab_file = keytab_file.read()
@@ -94,6 +127,71 @@ class HDFSConnRes(Resource):
         db.session.commit()
 
         return "succeed to add a new hdfs connection", 201
+
+    def put(self, hdfsconnection_id=None):
+
+        if hdfsconnection_id is None:
+            return "connection id is needed to execute a put operation", 400
+
+        args = hdfsconn_put_parser.parse_args(strict=True)
+
+        hdfsconnection = db.session.query(HDFSConnection2).get(hdfsconnection_id)
+        if hdfsconnection is None:
+            return "the hdfs connection does not exist, please create it first", 400
+
+        if args['database_id'] is not None:
+            hdfsconnection.database_id = args['database_id']
+
+        if args['principal'] is not None:
+            hdfsconnection.principal = args['principal']
+
+        if request.files['config_file'] is not None:
+            rs = self.analyse_config_file(request.files['config_file'], hdfsconnection)
+            if not rs[0]:
+                return rs[1], 400
+
+        if request.files['keytab_file'] is not None:
+            hdfsconnection.keytab_file = request.files['keytab_file'].read()
+
+        db.session.commit()
+
+        return "succeed to modify an hdfs connection", 200
+
+    def delete(self, hdfsconnection_id=None):
+
+        if hdfsconnection_id is None:
+            return "connection id is needed to execute a delete operation", 400
+
+        hdfsconnection = db.session.query(HDFSConnection2).get(hdfsconnection_id)
+        if hdfsconnection is None:
+            return "the hdfs connection does not exist, please check you connection id", 404
+
+        db.session.delete(hdfsconnection)
+        db.session.commit()
+
+        return "succeed to delete an hdfs connection", 204
+
+    def analyse_config_file(self, config_file, hdfsconnection):
+        if mutex.acquire(1):
+            try:
+                filename = secure_filename(config_file.filename)
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                config_file.save(filepath)
+
+                config = ConfigObj(filepath)
+                hdfsconnection.webhdfs_url = config['hadoop']['hdfs_clusters']['default']['webhdfs_url']
+                hdfsconnection.fs_defaultfs = config['hadoop']['hdfs_clusters']['default']['fs_defaultfs']
+                hdfsconnection.logical_name = config['hadoop']['hdfs_clusters']['default']['logical_name']
+
+                os.remove(filepath)
+                mutex.release()
+                return True, "succeed to analyse the config file"
+            except Exception:
+                mutex.release()
+                return False, "unexpected error occurred"
+        else:
+            return False, "can not get the mutex lock"
+
 
 hdfsfilebrowser_get_parser = reqparse.RequestParser()
 hdfsfilebrowser_get_parser.add_argument(
@@ -328,7 +426,7 @@ class HDFSTableRes(Resource):
             "the new table to configure it."),
             "info")
 
-api.add_resource(HDFSConnRes, "/hdfsconnection")
+api.add_resource(HDFSConnRes, "/hdfsconnection", "/hdfsconnection/<int:hdfsconnection_id>")
 api.add_resource(HDFSFileBrowserRes, "/hdfsfilebrowser")
 api.add_resource(HDFSFilePreview, "/hdfsfilepreview")
 api.add_resource(HDFSTableRes, "/hdfstable")
