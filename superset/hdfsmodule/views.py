@@ -261,11 +261,11 @@ class HDFSFilePreviewRes(Resource):
 
 hdfstable_post_parser = reqparse.RequestParser()
 hdfstable_post_parser.add_argument(
-    'hdfs_path',
+    'table_name',
     type=str,
     location=['json'],
     required=True,
-    help="hdfs path is required"
+    help="table name is required"
 )
 hdfstable_post_parser.add_argument(
     'hdfs_connection_id',
@@ -275,11 +275,11 @@ hdfstable_post_parser.add_argument(
     help="hdfs connection id is required"
 )
 hdfstable_post_parser.add_argument(
-    'table_name',
+    'hdfs_path',
     type=str,
     location=['json'],
     required=True,
-    help="table name is required"
+    help="hdfs path is required"
 )
 hdfstable_post_parser.add_argument(
     'column_desc',
@@ -295,13 +295,6 @@ hdfstable_post_parser.add_argument(
 )
 
 hdfstable_put_parser = reqparse.RequestParser()
-hdfstable_put_parser.add_argument(
-    'table_id',
-    type=int,
-    location=['json'],
-    required=True,
-    help="table id is required"
-)
 hdfstable_put_parser.add_argument(
     'column_desc',
     type=dict,
@@ -322,15 +315,32 @@ class HDFSTableRes(Resource):
     def __init__(self):
         self.filebrowser = Filebrowser()
 
-    def get(self):
-        pass
+    def get(self, table_id=None):
+        hdfstable_list = []
+        rs = []
+
+        if table_id is not None:
+            hdfstable = db.session.query(HDFSTable).get(table_id)
+            if hdfstable is not None:
+                hdfstable_list.append(hdfstable)
+        else:
+            hdfstable_list = db.session.query(HDFSTable).all()
+
+        if hdfstable_list == []:
+            return "no hdfs table satisfied the condition found", 404
+
+        for index in range(len(hdfstable_list)):
+            data = {'id':hdfstable_list[index].id, 'table_name':hdfstable_list[index].table.table_name, 'changed_on':hdfstable_list[index].changed_on.strftime('%Y-%m-%d %H:%M:%S')}
+            rs.append(data)
+
+        return json.dumps(rs), 200
 
     def post(self):
         args = hdfstable_post_parser.parse_args(strict=True)
 
         hdfstable = HDFSTable()
-        hdfstable.hdfs_path = args['hdfs_path']
         hdfstable.hdfs_connection_id = args['hdfs_connection_id']
+        hdfstable.hdfs_path = args['hdfs_path']
         hdfstable.separator = args['separator']
 
         table_name = args['table_name']
@@ -395,12 +405,20 @@ class HDFSTableRes(Resource):
 
         return "succeed to add a new hdfs table", 201
 
-    def put(self):
+    def put(self, table_id=None):
         args = hdfstable_put_parser.parse_args(strict=True)
 
-        hdfstable = db.session.query(HDFSTable).get(args['table_id'])
+        if table_id is None:
+            return "table id is needed to execute an update operation", 400
+        hdfstable = db.session.query(HDFSTable).get(table_id)
+        if hdfstable is None:
+            return "hdfs table not found", 400
         sqlaTable = db.session.query(SqlaTable).get(hdfstable.table_id)
+        if sqlaTable is None:
+            return "sqlaTable not found", 400
         database = db.session.query(Database).get(sqlaTable.database_id)
+        if database is None:
+            return "database not found", 400
 
         hdfstable.separator = args['separator']
         db.session.commit()
@@ -418,6 +436,28 @@ class HDFSTableRes(Resource):
 
         return "succeed to modify an hdfs table", 200
 
+    def delete(self, table_id=None):
+        if table_id is None:
+            return "table id is needed to execute a delete operation", 400
+        hdfstable = db.session.query(HDFSTable).get(table_id)
+        if hdfstable is None:
+            return "hdfs table not found", 400
+        sqlaTable = db.session.query(SqlaTable).get(hdfstable.table_id)
+        if sqlaTable is None:
+            return "sqlaTable not found", 400
+        database = db.session.query(Database).get(sqlaTable.database_id)
+        if database is None:
+            return "database not found", 400
+
+        engine = database.get_sqla_engine()
+        engine.execute("drop table if exists " + sqlaTable.table_name)
+
+        db.session.delete(hdfstable)
+        db.session.delete(sqlaTable)
+        db.session.commit()
+
+        return "succeed to delete an hdfs table", 204
+
     @staticmethod
     def merge_perm(table):
         table.fetch_metadata()
@@ -431,6 +471,6 @@ class HDFSTableRes(Resource):
             "info")
 
 api.add_resource(HDFSConnRes, "/hdfsconnection", "/hdfsconnection/<int:hdfsconnection_id>")
+api.add_resource(HDFSTableRes, "/hdfstable", "/hdfstable/<int:table_id>")
 api.add_resource(HDFSFileBrowserRes, "/hdfsfilebrowser")
 api.add_resource(HDFSFilePreviewRes, "/hdfsfilepreview")
-api.add_resource(HDFSTableRes, "/hdfstable")
