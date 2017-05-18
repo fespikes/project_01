@@ -248,7 +248,7 @@ hdfsfilepreview_get_parser.add_argument(
 )
 
 
-class HDFSFilePreview(Resource):
+class HDFSFilePreviewRes(Resource):
     def __init__(self):
         self.filebrowser = Filebrowser()
 
@@ -342,6 +342,8 @@ class HDFSTableRes(Resource):
         create_sql = None
         if column_desc is None:
             hdfsconnection = db.session.query(HDFSConnection2).get(hdfstable.hdfs_connection_id)
+            if hdfsconnection is None:
+                return "no hdfs connection found with the connection id", 400
             fs = self.filebrowser.get_fs_from_cache(hdfsconnection)
 
             file_path = None
@@ -371,7 +373,9 @@ class HDFSTableRes(Resource):
                 create_sql = create_sql + column_name + " " + column_type + ","
             create_sql = create_sql[:-1] + ") row format delimited fields terminated by ',' location '" + hdfstable.hdfs_path + "'"
 
-        database = db.session.query(Database).filter(Database.id == HDFSConnection2.database_id, HDFSConnection2.id == hdfstable.hdfs_connection_id).one()
+        database = db.session.query(Database).filter(Database.id == HDFSConnection2.database_id, HDFSConnection2.id == hdfstable.hdfs_connection_id).one_or_none()
+        if database is None:
+            return "no database found with the hdfs connection id", 400
         engine = database.get_sqla_engine()
         engine.execute("drop table if exists " + table_name)
         engine.execute(create_sql)
@@ -428,5 +432,5 @@ class HDFSTableRes(Resource):
 
 api.add_resource(HDFSConnRes, "/hdfsconnection", "/hdfsconnection/<int:hdfsconnection_id>")
 api.add_resource(HDFSFileBrowserRes, "/hdfsfilebrowser")
-api.add_resource(HDFSFilePreview, "/hdfsfilepreview")
+api.add_resource(HDFSFilePreviewRes, "/hdfsfilepreview")
 api.add_resource(HDFSTableRes, "/hdfstable")

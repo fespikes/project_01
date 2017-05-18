@@ -7,7 +7,9 @@ from superset import (app, kt_renewer, utils)
 from superset.libs import paginator
 from superset.libs.filebrowser.rwx import filetype, rwx
 from superset.libs.hadoop.fs import webhdfs, hadoopfs
-from superset.utils import json_error_response
+from superset.utils import json_error_response, json_success_response
+
+from werkzeug import secure_filename
 
 mutex = threading.Lock()
 
@@ -79,6 +81,27 @@ class Filebrowser:
             data[key].append(columns[column_index])
       return Response(json.dumps(data, 200))
 
+  def upload_file(self, fs, hdfs_file, hdfs_path):
+    file_name = secure_filename(hdfs_file.filename)
+
+    if not fs.isdir(hdfs_path):
+      return json_error_response(gettext("HDFS path is no a directory, please select a new one"))
+
+    tmp_path = fs.mkswap(file_name, suffix='tmp', basedir=hdfs_path)
+    if fs.exists(tmp_path):
+      fs.remove(tmp_path)
+
+    tmp_file = fs.open(tmp_path, 'w')
+    tmp_file.write(hdfs_file.read())
+    tmp_file.flush()
+    tmp_file.close()
+
+    dest_path = fs.join(hdfs_path, file_name)
+    if fs.exists(dest_path):
+      return json_error_response(gettext("File with the same name has already exist on HDFS"))
+    fs.rename(tmp_path, dest_path)
+
+    return json_success_response("Succeed to upload a file")
 
 
 def listdir_paged(request, fs, path):

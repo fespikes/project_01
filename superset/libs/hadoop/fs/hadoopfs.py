@@ -150,7 +150,7 @@ class Hdfs(object):
         try:
           self.setuser(self.superuser)
           self.mkdir(home_path)
-          self.chmod(home_path, 0o0755)
+          self.chmod(home_path, 0o755)
           self.chown(home_path, user, user)
         except IOError:
           msg = 'Failed to create home dir ("%s") as superuser %s' % (home_path, self.superuser)
@@ -159,7 +159,7 @@ class Hdfs(object):
       finally:
         self.setuser(user)
 
-  def copyFromLocal(self, local_src, remote_dst, mode=0o0755):
+  def copyFromLocal(self, local_src, remote_dst, mode=0o755):
     remote_dst = remote_dst.endswith(posixpath.sep) and remote_dst[:-1] or remote_dst
     local_src = local_src.endswith(posixpath.sep) and local_src[:-1] or local_src
 
@@ -169,7 +169,7 @@ class Hdfs(object):
       (basename, filename) = os.path.split(local_src)
       self._copy_file(local_src, self.isdir(remote_dst) and self.join(remote_dst, filename) or remote_dst)
 
-  def _copy_dir(self, local_dir, remote_dir, mode=0o0755):
+  def _copy_dir(self, local_dir, remote_dir, mode=0o755):
     self.mkdir(remote_dir, mode=mode)
 
     for f in os.listdir(local_dir):
@@ -192,7 +192,7 @@ class Hdfs(object):
       src = file(local_src)
       try:
         try:
-          self.create(remote_dst, permission=0o0755)
+          self.create(remote_dst, permission=0o755)
           chunk = src.read(chunk_size)
           while chunk:
             self.append(remote_dst, chunk)

@@ -69,7 +69,7 @@ from superset.models import Database, SqlaTable, Slice, \
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 
-from superset.hdfsmodule.views import HDFSConnRes, HDFSFileBrowserRes, HDFSFilePreview, HDFSTableRes
+from superset.hdfsmodule.views import HDFSConnRes, HDFSFileBrowserRes, HDFSFilePreviewRes, HDFSTableRes
 
 config = app.config
 log_this = models.Log.log_this
