@@ -435,14 +435,35 @@ class SupersetModelView(ModelView):
     def delete(self, pk):
         try:
             obj = self.get_object(pk)
-            self.pre_delete(obj)
-            self.datamodel.delete(obj)
-            self.post_delete(obj)
+            self._delete(obj)
         except Exception as e:
             return self.build_response(500, success=False, message=str(e))
         else:
             self.update_redirect()
             return self.build_response(500, True, DELETE_SUCCESS)
+
+    def _delete(self, obj):
+        self.pre_delete(obj)
+        self.datamodel.delete(obj)
+        self.post_delete(obj)
+
+    @expose('/muldelete', methods=['GET', 'POST'])
+    def muldelete(self):
+        try:
+            json_data = self.get_request_data()
+            ids = json_data.get('selectedRowKeys')
+            for id in ids:
+                obj = self.get_object(id)
+                self._delete(obj)
+                if isinstance(obj, models.SqlaTable):
+                    cls_name = 'table'
+                else:
+                    cls_name = self.model.__name__.lower()
+                action_str = 'Delete {}: {}'.format(cls_name, repr(obj))
+                log_action('delete', action_str, cls_name, obj.id)
+            return self.build_response(200, True, DELETE_SUCCESS)
+        except Exception as e:
+            return self.build_response(500, False, str(e))
 
     def build_response(self, status=None, success=None, message=None):
         response = {}
@@ -773,7 +794,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             security.merge_perm(sm, 'metric_access', metric.get_perm())
 
 
-class DatabaseView(SupersetModelView, DeleteMixin):  # noqa
+class DatabaseView(SupersetModelView):  # noqa
     model = models.Database
     datamodel = SQLAInterface(models.Database)
     route_base = '/database'
@@ -958,7 +979,7 @@ class DatabaseTablesAsync(DatabaseView):
     list_columns = ['id', 'all_table_names', 'all_schema_names']
 
 
-class TableModelView(SupersetModelView, DeleteMixin):  # noqa
+class TableModelView(SupersetModelView):  # noqa
     model = models.SqlaTable
     datamodel = SQLAInterface(models.SqlaTable)
     route_base = '/table'
@@ -1164,7 +1185,7 @@ class TableModelView(SupersetModelView, DeleteMixin):  # noqa
         log_number('table', g.user.get_id())
 
 
-class SliceModelView(SupersetModelView, DeleteMixin):  # noqa
+class SliceModelView(SupersetModelView):  # noqa
     model = models.Slice
     datamodel = SQLAInterface(models.Slice)
     route_base = '/slice'
@@ -1430,7 +1451,7 @@ class SliceAddView(SliceModelView):  # noqa
         'owners', 'modified', 'changed_on']
 
 
-class DashboardModelView(SupersetModelView, DeleteMixin):  # noqa
+class DashboardModelView(SupersetModelView):  # noqa
     model = models.Dashboard
     datamodel = SQLAInterface(models.Dashboard)
     route_base = '/dashboard'
