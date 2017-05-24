@@ -387,9 +387,8 @@ class SupersetModelView(ModelView):
     @expose('/addablechoices', methods=['GET'])
     def addable_choices(self):
         try:
-            readme = {}
-            readme['readme'] = self.get_column_readme()
-            return json.dumps({'date': readme})
+            data = self.get_addable_choices()
+            return json.dumps({'data': data})
         except Exception as e:
             logging.error(str(e))
             return self.build_response(500, False, str(e))
@@ -471,6 +470,11 @@ class SupersetModelView(ModelView):
         response['success'] = success if success is not None else self.success
         response['message'] = message if message else self.message
         return json.dumps(response)
+
+    def get_addable_choices(self):
+        data = {}
+        data['readme'] = self.get_column_readme()
+        return data
 
     def get_object_list_data(self, **kwargs):
         pass
@@ -691,16 +695,10 @@ class TableColumnInlineView(SupersetModelView):  # noqa
             data.append(line)
         return {'data': data}
 
-    @expose('/addablechoices/', methods=['GET', ])
-    def addable_choices(self):
-        try:
-            data = {}
-            data['available_tables'] = self.get_available_tables()
-            data['readme'] = self.get_column_readme()
-            return json.dumps({'data': data})
-        except Exception as e:
-            logging.error(e)
-            return self.build_response(500, False, str(e))
+    def get_addable_choices(self):
+        data = super().get_addable_choices()
+        data['available_tables'] = self.get_available_tables()
+        return data
 
     def get_show_attributes(self, obj):
         attributes = super().get_show_attributes(obj)
@@ -750,16 +748,10 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     bool_columns = ['is_restricted', ]
     str_columns = ['table', ]
 
-    @expose('/addablechoices/', methods=['GET', ])
-    def addable_choices(self):
-        try:
-            data = {}
-            data['available_tables'] = self.get_available_tables()
-            data['readme'] = self.get_column_readme()
-            return json.dumps({'data': data})
-        except Exception as e:
-            logging.error(e)
-            return self.build_response(500, False, str(e))
+    def get_addable_choices(self):
+        data = super().get_addable_choices()
+        data['available_tables'] = self.get_available_tables()
+        return data
 
     def get_object_list_data(self, **kwargs):
         table_id = kwargs.get('table_id')
@@ -1032,16 +1024,10 @@ class TableModelView(SupersetModelView):  # noqa
     bool_columns = ['is_featured', 'filter_select_enabled']
     str_columns = ['database', 'created_on', 'changed_on']
 
-    @expose('/addablechoices/', methods=['GET', ])
-    def addable_choices(self):
-        try:
-            data = {}
-            data['available_databases'] = self.get_available_databases()
-            data['readme'] = self.get_column_readme()
-            return json.dumps({'data': data})
-        except Exception as e:
-            logging.error(e)
-            return self.build_response(500, False, str(e))
+    def get_addable_choices(self):
+        data = super().get_addable_choices()
+        data['available_databases'] = self.get_available_databases()
+        return data
 
     @expose('/alltables/<database_id>', methods=['GET', ])
     def all_schemas_and_tables(self, database_id):
@@ -1255,17 +1241,11 @@ class SliceModelView(SupersetModelView):  # noqa
     # def list(self):
     #      return self.render_template(self.list_template)
 
-    @expose('/addablechoices/', methods=['GET'])
-    def addable_choices(self):
-        try:
-            data = {}
-            dashs = self.get_available_dashboards(self.get_user_id())
-            data['available_dashboards'] = self.dashboards_to_dict(dashs)
-            data['readme'] = self.get_column_readme()
-            return json.dumps({'data': data})
-        except Exception as e:
-            logging.error(e)
-            return self.build_response(500, False, str(e))
+    def get_addable_choices(self):
+        data = super().get_addable_choices()
+        dashs = self.get_available_dashboards(self.get_user_id())
+        data['available_dashboards'] = self.dashboards_to_dict(dashs)
+        return data
 
     def get_show_attributes(self, obj):
         attributes = super().get_show_attributes(obj)
@@ -1514,17 +1494,11 @@ class DashboardModelView(SupersetModelView):  # noqa
     bool_columns = ['online']
     str_columns = ['created_on', 'changed_on']
 
-    @expose('/addablechoices/', methods=['GET'])
-    def addable_choices(self):
-        try:
-            data = {}
-            data['readme'] = self.get_column_readme()
-            slices = self.get_available_slices(self.get_user_id())
-            data['available_slices'] = self.slices_to_dict(slices)
-            return json.dumps({'data': data})
-        except Exception as e:
-            logging.error(e)
-            return self.build_response(500, False, str(e))
+    def get_addable_choices(self):
+        data = super().get_addable_choices()
+        slices = self.get_available_slices(self.get_user_id())
+        data['available_slices'] = self.slices_to_dict(slices)
+        return data
 
     def get_available_slices(self, user_id):
         slices = (
