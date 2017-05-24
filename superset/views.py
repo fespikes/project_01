@@ -374,17 +374,17 @@ class SupersetModelView(ModelView):
             if args.get('table_id') else None
         return kwargs
 
-    @expose('/list/')
+    @expose('/list')
     def list(self):
          return self.render_template(self.list_template)
 
-    @expose('/listdata/')
+    @expose('/listdata')
     def get_list_data(self):
         kwargs = self.get_list_args(request.args)
         list_data = self.get_object_list_data(**kwargs)
         return json.dumps(list_data)
 
-    @expose('/addablechoices/', methods=['GET'])
+    @expose('/addablechoices', methods=['GET'])
     def addable_choices(self):
         try:
             readme = {}
@@ -3769,7 +3769,12 @@ class Home(BaseSupersetView):
             line = {}
             line['user'] = username
             line['action'] = log.action
-            line['title'] = dash.dashboard_title if dash else slice.slice_name
+            if dash:
+                line['title'] = dash.dashboard_title
+            elif slice:
+                line['title'] = slice.slice_name
+            else:
+                line['title'] = 'Not found'
             line['link'] = dash.url if dash else slice.slice_url
             line['obj_type'] = 'dashboard' if dash else 'slice'
             line['time'] = str(log.dttm)
