@@ -3,14 +3,14 @@
  */
 import React, { PropTypes } from 'react';
 import ReactDOM from 'react-dom';
+import { fetchAvailableSlices, fetchUpdateSlice } from '../../dashboard2/actions';
+import { Select } from 'antd';
 
 const propTypes = {
-
+    dispatch: PropTypes.func.isRequired,
 };
 
-const defaultProps = {
-
-};
+const defaultProps = {};
 
 class DashboardEdit extends React.Component {
     constructor(props) {
@@ -50,14 +50,52 @@ class DashboardEdit extends React.Component {
     }
 
     confirm() {
+        const { dispatch } = this.props;
+        let url = window.location.origin + "/dashboard/edit/" + this.state.slice.id;
+        let obj = {};
+        obj.dashboard_title = this.state.slice.dashboard_title;
+        obj.description = this.state.slice.description;
+        obj.slices = [{id: "41", slice_name: "dfgdfgdfgdf"}];
+        dispatch(fetchUpdateSlice(url, obj, callback));
+        console.log("obj=", obj);
+        function callback(success) {
+            if(success) {
+                document.getElementById("popup_dashboard").style.display = "none";
+            }else {
+
+            }
+        }
         document.getElementById("popup_dashboard").style.display = "none";
     }
 
     componentDidMount() {
 
+        const { dispatch } = this.props;
+        const self = this;
+        let url = window.location.origin + "/dashboard/addablechoices";
+        dispatch(fetchAvailableSlices(url, callback));
+
+        function callback(success, data) {
+            console.log("success=", success);
+            console.log("data=", data);
+            if(success) {
+                console.log("self=", self);
+                self.setState({
+                    available_slices: data.data.available_slices
+                });
+            }else {
+
+            }
+
+            console.log("self.state=", self.state);
+        }
+
     }
 
     render() {
+        function onSelect() {
+
+        }
         return (
             <div id="popup_dashboard" className="popup">
                 <div className="popup-dialog popup-md">
@@ -77,7 +115,7 @@ class DashboardEdit extends React.Component {
                                     <span>标题：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.slice.dashboard_title}
+                                    <input className="form-control dialog-input" value={this.state.slice.dashboard_title}
                                       onChange={this.handleTitleChange} />
                                 </div>
                             </div>
@@ -86,7 +124,7 @@ class DashboardEdit extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" value={this.props.slice.description}
+                                    <textarea className="dialog-area" value={this.state.slice.description}
                                         onChange={this.handleDescriptionChange}></textarea>
                                 </div>
                             </div>
@@ -95,7 +133,14 @@ class DashboardEdit extends React.Component {
                                     <span>工作表：</span>
                                 </div>
                                 <div className="item-right">
-                                    <div></div>
+                                    <div>
+                                        {/* const options = this.state.available_slices.map(s => {
+                                            return <Option key={s.id}>{s.slice_name}</Option>
+                                        });
+                                        <Select onSelect={onSelect}>
+                                            {options}
+                                        </Select> */}
+                                    </div>
                                 </div>
                             </div>
                             <div className="dialog-item">

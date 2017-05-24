@@ -14,7 +14,14 @@ const defaultProps = {};
 class DashboardContent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            types: {
+                type: 'show_all'
+            },
+            paging: {
+                pageSize: 2
+            }
+        };
     };
 
     componentDidMount() {
@@ -32,7 +39,8 @@ class DashboardContent extends React.Component {
                         <span>07</span>
                     </div>
                     <div className="right">
-                        <Operations />
+                        <Operations
+                            pageSize={this.state.paging.pageSize}/>
                     </div>
                 </div>
                 <div className="panel-middle">
@@ -40,8 +48,7 @@ class DashboardContent extends React.Component {
                 </div>
                 <div className="panel-bottom">
                     <Paginations
-                        defaultCurrent={1}
-                        total={50}/>
+                        pageSize={this.state.paging.pageSize}/>
                 </div>
             </div>
         );
@@ -51,8 +58,4 @@ class DashboardContent extends React.Component {
 DashboardContent.propTypes = propTypes;
 DashboardContent.defaultProps = defaultProps;
 
-function mapStateToProps(state) {
-    return {};
-}
-
-export default connect(mapStateToProps)(DashboardContent);
+export default connect()(DashboardContent);
