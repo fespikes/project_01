@@ -14,10 +14,8 @@ export const SHOW_FAVORITE = 'SHOW_FAVORITE';
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
 
-export const REQUEST_PUTS = "REQUEST_PUTS";
-export const RECEIVE_PUTS = "RECEIVE_PUTS";
-
-export const PAGE_SIZE_CHANGE = 'PAGE_SIZE_CHANGE';
+export const SET_KEYWORD = 'SET_KEYWORD';
+export const RECEIVE_DASH_DETAIL = 'RECEIVE_DASH_DETAIL';
 
 export function addSliceAction() {
     return {
@@ -52,20 +50,21 @@ export function requestPosts() {
 export function receivePosts(json) {
     return {
         type: RECEIVE_POSTS,
-        posts: json
+        posts: json,
     }
 }
 
-export function requestPuts() {
+export function receiveDashDetail(json) {
     return {
-        type: REQUEST_PUTS
+        type: RECEIVE_DASH_DETAIL,
+        detail: json
     }
 }
 
-export function receivePuts(json) {
+export function setKeyword(keyword) {
     return {
-        type: RECEIVE_PUTS,
-        puts: json
+        type: SET_KEYWORD,
+        keyword: keyword,
     }
 }
 
@@ -78,13 +77,6 @@ export function showAll() {
 export function showFavorite() {
     return {
         type: SHOW_FAVORITE,
-    }
-}
-
-export function pageSizeChange(pageSize) {
-    return {
-        type: PAGE_SIZE_CHANGE,
-        pageSize,
     }
 }
 
@@ -113,7 +105,6 @@ export function fetchAvailableSlices(url, callback) {
         return fetch(url, {
             credentials: "same-origin"
         }).then(function(response) {
-            console.log("response=", response);
             if(response.ok) {
                 if(typeof callback === "function") {
                     response.json().then(function(response) {
@@ -129,15 +120,15 @@ export function fetchAvailableSlices(url, callback) {
     }
 }
 
-export function fetchUpdateSlice(url, data, callback) {
+export function fetchUpdateSlice(url_update, url_refresh, data, callback) {
     return dispatch => {
-        return fetch(url, {
+        return fetch(url_update, {
             credentials: "same-origin",
             method: "POST",
             body: JSON.stringify(data)
         }).then(function(response) {
             if(response.ok) {
-                fetchPosts(url);
+                dispatch(fetchPosts(url_refresh));
                 if(typeof callback === "function") {
                     callback(true);
                 }
@@ -150,6 +141,37 @@ export function fetchUpdateSlice(url, data, callback) {
     }
 }
 
+export function fetchStateChange(url_favorite, url_all) {
+    return dispatch => {
+        return fetch(url_favorite, {
+            credentials: "same-origin",
+        }).then(function(response) {
+            if(response.ok) {
+                dispatch(fetchPosts(url_all));
+            }else {
+
+            }
+        })
+    }
+}
+
+export function fetchDashboardDetail(url, callback) {
+    return dispatch => {
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(function(response) {
+            if(response.ok) {
+                response.json().then(
+                    function(json) {
+                        callback(true, json);
+                    })
+            }else {
+                callback(false);
+            }
+        })
+    }
+}
+
 export function fetchPosts(url) {
     return dispatch => {
         dispatch(requestPosts());
@@ -157,15 +179,5 @@ export function fetchPosts(url) {
             credentials: "same-origin"
         }).then(response => response.json())
             .then(json => dispatch(receivePosts(json)))
-    }
-}
-
-export function fetchPuts(url) {
-    return dispatch => {
-        dispatch(requestPuts());
-        return fetch(url, {
-            credentials: "same-origin"
-        }).then(response => response.json())
-            .then(json => dispatch(receivePuts(json)))
     }
 }

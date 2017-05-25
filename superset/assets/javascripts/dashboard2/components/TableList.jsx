@@ -3,8 +3,8 @@ import { render } from 'react-dom';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider, connect } from 'react-redux';
 import thunk from 'redux-thunk';
-import { fetchAvailableSlices, fetchPosts, fetchPuts, fetchDeletes } from '../actions';
-import { DashboardEdit, SliceEdit, Confirm } from '../../components/popup';
+import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchDeletes, fetchStateChange } from '../actions';
+import { DashboardEdit, DashboardAdd, Confirm } from '../../components/popup';
 
 import { Table } from 'antd';
 import 'antd/dist/antd.css';
@@ -14,6 +14,14 @@ const propTypes = {
     dataSource: PropTypes.array.isRequired,
 };
 const defaultProps = {};
+
+function getSlicesUrl(type, pageSize) {
+    let url = window.location.origin + "/dashboard/listdata?page=0&page_size=" + pageSize;
+    if(type === "show_favorite") {
+        url += "&only_favorite=1";
+    }
+    return url;
+}
 
 class TableList extends React.Component {
     constructor(props) {
@@ -27,29 +35,48 @@ class TableList extends React.Component {
 
     render() {
 
-        console.log("tablelist-props=", this.props);
-
-        const { dispatch, dataSource } = this.props;
+        const { dispatch, dataSource, typeName, pageSize } = this.props;
 
         function editSlice(record) {
 
-            var editSlicePopup = render(<DashboardEdit dispatch={dispatch} slice={record} />,
-                document.getElementById('popup_root'));
-            if(editSlicePopup) {
-                editSlicePopup.showDialog();
+            let url = window.location.origin + "/dashboard/show/" + record.id;
+            dispatch(fetchDashboardDetail(url, callback));
+            function callback(success, data) {
+                if(success) {
+                    var editSlicePopup = render(
+                        <DashboardEdit
+                            dispatch={dispatch}
+                            dashboardDetail={data}
+                            pageSize={pageSize}
+                            typeName={typeName}/>,
+                        document.getElementById('popup_root'));
+                    if(editSlicePopup) {
+                        editSlicePopup.showDialog();
+                    }
+                }
             }
         }
 
         function publishSlice(record) {
-
-            let url = window.location.origin + "/dashboard/release/online/" + record.id;
-            dispatch(fetchPuts(url));
+            let url_publish = window.location.origin + "/dashboard/release/";
+            if(record.online) {
+                url_publish += "offline/" + record.id;
+            }else {
+                url_publish += "online/" + record.id;
+            }
+            let url_refresh = getSlicesUrl(typeName, pageSize);
+            dispatch(fetchStateChange(url_publish, url_refresh));
         }
 
 
         function deleteSlice(record) {
 
-            var deleteSlicePopup = render(<Confirm dispatch={dispatch}  slice={record}/>,
+            var deleteSlicePopup = render(
+                <Confirm
+                    dispatch={dispatch}
+                    slice={record}
+                    pageSize={pageSize}
+                    typeName={typeName}/>,
                 document.getElementById('popup_root'));
             if(deleteSlicePopup) {
                 deleteSlicePopup.showDialog();
@@ -57,8 +84,14 @@ class TableList extends React.Component {
         }
 
         function favoriteSlice(record) {
-            console.log("favorite-record=", record);
-            let url = window.location.origin + "/";
+            let url_favorite = window.location.origin + "/superset/favstar/Dashboard/" + record.id;
+            if(record.favorite) {
+                url_favorite += "/unselect";
+            }else {
+                url_favorite += "/select";
+            }
+            let url_refresh = getSlicesUrl(typeName, pageSize);
+            dispatch(fetchStateChange(url_favorite, url_refresh));
         }
 
         const columns = [{
@@ -69,7 +102,7 @@ class TableList extends React.Component {
             render: (text, record) => {
                 return (
                     <div>
-                        <button className="btn btn-default" onClick={() => favoriteSlice(record)}>
+                        <button className={record.favorite ? 'btn-primary' : 'btn-default'} onClick={() => favoriteSlice(record)}>
                             收藏
                         </button>
                     </div>
@@ -97,17 +130,21 @@ class TableList extends React.Component {
             title: '最后修改时间',
             dataIndex: 'changed_on',
             key: 'changed_on',
-            sorter: true,
-            width: '15%'
+            width: '15%',
+            sorter(a, b) {
+                return a.changed_on - b.changed_on
+            }
         }, {
             title: '操作',
             key: 'action',
             width: '20%',
             render: (record) => {
+                const online = "发布";
+                const offline = "取消发布";
                 return (
                     <div>
                         <button className="btn btn-default" onClick={() => editSlice(record)}>编辑</button>&nbsp;
-                        <button className="btn btn-default" onClick={() => publishSlice(record)}>发布</button>&nbsp;
+                        <button className="btn btn-default" onClick={() => publishSlice(record)}>{record.online ? offline : online}</button>&nbsp;
                         <button className="btn btn-default" onClick={() => deleteSlice(record)}>删除</button>
                     </div>
                 )
@@ -138,10 +175,20 @@ class TableList extends React.Component {
 TableList.propTypes = propTypes;
 TableList.defaultProps = defaultProps;
 
+function addTableKey(tables) {
+    if(tables) {
+        tables.forEach(function(table) {
+            table.key = table.id;
+        });
+    }
+    return tables;
+}
+
 function mapStateToProps(state) {
 
     return {
-        dataSource: state.posts.params.data || []
+        dataSource: addTableKey(state.posts.params.data) || [],
+        dashboardDetail: state.detail ? state.detail.dashboardDetail : {}
     }
 }
 

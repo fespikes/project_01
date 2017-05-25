@@ -2,7 +2,6 @@
  * Created by haitao on 17-5-18.
  */
 import { combineReducers } from 'redux';
-import { ADD_SLICE, EDIT_SLICE, PUBLISH_SLICE, DELETE_SLICE, REQUEST_POSTS, RECEIVE_POSTS } from '../actions';
 
 function operations(state = {}, action) {
     switch (action.type) {
@@ -57,19 +56,26 @@ function posts(state = {
     }
 }
 
-function puts(state = {
-    isFetching: true,
-    states: {}
+function keywords(state = {
+    keyword: ''
 }, action) {
     switch (action.type) {
-        case "REQUEST_PUTS":
+        case "SET_KEYWORD":
             return Object.assign({}, state, {
-                isFetching: true
+                keyword: action.keyword
             });
-        case "RECEIVE_PUTS":
+        default:
+            return state;
+    }
+}
+
+function details(state = {
+    dashboardDetail: {}
+}, action) {
+    switch (action.type) {
+        case "RECEIVE_DASH_DETAIL":
             return Object.assign({}, state, {
-                isFetching: false,
-                states: action.puts
+                dashboardDetail: action.detail
             });
         default:
             return state;
@@ -79,8 +85,9 @@ function puts(state = {
 const rootReducer = combineReducers({
     operations,
     posts,
-    puts,
     types,
+    keywords,
+    details,
 });
 
 export default rootReducer;

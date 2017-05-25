@@ -1,14 +1,10 @@
 import React, { PropTypes } from 'react';
 import { render } from 'react-dom';
-import { createStore, applyMiddleware } from 'redux';
 import { Provider, connect } from 'react-redux';
-import thunk from 'redux-thunk';
-import { addSliceAction, editSliceAction, publishSliceAction, deleteSliceAction, fetchPosts, showAll, showFavorite } from '../actions';
+import { fetchAvailableSlices, fetchPosts, showAll, showFavorite, setKeyword } from '../actions';
+import { DashboardAdd } from '../../components/popup';
 
-const propTypes = {
-    dispatch: PropTypes.func.required,
-    typeName: PropTypes.string.required,
-};
+const propTypes = {};
 const defaultProps = {
     typeName: 'show_all'
 };
@@ -29,6 +25,25 @@ class Operations extends React.Component {
 
     addSlice() {
 
+        const { dispatch, typeName, pageSize } = this.props;
+        let url = window.location.origin + "/dashboard/addablechoices";
+        dispatch(fetchAvailableSlices(url, callback));
+        function callback(success, data) {
+            if(success) {
+                var slice = {dashboard_title: '', description: ''};
+                var addSlicePopup = render(
+                    <DashboardAdd
+                        dispatch={dispatch}
+                        slice={slice}
+                        availableSlices={data.data.available_slices}
+                        pageSize={pageSize}
+                        typeName={typeName}/>,
+                    document.getElementById('popup_root'));
+                if(addSlicePopup) {
+                    addSlicePopup.showDialog();
+                }
+            }
+        }
     }
 
     deleteSlices() {
@@ -45,8 +60,13 @@ class Operations extends React.Component {
 
     searchSlice(event) {
         if(event.keyCode === 13) {
-            const { dispatch, pageSize } = this.props;
-            let url = window.location.origin + "/dashboard/listdata?page=0&page_size";
+            const { dispatch, pageSize, typeName } = this.props;
+            let url = window.location.origin + "/dashboard/listdata?page=0&page_size=" + pageSize + "&filter=" + event.target.value;
+            if(typeName === "show_favorite") {
+                url += "&only_favorite=1"
+            }
+            dispatch(setKeyword(event.target.value));
+            dispatch(fetchPosts(url));
         }
     }
 
@@ -54,6 +74,7 @@ class Operations extends React.Component {
         const { dispatch, pageSize } = this.props;
         let url = window.location.origin + "/dashboard/listdata?page=0&page_size=" + pageSize;
         dispatch(showAll());
+        dispatch(setKeyword(''));
         dispatch(fetchPosts(url));
     }
 
@@ -61,10 +82,9 @@ class Operations extends React.Component {
         const { dispatch, pageSize } = this.props;
         let url = window.location.origin + "/dashboard/listdata?page=0&page_size=" + pageSize + "&only_favorite=1";
         dispatch(showFavorite());
+        dispatch(setKeyword(''));
         dispatch(fetchPosts(url));
     }
-
-
 
     componentDidMount() {
 
@@ -92,7 +112,6 @@ Operations.propTypes = propTypes;
 Operations.defaultProps = defaultProps;
 
 const mapStateToProps = (state) => {
-    console.log("operations-state=", state);
     return {
         typeName: state.types.type
     }

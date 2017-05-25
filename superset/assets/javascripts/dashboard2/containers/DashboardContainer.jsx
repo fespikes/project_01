@@ -29,14 +29,15 @@ class DashboardContent extends React.Component {
     }
 
     render() {
+        const { countNum } = this.props;
         return (
             <div className="dashboard-panel">
                 <div className="panel-top">
                     <div className="left">
-                        <i className="glyphicon glyphicon-dashboard"></i>
+                        <i className=""></i>
                         <span>仪表盘</span>
                         <span>记录条目</span>
-                        <span>07</span>
+                        <span>{countNum}</span>
                     </div>
                     <div className="right">
                         <Operations
@@ -44,7 +45,7 @@ class DashboardContent extends React.Component {
                     </div>
                 </div>
                 <div className="panel-middle">
-                    <TableList />
+                    <TableList pageSize={this.state.paging.pageSize}/>
                 </div>
                 <div className="panel-bottom">
                     <Paginations
@@ -58,4 +59,10 @@ class DashboardContent extends React.Component {
 DashboardContent.propTypes = propTypes;
 DashboardContent.defaultProps = defaultProps;
 
-export default connect()(DashboardContent);
+function mapStateToProps(state) {
+    return {
+        countNum: state.posts.params.count || 0
+    }
+}
+
+export default connect(mapStateToProps)(DashboardContent);
