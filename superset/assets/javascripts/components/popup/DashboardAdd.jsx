@@ -17,11 +17,11 @@ function getSlicesUrl(type, pageSize) {
     return url;
 }
 
-function getBasicInfo(slice, state) {
+function getBasicInfo(slice, selectedSlices, availableSlices) {
     let obj = {};
-    obj.dashboard_title = slice.dashboard_title;
-    obj.description = slice.description;
-    obj.slices = getSelectedSlices(state.selected_slices, slice.available_slices);
+    obj.dashboard_title = slice ? slice.dashboard_title : "";
+    obj.description = slice ? slice.description : "";
+    obj.slices = getSelectedSlices(selectedSlices, availableSlices);
     return obj;
 }
 
@@ -37,7 +37,7 @@ function getSelectedSlices(selectedSlices, availableSlices) {
     return array;
 }
 
-class DashboardEdit extends React.Component {
+class DashboardAdd extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -53,41 +53,42 @@ class DashboardEdit extends React.Component {
     };
 
     showDialog() {
-        document.getElementById("popup_dashboard_edit").style.display = "flex";
+        document.getElementById("popup_dashboard_add").style.display = "flex";
     }
 
     closeDialog() {
-        document.getElementById("popup_dashboard_edit").style.display = "none";
+        document.getElementById("popup_dashboard_add").style.display = "none";
     }
 
     handleTitleChange(e) {
-        this.props.dashboardDetail.dashboard_title = e.target.value;
+        this.props.slice.dashboard_title = e.target.value;
         this.setState({
-            dashboardDetail: this.props.dashboardDetail
+            slice: this.props.slice
         });
     }
 
     handleDescriptionChange(e) {
-        this.props.dashboardDetail.description = e.target.value;
+        this.props.slice.description = e.target.value;
         this.setState({
-            dashboardDetail: this.props.dashboardDetail
+            slice: this.props.slice
         });
     }
 
     confirm() {
         const self = this;
-        const { dispatch, pageSize, typeName, dashboardDetail } = self.props;
-        let basicInfo = getBasicInfo(self.props.dashboardDetail, self.state);
-        let url_update = window.location.origin + "/dashboard/edit/" + dashboardDetail.id;
+        const { dispatch, pageSize, typeName, availableSlices } = self.props;
+        let basicInfo = getBasicInfo(self.state.slice, self.state.selected_slices, availableSlices);
+        let url_add = window.location.origin + "/dashboard/add";
         let url_refresh = getSlicesUrl(typeName, pageSize);
-        dispatch(fetchUpdateSlice(url_update, url_refresh, basicInfo, callback));
+        dispatch(fetchUpdateSlice(url_add, url_refresh, basicInfo, callback));
         function callback(success) {
             if(success) {
                 self.setState({
+                    slice: {},
                     selected_slices: [],
                 });
 
-                document.getElementById("popup_dashboard_edit").style.display = "none";
+                document.getElementById("popup_dashboard_add").style.display = "none";
             }else {
 
             }
@@ -96,17 +97,27 @@ class DashboardEdit extends React.Component {
 
     componentDidMount() {
 
+        const { dispatch } = this.props;
+        const self = this;
+        let url = window.location.origin + "/dashboard/addablechoices";
+        dispatch(fetchAvailableSlices(url, callback));
+
+        function callback(success, data) {
+            if(success) {
+                self.setState({
+                    available_slices: data.data.available_slices
+                });
+            }else {
+
+            }
+        }
     }
 
     render() {
         const self = this;
         const Option = Select.Option;
-        const options = self.props.dashboardDetail.slices.map(s => {
+        const options = self.props.availableSlices.map(s => {
             return <Option key={s.id}>{s.slice_name}</Option>
-        });
-        var defaultOptions = [];
-        self.props.dashboardDetail.slices.forEach(function(slice) {
-            defaultOptions.push(slice.slice_name);
         });
 
         function onChange(value) {
@@ -116,7 +127,7 @@ class DashboardEdit extends React.Component {
         }
 
         return (
-            <div id="popup_dashboard_edit" className="popup">
+            <div id="popup_dashboard_add" className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
@@ -134,8 +145,8 @@ class DashboardEdit extends React.Component {
                                     <span>标题：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.dashboardDetail.dashboard_title}
-                                      onChange={this.handleTitleChange} />
+                                    <input className="form-control dialog-input" value={this.props.slice.dashboard_title}
+                                           onChange={this.handleTitleChange} />
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -143,8 +154,8 @@ class DashboardEdit extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" value={this.props.dashboardDetail.description}
-                                        onChange={this.handleDescriptionChange}></textarea>
+                                    <textarea className="dialog-area" value={this.props.slice.description}
+                                              onChange={this.handleDescriptionChange}></textarea>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -154,8 +165,8 @@ class DashboardEdit extends React.Component {
                                 <div className="item-right">
                                     <div id="edit_pop_select">
                                         <Select mode={'multiple'}
+                                                value={self.state.selected_slices}
                                                 style={{ width: '100%' }}
-                                                defaultValue={defaultOptions}
                                                 placeholder="select the slices..."
                                                 onChange={onChange}>
                                             {options}
@@ -168,7 +179,7 @@ class DashboardEdit extends React.Component {
                                     <span>数据集：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.dashboardDetail.table_names} disabled />
+                                    <input className="form-control dialog-input" disabled />
                                 </div>
                             </div>
                         </div>
@@ -184,7 +195,7 @@ class DashboardEdit extends React.Component {
     }
 }
 
-DashboardEdit.propTypes = propTypes;
-DashboardEdit.defaultProps = defaultProps;
+DashboardAdd.propTypes = propTypes;
+DashboardAdd.defaultProps = defaultProps;
 
-export default DashboardEdit;
+export default DashboardAdd;
