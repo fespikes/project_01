@@ -56,11 +56,11 @@ class Confirm extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon"></i>
+                                <i className=""></i>
                                 <span>工作表基本信息</span>
                             </div>
                             <div className="header-right">
-                                <i className="glyphicon glyphicon-remove" onClick={this.closeDialog}></i>
+                                <i className="" onClick={this.closeDialog}>关闭</i>
                             </div>
                         </div>
                         <div className="popup-body">

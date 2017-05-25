@@ -101,11 +101,7 @@ class TableList extends React.Component {
             width: '5%',
             render: (text, record) => {
                 return (
-                    <div>
-                        <button className={record.favorite ? 'btn-primary' : 'btn-default'} onClick={() => favoriteSlice(record)}>
-                            收藏
-                        </button>
-                    </div>
+                    <i className={record.favorite ? 'star-selected icon' : 'star icon'} onClick={() => favoriteSlice(record)}></i>
                 )
             }
         }, {
@@ -139,13 +135,11 @@ class TableList extends React.Component {
             key: 'action',
             width: '20%',
             render: (record) => {
-                const online = "发布";
-                const offline = "取消发布";
                 return (
-                    <div>
-                        <button className="btn btn-default" onClick={() => editSlice(record)}>编辑</button>&nbsp;
-                        <button className="btn btn-default" onClick={() => publishSlice(record)}>{record.online ? offline : online}</button>&nbsp;
-                        <button className="btn btn-default" onClick={() => deleteSlice(record)}>删除</button>
+                    <div className="icon-group">
+                        <i className="icon" onClick={() => editSlice(record)}></i>&nbsp;
+                        <i className={record.online ? 'icon online' : 'icon offline'} onClick={() => publishSlice(record)}></i>&nbsp;
+                        <i className="icon" onClick={() => deleteSlice(record)}></i>
                     </div>
                 )
             }
