@@ -3790,18 +3790,19 @@ class Home(BaseSupersetView):
 
         rows = []
         for log, username, dash, slice in query.all():
-            line = {}
-            line['user'] = username
-            line['action'] = log.action
             if dash:
-                line['title'] = dash.dashboard_title
+                title, link, obj_type = dash.dashboard_title, dash.url, 'dashboard'
             elif slice:
-                line['title'] = slice.slice_name
+                title, link, obj_type = slice.slice_name, slice.slice_url, 'slice'
             else:
-                line['title'] = 'Not found'
-            line['link'] = dash.url if dash else slice.slice_url
-            line['obj_type'] = 'dashboard' if dash else 'slice'
-            line['time'] = str(log.dttm)
+                title, link, obj_type = 'No this object', None, None
+            line = {'user': username,
+                    'action': log.action,
+                    'title': title,
+                    'link': link,
+                    'obj_type': obj_type,
+                    'time': str(log.dttm)
+                    }
             rows.append(line)
         return count, rows
 
