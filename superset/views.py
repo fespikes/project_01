@@ -1237,10 +1237,6 @@ class SliceModelView(SupersetModelView):  # noqa
     bool_columns = ['online']
     str_columns = ['datasource', 'created_on', 'changed_on']
 
-    # @expose('/list/')
-    # def list(self):
-    #      return self.render_template(self.list_template)
-
     def get_addable_choices(self):
         data = super().get_addable_choices()
         dashs = self.get_available_dashboards(self.get_user_id())
@@ -3448,7 +3444,10 @@ class Home(BaseSupersetView):
     limit = 0: means not limit
     default_types['actions'] could be: ['online', 'offline', 'add', 'edit', 'delete'...]
     """
-
+    page = 0
+    page_size = 10
+    order_column = 'time'
+    order_direction = 'desc'
     default_types = {
         'counts': ['dashboard', 'slice', 'table', 'database'],
         'trends': ['dashboard', 'slice', 'table', 'database'],
@@ -3463,10 +3462,16 @@ class Home(BaseSupersetView):
         'edits': 10,
         'actions': 10
     }
+    str_to_column_in_actions = {
+        'user': User.username,
+        'action': Log.action,
+        'time': Log.dttm
+    }
 
     def __init__(self):
         super(Home, self).__init__()
         self.status = 201
+        self.success = True
         self.message = []
 
     def get_user_id(self):
@@ -3701,7 +3706,7 @@ class Home(BaseSupersetView):
         rs = self.get_edited_objects(user_id, types=types, limit=int(limit))
         status_ = self.status
         message_ = self.message
-        self.status = 201
+        self.status = 200
         self.message = []
         if str(self.status)[0] != '2':
             return Response(json.dumps(message_),
@@ -3712,12 +3717,19 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
 
-    def get_user_actions(self, user_id=0, types=[], limit=10):
+    def get_user_actions(self, **kwargs):
         """The actions of user"""
-        if len(types) < 1 or limit < 0:
+        user_id = kwargs.get('user_id')
+        page = kwargs.get('page')
+        page_size = kwargs.get('page_size')
+        order_column = kwargs.get('order_column')
+        order_direction = kwargs.get('order_direction')
+        types = kwargs.get('types')
+
+        if len(types) < 1 or page_size < 0:
             self.status = 401 if str(self.status)[0] < '4' else self.status
             self.message.append('{}: {},{} are passed to {}'
-                                .format(ERROR_REQUEST_PARAM, types, limit, 'get_user_actions()'))
+                                .format(ERROR_REQUEST_PARAM, types, page_size, 'get_user_actions()'))
             return {}
         
         query = (
@@ -3735,9 +3747,23 @@ class Home(BaseSupersetView):
                        )
             .filter(Log.user_id == user_id,
                     Log.action_type.in_(types))
-            .order_by(Log.dttm.desc())
-            .limit(limit)
         )
+        count = query.count()
+
+        if order_column:
+            column = self.str_to_column_in_actions.get(order_column)
+            if order_direction == 'desc':
+                query = query.order_by(column.desc())
+            else:
+                query = query.order_by(column)
+        else:
+            query = query.order_by(Log.dttm.desc())
+
+        if page_size and page_size > 0:
+            query = query.limit(page_size)
+        if page is not None and page >= 0:
+            query = query.offset(page * page_size)
+
         rows = []
         for log, username, dash, slice in query.all():
             line = {}
@@ -3753,7 +3779,7 @@ class Home(BaseSupersetView):
             line['obj_type'] = 'dashboard' if dash else 'slice'
             line['time'] = str(log.dttm)
             rows.append(line)
-        return rows
+        return count, rows
 
     @expose('/actions/')
     def get_user_actions_by_url(self):
@@ -3762,23 +3788,23 @@ class Home(BaseSupersetView):
             return Response(json.dumps(NO_USER),
                             status=400,
                             mimetype='application/json')
-        args = request.args
-        if 'limit' in args.keys():
-            limit = request.args.get('limit')
-        else:
-            limit = self.default_limit.get('actions')
-        if 'types' in args.keys():
-            types = request.args.get('types')
-        else:
-            types = self.default_types.get('actions')
 
-        if not isinstance(types, list) or len(types) < 1:
-            message_ = '{}: {} '.format(ERROR_REQUEST_PARAM, args)
+        kwargs = {}
+        args = request.args
+        kwargs['user_id'] = user_id
+        kwargs['page'] = int(args.get('page', self.page))
+        kwargs['page_size'] = int(args.get('page_size', self.page_size))
+        kwargs['order_column'] = args.get('order_column', self.order_column)
+        kwargs['order_direction'] = args.get('order_direction', self.order_direction)
+        kwargs['types'] = args.get('types', self.default_types.get('actions'))
+
+        if not isinstance(kwargs['types'], list) or len(kwargs['types']) < 1:
+            message_ = '{}: {} '.format(ERROR_REQUEST_PARAM, request.args)
             return Response(json.dumps(message_),
                             status=400,
                             mimetype='application/json')
 
-        rs = self.get_user_actions(user_id, types=types, limit=int(limit))
+        count, actions = self.get_user_actions(**kwargs)
         status_ = self.status
         message_ = self.message
         self.status = 201
@@ -3788,7 +3814,14 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
         else:
-            return Response(json.dumps({'actions': rs}),
+            response = {}
+            response['actions'] = actions
+            response['count'] = count
+            response['page'] = kwargs.get('page')
+            response['page_size'] = kwargs.get('page_size')
+            response['order_column'] = kwargs.get('order_column')
+            response['order_direction'] = kwargs.get('order_direction')
+            return Response(json.dumps(response),
                             status=status_,
                             mimetype='application/json')
 
@@ -3880,7 +3913,8 @@ class Home(BaseSupersetView):
         # #
         limit = self.default_limit.get('actions')
         types = self.default_types.get('actions')
-        result = self.get_user_actions(user_id, types=types, limit=limit)
+        count, result = self.get_user_actions(
+            user_id=user_id, types=types, page_size=limit)
         response['actions'] = result
 
         status_ = self.status
