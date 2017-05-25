@@ -3704,6 +3704,14 @@ class Home(BaseSupersetView):
             count, dt['dashboard'] = self.get_edited_dashboards(**kwargs)
         return dt
 
+    def get_request_args(self, args):
+        kwargs = {}
+        kwargs['page'] = int(args.get('page', self.page))
+        kwargs['page_size'] = int(args.get('page_size', self.page_size))
+        kwargs['order_column'] = args.get('order_column', self.order_column)
+        kwargs['order_direction'] = args.get('order_direction', self.order_direction)
+        return kwargs
+
     @expose('/edits/slice')
     def get_edited_slices_by_url(self):
         success, user_id = self.get_user_id()
@@ -3711,16 +3719,10 @@ class Home(BaseSupersetView):
             return Response(json.dumps(NO_USER),
                             status=400,
                             mimetype='application/json')
-
-        kwargs = {}
-        args = request.args
+        kwargs = self.get_request_args(request.args)
         kwargs['user_id'] = user_id
-        kwargs['page'] = int(args.get('page', self.page))
-        kwargs['page_size'] = int(args.get('page_size', self.page_size))
-        kwargs['order_column'] = args.get('order_column', self.order_column)
-        kwargs['order_direction'] = args.get('order_direction', self.order_direction)
-
         count, data = self.get_edited_slices(**kwargs)
+
         status_ = self.status
         message_ = self.message
         self.status = 200
@@ -3742,22 +3744,16 @@ class Home(BaseSupersetView):
                             mimetype='application/json')
 
     @expose('/edits/dashboard')
-    def get_edited_slices_by_url(self):
+    def get_edited_dashboards_by_url(self):
         success, user_id = self.get_user_id()
         if not success:
             return Response(json.dumps(NO_USER),
                             status=400,
                             mimetype='application/json')
-
-        kwargs = {}
-        args = request.args
+        kwargs = self.get_request_args(request.args)
         kwargs['user_id'] = user_id
-        kwargs['page'] = int(args.get('page', self.page))
-        kwargs['page_size'] = int(args.get('page_size', self.page_size))
-        kwargs['order_column'] = args.get('order_column', self.order_column)
-        kwargs['order_direction'] = args.get('order_direction', self.order_direction)
-
         count, data = self.get_edited_dashboards(**kwargs)
+
         status_ = self.status
         message_ = self.message
         self.status = 200
@@ -3850,15 +3846,9 @@ class Home(BaseSupersetView):
             return Response(json.dumps(NO_USER),
                             status=400,
                             mimetype='application/json')
-
-        kwargs = {}
-        args = request.args
+        kwargs = self.get_request_args(request.args)
         kwargs['user_id'] = user_id
-        kwargs['page'] = int(args.get('page', self.page))
-        kwargs['page_size'] = int(args.get('page_size', self.page_size))
-        kwargs['order_column'] = args.get('order_column', self.order_column)
-        kwargs['order_direction'] = args.get('order_direction', self.order_direction)
-        kwargs['types'] = args.get('types', self.default_types.get('actions'))
+        kwargs['types'] = request.args.get('types', self.default_types.get('actions'))
 
         if not isinstance(kwargs['types'], list) or len(kwargs['types']) < 1:
             message_ = '{}: {} '.format(ERROR_REQUEST_PARAM, request.args)
