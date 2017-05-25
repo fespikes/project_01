@@ -522,6 +522,8 @@ class SupersetModelView(ModelView):
         attributes = {}
         attributes['created_by_fk'] = user_id
         attributes['created_on'] = datetime.now()
+        attributes['changed_by_fk'] = user_id
+        attributes['changed_on'] = datetime.now()
         for col in self.add_columns:
             if col not in data:
                 msg = "The needed attribute: \'{}\' not in attributes: \'{}\'"\
@@ -3467,6 +3469,10 @@ class Home(BaseSupersetView):
         'action': Log.action,
         'time': Log.dttm
     }
+    str_to_column_in_edits = {
+        'name': {'slice': Slice.slice_name, 'dashboard': Dashboard.dashboard_title},
+        'time': {'slice': Slice.changed_on, 'dashboard': Dashboard.changed_on}
+    }
 
     def __init__(self):
         super(Home, self).__init__()
@@ -3607,103 +3613,114 @@ class Home(BaseSupersetView):
             rows.append({'name': row[0], 'count': row[1]})
         return rows
 
-    def get_edited_object(self, user_id, obj_type, limit=10):
-        """The records of slices be modified"""
-        success, obj_class = self.get_obj_class(obj_type)
-        if not success:
-            return []
-        #
-        query_created = db.session.query(obj_class)
-        if user_id > 0:
-            query_created = query_created.filter(
-                or_(
-                    obj_class.created_by_fk == user_id,
-                    obj_class.online == 1
-                )
-            )
-        query_created = query_created.order_by(obj_class.created_on.desc())
-        if limit > 0:
-            query_created = query_created.limit(limit)
-        rs_created = query_created.all()
-        #
-        query_edited = db.session.query(obj_class) \
-            .filter(obj_class.changed_on > obj_class.created_on)
-        if user_id > 0:
-            query_edited = query_edited.filter(
-                or_(
-                    obj_class.changed_by_fk == user_id,
-                    obj_class.online == 1
-                )
-            )
-        query_edited = query_edited.order_by(obj_class.changed_on.desc())
-        if limit > 0:
-            query_edited = query_edited.limit(limit)
-        rs_edited = query_edited.all()
-        #
-        rows = []
-        if obj_type.lower() == 'slice':
-            if rs_created:
-                for obj in rs_created:
-                    rows.append({'name': obj.slice_name,
-                                 'action': 'create',
-                                 'time': str(obj.created_on),
-                                 'link': obj.slice_url})
-            if rs_edited:
-                for obj in rs_edited:
-                    rows.append({'name': obj.slice_name,
-                                 'action': 'edit',
-                                 'time': str(obj.changed_on),
-                                 'link': obj.slice_url})
-        elif obj_type.lower() == 'dashboard':
-            if rs_created:
-                for obj in rs_created:
-                    rows.append({'name': obj.dashboard_title,
-                                 'action': 'create',
-                                 'time': str(obj.created_on),
-                                 'link': obj.url})
-            if rs_edited:
-                for obj in rs_edited:
-                    rows.append({'name': obj.dashboard_title,
-                                 'action': 'edit',
-                                 'time': str(obj.changed_on),
-                                 'link': obj.url})
-        else:
-            self.status = 400 if str(self.status)[0] < '4' else self.status
-            self.message.append('{}: {} passed to {}'
-                                .format(ERROR_REQUEST_PARAM, obj_type, 'get_edited_object()'))
-        rows = sorted(rows, key=lambda x: x['time'], reverse=True)
-        return rows[0:limit]
+    def get_edited_slices(self, **kwargs):
+        """The records of slice be modified"""
+        user_id = kwargs.get('user_id')
+        page = kwargs.get('page')
+        page_size = kwargs.get('page_size')
+        order_column = kwargs.get('order_column')
+        order_direction = kwargs.get('order_direction')
 
-    def get_edited_objects(self, user_id=0, types=None, limit=10):
+        query = db.session.query(Slice).filter(
+            or_(
+                Slice.created_by_fk == user_id,
+                Slice.online == 1
+            )
+        )
+        count = query.count()
+
+        if order_column:
+            column = self.str_to_column_in_edits.get(order_column).get('slice')
+            if order_direction == 'desc':
+                query = query.order_by(column.desc())
+            else:
+                query = query.order_by(column)
+        else:
+            query = query.order_by(Slice.changed_on.desc())
+
+        if page_size and page_size > 0:
+            query = query.limit(page_size)
+        if page and page > 0:
+            query = query.offset(page * page_size)
+
+        rows = []
+        for obj in query.all():
+            action = 'create' if obj.changed_on == obj.created_on else 'edit'
+            line = {'name': obj.slice_name,
+                    'description': obj.description,
+                    'action': action,
+                    'time': str(obj.changed_on),
+                    'link': obj.slice_url}
+            rows.append(line)
+        return count, rows
+
+    def get_edited_dashboards(self, **kwargs):
+        """The records of slice be modified"""
+        user_id = kwargs.get('user_id')
+        page = kwargs.get('page')
+        page_size = kwargs.get('page_size')
+        order_column = kwargs.get('order_column')
+        order_direction = kwargs.get('order_direction')
+
+        query = db.session.query(Dashboard).filter(
+            or_(
+                Dashboard.created_by_fk == user_id,
+                Dashboard.online == 1
+            )
+        )
+        count = query.count()
+
+        if order_column:
+            column = self.str_to_column_in_edits.get(order_column).get('dashboard')
+            if order_direction == 'desc':
+                query = query.order_by(column.desc())
+            else:
+                query = query.order_by(column)
+        else:
+            query = query.order_by(Dashboard.changed_on.desc())
+
+        if page_size and page_size > 0:
+            query = query.limit(page_size)
+        if page and page > 0:
+            query = query.offset(page * page_size)
+
+        rows = []
+        for obj in query.all():
+            action = 'create' if obj.changed_on == obj.created_on else 'edit'
+            line = {'name': obj.dashboard_title,
+                    'description': obj.description,
+                    'action': action,
+                    'time': str(obj.changed_on),
+                    'link': obj.url}
+            rows.append(line)
+        return count, rows
+
+    def get_edited_objects(self, **kwargs):
         dt = {}
-        for type_ in types:
-            dt[type_] = self.get_edited_object(user_id, type_, limit=limit)
+        types = kwargs.pop('types')
+        if 'slice' in types:
+            count, dt['slice'] = self.get_edited_slices(**kwargs)
+        if 'dashboard' in types:
+            count, dt['dashboard'] = self.get_edited_dashboards(**kwargs)
         return dt
 
-    @expose('/edits/')
-    def get_edited_objects_by_url(self):
+    @expose('/edits/slice')
+    def get_edited_slices_by_url(self):
         success, user_id = self.get_user_id()
         if not success:
             return Response(json.dumps(NO_USER),
                             status=400,
                             mimetype='application/json')
+
+        kwargs = {}
         args = request.args
-        if 'limit' in args.keys():
-            limit = request.args.get('limit')
-        else:
-            limit = self.default_limit.get('edits')
-        if 'types' in args.keys():
-            types = request.args.get('types')
-        else:
-            types = self.default_types.get('edits')
+        kwargs['user_id'] = user_id
+        kwargs['page'] = int(args.get('page', self.page))
+        kwargs['page_size'] = int(args.get('page_size', self.page_size))
+        kwargs['order_column'] = args.get('order_column', self.order_column)
+        kwargs['order_direction'] = args.get('order_direction', self.order_direction)
 
-        if not isinstance(types, list) or len(types) < 1:
-            message_ = '{}: {} '.format(ERROR_REQUEST_PARAM, args)
-            return Response(json.dumps(message_),
-                            status=400,
-                            mimetype='application/json')
-
-        rs = self.get_edited_objects(user_id, types=types, limit=int(limit))
+        count, data = self.get_edited_slices(**kwargs)
         status_ = self.status
         message_ = self.message
         self.status = 200
@@ -3713,7 +3730,14 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
         else:
-            return Response(json.dumps({'edits': rs}),
+            response = {}
+            response['data'] = data
+            response['count'] = count
+            response['page'] = kwargs.get('page')
+            response['page_size'] = kwargs.get('page_size')
+            response['order_column'] = kwargs.get('order_column')
+            response['order_direction'] = kwargs.get('order_direction')
+            return Response(json.dumps(response),
                             status=status_,
                             mimetype='application/json')
 
@@ -3804,7 +3828,7 @@ class Home(BaseSupersetView):
                             status=400,
                             mimetype='application/json')
 
-        count, actions = self.get_user_actions(**kwargs)
+        count, data = self.get_user_actions(**kwargs)
         status_ = self.status
         message_ = self.message
         self.status = 201
@@ -3815,7 +3839,7 @@ class Home(BaseSupersetView):
                             mimetype='application/json')
         else:
             response = {}
-            response['actions'] = actions
+            response['data'] = data
             response['count'] = count
             response['page'] = kwargs.get('page')
             response['page_size'] = kwargs.get('page_size')
@@ -3908,7 +3932,8 @@ class Home(BaseSupersetView):
         #
         types = self.default_types.get('edits')
         limit = self.default_limit.get('edits')
-        result = self.get_edited_objects(user_id, types=types, limit=limit)
+        result = self.get_edited_objects(
+            user_id=user_id, types=types, page_size=limit)
         response['edits'] = result
         # #
         limit = self.default_limit.get('actions')
