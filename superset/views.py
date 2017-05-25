@@ -3741,6 +3741,43 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
 
+    @expose('/edits/dashboard')
+    def get_edited_slices_by_url(self):
+        success, user_id = self.get_user_id()
+        if not success:
+            return Response(json.dumps(NO_USER),
+                            status=400,
+                            mimetype='application/json')
+
+        kwargs = {}
+        args = request.args
+        kwargs['user_id'] = user_id
+        kwargs['page'] = int(args.get('page', self.page))
+        kwargs['page_size'] = int(args.get('page_size', self.page_size))
+        kwargs['order_column'] = args.get('order_column', self.order_column)
+        kwargs['order_direction'] = args.get('order_direction', self.order_direction)
+
+        count, data = self.get_edited_dashboards(**kwargs)
+        status_ = self.status
+        message_ = self.message
+        self.status = 200
+        self.message = []
+        if str(self.status)[0] != '2':
+            return Response(json.dumps(message_),
+                            status=status_,
+                            mimetype='application/json')
+        else:
+            response = {}
+            response['data'] = data
+            response['count'] = count
+            response['page'] = kwargs.get('page')
+            response['page_size'] = kwargs.get('page_size')
+            response['order_column'] = kwargs.get('order_column')
+            response['order_direction'] = kwargs.get('order_direction')
+            return Response(json.dumps(response),
+                            status=status_,
+                            mimetype='application/json')
+
     def get_user_actions(self, **kwargs):
         """The actions of user"""
         user_id = kwargs.get('user_id')
