@@ -1,4 +1,4 @@
-import datetime, json, logging, operator, os, posixpath, threading
+import datetime, json, logging, mimetypes, operator, os, posixpath, threading
 
 from flask import Response
 from flask_babel import gettext
@@ -10,9 +10,12 @@ from superset.libs.hadoop.fs import webhdfs, hadoopfs
 from superset.utils import json_error_response, json_success_response
 
 from werkzeug import secure_filename
+from werkzeug.http import http_date
+
 
 mutex = threading.Lock()
 
+DOWNLOAD_CHUNK_SIZE = 64 * 1024 * 1024 # 64MB
 
 class Filebrowser:
 
@@ -166,6 +169,31 @@ class Filebrowser:
     fs.rename(tmp_path, dest_path)
 
     return json_success_response("Succeed to upload a file")
+
+  def download_file(self, fs, path):
+    if not fs.exists(path):
+      return json_error_response(__("File not found: %(path)s.") % {'path': path}, 404)
+    if not fs.isfile(path):
+      return json_error_response(__("'%(path)s' is not a file.") % {'path': path})
+
+    content_type = mimetypes.guess_type(path)[0] or 'application/octet-stream'
+    stats = fs.stats(path)
+
+    fh = fs.open(path)
+
+    response = Response(self.read_file_by_chunk(fh), content_type=content_type)
+    response.headers['Last-Modified'] = http_date(stats['mtime'])
+    response.headers['Content-Length'] = stats['size']
+    response.headers['Content-Disposition'] = 'attachment; filename=' + os.path.basename(path)
+    return response
+
+  def read_file_by_chunk(self, fh):
+    while True:
+      chunk = fh.read(DOWNLOAD_CHUNK_SIZE)
+      if chunk == b'':
+        fh.close()
+        break
+      yield chunk
 
 
 def _massage_stats(request, stats):

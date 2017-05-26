@@ -408,12 +408,20 @@ class HDFSTableRes(Resource):
 
 hdfsfilebrowser_get_parser = reqparse.RequestParser()
 hdfsfilebrowser_get_parser.add_argument(
-    'connection_name',
+    'action',
     type=str,
     location=['args', 'form'],
     required=True,
-    help="connection name is required"
+    help="action is required"
 )
+hdfsfilebrowser_get_parser.add_argument(
+    'connection_id',
+    type=int,
+    location=['args', 'form'],
+    required=True,
+    help="connection id is required"
+)
+
 hdfsfilebrowser_get_parser.add_argument(
     'hdfs_path',
     type=str,
@@ -433,16 +441,58 @@ hdfsfilebrowser_get_parser.add_argument(
     help="page size is required"
 )
 
+hdfsfilebrowser_post_parser = reqparse.RequestParser()
+hdfsfilebrowser_post_parser.add_argument(
+    'action',
+    type=str,
+    location=['args', 'form'],
+    required=True,
+    help="action is required"
+)
+hdfsfilebrowser_post_parser.add_argument(
+    'connection_id',
+    type=int,
+    location=['args', 'form'],
+    required=True,
+    help="connection id is required"
+)
+hdfsfilebrowser_post_parser.add_argument(
+    'hdfs_path',
+    type=str,
+    location=['args', 'form'],
+    required=True,
+    help="hdfs path is required"
+)
+
+hdfsfilebrowser_post_parser.add_argument(
+    'hdfs_file',
+    location=['files'],
+    help="hdfs file is required"
+)
+
 
 class HDFSFileBrowserRes(Resource):
     def __init__(self):
         self.filebrowser = Filebrowser()
+        self.actionlist = {"list": self.list, "download": self.download, "upload": self.upload}
 
     def get(self):
         args = hdfsfilebrowser_get_parser.parse_args(strict=True)
+        connection = db.session.query(HDFSConnection2).get(args['connection_id'])
+        if connection is None:
+            return "no hdfs connection found with the connection id", 400
 
-        connection = db.session.query(HDFSConnection2).filter_by(connection_name=args['connection_name']).one()
+        return self.actionlist.get(args['action'])(args, connection)
 
+    def post(self):
+        args = hdfsfilebrowser_post_parser.parse_args(strict=True)
+        connection = db.session.query(HDFSConnection2).get(args['connection_id'])
+        if connection is None:
+            return "no hdfs connection found with the connection id", 400
+
+        return self.actionlist.get(args['action'])(args, connection)
+
+    def list(self, args, connection):
         hdfs_path = args['hdfs_path']
         if hdfs_path is None:
             hdfs_path = "/user/" + get_hdfs_user_from_principal(connection.principal)
@@ -450,6 +500,23 @@ class HDFSFileBrowserRes(Resource):
         fs = self.filebrowser.get_fs_from_cache(connection)
         return self.filebrowser.view(request, fs, hdfs_path)
 
+    def download(self, args, connection):
+        hdfs_path = args['hdfs_path']
+        if hdfs_path is None:
+            return "hdfs path not found", 400
+
+        fs = self.filebrowser.get_fs_from_cache(connection)
+        return self.filebrowser.download_file(fs, hdfs_path)
+
+    def upload(self, args, connection):
+        hdfs_path = args['hdfs_path']
+
+        hdfs_file = request.files['hdfs_file']
+        if hdfs_file is None:
+            return "hdfs file not found", 400
+
+        fs = self.filebrowser.get_fs_from_cache(connection)
+        return self.filebrowser.upload_file(fs, hdfs_file, hdfs_path)
 
 hdfsfilepreview_get_parser = reqparse.RequestParser()
 hdfsfilepreview_get_parser.add_argument(
