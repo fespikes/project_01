@@ -56,9 +56,73 @@ class Filebrowser:
   def view(self, request, fs, path):
     stats = fs.stats(path)
     if stats.isDir:
-      return Response(json.dumps(listdir_paged(request, fs, path)), 200)
+      return Response(json.dumps(self.listdir_paged(request, fs, path)), 200)
     else:
       return json_error_response(gettext("File preview not supported, please download it"))
+
+  def listdir_paged(self, request, fs, path):
+    if not fs.isdir(path):
+      raise Exception("Not a directory: %s" % (path,))
+
+    pagenum = request.args.get('page_num', type=int, default=1)
+    pagesize = request.args.get('page_size', type=int, default=30)
+
+    all_stats = fs.listdir_stats(path)
+
+    # filter first
+    filter_str = request.args.get('filter', type=str, default=None)
+
+    if filter_str:
+      filtered_stats = filter(lambda sb: filter_str in sb['name'], all_stats)
+      all_stats = filtered_stats
+
+    sortby = request.args.get('sortby', type=str, default=None)
+    descending_param = request.args.get('descending', type=str, default=None)
+
+    if sortby:
+      if sortby not in ('type', 'name', 'atime', 'mtime', 'user', 'group', 'size'):
+        logging.info("Invalid sort attribute '%s' for listdir." % (sortby,))
+      else:
+        all_stats = sorted(all_stats,
+                           key=operator.attrgetter(sortby),
+                           reverse=utils.coerce_bool(descending_param))
+
+    page = paginator.Paginator(all_stats, pagesize).page(pagenum)
+    shown_stats = page.object_list
+
+    if hadoopfs.Hdfs.normpath(path) != posixpath.sep:
+      parent_path = fs.join(path, "..")
+      parent_stat = fs.stats(parent_path)
+      # The 'path' field would be absolute, but we want its basename to be
+      # actually '..' for display purposes. Encode it since _massage_stats expects byte strings.
+      parent_stat['path'] = parent_path
+      parent_stat['name'] = ".."
+      shown_stats.insert(0, parent_stat)
+
+    # Include same dir always as first option to see stats of the current folder
+    current_stat = fs.stats(path)
+    # The 'path' field would be absolute, but we want its basename to be
+    # actually '.' for display purposes. Encode it since _massage_stats expects byte strings.
+    current_stat['path'] = path
+    current_stat['name'] = "."
+    shown_stats.insert(1, current_stat)
+
+
+    stats_dict = {'stats' : [s.to_json_dict() for s in all_stats]}
+
+    page.object_list = [ _massage_stats(request, s) for s in shown_stats ]
+
+    data = {
+      'path': path,
+      'files': page.object_list,
+      'page': _massage_page(page),
+      'pagesize': pagesize,
+      'sortby': sortby,
+      'descending': descending_param,
+
+    }
+
+    return data
 
   def read(self, fs, path, separator):
     stats = fs.stats(path)
@@ -102,71 +166,6 @@ class Filebrowser:
     fs.rename(tmp_path, dest_path)
 
     return json_success_response("Succeed to upload a file")
-
-
-def listdir_paged(request, fs, path):
-  if not fs.isdir(path):
-    raise Exception("Not a directory: %s" % (path,))
-
-  pagenum = request.args.get('pagenum', type=int, default=1)
-  pagesize = request.args.get('pagesize', type=int, default=30)
-
-  all_stats = fs.listdir_stats(path)
-
-  # filter first
-  filter_str = request.args.get('filter', type=str, default=None)
-
-  if filter_str:
-    filtered_stats = filter(lambda sb: filter_str in sb['name'], all_stats)
-    all_stats = filtered_stats
-
-  sortby = request.args.get('sortby', type=str, default=None)
-  descending_param = request.args.get('descending', type=str, default=None)
-
-  if sortby:
-    if sortby not in ('type', 'name', 'atime', 'mtime', 'user', 'group', 'size'):
-      logging.info("Invalid sort attribute '%s' for listdir." % (sortby,))
-    else:
-      all_stats = sorted(all_stats,
-                         key=operator.attrgetter(sortby),
-                         reverse=utils.coerce_bool(descending_param))
-
-  page = paginator.Paginator(all_stats, pagesize).page(pagenum)
-  shown_stats = page.object_list
-
-  if hadoopfs.Hdfs.normpath(path) != posixpath.sep:
-    parent_path = fs.join(path, "..")
-    parent_stat = fs.stats(parent_path)
-    # The 'path' field would be absolute, but we want its basename to be
-    # actually '..' for display purposes. Encode it since _massage_stats expects byte strings.
-    parent_stat['path'] = parent_path
-    parent_stat['name'] = ".."
-    shown_stats.insert(0, parent_stat)
-
-  # Include same dir always as first option to see stats of the current folder
-  current_stat = fs.stats(path)
-  # The 'path' field would be absolute, but we want its basename to be
-  # actually '.' for display purposes. Encode it since _massage_stats expects byte strings.
-  current_stat['path'] = path
-  current_stat['name'] = "."
-  shown_stats.insert(1, current_stat)
-
-
-  stats_dict = {'stats' : [s.to_json_dict() for s in all_stats]}
-
-  page.object_list = [ _massage_stats(request, s) for s in shown_stats ]
-
-  data = {
-    'path': path,
-    'files': page.object_list,
-    'page': _massage_page(page),
-    'pagesize': pagesize,
-    'sortby': sortby,
-    'descending': descending_param,
-
-  }
-
-  return data
 
 
 def _massage_stats(request, stats):

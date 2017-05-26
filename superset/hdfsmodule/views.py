@@ -77,6 +77,7 @@ hdfsconn_put_parser.add_argument(
     help="keytab file is required"
 )
 
+
 class HDFSConnRes(Resource):
     def get(self, hdfsconnection_id=None):
 
@@ -192,72 +193,6 @@ class HDFSConnRes(Resource):
         else:
             return False, "can not get the mutex lock"
 
-
-hdfsfilebrowser_get_parser = reqparse.RequestParser()
-hdfsfilebrowser_get_parser.add_argument(
-    'connection_name',
-    type=str,
-    location=['args', 'form'],
-    required=True,
-    help="connection name is required"
-)
-hdfsfilebrowser_get_parser.add_argument(
-    'hdfs_path',
-    type=str,
-    location=['args', 'form'],
-    help="hdfs path is required"
-)
-
-
-class HDFSFileBrowserRes(Resource):
-    def __init__(self):
-        self.filebrowser = Filebrowser()
-
-    def get(self):
-        args = hdfsfilebrowser_get_parser.parse_args(strict=True)
-
-        connection = db.session.query(HDFSConnection2).filter_by(connection_name=args['connection_name']).one()
-
-        hdfs_path = args['hdfs_path']
-        if hdfs_path is None:
-            hdfs_path = "/user/" + get_hdfs_user_from_principal(connection.principal)
-
-        fs = self.filebrowser.get_fs_from_cache(connection)
-        return self.filebrowser.view(request, fs, hdfs_path)
-
-hdfsfilepreview_get_parser = reqparse.RequestParser()
-hdfsfilepreview_get_parser.add_argument(
-    'connection_name',
-    type=str,
-    location=['args', 'form',  'headers'],
-    required=True,
-    help="connection name is required"
-)
-hdfsfilepreview_get_parser.add_argument(
-    'hdfs_path',
-    type=str,
-    location=['args', 'form', 'headers'],
-    required=True,
-    help="hdfs path is required"
-)
-hdfsfilepreview_get_parser.add_argument(
-    'separator',
-    type=str,
-    location=['args', 'form', 'headers'],
-    help="separator is required"
-)
-
-
-class HDFSFilePreviewRes(Resource):
-    def __init__(self):
-        self.filebrowser = Filebrowser()
-
-    def get(self):
-        args = hdfsfilepreview_get_parser.parse_args(strict=True)
-
-        connection = db.session.query(HDFSConnection2).filter_by(connection_name=args['connection_name']).one()
-        fs = self.filebrowser.get_fs_from_cache(connection)
-        return self.filebrowser.read(fs, args['hdfs_path'], args['separator'])
 
 hdfstable_post_parser = reqparse.RequestParser()
 hdfstable_post_parser.add_argument(
@@ -469,6 +404,87 @@ class HDFSTableRes(Resource):
             "process, you should now click the edit button by "
             "the new table to configure it."),
             "info")
+
+
+hdfsfilebrowser_get_parser = reqparse.RequestParser()
+hdfsfilebrowser_get_parser.add_argument(
+    'connection_name',
+    type=str,
+    location=['args', 'form'],
+    required=True,
+    help="connection name is required"
+)
+hdfsfilebrowser_get_parser.add_argument(
+    'hdfs_path',
+    type=str,
+    location=['args', 'form'],
+    help="hdfs path is required"
+)
+hdfsfilebrowser_get_parser.add_argument(
+    'page_num',
+    type=int,
+    location=['args', 'form'],
+    help="page num is required"
+)
+hdfsfilebrowser_get_parser.add_argument(
+    'page_size',
+    type=int,
+    location=['args', 'form'],
+    help="page size is required"
+)
+
+
+class HDFSFileBrowserRes(Resource):
+    def __init__(self):
+        self.filebrowser = Filebrowser()
+
+    def get(self):
+        args = hdfsfilebrowser_get_parser.parse_args(strict=True)
+
+        connection = db.session.query(HDFSConnection2).filter_by(connection_name=args['connection_name']).one()
+
+        hdfs_path = args['hdfs_path']
+        if hdfs_path is None:
+            hdfs_path = "/user/" + get_hdfs_user_from_principal(connection.principal)
+
+        fs = self.filebrowser.get_fs_from_cache(connection)
+        return self.filebrowser.view(request, fs, hdfs_path)
+
+
+hdfsfilepreview_get_parser = reqparse.RequestParser()
+hdfsfilepreview_get_parser.add_argument(
+    'connection_name',
+    type=str,
+    location=['args', 'form',  'headers'],
+    required=True,
+    help="connection name is required"
+)
+hdfsfilepreview_get_parser.add_argument(
+    'hdfs_path',
+    type=str,
+    location=['args', 'form', 'headers'],
+    required=True,
+    help="hdfs path is required"
+)
+hdfsfilepreview_get_parser.add_argument(
+    'separator',
+    type=str,
+    location=['args', 'form', 'headers'],
+    help="separator is required"
+)
+
+
+class HDFSFilePreviewRes(Resource):
+    def __init__(self):
+        self.filebrowser = Filebrowser()
+
+    def get(self):
+        args = hdfsfilepreview_get_parser.parse_args(strict=True)
+
+        connection = db.session.query(HDFSConnection2).filter_by(connection_name=args['connection_name']).one()
+        fs = self.filebrowser.get_fs_from_cache(connection)
+        return self.filebrowser.read(fs, args['hdfs_path'], args['separator'])
+
 
 api.add_resource(HDFSConnRes, "/hdfsconnection", "/hdfsconnection/<int:hdfsconnection_id>")
 api.add_resource(HDFSTableRes, "/hdfstable", "/hdfstable/<int:table_id>")
