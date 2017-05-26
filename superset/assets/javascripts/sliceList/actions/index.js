@@ -4,11 +4,22 @@ import { getAbsUrl } from '../utils';
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
 export const NAVIGATE_TO = 'NAVIGATE_TO';
+export const SWITCH_FAV = 'SWITCH_FAV';
+export const SEARCH_REDDIT = 'SEARCH_REDDIT';
+
+const baseURL = window.location.origin + '/slice/';
 
 export function navigateTo(pageNumber){
   return {
     pageNumber,
     type: NAVIGATE_TO
+  }
+}
+
+export function switchFavorite(onlyFavorite){
+  return {
+    onlyFavorite,
+    type: SWITCH_FAV
   }
 }
 
@@ -31,7 +42,7 @@ function receivePosts(pageNumber, json) {
 function fetchPosts(pageNumber) {
   return dispatch => {
     dispatch(requestPosts(pageNumber));
-    const url = window.location.origin + "/slice/listdata/";
+    const url = baseURL + "listdata";
     // const url = '/javascripts/sliceList/mock/data.json';
 
     return fetch(url, {
@@ -86,5 +97,55 @@ export function fetchPostsIfNeeded(pageNumber) {
     return null;
     // return dispatch(fetchPosts(pageNumber));
 
+  };
+}
+
+export function searchReddit(reddit){
+  return (dispatch, getState) => {
+    dispatch(requestPosts(reddit.pageNumber));
+    const url = baseURL + "listdata"+ '?filter='+ reddit.filter;
+//page=0&page_size=10 &order_column=changed_on&order_direction=desc &filter=hive&only_favorite=0 
+
+    return fetch(url, {
+        credentials: 'include',
+        method: 'GET'
+      })
+      .then(response => {
+        if(response.ok) {
+          return response.json();
+        }
+        throw new Error('Network response was not ok.');
+      })
+      .then(response => {
+        dispatch(receivePosts(reddit.pageNumber, response.data ));
+      }).catch( argus => {
+        console.log(argus);
+      });
+  };
+}
+
+export function removeReddit(params){
+  return (dispatch, getState) => {
+    // dispatch(requestPosts(params.pageNumber));
+
+  fetch( baseURL + "muldelete", {
+    credentials: 'include',
+    method: 'post',
+    body: JSON.stringify({
+      selectedRowKeys: params.selectedRowKeys
+    })
+  }).then(response => {
+        if(response.ok) {
+          return response.json();
+        }
+        throw new Error('Network response was not ok.');
+      })
+      .then(response => {
+        console.log(response, 'in removeReddit.')
+        if(response.success)
+          dispatch(requestPosts(getState().selectedReddit.pageNumber));
+      }).catch( argus => {
+        console.log(argus);
+      });
   };
 }

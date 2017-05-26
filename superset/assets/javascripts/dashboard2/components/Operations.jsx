@@ -1,43 +1,36 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 import { render } from 'react-dom';
 import { Provider, connect } from 'react-redux';
-import { fetchAvailableSlices, fetchPosts, showAll, showFavorite, setKeyword } from '../actions';
-import { DashboardAdd } from '../../components/popup';
-
-const propTypes = {};
-const defaultProps = {
-    typeName: 'show_all'
-};
+import PropTypes from 'prop-types';
+import { fetchAvailableSlices, fetchPosts, fetchDashboardDeleteMul, setShowType, setKeyword, setPageNumber } from '../actions';
+import { DashboardAdd, DashboardDelete } from '../../components/popup';
 
 class Operations extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
         // bindings
-        this.addSlice = this.addSlice.bind(this);
-        this.deleteSlices = this.deleteSlices.bind(this);
+        this.addDashboard = this.addDashboard.bind(this);
+        this.deleteDashboardMul = this.deleteDashboardMul.bind(this);
         this.importDashboard = this.importDashboard.bind(this);
         this.exportDashboard = this.exportDashboard.bind(this);
         this.showAll = this.showAll.bind(this);
         this.showFavorite = this.showFavorite.bind(this);
-        this.searchSlice = this.searchSlice.bind(this);
+        this.searchDashboard = this.searchDashboard.bind(this);
     };
 
-    addSlice() {
+    addDashboard() {
 
-        const { dispatch, typeName, pageSize } = this.props;
-        let url = window.location.origin + "/dashboard/addablechoices";
-        dispatch(fetchAvailableSlices(url, callback));
+        const { dispatch } = this.props;
+        dispatch(fetchAvailableSlices(callback));
         function callback(success, data) {
             if(success) {
-                var slice = {dashboard_title: '', description: ''};
+                var dashboard = {dashboard_title: '', description: ''};
                 var addSlicePopup = render(
                     <DashboardAdd
                         dispatch={dispatch}
-                        slice={slice}
-                        availableSlices={data.data.available_slices}
-                        pageSize={pageSize}
-                        typeName={typeName}/>,
+                        dashboard={dashboard}
+                        availableSlices={data.data.available_slices}/>,
                     document.getElementById('popup_root'));
                 if(addSlicePopup) {
                     addSlicePopup.showDialog();
@@ -46,8 +39,19 @@ class Operations extends React.Component {
         }
     }
 
-    deleteSlices() {
-
+    deleteDashboardMul() {
+        //dispatch(fetchDashboardDeleteMul());
+        const deleteType = "multiple";
+        const { dispatch, selectedRowNames } = this.props;
+        var deleteSlicePopup = render(
+            <DashboardDelete
+                dispatch={dispatch}
+                deleteType={deleteType}
+                deleteTips={selectedRowNames} />,
+            document.getElementById('popup_root'));
+        if(deleteSlicePopup) {
+            deleteSlicePopup.showDialog();
+        }
     }
 
     importDashboard() {
@@ -58,32 +62,28 @@ class Operations extends React.Component {
 
     }
 
-    searchSlice(event) {
+    searchDashboard(event) {
         if(event.keyCode === 13) {
-            const { dispatch, pageSize, typeName } = this.props;
-            let url = window.location.origin + "/dashboard/listdata?page=0&page_size=" + pageSize + "&filter=" + event.target.value;
-            if(typeName === "show_favorite") {
-                url += "&only_favorite=1"
-            }
+            const { dispatch } = this.props;
             dispatch(setKeyword(event.target.value));
-            dispatch(fetchPosts(url));
+            dispatch(fetchPosts());
         }
     }
 
     showAll() {
-        const { dispatch, pageSize } = this.props;
-        let url = window.location.origin + "/dashboard/listdata?page=0&page_size=" + pageSize;
-        dispatch(showAll());
+        const { dispatch } = this.props;
+        dispatch(setPageNumber(0));
+        dispatch(setShowType('show_all'));
         dispatch(setKeyword(''));
-        dispatch(fetchPosts(url));
+        dispatch(fetchPosts());
     }
 
     showFavorite() {
-        const { dispatch, pageSize } = this.props;
-        let url = window.location.origin + "/dashboard/listdata?page=0&page_size=" + pageSize + "&only_favorite=1";
-        dispatch(showFavorite());
+        const { dispatch } = this.props;
+        dispatch(setPageNumber(0));
+        dispatch(setShowType('show_favorite'));
         dispatch(setKeyword(''));
-        dispatch(fetchPosts(url));
+        dispatch(fetchPosts());
     }
 
     componentDidMount() {
@@ -95,8 +95,8 @@ class Operations extends React.Component {
         return (
             <div className="dashboard-operation">
                 <ul className="icon-list">
-                    <li id="add" onClick={this.addSlice}><i className="icon"></i></li>
-                    <li id="delete" onClick={this.deleteSlices}><i className="icon"></i></li>
+                    <li id="add" onClick={this.addDashboard}><i className="icon"></i></li>
+                    <li id="delete" onClick={this.deleteDashboardMul}><i className="icon"></i></li>
                     <li id="upload" onClick={this.importDashboard}><i className="icon"></i></li>
                     <li id="download" onClick={this.exportDashboard}><i className="icon"></i></li>
                 </ul>
@@ -105,7 +105,7 @@ class Operations extends React.Component {
                     <button id="showFavorite" className={typeName === 'show_favorite' ? 'active' : ''} onClick={this.showFavorite}><i className="icon"></i>收藏</button>
                 </div>
                 <div className="search-input">
-                    <input id="searchInput" onKeyUp={this.searchSlice} placeholder="search..." />
+                    <input id="searchInput" onKeyUp={this.searchDashboard} placeholder="search..." />
                     <i className="icon"></i>
                 </div>
                 <div className="operation-btn">
@@ -117,12 +117,19 @@ class Operations extends React.Component {
     }
 }
 
+const propTypes = {};
+const defaultProps = {
+    typeName: 'show_all'
+};
+
 Operations.propTypes = propTypes;
 Operations.defaultProps = defaultProps;
 
 const mapStateToProps = (state) => {
     return {
-        typeName: state.types.type
+        typeName: state.configs.type,
+        selectedRowKeys: state.configs.selectedRowKeys,
+        selectedRowNames: state.configs.selectedRowNames
     }
 };
 

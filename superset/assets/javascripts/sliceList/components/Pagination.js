@@ -23,7 +23,7 @@ class SlicePagination extends React.Component {
     // console.log(argus, this.props, 'in Pagination.render')
 
     const { loading, selectedRowKeys } = this.state;
-    const { onPagination, defaultCurrent } = this.props;
+    const { onPagination, defaultCurrent, total } = this.props;
 
     //when page size been modified
     const onShowSizeChange = (pageNumber, pageSize) => {
@@ -36,23 +36,20 @@ class SlicePagination extends React.Component {
       onPagination(pageNumber);
     }
 
-    function showTotal(total) {
-      return `Total ${total} items`;
-    }
-
     return (
+      <div className="dashboard-paging">
         <Pagination
         	showQuickJumper
         	showSizeChanger
 
-          pageSizeOptions={['20', '30', '40', '50']}
+          // pageSizeOptions={[ '3','10', '20', '30', '40', '50']}
           // showTotal={total => `Total ${total} items`}
         	onShowSizeChange={onShowSizeChange}
           onChange={onChange}
-          showTotal={showTotal}
         	defaultCurrent={defaultCurrent}
-        	total={50}
-          pagination={false} />
+        	total={total}
+          pageSize={3} />
+        </div>
     );
   }
 }

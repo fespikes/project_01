@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { navigateTo, fetchPostsIfNeeded } from '../actions';
+import { navigateTo, fetchPostsIfNeeded, searchReddit, removeReddit } from '../actions';
 
 import {Pagination, Table, Operate } from '../components';
 
@@ -9,6 +9,8 @@ import PropTypes from 'prop-types';
 class App extends Component {
   constructor(props) {
     super(props);
+
+    this.getSelectedRowKeys = null;
     this.onPagination = this.onPagination.bind(this);
 
     // this.state = {
@@ -17,6 +19,13 @@ class App extends Component {
 
     this.onSelectChange = this.onSelectChange.bind(this);
     this.onDelete = this.onDelete.bind(this);
+    this.onSearch = this.onSearch.bind(this);
+  }
+
+  getDefaultState() {
+    return {
+      // selectedRowKeys: []
+    }
   }
 
   componentDidMount() {
@@ -37,29 +46,27 @@ class App extends Component {
   }
 
   onAdd() {
-    console.log('add in SliceConnection');
+    console.log('add in SliceConnection, todo the popup.');
   }
 
   onDelete() {
-    console.log('onDelete in SliceConnection', this.state.selectedRowKeys);
+    if(!this.getSelectedRowKeys)
+      return;
+    const rowKeys = this.getSelectedRowKeys();
+    this.props.dispatch(
+      removeReddit({
+        selectedRowKeys: rowKeys
+      })
+    );
   }
 
-  onSelectChange(selectedRowKeys) {
-    this.setState({selectedRowKeys});
-    console.log(selectedRowKeys, this.state );
-
-  }
-
-  onFilter(argus){
-    if(argus){
-      console.log('all');
-    } else {
-      console.log('favorite');
-    }
+  onSelectChange(getSelectedRowKeys) {
+    this.getSelectedRowKeys = getSelectedRowKeys;
   }
 
   onSearch(argus) {
-    console.log('onSearch in SliceConnection', argus );
+    const { dispatch, selectedReddit } = this.props;
+    dispatch(searchReddit(Object.assign({}, selectedReddit, argus)));
   }
 
   render() {
@@ -67,37 +74,40 @@ class App extends Component {
     // const isEmpty = json.count === 0;
     const pageNumber = selectedReddit.pageNumber;
     const message = isFetching ? <h2>Loading...</h2> : <h2>Empty.</h2>;
+    const amount = dataSource.length;
     const me = this;
 
     return (
-      <div>
-        <div>工作表 &emsp;&emsp; 记录{dataSource.length +''}条
-
-        </div>
-
-        <Operate 
-          onSearch = { me.onSearch } 
-          onAdd = { me.onAdd }
-          onDelete = { me.onDelete }
-          onFilter = { me.onFilter }
-        />
-
-      	{!dataSource ?
-      		message:<div style={{ opacity: isFetching ? 0.5 : 1, paddingBottom:'20px' }}>
-      			<Table
-              dataSource = {dataSource}
-              onDelete = {me.onDelete}
-              onSelectChange = {me.onSelectChange}
+      <div className="dashboard-panel">
+        <div className="panel-top">
+          <div className="left">
+            <i className="icon"></i>
+            <span>工作表</span>
+            <span>记录</span>
+            <span>{dataSource.length +''}条</span>
+          </div>
+          <div className="right">
+            <Operate 
+              onSearch = { me.onSearch } 
+              onAdd = { me.onAdd }
+              onDelete = { me.onDelete }
             />
           </div>
-        }
-
-    		<Pagination
-          onPagination={this.onPagination}
-          defaultCurrent={pageNumber}
-          total={50} 
-        />
-
+        </div>
+        <div className="panel-middle">
+          <Table
+            dataSource = {dataSource}
+            onDelete = {me.onDelete}
+            onSelectChange = {me.onSelectChange}
+          />
+        </div>
+        <div className="panel-bottom">
+      		<Pagination
+            onPagination={this.onPagination}
+            defaultCurrent={pageNumber}
+            total={amount} 
+          />
+        </div>
       </div>
     );
   }

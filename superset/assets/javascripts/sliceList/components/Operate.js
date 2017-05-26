@@ -11,9 +11,7 @@ class SlicePagination extends React.Component {
     super(props);
 
     // console.log( 'props', props );
-    this.state = {
-      searchButton: {}
-    }
+    this.state = { }
 
     this.onChange = this.onChange.bind(this);
     this.onAdd = this.onAdd.bind(this);
@@ -23,23 +21,17 @@ class SlicePagination extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({
-      searchButton: document.querySelector('#searchButton'),
-      searchField: document.querySelector('#searchField')
-    });
   }
 
   onChange() {
-    console.log('onBlur in Operate');
-    console.log(this.state.searchField.value);
-
-    if( this.state.searchField.value ){
-      this.state.searchButton.removeAttribute('disabled');
+    if( this.refs.searchField.value ){
+      this.refs.searchButton.removeAttribute('disabled');
       this.setState({
-        searchValue: this.state.searchField.value
+        searchValue: this.refs.searchField.value
       });
     } else {
-      this.state.searchButton.setAttribute('disabled', 'disabled');
+      this.refs.searchButton.setAttribute('disabled', 'disabled');
+      this.props.onSearch();
     }
   }
 
@@ -63,13 +55,17 @@ class SlicePagination extends React.Component {
     }
 
     const {onSearch} = me.props;
-    onSearch && onSearch(me.state.searchValue);
+    onSearch && onSearch({
+      filter: me.state.searchValue
+    });
 
   }
 
   onFilter(argus) {
-    const {onFilter} = this.props;
-    onFilter&& onFilter(argus);
+    this.props.onSearch({
+      onlyFavorite: argus
+    });
+    console.log('onFilter:', argus);
   }
 
   render(argus) {
@@ -92,19 +88,19 @@ class SlicePagination extends React.Component {
     }
 
     return (
-      <div>
-        <span>
-          <button onClick={this.onAdd}>+++</button>
-          <button onClick={this.onDelete}>----</button>
-        </span>
-        <span>
-          <button onClick={()=>this.onFilter(1)}>all</button>
-          <button onClick={()=>this.onFilter(0)}>favorite</button>
-        </span>
-        <span>
-          <input type="search" id="searchField" onChange={this.onChange} placeholder="search.." />
-          <input type="button" id="searchButton" value="search" onClick={this.onSearch} />
-        </span>
+      <div className="dashboard-operation">
+          <ul className="icon-list">
+              <li id="add" onClick={this.onAdd}><i className="icon"></i></li>
+              <li id="delete" onClick={this.onDelete}><i className="icon"></i></li>
+          </ul>
+          <div className="tab-btn">
+              <button id="showAll" className={'active'} onClick={()=>this.onFilter(1)}>全部</button>
+              <button id="showFavorite" className={''} onClick={()=>this.onFilter(0)}><i className="icon"></i>收藏</button>
+          </div>
+          <div className="search-input">
+              <input id="searchInput" onKeyUp={this.searchSlice} placeholder="search..." />
+              <i className="icon"></i>
+          </div>
       </div>
     );
   }

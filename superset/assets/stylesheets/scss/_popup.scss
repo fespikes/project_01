@@ -29,6 +29,10 @@ $borderRadius:4px;
 		background-color: #fff;
 		border-radius: 4px;
 		opacity: 1;
+		.icon {
+			cursor: pointer;
+		}
+
 	}
 	.popup-lg {
 		width: 900px;
@@ -39,7 +43,7 @@ $borderRadius:4px;
 	}
 
 	.popup-sm {
-		width: 300px;
+		width: 450px;
 	}
 
 	.popup-content {

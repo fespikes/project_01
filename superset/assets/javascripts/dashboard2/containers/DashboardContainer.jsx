@@ -1,15 +1,10 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 import { render } from 'react-dom';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider, connect } from 'react-redux';
 import thunk from 'redux-thunk';
+import PropTypes from 'prop-types';
 import { Operations, TableList, Paginations } from '../components';
-import { addSliceAction, editSliceAction, publishSliceAction, deleteSliceAction, fetchSliceListPromise } from '../actions';
-import { DashboardEdit, SliceEdit, Confirm } from '../../components/popup';
-
-const propTypes = {};
-
-const defaultProps = {};
 
 class DashboardContent extends React.Component {
     constructor(props) {
@@ -55,6 +50,10 @@ class DashboardContent extends React.Component {
         );
     }
 }
+
+const propTypes = {};
+
+const defaultProps = {};
 
 DashboardContent.propTypes = propTypes;
 DashboardContent.defaultProps = defaultProps;

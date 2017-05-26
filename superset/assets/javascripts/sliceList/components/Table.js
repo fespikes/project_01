@@ -29,7 +29,33 @@ function getDataSource(argus) {
   return arr;
 }
 
+        function editDashboard(record) {
+
+        }
+
+        function deleteDashboard(record) {
+
+        }
+
+        function publishDashboard(record) {
+
+        }
+        function favoriteSlice(record) {
+            // dispatch(fetchStateChange(record, "favorite"));
+        }
 const columns = [
+{
+  title: '',
+  dataIndex: 'favorite',
+  key: 'favorite',
+  width: '5%',
+  render: (text, record) => {
+      return (
+          <i className={record.favorite ? 'star-selected icon' : 'star icon'}
+             onClick={() => favoriteSlice(record)}></i>
+      )
+  }
+},
 {
   title: '名称',  //TODO: title need to i18n
   key: 'name',
@@ -42,50 +68,52 @@ const columns = [
     )
   },
   sorter: (a, b) => a.slice_name-b.slice_name,
+  width: '10%'
 }, {
   title: '图标类型',
   dataIndex: 'viz_type',
   key: 'viz_type',
-  sorter: (a, b) => a-b  //TODO
+  sorter: (a, b) => a.viz_type-b.viz_type,
+  width: '15%'
 }, {
   title: '数据集',
   dataIndex: 'datasource',
   key: 'datasource',
-  sorter: (a, b) => a-b
+  sorter: (a, b) => a.datasource-b.datasource,
+  width: '15%'
 }, {
   title: '所有者',
   dataIndex: 'created_by_user',
   key: 'created_by_user',
-  sorter: (a, b) => a-b
+  width: '15%',
+  sorter: (a, b) => a.created_by_user-b.created_by_user
 }, {
   title: '发布状态',
   dataIndex: 'online',
   key: 'online',
-  sorter: (a, b) => a-b,
+  width: '10%',
+  sorter: (a, b) => a.online-b.online,
   render: (text, record) => record.online?'已发布':'未发布'
 }, {
   title: '最后修改时间',
   dataIndex: 'changed_on',
   key: 'changed_on',
+  width: '15%',
   sorter: (a, b) => a.changed_on-b.changed_on
 }, {
   title: '操作',
   key: 'action',
-  render: (text, record) => (
-    <span>
-      <a href="#">Action 一 {record.name}</a>
-
-      <span className="ant-divider" />
-
-      <a href="#">Delete</a>
-
-      <span className="ant-divider" />
-
-      <a href="#" className="ant-dropdown-link">
-        More actions <Icon type="down" />
-      </a>
-    </span>
-  )
+  width: '15%',
+  render: (record) => {
+      return (
+          <div className="icon-group">
+              <i className="icon" onClick={() => editDashboard(record)}></i>&nbsp;
+              <i className={record.online ? 'icon online' : 'icon offline'}
+                 onClick={() => publishDashboard(record)}></i>&nbsp;
+              <i className="icon" onClick={() => deleteDashboard(record)}></i>
+          </div>
+      )
+  }
 }]
 
 class SliceTable extends React.Component {
@@ -100,11 +128,15 @@ class SliceTable extends React.Component {
     this.onSelectChange = this.onSelectChange.bind(this)
   }
 
-  onSelectChange = (selectedRowKeys) => {
+  onSelectChange = (selectedRowKeys, selectedRows) => {
     this.setState({ selectedRowKeys });
 
     const {onSelectChange} = this.props;
-    onSelectChange && onSelectChange(selectedRowKeys)
+    onSelectChange && onSelectChange(this.getSelectedRowKeys.bind(this))
+  }
+
+  getSelectedRowKeys() {
+    return this.state.selectedRowKeys;
   }
 
   render() {
@@ -113,8 +145,16 @@ class SliceTable extends React.Component {
     const { dataSource } = this.props;
 
     const rowSelection = {
-      selectedRowKeys,
+      // selectedRowKeys,
       onChange: this.onSelectChange,
+
+      // onSelect: (record, selected, selectedRows) => {
+      //   console.log(record, selected, selectedRows);
+      // },
+      
+      // onSelectAll: (selected, selectedRows, changeRows) => {
+      //   console.log(selected, selectedRows, changeRows);
+      // }
     };
 
 
@@ -128,6 +168,7 @@ class SliceTable extends React.Component {
     }
 
     return (
+      <div className="dashboard-table">
         <Table
           onChange={onChange}
           rowSelection={rowSelection}
@@ -135,7 +176,9 @@ class SliceTable extends React.Component {
           columns={columns}
           pagination={false}
           rowKey={record => record.id}
+          bordered
         />
+      </div>
     );
   }
 }

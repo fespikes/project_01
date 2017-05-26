@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux';
 import {
-  NAVIGATE_TO,
+  NAVIGATE_TO, SWITCH_FAV, SEARCH_REDDIT, 
   REQUEST_POSTS, RECEIVE_POSTS,
 } from '../actions';
 
@@ -11,7 +11,8 @@ function selectedReddit(state = {
   // // orderColumn: //TODO
   orderDirection: 'desc',
   // filter: '',
-  onlyFavorite: 0
+  onlyFavorite: 0,
+  filter: ''
 
   // listData params :
   // page=0&page_size=10 &order_column=changed_on&order_direction=desc 
@@ -23,10 +24,11 @@ function selectedReddit(state = {
         pageNumber: action.pageNumber
       });
       
-    // case FILTER:
-    //   return Object.assign({}, state, {
-    //     pageNumber: action.pageNumber
-    //   }); 
+    case SWITCH_FAV:
+      return Object.assign({}, state, {
+        onlyFavorite: action.onlyFavorite
+      });
+      
     default:
       return state;
   }

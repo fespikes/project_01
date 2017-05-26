@@ -1,12 +1,10 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 import { render } from 'react-dom';
 import { Provider, connect } from 'react-redux';
-import { addSliceAction, editSliceAction, publishSliceAction, deleteSliceAction, fetchPosts } from '../actions';
+import PropTypes from 'prop-types';
+import { fetchPosts, setPageNumber, setPageSize } from '../actions';
 import { Pagination } from 'antd';
-import 'antd/dist/antd.css';
-
-const propTypes = {};
-const defaultProps = {};
+import 'antd/lib/pagination/style';
 
 class Paginations extends React.Component {
     constructor(props) {
@@ -17,26 +15,18 @@ class Paginations extends React.Component {
     };
 
     componentDidMount() {
-
-        const { pageSize, dispatch } = this.props;
-        function getSliceList() {
-            let url = window.location.origin + "/dashboard/listdata/?page=0&page_size=" + pageSize;
-            dispatch(fetchPosts(url));
-        }
-        getSliceList();
+        const { dispatch } = this.props;
+        dispatch(fetchPosts());
     }
 
     render() {
 
-        const { dispatch, pageSize, type, keyword } = this.props;
+        const { dispatch, pageSize} = this.props;
         const total = Math.ceil(this.props.count / pageSize);
 
         function onChange(page) {
-            let url = window.location.origin + "/dashboard/listdata/?page=" + (page-1) + "&page_size=" + pageSize + "&filter=" + keyword;
-            if(type === "show_favorite") {
-                url += "&only_favorite=1";
-            }
-            dispatch(fetchPosts(url));
+            dispatch(setPageNumber(page - 1));
+            dispatch(fetchPosts());
         }
         return (
             <div className="dashboard-paging">
@@ -50,6 +40,9 @@ class Paginations extends React.Component {
     }
 }
 
+const propTypes = {};
+const defaultProps = {};
+
 Paginations.propTypes = propTypes;
 Paginations.defaultProps = defaultProps;
 
@@ -58,8 +51,9 @@ function mapStateToProps(state) {
     return {
         dataSource: state.posts.params.data || [],
         count: state.posts.params.count,
-        type: state.types.type,
-        keyword: state.keywords ? state.keywords.keyword : '',
+        type: state.configs.type,
+        keyword: state.configs.keyword,
+        pageSize: state.configs.pageSize
     }
 }
 

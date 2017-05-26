@@ -2,36 +2,41 @@
  * Created by haitao on 17-5-18.
  */
 import { combineReducers } from 'redux';
+import { CONFIG_PARAMS } from '../actions';
 
-function operations(state = {}, action) {
-    switch (action.type) {
-        case "ADD_SLICE":
-            break;
-        case "EDIT_SLICE":
-            break;
-        case "PUBLIC_SLICE":
-            break;
-        case "DELETE_SLICE":
-            break;
-        default:
-            return state;
-    }
-}
-
-function types(state = {
-    type: "show_all"
+function configs(state = {
+    type: "show_all",
+    keyword: "",
+    pageNumber: 0,
+    pageSize: 2,
+    selectedRows: []
 }, action) {
     switch (action.type) {
-        case "SHOW_ALL":
+        case CONFIG_PARAMS.SHOW_TYPE:
             return Object.assign({}, state, {
-               type: "show_all"
+                type: action.typeName
             });
             break;
-        case "SHOW_FAVORITE":
+        case CONFIG_PARAMS.PAGE_NUMBER:
             return Object.assign({}, state, {
-                type: "show_favorite"
+                pageNumber: action.pageNumber
             });
             break;
+        case CONFIG_PARAMS.PAGE_SIZE:
+            return Object.assign({}, state, {
+                pageSize: action.pageSize
+            });
+            break;
+        case CONFIG_PARAMS.SET_KEYWORD:
+            return Object.assign({}, state, {
+                keyword: action.keyword
+            });
+            break;
+        case CONFIG_PARAMS.SELECTED_ROWS:
+            return Object.assign({}, state, {
+                selectedRowKeys: action.selectedRowKeys,
+                selectedRowNames: action.selectedRowNames
+            });
         default:
             return state;
     }
@@ -56,38 +61,31 @@ function posts(state = {
     }
 }
 
-function keywords(state = {
-    keyword: ''
-}, action) {
-    switch (action.type) {
-        case "SET_KEYWORD":
-            return Object.assign({}, state, {
-                keyword: action.keyword
-            });
-        default:
-            return state;
-    }
-}
-
 function details(state = {
+    isFetching: true,
     dashboardDetail: {}
 }, action) {
     switch (action.type) {
-        case "RECEIVE_DASH_DETAIL":
+        case "REQUEST_DASHBOARD_DETAIL":
             return Object.assign({}, state, {
+                isFetching: true
+            });
+            break;
+        case "RECEIVE_DASHBOARD_DETAIL":
+            return Object.assign({}, state, {
+                isFetching: false,
                 dashboardDetail: action.detail
             });
+            break;
         default:
             return state;
     }
 }
 
 const rootReducer = combineReducers({
-    operations,
+    configs,
     posts,
-    types,
-    keywords,
-    details,
+    details
 });
 
 export default rootReducer;
