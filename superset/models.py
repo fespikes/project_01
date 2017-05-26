@@ -865,9 +865,15 @@ class Database(Model, AuditMixinNullable):
         return sorted(self.inspector.get_schema_names())
 
     def all_schema_table_names(self):
-        st = {}
         st_list = self.inspector.get_schema_and_table_names()
+        # from sqlalchemy.dialects.inceptor.base import InceptorDialect
+        # inceptor = InceptorDialect()
+        # engine = self.get_sqla_engine()
+        # conn = engine.connect()
+        # st_list = inceptor.get_schema_and_table_names(conn)
+
         st_group = groupby(st_list, lambda item: item[0])
+        st = {}
         for schema, tb_group in st_group:
             tables = []
             for i in list(tb_group):
