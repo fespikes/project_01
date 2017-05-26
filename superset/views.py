@@ -374,22 +374,21 @@ class SupersetModelView(ModelView):
             if args.get('table_id') else None
         return kwargs
 
-    @expose('/list/')
+    @expose('/list')
     def list(self):
          return self.render_template(self.list_template)
 
-    @expose('/listdata/')
+    @expose('/listdata')
     def get_list_data(self):
         kwargs = self.get_list_args(request.args)
         list_data = self.get_object_list_data(**kwargs)
         return json.dumps(list_data)
 
-    @expose('/addablechoices/', methods=['GET'])
+    @expose('/addablechoices', methods=['GET'])
     def addable_choices(self):
         try:
-            readme = {}
-            readme['readme'] = self.get_column_readme()
-            return json.dumps({'date': readme})
+            data = self.get_addable_choices()
+            return json.dumps({'data': data})
         except Exception as e:
             logging.error(str(e))
             return self.build_response(500, False, str(e))
@@ -435,14 +434,35 @@ class SupersetModelView(ModelView):
     def delete(self, pk):
         try:
             obj = self.get_object(pk)
-            self.pre_delete(obj)
-            self.datamodel.delete(obj)
-            self.post_delete(obj)
+            self._delete(obj)
         except Exception as e:
             return self.build_response(500, success=False, message=str(e))
         else:
             self.update_redirect()
             return self.build_response(500, True, DELETE_SUCCESS)
+
+    def _delete(self, obj):
+        self.pre_delete(obj)
+        self.datamodel.delete(obj)
+        self.post_delete(obj)
+
+    @expose('/muldelete', methods=['GET', 'POST'])
+    def muldelete(self):
+        try:
+            json_data = self.get_request_data()
+            ids = json_data.get('selectedRowKeys')
+            for id in ids:
+                obj = self.get_object(id)
+                self._delete(obj)
+                if isinstance(obj, models.SqlaTable):
+                    cls_name = 'table'
+                else:
+                    cls_name = self.model.__name__.lower()
+                action_str = 'Delete {}: {}'.format(cls_name, repr(obj))
+                log_action('delete', action_str, cls_name, obj.id)
+            return self.build_response(200, True, DELETE_SUCCESS)
+        except Exception as e:
+            return self.build_response(500, False, str(e))
 
     def build_response(self, status=None, success=None, message=None):
         response = {}
@@ -450,6 +470,11 @@ class SupersetModelView(ModelView):
         response['success'] = success if success is not None else self.success
         response['message'] = message if message else self.message
         return json.dumps(response)
+
+    def get_addable_choices(self):
+        data = {}
+        data['readme'] = self.get_column_readme()
+        return data
 
     def get_object_list_data(self, **kwargs):
         pass
@@ -497,6 +522,8 @@ class SupersetModelView(ModelView):
         attributes = {}
         attributes['created_by_fk'] = user_id
         attributes['created_on'] = datetime.now()
+        attributes['changed_by_fk'] = user_id
+        attributes['changed_on'] = datetime.now()
         for col in self.add_columns:
             if col not in data:
                 msg = "The needed attribute: \'{}\' not in attributes: \'{}\'"\
@@ -670,16 +697,10 @@ class TableColumnInlineView(SupersetModelView):  # noqa
             data.append(line)
         return {'data': data}
 
-    @expose('/addablechoices/', methods=['GET', ])
-    def addable_choices(self):
-        try:
-            data = {}
-            data['available_tables'] = self.get_available_tables()
-            data['readme'] = self.get_column_readme()
-            return json.dumps({'data': data})
-        except Exception as e:
-            logging.error(e)
-            return self.build_response(500, False, str(e))
+    def get_addable_choices(self):
+        data = super().get_addable_choices()
+        data['available_tables'] = self.get_available_tables()
+        return data
 
     def get_show_attributes(self, obj):
         attributes = super().get_show_attributes(obj)
@@ -729,16 +750,10 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     bool_columns = ['is_restricted', ]
     str_columns = ['table', ]
 
-    @expose('/addablechoices/', methods=['GET', ])
-    def addable_choices(self):
-        try:
-            data = {}
-            data['available_tables'] = self.get_available_tables()
-            data['readme'] = self.get_column_readme()
-            return json.dumps({'data': data})
-        except Exception as e:
-            logging.error(e)
-            return self.build_response(500, False, str(e))
+    def get_addable_choices(self):
+        data = super().get_addable_choices()
+        data['available_tables'] = self.get_available_tables()
+        return data
 
     def get_object_list_data(self, **kwargs):
         table_id = kwargs.get('table_id')
@@ -773,7 +788,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             security.merge_perm(sm, 'metric_access', metric.get_perm())
 
 
-class DatabaseView(SupersetModelView, DeleteMixin):  # noqa
+class DatabaseView(SupersetModelView):  # noqa
     model = models.Database
     datamodel = SQLAInterface(models.Database)
     route_base = '/database'
@@ -958,7 +973,7 @@ class DatabaseTablesAsync(DatabaseView):
     list_columns = ['id', 'all_table_names', 'all_schema_names']
 
 
-class TableModelView(SupersetModelView, DeleteMixin):  # noqa
+class TableModelView(SupersetModelView):  # noqa
     model = models.SqlaTable
     datamodel = SQLAInterface(models.SqlaTable)
     route_base = '/table'
@@ -1011,16 +1026,10 @@ class TableModelView(SupersetModelView, DeleteMixin):  # noqa
     bool_columns = ['is_featured', 'filter_select_enabled']
     str_columns = ['database', 'created_on', 'changed_on']
 
-    @expose('/addablechoices/', methods=['GET', ])
-    def addable_choices(self):
-        try:
-            data = {}
-            data['available_databases'] = self.get_available_databases()
-            data['readme'] = self.get_column_readme()
-            return json.dumps({'data': data})
-        except Exception as e:
-            logging.error(e)
-            return self.build_response(500, False, str(e))
+    def get_addable_choices(self):
+        data = super().get_addable_choices()
+        data['available_databases'] = self.get_available_databases()
+        return data
 
     @expose('/alltables/<database_id>', methods=['GET', ])
     def all_schemas_and_tables(self, database_id):
@@ -1164,7 +1173,7 @@ class TableModelView(SupersetModelView, DeleteMixin):  # noqa
         log_number('table', g.user.get_id())
 
 
-class SliceModelView(SupersetModelView, DeleteMixin):  # noqa
+class SliceModelView(SupersetModelView):  # noqa
     model = models.Slice
     datamodel = SQLAInterface(models.Slice)
     route_base = '/slice'
@@ -1231,21 +1240,11 @@ class SliceModelView(SupersetModelView, DeleteMixin):  # noqa
     bool_columns = ['online']
     str_columns = ['datasource', 'created_on', 'changed_on']
 
-    # @expose('/list/')
-    # def list(self):
-    #      return self.render_template(self.list_template)
-
-    @expose('/addablechoices/', methods=['GET'])
-    def addable_choices(self):
-        try:
-            data = {}
-            dashs = self.get_available_dashboards(self.get_user_id())
-            data['available_dashboards'] = self.dashboards_to_dict(dashs)
-            data['readme'] = self.get_column_readme()
-            return json.dumps({'data': data})
-        except Exception as e:
-            logging.error(e)
-            return self.build_response(500, False, str(e))
+    def get_addable_choices(self):
+        data = super().get_addable_choices()
+        dashs = self.get_available_dashboards(self.get_user_id())
+        data['available_dashboards'] = self.dashboards_to_dict(dashs)
+        return data
 
     def get_show_attributes(self, obj):
         attributes = super().get_show_attributes(obj)
@@ -1431,7 +1430,7 @@ class SliceAddView(SliceModelView):  # noqa
         'owners', 'modified', 'changed_on']
 
 
-class DashboardModelView(SupersetModelView, DeleteMixin):  # noqa
+class DashboardModelView(SupersetModelView):  # noqa
     model = models.Dashboard
     datamodel = SQLAInterface(models.Dashboard)
     route_base = '/dashboard'
@@ -1494,17 +1493,11 @@ class DashboardModelView(SupersetModelView, DeleteMixin):  # noqa
     bool_columns = ['online']
     str_columns = ['created_on', 'changed_on']
 
-    @expose('/addablechoices/', methods=['GET'])
-    def addable_choices(self):
-        try:
-            data = {}
-            data['readme'] = self.get_column_readme()
-            slices = self.get_available_slices(self.get_user_id())
-            data['available_slices'] = self.slices_to_dict(slices)
-            return json.dumps({'data': data})
-        except Exception as e:
-            logging.error(e)
-            return self.build_response(500, False, str(e))
+    def get_addable_choices(self):
+        data = super().get_addable_choices()
+        slices = self.get_available_slices(self.get_user_id())
+        data['available_slices'] = self.slices_to_dict(slices)
+        return data
 
     def get_available_slices(self, user_id):
         slices = (
@@ -1570,7 +1563,7 @@ class DashboardModelView(SupersetModelView, DeleteMixin):  # noqa
     def mulexport(self, items):
         ids = ''.join('&id={}'.format(d.id) for d in items)
         return redirect(
-            '/dashboardmodelview/export_dashboards_form?{}'.format(ids[1:]))
+            '/dashboard/export_dashboards_form?{}'.format(ids[1:]))
 
     @expose("/export_dashboards_form")
     def download_dashboards(self):
@@ -1582,7 +1575,7 @@ class DashboardModelView(SupersetModelView, DeleteMixin):  # noqa
                 mimetype="application/text")
         return self.render_template(
             'superset/export_dashboards.html',
-            dashboards_url='/dashboardmodelview/list'
+            dashboards_url='/dashboard/list'
         )
 
     def get_object_list_data(self, **kwargs):
@@ -1682,6 +1675,36 @@ class DashboardModelView(SupersetModelView, DeleteMixin):  # noqa
             slices.append(slice_obj)
         attributes['slices'] = slices
         return attributes
+
+    @expose("/import", methods=['GET', 'POST'])
+    def import_dashboards(self):
+        """Overrides the dashboards using pickled instances from the file."""
+        f = request.files.get('file')
+        if request.method == 'POST' and f:
+            current_tt = int(time.time())
+            data = pickle.load(f)
+            for table in data['datasources']:
+                if table.type == 'table':
+                    models.SqlaTable.import_obj(table, import_time=current_tt)
+                else:
+                    pass
+            db.session.commit()
+            for dashboard in data['dashboards']:
+                models.Dashboard.import_obj(
+                    dashboard, import_time=current_tt)
+                # log user action
+                action_str = 'Import dashboard: {}'.format(dashboard.dashboard_title)
+                log_action('import', action_str, 'dashboard', dashboard.id)
+            db.session.commit()
+        return redirect('/dashboard/list/')
+
+    @expose("/export")
+    def export_dashboards(self):
+        ids = request.args.getlist('id')
+        return Response(
+            models.Dashboard.export_dashboards(ids),
+            headers=generate_download_headers("pickle"),
+            mimetype="application/text")
 
     @expose("/release/<action>/<dashboard_id>", methods=['GET'])
     def dashbaord_online_or_offline(self, action, dashboard_id):
@@ -3454,7 +3477,10 @@ class Home(BaseSupersetView):
     limit = 0: means not limit
     default_types['actions'] could be: ['online', 'offline', 'add', 'edit', 'delete'...]
     """
-
+    page = 0
+    page_size = 10
+    order_column = 'time'
+    order_direction = 'desc'
     default_types = {
         'counts': ['dashboard', 'slice', 'table', 'database'],
         'trends': ['dashboard', 'slice', 'table', 'database'],
@@ -3469,10 +3495,20 @@ class Home(BaseSupersetView):
         'edits': 10,
         'actions': 10
     }
+    str_to_column_in_actions = {
+        'user': User.username,
+        'action': Log.action,
+        'time': Log.dttm
+    }
+    str_to_column_in_edits = {
+        'name': {'slice': Slice.slice_name, 'dashboard': Dashboard.dashboard_title},
+        'time': {'slice': Slice.changed_on, 'dashboard': Dashboard.changed_on}
+    }
 
     def __init__(self):
         super(Home, self).__init__()
         self.status = 201
+        self.success = True
         self.message = []
 
     def get_user_id(self):
@@ -3608,122 +3644,180 @@ class Home(BaseSupersetView):
             rows.append({'name': row[0], 'count': row[1]})
         return rows
 
-    def get_edited_object(self, user_id, obj_type, limit=10):
-        """The records of slices be modified"""
-        success, obj_class = self.get_obj_class(obj_type)
-        if not success:
-            return []
-        #
-        query_created = db.session.query(obj_class)
-        if user_id > 0:
-            query_created = query_created.filter(
-                or_(
-                    obj_class.created_by_fk == user_id,
-                    obj_class.online == 1
-                )
-            )
-        query_created = query_created.order_by(obj_class.created_on.desc())
-        if limit > 0:
-            query_created = query_created.limit(limit)
-        rs_created = query_created.all()
-        #
-        query_edited = db.session.query(obj_class) \
-            .filter(obj_class.changed_on > obj_class.created_on)
-        if user_id > 0:
-            query_edited = query_edited.filter(
-                or_(
-                    obj_class.changed_by_fk == user_id,
-                    obj_class.online == 1
-                )
-            )
-        query_edited = query_edited.order_by(obj_class.changed_on.desc())
-        if limit > 0:
-            query_edited = query_edited.limit(limit)
-        rs_edited = query_edited.all()
-        #
-        rows = []
-        if obj_type.lower() == 'slice':
-            if rs_created:
-                for obj in rs_created:
-                    rows.append({'name': obj.slice_name,
-                                 'action': 'create',
-                                 'time': str(obj.created_on),
-                                 'link': obj.slice_url})
-            if rs_edited:
-                for obj in rs_edited:
-                    rows.append({'name': obj.slice_name,
-                                 'action': 'edit',
-                                 'time': str(obj.changed_on),
-                                 'link': obj.slice_url})
-        elif obj_type.lower() == 'dashboard':
-            if rs_created:
-                for obj in rs_created:
-                    rows.append({'name': obj.dashboard_title,
-                                 'action': 'create',
-                                 'time': str(obj.created_on),
-                                 'link': obj.url})
-            if rs_edited:
-                for obj in rs_edited:
-                    rows.append({'name': obj.dashboard_title,
-                                 'action': 'edit',
-                                 'time': str(obj.changed_on),
-                                 'link': obj.url})
-        else:
-            self.status = 400 if str(self.status)[0] < '4' else self.status
-            self.message.append('{}: {} passed to {}'
-                                .format(ERROR_REQUEST_PARAM, obj_type, 'get_edited_object()'))
-        rows = sorted(rows, key=lambda x: x['time'], reverse=True)
-        return rows[0:limit]
+    def get_edited_slices(self, **kwargs):
+        """The records of slice be modified"""
+        user_id = kwargs.get('user_id')
+        page = kwargs.get('page')
+        page_size = kwargs.get('page_size')
+        order_column = kwargs.get('order_column')
+        order_direction = kwargs.get('order_direction')
 
-    def get_edited_objects(self, user_id=0, types=None, limit=10):
+        query = db.session.query(Slice).filter(
+            or_(
+                Slice.created_by_fk == user_id,
+                Slice.online == 1
+            )
+        )
+        count = query.count()
+
+        if order_column:
+            column = self.str_to_column_in_edits.get(order_column).get('slice')
+            if order_direction == 'desc':
+                query = query.order_by(column.desc())
+            else:
+                query = query.order_by(column)
+        else:
+            query = query.order_by(Slice.changed_on.desc())
+
+        if page_size and page_size > 0:
+            query = query.limit(page_size)
+        if page and page > 0:
+            query = query.offset(page * page_size)
+
+        rows = []
+        for obj in query.all():
+            action = 'create' if obj.changed_on == obj.created_on else 'edit'
+            line = {'name': obj.slice_name,
+                    'description': obj.description,
+                    'action': action,
+                    'time': str(obj.changed_on),
+                    'link': obj.slice_url}
+            rows.append(line)
+        return count, rows
+
+    def get_edited_dashboards(self, **kwargs):
+        """The records of slice be modified"""
+        user_id = kwargs.get('user_id')
+        page = kwargs.get('page')
+        page_size = kwargs.get('page_size')
+        order_column = kwargs.get('order_column')
+        order_direction = kwargs.get('order_direction')
+
+        query = db.session.query(Dashboard).filter(
+            or_(
+                Dashboard.created_by_fk == user_id,
+                Dashboard.online == 1
+            )
+        )
+        count = query.count()
+
+        if order_column:
+            column = self.str_to_column_in_edits.get(order_column).get('dashboard')
+            if order_direction == 'desc':
+                query = query.order_by(column.desc())
+            else:
+                query = query.order_by(column)
+        else:
+            query = query.order_by(Dashboard.changed_on.desc())
+
+        if page_size and page_size > 0:
+            query = query.limit(page_size)
+        if page and page > 0:
+            query = query.offset(page * page_size)
+
+        rows = []
+        for obj in query.all():
+            action = 'create' if obj.changed_on == obj.created_on else 'edit'
+            line = {'name': obj.dashboard_title,
+                    'description': obj.description,
+                    'action': action,
+                    'time': str(obj.changed_on),
+                    'link': obj.url}
+            rows.append(line)
+        return count, rows
+
+    def get_edited_objects(self, **kwargs):
         dt = {}
-        for type_ in types:
-            dt[type_] = self.get_edited_object(user_id, type_, limit=limit)
+        types = kwargs.pop('types')
+        if 'slice' in types:
+            count, dt['slice'] = self.get_edited_slices(**kwargs)
+        if 'dashboard' in types:
+            count, dt['dashboard'] = self.get_edited_dashboards(**kwargs)
         return dt
 
-    @expose('/edits/')
-    def get_edited_objects_by_url(self):
+    def get_request_args(self, args):
+        kwargs = {}
+        kwargs['page'] = int(args.get('page', self.page))
+        kwargs['page_size'] = int(args.get('page_size', self.page_size))
+        kwargs['order_column'] = args.get('order_column', self.order_column)
+        kwargs['order_direction'] = args.get('order_direction', self.order_direction)
+        return kwargs
+
+    @expose('/edits/slice')
+    def get_edited_slices_by_url(self):
         success, user_id = self.get_user_id()
         if not success:
             return Response(json.dumps(NO_USER),
                             status=400,
                             mimetype='application/json')
-        args = request.args
-        if 'limit' in args.keys():
-            limit = request.args.get('limit')
-        else:
-            limit = self.default_limit.get('edits')
-        if 'types' in args.keys():
-            types = request.args.get('types')
-        else:
-            types = self.default_types.get('edits')
+        kwargs = self.get_request_args(request.args)
+        kwargs['user_id'] = user_id
+        count, data = self.get_edited_slices(**kwargs)
 
-        if not isinstance(types, list) or len(types) < 1:
-            message_ = '{}: {} '.format(ERROR_REQUEST_PARAM, args)
-            return Response(json.dumps(message_),
-                            status=400,
-                            mimetype='application/json')
-
-        rs = self.get_edited_objects(user_id, types=types, limit=int(limit))
         status_ = self.status
         message_ = self.message
-        self.status = 201
+        self.status = 200
         self.message = []
         if str(self.status)[0] != '2':
             return Response(json.dumps(message_),
                             status=status_,
                             mimetype='application/json')
         else:
-            return Response(json.dumps({'edits': rs}),
+            response = {}
+            response['data'] = data
+            response['count'] = count
+            response['page'] = kwargs.get('page')
+            response['page_size'] = kwargs.get('page_size')
+            response['order_column'] = kwargs.get('order_column')
+            response['order_direction'] = kwargs.get('order_direction')
+            return Response(json.dumps(response),
                             status=status_,
                             mimetype='application/json')
 
-    def get_user_actions(self, user_id=0, types=[], limit=10):
+    @expose('/edits/dashboard')
+    def get_edited_dashboards_by_url(self):
+        success, user_id = self.get_user_id()
+        if not success:
+            return Response(json.dumps(NO_USER),
+                            status=400,
+                            mimetype='application/json')
+        kwargs = self.get_request_args(request.args)
+        kwargs['user_id'] = user_id
+        count, data = self.get_edited_dashboards(**kwargs)
+
+        status_ = self.status
+        message_ = self.message
+        self.status = 200
+        self.message = []
+        if str(self.status)[0] != '2':
+            return Response(json.dumps(message_),
+                            status=status_,
+                            mimetype='application/json')
+        else:
+            response = {}
+            response['data'] = data
+            response['count'] = count
+            response['page'] = kwargs.get('page')
+            response['page_size'] = kwargs.get('page_size')
+            response['order_column'] = kwargs.get('order_column')
+            response['order_direction'] = kwargs.get('order_direction')
+            return Response(json.dumps(response),
+                            status=status_,
+                            mimetype='application/json')
+
+    def get_user_actions(self, **kwargs):
         """The actions of user"""
-        if len(types) < 1 or limit < 0:
+        user_id = kwargs.get('user_id')
+        page = kwargs.get('page')
+        page_size = kwargs.get('page_size')
+        order_column = kwargs.get('order_column')
+        order_direction = kwargs.get('order_direction')
+        types = kwargs.get('types')
+
+        if len(types) < 1 or page_size < 0:
             self.status = 401 if str(self.status)[0] < '4' else self.status
             self.message.append('{}: {},{} are passed to {}'
-                                .format(ERROR_REQUEST_PARAM, types, limit, 'get_user_actions()'))
+                                .format(ERROR_REQUEST_PARAM, types, page_size, 'get_user_actions()'))
             return {}
         
         query = (
@@ -3741,20 +3835,40 @@ class Home(BaseSupersetView):
                        )
             .filter(Log.user_id == user_id,
                     Log.action_type.in_(types))
-            .order_by(Log.dttm.desc())
-            .limit(limit)
         )
+        count = query.count()
+
+        if order_column:
+            column = self.str_to_column_in_actions.get(order_column)
+            if order_direction == 'desc':
+                query = query.order_by(column.desc())
+            else:
+                query = query.order_by(column)
+        else:
+            query = query.order_by(Log.dttm.desc())
+
+        if page_size and page_size > 0:
+            query = query.limit(page_size)
+        if page is not None and page >= 0:
+            query = query.offset(page * page_size)
+
         rows = []
         for log, username, dash, slice in query.all():
-            line = {}
-            line['user'] = username
-            line['action'] = log.action
-            line['title'] = dash.dashboard_title if dash else slice.slice_name
-            line['link'] = dash.url if dash else slice.slice_url
-            line['obj_type'] = 'dashboard' if dash else 'slice'
-            line['time'] = str(log.dttm)
+            if dash:
+                title, link, obj_type = dash.dashboard_title, dash.url, 'dashboard'
+            elif slice:
+                title, link, obj_type = slice.slice_name, slice.slice_url, 'slice'
+            else:
+                title, link, obj_type = 'No this object', None, None
+            line = {'user': username,
+                    'action': log.action,
+                    'title': title,
+                    'link': link,
+                    'obj_type': obj_type,
+                    'time': str(log.dttm)
+                    }
             rows.append(line)
-        return rows
+        return count, rows
 
     @expose('/actions/')
     def get_user_actions_by_url(self):
@@ -3763,23 +3877,17 @@ class Home(BaseSupersetView):
             return Response(json.dumps(NO_USER),
                             status=400,
                             mimetype='application/json')
-        args = request.args
-        if 'limit' in args.keys():
-            limit = request.args.get('limit')
-        else:
-            limit = self.default_limit.get('actions')
-        if 'types' in args.keys():
-            types = request.args.get('types')
-        else:
-            types = self.default_types.get('actions')
+        kwargs = self.get_request_args(request.args)
+        kwargs['user_id'] = user_id
+        kwargs['types'] = request.args.get('types', self.default_types.get('actions'))
 
-        if not isinstance(types, list) or len(types) < 1:
-            message_ = '{}: {} '.format(ERROR_REQUEST_PARAM, args)
+        if not isinstance(kwargs['types'], list) or len(kwargs['types']) < 1:
+            message_ = '{}: {} '.format(ERROR_REQUEST_PARAM, request.args)
             return Response(json.dumps(message_),
                             status=400,
                             mimetype='application/json')
 
-        rs = self.get_user_actions(user_id, types=types, limit=int(limit))
+        count, data = self.get_user_actions(**kwargs)
         status_ = self.status
         message_ = self.message
         self.status = 201
@@ -3789,7 +3897,14 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
         else:
-            return Response(json.dumps({'actions': rs}),
+            response = {}
+            response['data'] = data
+            response['count'] = count
+            response['page'] = kwargs.get('page')
+            response['page_size'] = kwargs.get('page_size')
+            response['order_column'] = kwargs.get('order_column')
+            response['order_direction'] = kwargs.get('order_direction')
+            return Response(json.dumps(response),
                             status=status_,
                             mimetype='application/json')
 
@@ -3876,12 +3991,14 @@ class Home(BaseSupersetView):
         #
         types = self.default_types.get('edits')
         limit = self.default_limit.get('edits')
-        result = self.get_edited_objects(user_id, types=types, limit=limit)
+        result = self.get_edited_objects(
+            user_id=user_id, types=types, page_size=limit)
         response['edits'] = result
         # #
         limit = self.default_limit.get('actions')
         types = self.default_types.get('actions')
-        result = self.get_user_actions(user_id, types=types, limit=limit)
+        count, result = self.get_user_actions(
+            user_id=user_id, types=types, page_size=limit)
         response['actions'] = result
 
         status_ = self.status
