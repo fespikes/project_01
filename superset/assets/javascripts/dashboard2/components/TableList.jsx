@@ -1,27 +1,11 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 import { render } from 'react-dom';
-import { createStore, applyMiddleware } from 'redux';
 import { Provider, connect } from 'react-redux';
-import thunk from 'redux-thunk';
-import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchDeletes, fetchStateChange } from '../actions';
-import { DashboardEdit, DashboardAdd, Confirm } from '../../components/popup';
-
+import PropTypes from 'prop-types';
+import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange, setSelectedRow } from '../actions';
+import { DashboardEdit, DashboardDelete } from '../../components/popup';
 import { Table } from 'antd';
-import 'antd/dist/antd.css';
-
-const propTypes = {
-    dispatch: PropTypes.func.isRequired,
-    dataSource: PropTypes.array.isRequired,
-};
-const defaultProps = {};
-
-function getSlicesUrl(type, pageSize) {
-    let url = window.location.origin + "/dashboard/listdata?page=0&page_size=" + pageSize;
-    if(type === "show_favorite") {
-        url += "&only_favorite=1";
-    }
-    return url;
-}
+import 'antd/lib/table/style';
 
 class TableList extends React.Component {
     constructor(props) {
@@ -35,20 +19,18 @@ class TableList extends React.Component {
 
     render() {
 
-        const { dispatch, dataSource, typeName, pageSize } = this.props;
+        const { dispatch, dataSource } = this.props;
 
-        function editSlice(record) {
+        function editDashboard(record) {
 
-            let url = window.location.origin + "/dashboard/show/" + record.id;
-            dispatch(fetchDashboardDetail(url, callback));
+            dispatch(fetchDashboardDetail(record.id, callback));
             function callback(success, data) {
                 if(success) {
+                    console.log("dashboard-data=", data);
                     var editSlicePopup = render(
                         <DashboardEdit
                             dispatch={dispatch}
-                            dashboardDetail={data}
-                            pageSize={pageSize}
-                            typeName={typeName}/>,
+                            dashboardDetail={data} />,
                         document.getElementById('popup_root'));
                     if(editSlicePopup) {
                         editSlicePopup.showDialog();
@@ -57,41 +39,29 @@ class TableList extends React.Component {
             }
         }
 
-        function publishSlice(record) {
-            let url_publish = window.location.origin + "/dashboard/release/";
-            if(record.online) {
-                url_publish += "offline/" + record.id;
-            }else {
-                url_publish += "online/" + record.id;
-            }
-            let url_refresh = getSlicesUrl(typeName, pageSize);
-            dispatch(fetchStateChange(url_publish, url_refresh));
-        }
+        function deleteDashboard(record) {
 
-
-        function deleteSlice(record) {
-
+            const deleteType = "single";
             var deleteSlicePopup = render(
-                <Confirm
+                <DashboardDelete
                     dispatch={dispatch}
-                    slice={record}
-                    pageSize={pageSize}
-                    typeName={typeName}/>,
+                    deleteType={deleteType}
+                    deleteTips={record.dashboard_title}
+                    dashboard={record}/>,
                 document.getElementById('popup_root'));
             if(deleteSlicePopup) {
                 deleteSlicePopup.showDialog();
             }
         }
 
+        function publishDashboard(record) {
+
+            dispatch(fetchStateChange(record, "publish"));
+        }
+
         function favoriteSlice(record) {
-            let url_favorite = window.location.origin + "/superset/favstar/Dashboard/" + record.id;
-            if(record.favorite) {
-                url_favorite += "/unselect";
-            }else {
-                url_favorite += "/select";
-            }
-            let url_refresh = getSlicesUrl(typeName, pageSize);
-            dispatch(fetchStateChange(url_favorite, url_refresh));
+
+            dispatch(fetchStateChange(record, "favorite"));
         }
 
         const columns = [{
@@ -101,7 +71,8 @@ class TableList extends React.Component {
             width: '5%',
             render: (text, record) => {
                 return (
-                    <i className={record.favorite ? 'star-selected icon' : 'star icon'} onClick={() => favoriteSlice(record)}></i>
+                    <i className={record.favorite ? 'star-selected icon' : 'star icon'}
+                       onClick={() => favoriteSlice(record)}></i>
                 )
             }
         }, {
@@ -115,7 +86,12 @@ class TableList extends React.Component {
             dataIndex: 'online',
             key: 'online',
             sorter: true,
-            width: '15%'
+            width: '15%',
+            render: (text, record) => {
+                return (
+                    <span>{record.online ? "发布" : "未发布"}</span>
+                )
+            }
         }, {
             title: '所有者',
             dataIndex: 'created_by_user',
@@ -137,9 +113,10 @@ class TableList extends React.Component {
             render: (record) => {
                 return (
                     <div className="icon-group">
-                        <i className="icon" onClick={() => editSlice(record)}></i>&nbsp;
-                        <i className={record.online ? 'icon online' : 'icon offline'} onClick={() => publishSlice(record)}></i>&nbsp;
-                        <i className="icon" onClick={() => deleteSlice(record)}></i>
+                        <i className="icon" onClick={() => editDashboard(record)}></i>&nbsp;
+                        <i className={record.online ? 'icon online' : 'icon offline'}
+                           onClick={() => publishDashboard(record)}></i>&nbsp;
+                        <i className="icon" onClick={() => deleteDashboard(record)}></i>
                     </div>
                 )
             }
@@ -147,11 +124,14 @@ class TableList extends React.Component {
 
         const rowSelection = {
             onChange: (selectedRowKeys, selectedRows) => {
-
-            },
-            getCheckboxProps: record => ({
-
-            })
+                console.log("onChange=", selectedRowKeys);
+                console.log("onChange=", selectedRows);
+                let selectedRowNames = [];
+                selectedRows.forEach(function(row) {
+                    selectedRowNames.push(row.dashboard_title);
+                });
+                dispatch(setSelectedRow(selectedRowKeys, selectedRowNames));
+            }
         };
 
         return (
@@ -165,6 +145,12 @@ class TableList extends React.Component {
         );
     }
 }
+
+const propTypes = {
+    dispatch: PropTypes.func.isRequired,
+    dataSource: PropTypes.array.isRequired,
+};
+const defaultProps = {};
 
 TableList.propTypes = propTypes;
 TableList.defaultProps = defaultProps;
@@ -182,7 +168,7 @@ function mapStateToProps(state) {
 
     return {
         dataSource: addTableKey(state.posts.params.data) || [],
-        dashboardDetail: state.detail ? state.detail.dashboardDetail : {}
+        dashboardDetail: state.details.dashboardDetail || {}
     }
 }
 
