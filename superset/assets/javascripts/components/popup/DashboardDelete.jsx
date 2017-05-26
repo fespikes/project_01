@@ -1,16 +1,12 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 import { render } from 'react-dom';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider, connect } from 'react-redux';
 import thunk from 'redux-thunk';
-import { fetchPosts, fetchPuts, fetchDeletes } from '../../dashboard2/actions';
+import PropTypes from 'prop-types';
+import { fetchPosts, fetchDashboardDelete, fetchDashboardDeleteMul } from '../../dashboard2/actions';
 
-const propTypes = {
-    dispatch: PropTypes.func.isRequired,
-};
-const defaultProps = {};
-
-class Confirm extends React.Component {
+class DashboardDelete extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
@@ -32,9 +28,13 @@ class Confirm extends React.Component {
 
     confirm() {
 
-        const { dispatch } = this.props;
-        let url = window.location.origin + "/dashboard/delete/" + this.props.slice.id;
-        dispatch(fetchDeletes(url, callback));
+        const { dispatch, dashboard, deleteType } = this.props;
+        if(deleteType === "single") {
+            dispatch(fetchDashboardDelete(dashboard.id, callback));
+        }else if(deleteType === "multiple") {
+            dispatch(fetchDashboardDeleteMul(callback));
+        }
+
 
         function callback(success) {
             if(success) {
@@ -52,19 +52,19 @@ class Confirm extends React.Component {
     render() {
         return (
             <div id="popup_confirm" className="popup" style={{display:'none'}}>
-                <div className="popup-dialog popup-md">
+                <div className="popup-dialog popup-sm">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className=""></i>
-                                <span>工作表基本信息</span>
+                                <span>删除仪表板</span>
                             </div>
                             <div className="header-right">
                                 <i className="" onClick={this.closeDialog}>关闭</i>
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div>确定删除{this.props.slice.dashboard_title}?</div>
+                            <div>确定删除{this.props.deleteTips}?</div>
                         </div>
                         <div className="popup-footer">
                             <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}>
@@ -78,7 +78,10 @@ class Confirm extends React.Component {
     }
 }
 
-Confirm.propTypes = propTypes;
-Confirm.defaultProps = defaultProps;
+const propTypes = {};
+const defaultProps = {};
 
-export default Confirm;
+DashboardDelete.propTypes = propTypes;
+DashboardDelete.defaultProps = defaultProps;
+
+export default DashboardDelete;

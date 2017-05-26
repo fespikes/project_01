@@ -1,41 +1,11 @@
 /**
  * Created by haitao on 17-5-11.
  */
-import React, { PropTypes } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetchAvailableSlices, fetchUpdateSlice } from '../../dashboard2/actions';
+import { fetchAvailableSlices, fetchUpdateDashboard } from '../../dashboard2/actions';
 import { Select } from 'antd';
-
-const propTypes = {};
-const defaultProps = {};
-
-function getSlicesUrl(type, pageSize) {
-    let url = window.location.origin + "/dashboard/listdata?page=0&page_size=" + pageSize;
-    if(type === "show_favorite") {
-        url += "&only_favorite=1";
-    }
-    return url;
-}
-
-function getBasicInfo(slice, state) {
-    let obj = {};
-    obj.dashboard_title = slice.dashboard_title;
-    obj.description = slice.description;
-    obj.slices = getSelectedSlices(state.selected_slices, slice.available_slices);
-    return obj;
-}
-
-function getSelectedSlices(selectedSlices, availableSlices) {
-    let array = [];
-    selectedSlices.forEach(function(selected) {
-        availableSlices.forEach(function(slice) {
-            if(selected === slice.id.toString()) {
-                array.push(slice);
-            }
-        });
-    });
-    return array;
-}
+import PropTypes from 'prop-types';
 
 class DashboardEdit extends React.Component {
     constructor(props) {
@@ -76,17 +46,13 @@ class DashboardEdit extends React.Component {
 
     confirm() {
         const self = this;
-        const { dispatch, pageSize, typeName, dashboardDetail } = self.props;
-        let basicInfo = getBasicInfo(self.props.dashboardDetail, self.state);
-        let url_update = window.location.origin + "/dashboard/edit/" + dashboardDetail.id;
-        let url_refresh = getSlicesUrl(typeName, pageSize);
-        dispatch(fetchUpdateSlice(url_update, url_refresh, basicInfo, callback));
+        const { dispatch } = self.props;
+        dispatch(fetchUpdateDashboard(self.state, self.props.dashboardDetail, callback));
         function callback(success) {
             if(success) {
                 self.setState({
-                    selected_slices: [],
+                    selected_slices: []
                 });
-
                 document.getElementById("popup_dashboard_edit").style.display = "none";
             }else {
 
@@ -101,7 +67,7 @@ class DashboardEdit extends React.Component {
     render() {
         const self = this;
         const Option = Select.Option;
-        const options = self.props.dashboardDetail.slices.map(s => {
+        const options = self.props.dashboardDetail.available_slices.map(s => {
             return <Option key={s.id}>{s.slice_name}</Option>
         });
         var defaultOptions = [];
@@ -183,6 +149,9 @@ class DashboardEdit extends React.Component {
         );
     }
 }
+
+const propTypes = {};
+const defaultProps = {};
 
 DashboardEdit.propTypes = propTypes;
 DashboardEdit.defaultProps = defaultProps;

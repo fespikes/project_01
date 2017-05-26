@@ -1,47 +1,17 @@
 /**
  * Created by haitao on 17-5-11.
  */
-import React, { PropTypes } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetchAvailableSlices, fetchUpdateSlice } from '../../dashboard2/actions';
+import { fetchAvailableSlices, fetchUpdateDashboard, fetchAddDashboard } from '../../dashboard2/actions';
 import { Select } from 'antd';
-
-const propTypes = {};
-const defaultProps = {};
-
-function getSlicesUrl(type, pageSize) {
-    let url = window.location.origin + "/dashboard/listdata?page=0&page_size=" + pageSize;
-    if(type === "show_favorite") {
-        url += "&only_favorite=1";
-    }
-    return url;
-}
-
-function getBasicInfo(slice, selectedSlices, availableSlices) {
-    let obj = {};
-    obj.dashboard_title = slice ? slice.dashboard_title : "";
-    obj.description = slice ? slice.description : "";
-    obj.slices = getSelectedSlices(selectedSlices, availableSlices);
-    return obj;
-}
-
-function getSelectedSlices(selectedSlices, availableSlices) {
-    let array = [];
-    selectedSlices.forEach(function(selected) {
-        availableSlices.forEach(function(slice) {
-            if(selected === slice.id.toString()) {
-                array.push(slice);
-            }
-        });
-    });
-    return array;
-}
+import PropTypes from 'prop-types';
 
 class DashboardAdd extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            selected_slices: [],
+            selected_slices: []
         };
         // bindings
         this.confirm = this.confirm.bind(this);
@@ -61,33 +31,29 @@ class DashboardAdd extends React.Component {
     }
 
     handleTitleChange(e) {
-        this.props.slice.dashboard_title = e.target.value;
+        this.props.dashboard.dashboard_title = e.target.value;
         this.setState({
-            slice: this.props.slice
+            dashboard: this.props.dashboard
         });
     }
 
     handleDescriptionChange(e) {
-        this.props.slice.description = e.target.value;
+        this.props.dashboard.description = e.target.value;
         this.setState({
-            slice: this.props.slice
+            dashboard: this.props.dashboard
         });
     }
 
     confirm() {
         const self = this;
-        const { dispatch, pageSize, typeName, availableSlices } = self.props;
-        let basicInfo = getBasicInfo(self.state.slice, self.state.selected_slices, availableSlices);
-        let url_add = window.location.origin + "/dashboard/add";
-        let url_refresh = getSlicesUrl(typeName, pageSize);
-        dispatch(fetchUpdateSlice(url_add, url_refresh, basicInfo, callback));
+        const { dispatch, availableSlices } = self.props;
+        dispatch(fetchAddDashboard(self.state, availableSlices, callback));
         function callback(success) {
             if(success) {
                 self.setState({
-                    slice: {},
-                    selected_slices: [],
+                    dashboard: {},
+                    selected_slices: []
                 });
-
                 document.getElementById("popup_dashboard_add").style.display = "none";
             }else {
 
@@ -97,27 +63,13 @@ class DashboardAdd extends React.Component {
 
     componentDidMount() {
 
-        const { dispatch } = this.props;
-        const self = this;
-        let url = window.location.origin + "/dashboard/addablechoices";
-        dispatch(fetchAvailableSlices(url, callback));
-
-        function callback(success, data) {
-            if(success) {
-                self.setState({
-                    available_slices: data.data.available_slices
-                });
-            }else {
-
-            }
-        }
     }
 
     render() {
         const self = this;
         const Option = Select.Option;
-        const options = self.props.availableSlices.map(s => {
-            return <Option key={s.id}>{s.slice_name}</Option>
+        const options = self.props.availableSlices.map(d => {
+            return <Option key={d.id}>{d.slice_name}</Option>
         });
 
         function onChange(value) {
@@ -145,7 +97,7 @@ class DashboardAdd extends React.Component {
                                     <span>标题：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.slice.dashboard_title}
+                                    <input className="form-control dialog-input" value={this.props.dashboard.dashboard_title}
                                            onChange={this.handleTitleChange} />
                                 </div>
                             </div>
@@ -154,7 +106,7 @@ class DashboardAdd extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" value={this.props.slice.description}
+                                    <textarea className="dialog-area" value={this.props.dashboard.description}
                                               onChange={this.handleDescriptionChange}></textarea>
                                 </div>
                             </div>
@@ -194,6 +146,9 @@ class DashboardAdd extends React.Component {
         );
     }
 }
+
+const propTypes = {};
+const defaultProps = {};
 
 DashboardAdd.propTypes = propTypes;
 DashboardAdd.defaultProps = defaultProps;
