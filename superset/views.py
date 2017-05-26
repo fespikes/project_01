@@ -1562,7 +1562,7 @@ class DashboardModelView(SupersetModelView):  # noqa
     def mulexport(self, items):
         ids = ''.join('&id={}'.format(d.id) for d in items)
         return redirect(
-            '/dashboardmodelview/export_dashboards_form?{}'.format(ids[1:]))
+            '/dashboard/export_dashboards_form?{}'.format(ids[1:]))
 
     @expose("/export_dashboards_form")
     def download_dashboards(self):
@@ -1574,7 +1574,7 @@ class DashboardModelView(SupersetModelView):  # noqa
                 mimetype="application/text")
         return self.render_template(
             'superset/export_dashboards.html',
-            dashboards_url='/dashboardmodelview/list'
+            dashboards_url='/dashboard/list'
         )
 
     def get_object_list_data(self, **kwargs):
@@ -1674,6 +1674,36 @@ class DashboardModelView(SupersetModelView):  # noqa
             slices.append(slice_obj)
         attributes['slices'] = slices
         return attributes
+
+    @expose("/import", methods=['GET', 'POST'])
+    def import_dashboards(self):
+        """Overrides the dashboards using pickled instances from the file."""
+        f = request.files.get('file')
+        if request.method == 'POST' and f:
+            current_tt = int(time.time())
+            data = pickle.load(f)
+            for table in data['datasources']:
+                if table.type == 'table':
+                    models.SqlaTable.import_obj(table, import_time=current_tt)
+                else:
+                    pass
+            db.session.commit()
+            for dashboard in data['dashboards']:
+                models.Dashboard.import_obj(
+                    dashboard, import_time=current_tt)
+                # log user action
+                action_str = 'Import dashboard: {}'.format(dashboard.dashboard_title)
+                log_action('import', action_str, 'dashboard', dashboard.id)
+            db.session.commit()
+        return redirect('/dashboard/list/')
+
+    @expose("/export")
+    def export_dashboards(self):
+        ids = request.args.getlist('id')
+        return Response(
+            models.Dashboard.export_dashboards(ids),
+            headers=generate_download_headers("pickle"),
+            mimetype="application/text")
 
     @expose("/release/<action>/<dashboard_id>", methods=['GET'])
     def dashbaord_online_or_offline(self, action, dashboard_id):
