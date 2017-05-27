@@ -448,7 +448,7 @@ class WebHdfs(Hdfs):
     params['op'] = 'CREATE'
     params['overwrite'] = overwrite and 'true' or 'false'
     if blocksize is not None:
-      params['blocksize'] = long(blocksize)
+      params['blocksize'] = int(blocksize)
     if replication is not None:
       params['replication'] = int(replication)
     if permission is None:
@@ -528,7 +528,7 @@ class WebHdfs(Hdfs):
     offset = 0
 
     while True:
-      data = self.read(src, offset, UPLOAD_CHUNK_SIZE.get())
+      data = self.read(src, offset, UPLOAD_CHUNK_SIZE)
       cnt = len(data)
 
       if offset == 0:
@@ -545,7 +545,7 @@ class WebHdfs(Hdfs):
       else:
         self.append(dst, data)
 
-      if cnt < UPLOAD_CHUNK_SIZE.get():
+      if cnt < UPLOAD_CHUNK_SIZE:
         break
 
       offset += cnt
@@ -790,10 +790,10 @@ def safe_octal(octal_value):
   """
   try:
     octal_str = oct(octal_value)
-    octal_str = "0" + octal_str[2:]
-    return octal_str
   except TypeError:
-    return str(octal_value)
+    octal_str = str(octal_value)
+  octal_str = "0" + octal_str[2:]
+  return octal_str
 
 def test_fs_configuration(webhdfs):
   """

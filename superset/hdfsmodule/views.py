@@ -475,13 +475,19 @@ hdfsfilebrowser_post_parser.add_argument(
     location=['args', 'form'],
     help="dir name is required"
 )
+hdfsfilebrowser_post_parser.add_argument(
+    'dest_path',
+    type=str,
+    location=['args', 'form'],
+    help="destination path is required"
+)
 
 
 class HDFSFileBrowserRes(Resource):
     def __init__(self):
         self.filebrowser = Filebrowser()
-        self.actionlist = {"list": self.list, "download": self.download, "upload": self.upload,
-                           "mkdir": self.mkdir, "rmdir": self.rmdir}
+        self.actionlist = {"list": self.list, "download": self.download, "upload": self.upload, "remove": self.remove,
+                           "move": self.move, "copy": self.copy, "mkdir": self.mkdir, "rmdir": self.rmdir}
 
     def get(self):
         args = hdfsfilebrowser_get_parser.parse_args(strict=True)
@@ -516,30 +522,44 @@ class HDFSFileBrowserRes(Resource):
         return self.filebrowser.download_file(fs, hdfs_path)
 
     def upload(self, args, connection):
-        hdfs_path = args['hdfs_path']
-
         hdfs_file = request.files['hdfs_file']
         if hdfs_file is None:
             return "hdfs file not found", 400
 
         fs = self.filebrowser.get_fs_from_cache(connection)
-        return self.filebrowser.upload_file(fs, hdfs_path, hdfs_file)
+        return self.filebrowser.upload_file(fs, args['hdfs_path'], hdfs_file)
+
+    def remove(self, args, connection):
+        fs = self.filebrowser.get_fs_from_cache(connection)
+        return self.filebrowser.remove(fs, args['hdfs_path'])
+
+    def move(self, args, connection):
+        dest_path = args['dest_path']
+        if dest_path is None:
+            return "destination path not found", 400
+
+        fs = self.filebrowser.get_fs_from_cache(connection)
+        return self.filebrowser.copy_or_move(fs, args['hdfs_path'], dest_path, args['action'])
+
+    def copy(self, args, connection):
+        dest_path = args['dest_path']
+        if dest_path is None:
+            return "destination path not found", 400
+
+        fs = self.filebrowser.get_fs_from_cache(connection)
+        return self.filebrowser.copy_or_move(fs, args['hdfs_path'], dest_path, args['action'])
 
     def mkdir(self, args, connection):
-        hdfs_path = args['hdfs_path']
-
         dir_name = args['dir_name']
         if dir_name is None:
             return "dir name not found", 400
 
         fs = self.filebrowser.get_fs_from_cache(connection)
-        return self.filebrowser.mkdir(fs, hdfs_path, dir_name)
+        return self.filebrowser.mkdir(fs, args['hdfs_path'], dir_name)
 
     def rmdir(self, args, connection):
-        hdfs_path = args['hdfs_path']
-
         fs = self.filebrowser.get_fs_from_cache(connection)
-        return self.filebrowser.rmdir(fs, hdfs_path)
+        return self.filebrowser.rmdir(fs, args['hdfs_path'])
 
 
 hdfsfilepreview_get_parser = reqparse.RequestParser()

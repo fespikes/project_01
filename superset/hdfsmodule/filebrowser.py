@@ -174,6 +174,40 @@ class Filebrowser:
 
     return json_success_response("Succeed to upload a file")
 
+  def remove(self, fs, hdfs_path):
+    if not fs.exists(hdfs_path):
+      return json_error_response("File not found: %s." % hdfs_path, 404)
+
+    if not fs.isfile(hdfs_path):
+      return json_error_response("%s is not a file." % hdfs_path)
+
+    fs.remove(hdfs_path)
+    return json_success_response("Remove file %s succeed." % hdfs_path)
+
+  def copy_or_move(self, fs, hdfs_path, dest_path, action):
+    if not fs.exists(hdfs_path):
+      return json_error_response("File not found: %s." % hdfs_path, 404)
+
+    if not fs.isfile(hdfs_path):
+      return json_error_response("%s is not a file." % hdfs_path)
+
+    if not fs.isdir(dest_path):
+      return json_error_response("%s is not a directory." % dest_path)
+
+    file_name = os.path.basename(hdfs_path)
+    new_path = os.path.join(dest_path, file_name)
+    if fs.exists(new_path):
+      return json_error_response("File with the same name has already existed in the destination")
+
+    if action == "copy":
+      fs.copy(hdfs_path, dest_path)
+      return json_success_response("Copy file %s to %s succeed." % (hdfs_path, dest_path))
+    elif action == "move":
+      fs.rename(hdfs_path, dest_path)
+      return json_success_response("Move file %s to %s succeed." % (hdfs_path, dest_path))
+    else:
+      return json_error_response("Action %s is not supported." % action)
+
   def mkdir(self, fs, hdfs_path, dir_name):
     if not fs.isdir(hdfs_path):
       return json_error_response("HDFS path is not a directory, please select a new one")
