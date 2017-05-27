@@ -13,7 +13,6 @@ class Paginations extends React.Component {
     };
 
     componentDidMount() {
-
         const { dispatch } = this.props;
         dispatch(fetchPosts());
     }
