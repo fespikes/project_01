@@ -469,12 +469,19 @@ hdfsfilebrowser_post_parser.add_argument(
     location=['files'],
     help="hdfs file is required"
 )
+hdfsfilebrowser_post_parser.add_argument(
+    'dir_name',
+    type=str,
+    location=['args', 'form'],
+    help="dir name is required"
+)
 
 
 class HDFSFileBrowserRes(Resource):
     def __init__(self):
         self.filebrowser = Filebrowser()
-        self.actionlist = {"list": self.list, "download": self.download, "upload": self.upload}
+        self.actionlist = {"list": self.list, "download": self.download, "upload": self.upload,
+                           "mkdir": self.mkdir, "rmdir": self.rmdir}
 
     def get(self):
         args = hdfsfilebrowser_get_parser.parse_args(strict=True)
@@ -516,7 +523,24 @@ class HDFSFileBrowserRes(Resource):
             return "hdfs file not found", 400
 
         fs = self.filebrowser.get_fs_from_cache(connection)
-        return self.filebrowser.upload_file(fs, hdfs_file, hdfs_path)
+        return self.filebrowser.upload_file(fs, hdfs_path, hdfs_file)
+
+    def mkdir(self, args, connection):
+        hdfs_path = args['hdfs_path']
+
+        dir_name = args['dir_name']
+        if dir_name is None:
+            return "dir name not found", 400
+
+        fs = self.filebrowser.get_fs_from_cache(connection)
+        return self.filebrowser.mkdir(fs, hdfs_path, dir_name)
+
+    def rmdir(self, args, connection):
+        hdfs_path = args['hdfs_path']
+
+        fs = self.filebrowser.get_fs_from_cache(connection)
+        return self.filebrowser.rmdir(fs, hdfs_path)
+
 
 hdfsfilepreview_get_parser = reqparse.RequestParser()
 hdfsfilepreview_get_parser.add_argument(

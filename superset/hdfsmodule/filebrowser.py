@@ -127,28 +127,32 @@ class Filebrowser:
 
     return data
 
-  def read(self, fs, path, separator):
+  def download_file(self, fs, path):
+    if not fs.exists(path):
+      return json_error_response("File not found: %s." % path, 404)
+    if not fs.isfile(path):
+      return json_error_response("'%s is not a file." % path)
+
+    content_type = mimetypes.guess_type(path)[0] or 'application/octet-stream'
     stats = fs.stats(path)
-    if stats.isDir:
-      return json_error_response(gettext("Not a file"))
-    else:
-      rs = fs.read(path, 0, stats["size"]).decode()
-      rows = rs.split("\n")
 
-      if separator is None:
-        separator = ','
+    fh = fs.open(path)
 
-      data = {}
-      for row_index in range(len(rows)):
-        if rows[row_index].strip():
-          columns = rows[row_index].split(separator)
-          key = "row" + str(row_index)
-          data[key] = []
-          for column_index in range(len(columns)):
-            data[key].append(columns[column_index])
-      return Response(json.dumps(data, 200))
+    response = Response(self.read_file_by_chunk(fh), content_type=content_type)
+    response.headers['Last-Modified'] = http_date(stats['mtime'])
+    response.headers['Content-Length'] = stats['size']
+    response.headers['Content-Disposition'] = 'attachment; filename=' + os.path.basename(path)
+    return response
 
-  def upload_file(self, fs, hdfs_file, hdfs_path):
+  def read_file_by_chunk(self, fh):
+    while True:
+      chunk = fh.read(DOWNLOAD_CHUNK_SIZE)
+      if chunk == b'':
+        fh.close()
+        break
+      yield chunk
+
+  def upload_file(self, fs, hdfs_path, hdfs_file):
     file_name = secure_filename(hdfs_file.filename)
 
     if not fs.isdir(hdfs_path):
@@ -170,30 +174,50 @@ class Filebrowser:
 
     return json_success_response("Succeed to upload a file")
 
-  def download_file(self, fs, path):
-    if not fs.exists(path):
-      return json_error_response(__("File not found: %(path)s.") % {'path': path}, 404)
-    if not fs.isfile(path):
-      return json_error_response(__("'%(path)s' is not a file.") % {'path': path})
+  def mkdir(self, fs, hdfs_path, dir_name):
+    if not fs.isdir(hdfs_path):
+      return json_error_response("HDFS path is not a directory, please select a new one")
 
-    content_type = mimetypes.guess_type(path)[0] or 'application/octet-stream'
+    if posixpath.sep in dir_name or "#" in dir_name:
+      return json_error_response("Could not name folder %: Slashes or hashes are not allowed in filenames" % dir_name)
+
+    dir_path = os.path.join(hdfs_path, dir_name)
+    if fs.exists(dir_path):
+      return json_error_response("Directory with the same name has already existed, please select a new one")
+
+    fs.mkdir(dir_path)
+    return json_success_response("Create folder %s succeed, full path is:%s" % (dir_name, dir_path))
+
+  def rmdir(self, fs, hdfs_path):
+    if not fs.exists(hdfs_path):
+      return json_error_response("Directory not exist, please select a new one")
+
+    if not fs.isdir(hdfs_path):
+      return json_error_response("HDFS path is not a directory, please select a new one")
+
+    fs.rmtree(hdfs_path)
+    return json_success_response("Remove folder %s succeed." % hdfs_path)
+
+  def read(self, fs, path, separator):
     stats = fs.stats(path)
+    if stats.isDir:
+      return json_error_response(gettext("Not a file"))
+    else:
+      rs = fs.read(path, 0, stats["size"]).decode()
+      rows = rs.split("\n")
 
-    fh = fs.open(path)
+      if separator is None:
+        separator = ','
 
-    response = Response(self.read_file_by_chunk(fh), content_type=content_type)
-    response.headers['Last-Modified'] = http_date(stats['mtime'])
-    response.headers['Content-Length'] = stats['size']
-    response.headers['Content-Disposition'] = 'attachment; filename=' + os.path.basename(path)
-    return response
-
-  def read_file_by_chunk(self, fh):
-    while True:
-      chunk = fh.read(DOWNLOAD_CHUNK_SIZE)
-      if chunk == b'':
-        fh.close()
-        break
-      yield chunk
+      data = {}
+      for row_index in range(len(rows)):
+        if rows[row_index].strip():
+          columns = rows[row_index].split(separator)
+          key = "row" + str(row_index)
+          data[key] = []
+          for column_index in range(len(columns)):
+            data[key].append(columns[column_index])
+      return Response(json.dumps(data, 200))
 
 
 def _massage_stats(request, stats):
