@@ -14,7 +14,8 @@ export const CONFIG_PARAMS = {
     SHOW_TYPE: 'SHOW_TYPE',
     PAGE_NUMBER: 'PAGE_NUMBER',
     PAGE_SIZE: 'PAGE_SIZE',
-    SELECTED_ROWS: 'SELECTED_ROWS'
+    SELECTED_ROWS: 'SELECTED_ROWS',
+    VIEW_MODE: 'VIEW_MODE'
 };
 
 export function requestPosts() {
@@ -76,6 +77,13 @@ export function setSelectedRow(selectedRowKeys, selectedRowNames) {
         type: CONFIG_PARAMS.SELECTED_ROWS,
         selectedRowKeys: selectedRowKeys,
         selectedRowNames: selectedRowNames
+    }
+}
+
+export function setViewMode(viewMode) {
+    return {
+        type: CONFIG_PARAMS.VIEW_MODE,
+        viewMode: viewMode
     }
 }
 

@@ -216,7 +216,7 @@
 }
 .operation-btn{
   display: flex;
-  button{
+  a {
     width:38px;
     height:30px;
     background-color:#fff;
@@ -226,7 +226,7 @@
     justify-content:center;
     align-items:center;
   }
-  button:nth-of-type(1){
+  a:nth-of-type(1){
     .icon{
       width:21px;
       height:13px;
@@ -236,7 +236,7 @@
       background-position: -129px -213px;
     }
   }
-  button:nth-of-type(2){
+  a:nth-of-type(2){
     .icon{
       width:18px;
       height:18px;

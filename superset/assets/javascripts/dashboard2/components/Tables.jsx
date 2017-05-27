@@ -7,7 +7,7 @@ import { DashboardEdit, DashboardDelete } from '../../components/popup';
 import { Table } from 'antd';
 import 'antd/lib/table/style';
 
-class TableList extends React.Component {
+class Tables extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
@@ -19,14 +19,13 @@ class TableList extends React.Component {
 
     render() {
 
-        const { dispatch, dataSource } = this.props;
+        const { dispatch, dashboardList } = this.props;
 
         function editDashboard(record) {
 
             dispatch(fetchDashboardDetail(record.id, callback));
             function callback(success, data) {
                 if(success) {
-                    console.log("dashboard-data=", data);
                     var editSlicePopup = render(
                         <DashboardEdit
                             dispatch={dispatch}
@@ -124,8 +123,6 @@ class TableList extends React.Component {
 
         const rowSelection = {
             onChange: (selectedRowKeys, selectedRows) => {
-                console.log("onChange=", selectedRowKeys);
-                console.log("onChange=", selectedRows);
                 let selectedRowNames = [];
                 selectedRows.forEach(function(row) {
                     selectedRowNames.push(row.dashboard_title);
@@ -138,7 +135,7 @@ class TableList extends React.Component {
             <div className="dashboard-table">
                 <Table
                     rowSelection={rowSelection}
-                    dataSource={dataSource}
+                    dataSource={dashboardList}
                     columns={columns}
                     pagination={false} />
             </div>
@@ -146,30 +143,10 @@ class TableList extends React.Component {
     }
 }
 
-const propTypes = {
-    dispatch: PropTypes.func.isRequired,
-    dataSource: PropTypes.array.isRequired,
-};
+const propTypes = {};
 const defaultProps = {};
 
-TableList.propTypes = propTypes;
-TableList.defaultProps = defaultProps;
+Tables.propTypes = propTypes;
+Tables.defaultProps = defaultProps;
 
-function addTableKey(tables) {
-    if(tables) {
-        tables.forEach(function(table) {
-            table.key = table.id;
-        });
-    }
-    return tables;
-}
-
-function mapStateToProps(state) {
-
-    return {
-        dataSource: addTableKey(state.posts.params.data) || [],
-        dashboardDetail: state.details.dashboardDetail || {}
-    }
-}
-
-export default connect(mapStateToProps)(TableList);
+export default Tables;
