@@ -19,7 +19,7 @@ $borderRadius:4px;
 	width: 100%;
 	height: 100vh;
 	background-color: rgba(0,0,0,0.5);
-	z-index: 1999;
+	z-index: 99;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -29,6 +29,10 @@ $borderRadius:4px;
 		background-color: #fff;
 		border-radius: 4px;
 		opacity: 1;
+		.icon {
+			cursor: pointer;
+		}
+
 	}
 	.popup-lg {
 		width: 900px;
@@ -39,12 +43,12 @@ $borderRadius:4px;
 	}
 
 	.popup-sm {
-		width: 300px;
+		width: 450px;
 	}
 
 	.popup-content {
 		width: 100%;
-		height: 100%;
+		height: auto;
 	}
 
 	.popup-header {
@@ -56,8 +60,7 @@ $borderRadius:4px;
 		align-items: center;
 		justify-content: space-between;
 		font-size: 16px;
-		color: #ffffff;
-
+		color: #fff;
 		.header-left{
 			display:flex;
 			align-items:center;

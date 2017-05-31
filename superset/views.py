@@ -1223,7 +1223,8 @@ class SliceModelView(SupersetModelView):  # noqa
         'datasource_type': _("Datasource Type"),
     }
 
-    # list_template = "superset/slice.html"
+    # list_template = "superset/partials/slice/slice.html"
+    list_template = "superset/list.html"
 
     str_to_column = {
         'title': Slice.slice_name,
@@ -1479,7 +1480,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         'department': _('Department')
     }
 
-    list_template = "superset/list.html"
+    list_template = "superset/partials/dashboard/dashboard.html"
 
     str_to_column = {
         'title': Dashboard.dashboard_title,
