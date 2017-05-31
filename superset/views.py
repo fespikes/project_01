@@ -1031,6 +1031,20 @@ class TableModelView(SupersetModelView):  # noqa
         data['available_databases'] = self.get_available_databases()
         return data
 
+    @staticmethod
+    def get_all_schemas(db_id):
+        d = db.session.query(models.Database) \
+            .filter_by(id=db_id).first()
+        schemas = d.all_schema_names()
+        return json.dumps(schemas)
+
+    @staticmethod
+    def get_all_tables(db_id, schema=None):
+        d = db.session.query(models.Database) \
+            .filter_by(id=db_id).first()
+        tables = d.all_table_names(schema=schema)
+        return json.dumps(tables)
+
     @expose('/alltables/<database_id>', methods=['GET', ])
     def all_schemas_and_tables(self, database_id):
         try:
