@@ -154,7 +154,7 @@ export function fetchAvailableSlices(callback) {
 
 export function fetchUpdateDashboard(state, dashboard, callback) {
     const url = window.location.origin + "/dashboard/edit/" + dashboard.id;
-    const newDashboard = getNewDashboard(dashboard, state.selected_slices, state.available_slices);
+    const newDashboard = getNewDashboard(dashboard, state.selectedSlices, dashboard.available_slices);
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin",
@@ -177,7 +177,7 @@ export function fetchUpdateDashboard(state, dashboard, callback) {
 
 export function fetchAddDashboard(state, availableSlices, callback) {
     const url = window.location.origin + "/dashboard/add";
-    const dashboard = getNewDashboard(state.dashboard, state.selected_slices, availableSlices);
+    const dashboard = getNewDashboard(state.dashboard, state.selectedSlices, availableSlices);
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin",
@@ -244,7 +244,7 @@ export function fetchPosts() {
 
 
 function getDashboardListUrl(state) {
-    let url = window.location.origin + "/dashboard/listdata?page=" + state.configs.pageNumber +
+    let url = window.location.origin + "/dashboard/listdata?page=" + (state.configs.pageNumber - 1) +
         "&page_size=" + state.configs.pageSize + "&filter=" + state.configs.keyword;
     if(state.configs.type === "show_favorite") {
         url += "&only_favorite=1";

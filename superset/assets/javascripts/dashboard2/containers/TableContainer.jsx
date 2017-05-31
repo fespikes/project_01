@@ -44,7 +44,8 @@ class TableContainer extends React.Component {
                     <Paginations
                         dispatch={dispatch}
                         count={posts.params.count}
-                        pageSize={configs.pageSize}/>
+                        pageSize={configs.pageSize}
+                        pageNumber={configs.pageNumber}/>
                 </div>
             </div>
         );

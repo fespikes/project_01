@@ -11,8 +11,16 @@ class DashboardEdit extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            selected_slices: [],
+            selectedSlices: initDefaultOptions()
         };
+
+        function initDefaultOptions() {
+            let defaultOptions = [];
+            props.dashboardDetail.slices.map(slice => {
+                defaultOptions.push(slice.id.toString());
+            });
+            return defaultOptions;
+        }
         // bindings
         this.confirm = this.confirm.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
@@ -27,7 +35,7 @@ class DashboardEdit extends React.Component {
     }
 
     closeDialog() {
-        document.getElementById("popup_dashboard_edit").style.display = "none";
+        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));//for resolve ant-design select component cache issue
     }
 
     handleTitleChange(e) {
@@ -51,33 +59,26 @@ class DashboardEdit extends React.Component {
         function callback(success) {
             if(success) {
                 self.setState({
-                    selected_slices: []
+                    selectedSlices: []
                 });
-                document.getElementById("popup_dashboard_edit").style.display = "none";
+                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
 
             }
         }
     }
 
-    componentDidMount() {
-
-    }
-
     render() {
         const self = this;
         const Option = Select.Option;
-        const options = self.props.dashboardDetail.available_slices.map(s => {
-            return <Option key={s.id}>{s.slice_name}</Option>
+        const options = self.props.dashboardDetail.available_slices.map(slice => {
+            return <Option key={slice.id}>{slice.slice_name}</Option>
         });
-        var defaultOptions = [];
-        self.props.dashboardDetail.slices.forEach(function(slice) {
-            defaultOptions.push(slice.slice_name);
-        });
+        const defaultOptions = this.state.selectedSlices;
 
         function onChange(value) {
             self.setState({
-                selected_slices: value
+                selectedSlices: value
             });
         }
 
@@ -101,7 +102,7 @@ class DashboardEdit extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <input className="form-control dialog-input" value={this.props.dashboardDetail.dashboard_title}
-                                      onChange={this.handleTitleChange} />
+                                      onChange={this.handleTitleChange} disabled={!self.props.editable}/>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -110,7 +111,7 @@ class DashboardEdit extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <textarea className="dialog-area" value={this.props.dashboardDetail.description}
-                                        onChange={this.handleDescriptionChange}></textarea>
+                                        onChange={this.handleDescriptionChange} disabled={!self.props.editable}></textarea>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -120,10 +121,12 @@ class DashboardEdit extends React.Component {
                                 <div className="item-right">
                                     <div id="edit_pop_select">
                                         <Select mode={'multiple'}
-                                                style={{ width: '100%' }}
-                                                defaultValue={defaultOptions}
-                                                placeholder="select the slices..."
-                                                onChange={onChange}>
+                                            style={{ width: '100%' }}
+                                            defaultValue={defaultOptions}
+                                            placeholder="select the slices..."
+                                            onChange={onChange}
+                                            disabled={!self.props.editable}
+                                        >
                                             {options}
                                         </Select>
                                     </div>

@@ -21,6 +21,23 @@ class Tables extends React.Component {
 
         const { dispatch, dashboardList } = this.props;
 
+        function showDashboard(record) {
+            dispatch(fetchDashboardDetail(record.id, callback));
+            function callback(success, data) {
+                if(success) {
+                    var editSlicePopup = render(
+                        <DashboardEdit
+                            dispatch={dispatch}
+                            dashboardDetail={data}
+                            editable={false}/>,
+                        document.getElementById('popup_root'));
+                    if(editSlicePopup) {
+                        editSlicePopup.showDialog();
+                    }
+                }
+            }
+        }
+
         function editDashboard(record) {
 
             dispatch(fetchDashboardDetail(record.id, callback));
@@ -29,7 +46,8 @@ class Tables extends React.Component {
                     var editSlicePopup = render(
                         <DashboardEdit
                             dispatch={dispatch}
-                            dashboardDetail={data} />,
+                            dashboardDetail={data}
+                            editable={true}/>,
                         document.getElementById('popup_root'));
                     if(editSlicePopup) {
                         editSlicePopup.showDialog();
@@ -78,32 +96,55 @@ class Tables extends React.Component {
             title: '名称',
             dataIndex: 'dashboard_title',
             key: 'dashboard_title',
-            sorter: true,
-            width: '30%'
+            width: '30%',
+            render: (text, record) => {
+                return (
+                    <div className="entity-name">
+                        <div className="entity-title highlight">
+                            <span onClick={() => showDashboard(record)}>{record.dashboard_title}</span>
+                        </div>
+                        <div className="entity-description">{record.description}</div>
+                    </div>
+                )
+            },
+            sorter(a, b) {
+                return a.dashboard_title.substring(0, 1).charCodeAt() - b.dashboard_title.substring(0, 1).charCodeAt();
+            }
         }, {
             title: '发布状态',
             dataIndex: 'online',
             key: 'online',
-            sorter: true,
             width: '15%',
             render: (text, record) => {
                 return (
-                    <span>{record.online ? "发布" : "未发布"}</span>
+                    <span>{record.online ? "已发布" : "未发布"}</span>
                 )
+            },
+            sorter(a, b) {
+                console.log(a.online);
+                console.log(b.online);
+                return a.online ? 1 : 0 - b.online ? 1 : 0 > 0;
             }
         }, {
             title: '所有者',
             dataIndex: 'created_by_user',
             key: 'created_by_user',
-            sorter: true,
-            width: '15%'
+            width: '15%',
+            render: (text, record) => {
+                return (
+                    <span className="highlight">{record.created_by_user}</span>
+                )
+            },
+            sorter(a, b) {
+                return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
+            }
         }, {
             title: '最后修改时间',
             dataIndex: 'changed_on',
             key: 'changed_on',
             width: '15%',
             sorter(a, b) {
-                return a.changed_on - b.changed_on
+                return a.changed_on - b.changed_on ? 1 : -1;
             }
         }, {
             title: '操作',

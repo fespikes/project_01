@@ -7,8 +7,8 @@ import { CONFIG_PARAMS } from '../actions';
 function configs(state = {
     type: "show_all",
     keyword: "",
-    pageNumber: 0,
-    pageSize: 2,
+    pageNumber: 1,
+    pageSize: 10,
     selectedRowKeys: [],
     selectedRowNames: [],
     viewMode: 'table'

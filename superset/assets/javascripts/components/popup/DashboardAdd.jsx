@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetchAvailableSlices, fetchUpdateDashboard, fetchAddDashboard } from '../../dashboard2/actions';
+import { fetchAddDashboard, setDashAddConfirmState } from '../../dashboard2/actions';
 import { Select } from 'antd';
 import PropTypes from 'prop-types';
 
@@ -11,7 +11,8 @@ class DashboardAdd extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            selected_slices: []
+            selectedSlices: [],
+            enableConfirm: false
         };
         // bindings
         this.confirm = this.confirm.bind(this);
@@ -28,6 +29,11 @@ class DashboardAdd extends React.Component {
 
     closeDialog() {
         document.getElementById("popup_dashboard_add").style.display = "none";
+        this.setState({
+            dashboard: {},
+            selectedSlices: [],
+            enableConfirm: false
+        });
     }
 
     handleTitleChange(e) {
@@ -35,6 +41,15 @@ class DashboardAdd extends React.Component {
         this.setState({
             dashboard: this.props.dashboard
         });
+        if(!e.target.value || e.target.value.length === 0) {
+            this.setState({
+                enableConfirm: false
+            });
+        }else {
+            this.setState({
+                enableConfirm: true
+            });
+        }
     }
 
     handleDescriptionChange(e) {
@@ -52,7 +67,8 @@ class DashboardAdd extends React.Component {
             if(success) {
                 self.setState({
                     dashboard: {},
-                    selected_slices: []
+                    selectedSlices: [],
+                    enableConfirm: false
                 });
                 document.getElementById("popup_dashboard_add").style.display = "none";
             }else {
@@ -74,7 +90,7 @@ class DashboardAdd extends React.Component {
 
         function onChange(value) {
             self.setState({
-                selected_slices: value
+                selectedSlices: value
             });
         }
 
@@ -117,7 +133,7 @@ class DashboardAdd extends React.Component {
                                 <div className="item-right">
                                     <div id="edit_pop_select">
                                         <Select mode={'multiple'}
-                                                value={self.state.selected_slices}
+                                                value={self.state.selectedSlices}
                                                 style={{ width: '100%' }}
                                                 placeholder="select the slices..."
                                                 onChange={onChange}>
@@ -136,7 +152,8 @@ class DashboardAdd extends React.Component {
                             </div>
                         </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}>
+                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}
+                                    disabled={!this.state.enableConfirm}>
                                 确定
                             </button>
                         </div>

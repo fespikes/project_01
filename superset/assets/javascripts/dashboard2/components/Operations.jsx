@@ -35,7 +35,8 @@ class Operations extends React.Component {
                     <DashboardAdd
                         dispatch={dispatch}
                         dashboard={dashboard}
-                        availableSlices={data.data.available_slices}/>,
+                        availableSlices={data.data.available_slices}
+                        enableConfirm={false}/>,
                     document.getElementById('popup_root'));
                 if(addSlicePopup) {
                     addSlicePopup.showDialog();
@@ -80,25 +81,28 @@ class Operations extends React.Component {
         if(event.keyCode === 13) {
             const { dispatch } = this.props;
             dispatch(fetchPosts());
+            dispatch(setPageNumber(1));
         }
     }
 
     clickSearchDashboard() {
         const {dispatch} = this.props;
         dispatch(fetchPosts());
+        dispatch(setPageNumber(1));
     }
 
     keywordChange(event) {
         const { dispatch } = this.props;
-        if(event.target.value === "") {
-
-        }
         dispatch(setKeyword(event.target.value));
+        if(event.target.value === "") {
+            dispatch(fetchPosts());
+            dispatch(setPageNumber(1));
+        }
     }
 
     showAll() {
         const { dispatch } = this.props;
-        dispatch(setPageNumber(0));
+        dispatch(setPageNumber(1));
         dispatch(setShowType('show_all'));
         dispatch(setKeyword(''));
         dispatch(fetchPosts());
@@ -106,7 +110,7 @@ class Operations extends React.Component {
 
     showFavorite() {
         const { dispatch } = this.props;
-        dispatch(setPageNumber(0));
+        dispatch(setPageNumber(1));
         dispatch(setShowType('show_favorite'));
         dispatch(setKeyword(''));
         dispatch(fetchPosts());

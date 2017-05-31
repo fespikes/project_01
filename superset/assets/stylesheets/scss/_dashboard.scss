@@ -137,7 +137,7 @@
             background-position:-291px -133px !important;
           }
           .online {
-            background-position:-250px -212px !important;
+            background-position:-50px -173px !important;
           }
         }
         .star{
@@ -150,13 +150,21 @@
           height:16px;
           background-position: -52px -210px;
         }
+        .entity-name .entity-description{
+          font-size: 10px;
+        }
+        .highlight {
+          cursor: pointer;
+          color: #00b0e8;
+        }
       }
     }
   }
   .panel-bottom {
     display: flex;
     justify-content: center;
-    margin-top: 50px;
+    margin-top: 30px;
+    margin-bottom: 20px;
   }
 }
 .icon-list{
