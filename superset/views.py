@@ -4076,6 +4076,10 @@ appbuilder.add_view_no_menu(R)
 appbuilder.add_view_no_menu(Superset)
 appbuilder.add_view_no_menu(Home)
 
+appbuilder.add_link(
+    'Home',
+    href='/superset/home')
+
 appbuilder.add_view(
     DashboardModelView,
     "Dashboards",

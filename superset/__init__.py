@@ -81,7 +81,7 @@ for middleware in app.config.get('ADDITIONAL_MIDDLEWARE'):
 class MyIndexView(IndexView):
     @expose('/')
     def index(self):
-        return redirect('/superset/welcome')
+        return redirect('/superset/home')
 
 appbuilder = AppBuilder(
     app, db.session,
