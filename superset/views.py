@@ -3805,6 +3805,32 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
 
+    def get_edited_slices_api(self, **kwargs):
+        kwargs = self.get_request_args(kwargs)
+        kwargs['user_id'] = self.get_user_id()
+        count, data = self.get_edited_slices(**kwargs)
+        response = {}
+        response['data'] = data
+        response['count'] = count
+        response['page'] = kwargs.get('page')
+        response['page_size'] = kwargs.get('page_size')
+        response['order_column'] = kwargs.get('order_column')
+        response['order_direction'] = kwargs.get('order_direction')
+        return json.dumps(response)
+
+    def get_edited_dashboards_api(self, **kwargs):
+        kwargs = self.get_request_args(kwargs)
+        kwargs['user_id'] = self.get_user_id()
+        count, data = self.get_edited_dashboards(**kwargs)
+        response = {}
+        response['data'] = data
+        response['count'] = count
+        response['page'] = kwargs.get('page')
+        response['page_size'] = kwargs.get('page_size')
+        response['order_column'] = kwargs.get('order_column')
+        response['order_direction'] = kwargs.get('order_direction')
+        return json.dumps(response)
+
     def get_user_actions(self, **kwargs):
         """The actions of user"""
         user_id = kwargs.get('user_id')
