@@ -11,6 +11,8 @@ export const SWITCH_TAB_IN_EDIT = "SWITCH_TAB_IN_EDIT";
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
 
+export const SWITCH_PAGE_NUM = 'SWITCH_PAGE_NUM';
+
 /*
  * 其它的常量
  */
@@ -61,8 +63,8 @@ export function fetchPosts() {
     };
 }
 
-export function fetchEditDetail() {
-    const URL = "/home/edits";
+export function fetchEditDetail(catagory, index) {
+    const URL = "/home/edits/" + catagory + "?page=" + index;
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
@@ -73,8 +75,8 @@ export function fetchEditDetail() {
     };
 }
 
-export function fetchEventDetail() {
-    const URL = "/home/actions";
+export function fetchEventDetail(index) {
+    const URL = "/home/actions?page=" + index;
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {

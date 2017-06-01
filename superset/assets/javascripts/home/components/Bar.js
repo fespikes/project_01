@@ -5,7 +5,7 @@ const _ = require('lodash');
 
 function makeDummy(data, max) {
      var dummy = [];
-    _.forEach(data, function(i, point) {
+    _.forEach(data, function(point, i) {
          dummy.push(max - point);
     });
     return dummy;
@@ -65,7 +65,9 @@ function Bar(props) {
                 },
                 pointPadding: 0.1,
                 groupPadding: 0,
-                stacking:'normal'
+                stacking:'normal',
+                borderRadius: 4,
+                pointWidth: 28
             }
         },
         tooltip: {
@@ -84,9 +86,9 @@ function Bar(props) {
                 showInLegend: false,
                 enableMouseTracking: false,
                 name: 'Fill Series',
-                color:'#f5f8fa',
-                data:dummyData,
-                maxPointWidth: 60,
+                color: '#f5f8fa',
+                data: dummyData,
+                pointWidth: 28,
                 dataLabels: {
                      enabled: false
                 }
@@ -95,7 +97,8 @@ function Bar(props) {
                 stack:'a',
                 name: series.name,
                 data: series.data,
-                maxPointWidth: 60
+                pointWidth: 28,
+                color: '#2ea1f8'
             }
         ]
     };

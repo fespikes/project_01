@@ -15,6 +15,7 @@ class EventDetail extends Component {
     constructor(props) {
         super(props);
         this.goBack = this.goBack.bind(this);
+        this.tableOnChange = this.tableOnChange.bind(this);
     }
 
     componentDidMount() {
@@ -22,11 +23,18 @@ class EventDetail extends Component {
         this.state = {
             redirect: false
         };
-        dispatch(fetchEventDetail());
+        dispatch(fetchEventDetail(0));
     }
 
     goBack () {
         this.setState({redirect: true});
+    }
+
+    tableOnChange (pagination, filters, sorter) {
+        const { dispatch } = this.props;
+        const pager = { ...this.props.pagination };
+        pager.current = pagination.current;
+        dispatch(fetchEventDetail(pager.current -1));
     }
 
     render() {
@@ -65,6 +73,8 @@ class EventDetail extends Component {
             className: 'time-col'
         }];
 
+        const pagination = this.props.pagination;
+
 
         return (
             <div className="event-detail-page">
@@ -72,7 +82,7 @@ class EventDetail extends Component {
                     <span className="title">事件</span>
                     <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
                 </div>
-                <Table className="event-table" dataSource={dataSource} columns={columns} />
+                <Table onChange={this.tableOnChange} className="event-table" pagination={pagination} dataSource={dataSource} columns={columns} />
             </div>
         );
     }
@@ -88,7 +98,7 @@ function BackButton(props) {
 }
 
 const getActionList = createSelector(
-    state => state.posts.param.actions,
+    state => state.posts.param.data,
     (data) => {
         if (!data) {
             return [];
@@ -114,10 +124,33 @@ const getActionList = createSelector(
     }
 );
 
+const getPagination = createSelector(
+    state => state.posts.param,
+    (data) => {
+        if (!data) {
+            return {
+                total: 0,
+                pageSize: 10,
+                defaultPageSize: 10,
+                current: 1
+            };
+        }
+
+        let result = {
+            total: data.count,
+            current: data.page + 1,
+            pageSize: data.page_size,
+            defaultPageSize: data.page_size
+        }
+        return result;
+    }
+);
+
 const mapStateToProps = (state, props) => {
     const { posts } = state;
     return {
-        actions: getActionList(state)
+        actions: getActionList(state),
+        pagination: getPagination(state)
     };
 }
 

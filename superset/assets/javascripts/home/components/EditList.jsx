@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Table } from 'antd';
+import { Table, Tooltip } from 'antd';
 import 'antd/lib/table/style/css';
+import 'antd/lib/Tooltip/style/css';
 
 function Edit(props) {
     return (
@@ -28,26 +29,27 @@ export default class EditList extends Component {
             title: '名称',
             dataIndex: 'name',
             key: 'name',
-            width: '33%',
+            className: "name-column",
             sorter: (a, b) => a.name.localeCompare(b.name),
-            render: (text, record) => (<a href={record.link}>{text}</a>)
+            render: (text, record) => (<Tooltip placement="topRight" title={text} arrowPointAtCenter><a href={record.link}>{text}</a></Tooltip>)
         }, {
             title: '操作',
             dataIndex: 'action',
             key: 'action',
+            className: "action-column",
             sorter: (a, b) => a.action.localeCompare(b.action),
-            width: '33%'
+            render: (text) => (<Tooltip placement="topRight" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
         }, {
             title: '编辑时间',
             dataIndex: 'time',
             key: 'time',
+            className: "time-column",
             sorter: (a, b) => { return a.time > b.time　? 1 : -1;},
-            width: '30%',
-            className: 'time-col'
+            render: (text) => (<Tooltip placement="top" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
         }];
 
         return (
-            <Table dataSource={dataSource} columns={columns} />
+            <Table dataSource={dataSource} pagination={false} columns={columns} />
         );
     }
 }
