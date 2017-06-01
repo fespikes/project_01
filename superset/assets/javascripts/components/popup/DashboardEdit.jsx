@@ -31,22 +31,22 @@ class DashboardEdit extends React.Component {
     };
 
     showDialog() {
-        document.getElementById("popup_dashboard_edit").style.display = "flex";
+        this.refs.popup_dashboard_edit.style.display = "flex";
     }
 
     closeDialog() {
-        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));//for resolve ant-design select component cache issue
+        ReactDOM.unmountComponentAtNode(this.refs.popup_dashboard_edit);//for resolve ant-design select component cache issue
     }
 
     handleTitleChange(e) {
-        this.props.dashboardDetail.dashboard_title = e.target.value;
+        this.props.dashboardDetail.dashboard_title = e.currentTarget.value;
         this.setState({
             dashboardDetail: this.props.dashboardDetail
         });
     }
 
     handleDescriptionChange(e) {
-        this.props.dashboardDetail.description = e.target.value;
+        this.props.dashboardDetail.description = e.currentTarget.value;
         this.setState({
             dashboardDetail: this.props.dashboardDetail
         });
@@ -61,7 +61,7 @@ class DashboardEdit extends React.Component {
                 self.setState({
                     selectedSlices: []
                 });
-                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+                ReactDOM.unmountComponentAtNode(self.refs.popup_dashboard_edit);
             }else {
 
             }
@@ -83,7 +83,7 @@ class DashboardEdit extends React.Component {
         }
 
         return (
-            <div id="popup_dashboard_edit" className="popup">
+            <div id="popup_dashboard_edit" className="popup" ref="popup_dashboard_edit">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">

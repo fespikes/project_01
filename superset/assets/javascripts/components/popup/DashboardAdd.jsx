@@ -24,24 +24,24 @@ class DashboardAdd extends React.Component {
     };
 
     showDialog() {
-        document.getElementById("popup_dashboard_add").style.display = "flex";
+        this.refs.popup_dashboard_add.style.display = "flex";
     }
 
     closeDialog() {
-        document.getElementById("popup_dashboard_add").style.display = "none";
         this.setState({
             dashboard: {},
             selectedSlices: [],
             enableConfirm: false
         });
+        this.refs.popup_dashboard_add.style.display = "none";
     }
 
     handleTitleChange(e) {
-        this.props.dashboard.dashboard_title = e.target.value;
+        this.props.dashboard.dashboard_title = e.currentTarget.value;
         this.setState({
             dashboard: this.props.dashboard
         });
-        if(!e.target.value || e.target.value.length === 0) {
+        if(!e.currentTarget.value || e.currentTarget.value.length === 0) {
             this.setState({
                 enableConfirm: false
             });
@@ -70,7 +70,7 @@ class DashboardAdd extends React.Component {
                     selectedSlices: [],
                     enableConfirm: false
                 });
-                document.getElementById("popup_dashboard_add").style.display = "none";
+                self.refs.popup_dashboard_add.style.display = "none";
             }else {
 
             }
@@ -95,7 +95,7 @@ class DashboardAdd extends React.Component {
         }
 
         return (
-            <div id="popup_dashboard_add" className="popup">
+            <div id="popup_dashboard_add" className="popup" ref="popup_dashboard_add">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">

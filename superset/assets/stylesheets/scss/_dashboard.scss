@@ -91,7 +91,7 @@
     justify-content: center;
     .ant-table-content{
       .ant-table-tbody > tr:hover{
-        background-color:#e7f3ff!important;
+        background-color:#e7f3ff;
       }
       .ant-table-thead > tr > th{
         background-color:#fff;
@@ -125,7 +125,6 @@
           .icon:nth-of-type(2){
             width:15px;
             height:18px;
-            background-position:-291px -133px;
             margin:0 20px;
           }
           .icon:nth-of-type(3){
@@ -134,10 +133,10 @@
             background-position:-12px -172px;
           }
           .offline {
-            background-position:-291px -133px !important;
+            background-position:-291px -133px;
           }
           .online {
-            background-position:-50px -173px !important;
+            background-position:-50px -173px;
           }
         }
         .star{

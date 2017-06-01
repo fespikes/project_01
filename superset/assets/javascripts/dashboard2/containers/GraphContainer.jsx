@@ -36,13 +36,10 @@ class GraphContent extends React.Component {
                     </div>
                 </div>
                 <div className="panel-middle">
-                    graph...
+
                 </div>
                 <div className="panel-bottom">
-                    <Paginations
-                        dispatch={dispatch}
-                        count={posts.params.count}
-                        pageSize={configs.pageSize}/>
+
                 </div>
             </div>
         );

@@ -18,17 +18,17 @@ class DashboardDelete extends React.Component {
 
     showDialog() {
 
-        document.getElementById("popup_confirm").style.display = "flex";
+        this.refs.popup_dashboard_delete.style.display = "flex";
     }
 
     closeDialog() {
 
-        document.getElementById("popup_confirm").style.display = "none";
+        this.refs.popup_dashboard_delete.style.display = "none";
     }
 
     confirm() {
-
-        const { dispatch, dashboard, deleteType } = this.props;
+        const self = this;
+        const { dispatch, dashboard, deleteType } = self.props;
         if(deleteType === "single") {
             dispatch(fetchDashboardDelete(dashboard.id, callback));
         }else if(deleteType === "multiple") {
@@ -38,7 +38,7 @@ class DashboardDelete extends React.Component {
 
         function callback(success) {
             if(success) {
-                document.getElementById("popup_confirm").style.display = "none";
+                self.refs.popup_dashboard_delete.style.display = "none";
             }else {
 
             }
@@ -51,7 +51,7 @@ class DashboardDelete extends React.Component {
 
     render() {
         return (
-            <div id="popup_confirm" className="popup" style={{display:'none'}}>
+            <div id="popup_dashboard_delete" className="popup" ref="popup_dashboard_delete">
                 <div className="popup-dialog popup-sm">
                     <div className="popup-content">
                         <div className="popup-header">
