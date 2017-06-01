@@ -20,7 +20,7 @@ class Paginations extends React.Component {
     render() {
 
         const { dispatch, pageSize, count, pageNumber} = this.props;
-        
+
         function onChange(page) {
             dispatch(setPageNumber(page));
             dispatch(fetchPosts());
@@ -32,16 +32,15 @@ class Paginations extends React.Component {
         }
 
         return (
-            <div className="dashboard-paging">
-                <Pagination
-                    showQuickJumper
-                    showSizeChanger
-                    pageSize={pageSize}
-                    total={count}
-                    current={pageNumber}
-                    onChange={onChange}
-                    onShowSizeChange={onShowSizeChange}/>
-            </div>
+            <Pagination
+                showQuickJumper
+                showSizeChanger
+                pageSize={pageSize}
+                total={count}
+                current={pageNumber}
+                onChange={onChange}
+                onShowSizeChange={onShowSizeChange}
+            />
         );
     }
 }

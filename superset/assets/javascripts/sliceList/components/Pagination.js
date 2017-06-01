@@ -37,7 +37,6 @@ class SlicePagination extends React.Component {
     }
 
     return (
-      <div className="dashboard-paging">
         <Pagination
         	showQuickJumper
         	showSizeChanger
@@ -49,7 +48,6 @@ class SlicePagination extends React.Component {
         	defaultCurrent={defaultCurrent}
         	total={total}
           pageSize={3} />
-        </div>
     );
   }
 }

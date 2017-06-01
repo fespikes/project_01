@@ -123,7 +123,7 @@ class Operations extends React.Component {
     render() {
         const { typeName, viewMode } = this.props;
         return (
-            <div className="dashboard-operation">
+            <div className="operations">
                 <ul className="icon-list">
                     <li onClick={this.addDashboard}><i className="icon"></i></li>
                     <li onClick={this.deleteDashboardMul}><i className="icon"></i></li>
@@ -136,10 +136,10 @@ class Operations extends React.Component {
                         <i className="icon"></i>收藏</button>
                 </div>
                 <div className="search-input">
-                    <input id="searchInput" onKeyUp={this.searchDashboard} onChange={this.keywordChange} placeholder="search..." />
+                    <input onKeyUp={this.searchDashboard} onChange={this.keywordChange} placeholder="search..." />
                     <i className="icon" onClick={this.clickSearchDashboard}></i>
                 </div>
-                <div className="operation-btn">
+                <div className="view-btn">
                     <Link to="/table" onClick={this.switchTableMode}><i className={viewMode === 'table' ? 'icon active' : 'icon'}></i></Link>
                     <Link to="/graph" onClick={this.switchGraphMode}><i className={viewMode === 'graph' ? 'icon active' : 'icon'}></i></Link>
                 </div>

@@ -173,13 +173,12 @@ class Tables extends React.Component {
         };
 
         return (
-            <div className="dashboard-table">
-                <Table
-                    rowSelection={rowSelection}
-                    dataSource={dashboardList}
-                    columns={columns}
-                    pagination={false} />
-            </div>
+            <Table
+                rowSelection={rowSelection}
+                dataSource={dashboardList}
+                columns={columns}
+                pagination={false}
+            />
         );
     }
 }

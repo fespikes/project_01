@@ -1,3 +1,4 @@
+@import './common/table';
 @import './reset';
 @import './common';
 @import './home';
@@ -8,5 +9,7 @@
 @import './explore';
 @import './_DashboardList';
 @import './_overlay';
-@import './_slice';
+@import './pilot';
+@import './slice';
 @import './dashboard';
+

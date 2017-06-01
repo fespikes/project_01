@@ -88,17 +88,17 @@ class SlicePagination extends React.Component {
     }
 
     return (
-      <div className="dashboard-operation">
+      <div className="operations">
           <ul className="icon-list">
-              <li id="add" onClick={this.onAdd}><i className="icon"></i></li>
-              <li id="delete" onClick={this.onDelete}><i className="icon"></i></li>
+              <li onClick={this.onAdd}><i className="icon"></i></li>
+              <li onClick={this.onDelete}><i className="icon"></i></li>
           </ul>
           <div className="tab-btn">
-              <button id="showAll" className={'active'} onClick={()=>this.onFilter(1)}>全部</button>
-              <button id="showFavorite" className={''} onClick={()=>this.onFilter(0)}><i className="icon"></i>收藏</button>
+              <button className={'active'} onClick={()=>this.onFilter(1)}>全部</button>
+              <button className={''} onClick={()=>this.onFilter(0)}><i className="icon"></i>收藏</button>
           </div>
           <div className="search-input">
-              <input id="searchInput" onKeyUp={this.searchSlice} placeholder="search..." />
+              <input onKeyUp={this.searchSlice} placeholder="search..." />
               <i className="icon"></i>
           </div>
       </div>
