@@ -7,9 +7,11 @@ import { CONFIG_PARAMS } from '../actions';
 function configs(state = {
     type: "show_all",
     keyword: "",
-    pageNumber: 0,
-    pageSize: 2,
-    selectedRows: []
+    pageNumber: 1,
+    pageSize: 10,
+    selectedRowKeys: [],
+    selectedRowNames: [],
+    viewMode: 'table'
 }, action) {
     switch (action.type) {
         case CONFIG_PARAMS.SHOW_TYPE:
@@ -36,6 +38,10 @@ function configs(state = {
             return Object.assign({}, state, {
                 selectedRowKeys: action.selectedRowKeys,
                 selectedRowNames: action.selectedRowNames
+            });
+        case CONFIG_PARAMS.VIEW_MODE:
+            return Object.assign({}, state, {
+                viewMode: action.viewMode
             });
         default:
             return state;

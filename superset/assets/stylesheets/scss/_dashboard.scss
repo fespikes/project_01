@@ -91,7 +91,7 @@
     justify-content: center;
     .ant-table-content{
       .ant-table-tbody > tr:hover{
-        background-color:#e7f3ff!important;
+        background-color:#e7f3ff;
       }
       .ant-table-thead > tr > th{
         background-color:#fff;
@@ -125,7 +125,6 @@
           .icon:nth-of-type(2){
             width:15px;
             height:18px;
-            background-position:-291px -133px;
             margin:0 20px;
           }
           .icon:nth-of-type(3){
@@ -134,10 +133,10 @@
             background-position:-12px -172px;
           }
           .offline {
-            background-position:-291px -133px !important;
+            background-position:-291px -133px;
           }
           .online {
-            background-position:-250px -212px !important;
+            background-position:-50px -173px;
           }
         }
         .star{
@@ -150,13 +149,21 @@
           height:16px;
           background-position: -52px -210px;
         }
+        .entity-name .entity-description{
+          font-size: 10px;
+        }
+        .highlight {
+          cursor: pointer;
+          color: #00b0e8;
+        }
       }
     }
   }
   .panel-bottom {
     display: flex;
     justify-content: center;
-    margin-top: 50px;
+    margin-top: 30px;
+    margin-bottom: 20px;
   }
 }
 .icon-list{
@@ -216,7 +223,7 @@
 }
 .operation-btn{
   display: flex;
-  button{
+  a {
     width:38px;
     height:30px;
     background-color:#fff;
@@ -226,7 +233,7 @@
     justify-content:center;
     align-items:center;
   }
-  button:nth-of-type(1){
+  a:nth-of-type(1){
     .icon{
       width:21px;
       height:13px;
@@ -236,7 +243,7 @@
       background-position: -129px -213px;
     }
   }
-  button:nth-of-type(2){
+  a:nth-of-type(2){
     .icon{
       width:18px;
       height:18px;
