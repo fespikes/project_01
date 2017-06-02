@@ -1393,6 +1393,7 @@ class SliceModelView(SupersetModelView):  # noqa
                     line[col] = str(getattr(obj, col, None))
                 else:
                     line[col] = getattr(obj, col, None)
+            line['explore_url'] = obj.datasource.explore_url
             line['created_by_user'] = username
             line['favorite'] = True if fav_id else False
             data.append(line)
