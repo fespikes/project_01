@@ -4012,7 +4012,9 @@ class Home(BaseSupersetView):
 
         full_dt = [str(d) for d in full_dt]
         json_rows = []
-        for index, v in enumerate(full_count[0:limit]):
+        full_count = full_count[-limit:]
+        full_dt = full_dt[-limit:]
+        for index, v in enumerate(full_count):
             json_rows.append({'date': full_dt[index], 'count': full_count[index]})
         return json_rows
 
