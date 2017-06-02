@@ -1281,12 +1281,24 @@ class SliceModelView(SupersetModelView):  # noqa
         attributes['dashboards'] = dashboards
         return attributes
 
-    def get_available_dashboards(self, user_id):
-        dashs = db.session.query(models.Dashboard) \
-            .filter_by(created_by_fk=user_id).all()
+    def available_dashboards_api(self):
+        user_id = self.get_user_id()
+        dashs = self.get_available_dashboards(user_id)
+        data = self.dashboards_to_dict(dashs)
+        return json.dumps(data)
+
+    @staticmethod
+    def get_available_dashboards(user_id):
+        dashs = (
+            db.session.query(models.Dashboard)
+            .filter_by(created_by_fk=user_id)
+            .order_by(models.Dashboard.changed_on.desc())
+            .all()
+        )
         return dashs
 
-    def dashboards_to_dict(self, dashs):
+    @staticmethod
+    def dashboards_to_dict(dashs):
         dashs_list = []
         for dash in dashs:
             row = {'id': dash.id, 'dashboard_title': dash.dashboard_title}
