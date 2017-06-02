@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetchAddDashboard, setDashAddConfirmState } from '../../dashboard2/actions';
+import { fetchAddDashboard, setDashAddConfirmState } from '../../../dashboard2/actions';
 import { Select } from 'antd';
 import PropTypes from 'prop-types';
 
@@ -24,7 +24,7 @@ class DashboardAdd extends React.Component {
     };
 
     showDialog() {
-        this.refs.popup_dashboard_add.style.display = "flex";
+        this.refs.popupDashboardAdd.style.display = "flex";
     }
 
     closeDialog() {
@@ -33,7 +33,7 @@ class DashboardAdd extends React.Component {
             selectedSlices: [],
             enableConfirm: false
         });
-        this.refs.popup_dashboard_add.style.display = "none";
+        this.refs.popupDashboardAdd.style.display = "none";
     }
 
     handleTitleChange(e) {
@@ -70,7 +70,7 @@ class DashboardAdd extends React.Component {
                     selectedSlices: [],
                     enableConfirm: false
                 });
-                self.refs.popup_dashboard_add.style.display = "none";
+                self.refs.popupDashboardAdd.style.display = "none";
             }else {
 
             }
@@ -95,16 +95,16 @@ class DashboardAdd extends React.Component {
         }
 
         return (
-            <div id="popup_dashboard_add" className="popup" ref="popup_dashboard_add">
+            <div className="popup" ref="popupDashboardAdd">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className=""></i>
+                                <i className="icon"></i>
                                 <span>仪表盘基本信息</span>
                             </div>
                             <div className="header-right">
-                                <i className="" onClick={this.closeDialog}>关闭</i>
+                                <i className="icon" onClick={this.closeDialog}>关闭</i>
                             </div>
                         </div>
                         <div className="popup-body">

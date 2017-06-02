@@ -46,16 +46,21 @@ class Operations extends React.Component {
     }
 
     deleteDashboardMul() {
-        const deleteType = "multiple";
         const { dispatch, selectedRowNames } = this.props;
-        var deleteSlicePopup = render(
+        let deleteType = "multiple";
+        let deleteTips = '确定删除' + selectedRowNames + '?';
+        if(selectedRowNames.length === 0) {
+            deleteType = 'none';
+            deleteTips = '没有选择任何将要删除的记录，请选择！';
+        }
+        var deleteDashboardPopup = render(
             <DashboardDelete
                 dispatch={dispatch}
                 deleteType={deleteType}
-                deleteTips={selectedRowNames} />,
+                deleteTips={deleteTips} />,
             document.getElementById('popup_root'));
-        if(deleteSlicePopup) {
-            deleteSlicePopup.showDialog();
+        if(deleteDashboardPopup) {
+            deleteDashboardPopup.showDialog();
         }
     }
 

@@ -1,74 +1,79 @@
 import { combineReducers } from 'redux';
 import {
-  NAVIGATE_TO, SWITCH_FAV, SEARCH_REDDIT, 
-  REQUEST_POSTS, RECEIVE_POSTS,
+    LISTS, DETAILS, CONDITION_PARAMS
 } from '../actions';
 
-function selectedReddit(state = {
-  pageNumber: 1,    //page=0
-  pageSize: 20,     //page_size=20
-  // defaultPageSize: 20,    //only used default
-  // // orderColumn: //TODO
-  orderDirection: 'desc',
-  // filter: '',
-  onlyFavorite: 0,
-  filter: ''
-
-  // listData params :
-  // page=0&page_size=10 &order_column=changed_on&order_direction=desc 
-  // &filter=hive&only_favorite=0
+function conditions(state = {
+    type: "showAll",
+    keyword: "",
+    pageNumber: 1,
+    pageSize: 10,
+    selectedRowKeys: [],
+    selectedRowNames: []
 }, action) {
-  switch (action.type) {
-    case NAVIGATE_TO:
-      return Object.assign({}, state, {
-        pageNumber: action.pageNumber
-      });
-      
-    case SWITCH_FAV:
-      return Object.assign({}, state, {
-        onlyFavorite: action.onlyFavorite
-      });
-      
-    default:
-      return state;
-  }
+    switch (action.type) {
+        case CONDITION_PARAMS.SHOW_TYPE:
+            return Object.assign({}, state, {
+                type: action.typeName
+            });
+            break;
+        case CONDITION_PARAMS.PAGE_NUMBER:
+            return Object.assign({}, state, {
+                pageNumber: action.pageNumber
+            });
+            break;
+        case CONDITION_PARAMS.PAGE_SIZE:
+            return Object.assign({}, state, {
+                pageSize: action.pageSize
+            });
+            break;
+        case CONDITION_PARAMS.KEYWORD:
+            return Object.assign({}, state, {
+                keyword: action.keyword
+            });
+            break;
+        case CONDITION_PARAMS.SELECTED_ROWS:
+            return Object.assign({}, state, {
+                selectedRowKeys: action.selectedRowKeys,
+                selectedRowNames: action.selectedRowNames
+            });
+        default:
+            return state;
+    }
 }
 
-function posts(state = {
-  isFetching: false,
-  items: [],
+function lists(state = {
+    isFetching: false,
+    items: []
 }, action) {
-  switch (action.type) {
-    case REQUEST_POSTS:
-      return Object.assign({}, state, {
-        isFetching: true,
-      });
-    case RECEIVE_POSTS:
-      return Object.assign({}, state, {
-        isFetching: false,
-        items: action.posts,
-        lastUpdated: action.receivedAt,
-      });
-    default:
-      return state;
-  }
+    switch (action.type) {
+        case LISTS.REQUEST_LISTS:
+            return Object.assign({}, state, {
+                isFetching: true
+            });
+        case LISTS.RECEIVE_LISTS:
+            return Object.assign({}, state, {
+                isFetching: false,
+                items: action.lists
+            });
+        default:
+            return state;
+    }
 }
 
-function postsBypageNumber(state = { }, action) {
-  switch (action.type) {
-    case RECEIVE_POSTS:
-    case REQUEST_POSTS:
-      return Object.assign({}, state, {
-        [action.pageNumber]: posts(state[action.pageNumber], action),
-      });
-    default:
-      return state;
-  }
+function details(state = {
+
+}, action){
+    switch (action.type) {
+        default:
+            return state;
+    }
 }
 
 const rootReducer = combineReducers({
-  postsBypageNumber,
-  selectedReddit,
+    conditions,
+    lists,
+    details
 });
 
 export default rootReducer;

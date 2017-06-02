@@ -105,7 +105,6 @@
                     height:30px;
                     border:$borderStyle;
                     border-radius: 4px;
-                    border-sizing:border-box;
                     padding-left:10px;
                 }
                 .icon{
@@ -172,11 +171,7 @@
             .icon:nth-of-type(2) {
                 width:15px;
                 height:18px;
-                background-position: -291px -133px;
                 margin:0 20px;
-            }
-            .icon:nth-of-type(2):hover {
-                background-position: -250px -213px;
             }
             .icon:nth-of-type(3) {
                 width:14px;
@@ -188,9 +183,15 @@
             }
             .offline {
                 background-position:-291px -133px;
+                &:hover {
+                    background-position: -250px -213px;
+                }
             }
             .online {
                 background-position:-50px -173px;
+                &:hover {
+                    background-position: -8px -251px;
+                }
             }
         }
         .star, .star-selected {

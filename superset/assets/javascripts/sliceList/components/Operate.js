@@ -1,119 +1,87 @@
-
 import React from 'react';
-import ReactDOM from 'react-dom';
-
-import { Pagination } from 'antd';
-
+import { render } from 'react-dom';
 import PropTypes from 'prop-types';
+import { fetchLists, switchFavorite, setKeyword, navigateTo,  } from '../actions';
+import { SliceDelete } from '../../components/popup';
 
-class SlicePagination extends React.Component {
-  constructor(props) {
-    super(props);
+const SHOW_ALL = "showAll";
+const SHOW_FAVORITE = "showFavorite";
 
-    // console.log( 'props', props );
-    this.state = { }
+class SliceOperate extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
 
-    this.onChange = this.onChange.bind(this);
-    this.onAdd = this.onAdd.bind(this);
-    this.onDelete = this.onDelete.bind(this);
-    this.onSearch = this.onSearch.bind(this);
-    this.onFilter = this.onFilter.bind(this);
-  }
-
-  componentDidMount() {
-  }
-
-  onChange() {
-    if( this.refs.searchField.value ){
-      this.refs.searchButton.removeAttribute('disabled');
-      this.setState({
-        searchValue: this.refs.searchField.value
-      });
-    } else {
-      this.refs.searchButton.setAttribute('disabled', 'disabled');
-      this.props.onSearch();
-    }
-  }
-
-  onAdd() {
-    const me = this;
-    const {onAdd} = me.props;
-    onAdd && onAdd();
-  }
-
-  onDelete() {
-    const me = this;
-    const {onDelete} = me.props;
-    onDelete && onDelete();
-  }
-
-  onSearch() {
-    const me = this;
-
-    if(!this.state.searchValue){
-      return;
+        this.onChange = this.onChange.bind(this);
+        this.onDelete = this.onDelete.bind(this);
+        this.onSearch = this.onSearch.bind(this);
+        this.onFilter = this.onFilter.bind(this);
     }
 
-    const {onSearch} = me.props;
-    onSearch && onSearch({
-      filter: me.state.searchValue
-    });
-
-  }
-
-  onFilter(argus) {
-    this.props.onSearch({
-      onlyFavorite: argus
-    });
-    console.log('onFilter:', argus);
-  }
-
-  render(argus) {
-
-    const { loading, selectedRowKeys } = this.state;
-    const me = this;
-
-    //when page size been modified
-    const onShowSizeChange = (pageNumber, pageSize) => {
-      // console.log( 'onShowSizeChange:', 'pageNumber:', pageNumber, 'pageSize:', pageSize );
+    onChange() {
+        const { dispatch } = this.props;
+        dispatch(setKeyword(this.refs.searchField.value));
+        if( this.refs.searchField.value ){
+            this.refs.searchIcon.removeAttribute('disabled');
+        } else {
+            this.refs.searchIcon.setAttribute('disabled', 'disabled');
+        }
     }
 
-    //when page id been modified
-    function onChange(pageNumber) {
-      // console.log('onChange, pageNumber: ', pageNumber);
+    onDelete() {
+        const { dispatch, selectedRowNames } = this.props;
+        let deleteType = 'multiple';
+        let deleteTips = '确定删除' + selectedRowNames + '?';
+        if(selectedRowNames.length === 0) {
+            deleteType = 'none';
+            deleteTips = '没有选择任何将要删除的记录，请选择！';
+        }
+        let deleteSlicePopup = render(
+            <SliceDelete
+                dispatch={dispatch}
+                deleteType={deleteType}
+                deleteTips={deleteTips} />,
+            document.getElementById('popup_root'));
+        if(deleteSlicePopup) {
+            deleteSlicePopup.showDialog();
+        }
     }
 
-    function showTotal(total) {
-      return `Total ${total} items`;
+    onSearch() {
+        const { dispatch } = this.props;
+        dispatch(fetchLists());
+        dispatch(navigateTo(1));
     }
 
-    return (
-      <div className="operations">
-          <ul className="icon-list">
-              <li onClick={this.onAdd}><i className="icon"></i></li>
-              <li onClick={this.onDelete}><i className="icon"></i></li>
-          </ul>
-          <div className="tab-btn">
-              <button className={'active'} onClick={()=>this.onFilter(1)}>全部</button>
-              <button className={''} onClick={()=>this.onFilter(0)}><i className="icon"></i>收藏</button>
-          </div>
-          <div className="search-input">
-              <input onKeyUp={this.searchSlice} placeholder="search..." />
-              <i className="icon"></i>
-          </div>
-      </div>
-    );
-  }
+    onFilter(type) {
+        const { dispatch } = this.props;
+        dispatch(switchFavorite(type));
+        dispatch(fetchLists());
+    }
+
+    render() {
+
+        const { typeName } = this.props;
+        return (
+            <div className="operations">
+                <ul className="icon-list">
+                    <li><i className="icon"></i></li>
+                    <li onClick={this.onDelete}><i className="icon"></i></li>
+                </ul>
+                <div className="tab-btn">
+                    <button className={typeName === SHOW_ALL ? 'active' : ''} onClick={()=>this.onFilter(SHOW_ALL)}>全部</button>
+                    <button className={typeName === SHOW_FAVORITE ? 'active' : ''} onClick={()=>this.onFilter(SHOW_FAVORITE)}>
+                        <i className="icon"></i>收藏</button>
+                </div>
+                <div className="search-input">
+                    <input onKeyUp={this.onSearch} onChange={this.onChange} ref="searchField" placeholder="search..." />
+                    <i className="icon" onClick={this.onSearch} ref="searchIcon"></i>
+                </div>
+            </div>
+        );
+    }
 }
 
-SlicePagination.propTypes = {
-  defaultCurrent: PropTypes.any.isRequired,
-  total: PropTypes.any.isRequired
-};
+SliceOperate.propTypes = {};
 
-SlicePagination.defaultProps = {
-  defaultCurrent: '',
-  total: ''
-}
-
-export default SlicePagination;
+export default SliceOperate;
