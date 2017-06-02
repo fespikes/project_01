@@ -111,6 +111,12 @@ class ListWidgetWithCheckboxes(ListWidget):
     template = 'superset/fab_overrides/list_with_checkboxes.html'
 
 
+def log_number_for_all_users(obj_type):
+    users = db.session.query(User).all()
+    for user in users:
+        log_number(obj_type, user.id)
+
+
 def get_database_access_error_msg(database_name):
     return __("This view requires the database %(name)s or "
               "`all_datasource_access` permission", name=database_name)
@@ -1387,6 +1393,7 @@ class SliceModelView(SupersetModelView):  # noqa
                     line[col] = str(getattr(obj, col, None))
                 else:
                     line[col] = getattr(obj, col, None)
+            line['explore_url'] = obj.datasource.explore_url
             line['created_by_user'] = username
             line['favorite'] = True if fav_id else False
             data.append(line)
@@ -1422,6 +1429,7 @@ class SliceModelView(SupersetModelView):  # noqa
                 db.session.commit()
                 action_str = 'Change slice to online: {}'.format(repr(obj))
                 log_action('online', action_str, 'slice', slice_id)
+                log_number_for_all_users('slice')
                 msg = ONLINE_SUCCESS + ': {}'.format(obj.slice_name)
                 return self.build_response(200, True, msg)
         elif action.lower() == 'offline':
@@ -1433,6 +1441,7 @@ class SliceModelView(SupersetModelView):  # noqa
                 db.session.commit()
                 action_str = 'Change slice to offline: {}'.format(repr(obj))
                 log_action('offline', action_str, 'slice', slice_id)
+                log_number_for_all_users('slice')
                 msg = OFFLINE_SUCCESS + ': {}'.format(obj.slice_name)
                 return self.build_response(200, True, msg)
         else:
@@ -1732,6 +1741,8 @@ class DashboardModelView(SupersetModelView):  # noqa
                 action_str = 'Import dashboard: {}'.format(dashboard.dashboard_title)
                 log_action('import', action_str, 'dashboard', dashboard.id)
             db.session.commit()
+            # TODO log_number
+            # TODO log_action
         return redirect('/dashboard/list/')
 
     @expose("/export")
@@ -1763,6 +1774,7 @@ class DashboardModelView(SupersetModelView):  # noqa
                 db.session.commit()
                 action_str = 'Change dashboard to online: {}'.format(repr(obj))
                 log_action('online', action_str, 'dashboard', dashboard_id)
+                log_number_for_all_users('dashboard')
                 msg = ONLINE_SUCCESS + ': {}'.format(obj.dashboard_title)
                 return self.build_response(200, True, msg)
         elif action.lower() == 'offline':
@@ -1774,11 +1786,26 @@ class DashboardModelView(SupersetModelView):  # noqa
                 db.session.commit()
                 action_str = 'Change dashboard to offline: {}'.format(repr(obj))
                 log_action('offline', action_str, 'dashboard', dashboard_id)
+                log_number_for_all_users('dashboard')
                 msg = OFFLINE_SUCCESS + ': {}'.format(obj.dashboard_title)
                 return self.build_response(200, True, msg)
         else:
             msg = ERROR_URL + ': {}'.format(request.url)
             return self.build_response(400, False, msg)
+
+    @staticmethod
+    def add_slices_api(dashboard_id, slice_ids):
+        """Add and save slices to a dashboard"""
+        session = db.session()
+        dash = session.query(models.Dashboard).filter_by(id=dashboard_id).first()
+        check_ownership(dash, raise_if_false=True)
+        new_slices = session.query(models.Slice).filter(
+            models.Slice.id.in_(slice_ids))
+        dash.slices += new_slices
+        session.merge(dash)
+        session.commit()
+        session.close()
+        return True
 
 
 class DashboardModelViewAsync(DashboardModelView):  # noqa
