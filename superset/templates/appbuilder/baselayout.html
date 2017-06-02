@@ -6,9 +6,11 @@
     {% include 'appbuilder/general/alert.html' %}
 
     {% block navbar %}
+      {% if request.path != '/login/' %}
         <header class="top" role="header">
         {% include 'appbuilder/navbar.html' %}
         </header>
+      {% endif %}
     {% endblock %}
 
     {% block uncontained %}{% endblock %}

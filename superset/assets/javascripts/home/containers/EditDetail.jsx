@@ -13,6 +13,7 @@ class EditDetail extends Component {
     constructor(props) {
         super(props);
         this.goBack = this.goBack.bind(this);
+        this.tableOnChange = this.tableOnChange.bind(this);
     }
 
     componentDidMount() {
@@ -20,39 +21,55 @@ class EditDetail extends Component {
         this.state = {
             redirect: false
         };
-        fetchEditDetail();
+        fetchEditDetail('dashboard', 0);
+    }
+
+    componentWillReceiveProps (nextProps) {
+        const { fetchEditDetail } = this.props;
+        if (nextProps.currentCatagory !== this.props.currentCatagory) {
+            fetchEditDetail(nextProps.currentCatagory, 0);
+        }
     }
 
     goBack () {
         this.setState({redirect: true});
     }
 
+    tableOnChange (pagination, filters, sorter) {
+        const pager = { ...this.props.pagination };
+        const { fetchEditDetail } = this.props;
+        pager.current = pagination.current;
+        fetchEditDetail(this.props.currentCatagory, pager.current - 1);
+    }
+
     render() {
         let selected = this.props.currentCatagory;
-        let dataSource = this.props.editList[selected];
+        let dataSource = this.props.editList;
         const onChangeCatagory = this.props.onChangeCatagory;
         const redirect = this.state ? this.state.redirect : false;
+        const pagination = this.props.pagination;
 
         const columns = [{
             title: '名称',
             dataIndex: 'name',
             key: 'name',
-            width: '33%',
+            className: "name-column",
             sorter: (a, b) => a.name.localeCompare(b.name),
             render: (text, record) => (<a href={record.link}>{text}</a>)
         }, {
             title: '操作',
             dataIndex: 'action',
             key: 'action',
+            className: "action-column",
             sorter: (a, b) => a.action.localeCompare(b.action),
             width: '33%'
         }, {
             title: '编辑时间',
             dataIndex: 'time',
             key: 'time',
+            className: "time-column",
             sorter: (a, b) => { return a.time > b.time　? 1 : -1;},
-            width: '30%',
-            className: 'time-col'
+            width: '30%'
         }];
 
         return (
@@ -73,7 +90,7 @@ class EditDetail extends Component {
                         <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
                     </div>
                 </div>
-                <Table className="edit-table" dataSource={dataSource} columns={columns} />
+                <Table onChange={this.tableOnChange} pagination={pagination} className="edit-table" dataSource={dataSource} columns={columns} />
             </div>
         );
     }
@@ -89,31 +106,47 @@ function BackButton(props) {
 }
 
 const getEidtListData = createSelector(
-    state => state.posts.param.edits,
+    state => state.posts.param.data,
     (data) => {
         if (!data) {
-            return {};
+            return [];
         }
 
-        let result = {};
+        let result = [];
         let item =  {};
-        let dataArr = [];
-        _.forEach(data, (arr, key) => {
-            result[key] = {};
-            dataArr = [];
-            _.forEach( arr, (obj, key) => {
-                item = {
-                    'key': key + 1,
-                    'name': obj.name,
-                    'action': obj.action,
-                    'time': obj.time,
-                    'link': obj.link
-                };
-                dataArr.push(item);
-            });
-            result[key] = dataArr;
+        _.forEach(data, (obj, key) => {
+            item = {
+                'key': key + 1,
+                'name': obj.name,
+                'action': obj.action,
+                'time': obj.time,
+                'link': obj.link
+            };
+            result.push(item);
         });
 
+        return result;
+    }
+);
+
+const getPagination = createSelector(
+    state => state.posts.param,
+    (data) => {
+        if (!data) {
+            return {
+                total: 0,
+                pageSize: 10,
+                defaultPageSize: 10,
+                current: 1
+            };
+        }
+
+        let result = {
+            total: data.count,
+            current: data.page + 1,
+            pageSize: data.page_size,
+            defaultPageSize: data.page_size
+        }
         return result;
     }
 );
@@ -122,7 +155,8 @@ const mapStateToProps = (state, props) => {
     const { posts, switcher} = state;
     return {
         currentCatagory: switcher.editPanelCatagory,
-        editList: getEidtListData(state)
+        editList: getEidtListData(state),
+        pagination: getPagination(state)
     };
 }
 
@@ -134,8 +168,8 @@ const mapDispatchToProps = (dispatch) => {
                 tab: catagory
             });
         },
-        fetchEditDetail: () => {
-            dispatch(fetchEditDetail());
+        fetchEditDetail: (catagory, index) => {
+            dispatch(fetchEditDetail(catagory, index));
         }
     }
 }
