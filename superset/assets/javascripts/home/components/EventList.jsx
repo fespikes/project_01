@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Table, Tooltip } from 'antd';
-import 'antd/lib/table/style/css';
-import 'antd/lib/Tooltip/style/css';
 
 function EventList(props) {
     const dataSource = props.eventList || [];
@@ -20,14 +18,14 @@ function EventList(props) {
         sorter: (a, b) => a.action.localeCompare(b.action),
         className: "action-column",
         render: (text, record) => {
-                    const classes = "icon action-title-icon " + record.type + "-icon";
-                    return (
-                        <div>
-                            <div className="action-text"><Tooltip placement="topRight" title={text} arrowPointAtCenter>{text}</Tooltip></div>
-                            <div className="action-title"><i className={classes}></i>{record.title}</div>
-                        </div>
-                    );
-                }
+            const classes = "icon action-title-icon " + record.type + "-icon";
+            return (
+                <div>
+                    <div className="action-text"><Tooltip placement="topRight" title={text} arrowPointAtCenter>{text}</Tooltip></div>
+                    <div className="action-title"><i className={classes}></i>{record.title}</div>
+                </div>
+            );
+        }
     }, {
         title: '编辑时间',
         dataIndex: 'time',

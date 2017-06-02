@@ -371,6 +371,11 @@
 
         .ant-table table {
             border-collapse: collapse !important;
+
+            .name-column {
+                padding-left: 20px;
+            }
+
             .ant-table-row {
                 border-left: 4px solid #ffffff;
                 &:hover {
@@ -423,6 +428,11 @@
 
         .ant-table table {
             border-collapse: collapse !important;
+
+            .user-column {
+                padding-left: 20px;
+            }
+            
             .ant-table-row {
                 border-left: 4px solid #ffffff;
                 &:hover {

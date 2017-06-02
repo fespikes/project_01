@@ -63,8 +63,11 @@ export function fetchPosts() {
     };
 }
 
-export function fetchEditDetail(catagory, index) {
-    const URL = "/home/edits/" + catagory + "?page=" + index;
+export function fetchEditDetail(catagory, index, orderColumn, orderDirection) {
+    if (!orderColumn)
+        orderColumn = "time";
+
+    const URL = "/home/edits/" + catagory + "?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
@@ -75,8 +78,11 @@ export function fetchEditDetail(catagory, index) {
     };
 }
 
-export function fetchEventDetail(index) {
-    const URL = "/home/actions?page=" + index;
+export function fetchEventDetail(index, orderColumn, orderDirection) {
+    if (!orderColumn)
+        orderColumn = "time";
+    
+    const URL = "/home/actions?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {

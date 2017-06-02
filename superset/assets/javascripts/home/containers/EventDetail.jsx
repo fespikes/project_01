@@ -3,10 +3,8 @@ import PropTypes from 'prop-types';
 import { fetchEventDetail } from "../actions";
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
-import { Table, Button } from 'antd';
+import { Table, Button, Tooltip } from 'antd';
 import { Redirect } from 'react-router-dom';
-import 'antd/lib/table/style/css';
-import 'antd/lib/icon/style/css';
 
 const _ = require('lodash');
 
@@ -23,7 +21,7 @@ class EventDetail extends Component {
         this.state = {
             redirect: false
         };
-        dispatch(fetchEventDetail(0));
+        dispatch(fetchEventDetail(0, "time", "desc"));
     }
 
     goBack () {
@@ -34,7 +32,8 @@ class EventDetail extends Component {
         const { dispatch } = this.props;
         const pager = { ...this.props.pagination };
         pager.current = pagination.current;
-        dispatch(fetchEventDetail(pager.current -1));
+        let direction = sorter.order === "ascend" ? "asc" : "desc";
+        dispatch(fetchEventDetail(pager.current -1, sorter.columnKey, direction));
     }
 
     render() {
@@ -47,19 +46,20 @@ class EventDetail extends Component {
             dataIndex: 'user',
             key: 'user',
             width: '33%',
-            sorter: (a, b) => a.user.localeCompare(b.user),
-            render: (text, record) => (<a className="user-td" href={record.link}><i className="icon user-icon"></i>{text}</a>)
+            sorter: true,
+            className: 'user-column',
+            render: (text, record) => (<a className="user-td" href={record.link}><i className="icon user-icon"></i><Tooltip placement="topLeft" title={text} arrowPointAtCenter><span>{text}</span></Tooltip></a>)
         }, {
             title: '操作',
             dataIndex: 'action',
             key: 'action',
-            sorter: (a, b) => a.action.localeCompare(b.action),
+            sorter: true,
             width: '33%',
             render: (text, record) => {
                         const classes = "icon action-title-icon " + record.type + "-icon";
                         return (
                             <div>
-                                <div className="action-text">{text}</div>
+                                <div className="action-text"><Tooltip placement="top" title={text} arrowPointAtCenter>{text}</Tooltip></div>
                                 <div className="action-title"><i className={classes}></i>{record.title}</div>
                             </div>
                         );
@@ -68,9 +68,10 @@ class EventDetail extends Component {
             title: '编辑时间',
             dataIndex: 'time',
             key: 'time',
-            sorter: (a, b) => { return a.time > b.time　? 1 : -1;},
+            sorter: true,
             width: '30%',
-            className: 'time-col'
+            className: 'time-col',
+            render: (text) => (<Tooltip placement="top" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
         }];
 
         const pagination = this.props.pagination;
