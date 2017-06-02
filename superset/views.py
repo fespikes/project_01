@@ -111,6 +111,12 @@ class ListWidgetWithCheckboxes(ListWidget):
     template = 'superset/fab_overrides/list_with_checkboxes.html'
 
 
+def log_number_for_all_users(obj_type):
+    users = db.session.query(User).all()
+    for user in users:
+        log_number(obj_type, user.id)
+
+
 def get_database_access_error_msg(database_name):
     return __("This view requires the database %(name)s or "
               "`all_datasource_access` permission", name=database_name)
@@ -1422,6 +1428,7 @@ class SliceModelView(SupersetModelView):  # noqa
                 db.session.commit()
                 action_str = 'Change slice to online: {}'.format(repr(obj))
                 log_action('online', action_str, 'slice', slice_id)
+                log_number_for_all_users('slice')
                 msg = ONLINE_SUCCESS + ': {}'.format(obj.slice_name)
                 return self.build_response(200, True, msg)
         elif action.lower() == 'offline':
@@ -1433,6 +1440,7 @@ class SliceModelView(SupersetModelView):  # noqa
                 db.session.commit()
                 action_str = 'Change slice to offline: {}'.format(repr(obj))
                 log_action('offline', action_str, 'slice', slice_id)
+                log_number_for_all_users('slice')
                 msg = OFFLINE_SUCCESS + ': {}'.format(obj.slice_name)
                 return self.build_response(200, True, msg)
         else:
@@ -1732,6 +1740,8 @@ class DashboardModelView(SupersetModelView):  # noqa
                 action_str = 'Import dashboard: {}'.format(dashboard.dashboard_title)
                 log_action('import', action_str, 'dashboard', dashboard.id)
             db.session.commit()
+            # TODO log_number
+            # TODO log_action
         return redirect('/dashboard/list/')
 
     @expose("/export")
@@ -1763,6 +1773,7 @@ class DashboardModelView(SupersetModelView):  # noqa
                 db.session.commit()
                 action_str = 'Change dashboard to online: {}'.format(repr(obj))
                 log_action('online', action_str, 'dashboard', dashboard_id)
+                log_number_for_all_users('dashboard')
                 msg = ONLINE_SUCCESS + ': {}'.format(obj.dashboard_title)
                 return self.build_response(200, True, msg)
         elif action.lower() == 'offline':
@@ -1774,6 +1785,7 @@ class DashboardModelView(SupersetModelView):  # noqa
                 db.session.commit()
                 action_str = 'Change dashboard to offline: {}'.format(repr(obj))
                 log_action('offline', action_str, 'dashboard', dashboard_id)
+                log_number_for_all_users('dashboard')
                 msg = OFFLINE_SUCCESS + ': {}'.format(obj.dashboard_title)
                 return self.build_response(200, True, msg)
         else:
