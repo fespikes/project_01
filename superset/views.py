@@ -639,9 +639,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     # TODO can't json.dumps lazy_gettext()
     readme_columns = ['is_dttm', 'expression']
     description_columns = {
-        'is_dttm': "Whether to make this column available as a "
-                   "[Time Granularity] option, column has to be DATETIME or "
-                   "DATETIME-like",
+        'is_dttm': "是否将此列作为[时间粒度]选项, 列中的数据类型必须是DATETIME",
         'expression': "a valid SQL expression as supported by the "
                       "underlying backend. Example: `substr(name, 1, 1)`",
         'python_date_format':
@@ -1513,20 +1511,32 @@ class DashboardModelView(SupersetModelView):  # noqa
         data['available_slices'] = self.slices_to_dict(slices)
         return data
 
-    def get_available_slices(self, user_id):
+    def available_slices_api(self):
+        user_id = self.get_user_id()
+        slices = self.get_available_slices(user_id)
+        data = self.slices_to_dict(slices)
+        return json.dumps(data)
+
+    @staticmethod
+    def get_available_slices(user_id):
         slices = (
             db.session.query(models.Slice)
-                .filter(
+            .filter(
                 or_(models.Slice.created_by_fk == user_id,
                     models.Slice.online == 1)
-            ).all()
+            )
+            .order_by(models.Slice.changed_on.desc())
+            .all()
         )
         return slices
 
-    def slices_to_dict(self, slices):
+    @staticmethod
+    def slices_to_dict(slices):
         slices_list = []
         for slice in slices:
-            row = {'id': slice.id, 'slice_name': slice.slice_name}
+            row = {'id': slice.id,
+                   'slice_name': slice.slice_name,
+                   'viz_type': slice.viz_type}
             slices_list.append(row)
         return slices_list
 
