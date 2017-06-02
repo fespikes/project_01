@@ -639,9 +639,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     # TODO can't json.dumps lazy_gettext()
     readme_columns = ['is_dttm', 'expression']
     description_columns = {
-        'is_dttm': "Whether to make this column available as a "
-                   "[Time Granularity] option, column has to be DATETIME or "
-                   "DATETIME-like",
+        'is_dttm': "是否将此列作为[时间粒度]选项, 列中的数据类型必须是DATETIME",
         'expression': "a valid SQL expression as supported by the "
                       "underlying backend. Example: `substr(name, 1, 1)`",
         'python_date_format':
@@ -1031,6 +1029,20 @@ class TableModelView(SupersetModelView):  # noqa
         data['available_databases'] = self.get_available_databases()
         return data
 
+    @staticmethod
+    def get_all_schemas(db_id):
+        d = db.session.query(models.Database) \
+            .filter_by(id=db_id).first()
+        schemas = d.all_schema_names()
+        return json.dumps(schemas)
+
+    @staticmethod
+    def get_all_tables(db_id, schema=None):
+        d = db.session.query(models.Database) \
+            .filter_by(id=db_id).first()
+        tables = d.all_table_names(schema=schema)
+        return json.dumps(tables)
+
     @expose('/alltables/<database_id>', methods=['GET', ])
     def all_schemas_and_tables(self, database_id):
         try:
@@ -1269,12 +1281,24 @@ class SliceModelView(SupersetModelView):  # noqa
         attributes['dashboards'] = dashboards
         return attributes
 
-    def get_available_dashboards(self, user_id):
-        dashs = db.session.query(models.Dashboard) \
-            .filter_by(created_by_fk=user_id).all()
+    def available_dashboards_api(self):
+        user_id = self.get_user_id()
+        dashs = self.get_available_dashboards(user_id)
+        data = self.dashboards_to_dict(dashs)
+        return json.dumps(data)
+
+    @staticmethod
+    def get_available_dashboards(user_id):
+        dashs = (
+            db.session.query(models.Dashboard)
+            .filter_by(created_by_fk=user_id)
+            .order_by(models.Dashboard.changed_on.desc())
+            .all()
+        )
         return dashs
 
-    def dashboards_to_dict(self, dashs):
+    @staticmethod
+    def dashboards_to_dict(dashs):
         dashs_list = []
         for dash in dashs:
             row = {'id': dash.id, 'dashboard_title': dash.dashboard_title}
@@ -1499,20 +1523,32 @@ class DashboardModelView(SupersetModelView):  # noqa
         data['available_slices'] = self.slices_to_dict(slices)
         return data
 
-    def get_available_slices(self, user_id):
+    def available_slices_api(self):
+        user_id = self.get_user_id()
+        slices = self.get_available_slices(user_id)
+        data = self.slices_to_dict(slices)
+        return json.dumps(data)
+
+    @staticmethod
+    def get_available_slices(user_id):
         slices = (
             db.session.query(models.Slice)
-                .filter(
+            .filter(
                 or_(models.Slice.created_by_fk == user_id,
                     models.Slice.online == 1)
-            ).all()
+            )
+            .order_by(models.Slice.changed_on.desc())
+            .all()
         )
         return slices
 
-    def slices_to_dict(self, slices):
+    @staticmethod
+    def slices_to_dict(slices):
         slices_list = []
         for slice in slices:
-            row = {'id': slice.id, 'slice_name': slice.slice_name}
+            row = {'id': slice.id,
+                   'slice_name': slice.slice_name,
+                   'viz_type': slice.viz_type}
             slices_list.append(row)
         return slices_list
 
@@ -1819,8 +1855,6 @@ class R(BaseSupersetView):
 
 class Superset(BaseSupersetView):
     """The base views for Superset!"""
-    @api
-    @has_access_api
     @expose("/update_role/", methods=['POST'])
     def update_role(self):
         """Assigns a list of found users to the given role."""
@@ -1871,7 +1905,6 @@ class Superset(BaseSupersetView):
             'created_users': created_users,
         }), status=201)
 
-    @has_access_api
     @expose("/override_role_permissions/", methods=['POST'])
     def override_role_permissions(self):
         """Updates the role with the give datasource permissions.
@@ -1924,7 +1957,6 @@ class Superset(BaseSupersetView):
             'requested': list(db_ds_names)
         }), status=201)
 
-    @has_access
     @expose("/request_access/")
     def request_access(self):
         datasources = set()
@@ -1962,7 +1994,6 @@ class Superset(BaseSupersetView):
             datasource_names=", ".join([o.name for o in datasources]),
         )
 
-    @has_access
     @expose("/approve")
     def approve(self):
         datasource_type = request.args.get('datasource_type')
@@ -2068,13 +2099,11 @@ class Superset(BaseSupersetView):
                 datasource, request.args if request.args else args)
             return viz_obj
 
-    @has_access
     @expose("/slice/<slice_id>/")
     def slice(self, slice_id):
         viz_obj = self.get_viz(slice_id)
         return redirect(viz_obj.get_url(**request.args))
 
-    @has_access_api
     @expose("/explore_json/<datasource_type>/<datasource_id>/")
     def explore_json(self, datasource_type, datasource_id):
         """render the chart of slice"""
@@ -2141,7 +2170,6 @@ class Superset(BaseSupersetView):
             return redirect('/dashboardmodelview/list/')
         return self.render_template('superset/import_dashboards.html')
 
-    @has_access
     @expose("/explore/<datasource_type>/<datasource_id>/")
     def explore(self, datasource_type, datasource_id):
         """render the parameters of slice"""
@@ -2259,8 +2287,6 @@ class Superset(BaseSupersetView):
                 userid=g.user.get_id() if g.user else ''
             )
 
-    @api
-    @has_access_api
     @expose("/filter/<datasource_type>/<datasource_id>/<column>/")
     def filter(self, datasource_type, datasource_id, column):
         """
@@ -2417,8 +2443,6 @@ class Superset(BaseSupersetView):
             action_str = 'Edit slice: {}'.format(slc.slice_name)
             log_action('edit', action_str, 'slice', slc.id)
 
-    @api
-    @has_access_api
     @expose("/checkbox/<model_view>/<id_>/<attr>/<value>", methods=['GET'])
     def checkbox(self, model_view, id_, attr, value):
         """endpoint for checking/unchecking any boolean in a sqla model"""
@@ -2432,8 +2456,6 @@ class Superset(BaseSupersetView):
             db.session.commit()
         return Response("OK", mimetype="application/json")
 
-    @api
-    @has_access_api
     @expose("/activity_per_day")
     def activity_per_day(self):
         """endpoint to power the calendar heatmap on the welcome page"""
@@ -2447,8 +2469,6 @@ class Superset(BaseSupersetView):
                    ccount for dt, ccount in qry if dt}
         return Response(json.dumps(payload), mimetype="application/json")
 
-    @api
-    @has_access_api
     @expose("/all_tables/<db_id>")
     def all_tables(self, db_id):
         """Endpoint that returns all tables and views from the database"""
@@ -2471,8 +2491,6 @@ class Superset(BaseSupersetView):
             json.dumps({"tables": all_tables, "views": all_views}),
             mimetype="application/json")
 
-    @api
-    @has_access_api
     @expose("/tables/<db_id>/<schema>")
     def tables(self, db_id, schema):
         """endpoint to power the calendar heatmap on the welcome page"""
@@ -2490,8 +2508,6 @@ class Superset(BaseSupersetView):
         return Response(
             json.dumps(payload), mimetype="application/json")
 
-    @api
-    @has_access_api
     @expose("/copy_dash/<dashboard_id>/", methods=['GET', 'POST'])
     def copy_dash(self, dashboard_id):
         """Copy dashboard"""
@@ -2514,8 +2530,6 @@ class Superset(BaseSupersetView):
         return Response(
             dash_json, mimetype="application/json")
 
-    @api
-    @has_access_api
     @expose("/save_dash/<dashboard_id>/", methods=['GET', 'POST'])
     def save_dash(self, dashboard_id):
         """Save a dashboard's metadata"""
@@ -2548,8 +2562,6 @@ class Superset(BaseSupersetView):
         md['expanded_slices'] = data['expanded_slices']
         dashboard.json_metadata = json.dumps(md, indent=4)
 
-    @api
-    @has_access_api
     @expose("/add_slices/<dashboard_id>/", methods=['POST'])
     def add_slices(self, dashboard_id):
         """Add and save slices to a dashboard"""
@@ -2566,8 +2578,6 @@ class Superset(BaseSupersetView):
         session.close()
         return "SLICES ADDED"
 
-    @api
-    @has_access_api
     @expose("/testconn", methods=["POST", "GET"])
     def testconn(self):
         """Tests a sqla connection"""
@@ -2599,8 +2609,6 @@ class Superset(BaseSupersetView):
                 status=500,
                 mimetype="application/json")
 
-    @api
-    @has_access_api
     @expose("/recent_activity/<user_id>/", methods=['GET'])
     def recent_activity(self, user_id):
         """Recent activity (actions) for a given user"""
@@ -2637,8 +2645,6 @@ class Superset(BaseSupersetView):
             json.dumps(payload, default=utils.json_int_dttm_ser),
             mimetype="application/json")
 
-    @api
-    @has_access_api
     @expose("/fave_dashboards/<user_id>/", methods=['GET'])
     def fave_dashboards(self, user_id):
         qry = (
@@ -2669,8 +2675,6 @@ class Superset(BaseSupersetView):
             json.dumps(payload, default=utils.json_int_dttm_ser),
             mimetype="application/json")
 
-    @api
-    @has_access_api
     @expose("/created_dashboards/<user_id>/", methods=['GET'])
     def created_dashboards(self, user_id):
         Dash = models.Dashboard  # noqa
@@ -2693,8 +2697,6 @@ class Superset(BaseSupersetView):
             json.dumps(payload, default=utils.json_int_dttm_ser),
             mimetype="application/json")
 
-    @api
-    @has_access_api
     @expose("/created_slices/<user_id>/", methods=['GET'])
     def created_slices(self, user_id):
         """List of slices created by this user"""
@@ -2717,8 +2719,6 @@ class Superset(BaseSupersetView):
             json.dumps(payload, default=utils.json_int_dttm_ser),
             mimetype="application/json")
 
-    @api
-    @has_access_api
     @expose("/fave_slices/<user_id>/", methods=['GET'])
     def fave_slices(self, user_id):
         """Favorite slices for a user"""
@@ -2749,8 +2749,6 @@ class Superset(BaseSupersetView):
             json.dumps(payload, default=utils.json_int_dttm_ser),
             mimetype="application/json")
 
-    @api
-    @has_access_api
     @expose("/warm_up_cache/", methods=['GET'])
     def warm_up_cache(self):
         """Warms up the cache for the slice or table."""
@@ -2843,7 +2841,6 @@ class Superset(BaseSupersetView):
             json.dumps({'count': count}),
             mimetype="application/json")
 
-    @has_access
     @expose("/dashboard/<dashboard_id>/")
     def dashboard(self, dashboard_id):
         """Server side rendering for a dashboard"""
@@ -2937,7 +2934,6 @@ class Superset(BaseSupersetView):
             return json_error_response(utils.error_msg_from_exception(e))
         return Response(status=201)
 
-    @has_access
     @expose("/sqllab_viz/", methods=['POST'])
     def sqllab_viz(self):
         data = json.loads(request.form.get('data'))
@@ -3008,7 +3004,6 @@ class Superset(BaseSupersetView):
         params = "&".join([k + '=' + v for k, v in params.items() if v])
         return '/superset/explore/table/{table.id}/?{params}'.format(**locals())
 
-    @has_access
     @expose("/table/<database_id>/<table_name>/<schema>/")
     def table(self, database_id, table_name, schema):
         schema = None if schema in ('null', 'undefined') else schema
@@ -3064,7 +3059,6 @@ class Superset(BaseSupersetView):
         }
         return Response(json.dumps(tbl), mimetype="application/json")
 
-    @has_access
     @expose("/extra_table_metadata/<database_id>/<table_name>/<schema>/")
     def extra_table_metadata(self, database_id, table_name, schema):
         schema = None if schema in ('null', 'undefined') else schema
@@ -3073,7 +3067,6 @@ class Superset(BaseSupersetView):
             mydb, table_name, schema)
         return Response(json.dumps(payload), mimetype="application/json")
 
-    @has_access
     @expose("/select_star/<database_id>/<table_name>/")
     def select_star(self, database_id, table_name):
         mydb = db.session.query(
@@ -3098,7 +3091,6 @@ class Superset(BaseSupersetView):
     def theme(self):
         return self.render_template('superset/theme.html')
 
-    @has_access_api
     @expose("/cached_key/<key>/")
     def cached_key(self, key):
         """Returns a key from the cache"""
@@ -3107,7 +3099,6 @@ class Superset(BaseSupersetView):
             return resp
         return "nope"
 
-    @has_access_api
     @expose("/results/<key>/")
     def results(self, key):
         """Serves a key off of the results backend"""
@@ -3141,7 +3132,6 @@ class Superset(BaseSupersetView):
                 status=410,
                 mimetype="application/json")
 
-    @has_access_api
     @expose("/sql_json/", methods=['POST', 'GET'])
     def sql_json(self):
         """Runs arbitrary sql and returns and json"""
@@ -3240,7 +3230,6 @@ class Superset(BaseSupersetView):
             status=200,
             mimetype="application/json")
 
-    @has_access
     @expose("/csv/<client_id>")
     def csv(self, client_id):
         """Download the query results as csv."""
@@ -3263,7 +3252,6 @@ class Superset(BaseSupersetView):
             'attachment; filename={}.csv'.format(query.name))
         return response
 
-    @has_access
     @expose("/fetch_datasource_metadata")
     def fetch_datasource_metadata(self):
         datasource_type = request.args.get('datasource_type')
@@ -3287,7 +3275,6 @@ class Superset(BaseSupersetView):
             mimetype="application/json"
         )
 
-    @has_access
     @expose("/queries/<last_updated_ms>")
     def queries(self, last_updated_ms):
         """Get the updated queries."""
@@ -3317,7 +3304,6 @@ class Superset(BaseSupersetView):
             status=200,
             mimetype="application/json")
 
-    @has_access
     @expose("/search_queries")
     def search_queries(self):
         """Search for queries."""
@@ -3367,7 +3353,6 @@ class Superset(BaseSupersetView):
             status=200,
             mimetype="application/json")
 
-    @has_access
     @expose("/refresh_datasources/")
     def refresh_datasources(self):
         """endpoint that refreshes druid datasources metadata"""
@@ -3458,7 +3443,6 @@ class Superset(BaseSupersetView):
             bootstrap_data=json.dumps(payload, default=utils.json_iso_dttm_ser)
         )
 
-    @has_access
     @expose("/sqllab")
     def sqllab(self):
         """SQL Editor"""
@@ -3805,6 +3789,32 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
 
+    def get_edited_slices_api(self, **kwargs):
+        kwargs = self.get_request_args(kwargs)
+        kwargs['user_id'] = self.get_user_id()
+        count, data = self.get_edited_slices(**kwargs)
+        response = {}
+        response['data'] = data
+        response['count'] = count
+        response['page'] = kwargs.get('page')
+        response['page_size'] = kwargs.get('page_size')
+        response['order_column'] = kwargs.get('order_column')
+        response['order_direction'] = kwargs.get('order_direction')
+        return json.dumps(response)
+
+    def get_edited_dashboards_api(self, **kwargs):
+        kwargs = self.get_request_args(kwargs)
+        kwargs['user_id'] = self.get_user_id()
+        count, data = self.get_edited_dashboards(**kwargs)
+        response = {}
+        response['data'] = data
+        response['count'] = count
+        response['page'] = kwargs.get('page')
+        response['page_size'] = kwargs.get('page_size')
+        response['order_column'] = kwargs.get('order_column')
+        response['order_direction'] = kwargs.get('order_direction')
+        return json.dumps(response)
+
     def get_user_actions(self, **kwargs):
         """The actions of user"""
         user_id = kwargs.get('user_id')
@@ -3869,6 +3879,20 @@ class Home(BaseSupersetView):
                     }
             rows.append(line)
         return count, rows
+
+    def get_user_actions_api(self, **kwargs):
+        kwargs = self.get_request_args(kwargs)
+        kwargs['user_id'] = self.get_user_id()
+        kwargs['types'] = kwargs.get('types', self.default_types.get('actions'))
+        count, data = self.get_user_actions(**kwargs)
+        response = {}
+        response['data'] = data
+        response['count'] = count
+        response['page'] = kwargs.get('page')
+        response['page_size'] = kwargs.get('page_size')
+        response['order_column'] = kwargs.get('order_column')
+        response['order_direction'] = kwargs.get('order_direction')
+        return json.dumps(response)
 
     @expose('/actions/')
     def get_user_actions_by_url(self):
@@ -3958,7 +3982,9 @@ class Home(BaseSupersetView):
 
         full_dt = [str(d) for d in full_dt]
         json_rows = []
-        for index, v in enumerate(full_count[0:limit]):
+        full_count = full_count[-limit:]
+        full_dt = full_dt[-limit:]
+        for index, v in enumerate(full_count):
             json_rows.append({'date': full_dt[index], 'count': full_count[index]})
         return json_rows
 
@@ -4021,6 +4047,10 @@ appbuilder.add_view_no_menu(DashboardModelViewAsync)
 appbuilder.add_view_no_menu(R)
 appbuilder.add_view_no_menu(Superset)
 appbuilder.add_view_no_menu(Home)
+
+appbuilder.add_link(
+    'Home',
+    href='/superset/home')
 
 appbuilder.add_view(
     DashboardModelView,

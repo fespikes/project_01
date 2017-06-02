@@ -83,8 +83,8 @@ class SourceRegistry(object):
         return (
             session.query(datasource_class)
             .options(
-                subqueryload(datasource_class.columns),
-                subqueryload(datasource_class.metrics)
+                subqueryload(datasource_class.ref_columns),
+                subqueryload(datasource_class.ref_metrics)
             )
             .filter_by(id=datasource_id)
             .one()
