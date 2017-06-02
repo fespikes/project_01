@@ -1780,6 +1780,20 @@ class DashboardModelView(SupersetModelView):  # noqa
             msg = ERROR_URL + ': {}'.format(request.url)
             return self.build_response(400, False, msg)
 
+    @staticmethod
+    def add_slices(dashboard_id, slice_ids):
+        """Add and save slices to a dashboard"""
+        session = db.session()
+        dash = session.query(models.Dashboard).filter_by(id=dashboard_id).first()
+        check_ownership(dash, raise_if_false=True)
+        new_slices = session.query(models.Slice).filter(
+            models.Slice.id.in_(slice_ids))
+        dash.slices += new_slices
+        session.merge(dash)
+        session.commit()
+        session.close()
+        return True
+
 
 class DashboardModelViewAsync(DashboardModelView):  # noqa
     list_columns = ['dashboard_link', 'creator', 'modified', 'dashboard_title']
