@@ -65,7 +65,7 @@ class SliceOperate extends React.Component {
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    <li><i className="icon"></i></li>
+                    <li><a href="/slice/add"><i className="icon"></i></a></li>
                     <li onClick={this.onDelete}><i className="icon"></i></li>
                 </ul>
                 <div className="tab-btn">

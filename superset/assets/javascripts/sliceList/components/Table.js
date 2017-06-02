@@ -114,7 +114,7 @@ class SliceTable extends React.Component {
                 width: '15%',
                 render: (text, record) => {
                     return (
-                        <a href={record.explore} className="highlight">{record.datasource}</a>
+                        <a href={record.explore_url} className="highlight">{record.datasource}</a>
                     )
                 },
                 sorter(a, b) {
