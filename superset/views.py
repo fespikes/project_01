@@ -1781,7 +1781,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             return self.build_response(400, False, msg)
 
     @staticmethod
-    def add_slices(dashboard_id, slice_ids):
+    def add_slices_api(dashboard_id, slice_ids):
         """Add and save slices to a dashboard"""
         session = db.session()
         dash = session.query(models.Dashboard).filter_by(id=dashboard_id).first()
