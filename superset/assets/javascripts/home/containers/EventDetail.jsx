@@ -3,10 +3,8 @@ import PropTypes from 'prop-types';
 import { fetchEventDetail } from "../actions";
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
-import { Table, Button } from 'antd';
+import { Table, Button, Tooltip } from 'antd';
 import { Redirect } from 'react-router-dom';
-import 'antd/lib/table/style/css';
-import 'antd/lib/icon/style/css';
 
 const _ = require('lodash');
 
@@ -15,6 +13,7 @@ class EventDetail extends Component {
     constructor(props) {
         super(props);
         this.goBack = this.goBack.bind(this);
+        this.tableOnChange = this.tableOnChange.bind(this);
     }
 
     componentDidMount() {
@@ -22,11 +21,19 @@ class EventDetail extends Component {
         this.state = {
             redirect: false
         };
-        dispatch(fetchEventDetail());
+        dispatch(fetchEventDetail(0, "time", "desc"));
     }
 
     goBack () {
         this.setState({redirect: true});
+    }
+
+    tableOnChange (pagination, filters, sorter) {
+        const { dispatch } = this.props;
+        const pager = { ...this.props.pagination };
+        pager.current = pagination.current;
+        let direction = sorter.order === "ascend" ? "asc" : "desc";
+        dispatch(fetchEventDetail(pager.current -1, sorter.columnKey, direction));
     }
 
     render() {
@@ -39,19 +46,20 @@ class EventDetail extends Component {
             dataIndex: 'user',
             key: 'user',
             width: '33%',
-            sorter: (a, b) => a.user.localeCompare(b.user),
-            render: (text, record) => (<a className="user-td" href={record.link}><i className="icon user-icon"></i>{text}</a>)
+            sorter: true,
+            className: 'user-column',
+            render: (text, record) => (<a className="user-td" href={record.link}><i className="icon user-icon"></i><Tooltip placement="topLeft" title={text} arrowPointAtCenter><span>{text}</span></Tooltip></a>)
         }, {
             title: '操作',
             dataIndex: 'action',
             key: 'action',
-            sorter: (a, b) => a.action.localeCompare(b.action),
+            sorter: true,
             width: '33%',
             render: (text, record) => {
                         const classes = "icon action-title-icon " + record.type + "-icon";
                         return (
                             <div>
-                                <div className="action-text">{text}</div>
+                                <div className="action-text"><Tooltip placement="top" title={text} arrowPointAtCenter>{text}</Tooltip></div>
                                 <div className="action-title"><i className={classes}></i>{record.title}</div>
                             </div>
                         );
@@ -60,10 +68,13 @@ class EventDetail extends Component {
             title: '编辑时间',
             dataIndex: 'time',
             key: 'time',
-            sorter: (a, b) => { return a.time > b.time　? 1 : -1;},
+            sorter: true,
             width: '30%',
-            className: 'time-col'
+            className: 'time-col',
+            render: (text) => (<Tooltip placement="top" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
         }];
+
+        const pagination = this.props.pagination;
 
 
         return (
@@ -72,7 +83,7 @@ class EventDetail extends Component {
                     <span className="title">事件</span>
                     <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
                 </div>
-                <Table className="event-table" dataSource={dataSource} columns={columns} />
+                <Table onChange={this.tableOnChange} className="event-table" pagination={pagination} dataSource={dataSource} columns={columns} />
             </div>
         );
     }
@@ -88,7 +99,7 @@ function BackButton(props) {
 }
 
 const getActionList = createSelector(
-    state => state.posts.param.actions,
+    state => state.posts.param.data,
     (data) => {
         if (!data) {
             return [];
@@ -114,10 +125,33 @@ const getActionList = createSelector(
     }
 );
 
+const getPagination = createSelector(
+    state => state.posts.param,
+    (data) => {
+        if (!data) {
+            return {
+                total: 0,
+                pageSize: 10,
+                defaultPageSize: 10,
+                current: 1
+            };
+        }
+
+        let result = {
+            total: data.count,
+            current: data.page + 1,
+            pageSize: data.page_size,
+            defaultPageSize: data.page_size
+        }
+        return result;
+    }
+);
+
 const mapStateToProps = (state, props) => {
     const { posts } = state;
     return {
-        actions: getActionList(state)
+        actions: getActionList(state),
+        pagination: getPagination(state)
     };
 }
 

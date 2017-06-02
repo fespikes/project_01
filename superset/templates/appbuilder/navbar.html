@@ -9,13 +9,49 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-logo" title="星环信息科技有限公司" href="/superset/profile/{{ current_user.username }}/">
+      <a class="navbar-logo" title="星环信息科技有限公司" href="javascript:void(0)">
         <i class="icon"></i>
       </a>
     </div>
-      <ul class="nav">
+    <ul class="nav">
+      <li class="nav-li">
+          <a tabindex="-1" class="{% if request.path == '/superset/home' %}active{% endif %}" href="/superset/home">
+            <i class="icon"></i>首页</a>
+      </li>
+      <li class="nav-li">
+          <a tabindex="-1" class="{% if request.path == '/dashboard/list' %}active{% endif %}" href="/dashboard/list">
+              <i class="icon"></i>仪表板</a>
+      </li>
+      <li class="nav-li">
+          <a tabindex="-1" href="/slice/list" class="{% if request.path == '/slice/list' %}active{% endif %}">
+              <i class="icon"></i>工作表</a>
+      </li>
+      <li class="dropdown nav-li">
+          <a class="dropdown-toggle" class="{% if request.path == '/database/list' or request.path == '/table/list' %}active{% endif %}" data-toggle="dropdown" href="javascript:void(0)">
+              <i class="icon"></i>数据源</a>
+          <ul class="dropdown-menu">
+              <li>
+                  <a tabindex="-1" href="/database/list">连接</a></li>
+              <li>
+                  <a tabindex="-1" href="/table/list">数据集</a></li>
+          </ul>
+      </li>
+      <li class="dropdown nav-li">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)" class="{% if request.path == '/superset/sqllab' or request.path == '/superset/sqllab#search' %}active{% endif %}">
+              <i class="icon"></i>SQL Lab</a>
+          <ul class="dropdown-menu">
+              <li>
+                  <a tabindex="-1" href="/superset/sqllab">SQL编辑器</a></li>
+              <li>
+                  <a tabindex="-1" href="/superset/sqllab#search">SQL执行记录</a></li>
+          </ul>
+      </li>
+    </ul>
+      <!-- <ul class="nav">
         {% include 'appbuilder/navbar_menu.html' %}
       </ul>
+
+ -->    
     <ul class="sub-nav">
       <li>
         <a href="http://airbnb.io/superset" target="_blank" title="{{ _('Documentation') }}" >
