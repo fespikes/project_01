@@ -4,9 +4,7 @@ import { fetchEditDetail } from "../actions";
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 import { Redirect } from 'react-router-dom';
-import { Table, Button } from 'antd';
-import 'antd/lib/table/style/css';
-import 'antd/lib/icon/style/css';
+import { Table, Button, Tooltip } from 'antd';
 
 class EditDetail extends Component {
 
@@ -21,7 +19,7 @@ class EditDetail extends Component {
         this.state = {
             redirect: false
         };
-        fetchEditDetail('dashboard', 0);
+        fetchEditDetail('dashboard', 0, 'time', 'desc');
     }
 
     componentWillReceiveProps (nextProps) {
@@ -36,10 +34,12 @@ class EditDetail extends Component {
     }
 
     tableOnChange (pagination, filters, sorter) {
+        console.log(sorter);
         const pager = { ...this.props.pagination };
         const { fetchEditDetail } = this.props;
         pager.current = pagination.current;
-        fetchEditDetail(this.props.currentCatagory, pager.current - 1);
+        let direction = sorter.order === "ascend" ? "asc" : "desc";
+        fetchEditDetail(this.props.currentCatagory, pager.current - 1, sorter.columnKey, direction);
     }
 
     render() {
@@ -54,22 +54,24 @@ class EditDetail extends Component {
             dataIndex: 'name',
             key: 'name',
             className: "name-column",
-            sorter: (a, b) => a.name.localeCompare(b.name),
-            render: (text, record) => (<a href={record.link}>{text}</a>)
+            sorter: true,
+            render: (text, record) => (<Tooltip placement="topRight" title={text} arrowPointAtCenter><a href={record.link}>{text}</a></Tooltip>)
         }, {
             title: '操作',
             dataIndex: 'action',
             key: 'action',
             className: "action-column",
-            sorter: (a, b) => a.action.localeCompare(b.action),
-            width: '33%'
+            width: '33%',
+            render: (text) => (<Tooltip placement="topRight" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
+
         }, {
             title: '编辑时间',
             dataIndex: 'time',
             key: 'time',
             className: "time-column",
-            sorter: (a, b) => { return a.time > b.time　? 1 : -1;},
-            width: '30%'
+            sorter: true,
+            width: '30%',
+            render: (text) => (<Tooltip placement="top" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
         }];
 
         return (
@@ -168,8 +170,8 @@ const mapDispatchToProps = (dispatch) => {
                 tab: catagory
             });
         },
-        fetchEditDetail: (catagory, index) => {
-            dispatch(fetchEditDetail(catagory, index));
+        fetchEditDetail: (catagory, index, orderColumn, orderDirection) => {
+            dispatch(fetchEditDetail(catagory, index, orderColumn, orderDirection));
         }
     }
 }

@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Table, Tooltip } from 'antd';
-import 'antd/lib/table/style/css';
-import 'antd/lib/Tooltip/style/css';
 
 function Edit(props) {
     return (
