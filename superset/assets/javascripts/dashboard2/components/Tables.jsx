@@ -21,36 +21,19 @@ class Tables extends React.Component {
 
         const { dispatch, dashboardList } = this.props;
 
-        function showDashboard(record) {
-            dispatch(fetchDashboardDetail(record.id, callback));
-            function callback(success, data) {
-                if(success) {
-                    var editSlicePopup = render(
-                        <DashboardEdit
-                            dispatch={dispatch}
-                            dashboardDetail={data}
-                            editable={false}/>,
-                        document.getElementById('popup_root'));
-                    if(editSlicePopup) {
-                        editSlicePopup.showDialog();
-                    }
-                }
-            }
-        }
-
         function editDashboard(record) {
 
             dispatch(fetchDashboardDetail(record.id, callback));
             function callback(success, data) {
                 if(success) {
-                    var editSlicePopup = render(
+                    var editDashboardPopup = render(
                         <DashboardEdit
                             dispatch={dispatch}
                             dashboardDetail={data}
                             editable={true}/>,
                         document.getElementById('popup_root'));
-                    if(editSlicePopup) {
-                        editSlicePopup.showDialog();
+                    if(editDashboardPopup) {
+                        editDashboardPopup.showDialog();
                     }
                 }
             }
@@ -58,16 +41,16 @@ class Tables extends React.Component {
 
         function deleteDashboard(record) {
 
-            const deleteType = "single";
-            var deleteSlicePopup = render(
+            const deleteTips = "确定删除" + record.dashboard_title + "?";
+            var deleteDashboardPopup = render(
                 <DashboardDelete
                     dispatch={dispatch}
-                    deleteType={deleteType}
-                    deleteTips={record.dashboard_title}
+                    deleteType={'single'}
+                    deleteTips={deleteTips}
                     dashboard={record}/>,
                 document.getElementById('popup_root'));
-            if(deleteSlicePopup) {
-                deleteSlicePopup.showDialog();
+            if(deleteDashboardPopup) {
+                deleteDashboardPopup.showDialog();
             }
         }
 
@@ -101,7 +84,7 @@ class Tables extends React.Component {
                 return (
                     <div className="entity-name">
                         <div className="entity-title highlight">
-                            <span onClick={() => showDashboard(record)}>{record.dashboard_title}</span>
+                            <a href={record.url}>{record.dashboard_title}</a>
                         </div>
                         <div className="entity-description">{record.description}</div>
                     </div>
@@ -123,7 +106,7 @@ class Tables extends React.Component {
             sorter(a, b) {
                 console.log(a.online);
                 console.log(b.online);
-                return a.online ? 1 : 0 - b.online ? 1 : 0 > 0;
+                return a.online - b.online;
             }
         }, {
             title: '所有者',
@@ -173,13 +156,12 @@ class Tables extends React.Component {
         };
 
         return (
-            <div className="dashboard-table">
-                <Table
-                    rowSelection={rowSelection}
-                    dataSource={dashboardList}
-                    columns={columns}
-                    pagination={false} />
-            </div>
+            <Table
+                rowSelection={rowSelection}
+                dataSource={dashboardList}
+                columns={columns}
+                pagination={false}
+            />
         );
     }
 }

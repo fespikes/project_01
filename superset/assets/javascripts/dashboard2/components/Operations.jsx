@@ -46,16 +46,21 @@ class Operations extends React.Component {
     }
 
     deleteDashboardMul() {
-        const deleteType = "multiple";
         const { dispatch, selectedRowNames } = this.props;
-        var deleteSlicePopup = render(
+        let deleteType = "multiple";
+        let deleteTips = '确定删除' + selectedRowNames + '?';
+        if(selectedRowNames.length === 0) {
+            deleteType = 'none';
+            deleteTips = '没有选择任何将要删除的记录，请选择！';
+        }
+        var deleteDashboardPopup = render(
             <DashboardDelete
                 dispatch={dispatch}
                 deleteType={deleteType}
-                deleteTips={selectedRowNames} />,
+                deleteTips={deleteTips} />,
             document.getElementById('popup_root'));
-        if(deleteSlicePopup) {
-            deleteSlicePopup.showDialog();
+        if(deleteDashboardPopup) {
+            deleteDashboardPopup.showDialog();
         }
     }
 
@@ -123,7 +128,7 @@ class Operations extends React.Component {
     render() {
         const { typeName, viewMode } = this.props;
         return (
-            <div className="dashboard-operation">
+            <div className="operations">
                 <ul className="icon-list">
                     <li onClick={this.addDashboard}><i className="icon"></i></li>
                     <li onClick={this.deleteDashboardMul}><i className="icon"></i></li>
@@ -136,10 +141,10 @@ class Operations extends React.Component {
                         <i className="icon"></i>收藏</button>
                 </div>
                 <div className="search-input">
-                    <input id="searchInput" onKeyUp={this.searchDashboard} onChange={this.keywordChange} placeholder="search..." />
+                    <input onKeyUp={this.searchDashboard} onChange={this.keywordChange} placeholder="search..." />
                     <i className="icon" onClick={this.clickSearchDashboard}></i>
                 </div>
-                <div className="operation-btn">
+                <div className="view-btn">
                     <Link to="/table" onClick={this.switchTableMode}><i className={viewMode === 'table' ? 'icon active' : 'icon'}></i></Link>
                     <Link to="/graph" onClick={this.switchGraphMode}><i className={viewMode === 'graph' ? 'icon active' : 'icon'}></i></Link>
                 </div>

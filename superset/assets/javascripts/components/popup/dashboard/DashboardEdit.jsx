@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetchAvailableSlices, fetchUpdateDashboard } from '../../dashboard2/actions';
+import { fetchAvailableSlices, fetchUpdateDashboard } from '../../../dashboard2/actions';
 import { Select } from 'antd';
 import PropTypes from 'prop-types';
 
@@ -31,11 +31,11 @@ class DashboardEdit extends React.Component {
     };
 
     showDialog() {
-        this.refs.popup_dashboard_edit.style.display = "flex";
+        this.refs.popupDashboardEdit.style.display = "flex";
     }
 
     closeDialog() {
-        ReactDOM.unmountComponentAtNode(this.refs.popup_dashboard_edit);//for resolve ant-design select component cache issue
+        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));//for resolve ant-design select component cache issue
     }
 
     handleTitleChange(e) {
@@ -61,7 +61,7 @@ class DashboardEdit extends React.Component {
                 self.setState({
                     selectedSlices: []
                 });
-                ReactDOM.unmountComponentAtNode(self.refs.popup_dashboard_edit);
+                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
 
             }
@@ -83,16 +83,16 @@ class DashboardEdit extends React.Component {
         }
 
         return (
-            <div id="popup_dashboard_edit" className="popup" ref="popup_dashboard_edit">
+            <div className="popup" ref="popupDashboardEdit">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className=""></i>
+                                <i className="icon"></i>
                                 <span>仪表盘基本信息</span>
                             </div>
                             <div className="header-right">
-                                <i className="" onClick={this.closeDialog}>关闭</i>
+                                <i className="icon" onClick={this.closeDialog}>关闭</i>
                             </div>
                         </div>
                         <div className="popup-body">
