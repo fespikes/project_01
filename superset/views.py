@@ -1826,7 +1826,7 @@ class LogModelView(SupersetModelView):
         'dttm': _("dttm"),
         'json': _("JSON"),
     }
-
+    
 
 class QueryView(SupersetModelView):
     datamodel = SQLAInterface(models.Query)

@@ -59,6 +59,8 @@
       </div>
     </div>
     {% block tail_js %}
+      <script src="{{url_for('appbuilder.static',filename='js/jquery-latest.js')}}"></script>
+      <script src="{{url_for('appbuilder.static',filename='js/bootstrap.min.js')}}"></script>
     {% endblock %}
   </body>
 </html>
