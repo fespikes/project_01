@@ -29,13 +29,39 @@ function Line(props) {
             }
         },
         tooltip: {
-            valueSuffix: ''
+            valueSuffix: '',
+            backgroundColor: '#222c3c',
+            style: {
+                "color": "#d9dfe8"
+            },
+            borderWidth: 0,
+            borderRadius: 8,
+            useHTML: true,
+            headerFormat: '<div style="text-align:center">{point.key}</div>',
+            formatter: function() {
+                var result = '<div class="line-tooltip">';
+                result += '<div class="tooltip-header" style="text-align:center">' + this.key + '</div>';
+                result += '<div class="tooltip-body">'
+                if (this.point.index > 0) {
+                    result += '<div class="yesterday"><span class="key">昨日变动</span><span class="value">' + this.series.data[this.point.index - 1].y + "</span></div>";
+                }
+                result += '<div class="today"><span class="key">今日变动</span><span class="value">' + this.series.data[this.point.index].y + "</span></div>";
+                result += '</div>';
+                return result;
+            }
         },
         legend: {
             enabled: false
         },
         xAxis: {
-            categories: catagoriesWithOutYear
+            categories: catagories,
+            labels: {
+                formatter: function() {
+                    var result = this.value.substr(5);
+                    console.log(result);
+                    return result;
+                }
+            }
         },
         series
     };
