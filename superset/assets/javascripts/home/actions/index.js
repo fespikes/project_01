@@ -52,7 +52,7 @@ function receiveData(json) {
 }
 
 export function fetchPosts() {
-    const URL = "/home";
+    const URL = "/superset/home/alldata";
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
@@ -67,7 +67,7 @@ export function fetchEditDetail(catagory, index, orderColumn, orderDirection) {
     if (!orderColumn)
         orderColumn = "time";
 
-    const URL = "/home/edits/" + catagory + "?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
+    const URL = "/superset/home/edits/" + catagory + "?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
@@ -82,7 +82,7 @@ export function fetchEventDetail(index, orderColumn, orderDirection) {
     if (!orderColumn)
         orderColumn = "time";
     
-    const URL = "/home/actions?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
+    const URL = "/superset/home/actions?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {

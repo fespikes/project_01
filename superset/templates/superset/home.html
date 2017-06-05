@@ -36,6 +36,7 @@
 {% endblock %}
 
 {% block tail_js %}
+  {{super()}}
   {% with filename="home" %}
     {% include "superset/partials/_script_tag.html" %}
   {% endwith %}
