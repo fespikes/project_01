@@ -1827,14 +1827,6 @@ class LogModelView(SupersetModelView):
         'json': _("JSON"),
     }
 
-appbuilder.add_view(
-    LogModelView,
-    "Action Log",
-    label=__("Action Log"),
-    category="Security",
-    category_label=__("Security"),
-    icon="fa-list-ol")
-
 
 class QueryView(SupersetModelView):
     datamodel = SQLAInterface(models.Query)
@@ -3417,13 +3409,6 @@ class Superset(BaseSupersetView):
             return redirect(appbuilder.get_url_for_login)
         return self.render_template('superset/welcome.html', utils=utils)
 
-    @expose("/home")
-    def home(self):
-        """default page"""
-        if not g.user or not g.user.get_id():
-            return redirect(appbuilder.get_url_for_login)
-        return self.render_template('superset/home.html', utils=utils)
-
     @has_access
     @expose("/profile/<username>/")
     def profile(self, username):
@@ -3488,6 +3473,9 @@ class Home(BaseSupersetView):
     limit = 0: means not limit
     default_types['actions'] could be: ['online', 'offline', 'add', 'edit', 'delete'...]
     """
+    default_view = 'home'
+    route_base = '/superset/home'
+
     page = 0
     page_size = 10
     order_column = 'time'
@@ -4016,6 +4004,13 @@ class Home(BaseSupersetView):
         return json_rows
 
     @expose('/')
+    def home(self):
+        """default page"""
+        if not g.user or not g.user.get_id():
+            return redirect(appbuilder.get_url_for_login)
+        return self.render_template('superset/home.html')
+
+    @expose('/alldata')
     def get_all_statistics_data(self):
         success, user_id = self.get_user_id()
         if not success:
@@ -4073,11 +4068,14 @@ appbuilder.add_view_no_menu(SliceAddView)
 appbuilder.add_view_no_menu(DashboardModelViewAsync)
 appbuilder.add_view_no_menu(R)
 appbuilder.add_view_no_menu(Superset)
-appbuilder.add_view_no_menu(Home)
 
-appbuilder.add_link(
-    'Home',
-    href='/superset/home')
+appbuilder.add_view(
+    Home,
+    "Home",
+    label='home',
+    category='',
+    category_label='',
+    icon="fa-list-ol")
 
 appbuilder.add_view(
     DashboardModelView,
