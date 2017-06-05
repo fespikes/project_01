@@ -1827,14 +1827,6 @@ class LogModelView(SupersetModelView):
         'json': _("JSON"),
     }
 
-appbuilder.add_view(
-    LogModelView,
-    "Action Log",
-    label=__("Action Log"),
-    category="Security",
-    category_label=__("Security"),
-    icon="fa-list-ol")
-
 
 class QueryView(SupersetModelView):
     datamodel = SQLAInterface(models.Query)
