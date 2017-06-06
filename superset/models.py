@@ -1206,7 +1206,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     }
 
     def __repr__(self):
-        return self.name
+        return self.dataset_name
 
     @property
     def backend(self):
