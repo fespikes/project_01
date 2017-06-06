@@ -79,27 +79,6 @@ class SupersetTestCase(unittest.TestCase):
                 password='general')
         sm.get_session.commit()
 
-        # create druid cluster and druid datasources
-        session = db.session
-        cluster = session.query(models.DruidCluster).filter_by(
-            cluster_name="druid_test").first()
-        if not cluster:
-            cluster = models.DruidCluster(cluster_name="druid_test")
-            session.add(cluster)
-            session.commit()
-
-            druid_datasource1 = models.DruidDatasource(
-                datasource_name='druid_ds_1',
-                cluster_name='druid_test'
-            )
-            session.add(druid_datasource1)
-            druid_datasource2 = models.DruidDatasource(
-                datasource_name='druid_ds_2',
-                cluster_name='druid_test'
-            )
-            session.add(druid_datasource2)
-            session.commit()
-
     def get_table(self, table_id):
         return db.session.query(models.SqlaTable).filter_by(
             id=table_id).first()
@@ -145,10 +124,6 @@ class SupersetTestCase(unittest.TestCase):
         return db.session.query(models.SqlaTable).filter_by(
             table_name=name).first()
 
-    def get_druid_ds_by_name(self, name):
-        return db.session.query(models.DruidDatasource).filter_by(
-            datasource_name=name).first()
-
     def get_resp(
             self, url, data=None, follow_redirects=True, raise_on_error=True):
         """Shortcut to get the parsed results while following redirects"""
@@ -172,18 +147,6 @@ class SupersetTestCase(unittest.TestCase):
         return (
             db.session.query(models.Database)
                 .filter_by(database_name='main')
-                .first()
-        )
-
-    def get_access_requests(self, username, ds_type, ds_id):
-        DAR = models.DatasourceAccessRequest
-        return (
-            db.session.query(DAR)
-                .filter(
-                DAR.created_by == sm.find_user(username=username),
-                DAR.datasource_type == ds_type,
-                DAR.datasource_id == ds_id,
-                )
                 .first()
         )
 
@@ -221,7 +184,7 @@ class SupersetTestCase(unittest.TestCase):
             raise Exception("run_sql failed")
         return resp
 
-    def test_gamma_permissions(self):
+    def _test_gamma_permissions(self):
         def assert_can_read(view_menu):
             self.assertIn(('can_show', view_menu), gamma_perm_set)
             self.assertIn(('can_list', view_menu), gamma_perm_set)
