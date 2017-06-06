@@ -973,9 +973,11 @@ class TableModelView(SupersetModelView):  # noqa
     model = models.SqlaTable
     datamodel = SQLAInterface(models.SqlaTable)
     route_base = '/table'
-    list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url', 'connection', 'changed_on']
+    list_columns = ['id', 'dataset_name', 'dataset_type',
+                    'explore_url', 'connection', 'changed_on']
     _list_columns = list_columns
-    add_columns = ['dataset_name', 'schema', 'table_name', 'sql', 'database_id', 'description']
+    add_columns = ['dataset_name', 'dataset_type', 'schema', 'table_name',
+                   'sql', 'database_id', 'description']
     show_columns = add_columns + ['id']
     edit_columns = add_columns
     order_columns = ['link', 'database', 'changed_on_']
@@ -1113,6 +1115,14 @@ class TableModelView(SupersetModelView):  # noqa
         response['data'] = data
         return response
 
+    def get_add_attributes(self, data, user_id):
+        attributes = super().get_add_attributes(data, user_id)
+        database = db.session.query(models.Database)\
+            .filter_by(id=data['database_id'])\
+            .first()
+        attributes['database'] = database
+        return attributes
+
     def get_show_attributes(self, obj):
         attributes = super().get_show_attributes(obj)
         attributes['available_databases'] = self.get_available_databases()
@@ -1128,15 +1138,15 @@ class TableModelView(SupersetModelView):  # noqa
         return dbs_list
 
     def pre_add(self, table):
-        number_of_existing_tables = db.session.query(
-            sqla.func.count('*')).filter(
-            models.SqlaTable.table_name == table.table_name,
-            models.SqlaTable.schema == table.schema,
-            models.SqlaTable.database_id == table.database.id
-        ).scalar()
+        # number_of_existing_tables = db.session.query(
+        #     sqla.func.count('*')).filter(
+        #     models.SqlaTable.table_name == table.table_name,
+        #     models.SqlaTable.schema == table.schema,
+        #     models.SqlaTable.database_id == table.database.id
+        # ).scalar()
         # table object is already added to the session
-        if number_of_existing_tables > 1:
-            raise Exception(get_datasource_exist_error_mgs(table.full_name))
+        # if number_of_existing_tables > 1:
+        #     raise Exception(get_datasource_exist_error_mgs(table.full_name))
 
         # Fail before adding if the table can't be found
         try:
