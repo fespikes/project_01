@@ -1160,7 +1160,8 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     __tablename__ = 'tables'
     id = Column(Integer, primary_key=True)
-    dataset_name = Column(String(250))
+    dataset_name = Column(String(250), unique=True, nullable=False)
+    dataset_type = Column(String(250))
     main_dttm_col = Column(String(250))
     description = Column(Text)
     default_endpoint = Column(Text)
@@ -1180,7 +1181,6 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     sql = Column(Text)
     params = Column(Text)
     perm = Column(String(1000))
-    dataset_type = Column(String(250))
 
     baselink = "tablemodelview"
     column_cls = TableColumn
@@ -1192,10 +1192,10 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
         'database_id', 'is_featured', 'offset', 'cache_timeout', 'schema',
         'sql', 'params')
 
-    __table_args__ = (
-        sqla.UniqueConstraint(
-            'database_id', 'schema', 'table_name',
-            name='_customer_location_uc'),)
+    # __table_args__ = (
+    #     sqla.UniqueConstraint(
+    #         'database_id', 'schema', 'table_name',
+    #         name='_customer_location_uc'),)
 
     table_type_dict = {
         'database': 'Database',
@@ -1210,11 +1210,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     @property
     def backend(self):
-        if self.table_type.lower() == 'database':
-            return self.database.backend
-        else:
-            # TODO get hdfs backend
-            return 'Unknown backend'
+        return self.database.backend
 
     @property
     def connection(self):
