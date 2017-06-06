@@ -43,7 +43,7 @@ LICENSE_CHECK = True
 LICENSE_CHECK_SERVER = '172.16.2.41:2291'
 # The jar has default path.
 # if you have not moved it, then no need to changed it.
-# LICENSE_CHECK_JAR = '/usr/local/lib/pilot-license.jar'
+# LICENSE_CHECK_JAR = '/usr/local/lib/pilot-license-1.0-transwarp-5.1.0-SNAPSHOT.jar'
 
 # Your App secret key
 SECRET_KEY = '=== Transwarp Studio Pilot ==='  # noqa
