@@ -973,7 +973,7 @@ class TableModelView(SupersetModelView):  # noqa
     model = models.SqlaTable
     datamodel = SQLAInterface(models.SqlaTable)
     route_base = '/table'
-    list_columns = ['id', 'dataset_name', 'table_type', 'explore_url', 'backend', 'changed_on']
+    list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url', 'connection', 'changed_on']
     _list_columns = list_columns
     add_columns = ['dataset_name', 'schema', 'table_name', 'sql', 'database_id', 'description']
     show_columns = add_columns + ['id']
@@ -1058,14 +1058,14 @@ class TableModelView(SupersetModelView):  # noqa
         page = kwargs.get('page')
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
-        table_type = kwargs.get('table_type')
+        dataset_type = kwargs.get('dataset_type')
 
         query = db.session.query(SqlaTable, User)\
             .filter(SqlaTable.created_by_fk == User.id)
 
         # TODO just query this table_type
-        # if table_type:
-        #     query = query.filter(Database.backend.like(type))
+        # if dataset_type:
+        #     query = query.filter(Database.backend.like(dataset_type))
         if filter:
             filter_str = '%{}%'.format(filter.lower())
             query = query.filter(

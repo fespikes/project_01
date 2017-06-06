@@ -1180,7 +1180,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     sql = Column(Text)
     params = Column(Text)
     perm = Column(String(1000))
-    table_type = Column(String(250))
+    dataset_type = Column(String(250))
 
     baselink = "tablemodelview"
     column_cls = TableColumn
@@ -1215,6 +1215,13 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
         else:
             # TODO get hdfs backend
             return 'Unknown backend'
+
+    @property
+    def connection(self):
+        if self.database:
+            return str(self.database)
+        else:
+            return 'No connection'
 
     @property
     def columns(self):
