@@ -1723,10 +1723,10 @@ class DashboardModelView(SupersetModelView):  # noqa
     @expose("/import", methods=['GET', 'POST'])
     def import_dashboards(self):
         """Overrides the dashboards using pickled instances from the file."""
-        f = request.files.get('file')
+        f = request.data
         if request.method == 'POST' and f:
             current_tt = int(time.time())
-            data = pickle.load(f)
+            data = pickle.loads(f)
             for table in data['datasources']:
                 if table.type == 'table':
                     models.SqlaTable.import_obj(table, import_time=current_tt)
