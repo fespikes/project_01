@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { fetchPosts } from '../actions';
 import { Operations, Tables, Paginations } from '../components';
 
 class TableContainer extends React.Component {
@@ -11,7 +12,8 @@ class TableContainer extends React.Component {
     };
 
     componentDidMount() {
-
+        const { dispatch } = this.props;
+        dispatch(fetchPosts());
     }
 
     render() {

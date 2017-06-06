@@ -34,7 +34,6 @@ class DashboardDelete extends React.Component {
             this.refs.popupDashboardDelete.style.display = "none";
         }
 
-
         function callback(success) {
             if(success) {
                 self.refs.popupDashboardDelete.style.display = "none";
@@ -42,10 +41,6 @@ class DashboardDelete extends React.Component {
 
             }
         }
-    }
-
-    componentDidMount() {
-
     }
 
     render() {
@@ -59,7 +54,7 @@ class DashboardDelete extends React.Component {
                                 <span>删除仪表板</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon" onClick={this.closeDialog}>关闭</i>
+                                <i className="icon" onClick={this.closeDialog}></i>
                             </div>
                         </div>
                         <div className="popup-body">

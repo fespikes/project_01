@@ -92,7 +92,7 @@ class DashboardEdit extends React.Component {
                                 <span>仪表盘基本信息</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon" onClick={this.closeDialog}>关闭</i>
+                                <i className="icon" onClick={this.closeDialog}></i>
                             </div>
                         </div>
                         <div className="popup-body">

@@ -12,11 +12,6 @@ class Paginations extends React.Component {
         // bindings
     };
 
-    componentDidMount() {
-        const { dispatch } = this.props;
-        dispatch(fetchPosts());
-    }
-
     render() {
 
         const { dispatch, pageSize, count, pageNumber} = this.props;
