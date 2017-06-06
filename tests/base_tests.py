@@ -24,10 +24,9 @@ class SupersetTestCase(unittest.TestCase):
     examples_loaded = False
 
     def __init__(self, *args, **kwargs):
-        if (
-                        self.requires_examples and
-                        not os.environ.get('SOLO_TEST') and
-                    not os.environ.get('examples_loaded')
+        if (self.requires_examples and
+            not os.environ.get('SOLO_TEST') and
+            not os.environ.get('examples_loaded')
         ):
             logging.info("Loading examples")
             cli.load_examples(load_test_data=True)
@@ -40,17 +39,6 @@ class SupersetTestCase(unittest.TestCase):
         self.client = app.test_client()
         self.maxDiff = None
 
-        gamma_sqllab_role = sm.add_role("gamma_sqllab")
-        for perm in sm.find_role('Gamma').permissions:
-            sm.add_permission_role(gamma_sqllab_role, perm)
-        db_perm = self.get_main_database(sm.get_session).perm
-        security.merge_perm(sm, 'database_access', db_perm)
-        db_pvm = sm.find_permission_view_menu(
-            view_menu_name=db_perm, permission_name='database_access')
-        gamma_sqllab_role.permissions.append(db_pvm)
-        for perm in sm.find_role('sql_lab').permissions:
-            sm.add_permission_role(gamma_sqllab_role, perm)
-
         admin = appbuilder.sm.find_user('admin')
         if not admin:
             appbuilder.sm.add_user(
@@ -58,25 +46,6 @@ class SupersetTestCase(unittest.TestCase):
                 appbuilder.sm.find_role('Admin'),
                 password='general')
 
-        gamma = appbuilder.sm.find_user('gamma')
-        if not gamma:
-            appbuilder.sm.add_user(
-                'gamma', 'gamma', 'user', 'gamma@fab.org',
-                appbuilder.sm.find_role('Gamma'),
-                password='general')
-
-        gamma_sqllab_user = appbuilder.sm.find_user('gamma_sqllab')
-        if not gamma_sqllab_user:
-            appbuilder.sm.add_user(
-                'gamma_sqllab', 'gamma_sqllab', 'user', 'gamma_sqllab@fab.org',
-                gamma_sqllab_role, password='general')
-
-        alpha = appbuilder.sm.find_user('alpha')
-        if not alpha:
-            appbuilder.sm.add_user(
-                'alpha', 'alpha', 'user', 'alpha@fab.org',
-                appbuilder.sm.find_role('Alpha'),
-                password='general')
         sm.get_session.commit()
 
     def get_table(self, table_id):
@@ -105,8 +74,8 @@ class SupersetTestCase(unittest.TestCase):
         session = db.create_scoped_session()
         query = (
             session.query(models.Query)
-                .order_by(models.Query.id.desc())
-                .first()
+            .order_by(models.Query.id.desc())
+            .first()
         )
         session.close()
         return query
@@ -114,8 +83,8 @@ class SupersetTestCase(unittest.TestCase):
     def get_slice(self, slice_name, session):
         slc = (
             session.query(models.Slice)
-                .filter_by(slice_name=slice_name)
-                .one()
+            .filter_by(slice_name=slice_name)
+            .one()
         )
         session.expunge_all()
         return slc
@@ -146,28 +115,12 @@ class SupersetTestCase(unittest.TestCase):
     def get_main_database(self, session):
         return (
             db.session.query(models.Database)
-                .filter_by(database_name='main')
-                .first()
+            .filter_by(database_name='main')
+            .first()
         )
 
     def logout(self):
         self.client.get('/logout/', follow_redirects=True)
-
-    def grant_public_access_to_table(self, table):
-        public_role = appbuilder.sm.find_role('Public')
-        perms = db.session.query(ab_models.PermissionView).all()
-        for perm in perms:
-            if (perm.permission.name == 'datasource_access' and
-                    perm.view_menu and table.perm in perm.view_menu.name):
-                appbuilder.sm.add_permission_role(public_role, perm)
-
-    def revoke_public_access_to_table(self, table):
-        public_role = appbuilder.sm.find_role('Public')
-        perms = db.session.query(ab_models.PermissionView).all()
-        for perm in perms:
-            if (perm.permission.name == 'datasource_access' and
-                    perm.view_menu and table.perm in perm.view_menu.name):
-                appbuilder.sm.del_permission_role(public_role, perm)
 
     def run_sql(self, sql, client_id, user_name=None, raise_on_error=False):
         if user_name:
