@@ -41,7 +41,6 @@ from superset import (
     results_backend, security, viz, utils,
 )
 from superset.source_registry import SourceRegistry
-from superset.models import DatasourceAccessRequest as DAR
 from superset.sql_parse import SupersetQuery
 
 from superset.models import Database, SqlaTable, Slice, \
@@ -1975,116 +1974,6 @@ class Superset(BaseSupersetView):
             'granted': granted_perms,
             'requested': list(db_ds_names)
         }), status=201)
-
-    @expose("/request_access/")
-    def request_access(self):
-        datasources = set()
-        dashboard_id = request.args.get('dashboard_id')
-        if dashboard_id:
-            dash = (
-                db.session.query(models.Dashboard)
-                .filter_by(id=int(dashboard_id))
-                .one()
-            )
-            datasources |= dash.datasources
-        datasource_id = request.args.get('datasource_id')
-        datasource_type = request.args.get('datasource_type')
-        if datasource_id:
-            ds_class = SourceRegistry.sources.get(datasource_type)
-            datasource = (
-                db.session.query(ds_class)
-                .filter_by(id=int(datasource_id))
-                .one()
-            )
-            datasources.add(datasource)
-        if request.args.get('action') == 'go':
-            for datasource in datasources:
-                access_request = DAR(
-                    datasource_id=datasource.id,
-                    datasource_type=datasource.type)
-                db.session.add(access_request)
-                db.session.commit()
-            flash(__("Access was requested"), "info")
-            return redirect('/')
-
-        return self.render_template(
-            'superset/request_access.html',
-            datasources=datasources,
-            datasource_names=", ".join([o.name for o in datasources]),
-        )
-
-    @expose("/approve")
-    def approve(self):
-        datasource_type = request.args.get('datasource_type')
-        datasource_id = request.args.get('datasource_id')
-        created_by_username = request.args.get('created_by')
-        role_to_grant = request.args.get('role_to_grant')
-        role_to_extend = request.args.get('role_to_extend')
-
-        session = db.session
-        datasource = SourceRegistry.get_datasource(
-            datasource_type, datasource_id, session)
-
-        if not datasource:
-            flash(DATASOURCE_MISSING_ERR, "alert")
-            return json_error_response(DATASOURCE_MISSING_ERR)
-
-        requested_by = sm.find_user(username=created_by_username)
-        if not requested_by:
-            flash(USER_MISSING_ERR, "alert")
-            return json_error_response(USER_MISSING_ERR)
-
-        requests = (
-            session.query(DAR)
-            .filter(
-                DAR.datasource_id == datasource_id,
-                DAR.datasource_type == datasource_type,
-                DAR.created_by_fk == requested_by.id)
-            .all()
-        )
-
-        if not requests:
-            flash(ACCESS_REQUEST_MISSING_ERR, "alert")
-            return json_error_response(ACCESS_REQUEST_MISSING_ERR)
-
-        # check if you can approve
-        if self.all_datasource_access() or g.user.id == datasource.owner_id:
-            # can by done by admin only
-            if role_to_grant:
-                role = sm.find_role(role_to_grant)
-                requested_by.roles.append(role)
-                msg = __(
-                    "%(user)s was granted the role %(role)s that gives access "
-                    "to the %(datasource)s",
-                    user=requested_by.username,
-                    role=role_to_grant,
-                    datasource=datasource.full_name)
-                utils.notify_user_about_perm_udate(
-                    g.user, requested_by, role, datasource,
-                    'email/role_granted.txt', app.config)
-                flash(msg, "info")
-
-            if role_to_extend:
-                perm_view = sm.find_permission_view_menu(
-                    'email/datasource_access', datasource.perm)
-                role = sm.find_role(role_to_extend)
-                sm.add_permission_role(role, perm_view)
-                msg = __("Role %(r)s was extended to provide the access to "
-                         "the datasource %(ds)s", r=role_to_extend,
-                         ds=datasource.full_name)
-                utils.notify_user_about_perm_udate(
-                    g.user, requested_by, role, datasource,
-                    'email/role_extended.txt', app.config)
-                flash(msg, "info")
-
-        else:
-            flash(__("You have no permission to approve this request"),
-                  "danger")
-            return redirect('/accessrequestsmodelview/list/')
-        for r in requests:
-            session.delete(r)
-        session.commit()
-        return redirect('/accessrequestsmodelview/list/')
 
     def temp_table(self, database_id, full_tb_name):
         """A temp table for slice"""
