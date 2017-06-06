@@ -965,6 +965,7 @@ class DatabaseView(SupersetModelView):  # noqa
 
 
 class DatabaseAsync(DatabaseView):
+    route_base = '/databaseasync'
     list_columns = [
         'id', 'database_name',
         'expose_in_sqllab', 'allow_ctas', 'force_ctas_schema',
@@ -973,6 +974,7 @@ class DatabaseAsync(DatabaseView):
 
 
 class DatabaseTablesAsync(DatabaseView):
+    route_base = '/databasetablesasync'
     list_columns = ['id', 'all_table_names', 'all_schema_names']
 
 
@@ -1449,6 +1451,7 @@ class SliceModelView(SupersetModelView):  # noqa
 
 
 class SliceAsync(SliceModelView):  # noqa
+    route_base = '/sliceasync'
     list_columns = ['slice_link', 'viz_type', 'modified', 'icons']
     label_columns = {
         'icons': ' ',
@@ -1808,6 +1811,7 @@ class DashboardModelView(SupersetModelView):  # noqa
 
 
 class DashboardModelViewAsync(DashboardModelView):  # noqa
+    route_base = '/dashboardmodelviewasync'
     list_columns = ['dashboard_link', 'creator', 'modified', 'dashboard_title']
     label_columns = {
         'dashboard_link': 'Dashboard',
