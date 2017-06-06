@@ -954,15 +954,6 @@ class DatabaseView(SupersetModelView):  # noqa
         response['data'] = data
         return response
 
-# appbuilder.add_link(
-#     'Import Dashboards',
-#     label=__("Import Dashboards"),
-#     href='/superset/import_dashboards',
-#     icon="fa-cloud-upload",
-#     category='Manage',
-#     category_label=__("Manage"),
-#     category_icon='fa-wrench',)
-
 
 class DatabaseAsync(DatabaseView):
     route_base = '/databaseasync'
