@@ -70,7 +70,7 @@ def upgrade():
         sa.Column('user_id', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('class_name', sa.String(length=50), nullable=True),
         sa.Column('obj_id', sa.Integer(), nullable=True),
-        sa.Column('dttm', sa.DateTime(), nullable=True, server_default=text("NOW()")),
+        sa.Column('dttm', sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_table('logs',
@@ -81,7 +81,7 @@ def upgrade():
         sa.Column('obj_id', sa.Integer(), nullable=True),
         sa.Column('user_id', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('json', sa.Text(), nullable=True),
-        sa.Column('dttm', sa.DateTime(), nullable=True, server_default=text("NOW()")),
+        sa.Column('dttm', sa.DateTime(), nullable=True),
         sa.Column('dt', sa.Date(), nullable=True),
         sa.Column('duration_ms', sa.Integer(), nullable=True),
         sa.Column('referrer', sa.String(length=1024), nullable=True),
