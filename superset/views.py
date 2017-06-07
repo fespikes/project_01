@@ -1029,27 +1029,31 @@ class TableModelView(SupersetModelView):  # noqa
         data['available_databases'] = self.get_available_databases()
         return data
 
-    @staticmethod
-    def get_all_schemas(db_id):
-        d = db.session.query(models.Database) \
-            .filter_by(id=db_id).first()
-        schemas = d.all_schema_names()
-        return json.dumps(schemas)
-
-    @staticmethod
-    def get_all_tables(db_id, schema=None):
-        d = db.session.query(models.Database) \
-            .filter_by(id=db_id).first()
-        tables = d.all_table_names(schema=schema)
-        return json.dumps(tables)
-
-    @expose('/alltables/<database_id>', methods=['GET', ])
-    def all_schemas_and_tables(self, database_id):
+    @expose('/databases/', methods=['GET', ])
+    def addable_databases(self):
         try:
-            d = db.session.query(models.Database)\
+            dbs = self.get_available_databases()
+            return json.dumps(dbs)
+        except Exception as e:
+            return self.build_response(500, False, str(e))
+
+    @expose('/schemas/<database_id>/', methods=['GET', ])
+    def addable_schemas(self, database_id):
+        try:
+            d = db.session.query(models.Database) \
                 .filter_by(id=database_id).first()
-            all_tb = d.all_schema_table_names()
-            return json.dumps(all_tb)
+            schemas = d.all_schema_names()
+            return json.dumps(schemas)
+        except Exception as e:
+            return self.build_response(500, False, str(e))
+
+    @expose('/tables/<database_id>/<schema>', methods=['GET', ])
+    def addable_tables(self, database_id, schema):
+        try:
+            d = db.session.query(models.Database) \
+                .filter_by(id=database_id).first()
+            tables = d.all_table_names(schema=schema)
+            return json.dumps(tables)
         except Exception as e:
             return self.build_response(500, False, str(e))
 
