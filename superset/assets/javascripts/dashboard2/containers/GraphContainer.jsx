@@ -3,10 +3,10 @@ import { render } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import thunk from 'redux-thunk';
 import PropTypes from 'prop-types';
-import { fetchPosts } from '../actions';
+import { fetchPosts, setViewMode } from '../actions';
 import { Operations, Tables, Paginations, Gallery } from '../components';
 
-class GraphContent extends React.Component {
+class GraphContainer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
@@ -15,6 +15,7 @@ class GraphContent extends React.Component {
     componentDidMount() {
         const { dispatch } = this.props;
         dispatch(fetchPosts());
+        dispatch(setViewMode('graph'));//for refresh browser
     }
 
     render() {
@@ -59,8 +60,8 @@ class GraphContent extends React.Component {
 const propTypes = {};
 const defaultProps = {};
 
-GraphContent.propTypes = propTypes;
-GraphContent.defaultProps = defaultProps;
+GraphContainer.propTypes = propTypes;
+GraphContainer.defaultProps = defaultProps;
 
 function addTableKey(posts) {
     if(posts.params.data) {
@@ -79,4 +80,4 @@ function mapStateToProps(state) {
     }
 }
 
-export default connect(mapStateToProps)(GraphContent);
+export default connect(mapStateToProps)(GraphContainer);
