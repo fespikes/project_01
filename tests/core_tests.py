@@ -16,7 +16,7 @@ from flask import escape
 from superset import db, models, utils, appbuilder, sm, jinja_context, sql_lab
 from superset.views import DatabaseView
 
-from .base_tests import SupersetTestCase
+from tests.base_tests import SupersetTestCase
 import logging
 
 
@@ -41,17 +41,17 @@ class CoreTests(SupersetTestCase):
     def tearDown(self):
         db.session.query(models.Query).delete()
 
-    def test_welcome(self):
+    def test_home(self):
         self.login()
-        resp = self.client.get('/superset/welcome')
-        assert 'Welcome' in resp.data.decode('utf-8')
+        resp = self.client.get('/superset/home')
+        print(g.user.get_id())
+        assert '/superset/home' in resp.data.decode('utf-8')
 
     def test_slice_endpoint(self):
         self.login(username='admin')
         slc = self.get_slice("Girls", db.session)
         resp = self.get_resp('/superset/slice/{}/'.format(slc.id))
         assert 'Time Column' in resp
-        assert 'List Roles' in resp
 
         # Testing overrides
         resp = self.get_resp(

@@ -21,12 +21,12 @@ BASE_DIR = app.config.get("BASE_DIR")
 
 class SupersetTestCase(unittest.TestCase):
     requires_examples = False
-    examples_loaded = False
+    examples_loaded = True
 
     def __init__(self, *args, **kwargs):
         if (self.requires_examples and
-            not os.environ.get('SOLO_TEST') and
-            not os.environ.get('examples_loaded')
+                not self.examples_loaded and
+                not os.environ.get('SOLO_TEST')
         ):
             logging.info("Loading examples")
             cli.load_examples(load_test_data=True)
@@ -46,6 +46,13 @@ class SupersetTestCase(unittest.TestCase):
                 appbuilder.sm.find_role('Admin'),
                 password='general')
 
+        hive = appbuilder.sm.find_user('hive')
+        if not hive:
+            appbuilder.sm.add_user(
+                'hive', 'hive', ' user', 'hive@fab.org',
+                appbuilder.sm.find_role('Admin'),
+                password='general')
+
         sm.get_session.commit()
 
     def get_table(self, table_id):
@@ -62,7 +69,7 @@ class SupersetTestCase(unittest.TestCase):
         resp = self.get_resp(
             '/login/',
             data=dict(username=username, password=password))
-        self.assertIn('Welcome', resp)
+        self.assertIn('Pilot', resp)
 
     def get_query_by_sql(self, sql):
         session = db.create_scoped_session()
@@ -114,7 +121,7 @@ class SupersetTestCase(unittest.TestCase):
 
     def get_main_database(self, session):
         return (
-            db.session.query(models.Database)
+            session.query(models.Database)
             .filter_by(database_name='main')
             .first()
         )
