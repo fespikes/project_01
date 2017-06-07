@@ -849,6 +849,8 @@ class DatabaseView(SupersetModelView):  # noqa
     bool_columns = ['expose_in_sqllab', 'allow_run_sync', 'allow_dml']
     str_columns = ['created_on', 'changed_on']
 
+    list_template = "superset/databaseList.html"
+
     def pre_add(self, obj):
         if obj.test_uri(obj.sqlalchemy_uri):
             obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
@@ -1023,6 +1025,8 @@ class TableModelView(SupersetModelView):  # noqa
     int_columns = ['user_id', 'database_id', 'offset', 'cache_timeout']
     bool_columns = ['is_featured', 'filter_select_enabled']
     str_columns = ['database', 'created_on', 'changed_on']
+
+    list_template = "superset/tableList.html"
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
