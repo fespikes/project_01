@@ -3,8 +3,9 @@ import { render } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { fetchAvailableSlices, fetchPosts, fetchDashboardDeleteMul, setShowType, setKeyword, setPageNumber, setViewMode } from '../actions';
 import { DashboardAdd, DashboardDelete } from '../../components/popup';
+import { fetchAvailableSlices, fetchPosts, fetchDashboardDeleteMul, setShowType, setKeyword,
+    setPageNumber, setViewMode } from '../actions';
 
 class Operations extends React.Component {
     constructor(props) {

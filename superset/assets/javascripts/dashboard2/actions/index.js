@@ -15,6 +15,7 @@ export const CONFIG_PARAMS = {
     PAGE_NUMBER: 'PAGE_NUMBER',
     PAGE_SIZE: 'PAGE_SIZE',
     SELECTED_ROWS: 'SELECTED_ROWS',
+    CLEAR_ROWS: 'CLEAR_ROWS',
     VIEW_MODE: 'VIEW_MODE'
 };
 
@@ -77,6 +78,30 @@ export function setSelectedRow(selectedRowKeys, selectedRowNames) {
         type: CONFIG_PARAMS.SELECTED_ROWS,
         selectedRowKeys: selectedRowKeys,
         selectedRowNames: selectedRowNames
+    }
+}
+
+export function clearRows() {
+    return {
+        type: CONFIG_PARAMS.CLEAR_ROWS,
+        selectedRowKeys: [],
+        selectedRowNames: []
+    }
+}
+
+export function appendRow(dashboard, selectedRowKeys, selectedRowNames) {
+    return {
+        type: CONFIG_PARAMS.SELECTED_ROWS,
+        selectedRowKeys: getSelectedRows(dashboard, selectedRowKeys, selectedRowNames, 'append').selectedRowKeys,
+        selectedRowNames: getSelectedRows(dashboard, selectedRowKeys, selectedRowNames, 'append').selectedRowNames
+    }
+}
+
+export function removeRow(dashboard, selectedRowKeys, selectedRowNames) {
+    return {
+        type: CONFIG_PARAMS.SELECTED_ROWS,
+        selectedRowKeys: getSelectedRows(dashboard, selectedRowKeys, selectedRowNames, 'remove').selectedRowKeys,
+        selectedRowNames: getSelectedRows(dashboard, selectedRowKeys, selectedRowNames, 'remove').selectedRowNames
     }
 }
 
@@ -238,7 +263,10 @@ export function fetchPosts() {
         return fetch(url, {
             credentials: "same-origin"
         }).then(response => response.json())
-            .then(json => dispatch(receivePosts(json)))
+            .then(json => {
+                dispatch(receivePosts(json));
+                dispatch(clearRows());
+            })
     }
 }
 
@@ -292,3 +320,30 @@ function getSelectedSlices(selectedSlices, availableSlices) {
     });
     return array;
 }
+
+function getSelectedRows(dashboard, selectedRowKeys, selectedRowNames, type) {
+    let row = {};
+    if(type === "append") {
+        let existed = false;
+        selectedRowKeys.map((key) => {
+            if(key === dashboard.id) {
+                existed = true;
+            }
+        });
+        if(!existed) {
+            selectedRowKeys.push(dashboard.id);
+            selectedRowNames.push(dashboard.dashboard_title);
+        }
+    }else if(type === "remove") {
+        selectedRowKeys.map((key, index) => {
+            if(key === dashboard.id) {
+                selectedRowKeys.splice(index, 1);
+                selectedRowNames.splice(index, 1);
+            }
+        });
+    }
+    row.selectedRowKeys = selectedRowKeys;
+    row.selectedRowNames = selectedRowNames;
+    return row;
+}
+

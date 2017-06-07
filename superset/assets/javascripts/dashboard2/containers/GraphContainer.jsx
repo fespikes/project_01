@@ -3,7 +3,8 @@ import { render } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import thunk from 'redux-thunk';
 import PropTypes from 'prop-types';
-import { Operations, Tables, Paginations } from '../components';
+import { fetchPosts } from '../actions';
+import { Operations, Tables, Paginations, Gallery } from '../components';
 
 class GraphContent extends React.Component {
     constructor(props) {
@@ -12,7 +13,8 @@ class GraphContent extends React.Component {
     };
 
     componentDidMount() {
-
+        const { dispatch } = this.props;
+        dispatch(fetchPosts());
     }
 
     render() {
@@ -36,10 +38,18 @@ class GraphContent extends React.Component {
                     </div>
                 </div>
                 <div className="panel-middle">
-
+                    <Gallery
+                        dispatch={dispatch}
+                        dashboardList={posts.params.data}
+                        selectedRowKeys={configs.selectedRowKeys}
+                        selectedRowNames={configs.selectedRowNames}/>
                 </div>
                 <div className="panel-bottom">
-
+                    <Paginations
+                        dispatch={dispatch}
+                        count={posts.params.count}
+                        pageSize={configs.pageSize}
+                        pageNumber={configs.pageNumber}/>
                 </div>
             </div>
         );
