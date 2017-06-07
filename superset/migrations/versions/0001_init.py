@@ -70,7 +70,7 @@ def upgrade():
         sa.Column('user_id', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('class_name', sa.String(length=50), nullable=True),
         sa.Column('obj_id', sa.Integer(), nullable=True),
-        sa.Column('dttm', sa.DateTime(), nullable=True, server_default=text("NOW()")),
+        sa.Column('dttm', sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_table('logs',
@@ -81,7 +81,7 @@ def upgrade():
         sa.Column('obj_id', sa.Integer(), nullable=True),
         sa.Column('user_id', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('json', sa.Text(), nullable=True),
-        sa.Column('dttm', sa.DateTime(), nullable=True, server_default=text("NOW()")),
+        sa.Column('dttm', sa.DateTime(), nullable=True),
         sa.Column('dt', sa.Date(), nullable=True),
         sa.Column('duration_ms', sa.Integer(), nullable=True),
         sa.Column('referrer', sa.String(length=1024), nullable=True),
@@ -173,7 +173,8 @@ def upgrade():
         sa.Column('created_on', sa.DateTime(), nullable=True),
         sa.Column('changed_on', sa.DateTime(), nullable=True),
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('dataset_name', sa.String(length=250), nullable=True),
+        sa.Column('dataset_name', sa.String(length=250), nullable=False),
+        sa.Column('dataset_type', sa.String(length=250), nullable=True),
         sa.Column('main_dttm_col', sa.String(length=250), nullable=True),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('default_endpoint', sa.Text(), nullable=True),
@@ -188,12 +189,12 @@ def upgrade():
         sa.Column('sql', sa.Text(), nullable=True),
         sa.Column('params', sa.Text(), nullable=True),
         sa.Column('perm', sa.String(length=1000), nullable=True),
-        sa.Column('table_type', sa.String(length=250), nullable=True),
         sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.ForeignKeyConstraint(['database_id'], ['dbs.id'], ),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('database_id', 'schema', 'table_name', name='_customer_location_uc')
+        sa.UniqueConstraint('dataset_name')
+        # sa.UniqueConstraint('database_id', 'schema', 'table_name', name='_customer_location_uc')
     )
     op.create_table('sql_metrics',
         sa.Column('created_on', sa.DateTime(), nullable=True),

@@ -37,7 +37,6 @@ class CoreTests(SupersetTestCase):
 
     def setUp(self):
         db.session.query(models.Query).delete()
-        db.session.query(models.DatasourceAccessRequest).delete()
 
     def tearDown(self):
         db.session.query(models.Query).delete()
@@ -72,33 +71,6 @@ class CoreTests(SupersetTestCase):
 
         resp = self.get_resp(slc.viz.csv_endpoint)
         assert 'Jennifer,' in resp
-
-    def test_admin_only_permissions(self):
-        def assert_admin_permission_in(role_name, assert_func):
-            role = sm.find_role(role_name)
-            permissions = [p.permission.name for p in role.permissions]
-            assert_func('can_sync_druid_source', permissions)
-            assert_func('can_approve', permissions)
-
-        assert_admin_permission_in('Admin', self.assertIn)
-        assert_admin_permission_in('Alpha', self.assertNotIn)
-        assert_admin_permission_in('Gamma', self.assertNotIn)
-
-    def test_admin_only_menu_views(self):
-        def assert_admin_view_menus_in(role_name, assert_func):
-            role = sm.find_role(role_name)
-            view_menus = [p.view_menu.name for p in role.permissions]
-            assert_func('ResetPasswordView', view_menus)
-            assert_func('RoleModelView', view_menus)
-            assert_func('Security', view_menus)
-            assert_func('UserDBModelView', view_menus)
-            assert_func('SQL Lab',
-                        view_menus)
-            assert_func('AccessRequestsModelView', view_menus)
-
-        assert_admin_view_menus_in('Admin', self.assertIn)
-        assert_admin_view_menus_in('Alpha', self.assertNotIn)
-        assert_admin_view_menus_in('Gamma', self.assertNotIn)
 
     def test_save_slice(self):
         self.login(username='admin')
@@ -343,11 +315,6 @@ class CoreTests(SupersetTestCase):
         dash.slices = [
             o for o in dash.slices if o.slice_name != "Mapbox Long/Lat"]
         db.session.commit()
-
-    def test_gamma(self):
-        self.login(username='gamma')
-        assert "List Slice" in self.get_resp('/slicemodelview/list/')
-        assert "List Dashboard" in self.get_resp('/dashboardmodelview/list/')
 
     def test_csv_endpoint(self):
         self.login('admin')
