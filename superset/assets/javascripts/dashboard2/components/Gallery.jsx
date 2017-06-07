@@ -12,15 +12,17 @@ class Gallery extends React.Component {
     render() {
         const { dispatch, dashboardList, selectedRowKeys, selectedRowNames } = this.props;
         let items = [];
-        dashboardList.map((dashboard) => {
-            const item = <GalleryItem
-                key={dashboard.id}
-                dispatch={dispatch}
-                dashboard={dashboard}
-                selectedRowKeys={selectedRowKeys}
-                selectedRowNames={selectedRowNames}/>;
-            items.push(item);
-        });
+        if(dashboardList) {
+            dashboardList.map((dashboard) => {
+                const item = <GalleryItem
+                    key={dashboard.id}
+                    dispatch={dispatch}
+                    dashboard={dashboard}
+                    selectedRowKeys={selectedRowKeys}
+                    selectedRowNames={selectedRowNames}/>;
+                items.push(item);
+            });
+        }
         return (
             <div className="gallery">
                 {items}
