@@ -857,10 +857,10 @@ class DatabaseView(SupersetModelView):  # noqa
 
     def post_add(self, obj):
         self.add_or_edit_database_account(obj)
-        security.merge_perm(sm, 'database_access', obj.perm)
-        for schema in obj.all_schema_names():
-            security.merge_perm(
-                sm, 'schema_access', utils.get_schema_perm(obj, schema))
+        # security.merge_perm(sm, 'database_access', obj.perm)
+        # for schema in obj.all_schema_names():
+        #     security.merge_perm(
+        #         sm, 'schema_access', utils.get_schema_perm(obj, schema))
         # log user aciton
         action_str = 'Add connection: {}'.format(repr(obj))
         log_action('add', action_str, 'database', obj.id)
