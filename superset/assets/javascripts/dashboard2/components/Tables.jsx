@@ -7,7 +7,7 @@ import { DashboardEdit, DashboardDelete } from '../../components/popup';
 import { Table } from 'antd';
 import 'antd/lib/table/style';
 
-class TableList extends React.Component {
+class Tables extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
@@ -19,21 +19,21 @@ class TableList extends React.Component {
 
     render() {
 
-        const { dispatch, dataSource } = this.props;
+        const { dispatch, dashboardList } = this.props;
 
         function editDashboard(record) {
 
             dispatch(fetchDashboardDetail(record.id, callback));
             function callback(success, data) {
                 if(success) {
-                    console.log("dashboard-data=", data);
-                    var editSlicePopup = render(
+                    var editDashboardPopup = render(
                         <DashboardEdit
                             dispatch={dispatch}
-                            dashboardDetail={data} />,
+                            dashboardDetail={data}
+                            editable={true}/>,
                         document.getElementById('popup_root'));
-                    if(editSlicePopup) {
-                        editSlicePopup.showDialog();
+                    if(editDashboardPopup) {
+                        editDashboardPopup.showDialog();
                     }
                 }
             }
@@ -41,16 +41,16 @@ class TableList extends React.Component {
 
         function deleteDashboard(record) {
 
-            const deleteType = "single";
-            var deleteSlicePopup = render(
+            const deleteTips = "确定删除" + record.dashboard_title + "?";
+            var deleteDashboardPopup = render(
                 <DashboardDelete
                     dispatch={dispatch}
-                    deleteType={deleteType}
-                    deleteTips={record.dashboard_title}
+                    deleteType={'single'}
+                    deleteTips={deleteTips}
                     dashboard={record}/>,
                 document.getElementById('popup_root'));
-            if(deleteSlicePopup) {
-                deleteSlicePopup.showDialog();
+            if(deleteDashboardPopup) {
+                deleteDashboardPopup.showDialog();
             }
         }
 
@@ -79,32 +79,55 @@ class TableList extends React.Component {
             title: '名称',
             dataIndex: 'dashboard_title',
             key: 'dashboard_title',
-            sorter: true,
-            width: '30%'
+            width: '30%',
+            render: (text, record) => {
+                return (
+                    <div className="entity-name">
+                        <div className="entity-title highlight">
+                            <a href={record.url}>{record.dashboard_title}</a>
+                        </div>
+                        <div className="entity-description">{record.description}</div>
+                    </div>
+                )
+            },
+            sorter(a, b) {
+                return a.dashboard_title.substring(0, 1).charCodeAt() - b.dashboard_title.substring(0, 1).charCodeAt();
+            }
         }, {
             title: '发布状态',
             dataIndex: 'online',
             key: 'online',
-            sorter: true,
             width: '15%',
             render: (text, record) => {
                 return (
-                    <span>{record.online ? "发布" : "未发布"}</span>
+                    <span>{record.online ? "已发布" : "未发布"}</span>
                 )
+            },
+            sorter(a, b) {
+                console.log(a.online);
+                console.log(b.online);
+                return a.online - b.online;
             }
         }, {
             title: '所有者',
             dataIndex: 'created_by_user',
             key: 'created_by_user',
-            sorter: true,
-            width: '15%'
+            width: '15%',
+            render: (text, record) => {
+                return (
+                    <span className="highlight">{record.created_by_user}</span>
+                )
+            },
+            sorter(a, b) {
+                return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
+            }
         }, {
             title: '最后修改时间',
             dataIndex: 'changed_on',
             key: 'changed_on',
             width: '15%',
             sorter(a, b) {
-                return a.changed_on - b.changed_on
+                return a.changed_on - b.changed_on ? 1 : -1;
             }
         }, {
             title: '操作',
@@ -124,8 +147,6 @@ class TableList extends React.Component {
 
         const rowSelection = {
             onChange: (selectedRowKeys, selectedRows) => {
-                console.log("onChange=", selectedRowKeys);
-                console.log("onChange=", selectedRows);
                 let selectedRowNames = [];
                 selectedRows.forEach(function(row) {
                     selectedRowNames.push(row.dashboard_title);
@@ -135,41 +156,20 @@ class TableList extends React.Component {
         };
 
         return (
-            <div className="dashboard-table">
-                <Table
-                    rowSelection={rowSelection}
-                    dataSource={dataSource}
-                    columns={columns}
-                    pagination={false} />
-            </div>
+            <Table
+                rowSelection={rowSelection}
+                dataSource={dashboardList}
+                columns={columns}
+                pagination={false}
+            />
         );
     }
 }
 
-const propTypes = {
-    dispatch: PropTypes.func.isRequired,
-    dataSource: PropTypes.array.isRequired,
-};
+const propTypes = {};
 const defaultProps = {};
 
-TableList.propTypes = propTypes;
-TableList.defaultProps = defaultProps;
+Tables.propTypes = propTypes;
+Tables.defaultProps = defaultProps;
 
-function addTableKey(tables) {
-    if(tables) {
-        tables.forEach(function(table) {
-            table.key = table.id;
-        });
-    }
-    return tables;
-}
-
-function mapStateToProps(state) {
-
-    return {
-        dataSource: addTableKey(state.posts.params.data) || [],
-        dashboardDetail: state.details.dashboardDetail || {}
-    }
-}
-
-export default connect(mapStateToProps)(TableList);
+export default Tables;

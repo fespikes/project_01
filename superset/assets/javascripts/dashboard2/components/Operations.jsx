@@ -2,7 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { fetchAvailableSlices, fetchPosts, fetchDashboardDeleteMul, setShowType, setKeyword, setPageNumber } from '../actions';
+import { Link } from 'react-router-dom';
+import { fetchAvailableSlices, fetchPosts, fetchDashboardDeleteMul, setShowType, setKeyword, setPageNumber, setViewMode } from '../actions';
 import { DashboardAdd, DashboardDelete } from '../../components/popup';
 
 class Operations extends React.Component {
@@ -17,6 +18,10 @@ class Operations extends React.Component {
         this.showAll = this.showAll.bind(this);
         this.showFavorite = this.showFavorite.bind(this);
         this.searchDashboard = this.searchDashboard.bind(this);
+        this.clickSearchDashboard = this.clickSearchDashboard.bind(this);
+        this.keywordChange = this.keywordChange.bind(this);
+        this.switchTableMode = this.switchTableMode.bind(this);
+        this.switchGraphMode = this.switchGraphMode.bind(this);
     };
 
     addDashboard() {
@@ -30,7 +35,8 @@ class Operations extends React.Component {
                     <DashboardAdd
                         dispatch={dispatch}
                         dashboard={dashboard}
-                        availableSlices={data.data.available_slices}/>,
+                        availableSlices={data.data.available_slices}
+                        enableConfirm={false}/>,
                     document.getElementById('popup_root'));
                 if(addSlicePopup) {
                     addSlicePopup.showDialog();
@@ -40,17 +46,21 @@ class Operations extends React.Component {
     }
 
     deleteDashboardMul() {
-        //dispatch(fetchDashboardDeleteMul());
-        const deleteType = "multiple";
         const { dispatch, selectedRowNames } = this.props;
-        var deleteSlicePopup = render(
+        let deleteType = "multiple";
+        let deleteTips = '确定删除' + selectedRowNames + '?';
+        if(selectedRowNames.length === 0) {
+            deleteType = 'none';
+            deleteTips = '没有选择任何将要删除的记录，请选择！';
+        }
+        var deleteDashboardPopup = render(
             <DashboardDelete
                 dispatch={dispatch}
                 deleteType={deleteType}
-                deleteTips={selectedRowNames} />,
+                deleteTips={deleteTips} />,
             document.getElementById('popup_root'));
-        if(deleteSlicePopup) {
-            deleteSlicePopup.showDialog();
+        if(deleteDashboardPopup) {
+            deleteDashboardPopup.showDialog();
         }
     }
 
@@ -62,17 +72,42 @@ class Operations extends React.Component {
 
     }
 
+    switchTableMode() {
+        const {dispatch} = this.props;
+        dispatch(setViewMode('table'));
+    }
+
+    switchGraphMode() {
+        const {dispatch} = this.props;
+        dispatch(setViewMode('graph'));
+    }
+
     searchDashboard(event) {
         if(event.keyCode === 13) {
             const { dispatch } = this.props;
-            dispatch(setKeyword(event.target.value));
             dispatch(fetchPosts());
+            dispatch(setPageNumber(1));
+        }
+    }
+
+    clickSearchDashboard() {
+        const {dispatch} = this.props;
+        dispatch(fetchPosts());
+        dispatch(setPageNumber(1));
+    }
+
+    keywordChange(event) {
+        const { dispatch } = this.props;
+        dispatch(setKeyword(event.target.value));
+        if(event.target.value === "") {
+            dispatch(fetchPosts());
+            dispatch(setPageNumber(1));
         }
     }
 
     showAll() {
         const { dispatch } = this.props;
-        dispatch(setPageNumber(0));
+        dispatch(setPageNumber(1));
         dispatch(setShowType('show_all'));
         dispatch(setKeyword(''));
         dispatch(fetchPosts());
@@ -80,7 +115,7 @@ class Operations extends React.Component {
 
     showFavorite() {
         const { dispatch } = this.props;
-        dispatch(setPageNumber(0));
+        dispatch(setPageNumber(1));
         dispatch(setShowType('show_favorite'));
         dispatch(setKeyword(''));
         dispatch(fetchPosts());
@@ -91,26 +126,27 @@ class Operations extends React.Component {
     }
 
     render() {
-        const { typeName } = this.props;
+        const { typeName, viewMode } = this.props;
         return (
-            <div className="dashboard-operation">
+            <div className="operations">
                 <ul className="icon-list">
-                    <li id="add" onClick={this.addDashboard}><i className="icon"></i></li>
-                    <li id="delete" onClick={this.deleteDashboardMul}><i className="icon"></i></li>
-                    <li id="upload" onClick={this.importDashboard}><i className="icon"></i></li>
-                    <li id="download" onClick={this.exportDashboard}><i className="icon"></i></li>
+                    <li onClick={this.addDashboard}><i className="icon"></i></li>
+                    <li onClick={this.deleteDashboardMul}><i className="icon"></i></li>
+                    <li onClick={this.importDashboard}><i className="icon"></i></li>
+                    <li onClick={this.exportDashboard}><i className="icon"></i></li>
                 </ul>
                 <div className="tab-btn">
-                    <button id="showAll" className={typeName === 'show_all' ? 'active' : ''} onClick={this.showAll}>全部</button>
-                    <button id="showFavorite" className={typeName === 'show_favorite' ? 'active' : ''} onClick={this.showFavorite}><i className="icon"></i>收藏</button>
+                    <button className={typeName === 'show_all' ? 'active' : ''} onClick={this.showAll}>全部</button>
+                    <button className={typeName === 'show_favorite' ? 'active' : ''} onClick={this.showFavorite}>
+                        <i className="icon"></i>收藏</button>
                 </div>
                 <div className="search-input">
-                    <input id="searchInput" onKeyUp={this.searchDashboard} placeholder="search..." />
-                    <i className="icon"></i>
+                    <input onKeyUp={this.searchDashboard} onChange={this.keywordChange} placeholder="search..." />
+                    <i className="icon" onClick={this.clickSearchDashboard}></i>
                 </div>
-                <div className="operation-btn">
-                    <button id="shrink"><i className="icon active"></i></button>
-                    <button id="enlarge"><i className="icon active"></i></button>
+                <div className="view-btn">
+                    <Link to="/table" onClick={this.switchTableMode}><i className={viewMode === 'table' ? 'icon active' : 'icon'}></i></Link>
+                    <Link to="/graph" onClick={this.switchGraphMode}><i className={viewMode === 'graph' ? 'icon active' : 'icon'}></i></Link>
                 </div>
             </div>
         );
@@ -118,19 +154,9 @@ class Operations extends React.Component {
 }
 
 const propTypes = {};
-const defaultProps = {
-    typeName: 'show_all'
-};
+const defaultProps = {};
 
 Operations.propTypes = propTypes;
 Operations.defaultProps = defaultProps;
 
-const mapStateToProps = (state) => {
-    return {
-        typeName: state.configs.type,
-        selectedRowKeys: state.configs.selectedRowKeys,
-        selectedRowNames: state.configs.selectedRowNames
-    }
-};
-
-export default connect(mapStateToProps)(Operations);
+export default Operations;

@@ -13,6 +13,11 @@ $borderRadius:4px;
 	background-color:#2acc28;
 }
 
+button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 
 .popup {
 	position: fixed;
@@ -72,7 +77,13 @@ $borderRadius:4px;
 			span{
 				margin-left: 10px;
 			}
-			
+		}
+		.header-right {
+			.icon {
+				width: 14px;
+				height: 14px;
+				background-position: -52px -293px;
+			}
 		}
 	}
 

@@ -14,7 +14,8 @@ export const CONFIG_PARAMS = {
     SHOW_TYPE: 'SHOW_TYPE',
     PAGE_NUMBER: 'PAGE_NUMBER',
     PAGE_SIZE: 'PAGE_SIZE',
-    SELECTED_ROWS: 'SELECTED_ROWS'
+    SELECTED_ROWS: 'SELECTED_ROWS',
+    VIEW_MODE: 'VIEW_MODE'
 };
 
 export function requestPosts() {
@@ -76,6 +77,13 @@ export function setSelectedRow(selectedRowKeys, selectedRowNames) {
         type: CONFIG_PARAMS.SELECTED_ROWS,
         selectedRowKeys: selectedRowKeys,
         selectedRowNames: selectedRowNames
+    }
+}
+
+export function setViewMode(viewMode) {
+    return {
+        type: CONFIG_PARAMS.VIEW_MODE,
+        viewMode: viewMode
     }
 }
 
@@ -146,7 +154,7 @@ export function fetchAvailableSlices(callback) {
 
 export function fetchUpdateDashboard(state, dashboard, callback) {
     const url = window.location.origin + "/dashboard/edit/" + dashboard.id;
-    const newDashboard = getNewDashboard(dashboard, state.selected_slices, state.available_slices);
+    const newDashboard = getNewDashboard(dashboard, state.selectedSlices, dashboard.available_slices);
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin",
@@ -169,7 +177,7 @@ export function fetchUpdateDashboard(state, dashboard, callback) {
 
 export function fetchAddDashboard(state, availableSlices, callback) {
     const url = window.location.origin + "/dashboard/add";
-    const dashboard = getNewDashboard(state.dashboard, state.selected_slices, availableSlices);
+    const dashboard = getNewDashboard(state.dashboard, state.selectedSlices, availableSlices);
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin",
@@ -236,7 +244,7 @@ export function fetchPosts() {
 
 
 function getDashboardListUrl(state) {
-    let url = window.location.origin + "/dashboard/listdata?page=" + state.configs.pageNumber +
+    let url = window.location.origin + "/dashboard/listdata?page=" + (state.configs.pageNumber - 1) +
         "&page_size=" + state.configs.pageSize + "&filter=" + state.configs.keyword;
     if(state.configs.type === "show_favorite") {
         url += "&only_favorite=1";

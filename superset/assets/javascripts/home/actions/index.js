@@ -11,6 +11,8 @@ export const SWITCH_TAB_IN_EDIT = "SWITCH_TAB_IN_EDIT";
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
 
+export const SWITCH_PAGE_NUM = 'SWITCH_PAGE_NUM';
+
 /*
  * 其它的常量
  */
@@ -50,7 +52,7 @@ function receiveData(json) {
 }
 
 export function fetchPosts() {
-    const URL = "/home";
+    const URL = "/superset/home/alldata";
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
@@ -61,8 +63,11 @@ export function fetchPosts() {
     };
 }
 
-export function fetchEditDetail() {
-    const URL = "/home/edits";
+export function fetchEditDetail(catagory, index, orderColumn, orderDirection) {
+    if (!orderColumn)
+        orderColumn = "time";
+
+    const URL = "/superset/home/edits/" + catagory + "?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
@@ -73,8 +78,11 @@ export function fetchEditDetail() {
     };
 }
 
-export function fetchEventDetail() {
-    const URL = "/home/actions";
+export function fetchEventDetail(index, orderColumn, orderDirection) {
+    if (!orderColumn)
+        orderColumn = "time";
+    
+    const URL = "/superset/home/actions?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {

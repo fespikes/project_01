@@ -19,10 +19,45 @@
     background-position: -130px -90px;
 }
 
+
 .data-tendency{
     border-radius: 4px;
     padding:0 20px;
     margin:20px 0;
+    min-width: 1100px !important;
+
+    .highcharts-tooltip {
+        .line-tooltip {
+            width: 115px;
+            height: 92px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tooltip-header {
+            width: 80%;
+            height: 28px;
+            border-bottom: 1px solid #323f53;
+        }
+
+        .tooltip-body {
+            margin-top: 10px;
+            width: 80%;
+            .yesterday {
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .today {
+                display: flex;
+                justify-content: space-between;
+            }
+        }
+    }
+
     .data-title{
         display:flex;
         justify-content:center;
@@ -71,6 +106,7 @@
 .top10-and-worktimes{
     display:flex;
     overflow: hidden;
+    min-width: 1100px;
     .top10{
         overflow: hidden;
         flex:1;
@@ -91,6 +127,7 @@
     }
 }
 .recentedit-and-event{
+    min-width: 1100px;
     margin:20px 0;
     display:flex;
 
@@ -102,21 +139,45 @@
         margin-left: auto;
         margin-right: auto;
     }
+
     .recentedit{
         flex:1;
         margin-right:18px;
         .edit-list{
             .ant-table table {
                 border-collapse: collapse !important;
+
+                .name-column {
+                    padding-left:20px;
+                }
+
                 .ant-table-row {
                     border-left: 4px solid #ffffff;
                     &:hover {
                         border-left: 4px solid #289df5;
                     }
 
-                    .time-col {
+                    .time-column {
                         font-size: 14px;
                         color: #7f8fa4;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                        white-space: nowrap;
+                    }
+
+                    .name-column {
+                        width: 160px;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        padding-left: 20px;
+                    }
+
+                    .action-column {
+                        width: 300px;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                        white-space: nowrap;
                     }
 
                     td {
@@ -124,6 +185,7 @@
                         overflow: hidden;
                         white-space: nowrap;
                         font-size: 14px;
+                        padding: 18px 8px;
 
                         a {
                             display: block;
@@ -141,6 +203,10 @@
         .event-list{
             .ant-table table {
                 border-collapse: collapse !important;
+                .user-column {
+                    padding-left:20px;
+                }
+
                 .ant-table-row {
                     border-left: 4px solid #ffffff;
                     &:hover {
@@ -153,18 +219,39 @@
 
                         .user-icon {
                             margin-right: 6px;
+                            margin-top: 4px;
                         }
                     }
 
-                    .time-col {
+                    .time-column {
                         font-size: 14px;
                         color: #7f8fa4;
+                        white-space: nowrap;
+                    }
+
+                    .user-column {
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        width: 160px;
+                        padding-left: 20px;
+                    }
+
+                    .action-column {
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        width: 290px;
                     }
 
                     .action-text {
                         margin-left: 22px;
                         color: #333c48;
                         font-size: 14px;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        width: 268px;
                     }
 
                     .action-title {
@@ -176,6 +263,10 @@
 
                     .action-title-icon {
                         margin-right: 4px;
+                    }
+
+                    td {
+                        padding: 8px;
                     }
 
                     .icon {
@@ -267,6 +358,7 @@
         align-items: center;
         justify-content: space-between;
         margin-bottom: 20px;
+        margin-top: 20px;
 
         .left {
             .title {
@@ -311,6 +403,11 @@
 
         .ant-table table {
             border-collapse: collapse !important;
+
+            .name-column {
+                padding-left: 20px;
+            }
+
             .ant-table-row {
                 border-left: 4px solid #ffffff;
                 &:hover {
@@ -327,6 +424,10 @@
             }
         }
     }
+
+    .ant-table-pagination {
+        float: none;
+    }
 }
 
 .event-detail-page {
@@ -335,6 +436,7 @@
         align-items: center;
         justify-content: space-between;
         margin-bottom: 20px;
+        margin-top: 20px;
 
         .title {
             color: #354052;
@@ -349,11 +451,20 @@
         }
     }
 
+    .ant-table-pagination {
+        float: none;
+    }
+
     .event-table {
         background-color: #ffffff;
 
         .ant-table table {
             border-collapse: collapse !important;
+
+            .user-column {
+                padding-left: 20px;
+            }
+            
             .ant-table-row {
                 border-left: 4px solid #ffffff;
                 &:hover {

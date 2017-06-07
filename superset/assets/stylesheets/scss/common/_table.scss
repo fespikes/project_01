@@ -1,0 +1,30 @@
+table {
+    thead.ant-table-thead > tr > th {
+        height:40px;
+        font-size:12px;
+        color:#7f8fa4;
+        background-color:#fff;
+        border-bottom: 1px solid #e7e9ed;
+    }
+
+    tbody.ant-table-tbody > tr {
+        td {
+            height:50px;
+            font-size:12px;
+            color:#333c48;
+            background-color:#fff;
+        }
+        td:first-child {
+            border-left: 2px solid #fff;
+        }
+    }
+
+    tbody.ant-table-tbody > tr:hover {
+        td {
+            background-color: #e7f3ff;
+        }
+        td:first-child {
+            border-left: 2px solid #249af1;
+        }
+    }
+}
