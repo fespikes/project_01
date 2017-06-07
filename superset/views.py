@@ -41,7 +41,6 @@ from superset import (
     results_backend, security, viz, utils,
 )
 from superset.source_registry import SourceRegistry
-from superset.models import DatasourceAccessRequest as DAR
 from superset.sql_parse import SupersetQuery
 
 from superset.models import Database, SqlaTable, Slice, \
@@ -955,17 +954,9 @@ class DatabaseView(SupersetModelView):  # noqa
         response['data'] = data
         return response
 
-# appbuilder.add_link(
-#     'Import Dashboards',
-#     label=__("Import Dashboards"),
-#     href='/superset/import_dashboards',
-#     icon="fa-cloud-upload",
-#     category='Manage',
-#     category_label=__("Manage"),
-#     category_icon='fa-wrench',)
-
 
 class DatabaseAsync(DatabaseView):
+    route_base = '/databaseasync'
     list_columns = [
         'id', 'database_name',
         'expose_in_sqllab', 'allow_ctas', 'force_ctas_schema',
@@ -974,6 +965,7 @@ class DatabaseAsync(DatabaseView):
 
 
 class DatabaseTablesAsync(DatabaseView):
+    route_base = '/databasetablesasync'
     list_columns = ['id', 'all_table_names', 'all_schema_names']
 
 
@@ -981,9 +973,11 @@ class TableModelView(SupersetModelView):  # noqa
     model = models.SqlaTable
     datamodel = SQLAInterface(models.SqlaTable)
     route_base = '/table'
-    list_columns = ['id', 'dataset_name', 'table_type', 'explore_url', 'backend', 'changed_on']
+    list_columns = ['id', 'dataset_name', 'dataset_type',
+                    'explore_url', 'connection', 'changed_on']
     _list_columns = list_columns
-    add_columns = ['dataset_name', 'schema', 'table_name', 'sql', 'database_id', 'description']
+    add_columns = ['dataset_name', 'dataset_type', 'schema', 'table_name',
+                   'sql', 'database_id', 'description']
     show_columns = add_columns + ['id']
     edit_columns = add_columns
     order_columns = ['link', 'database', 'changed_on_']
@@ -1066,14 +1060,14 @@ class TableModelView(SupersetModelView):  # noqa
         page = kwargs.get('page')
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
-        table_type = kwargs.get('table_type')
+        dataset_type = kwargs.get('dataset_type')
 
         query = db.session.query(SqlaTable, User)\
             .filter(SqlaTable.created_by_fk == User.id)
 
         # TODO just query this table_type
-        # if table_type:
-        #     query = query.filter(Database.backend.like(type))
+        # if dataset_type:
+        #     query = query.filter(Database.backend.like(dataset_type))
         if filter:
             filter_str = '%{}%'.format(filter.lower())
             query = query.filter(
@@ -1121,6 +1115,14 @@ class TableModelView(SupersetModelView):  # noqa
         response['data'] = data
         return response
 
+    def get_add_attributes(self, data, user_id):
+        attributes = super().get_add_attributes(data, user_id)
+        database = db.session.query(models.Database)\
+            .filter_by(id=data['database_id'])\
+            .first()
+        attributes['database'] = database
+        return attributes
+
     def get_show_attributes(self, obj):
         attributes = super().get_show_attributes(obj)
         attributes['available_databases'] = self.get_available_databases()
@@ -1136,15 +1138,15 @@ class TableModelView(SupersetModelView):  # noqa
         return dbs_list
 
     def pre_add(self, table):
-        number_of_existing_tables = db.session.query(
-            sqla.func.count('*')).filter(
-            models.SqlaTable.table_name == table.table_name,
-            models.SqlaTable.schema == table.schema,
-            models.SqlaTable.database_id == table.database.id
-        ).scalar()
+        # number_of_existing_tables = db.session.query(
+        #     sqla.func.count('*')).filter(
+        #     models.SqlaTable.table_name == table.table_name,
+        #     models.SqlaTable.schema == table.schema,
+        #     models.SqlaTable.database_id == table.database.id
+        # ).scalar()
         # table object is already added to the session
-        if number_of_existing_tables > 1:
-            raise Exception(get_datasource_exist_error_mgs(table.full_name))
+        # if number_of_existing_tables > 1:
+        #     raise Exception(get_datasource_exist_error_mgs(table.full_name))
 
         # Fail before adding if the table can't be found
         try:
@@ -1450,6 +1452,7 @@ class SliceModelView(SupersetModelView):  # noqa
 
 
 class SliceAsync(SliceModelView):  # noqa
+    route_base = '/sliceasync'
     list_columns = ['slice_link', 'viz_type', 'modified', 'icons']
     label_columns = {
         'icons': ' ',
@@ -1724,10 +1727,10 @@ class DashboardModelView(SupersetModelView):  # noqa
     @expose("/import", methods=['GET', 'POST'])
     def import_dashboards(self):
         """Overrides the dashboards using pickled instances from the file."""
-        f = request.files.get('file')
+        f = request.data
         if request.method == 'POST' and f:
             current_tt = int(time.time())
-            data = pickle.load(f)
+            data = pickle.loads(f)
             for table in data['datasources']:
                 if table.type == 'table':
                     models.SqlaTable.import_obj(table, import_time=current_tt)
@@ -1809,6 +1812,7 @@ class DashboardModelView(SupersetModelView):  # noqa
 
 
 class DashboardModelViewAsync(DashboardModelView):  # noqa
+    route_base = '/dashboardmodelviewasync'
     list_columns = ['dashboard_link', 'creator', 'modified', 'dashboard_title']
     label_columns = {
         'dashboard_link': 'Dashboard',
@@ -1975,116 +1979,6 @@ class Superset(BaseSupersetView):
             'granted': granted_perms,
             'requested': list(db_ds_names)
         }), status=201)
-
-    @expose("/request_access/")
-    def request_access(self):
-        datasources = set()
-        dashboard_id = request.args.get('dashboard_id')
-        if dashboard_id:
-            dash = (
-                db.session.query(models.Dashboard)
-                .filter_by(id=int(dashboard_id))
-                .one()
-            )
-            datasources |= dash.datasources
-        datasource_id = request.args.get('datasource_id')
-        datasource_type = request.args.get('datasource_type')
-        if datasource_id:
-            ds_class = SourceRegistry.sources.get(datasource_type)
-            datasource = (
-                db.session.query(ds_class)
-                .filter_by(id=int(datasource_id))
-                .one()
-            )
-            datasources.add(datasource)
-        if request.args.get('action') == 'go':
-            for datasource in datasources:
-                access_request = DAR(
-                    datasource_id=datasource.id,
-                    datasource_type=datasource.type)
-                db.session.add(access_request)
-                db.session.commit()
-            flash(__("Access was requested"), "info")
-            return redirect('/')
-
-        return self.render_template(
-            'superset/request_access.html',
-            datasources=datasources,
-            datasource_names=", ".join([o.name for o in datasources]),
-        )
-
-    @expose("/approve")
-    def approve(self):
-        datasource_type = request.args.get('datasource_type')
-        datasource_id = request.args.get('datasource_id')
-        created_by_username = request.args.get('created_by')
-        role_to_grant = request.args.get('role_to_grant')
-        role_to_extend = request.args.get('role_to_extend')
-
-        session = db.session
-        datasource = SourceRegistry.get_datasource(
-            datasource_type, datasource_id, session)
-
-        if not datasource:
-            flash(DATASOURCE_MISSING_ERR, "alert")
-            return json_error_response(DATASOURCE_MISSING_ERR)
-
-        requested_by = sm.find_user(username=created_by_username)
-        if not requested_by:
-            flash(USER_MISSING_ERR, "alert")
-            return json_error_response(USER_MISSING_ERR)
-
-        requests = (
-            session.query(DAR)
-            .filter(
-                DAR.datasource_id == datasource_id,
-                DAR.datasource_type == datasource_type,
-                DAR.created_by_fk == requested_by.id)
-            .all()
-        )
-
-        if not requests:
-            flash(ACCESS_REQUEST_MISSING_ERR, "alert")
-            return json_error_response(ACCESS_REQUEST_MISSING_ERR)
-
-        # check if you can approve
-        if self.all_datasource_access() or g.user.id == datasource.owner_id:
-            # can by done by admin only
-            if role_to_grant:
-                role = sm.find_role(role_to_grant)
-                requested_by.roles.append(role)
-                msg = __(
-                    "%(user)s was granted the role %(role)s that gives access "
-                    "to the %(datasource)s",
-                    user=requested_by.username,
-                    role=role_to_grant,
-                    datasource=datasource.full_name)
-                utils.notify_user_about_perm_udate(
-                    g.user, requested_by, role, datasource,
-                    'email/role_granted.txt', app.config)
-                flash(msg, "info")
-
-            if role_to_extend:
-                perm_view = sm.find_permission_view_menu(
-                    'email/datasource_access', datasource.perm)
-                role = sm.find_role(role_to_extend)
-                sm.add_permission_role(role, perm_view)
-                msg = __("Role %(r)s was extended to provide the access to "
-                         "the datasource %(ds)s", r=role_to_extend,
-                         ds=datasource.full_name)
-                utils.notify_user_about_perm_udate(
-                    g.user, requested_by, role, datasource,
-                    'email/role_extended.txt', app.config)
-                flash(msg, "info")
-
-        else:
-            flash(__("You have no permission to approve this request"),
-                  "danger")
-            return redirect('/accessrequestsmodelview/list/')
-        for r in requests:
-            session.delete(r)
-        session.commit()
-        return redirect('/accessrequestsmodelview/list/')
 
     def temp_table(self, database_id, full_tb_name):
         """A temp table for slice"""

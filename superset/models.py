@@ -1160,7 +1160,8 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     __tablename__ = 'tables'
     id = Column(Integer, primary_key=True)
-    dataset_name = Column(String(250))
+    dataset_name = Column(String(250), unique=True, nullable=False)
+    dataset_type = Column(String(250))
     main_dttm_col = Column(String(250))
     description = Column(Text)
     default_endpoint = Column(Text)
@@ -1180,7 +1181,6 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     sql = Column(Text)
     params = Column(Text)
     perm = Column(String(1000))
-    table_type = Column(String(250))
 
     baselink = "tablemodelview"
     column_cls = TableColumn
@@ -1192,10 +1192,10 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
         'database_id', 'is_featured', 'offset', 'cache_timeout', 'schema',
         'sql', 'params')
 
-    __table_args__ = (
-        sqla.UniqueConstraint(
-            'database_id', 'schema', 'table_name',
-            name='_customer_location_uc'),)
+    # __table_args__ = (
+    #     sqla.UniqueConstraint(
+    #         'database_id', 'schema', 'table_name',
+    #         name='_customer_location_uc'),)
 
     table_type_dict = {
         'database': 'Database',
@@ -1206,15 +1206,18 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     }
 
     def __repr__(self):
-        return self.name
+        return self.dataset_name
 
     @property
     def backend(self):
-        if self.table_type.lower() == 'database':
-            return self.database.backend
+        return self.database.backend
+
+    @property
+    def connection(self):
+        if self.database:
+            return str(self.database)
         else:
-            # TODO get hdfs backend
-            return 'Unknown backend'
+            return 'No connection'
 
     @property
     def columns(self):
@@ -1978,74 +1981,6 @@ class Query(Model):
         tab = self.tab_name.replace(' ', '_').lower() if self.tab_name else 'notab'
         tab = re.sub(r'\W+', '', tab)
         return "sqllab_{tab}_{ts}".format(**locals())
-
-
-class DatasourceAccessRequest(Model, AuditMixinNullable):
-    """ORM model for the access requests for datasources and dbs."""
-    __tablename__ = 'access_request'
-    id = Column(Integer, primary_key=True)
-
-    datasource_id = Column(Integer)
-    datasource_type = Column(String(200))
-
-    ROLES_BLACKLIST = set(config.get('ROBOT_PERMISSION_ROLES', []))
-
-    @property
-    def cls_model(self):
-        return SourceRegistry.sources[self.datasource_type]
-
-    @property
-    def username(self):
-        return self.creator()
-
-    @property
-    def datasource(self):
-        return self.get_datasource
-
-    @datasource.getter
-    @utils.memoized
-    def get_datasource(self):
-        ds = db.session.query(self.cls_model).filter_by(
-            id=self.datasource_id).first()
-        return ds
-
-    @property
-    def datasource_link(self):
-        return self.datasource.link
-
-    @property
-    def roles_with_datasource(self):
-        action_list = ''
-        pv = sm.find_permission_view_menu(
-            'datasource_access', self.datasource.perm)
-        for r in pv.role:
-            if r.name in self.ROLES_BLACKLIST:
-                continue
-            url = (
-                '/superset/approve?datasource_type={self.datasource_type}&'
-                'datasource_id={self.datasource_id}&'
-                'created_by={self.created_by.username}&role_to_grant={r.name}'
-                .format(**locals())
-            )
-            href = '<a href="{}">Grant {} Role</a>'.format(url, r.name)
-            action_list = action_list + '<li>' + href + '</li>'
-        return '<ul>' + action_list + '</ul>'
-
-    @property
-    def user_roles(self):
-        action_list = ''
-        for r in self.created_by.roles:
-            url = (
-                '/superset/approve?datasource_type={self.datasource_type}&'
-                'datasource_id={self.datasource_id}&'
-                'created_by={self.created_by.username}&role_to_extend={r.name}'
-                .format(**locals())
-            )
-            href = '<a href="{}">Extend {} Role</a>'.format(url, r.name)
-            if r.name in self.ROLES_BLACKLIST:
-                href = "{} Role".format(r.name)
-            action_list = action_list + '<li>' + href + '</li>'
-        return '<ul>' + action_list + '</ul>'
 
 
 str_to_model = {
