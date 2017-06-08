@@ -64,7 +64,8 @@ def load_energy():
     print("Creating table [wb_health_population] reference")
     tbl = db.session.query(TBL).filter_by(table_name=tbl_name).first()
     if not tbl:
-        tbl = TBL(table_name=tbl_name)
+        tbl = TBL(dataset_name=tbl_name,
+                  table_name=tbl_name)
     tbl.description = "Energy consumption"
     tbl.is_featured = True
     tbl.database = get_or_create_main_db()
@@ -190,7 +191,8 @@ def load_world_bank_health_n_pop():
     print("Creating table [wb_health_population] reference")
     tbl = db.session.query(TBL).filter_by(table_name=tbl_name).first()
     if not tbl:
-        tbl = TBL(table_name=tbl_name)
+        tbl = TBL(dataset_name=tbl_name,
+                  table_name=tbl_name)
     tbl.description = utils.readfile(os.path.join(DATA_FOLDER, 'countries.md'))
     tbl.main_dttm_col = 'year'
     tbl.is_featured = True
@@ -584,7 +586,8 @@ def load_birth_names():
     print("Creating table [birth_names] reference")
     obj = db.session.query(TBL).filter_by(table_name='birth_names').first()
     if not obj:
-        obj = TBL(table_name='birth_names')
+        obj = TBL(dataset_name='birth_names',
+                  table_name='birth_names')
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
     obj.is_featured = True
@@ -841,7 +844,8 @@ def load_unicode_test_data():
     print("Creating table [unicode_test] reference")
     obj = db.session.query(TBL).filter_by(table_name='unicode_test').first()
     if not obj:
-        obj = TBL(table_name='unicode_test')
+        obj = TBL(dataset_name='unicode_test',
+                  table_name='unicode_test')
     obj.main_dttm_col = 'date'
     obj.database = get_or_create_main_db()
     obj.is_featured = False
@@ -924,7 +928,8 @@ def load_random_time_series_data():
     print("Creating table [random_time_series] reference")
     obj = db.session.query(TBL).filter_by(table_name='random_time_series').first()
     if not obj:
-        obj = TBL(table_name='random_time_series')
+        obj = TBL(dataset_name='random_time_series',
+                  table_name='random_time_series')
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
     obj.is_featured = False
@@ -992,7 +997,8 @@ def load_long_lat_data():
     print("Creating table reference")
     obj = db.session.query(TBL).filter_by(table_name='long_lat').first()
     if not obj:
-        obj = TBL(table_name='long_lat')
+        obj = TBL(dataset_name='long_lat',
+                  table_name='long_lat')
     obj.main_dttm_col = 'date'
     obj.database = get_or_create_main_db()
     obj.is_featured = False
@@ -1057,7 +1063,8 @@ def load_multiformat_time_series_data():
     print("Creating table [multiformat_time_series] reference")
     obj = db.session.query(TBL).filter_by(table_name='multiformat_time_series').first()
     if not obj:
-        obj = TBL(table_name='multiformat_time_series')
+        obj = TBL(dataset_name='multiformat_time_series',
+                  table_name='multiformat_time_series')
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
     obj.is_featured = False

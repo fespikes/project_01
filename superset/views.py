@@ -859,10 +859,10 @@ class DatabaseView(SupersetModelView):  # noqa
 
     def post_add(self, obj):
         self.add_or_edit_database_account(obj)
-        security.merge_perm(sm, 'database_access', obj.perm)
-        for schema in obj.all_schema_names():
-            security.merge_perm(
-                sm, 'schema_access', utils.get_schema_perm(obj, schema))
+        # security.merge_perm(sm, 'database_access', obj.perm)
+        # for schema in obj.all_schema_names():
+        #     security.merge_perm(
+        #         sm, 'schema_access', utils.get_schema_perm(obj, schema))
         # log user aciton
         action_str = 'Add connection: {}'.format(repr(obj))
         log_action('add', action_str, 'database', obj.id)
@@ -1033,27 +1033,31 @@ class TableModelView(SupersetModelView):  # noqa
         data['available_databases'] = self.get_available_databases()
         return data
 
-    @staticmethod
-    def get_all_schemas(db_id):
-        d = db.session.query(models.Database) \
-            .filter_by(id=db_id).first()
-        schemas = d.all_schema_names()
-        return json.dumps(schemas)
-
-    @staticmethod
-    def get_all_tables(db_id, schema=None):
-        d = db.session.query(models.Database) \
-            .filter_by(id=db_id).first()
-        tables = d.all_table_names(schema=schema)
-        return json.dumps(tables)
-
-    @expose('/alltables/<database_id>', methods=['GET', ])
-    def all_schemas_and_tables(self, database_id):
+    @expose('/databases/', methods=['GET', ])
+    def addable_databases(self):
         try:
-            d = db.session.query(models.Database)\
+            dbs = self.get_available_databases()
+            return json.dumps(dbs)
+        except Exception as e:
+            return self.build_response(500, False, str(e))
+
+    @expose('/schemas/<database_id>/', methods=['GET', ])
+    def addable_schemas(self, database_id):
+        try:
+            d = db.session.query(models.Database) \
                 .filter_by(id=database_id).first()
-            all_tb = d.all_schema_table_names()
-            return json.dumps(all_tb)
+            schemas = d.all_schema_names()
+            return json.dumps(schemas)
+        except Exception as e:
+            return self.build_response(500, False, str(e))
+
+    @expose('/tables/<database_id>/<schema>', methods=['GET', ])
+    def addable_tables(self, database_id, schema):
+        try:
+            d = db.session.query(models.Database) \
+                .filter_by(id=database_id).first()
+            tables = d.all_table_names(schema=schema)
+            return json.dumps(tables)
         except Exception as e:
             return self.build_response(500, False, str(e))
 
@@ -2757,6 +2761,18 @@ class Superset(BaseSupersetView):
         return Response(
             json.dumps({'count': count}),
             mimetype="application/json")
+
+    @expose('/if_online/<class_name>/<obj_id>')
+    def if_online(self, class_name, obj_id):
+        try:
+            model = str_to_model.get(class_name.lower())
+            if hasattr(model, 'online'):
+                obj = db.session.query(model).filter_by(id=obj_id).first()
+                return json.dumps(obj.online)
+            else:
+                return json.dumps(False)
+        except Exception as e:
+            return json_error_response(utils.error_msg_from_exception(e))
 
     @expose("/dashboard/<dashboard_id>/")
     def dashboard(self, dashboard_id):
