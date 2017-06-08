@@ -14,7 +14,8 @@ function Line(props) {
 
     const config = {
         chart: {
-            type: 'area'
+            type: 'area',
+            height: '240'
         },
         credits: {
             enabled: false

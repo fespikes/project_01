@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { fetchEditDetail } from "../actions";
+import { fetchEditDetail, swithTabInEdit} from "../actions";
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 import { Redirect } from 'react-router-dom';
@@ -165,10 +165,7 @@ const mapStateToProps = (state, props) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         onChangeCatagory: (catagory) => {
-            dispatch({
-                type: "SWITCH_TAB_IN_EDIT",
-                tab: catagory
-            });
+            dispatch(swithTabInEdit(catagory));
         },
         fetchEditDetail: (catagory, index, orderColumn, orderDirection) => {
             dispatch(fetchEditDetail(catagory, index, orderColumn, orderDirection));
