@@ -2758,6 +2758,18 @@ class Superset(BaseSupersetView):
             json.dumps({'count': count}),
             mimetype="application/json")
 
+    @expose('/if_online/<class_name>/<obj_id>')
+    def if_online(self, class_name, obj_id):
+        try:
+            model = str_to_model.get(class_name.lower())
+            if hasattr(model, 'online'):
+                obj = db.session.query(model).filter_by(id=obj_id).first()
+                return json.dumps(obj.online)
+            else:
+                return json.dumps(False)
+        except Exception as e:
+            return json_error_response(utils.error_msg_from_exception(e))
+
     @expose("/dashboard/<dashboard_id>/")
     def dashboard(self, dashboard_id):
         """Server side rendering for a dashboard"""
