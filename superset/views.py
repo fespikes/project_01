@@ -418,7 +418,8 @@ class SupersetModelView(ModelView):
     def show(self, pk):
         try:
             obj = self.get_object(pk)
-            attributes = self.get_show_attributes(obj)
+            user_id = self.get_user_id()
+            attributes = self.get_show_attributes(obj, user_id=user_id)
             return json.dumps(attributes)
         except Exception as e:
             return self.build_response(500, False, str(e))
@@ -495,7 +496,7 @@ class SupersetModelView(ModelView):
             setattr(obj, key, value)
         return obj
 
-    def get_show_attributes(self, obj):
+    def get_show_attributes(self, obj, user_id=None):
         attributes = {}
         for col in self.show_columns:
             if not hasattr(obj, col):
@@ -705,7 +706,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         data['available_tables'] = self.get_available_tables()
         return data
 
-    def get_show_attributes(self, obj):
+    def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
         attributes['available_tables'] = self.get_available_tables()
         return attributes
@@ -777,7 +778,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             data.append(line)
         return {'data': data}
 
-    def get_show_attributes(self, obj):
+    def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
         attributes['available_tables'] = self.get_available_tables()
         return attributes
@@ -1127,7 +1128,7 @@ class TableModelView(SupersetModelView):  # noqa
         attributes['database'] = database
         return attributes
 
-    def get_show_attributes(self, obj):
+    def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
         attributes['available_databases'] = self.get_available_databases()
         return attributes
@@ -1270,10 +1271,10 @@ class SliceModelView(SupersetModelView):  # noqa
         data['available_dashboards'] = self.dashboards_to_dict(dashs)
         return data
 
-    def get_show_attributes(self, obj):
-        attributes = super().get_show_attributes(obj)
+    def get_show_attributes(self, obj, user_id=None):
+        attributes = super().get_show_attributes(obj, user_id)
         attributes['dashboards'] = self.dashboards_to_dict(obj.dashboards)
-        dashs = self.get_available_dashboards(self.get_user_id())
+        dashs = self.get_available_dashboards(user_id)
         available_dashs = self.dashboards_to_dict(dashs)
         attributes['available_dashboards'] = available_dashs
         return attributes
@@ -1692,10 +1693,10 @@ class DashboardModelView(SupersetModelView):  # noqa
         response['data'] = data
         return response
 
-    def get_show_attributes(self, obj):
+    def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
         attributes['slices'] = self.slices_to_dict(obj.slices)
-        available_slices = self.get_available_slices(self.get_user_id())
+        available_slices = self.get_available_slices(user_id)
         attributes['available_slices'] = self.slices_to_dict(available_slices)
         return attributes
 
