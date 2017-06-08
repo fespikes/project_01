@@ -2089,7 +2089,7 @@ class Superset(BaseSupersetView):
                 action_str = 'Import dashboard: {}'.format(dashboard.dashboard_title)
                 log_action('import', action_str, 'dashboard', dashboard.id)
             db.session.commit()
-            return redirect('/dashboardmodelview/list/')
+            return redirect('/dashboard/list/')
         return self.render_template('superset/import_dashboards.html')
 
     @expose("/explore/<datasource_type>/<datasource_id>/")
@@ -2104,7 +2104,7 @@ class Superset(BaseSupersetView):
         if slice_id:
             slc = db.session.query(models.Slice).filter_by(id=slice_id).first()
 
-        error_redirect = '/slicemodelview/list/'
+        error_redirect = '/slice/list/'
         datasource_class = SourceRegistry.sources[datasource_type]
         datasources = db.session.query(datasource_class).all()
         datasources = sorted(datasources, key=lambda ds: ds.full_name)
@@ -2220,7 +2220,7 @@ class Superset(BaseSupersetView):
         :return:
         """
         # TODO: Cache endpoint by user, datasource and column
-        error_redirect = '/slicemodelview/list/'
+        error_redirect = '/slice/list/'
         datasource_class = models.SqlaTable \
             if datasource_type == "table" else models.DruidDatasource
 
@@ -3011,7 +3011,7 @@ class Superset(BaseSupersetView):
         # Prevent exposing column fields to users that cannot access DB.
         if not self.datasource_access(t.perm):
             flash(get_datasource_access_error_msg(t.name), 'danger')
-            return redirect("/tablemodelview/list/")
+            return redirect("/table/list/")
 
         fields = ", ".join(
             [quote(c.name) for c in t.columns] or "*")
