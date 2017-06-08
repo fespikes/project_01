@@ -1465,6 +1465,7 @@ class SliceAsync(SliceModelView):  # noqa
 
 
 class SliceAddView(SliceModelView):  # noqa
+    route_base = '/sliceaddview'
     list_columns = [
         'id', 'slice_name', 'slice_link', 'viz_type',
         'owners', 'modified', 'changed_on']
@@ -1824,6 +1825,7 @@ class DashboardModelViewAsync(DashboardModelView):  # noqa
 
 
 class LogModelView(SupersetModelView):
+    route_base = '/logmodelview'
     datamodel = SQLAInterface(models.Log)
     list_columns = ('user', 'action_type', 'action', 'obj_type', 'obj_id', 'dttm')
     edit_columns = ('user', 'action', 'dttm', 'json')
@@ -1837,6 +1839,7 @@ class LogModelView(SupersetModelView):
     
 
 class QueryView(SupersetModelView):
+    route_base = '/queryview'
     datamodel = SQLAInterface(models.Query)
     list_columns = ['user', 'database', 'status', 'start_time', 'end_time']
 
