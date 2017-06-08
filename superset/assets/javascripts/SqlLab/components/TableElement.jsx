@@ -154,8 +154,8 @@ class TableElement extends React.PureComponent {
         onExited={this.removeFromStore.bind(this)}
       >
         <div className="TableElement">
-          <div className="clearfix">
-            <div className="pull-left">
+          <div className="table-element-title">
+            <div className="table-name-title">
               <a
                 href="#"
                 className="table-name"
@@ -163,12 +163,12 @@ class TableElement extends React.PureComponent {
               >
                 <strong>{table.name}</strong>
                 <small className="m-l-5">
-                  <i className={`fa fa-${table.expanded ? 'minus' : 'plus'}-square-o`} />
+                  <i className={`fa fa-chevron-${table.expanded ? 'up' : 'down'}`} />
                 </small>
               </a>
             </div>
-            <div className="pull-right">
-              <ButtonGroup className="ws-el-controls pull-right">
+            <div className="operation-bar">
+              <ButtonGroup className="ws-el-controls">
                 {keyLink}
                 <Link
                   className={

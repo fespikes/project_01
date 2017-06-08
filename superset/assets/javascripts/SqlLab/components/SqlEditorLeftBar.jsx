@@ -114,13 +114,14 @@ class SqlEditorLeftBar extends React.PureComponent {
         <div className="clearfix sql-toolbar scrollbar-content">
           {networkAlert}
           <div>
+            <div className="select-title">Database</div>
             <AsyncSelect
               dataEndpoint="/databaseasync/api/read?_flt_0_expose_in_sqllab=1"
               onChange={this.onChange.bind(this)}
               value={this.props.queryEditor.dbId}
               valueRenderer={(o) => (
                 <div>
-                  <span className="text-muted">Database:</span> {o.label}
+                {o.label}
                 </div>
               )}
               mutator={this.dbMutator.bind(this)}
@@ -128,6 +129,7 @@ class SqlEditorLeftBar extends React.PureComponent {
             />
           </div>
           <div className="m-t-5">
+            <div className="select-title">Schema ({this.state.schemaOptions.length})</div>
             <Select
               name="select-schema"
               placeholder={`Select a schema (${this.state.schemaOptions.length})`}
@@ -135,7 +137,7 @@ class SqlEditorLeftBar extends React.PureComponent {
               value={this.props.queryEditor.schema}
               valueRenderer={(o) => (
                 <div>
-                  <span className="text-muted">Schema:</span> {o.label}
+                  {o.label}
                 </div>
               )}
               isLoading={this.state.schemaLoading}
@@ -144,18 +146,19 @@ class SqlEditorLeftBar extends React.PureComponent {
             />
           </div>
           <div className="m-t-5">
+            <div className="select-title">Add a table ({this.state.tableOptions.length})</div>
             <Select
               name="select-table"
               ref="selectTable"
               isLoading={this.state.tableLoading}
-              placeholder={`Add a table (${this.state.tableOptions.length})`}
+              placeholder={` `}
               autosize={false}
               onChange={this.changeTable.bind(this)}
               options={this.state.tableOptions}
             />
           </div>
           <hr />
-          <div className="m-t-5">
+          <div className="m-t-5 table-elements">
             {this.props.tables.map((table) => (
               <TableElement
                 table={table}

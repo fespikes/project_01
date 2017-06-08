@@ -38,6 +38,12 @@ class QueryTable extends React.PureComponent {
       activeQuery: null,
     };
   }
+
+  componentDidMount() {
+    $ = window.$;
+    $('tbody.reactable-pagination tr td').addClass('custom-pagination');
+  }
+
   getQueryLink(dbId, sql) {
     const params = ['dbid=' + dbId, 'sql=' + sql, 'title=Untitled Query'];
     const link = getLink(this.state.cleanUri, params);
@@ -155,28 +161,28 @@ class QueryTable extends React.PureComponent {
       q.state = (
         <div>
           <span className={'m-r-3 label label-' + STATE_BSSTYLE_MAP[q.state]}>
-            {q.state}
+            {q.state.substr(0, 1).toUpperCase() + q.state.substr(1)}
           </span>
           {errorTooltip}
         </div>
       );
       q.actions = (
-        <div style={{ width: '75px' }}>
+        <div>
           <Link
-            className="fa fa-line-chart m-r-3"
+            className="fa fa-bar-chart m-r-3"
             tooltip="Visualize the data out of this query"
             onClick={this.showVisualizeModal.bind(this, query)}
           />
           <Link
-            className="fa fa-pencil m-r-3"
-            onClick={this.restoreSql.bind(this, query)}
-            tooltip="Overwrite text in editor with a query on this table"
+            className="fa fa-plus m-r-3"
+            onClick={this.openQueryInNewTab.bind(this, query)}
+            tooltip="Run query in a new tab"
             placement="top"
           />
           <Link
-            className="fa fa-plus-circle m-r-3"
-            onClick={this.openQueryInNewTab.bind(this, query)}
-            tooltip="Run query in a new tab"
+            className="fa fa-pencil-square-o m-r-3"
+            onClick={this.restoreSql.bind(this, query)}
+            tooltip="Overwrite text in editor with a query on this table"
             placement="top"
           />
           <Link
@@ -199,7 +205,8 @@ class QueryTable extends React.PureComponent {
           columns={this.props.columns}
           className="table table-condensed"
           data={data}
-          itemsPerPage={50}
+          itemsPerPage={30}
+          pageButtonLimit={6}
         />
       </div>
     );
