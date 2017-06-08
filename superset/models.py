@@ -150,7 +150,7 @@ class AuditMixinNullable(AuditMixin):
     def _user_link(self, user):
         if not user:
             return ''
-        url = '/superset/profile/{}/'.format(user.username)
+        url = '/pilot/profile/{}/'.format(user.username)
         return Markup('<a href="{}">{}</a>'.format(url, escape(user) or ''))
 
     @renders('created_by')
@@ -299,14 +299,14 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         slice_params['slice_name'] = self.slice_name
         from werkzeug.urls import Href
         href = Href(
-            "/superset/explore/{obj.datasource_type}/"
+            "/pilot/explore/{obj.datasource_type}/"
             "{obj.datasource_id}/".format(obj=self))
         return href(slice_params)
 
     @property
     def slice_id_url(self):
         return (
-            "/superset/{slc.datasource_type}/{slc.datasource_id}/{slc.id}/"
+            "/pilot/{slc.datasource_type}/{slc.datasource_id}/{slc.id}/"
         ).format(slc=self)
 
     @property
@@ -433,7 +433,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
     @property
     def url(self):
-        return "/superset/dashboard/{}/".format(self.slug or self.id)
+        return "/pilot/dashboard/{}/".format(self.slug or self.id)
 
     @property
     def datasources(self):
@@ -655,7 +655,7 @@ class Queryable(object):
         if self.default_endpoint:
             return self.default_endpoint
         else:
-            return "/superset/explore/{obj.type}/{obj.id}/".format(obj=self)
+            return "/pilot/explore/{obj.type}/{obj.id}/".format(obj=self)
 
     @property
     def data(self):
@@ -939,7 +939,7 @@ class Database(Model, AuditMixinNullable):
 
     @property
     def sql_url(self):
-        return '/superset/sql/{}/'.format(self.id)
+        return '/pilot/sql/{}/'.format(self.id)
 
     def get_perm(self):
         return (

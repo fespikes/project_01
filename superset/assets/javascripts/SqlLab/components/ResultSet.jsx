@@ -2,6 +2,7 @@ import React from 'react';
 import { Alert, Button, ButtonGroup, ProgressBar } from 'react-bootstrap';
 import { Table } from 'reactable';
 import shortid from 'shortid';
+import { Input } from 'antd';
 
 import VisualizeModal from './VisualizeModal';
 import HighlightedSql from './HighlightedSql';
@@ -64,33 +65,29 @@ class ResultSet extends React.PureComponent {
             bsSize="small"
             onClick={this.showModal.bind(this)}
           >
-            <i className="fa fa-line-chart m-l-1" /> Visualize
+            <i className="fa fa-bar-chart m-l-1" /> Visualize
           </Button>
         );
       }
       let searchBox;
       if (this.props.search) {
+        const Search = Input.Search;
         searchBox = (
-          <input
-            type="text"
-            onChange={this.changeSearch.bind(this)}
-            className="form-control input-sm"
+          <Search
             placeholder="Search Results"
+            className="form-control input-sm"
+            onChange={this.changeSearch.bind(this)}
           />
         );
       }
       return (
         <div className="ResultSetControls">
-          <div className="clearfix">
-            <div className="pull-left">
+          <div className="control-bar">
               <ButtonGroup>
                 {visualizeButton}
                 {csvButton}
               </ButtonGroup>
-            </div>
-            <div className="pull-right">
               {searchBox}
-            </div>
           </div>
         </div>
       );

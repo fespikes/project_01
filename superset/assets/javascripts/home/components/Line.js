@@ -58,7 +58,6 @@ function Line(props) {
             labels: {
                 formatter: function() {
                     var result = this.value.substr(5);
-                    console.log(result);
                     return result;
                 }
             }

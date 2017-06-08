@@ -1,6 +1,5 @@
 const $ = window.$ = require('jquery');
 const jQuery = window.jQuery = $; // eslint-disable-line
-require('bootstrap');
 
 import React from 'react';
 import { render } from 'react-dom';

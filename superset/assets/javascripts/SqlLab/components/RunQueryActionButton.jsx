@@ -23,33 +23,39 @@ export default function RunQueryActionButton(props) {
   };
 
   const syncBtn = (
-    <Button
-      {...commonBtnProps}
-      onClick={() => props.runQuery(false)}
-      key="run-btn"
-    >
-      <i className="fa fa-table" /> {runBtnText}
-    </Button>
+    <div className="sync-btn query-btn">
+      <Button
+        {...commonBtnProps}
+        onClick={() => props.runQuery(false)}
+        key="run-btn"
+      >
+        <i className="fa fa-table" /> {runBtnText}
+      </Button>
+    </div>
   );
 
   const asyncBtn = (
-    <Button
-      {...commonBtnProps}
-      onClick={() => props.runQuery(true)}
-      key="run-async-btn"
-      tooltip={asyncToolTip}
-    >
-      <i className="fa fa-table" /> {runBtnText}
-    </Button>
+    <div className="async-btn query-btn">
+      <Button
+        {...commonBtnProps}
+        onClick={() => props.runQuery(true)}
+        key="run-async-btn"
+        tooltip={asyncToolTip}
+      >
+        <i className="fa fa-table" /> {runBtnText}
+      </Button>
+    </div>
   );
 
   const stopBtn = (
-    <Button
-      {...commonBtnProps}
-      onClick={props.stopQuery}
-    >
-      <i className="fa fa-stop" /> Stop
-    </Button>
+    <div className="stop-btn query-btn">
+      <Button
+        {...commonBtnProps}
+        onClick={props.stopQuery}
+      >
+        <i className="fa fa-stop" /> Stop
+      </Button>
+    </div>
   );
 
   let button;
@@ -62,7 +68,7 @@ export default function RunQueryActionButton(props) {
   }
 
   return (
-    <div className="inline m-r-5 pull-left">
+    <div className="inline m-r-5">
       {button}
     </div>
   );

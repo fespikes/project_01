@@ -139,7 +139,7 @@ class TabbedSqlEditors extends React.PureComponent {
 
       const tabTitle = (
         <div>
-          <div className={'circle ' + state} /> {qe.title} {' '}
+          <div className={'circle circle-' + state}><div className='circle-sm'></div></div> <span className="query-title">{qe.title}</span> {' '}
           <DropdownButton
             bsSize="small"
             id={'ddbtn-tab-' + i}
@@ -198,10 +198,11 @@ class TabbedSqlEditors extends React.PureComponent {
         {editors}
         <Tab
           title={
-            <div>
-              <i className="fa fa-plus-circle" />&nbsp;
+            <div className="add-query-icon">
+              <i className="fa fa-plus" />&nbsp;
             </div>}
           eventKey="add_tab"
+          tabClassName="add-query-tab"
         />
       </Tabs>
     );

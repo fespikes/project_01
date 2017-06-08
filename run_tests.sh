@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 echo $DB
 rm ~/pilot/unittests.db
-rm ~/pilot/celerydb.sqlite
-rm ~/pilot/celery_results.sqlite
 rm -f .coverage
 export SUPERSET_CONFIG=tests.superset_test_config
 set -e
