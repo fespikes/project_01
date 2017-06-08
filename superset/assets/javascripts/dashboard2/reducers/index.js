@@ -8,7 +8,7 @@ function configs(state = {
     type: "show_all",
     keyword: "",
     pageNumber: 1,
-    pageSize: 10,
+    pageSize: 12,
     selectedRowKeys: [],
     selectedRowNames: [],
     viewMode: 'table'
@@ -35,6 +35,11 @@ function configs(state = {
             });
             break;
         case CONFIG_PARAMS.SELECTED_ROWS:
+            return Object.assign({}, state, {
+                selectedRowKeys: action.selectedRowKeys,
+                selectedRowNames: action.selectedRowNames
+            });
+        case CONFIG_PARAMS.CLEAR_ROWS:
             return Object.assign({}, state, {
                 selectedRowKeys: action.selectedRowKeys,
                 selectedRowNames: action.selectedRowNames

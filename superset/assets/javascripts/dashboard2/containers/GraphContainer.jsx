@@ -3,16 +3,19 @@ import { render } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import thunk from 'redux-thunk';
 import PropTypes from 'prop-types';
-import { Operations, Tables, Paginations } from '../components';
+import { fetchPosts, setViewMode } from '../actions';
+import { Operations, Tables, Paginations, Gallery } from '../components';
 
-class GraphContent extends React.Component {
+class GraphContainer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
     };
 
     componentDidMount() {
-
+        const { dispatch } = this.props;
+        dispatch(fetchPosts());
+        dispatch(setViewMode('graph'));//for refresh browser
     }
 
     render() {
@@ -36,10 +39,18 @@ class GraphContent extends React.Component {
                     </div>
                 </div>
                 <div className="panel-middle">
-
+                    <Gallery
+                        dispatch={dispatch}
+                        dashboardList={posts.params.data}
+                        selectedRowKeys={configs.selectedRowKeys}
+                        selectedRowNames={configs.selectedRowNames}/>
                 </div>
                 <div className="panel-bottom">
-
+                    <Paginations
+                        dispatch={dispatch}
+                        count={posts.params.count}
+                        pageSize={configs.pageSize}
+                        pageNumber={configs.pageNumber}/>
                 </div>
             </div>
         );
@@ -49,8 +60,8 @@ class GraphContent extends React.Component {
 const propTypes = {};
 const defaultProps = {};
 
-GraphContent.propTypes = propTypes;
-GraphContent.defaultProps = defaultProps;
+GraphContainer.propTypes = propTypes;
+GraphContainer.defaultProps = defaultProps;
 
 function addTableKey(posts) {
     if(posts.params.data) {
@@ -69,4 +80,4 @@ function mapStateToProps(state) {
     }
 }
 
-export default connect(mapStateToProps)(GraphContent);
+export default connect(mapStateToProps)(GraphContainer);
