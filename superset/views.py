@@ -1345,7 +1345,7 @@ class SliceModelView(SupersetModelView):  # noqa
     def add(self):
         table = db.session.query(models.SqlaTable).first()
         if not table:
-            redirect_url = '/superset/explore/table/0'
+            redirect_url = '/pilot/explore/table/0'
         else:
             redirect_url = table.explore_url
         return redirect(redirect_url)
@@ -1881,6 +1881,8 @@ class R(BaseSupersetView):
 
 
 class Superset(BaseSupersetView):
+    route_base = '/pilot'
+
     """The base views for Superset!"""
     @expose("/update_role/", methods=['POST'])
     def update_role(self):
@@ -2585,7 +2587,7 @@ class Superset(BaseSupersetView):
             if o.Dashboard.created_by:
                 user = o.Dashboard.created_by
                 d['creator'] = str(user)
-                d['creator_url'] = '/superset/profile/{}/'.format(
+                d['creator_url'] = '/pilot/profile/{}/'.format(
                     user.username)
             payload.append(d)
         return Response(
@@ -2659,7 +2661,7 @@ class Superset(BaseSupersetView):
             if o.Slice.created_by:
                 user = o.Slice.created_by
                 d['creator'] = str(user)
-                d['creator_url'] = '/superset/profile/{}/'.format(
+                d['creator_url'] = '/pilot/profile/{}/'.format(
                     user.username)
             payload.append(d)
         return Response(
@@ -2788,7 +2790,7 @@ class Superset(BaseSupersetView):
                     __(get_datasource_access_error_msg(datasource.name)),
                     "danger")
                 return redirect(
-                    'superset/request_access/?'
+                    'pilot/request_access/?'
                     'dashboard_id={dash.id}&'
                     ''.format(**locals()))
 
@@ -2931,7 +2933,7 @@ class Superset(BaseSupersetView):
             'limit': '0',
         }
         params = "&".join([k + '=' + v for k, v in params.items() if v])
-        return '/superset/explore/table/{table.id}/?{params}'.format(**locals())
+        return '/pilot/explore/table/{table.id}/?{params}'.format(**locals())
 
     @expose("/table/<database_id>/<table_name>/<schema>/")
     def table(self, database_id, table_name, schema):
@@ -3384,7 +3386,7 @@ class Home(BaseSupersetView):
     default_types['actions'] could be: ['online', 'offline', 'add', 'edit', 'delete'...]
     """
     default_view = 'home'
-    route_base = '/superset/home'
+    route_base = '/pilot/home'
 
     page = 0
     page_size = 10
@@ -4022,13 +4024,13 @@ appbuilder.add_view(
 
 appbuilder.add_link(
     'SQL Editor',
-    href='/superset/sqllab',
+    href='/pilot/sqllab',
     category_icon="fa-flask",
     icon="fa-flask",
     category='SQL Lab')
 appbuilder.add_link(
     'Query Search',
-    href='/superset/sqllab#search',
+    href='/pilot/sqllab#search',
     icon="fa-search",
     category_icon="fa-flask",
     category='SQL Lab')
@@ -4052,12 +4054,12 @@ app.url_map.converters['regex'] = RegexConverter
 
 @app.route('/<regex("panoramix\/.*"):url>')
 def panoramix(url):  # noqa
-    return redirect(request.full_path.replace('panoramix', 'superset'))
+    return redirect(request.full_path.replace('panoramix', 'pilot'))
 
 
 @app.route('/<regex("caravel\/.*"):url>')
 def caravel(url):  # noqa
-    return redirect(request.full_path.replace('caravel', 'superset'))
+    return redirect(request.full_path.replace('caravel', 'pilot'))
 
 
 # ---------------------------------------------------------------------
