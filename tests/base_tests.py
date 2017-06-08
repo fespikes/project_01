@@ -8,6 +8,7 @@ import logging
 import json
 import os
 import unittest
+from datetime import datetime
 
 from flask_appbuilder.security.sqla import models as ab_models
 
@@ -21,7 +22,7 @@ BASE_DIR = app.config.get("BASE_DIR")
 
 class SupersetTestCase(unittest.TestCase):
     requires_examples = False
-    examples_loaded = True
+    examples_loaded = False
 
     def __init__(self, *args, **kwargs):
         if (self.requires_examples and
@@ -32,28 +33,38 @@ class SupersetTestCase(unittest.TestCase):
             cli.load_examples(load_test_data=True)
             logging.info("Done loading examples")
             sync_role_definitions()
-            os.environ['examples_loaded'] = '1'
+            self.add_admin_user('admin')
+            self.update_example_user('admin')
+            self.examples_loaded = True
         else:
             sync_role_definitions()
         super(SupersetTestCase, self).__init__(*args, **kwargs)
         self.client = app.test_client()
         self.maxDiff = None
+        self.add_admin_user('hive')
 
-        admin = appbuilder.sm.find_user('admin')
-        if not admin:
+    def add_admin_user(self, username):
+        user = appbuilder.sm.find_user(username)
+        if not user:
             appbuilder.sm.add_user(
-                'admin', 'admin', ' user', 'admin@fab.org',
-                appbuilder.sm.find_role('Admin'),
-                password='general')
+                username, username, ' user', '{}@transwarp.io'.format(username),
+                appbuilder.sm.find_role('Admin'),  password='general')
 
-        hive = appbuilder.sm.find_user('hive')
-        if not hive:
-            appbuilder.sm.add_user(
-                'hive', 'hive', ' user', 'hive@fab.org',
-                appbuilder.sm.find_role('Admin'),
-                password='general')
+    def update_example_user(self, username):
+        user = appbuilder.sm.find_user(username)
+        classes = [models.Dashboard, models.Slice, models.Database,
+                   models.SqlaTable, models.TableColumn, models.SqlMetric]
+        for cls in classes:
+            self.update_object_user(cls, user.id)
 
-        sm.get_session.commit()
+    def update_object_user(self, cls, user_id):
+        db.session.query(cls).update(
+            {cls.created_by_fk: user_id,
+             cls.changed_by_fk: user_id,
+             cls.created_on: datetime.now(),
+             cls.changed_on: datetime.now()}
+        )
+        db.session.commit()
 
     def get_table(self, table_id):
         return db.session.query(models.SqlaTable).filter_by(
