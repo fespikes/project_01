@@ -1,7 +1,7 @@
 import React from 'react';
 import AceEditor from 'react-ace';
 import 'brace/mode/sql';
-import 'brace/theme/github';
+import 'brace/theme/tomorrow';
 import 'brace/ext/language_tools';
 import ace from 'brace';
 import { areArraysShallowEqual } from '../../reduxUtils';
@@ -95,7 +95,7 @@ class AceEditorWrapper extends React.PureComponent {
     return (
       <AceEditor
         mode="sql"
-        theme="github"
+        theme="tomorrow"
         onLoad={this.onEditorLoad.bind(this)}
         onBlur={this.onBlur.bind(this)}
         minLines={8}

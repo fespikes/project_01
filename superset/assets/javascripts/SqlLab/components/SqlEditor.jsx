@@ -145,9 +145,13 @@ class SqlEditor extends React.PureComponent {
         </FormGroup>
       );
     }
-    const editorBottomBar = (
-      <div className="sql-toolbar clearfix">
-        <div className="pull-left">
+
+    const editorTopBar = (
+      <div className="sql-toolbar editor-top-bar clearfix">
+        <div className="sql-toolbar-title">
+          <span>建立数据集</span>
+        </div>
+        <div className="operation-button">
           <Form inline>
             <RunQueryActionButton
               allowAsync={this.props.database && this.props.database.allow_run_async}
@@ -160,19 +164,23 @@ class SqlEditor extends React.PureComponent {
             {ctasControls}
           </Form>
         </div>
-        <div className="pull-right">
-          {limitWarning}
-          {this.props.latestQuery &&
-            <Timer
-              startTime={this.props.latestQuery.startDttm}
-              endTime={this.props.latestQuery.endDttm}
-              state={STATE_BSSTYLE_MAP[this.props.latestQuery.state]}
-              isRunning={this.props.latestQuery.state === 'running'}
-            />
-          }
-        </div>
       </div>
     );
+
+    const timerBar = (
+      <div className="timer-bar">
+        {limitWarning}
+        {this.props.latestQuery &&
+          <Timer
+            startTime={this.props.latestQuery.startDttm}
+            endTime={this.props.latestQuery.endDttm}
+            state={STATE_BSSTYLE_MAP[this.props.latestQuery.state]}
+            isRunning={this.props.latestQuery.state === 'running'}
+          />
+        }
+      </div>
+    );
+
     return (
       <div
         className="SqlEditor"
@@ -198,6 +206,8 @@ class SqlEditor extends React.PureComponent {
           <Col md={this.props.hideLeftBar ? 12 : 9}>
             <div className="scrollbar-container">
               <div className="scrollbar-content">
+                {editorTopBar}
+                {timerBar}
                 <AceEditorWrapper
                   actions={this.props.actions}
                   onBlur={this.setQueryEditorSql.bind(this)}
@@ -206,7 +216,6 @@ class SqlEditor extends React.PureComponent {
                   sql={this.props.queryEditor.sql}
                   tables={this.props.tables}
                 />
-                {editorBottomBar}
                 <br />
                 <SouthPane
                   editorQueries={this.props.editorQueries}

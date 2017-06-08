@@ -117,16 +117,19 @@ class QuerySearch extends React.PureComponent {
 
     const url = this.insertParams('/superset/search_queries', params);
     $.getJSON(url, (data, status) => {
-      if (status === 'success') {
+      if (status === 'success') {       
         this.setState({ queriesArray: data, queriesLoading: false });
       }
     });
   }
   render() {
     return (
-      <div>
-        <div id="search-header" className="row space-1">
-          <div className="col-sm-2">
+      <div className="query-search-page">
+        <div id="search-header">
+          <div className="page-title">
+            <span>SQL执行记录</span>
+          </div>
+          <div className="select-user">
             <AsyncSelect
               dataEndpoint="/users/api/read"
               mutator={this.userMutator}
@@ -134,7 +137,7 @@ class QuerySearch extends React.PureComponent {
               onChange={this.changeUser.bind(this)}
             />
           </div>
-          <div className="col-sm-2">
+          <div className="select-database">
             <AsyncSelect
               onChange={this.onChange.bind(this)}
               dataEndpoint="/databaseasync/api/read?_flt_0_expose_in_sqllab=1"
@@ -142,7 +145,7 @@ class QuerySearch extends React.PureComponent {
               mutator={this.dbMutator.bind(this)}
             />
           </div>
-          <div className="col-sm-4">
+          <div className="search-result">
             <input
               type="text"
               onChange={this.changeSearch.bind(this)}
@@ -150,7 +153,7 @@ class QuerySearch extends React.PureComponent {
               placeholder="Search Results"
             />
           </div>
-          <div className="col-sm-1">
+          <div className="select-from">
             <Select
               name="select-from"
               placeholder="[From]-"
@@ -161,7 +164,7 @@ class QuerySearch extends React.PureComponent {
               onChange={this.changeFrom.bind(this)}
             />
           </div>
-          <div className="col-sm-1">
+          <div className="select-to">
             <Select
               name="select-to"
               placeholder="[To]-"
@@ -171,7 +174,7 @@ class QuerySearch extends React.PureComponent {
               onChange={this.changeTo.bind(this)}
             />
           </div>
-          <div className="col-sm-1">
+          <div className="select-status">
             <Select
               name="select-status"
               placeholder="[Query Status]"
@@ -182,8 +185,8 @@ class QuerySearch extends React.PureComponent {
               onChange={this.changeStatus.bind(this)}
             />
           </div>
-          <Button bsSize="small" bsStyle="success" onClick={this.refreshQueries.bind(this)}>
-            Search
+          <Button className="search-button" bsSize="small" bsStyle="primary" onClick={this.refreshQueries.bind(this)}>
+            <i className="fa fa-search" aria-hidden="true"></i>Search
           </Button>
         </div>
         {this.state.queriesLoading ?
