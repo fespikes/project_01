@@ -385,9 +385,12 @@ class SupersetModelView(ModelView):
 
     @expose('/listdata')
     def get_list_data(self):
-        kwargs = self.get_list_args(request.args)
-        list_data = self.get_object_list_data(**kwargs)
-        return json.dumps(list_data)
+        try:
+            kwargs = self.get_list_args(request.args)
+            list_data = self.get_object_list_data(**kwargs)
+            return json.dumps(list_data)
+        except Exception as e:
+            return self.build_response(500, False, str(e))
 
     @expose('/addablechoices', methods=['GET'])
     def addable_choices(self):
@@ -407,10 +410,9 @@ class SupersetModelView(ModelView):
             self.pre_add(obj)
             self.datamodel.add(obj)
             self.post_add(obj)
+            return self.build_response(200, True, ADD_SUCCESS)
         except Exception as e:
             return self.build_response(500, False, str(e))
-        else:
-            return self.build_response(200, True, ADD_SUCCESS)
 
     @expose('/show/<pk>', methods=['GET'])
     def show(self, pk):
@@ -419,7 +421,7 @@ class SupersetModelView(ModelView):
             attributes = self.get_show_attributes(obj)
             return json.dumps(attributes)
         except Exception as e:
-            return self.build_response(self.status, False, str(e))
+            return self.build_response(500, False, str(e))
 
     @expose('/edit/<pk>', methods=['GET', 'POST'])
     def edit(self, pk):
@@ -430,21 +432,19 @@ class SupersetModelView(ModelView):
             self.pre_update(obj)
             self.datamodel.edit(obj)
             self.post_update(obj)
+            return self.build_response(200, True, UPDATE_SUCCESS)
         except Exception as e:
             return self.build_response(self.status, False, str(e))
-        else:
-            return self.build_response(200, True, UPDATE_SUCCESS)
 
     @expose('/delete/<pk>')
     def delete(self, pk):
         try:
             obj = self.get_object(pk)
             self._delete(obj)
-        except Exception as e:
-            return self.build_response(500, success=False, message=str(e))
-        else:
             self.update_redirect()
             return self.build_response(500, True, DELETE_SUCCESS)
+        except Exception as e:
+            return self.build_response(500, success=False, message=str(e))
 
     def _delete(self, obj):
         self.pre_delete(obj)
