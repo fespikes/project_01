@@ -4,12 +4,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import json
+import unittest
 
 from sqlalchemy import and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset import db
-from superset.models import Dashboard, FavStar
+from superset.models import Dashboard
 from superset.views import DashboardModelView
 from tests.base_tests import SupersetTestCase
 
@@ -45,81 +45,36 @@ class DashboardCRUDTests(SupersetTestCase, PageMixin):
         kwargs = self.kwargs
         kwargs['user_id'] = self.user.id
         real_value = self.dash_view.get_object_list_data(**kwargs)
-        print(json.dumps(real_value))
-        expect_count, expect_rs = self.get_dashboard_list_data()
-        assert expect_count == real_value.get('count')
+
         assert self.page == real_value.get('page')
         assert self.page_size == real_value.get('page_size')
         assert self.order_column == real_value.get('order_column')
         assert self.order_direction == real_value.get('order_direction')
 
-        read_data = real_value.get('data')
-        index = 0
-        for obj, username, fav in expect_rs:
-            assert read_data[index].get('id') == obj.id
-            assert read_data[index].get('dashboard_title') == obj.dashboard_title
-            assert read_data[index].get('online') == obj.online
-            assert read_data[index].get('url') == obj.url
-            assert read_data[index].get('description') == obj.description
-            if fav:
-                assert read_data[0].get('favorite') is True
-            else:
-                assert read_data[0].get('favorite') is False
-            index = index + 1
+        dash_list = real_value.get('data')
+        one_dash = dash_list[0]
+        for dash_dict in dash_list:
+            assert isinstance(dash_dict.get('id'), int)
+            assert isinstance(dash_dict.get('online'), bool)
+            assert isinstance(dash_dict.get('favorite'), bool)
+            assert '/pilot/dashboard/' in dash_dict.get('url')
 
-    def get_dashboard_list_data(self):
-        query = (
-            db.session.query(Dashboard, User.username, FavStar.obj_id)
-                .join(User, Dashboard.created_by_fk == User.id)
-        )
-
-        if self.only_favorite:
-            query = query.join(FavStar,
-                               and_(
-                                   Dashboard.id == FavStar.obj_id,
-                                   FavStar.class_name.ilike('dashboard'),
-                                   FavStar.user_id == self.user.id)
-                               )
-        else:
-            query = query.outerjoin(FavStar,
-                                    and_(
-                                        Dashboard.id == FavStar.obj_id,
-                                        FavStar.class_name.ilike('dashboard'),
-                                        FavStar.user_id == self.user.id)
-                                    )
-        query = query.filter(
-            or_(Dashboard.created_by_fk == self.user.id,
-                Dashboard.online == 1)
-        )
-
-        if self.filter:
-            filter_str = '%{}%'.format(self.filter.lower())
-            query = query.filter(
-                or_(
-                    Dashboard.dashboard_title.ilike(filter_str),
-                    Dashboard.description.ilike(filter_str),
-                    User.username.ilike(filter_str)
-                )
-            )
-        count = query.count()
-
-        if self.order_column:
-            column = self.dash_view.str_to_column.get(self.order_column)
-            if self.order_direction == 'desc':
-                query = query.order_by(column.desc())
-            else:
-                query = query.order_by(column)
-
-        if self.page is not None and self.page >= 0 \
-                and self.page_size and self.page_size > 0:
-            query = query.limit(self.page_size) \
-                .offset(self.page * self.page_size)
-
-        rs = query.all()
-        return count, rs
+        queried_dash = db.session.query(Dashboard)\
+            .filter_by(id=one_dash.get('id')).first()
+        assert one_dash.get('dashboard_title') == queried_dash.dashboard_title
+        assert one_dash.get('online') == queried_dash.online
+        assert one_dash.get('url') == queried_dash.url
+        assert one_dash.get('description') == queried_dash.description
+        assert one_dash.get('dashboard_title') == queried_dash.dashboard_title
 
     def test_show(self):
-        pass
+        one_dash = db.session.query(Dashboard).first()
+        real_value = self.dash_view.get_show_attributes(one_dash, self.user.id)
+        assert one_dash.id == real_value.get('id')
+        assert one_dash.dashboard_title == real_value.get('dashboard_title')
+        assert one_dash.description == real_value.get('description')
+        assert one_dash.table_names == real_value.get('table_names')
+        assert len(one_dash.slices) == len(real_value.get('slices'))
 
     def test_add(self):
         pass
@@ -129,3 +84,7 @@ class DashboardCRUDTests(SupersetTestCase, PageMixin):
 
     def test_muldelete(self):
         pass
+
+
+if __name__ == '__main__':
+    unittest.main()
