@@ -526,10 +526,6 @@ class SupersetModelView(ModelView):
 
     def get_add_attributes(self, data, user_id):
         attributes = {}
-        attributes['created_by_fk'] = user_id
-        attributes['created_on'] = datetime.now()
-        attributes['changed_by_fk'] = user_id
-        attributes['changed_on'] = datetime.now()
         for col in self.add_columns:
             if col not in data:
                 msg = "The needed attribute: \'{}\' not in attributes: \'{}\'"\
@@ -546,8 +542,6 @@ class SupersetModelView(ModelView):
 
     def get_edit_attributes(self, data, user_id):
         attributes = {}
-        attributes['changed_by_fk'] = user_id
-        attributes['changed_on'] = datetime.now()
         for col in self.edit_columns:
             if col not in data:
                 msg = "The needed attribute: \'{}\' not in attributes: \'{}\'" \
