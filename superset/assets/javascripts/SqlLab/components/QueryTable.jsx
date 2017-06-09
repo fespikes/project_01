@@ -30,6 +30,17 @@ const defaultProps = {
 class QueryTable extends React.PureComponent {
   constructor(props) {
     super(props);
+
+    this.clearQueryResults = this.clearQueryResults.bind(this);
+    this.props.onUserClicked = this.props.onUserClicked.bind(this);
+    this.props.onDbClicked = this.props.onDbClicked.bind(this);
+    this.openAsyncResults = this.openAsyncResults.bind(this);
+    this.showVisualizeModal = this.showVisualizeModal.bind(this);
+    this.openQueryInNewTab = this.openQueryInNewTab.bind(this);
+    this.restoreSql = this.restoreSql.bind(this);
+    this.removeQuery = this.removeQuery.bind(this);
+    this.hideVisualizeModal = this.hideVisualizeModal.bind(this);
+
     const uri = window.location.toString();
     const cleanUri = uri.substring(0, uri.indexOf('#'));
     this.state = {
@@ -88,7 +99,7 @@ class QueryTable extends React.PureComponent {
       q.user = (
         <button
           className="btn btn-link btn-xs"
-          onClick={this.props.onUserClicked.bind(this, q.userId)}
+          onClick={this.props.onUserClicked(q.userId)}
         >
           {q.user}
         </button>
@@ -96,7 +107,7 @@ class QueryTable extends React.PureComponent {
       q.db = (
         <button
           className="btn btn-link btn-xs"
-          onClick={this.props.onDbClicked.bind(this, q.dbId)}
+          onClick={this.props.onDbClicked(q.dbId)}
         >
           {q.db}
         </button>
@@ -131,8 +142,8 @@ class QueryTable extends React.PureComponent {
               </Label>
             )}
             modalTitle={'Data preview'}
-            beforeOpen={this.openAsyncResults.bind(this, query)}
-            onExit={this.clearQueryResults.bind(this, query)}
+            beforeOpen={(query) => this.openAsyncResults(query)}
+            onExit={(query) => this.clearQueryResults(query)}
             modalBody={<ResultSet showSql query={query} actions={this.props.actions} />}
           />
         );
@@ -171,24 +182,24 @@ class QueryTable extends React.PureComponent {
           <Link
             className="fa fa-bar-chart m-r-3"
             tooltip="Visualize the data out of this query"
-            onClick={this.showVisualizeModal.bind(this, query)}
+            onClick={(query) => this.showVisualizeModal(query)}
           />
           <Link
             className="fa fa-plus m-r-3"
-            onClick={this.openQueryInNewTab.bind(this, query)}
+            onClick={(query) => this.openQueryInNewTab(query)}
             tooltip="Run query in a new tab"
             placement="top"
           />
           <Link
             className="fa fa-pencil-square-o m-r-3"
-            onClick={this.restoreSql.bind(this, query)}
+            onClick={(query) => this.restoreSql(query)}
             tooltip="Overwrite text in editor with a query on this table"
             placement="top"
           />
           <Link
             className="fa fa-trash m-r-3"
             tooltip="Remove query from log"
-            onClick={this.removeQuery.bind(this, query)}
+            onClick={(query) => this.removeQuery(query)}
           />
         </div>
       );
@@ -199,7 +210,7 @@ class QueryTable extends React.PureComponent {
         <VisualizeModal
           show={this.state.showVisualizeModal}
           query={this.state.activeQuery}
-          onHide={this.hideVisualizeModal.bind(this)}
+          onHide={this.hideVisualizeModal}
         />
         <Table
           columns={this.props.columns}

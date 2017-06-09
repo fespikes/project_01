@@ -4,6 +4,7 @@ import {connect} from "react-redux";
 import { createSelector } from 'reselect';
 import { Link } from 'react-router-dom';
 import { EditList, EventList } from "../components";
+import { swithTabInEdit } from "../actions";
 
 const _ = require('lodash');
 
@@ -96,16 +97,18 @@ const getEventListData = createSelector(
         let result = [];
         let item = {};
         _.forEach(data, (obj, key) => {
-            item = {
-                'key': key + 1,
-                'user': obj.user,
-                'action': obj.action,
-                'time': obj.time,
-                'link': obj.link,
-                'title': obj.title,
-                'type': obj.obj_type
-            };
-            result.push(item);
+            if (key < 7) {
+                item = {
+                    'key': key + 1,
+                    'user': obj.user,
+                    'action': obj.action,
+                    'time': obj.time,
+                    'link': obj.link,
+                    'title': obj.title,
+                    'type': obj.obj_type
+                };
+                result.push(item);
+            }
         });
 
         return result;
@@ -131,10 +134,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         onChangeCatagory: (catagory) => {
-            dispatch({
-                type: "SWITCH_TAB_IN_EDIT",
-                tab: catagory
-            });
+            dispatch(swithTabInEdit(catagory));
         }
     }
 }
