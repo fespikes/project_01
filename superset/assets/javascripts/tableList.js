@@ -3,8 +3,15 @@ import { render } from 'react-dom';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
-import App from './sliceList/containers/SliceConnection';
-import configureStore from './sliceList/stores/configureStore';
-import 'antd/dist/antd.css';
+import App from './tableList/containers/';
+import configureStore from './tableList/stores/configureStore';
 
-console.log('tableList');
+const store = configureStore();
+const rootElement = document.querySelector('#tableList');
+
+render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  rootElement
+);
