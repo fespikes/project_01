@@ -5,25 +5,20 @@ import { Select } from 'antd';
 import PropTypes from 'prop-types';
 import {
     selectType,
-    search,
-
-    setPopupParam,
-    applyDelete,
-    showPopup
+    search
 } from '../actions';
+import { SliceDelete } from '../../components/popup';
+//TODO:
 
-class Operate extends React.Component {
-    constructor(props, context) {
+class SliceOperate extends React.Component {
+    constructor(props) {
         super(props);
         this.state = {};
 
         this.onChange = this.onChange.bind(this);
         this.onDelete = this.onDelete.bind(this);
-        this.onAdd = this.onAdd.bind(this);
         this.onSearch = this.onSearch.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
-        this.timer = null;
-        this.dispatch = context.dispatch;
     }
 
     onChange () {
@@ -32,67 +27,26 @@ class Operate extends React.Component {
             this.refs.searchIcon.removeAttribute('disabled');
         } else {
             this.refs.searchIcon.setAttribute('disabled', 'disabled');
-            this.timer && clearTimeout(this.timer);
-            this.timer = setTimeout(function(){
-                dispatch(search(''));
-            }, 300);
         }
     }
 
-    onAdd () {
-        const { dispatch } = this.props;
-        dispatch(fetchAvailableSlices(callback));
-        function callback(success, data) {
-            if(success) {
-                var dashboard = {dashboard_title: '', description: ''};
-                var addSlicePopup = render(
-                    <DashboardAdd
-                        dispatch={dispatch}
-                        dashboard={dashboard}
-                        availableSlices={data.data.available_slices}
-                        enableConfirm={false}/>,
-                    document.getElementById('popup_root'));
-                if(addSlicePopup) {
-                    addSlicePopup.showDialog();
-                }
-            }
-        }
-    }
-
-    //multi delete
-    onDelete () {
-        const { selectedRowNames } = this.props;
-        const me = this;
+    onDelete () {//TODO:
+        const { dispatch, selectedRowNames } = this.props;
         let deleteType = 'multiple';
         let deleteTips = '确定删除' + selectedRowNames + '?';
         if(selectedRowNames.length === 0) {
             deleteType = 'none';
             deleteTips = '没有选择任何将要删除的记录，请选择！';
         }
-
-        me.dispatch(setPopupParam({
-            title: '删除数据库连接',
-            deleteTips: deleteTips,
-            confirm: function(callback) {
-                if (selectedRowNames.length===0) {
-                    return;
-                }
-                me.dispatch(applyDelete(callback));
-            },
-            closeDialog: function(argus) {
-                alert('on confirm')
-            },
-            showDialog:function(argus) {
-                alert('on confirm');
-            },
-
-            popupContainer: 'popup',
-
-            deleteType: deleteType
-        }));
-        this.dispatch(showPopup());
-//        deletePopup.showDialog();
-
+        let deleteSlicePopup = render(
+            <SliceDelete
+                dispatch={dispatch}
+                deleteType={deleteType}
+                deleteTips={deleteTips} />,
+            document.getElementById('popup_root'));
+        if(deleteSlicePopup) {
+            deleteSlicePopup.showDialog();
+        }
     }
 
     handleSelectChange (argus) {
@@ -112,7 +66,7 @@ class Operate extends React.Component {
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    <li onClick={this.onAdd}><i className="icon"></i></li>
+                    <li><a href="/slice/add"><i className="icon"></i></a></li>
                     <li onClick={this.onDelete}><i className="icon"></i></li>
                 </ul>
                 <div className="tab-btn">
@@ -136,8 +90,6 @@ class Operate extends React.Component {
     }
 }
 
-Operate.propTypes = {};
-Operate.contextTypes = {
-    dispatch: PropTypes.func.isRequired
-};
-export default Operate;
+SliceOperate.propTypes = {};
+
+export default SliceOperate;

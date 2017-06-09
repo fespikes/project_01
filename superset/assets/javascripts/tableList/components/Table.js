@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { selectRows, applyDelete, fetchSliceDetail } from '../actions';
+import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
 import { SliceDelete, SliceEdit } from '../../components/popup';
 import style from '../style/database.scss'
 
@@ -13,26 +13,19 @@ class SliceTable extends React.Component {
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
-        console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-
-        //TODO: to make sure when select all of them ,this function been triggered the same
         const { dispatch } = this.props;
         let selectedRowNames = [];
         selectedRows.forEach(function(row) {
-            selectedRowNames.push(row.database_name);
+            selectedRowNames.push(row.slice_name);
         });
-
-        console.log(selectedRowKeys.length, selectedRowNames.length);
-
-        dispatch(selectRows(selectedRowKeys, selectedRowNames));
-
+        dispatch(setSelectedRows(selectedRowKeys, selectedRowNames));
     };
 
     render() {
 
         const { dispatch, data } = this.props;
 
-        function editSlice(record) {//TODO:
+        function editSlice(record) {
             dispatch(fetchSliceDetail(record.id, callback));
             function callback(success, data) {
                 if(success) {
@@ -48,12 +41,9 @@ class SliceTable extends React.Component {
             }
         }
 
-        //delete one of them
         function deleteSlice(record) {
 
-            let deleteTips = "确定删除" + record.slice_name + "?";      //i18n
-            //applyDelete
-
+            let deleteTips = "确定删除" + record.slice_name + "?";
             let deleteSlicePopup = render(
                 <SliceDelete
                     dispatch={dispatch}
@@ -66,20 +56,43 @@ class SliceTable extends React.Component {
             }
         }
 
+        function publishSlice(record) {
+            dispatch(fetchStateChange(record, "publish"));
+        }
+
+        function favoriteSlice(record) {
+            dispatch(fetchStateChange(record, "favorite"));
+        }
+
         const rowSelection = {
             onChange: this.onSelectChange
         };
 
         const columns = [
             {
+                width: '5%',
+                render: (text, record) => {
+                    const datasetType = record.dataset_type;
+                    console.log(record);
+
+                    return (
+                        <i className={'icon ' + record.iconClass}
+                           onClick={() => favoriteSlice(record)}></i>
+                    )
+                }
+            },
+            {
                 title: '名称',  //TODO: title need to i18n
-                key: 'databaseName',
-                dataIndex: 'database_name',
-                width: '25%',
+                key: 'datasetName',
+                dataIndex: 'dataset_name',
+                width: '30%',
                 render: (text, record) => {
                     return (
                         <div className="entity-name">
-                            <div className="entity-title">{record.database_name}</div>
+                            <div className="entity-title highlight">
+                                <a href={record.explore_url} target="_blank">{record.dataset_name}</a>
+                            </div>
+                            <div className="entity-description">{record.dataset_type} | {record.connection}</div>
                         </div>
                     )
                 },
@@ -87,26 +100,18 @@ class SliceTable extends React.Component {
                     return a.dataset_name.substring(0, 1).charCodeAt() - b.dataset_name.substring(0, 1).charCodeAt();
                 }
             }, {
-                title: '连接类型',
-                dataIndex: 'backend',
-                key: 'backend',
-                width: '15%',
-                sorter(a, b) {
-                    return a.backend.substring(0, 1).charCodeAt() - b.backend.substring(0, 1).charCodeAt();
-                }
-            }, {
                 title: '所有者',
                 dataIndex: 'created_by_user',
                 key: 'created_by_user',
-                width: '20%',
+                width: '25%',
                 sorter(a, b) {
-                 return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
+                    return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
                 }
             }, {
                 title: '更新时间',
                 dataIndex: 'changed_on',
                 key: 'changed_on',
-                width: '20%',
+                width: '25%',
                 sorter(a, b) {
                     return a.changed_on - b.changed_on ? 1 : -1;
                 }
@@ -119,7 +124,8 @@ class SliceTable extends React.Component {
                         <div className="icon-group">
                             <i className="icon" onClick={() => editSlice(record)}></i>&nbsp;
                             <i className={record.online ? 'icon online' : 'icon offline'}
-                               onClick={() => publishSlice(record)}></i>
+                               onClick={() => publishSlice(record)}></i>&nbsp;
+                            <i className="icon" onClick={() => deleteSlice(record)}></i>
                         </div>
                     )
                 }
