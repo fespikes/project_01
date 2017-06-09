@@ -30,6 +30,7 @@ class PageMixin(object):
 
 
 class DashboardCRUDTests(SupersetTestCase, PageMixin):
+    requires_examples = True
 
     def __init__(self, *args, **kwargs):
         super(DashboardCRUDTests, self).__init__(*args, **kwargs)
@@ -76,14 +77,52 @@ class DashboardCRUDTests(SupersetTestCase, PageMixin):
         assert one_dash.table_names == real_value.get('table_names')
         assert len(one_dash.slices) == len(real_value.get('slices'))
 
-    def test_add(self):
-        pass
+    def test_add_edit_delete(self):
+        new_dash_id = None
 
-    def test_delete(self):
-        pass
+        # add
+        new_slices = self.dash_view.get_available_slices(self.user.id)[:2]
+        new_dash = {'dashboard_title': 'new_dashboard',
+                    'description': 'new dashboard',
+                    'slices': self.dash_view.slices_to_dict(new_slices)}
+        obj = self.dash_view.populate_object(None, self.user.id, new_dash)
+        self.dash_view.datamodel.add(obj)
 
-    def test_muldelete(self):
-        pass
+        added_dash = db.session.query(Dashboard)\
+            .filter_by(dashboard_title=new_dash.get('dashboard_title'))\
+            .first()
+        new_dash_id = added_dash.id
+        assert added_dash.dashboard_title == new_dash.get('dashboard_title')
+        assert added_dash.description == new_dash.get('description')
+        # when add/edit in app, 'created_by_fk' and 'changed_by_fk'
+        # are the present logined user, so no need to test them
+        new_slices_name = [slc.slice_name for slc in new_slices]
+        for slc in added_dash.slices:
+            assert slc.slice_name in new_slices_name
+
+        # edit
+        new_slices = self.dash_view.get_available_slices(self.user.id)[0:2]
+        new_dash = {'dashboard_title': 'edited_dashboard',
+                    'description': 'edit dashboard',
+                    'slices': self.dash_view.slices_to_dict(new_slices)}
+        obj = self.dash_view.populate_object(new_dash_id, self.user.id, new_dash)
+        self.dash_view.datamodel.edit(obj)
+
+        edited_dash = db.session.query(Dashboard) \
+            .filter_by(id=new_dash_id)\
+            .first()
+        assert edited_dash.dashboard_title == new_dash.get('dashboard_title')
+        assert edited_dash.description == new_dash.get('description')
+        new_slices_name = [slc.slice_name for slc in new_slices]
+        for slc in edited_dash.slices:
+            assert slc.slice_name in new_slices_name
+
+        # delete
+        obj = self.dash_view.get_object(new_dash_id)
+        self.dash_view.datamodel.delete(obj)
+        target_dash = db.session.query(Dashboard) \
+            .filter_by(id=new_dash_id).first()
+        assert target_dash is None
 
 
 if __name__ == '__main__':
