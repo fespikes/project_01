@@ -1702,33 +1702,22 @@ class DashboardModelView(SupersetModelView):  # noqa
 
     def get_add_attributes(self, data, user_id):
         attributes = super().get_add_attributes(data, user_id)
-        slices_list = data.get('slices')
-        slices = []
-        for slice_dict in slices_list:
-            slice_obj = db.session.query(models.Slice) \
-                .filter_by(id=slice_dict.get('id')).one()
-            if not slice_obj:
-                msg = "Slice not found. name:{} id:{}".format(
-                    slice_dict.get('slice_name'), slice_dict.get('id'))
-                self.handle_exception(404, Exception, msg)
-            slices.append(slice_obj)
-        attributes['slices'] = slices
+        attributes['slices'] = self.get_slices_in_list(data.get('slices'))
         return attributes
 
     def get_edit_attributes(self, data, user_id):
         attributes = super().get_edit_attributes(data, user_id)
-        slices_list = data.get('slices')
-        slices = []
-        for slice_dict in slices_list:
-            slice_obj = db.session.query(models.Slice) \
-                .filter_by(id=slice_dict.get('id')).one()
-            if not slice_obj:
-                msg = "Slice not found. name:{} id:{}".format(
-                    slice_dict.get('slice_name'), slice_dict.get('id'))
-                self.handle_exception(404, Exception, msg)
-            slices.append(slice_obj)
-        attributes['slices'] = slices
+        attributes['slices'] = self.get_slices_in_list(data.get('slices'))
         return attributes
+
+    def get_slices_in_list(self, slices_list):
+        ids = [slice_dict.get('id') for slice_dict in slices_list]
+        objs = db.session.query(models.Slice) \
+            .filter(models.Slice.id.in_(ids)).all()
+        if len(ids) != len(objs):
+            msg = "Some slices are not found by ids: {}".format(ids)
+            self.handle_exception(404, Exception, msg)
+        return objs
 
     @expose("/import", methods=['GET', 'POST'])
     def import_dashboards(self):
