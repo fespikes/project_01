@@ -1281,18 +1281,17 @@ class SliceModelView(SupersetModelView):  # noqa
 
     def get_edit_attributes(self, data, user_id):
         attributes = super().get_edit_attributes(data, user_id)
-        dashs_list = data.get('dashboards')
-        dashboards = []
-        for dash_dict in dashs_list:
-            dash_obj = db.session.query(models.Dashboard) \
-                .filter_by(id=dash_dict.get('id')).first()
-            if not dash_obj:
-                msg = "Dashboard not found. name:{} id:{}".format(
-                    dash_dict.get('dashboard_title'), dash_dict.get('id'))
-                self.handle_exception(404, Exception, msg)
-            dashboards.append(dash_obj)
-        attributes['dashboards'] = dashboards
+        attributes['dashboards'] = self.get_dashs_in_list(data.get('dashboards'))
         return attributes
+
+    def get_dashs_in_list(self, dashs_list):
+        ids = [dash_dict.get('id') for dash_dict in dashs_list]
+        objs = db.session.query(models.Dashboard) \
+            .filter(models.Dashboard.id.in_(ids)).all()
+        if len(ids) != len(objs):
+            msg = "Some dashboards are not found by ids: {}".format(ids)
+            self.handle_exception(404, Exception, msg)
+        return objs
 
     def available_dashboards_api(self):
         user_id = self.get_user_id()
