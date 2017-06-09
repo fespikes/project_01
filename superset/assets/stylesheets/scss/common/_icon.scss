@@ -1,0 +1,99 @@
+.icon {
+    width: 16px;//default size
+    height: 16px;
+    cursor: pointer;
+}
+
+/***** dashboard slice page icon start ******/
+.star {
+    background-position: -92px -132px;
+}
+.star-fav {
+    background-position: -52px -211px;
+}
+.info {
+    background-position: -290px -251px;
+}
+.online {
+    width:20px;
+    height:14px;
+    background-position:-50px -173px;
+    &:hover {
+        background-position: -9px -252px;
+    }
+}
+.offline {
+    width:17px;
+    height:15px;
+    background-position:-291px -133px;
+    &:hover {
+        background-position: -250px -212px;
+    }
+}
+.refresh {
+    width: 20px;
+    height: 14px;
+    background-position: -130px -333px;
+    &:hover {
+        background-position: -129px -412px;
+    }
+}
+.plus {
+    width: 16px;
+    height: 16px;
+    background-position: -251px -92px;
+    &:hover {
+        background-position: -212px -172px;
+    }
+}
+.clock {
+    background-position: -251px -451px;
+    &:hover {
+        background-position: -212px -572px;
+    }
+}
+.setting {
+    width: 16px;
+    height: 14px;
+    background-position: -212px -331px;
+    &:hover {
+        background-position: -212px -411px;
+    }
+}
+.drag {
+    width: 14px;
+    height: 14px;
+    background-position: -253px -332px;
+    &:hover {
+        background-position: -253px -413px;
+    }
+}
+.edit {
+    width: 15px;
+    height: 14px;
+    background-position: -253px -134px;
+    &:hover {
+        background-position: -212px -213px;
+    }
+}
+.save {
+    width: 14px;
+    height: 14px;
+    background-position: -293px -332px;
+    &:hover {
+        background-position: -292px -413px;
+    }
+}
+.email {
+    width: 19px;
+    height: 13px;
+    background-position: -272px -665px;
+    &:hover {
+        background-position: -11px -452px;
+    }
+}
+/***** dashboard slice page icon end ******/
+
+
+
+

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from "react-redux";
 import { createSelector } from 'reselect';
 import  { Bar } from "../components";
+import { swithTabInFavourite } from "../actions";
 
 const _ = require('lodash');
 
@@ -119,10 +120,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         onChangeCatagory: (catagory) => {
-            dispatch({
-                type: "SWITCH_TAB_IN_FAVOURITE",
-                tab: catagory
-            });
+            dispatch(swithTabInFavourite(catagory));
         }
     }
 }
