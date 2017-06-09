@@ -18,39 +18,51 @@ class Popup extends React.Component {
 
     showDialog () {
         this.refs.popupContainer.style.display = "flex";
-        this.props.showDialog();
+        //this.props.showDialog();
     }
 
     closeDialog () {
         this.refs.popupContainer.style.display = "none";
-        this.props.closeDialog();
+        //this.props.closeDialog();
     }
 
     confirm () {
-        const self = this;
-        const { slice, deleteType } = self.props;
-        if (deleteType) {
-            this.dispatch(fetchSliceDeleteMul(callback));
-        }else if(deleteType === "none") {
-            self.refs.popupContainer.style.display = "none";
-        }
-
-        function callback(success) {
+        const me = this;
+        function callback(success, msg) {
             if(success) {
-                self.refs.popupContainer.style.display = "none";
+                me.refs.popupContainer.style.display = "none";
             }else {
-
+                me.props.setPopupParam({
+                    deleteTips: msg
+                })
+                //to make sure the error tips
             }
         }
+        me.props.confirm(callback);
     }
 
     render () {
         //dialogType:
         //title: 删除数据库连接
-        const {title, deleteTips} = this.props;
+        /*
+        const {title, deleteTips, confirm, closeDialog, showDialog,
+            setPopupParam, setPopupTitle } = this.props;
+        */
+
+        const {
+            title, deleteTips, confirm, closeDialog, showDialog,
+            setPopupParam
+        } = this.props;
+
+        /*setPopupParam({
+            popupContainer: 'popup'
+        });
+        */
+
+        console.log('render popup');
 
         return (
-            <div className="popup" ref="popupContainer">
+            <div className="popup" ref="popupContainer" style={{display: 'none'}}>
                 <div className="popup-dialog popup-sm">
                     <div className="popup-content">
                         <div className="popup-header">
