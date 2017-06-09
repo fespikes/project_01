@@ -282,7 +282,7 @@ function getDashboardListUrl(state) {
 
 function getStateChangeUrl(record, type) {
     if(type === "favorite") {
-        let url_favorite = window.location.origin + "/superset/favstar/Dashboard/" + record.id;
+        let url_favorite = window.location.origin + "/pilot/favstar/Dashboard/" + record.id;
         if(record.favorite) {
             url_favorite += "/unselect";
         }else {

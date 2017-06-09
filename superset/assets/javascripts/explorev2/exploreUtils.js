@@ -39,14 +39,14 @@ export function getExploreUrl(form_data, datasource_type, endpoint = 'base') {
     `${form_data.datasource}/?${$.param(data, true)}`;
   switch (endpoint) {
     case 'base':
-      return `/superset/explore/${params}`;
+      return `/pilot/explore/${params}`;
     case 'json':
-      return `/superset/explore_json/${params}`;
+      return `/pilot/explore_json/${params}`;
     case 'csv':
-      return `/superset/explore/${params}&csv=true`;
+      return `/pilot/explore/${params}&csv=true`;
     case 'standalone':
-      return `/superset/explore/${params}&standalone=true`;
+      return `/pilot/explore/${params}&standalone=true`;
     default:
-      return `/superset/explore/${params}`;
+      return `/pilot/explore/${params}`;
   }
 }
