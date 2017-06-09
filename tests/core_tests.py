@@ -44,7 +44,6 @@ class CoreTests(SupersetTestCase):
     def test_home(self):
         self.login()
         resp = self.client.get('/superset/home')
-        print(g.user.get_id())
         assert '/superset/home' in resp.data.decode('utf-8')
 
     def test_slice_endpoint(self):

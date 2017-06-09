@@ -418,7 +418,8 @@ class SupersetModelView(ModelView):
     def show(self, pk):
         try:
             obj = self.get_object(pk)
-            attributes = self.get_show_attributes(obj)
+            user_id = self.get_user_id()
+            attributes = self.get_show_attributes(obj, user_id=user_id)
             return json.dumps(attributes)
         except Exception as e:
             return self.build_response(500, False, str(e))
@@ -495,7 +496,7 @@ class SupersetModelView(ModelView):
             setattr(obj, key, value)
         return obj
 
-    def get_show_attributes(self, obj):
+    def get_show_attributes(self, obj, user_id=None):
         attributes = {}
         for col in self.show_columns:
             if not hasattr(obj, col):
@@ -525,10 +526,6 @@ class SupersetModelView(ModelView):
 
     def get_add_attributes(self, data, user_id):
         attributes = {}
-        attributes['created_by_fk'] = user_id
-        attributes['created_on'] = datetime.now()
-        attributes['changed_by_fk'] = user_id
-        attributes['changed_on'] = datetime.now()
         for col in self.add_columns:
             if col not in data:
                 msg = "The needed attribute: \'{}\' not in attributes: \'{}\'"\
@@ -545,8 +542,6 @@ class SupersetModelView(ModelView):
 
     def get_edit_attributes(self, data, user_id):
         attributes = {}
-        attributes['changed_by_fk'] = user_id
-        attributes['changed_on'] = datetime.now()
         for col in self.edit_columns:
             if col not in data:
                 msg = "The needed attribute: \'{}\' not in attributes: \'{}\'" \
@@ -705,7 +700,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         data['available_tables'] = self.get_available_tables()
         return data
 
-    def get_show_attributes(self, obj):
+    def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
         attributes['available_tables'] = self.get_available_tables()
         return attributes
@@ -777,7 +772,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             data.append(line)
         return {'data': data}
 
-    def get_show_attributes(self, obj):
+    def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
         attributes['available_tables'] = self.get_available_tables()
         return attributes
@@ -1131,7 +1126,7 @@ class TableModelView(SupersetModelView):  # noqa
         attributes['database'] = database
         return attributes
 
-    def get_show_attributes(self, obj):
+    def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
         attributes['available_databases'] = self.get_available_databases()
         return attributes
@@ -1274,28 +1269,27 @@ class SliceModelView(SupersetModelView):  # noqa
         data['available_dashboards'] = self.dashboards_to_dict(dashs)
         return data
 
-    def get_show_attributes(self, obj):
-        attributes = super().get_show_attributes(obj)
+    def get_show_attributes(self, obj, user_id=None):
+        attributes = super().get_show_attributes(obj, user_id)
         attributes['dashboards'] = self.dashboards_to_dict(obj.dashboards)
-        dashs = self.get_available_dashboards(self.get_user_id())
+        dashs = self.get_available_dashboards(user_id)
         available_dashs = self.dashboards_to_dict(dashs)
         attributes['available_dashboards'] = available_dashs
         return attributes
 
     def get_edit_attributes(self, data, user_id):
         attributes = super().get_edit_attributes(data, user_id)
-        dashs_list = data.get('dashboards')
-        dashboards = []
-        for dash_dict in dashs_list:
-            dash_obj = db.session.query(models.Dashboard) \
-                .filter_by(id=dash_dict.get('id')).first()
-            if not dash_obj:
-                msg = "Dashboard not found. name:{} id:{}".format(
-                    dash_dict.get('dashboard_title'), dash_dict.get('id'))
-                self.handle_exception(404, Exception, msg)
-            dashboards.append(dash_obj)
-        attributes['dashboards'] = dashboards
+        attributes['dashboards'] = self.get_dashs_in_list(data.get('dashboards'))
         return attributes
+
+    def get_dashs_in_list(self, dashs_list):
+        ids = [dash_dict.get('id') for dash_dict in dashs_list]
+        objs = db.session.query(models.Dashboard) \
+            .filter(models.Dashboard.id.in_(ids)).all()
+        if len(ids) != len(objs):
+            msg = "Some dashboards are not found by ids: {}".format(ids)
+            self.handle_exception(404, Exception, msg)
+        return objs
 
     def available_dashboards_api(self):
         user_id = self.get_user_id()
@@ -1469,6 +1463,7 @@ class SliceAsync(SliceModelView):  # noqa
 
 
 class SliceAddView(SliceModelView):  # noqa
+    route_base = '/sliceaddview'
     list_columns = [
         'id', 'slice_name', 'slice_link', 'viz_type',
         'owners', 'modified', 'changed_on']
@@ -1695,42 +1690,31 @@ class DashboardModelView(SupersetModelView):  # noqa
         response['data'] = data
         return response
 
-    def get_show_attributes(self, obj):
+    def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
         attributes['slices'] = self.slices_to_dict(obj.slices)
-        available_slices = self.get_available_slices(self.get_user_id())
+        available_slices = self.get_available_slices(user_id)
         attributes['available_slices'] = self.slices_to_dict(available_slices)
         return attributes
 
     def get_add_attributes(self, data, user_id):
         attributes = super().get_add_attributes(data, user_id)
-        slices_list = data.get('slices')
-        slices = []
-        for slice_dict in slices_list:
-            slice_obj = db.session.query(models.Slice) \
-                .filter_by(id=slice_dict.get('id')).one()
-            if not slice_obj:
-                msg = "Slice not found. name:{} id:{}".format(
-                    slice_dict.get('slice_name'), slice_dict.get('id'))
-                self.handle_exception(404, Exception, msg)
-            slices.append(slice_obj)
-        attributes['slices'] = slices
+        attributes['slices'] = self.get_slices_in_list(data.get('slices'))
         return attributes
 
     def get_edit_attributes(self, data, user_id):
         attributes = super().get_edit_attributes(data, user_id)
-        slices_list = data.get('slices')
-        slices = []
-        for slice_dict in slices_list:
-            slice_obj = db.session.query(models.Slice) \
-                .filter_by(id=slice_dict.get('id')).one()
-            if not slice_obj:
-                msg = "Slice not found. name:{} id:{}".format(
-                    slice_dict.get('slice_name'), slice_dict.get('id'))
-                self.handle_exception(404, Exception, msg)
-            slices.append(slice_obj)
-        attributes['slices'] = slices
+        attributes['slices'] = self.get_slices_in_list(data.get('slices'))
         return attributes
+
+    def get_slices_in_list(self, slices_list):
+        ids = [slice_dict.get('id') for slice_dict in slices_list]
+        objs = db.session.query(models.Slice) \
+            .filter(models.Slice.id.in_(ids)).all()
+        if len(ids) != len(objs):
+            msg = "Some slices are not found by ids: {}".format(ids)
+            self.handle_exception(404, Exception, msg)
+        return objs
 
     @expose("/import", methods=['GET', 'POST'])
     def import_dashboards(self):
@@ -1828,6 +1812,7 @@ class DashboardModelViewAsync(DashboardModelView):  # noqa
 
 
 class LogModelView(SupersetModelView):
+    route_base = '/logmodelview'
     datamodel = SQLAInterface(models.Log)
     list_columns = ('user', 'action_type', 'action', 'obj_type', 'obj_id', 'dttm')
     edit_columns = ('user', 'action', 'dttm', 'json')
@@ -1841,6 +1826,7 @@ class LogModelView(SupersetModelView):
     
 
 class QueryView(SupersetModelView):
+    route_base = '/queryview'
     datamodel = SQLAInterface(models.Query)
     list_columns = ['user', 'database', 'status', 'start_time', 'end_time']
 
@@ -2090,7 +2076,7 @@ class Superset(BaseSupersetView):
                 action_str = 'Import dashboard: {}'.format(dashboard.dashboard_title)
                 log_action('import', action_str, 'dashboard', dashboard.id)
             db.session.commit()
-            return redirect('/dashboardmodelview/list/')
+            return redirect('/dashboard/list/')
         return self.render_template('superset/import_dashboards.html')
 
     @expose("/explore/<datasource_type>/<datasource_id>/")
@@ -2105,7 +2091,7 @@ class Superset(BaseSupersetView):
         if slice_id:
             slc = db.session.query(models.Slice).filter_by(id=slice_id).first()
 
-        error_redirect = '/slicemodelview/list/'
+        error_redirect = '/slice/list/'
         datasource_class = SourceRegistry.sources[datasource_type]
         datasources = db.session.query(datasource_class).all()
         datasources = sorted(datasources, key=lambda ds: ds.full_name)
@@ -2221,7 +2207,7 @@ class Superset(BaseSupersetView):
         :return:
         """
         # TODO: Cache endpoint by user, datasource and column
-        error_redirect = '/slicemodelview/list/'
+        error_redirect = '/slice/list/'
         datasource_class = models.SqlaTable \
             if datasource_type == "table" else models.DruidDatasource
 
@@ -3012,7 +2998,7 @@ class Superset(BaseSupersetView):
         # Prevent exposing column fields to users that cannot access DB.
         if not self.datasource_access(t.perm):
             flash(get_datasource_access_error_msg(t.name), 'danger')
-            return redirect("/tablemodelview/list/")
+            return redirect("/table/list/")
 
         fields = ", ".join(
             [quote(c.name) for c in t.columns] or "*")

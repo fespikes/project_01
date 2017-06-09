@@ -14,7 +14,7 @@ class Home extends Component {
         const { dispatch } = this.props;
         dispatch(fetchPosts());
     }
-    
+
     render() {
 
         const { param, state } = this.props;

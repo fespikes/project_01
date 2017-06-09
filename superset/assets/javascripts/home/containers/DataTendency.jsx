@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from "react-redux";
 import { createSelector } from 'reselect';
 import  { Line } from "../components";
+import { changeCatagory } from "../actions";
 
 
 const _ = require('lodash');
@@ -173,10 +174,7 @@ const mapStateToProps = (state, pros) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         onChangeCatagory: (catagory) => {
-            dispatch({
-                type: "CHANGE_CATAGORY_IN_TENDENCY",
-                catagory: catagory
-            })
+            dispatch(changeCatagory(catagory));
         }
     }
 }

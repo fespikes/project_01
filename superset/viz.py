@@ -143,9 +143,9 @@ class BaseViz(object):
             for item in v:
                 od.add(key, item)
 
-        base_endpoint = '/superset/explore'
+        base_endpoint = '/pilot/explore'
         if json_endpoint:
-            base_endpoint = '/superset/explore_json'
+            base_endpoint = '/pilot/explore_json'
 
         href = Href(
             '{base_endpoint}/{self.datasource.type}/'

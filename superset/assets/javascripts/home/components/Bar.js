@@ -23,6 +23,9 @@ function Bar(props) {
             data: []
         }
     };
+    
+    let height = 40 * catagories.length + 30;
+
     let maxs = [];
     maxs.push(Math.max.apply(null, series.data));
     let max = Math.round(Math.max.apply(null, maxs) * 1.1);
@@ -30,7 +33,8 @@ function Bar(props) {
 
     const config = {
         chart: {
-            type: 'bar'
+            type: 'bar',
+            height: height
         },
         title: {
             text: ''
@@ -63,11 +67,10 @@ function Bar(props) {
                     color: '#FFFFFF',
                     x: -10
                 },
-                pointPadding: 0.1,
                 groupPadding: 0,
                 stacking:'normal',
                 borderRadius: 4,
-                pointWidth: 28
+                pointWidth: 26
             }
         },
         tooltip: {
@@ -88,7 +91,7 @@ function Bar(props) {
                 name: 'Fill Series',
                 color: '#f5f8fa',
                 data: dummyData,
-                pointWidth: 28,
+                pointWidth: 26,
                 dataLabels: {
                      enabled: false
                 }
@@ -97,7 +100,7 @@ function Bar(props) {
                 stack:'a',
                 name: series.name,
                 data: series.data,
-                pointWidth: 28,
+                pointWidth: 26,
                 color: '#2ea1f8'
             }
         ]

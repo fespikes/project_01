@@ -22,32 +22,32 @@ BASE_DIR = app.config.get("BASE_DIR")
 
 class SupersetTestCase(unittest.TestCase):
     requires_examples = False
-    examples_loaded = False
+    test_username = 'admin'
 
     def __init__(self, *args, **kwargs):
         if (self.requires_examples and
-                not self.examples_loaded and
-                not os.environ.get('SOLO_TEST')
+                not os.environ.get('SOLO_TEST') and
+                not os.environ.get('examples_loaded')
         ):
             logging.info("Loading examples")
             cli.load_examples(load_test_data=True)
+            self.add_admin_user(self.test_username)
+            self.update_example_user(self.test_username)
+            self.add_admin_user('hive')
             logging.info("Done loading examples")
-            sync_role_definitions()
-            self.add_admin_user('admin')
-            self.update_example_user('admin')
-            self.examples_loaded = True
-        else:
-            sync_role_definitions()
+            os.environ['examples_loaded'] = 1
+
+        sync_role_definitions()
         super(SupersetTestCase, self).__init__(*args, **kwargs)
         self.client = app.test_client()
         self.maxDiff = None
-        self.add_admin_user('hive')
+        self.user = appbuilder.sm.find_user(self.test_username)
 
     def add_admin_user(self, username):
         user = appbuilder.sm.find_user(username)
         if not user:
             appbuilder.sm.add_user(
-                username, username, ' user', '{}@transwarp.io'.format(username),
+                username, username, username, '{}@transwarp.io'.format(username),
                 appbuilder.sm.find_role('Admin'),  password='general')
 
     def update_example_user(self, username):
