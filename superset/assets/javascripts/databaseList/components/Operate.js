@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { Select } from 'antd';
+import { Link }  from 'react-router-dom';
 
 import PropTypes from 'prop-types';
 import {
@@ -27,7 +28,7 @@ class Operate extends React.Component {
     }
 
     onChange () {
-        const { dispatch } = this.props;
+        const dispatch = this.dispatch;
         if( this.refs.searchField.value ){
             this.refs.searchIcon.removeAttribute('disabled');
         } else {
@@ -40,7 +41,7 @@ class Operate extends React.Component {
     }
 
     onAdd () {
-        const { dispatch } = this.props;
+        const dispatch = this.dispatch;
         dispatch(fetchAvailableSlices(callback));
         function callback(success, data) {
             if(success) {
@@ -90,19 +91,21 @@ class Operate extends React.Component {
 
             deleteType: deleteType
         }));
-        this.dispatch(showPopup());
+        me.dispatch(showPopup());
 //        deletePopup.showDialog();
 
     }
 
     handleSelectChange (argus) {
         console.log(`selected ${argus}`);
-        this.props.dispatch(selectType(argus));
+        const me = this;
+        me.dispatch(selectType(argus));
     }
 
     onSearch () {
         const filter = this.refs.searchField.value;
-        this.props.dispatch(search(filter));
+        const me = this;
+        me.dispatch(search(filter));
         //TODO: not sure that componentWillReceiveProps be triggered
     }
 
@@ -112,7 +115,9 @@ class Operate extends React.Component {
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    <li onClick={this.onAdd}><i className="icon"></i></li>
+                    {/*<li onClick={this.onAdd}>*/}
+                    <li>
+                        <Link to="/add"><i className="icon"></i></Link></li>
                     <li onClick={this.onDelete}><i className="icon"></i></li>
                 </ul>
                 <div className="tab-btn">
