@@ -1402,13 +1402,8 @@ class SliceModelView(SupersetModelView):  # noqa
         response['data'] = data
         return response
 
+    @catch_exception_decorator
     @expose("/release/<action>/<slice_id>", methods=['GET'])
-    def slice_release(self, action, slice_id):
-        try:
-            return self.slice_online_or_offline(action, slice_id)
-        except Exception as e:
-            return self.build_response(500, False, str(e))
-
     def slice_online_or_offline(self, action, slice_id):
         obj = db.session.query(models.Slice) \
             .filter_by(id=slice_id).first()
