@@ -148,7 +148,7 @@ def json_error_response(msg, status=None):
         json.dumps(data), status=status, mimetype="application/json")
 
 
-def api(f):
+def catch_exception_decorator(f):
     """
     A decorator to label an endpoint as an API. Catches uncaught exceptions and
     return the response in the JSON format
@@ -158,13 +158,7 @@ def api(f):
             return f(self, *args, **kwargs)
         except Exception as e:
             logging.exception(e)
-            resp = Response(
-                json.dumps({
-                    'message': get_error_msg()
-                }),
-                status=500,
-                mimetype="application/json")
-            return resp
+            return json_error_response(str(e))
 
     return functools.update_wrapper(wraps, f)
 
@@ -1618,6 +1612,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         return redirect(
             '/dashboard/export_dashboards_form?{}'.format(ids[1:]))
 
+    @catch_exception_decorator
     @expose("/export_dashboards_form")
     def download_dashboards(self):
         if request.args.get('action') == 'go':
@@ -1718,6 +1713,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             self.handle_exception(404, Exception, msg)
         return objs
 
+    @catch_exception_decorator
     @expose("/import", methods=['GET', 'POST'])
     def import_dashboards(self):
         """Overrides the dashboards using pickled instances from the file."""
@@ -1742,6 +1738,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             # TODO log_action
         return redirect('/dashboard/list/')
 
+    @catch_exception_decorator
     @expose("/export")
     def export_dashboards(self):
         ids = request.args.getlist('id')
@@ -1960,6 +1957,7 @@ class Superset(BaseSupersetView):
             status=status,
             mimetype="application/json")
 
+    @catch_exception_decorator
     @expose("/import_dashboards", methods=['GET', 'POST'])
     def import_dashboards(self):
         """Overrides the dashboards using pickled instances from the file."""
