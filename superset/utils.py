@@ -28,7 +28,6 @@ from email.utils import formatdate
 from flask import flash, Markup, render_template, Response
 from flask_babel import gettext as __
 from past.builtins import basestring
-# from pydruid.utils.having import Having
 from sqlalchemy import event, exc
 from sqlalchemy.types import TypeDecorator, TEXT
 
