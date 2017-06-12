@@ -12,7 +12,6 @@ import sys
 import time
 import traceback
 import zlib
-from collections import Counter
 from distutils.util import strtobool
 
 import functools
@@ -20,12 +19,12 @@ import sqlalchemy as sqla
 
 from flask import (g, request, redirect, flash,
                    Response, render_template, Markup, abort)
-from flask_appbuilder import ModelView, CompactCRUDMixin, BaseView, expose
+from flask_appbuilder import ModelView, BaseView, expose
 from flask_appbuilder.actions import action
 from flask_appbuilder.models.sqla.interface import SQLAInterface
-from flask_appbuilder.security.decorators import has_access, has_access_api
+from flask_appbuilder.security.decorators import has_access
 from flask_appbuilder.widgets import ListWidget
-from flask_appbuilder.models.sqla.filters import BaseFilter
+from flask_appbuilder.models.sqla.filters import (BaseFilter, FilterStartsWith, FilterEqualFunction)
 from flask_appbuilder.security.sqla import models as ab_models
 
 from flask_babel import gettext as __
@@ -35,13 +34,18 @@ from sqlalchemy import create_engine, case
 from werkzeug.routing import BaseConverter
 from wtforms.validators import ValidationError
 
-import superset
+
 from superset import (
     app, appbuilder, cache, db, models, sm, sql_lab, sql_parse,
-    results_backend, security, viz, utils,
+    results_backend, security, viz
 )
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
+from superset.filebrowser import *
+from superset.utils import (get_database_access_error_msg,
+                            get_datasource_access_error_msg,
+                            get_datasource_exist_error_msg,
+                            json_error_response)
 
 from superset.models import Database, SqlaTable, Slice, \
     Dashboard, FavStar, Log, DailyNumber, str_to_model
@@ -56,6 +60,17 @@ log_action = models.Log.log_action
 log_number = models.DailyNumber.log_number
 can_access = utils.can_access
 QueryStatus = models.QueryStatus
+
+
+def get_error_msg():
+  if config.get("SHOW_STACKTRACE"):
+    error_msg = traceback.format_exc()
+  else:
+    error_msg = "FATAL ERROR \n"
+    error_msg += (
+      "Stacktrace is hidden. Change the SHOW_STACKTRACE "
+      "configuration setting to enable it")
+  return error_msg
 
 
 class BaseSupersetView(BaseView):
@@ -114,38 +129,6 @@ def log_number_for_all_users(obj_type):
     users = db.session.query(User).all()
     for user in users:
         log_number(obj_type, user.id)
-
-
-def get_database_access_error_msg(database_name):
-    return __("This view requires the database %(name)s or "
-              "`all_datasource_access` permission", name=database_name)
-
-
-def get_datasource_access_error_msg(datasource_name):
-    return __("This endpoint requires the datasource %(name)s, database or "
-              "`all_datasource_access` permission", name=datasource_name)
-
-
-def get_datasource_exist_error_mgs(full_name):
-    return __("Datasource %(name)s already exists", name=full_name)
-
-
-def get_error_msg():
-    if config.get("SHOW_STACKTRACE"):
-        error_msg = traceback.format_exc()
-    else:
-        error_msg = "FATAL ERROR \n"
-        error_msg += (
-            "Stacktrace is hidden. Change the SHOW_STACKTRACE "
-            "configuration setting to enable it")
-    return error_msg
-
-
-def json_error_response(msg, status=None):
-    data = {'error': msg}
-    status = status if status else 500
-    return Response(
-        json.dumps(data), status=status, mimetype="application/json")
 
 
 def catch_exception_decorator(f):
@@ -3694,6 +3677,7 @@ class Home(BaseSupersetView):
             json.dumps({'index': response}),
             status=status_,
             mimetype="application/json")
+
 
 appbuilder.add_view_no_menu(DatabaseAsync)
 appbuilder.add_view_no_menu(DatabaseTablesAsync)

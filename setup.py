@@ -69,6 +69,7 @@ setup(
         'thrift-sasl>=0.2.1',
         'werkzeug==0.11.10',
         'xlrd==1.0.0',
+        'requests-kerberos==0.11.0'
     ],
     extras_require={
         'cors': ['Flask-Cors>=2.0.0'],

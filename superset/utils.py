@@ -25,7 +25,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.utils import formatdate
-from flask import flash, Markup, render_template
+from flask import flash, Markup, render_template, Response
 from flask_babel import gettext as __
 from past.builtins import basestring
 # from pydruid.utils.having import Having
@@ -37,7 +37,8 @@ logging.getLogger('MARKDOWN').setLevel(logging.INFO)
 
 EPOCH = datetime(1970, 1, 1)
 DTTM_ALIAS = 'timestamp__'
-
+ALLOWED_KEYTAB_SUFFIX = set(['KEYTAB', 'keytab'])
+fs_cache = {}
 
 class SupersetException(Exception):
     pass
@@ -513,3 +514,54 @@ def get_email_address_list(address_string):
         else:
             address_string = [address_string]
     return address_string
+
+def allowed_keytab(filename):
+  return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_KEYTAB_SUFFIX
+
+def coerce_bool(value):
+  if isinstance(value, bool):
+    return value
+
+  try:
+    upper = value.upper()
+  except:
+    upper = value
+  if upper in ("FALSE", "0", "NO", "OFF", "NAY", "", None):
+    return False
+  if upper in ("TRUE", "1", "YES", "ON", "YEA"):
+    return True
+  raise Exception("Could not coerce %r to boolean value" % (value,))
+
+def get_database_access_error_msg(database_name):
+    return __("This view requires the database %(name)s or "
+              "`all_datasource_access` permission", name=database_name)
+
+
+def get_datasource_access_error_msg(datasource_name):
+  return __("This endpoint requires the datasource %(name)s, database or "
+            "`all_datasource_access` permission", name=datasource_name)
+
+
+def get_datasource_exist_error_msg(full_name):
+  return __("Datasource %(name)s already exists", name=full_name)
+
+
+def json_error_response(msg, status=None):
+  data = {'error': msg}
+  status = status if status else 500
+  return Response(
+    json.dumps(data), status=status, mimetype="application/json")
+
+def json_success_response(msg, status=None):
+  data = {'message': msg}
+  status = status if status else 200
+  return Response(
+    json.dumps(data), status=status, mimetype="application/json"
+  )
+
+def get_hdfs_user_from_principal(principal):
+    split_list = principal.split('/', 1)
+    if len(split_list) > 1:
+        return split_list[0]
+    else:
+        return None
