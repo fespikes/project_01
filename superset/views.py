@@ -1869,109 +1869,6 @@ class R(BaseSupersetView):
 class Superset(BaseSupersetView):
     route_base = '/pilot'
 
-    """The base views for Superset!"""
-    @expose("/update_role/", methods=['POST'])
-    def update_role(self):
-        """Assigns a list of found users to the given role."""
-        data = request.get_json(force=True)
-        gamma_role = sm.find_role('Gamma')
-
-        username_set = set()
-        user_data_dict = {}
-        for user_data in data['users']:
-            username = user_data['username']
-            if not username:
-                continue
-            user_data_dict[username] = user_data
-            username_set.add(username)
-
-        existing_users = db.session.query(sm.user_model).filter(
-            sm.user_model.username.in_(username_set)).all()
-        missing_users = username_set.difference(
-            set([u.username for u in existing_users]))
-        logging.info('Missing users: {}'.format(missing_users))
-
-        created_users = []
-        for username in missing_users:
-            user_data = user_data_dict[username]
-            user = sm.find_user(email=user_data['email'])
-            if not user:
-                logging.info("Adding user: {}.".format(user_data))
-                sm.add_user(
-                    username=user_data['username'],
-                    first_name=user_data['first_name'],
-                    last_name=user_data['last_name'],
-                    email=user_data['email'],
-                    role=gamma_role,
-                )
-                sm.get_session.commit()
-                user = sm.find_user(username=user_data['username'])
-            existing_users.append(user)
-            created_users.append(user.username)
-
-        role_name = data['role_name']
-        role = sm.find_role(role_name)
-        role.user = existing_users
-        sm.get_session.commit()
-        return Response(json.dumps({
-            'role': role_name,
-            '# missing users': len(missing_users),
-            '# granted': len(existing_users),
-            'created_users': created_users,
-        }), status=201)
-
-    @expose("/override_role_permissions/", methods=['POST'])
-    def override_role_permissions(self):
-        """Updates the role with the give datasource permissions.
-
-          Permissions not in the request will be revoked. This endpoint should
-          be available to admins only. Expects JSON in the format:
-           {
-            'role_name': '{role_name}',
-            'database': [{
-                'datasource_type': '{table|druid}',
-                'name': '{database_name}',
-                'schema': [{
-                    'name': '{schema_name}',
-                    'datasources': ['{datasource name}, {datasource name}']
-                }]
-            }]
-        }
-        """
-        data = request.get_json(force=True)
-        role_name = data['role_name']
-        databases = data['database']
-
-        db_ds_names = set()
-        for dbs in databases:
-            for schema in dbs['schema']:
-                for ds_name in schema['datasources']:
-                    fullname = utils.get_datasource_full_name(
-                        dbs['name'], ds_name, schema=schema['name'])
-                    db_ds_names.add(fullname)
-
-        existing_datasources = SourceRegistry.get_all_datasources(db.session)
-        datasources = [
-            d for d in existing_datasources if d.full_name in db_ds_names]
-        role = sm.find_role(role_name)
-        # remove all permissions
-        role.permissions = []
-        # grant permissions to the list of datasources
-        granted_perms = []
-        for datasource in datasources:
-            view_menu_perm = sm.find_permission_view_menu(
-                    view_menu_name=datasource.perm,
-                    permission_name='datasource_access')
-            # prevent creating empty permissions
-            if view_menu_perm and view_menu_perm.view_menu:
-                role.permissions.append(view_menu_perm)
-                granted_perms.append(view_menu_perm.view_menu.name)
-        db.session.commit()
-        return Response(json.dumps({
-            'granted': granted_perms,
-            'requested': list(db_ds_names)
-        }), status=201)
-
     def temp_table(self, database_id, full_tb_name):
         """A temp table for slice"""
         table = SqlaTable()
@@ -2058,7 +1955,6 @@ class Superset(BaseSupersetView):
         if request.method == 'POST' and f:
             current_tt = int(time.time())
             data = pickle.load(f)
-            # TODO: import DRUID datasources
             for table in data['datasources']:
                 if table.type == 'table':
                     models.SqlaTable.import_obj(table, import_time=current_tt)
@@ -2332,7 +2228,6 @@ class Superset(BaseSupersetView):
         log_action('add', action_str, 'slice', slc.id)
         # log slice number
         log_number('slice', g.user.get_id())
-
 
     def overwrite_slice(self, slc):
         can_update = check_ownership(slc, raise_if_false=False)
