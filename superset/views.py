@@ -1601,26 +1601,6 @@ class DashboardModelView(SupersetModelView):  # noqa
         # log dashboard number
         log_number('dashboard', g.user.get_id())
 
-    @action("mulexport", "Export", "Export dashboards?", "fa-database")
-    def mulexport(self, items):
-        ids = ''.join('&id={}'.format(d.id) for d in items)
-        return redirect(
-            '/dashboard/export_dashboards_form?{}'.format(ids[1:]))
-
-    @catch_exception_decorator
-    @expose("/export_dashboards_form")
-    def download_dashboards(self):
-        if request.args.get('action') == 'go':
-            ids = request.args.getlist('id')
-            return Response(
-                models.Dashboard.export_dashboards(ids),
-                headers=generate_download_headers("pickle"),
-                mimetype="application/text")
-        return self.render_template(
-            'superset/export_dashboards.html',
-            dashboards_url='/dashboard/list'
-        )
-
     def get_object_list_data(self, **kwargs):
         """Return the dashbaords with column 'favorite' and 'online'"""
         user_id = kwargs.get('user_id')
@@ -1946,30 +1926,6 @@ class Superset(BaseSupersetView):
             viz_obj.json_dumps(payload),
             status=status,
             mimetype="application/json")
-
-    @catch_exception_decorator
-    @expose("/import_dashboards", methods=['GET', 'POST'])
-    def import_dashboards(self):
-        """Overrides the dashboards using pickled instances from the file."""
-        f = request.files.get('file')
-        if request.method == 'POST' and f:
-            current_tt = int(time.time())
-            data = pickle.load(f)
-            for table in data['datasources']:
-                if table.type == 'table':
-                    models.SqlaTable.import_obj(table, import_time=current_tt)
-                else:
-                    models.DruidDatasource.import_obj(table, import_time=current_tt)
-            db.session.commit()
-            for dashboard in data['dashboards']:
-                models.Dashboard.import_obj(
-                    dashboard, import_time=current_tt)
-                # log user action
-                action_str = 'Import dashboard: {}'.format(dashboard.dashboard_title)
-                log_action('import', action_str, 'dashboard', dashboard.id)
-            db.session.commit()
-            return redirect('/dashboard/list/')
-        return self.render_template('superset/import_dashboards.html')
 
     @expose("/explore/<datasource_type>/<datasource_id>/")
     def explore(self, datasource_type, datasource_id):
