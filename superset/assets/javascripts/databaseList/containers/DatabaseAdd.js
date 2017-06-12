@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as actions from '../actions';
-import { HashRouter, BrowserRouter, Route, Link, IndexRoute } from 'react-router-dom';
+import { HashRouter, BrowserRouter, Route, NavLink, IndexRoute } from 'react-router-dom';
 
 import {
     SubDetail,
@@ -23,10 +23,10 @@ const DatabaseAdd = ({ match }) => {
                <div className="data-wrap-center">
                    <nav className="detail-nav">
                        <ul>
-                           <li><Link to={`${match.url}/detail`} activeClassName="active">Detail</Link></li>
-                           <li><Link to={`${match.url}/preview`} activeClassName="active">preview</Link></li>
-                           <li><Link to={`${match.url}/columns`} activeClassName="active">List Table Column</Link></li>
-                           <li><Link to={`${match.url}/sqlMetric`} activeClassName="active">SqlMetric</Link></li>
+                           <li><NavLink to={`${match.url}/detail`} activeClassName="active">Detail</NavLink></li>
+                           <li><NavLink to={`${match.url}/preview`} activeClassName="active">preview</NavLink></li>
+                           <li><NavLink to={`${match.url}/columns`} activeClassName="active">List Table Column</NavLink></li>
+                           <li><NavLink to={`${match.url}/sqlMetric`} activeClassName="active">SqlMetric</NavLink></li>
                        </ul>
                    </nav>
 
@@ -35,7 +35,6 @@ const DatabaseAdd = ({ match }) => {
                    <Route path={`${match.url}/preview`} component={SubPreview}/>
                    <Route path={`${match.url}/columns`} component={SubColumns}/>
                    <Route path={`${match.url}/sqlMetric`} component={SubSqlMetric}/>
-
                </div>
            </div>
         </div>

@@ -57,6 +57,7 @@ a{text-decoration:none;}
 .detail-nav li .active,.detail-nav li a:hover{
     border-bottom:2px solid #0089f7;
     color:#1d2531;
+    text-decoration:none;
 }
 .data-detail-centent{
     padding:0 0 24px 24px;
@@ -66,7 +67,7 @@ a{text-decoration:none;}
     margin-top:20px;
     align-items: center;
     display:flex;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 .data-detail-centent.shallow input{
