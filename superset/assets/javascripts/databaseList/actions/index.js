@@ -115,7 +115,7 @@ function applyFetch (condition) {
         dispatch(sendRequest(condition));
 
         const URL = baseURL + 'listdata?' +
-            (condition.page? 'page' + (+condition.page-1) : '') +
+            (condition.page? 'page=' + (+condition.page-1) : '') +
             (condition.pageSize? '&page_size=' + condition.pageSize : '') +
             (condition.orderColumn? '&order_column=' + condition.orderColumn : '') +
             (condition.orderDirection? '&order_direction=' + condition.orderDirection : '') +
