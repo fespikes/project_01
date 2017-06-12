@@ -3,47 +3,49 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as actions from '../actions';
-import { HashRouter, Route, Link, IndexRoute } from 'react-router-dom';
+import { HashRouter, BrowserRouter, Route, Link, IndexRoute } from 'react-router-dom';
+
+import {
+    SubDetail,
+    SubPreview,
+    SubColumns,
+    SubSqlMetric
+} from './';
 
 import '../style/databaseAdd.css';
 
-class App extends Component {
+const DatabaseAdd = ({ match }) => {
+    console.log( 'in DatabaseAdd, arguments is: ', arguments );
+    return (
+        <div className="data-detail">
+           <h1 className="title"><i className="icon"></i>新建数据集</h1>
+           <div className="data-detail-wrap">
+               <div className="data-wrap-center">
+                   <nav className="detail-nav">
+                       <ul>
+                           <li><Link to={`${match.url}/detail`} activeClassName="active">Detail</Link></li>
+                           <li><Link to={`${match.url}/preview`} activeClassName="active">preview</Link></li>
+                           <li><Link to={`${match.url}/columns`} activeClassName="active">List Table Column</Link></li>
+                           <li><Link to={`${match.url}/sqlMetric`} activeClassName="active">SqlMetric</Link></li>
+                       </ul>
+                   </nav>
 
-    render () {
-        const props = this.props;
+                   <Route exact path={match.url} component={SubDetail}/>
+                   <Route path={`${match.url}/detail`} component={SubDetail}/>
+                   <Route path={`${match.url}/preview`} component={SubPreview}/>
+                   <Route path={`${match.url}/columns`} component={SubColumns}/>
+                   <Route path={`${match.url}/sqlMetric`} component={SubSqlMetric}/>
 
-        return (
-            <div className="data-detail">
-                <h1 className="title"><i className="icon"></i>数据集详情</h1>
-                <div className="data-detail-wrap">
-                    <div className="data-wrap-center">
-                        <nav className="detail-nav">
-                            <ul>
-                                <li><Link to="/add/detail">Detail</Link></li>
-                                <li><Link to="/add/preview">preview</Link></li>
-                                <li><Link to="/add/columns">List Table Column</Link></li>
-                                <li><Link to="/add/sqlMetric">SqlMetric</Link></li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+               </div>
+           </div>
+        </div>
+    );
 }
 
-App.propTypes = {
-};
+const Topic = ({ match }) => (
+  <div>
+    <h3>{match.params.topicId}</h3>
+  </div>
+)
 
-function mapStateToProps(state, ownProps) {
-    return {
-        errorMessage: state.errorMessage,
-        inputValue: ownProps.location.pathname.substring(1),
-    };
-}
-
-function mapDispatchToProps (dispatch) {
-    return bindActionCreators(actions, dispatch);
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default DatabaseAdd;

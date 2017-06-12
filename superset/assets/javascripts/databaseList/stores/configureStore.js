@@ -3,12 +3,18 @@ import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
 import rootReducer from '../reducers';
 
+import createHistory from 'history/createBrowserHistory';
+import { routerMiddleware } from 'react-router-redux';
+
+const history = createHistory()
+const routeMiddleware = routerMiddleware(history);
+
 export default function configureStore(initialState) {
   const store = createStore(
     rootReducer,
     initialState,
     compose(
-        applyMiddleware(thunkMiddleware, createLogger()),
+        applyMiddleware(routeMiddleware, thunkMiddleware, createLogger()),
         window.devToolsExtension ? window.devToolsExtension() : f => f
     )
   );

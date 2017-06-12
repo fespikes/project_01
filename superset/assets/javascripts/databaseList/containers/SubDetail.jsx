@@ -1,10 +1,13 @@
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+
 export default function SubDetail (){
     return (
-        <div className="data-detail-centent">
+        <div className="data-detail-centent shallow">
             <div className="data-detail-border">
                 <label className="data-detail-item">
                     <span>数据集名称：</span>
-                    <input type="text" value="Heatmap" />
+                    <input type="text" defaultValue="Heatmap" />
                 </label>
                 <label className="data-detail-item">
                     <span>数据集类型：</span>
@@ -38,7 +41,7 @@ export default function SubDetail (){
                 </div>
             </div>
             <label className="sub-btn">
-                <input type="button" value="保存" />
+                <input type="button" defaultValue="保存" />
             </label>
         </div>
     );

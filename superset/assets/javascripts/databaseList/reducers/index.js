@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux';
 import { actionTypes  } from '../actions';
 import popupParam from './popupParam';
+import {routerReducer } from 'react-router-redux'
 
 function condition(state = {
     page: 1,
@@ -83,6 +84,7 @@ const rootReducer = combineReducers({
     paramOfDelete,
     requestByCondition,
     popupParam
+//    ,router: routerReducer
 });
 
 export default rootReducer;

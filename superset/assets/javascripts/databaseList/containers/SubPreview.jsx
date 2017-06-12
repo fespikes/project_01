@@ -1,29 +1,32 @@
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+
 export default function SubPreview () {
     return (
         <div className="data-detail-preview">
             <div className="data-detail-border">
                 <label className="data-detail-item">
                     <span>type：</span>
-                    <input type="text" value="Separated values(CSV,TSV,...)" />
+                    <input type="text" defaultValue="Separated values(CSV,TSV,...)" />
                 </label>
                 <label className="data-detail-item">
                     <span>Quoting style：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                     <i className="icon infor-icon"></i>
                 </label>
                 <label className="data-detail-item">
                     <span>Separator：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                     <i className="icon infor-icon"></i>
                 </label>
                 <label className="data-detail-item">
                     <span>Quoting character：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                     <i className="icon infor-icon"></i>
                 </label>
                 <label className="data-detail-item">
                     <span>Skip first lines：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                 </label>
                 <label className="data-detail-item">
                     <span></span>
@@ -34,42 +37,42 @@ export default function SubPreview () {
                 </label>
                 <label className="data-detail-item">
                     <span>Skip next lines：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                 </label>
                 <label className="data-detail-item">
                     <span>Charset：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                 </label>
                 <label className="data-detail-item">
                     <span>arrayMapFormat：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                     <i className="icon infor-icon"></i>
                 </label>
                 <label className="data-detail-item">
                     <span>arrayItemSeparator：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                 </label>
                 <label className="data-detail-item">
                     <span>mapKeySeparator：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                 </label>
                 <label className="data-detail-item">
                     <span>Date serialization format：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                 </label>
                 <label className="data-detail-item">
                     <span>File Compression：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                     <i className="icon infor-icon"></i>
                 </label>
                 <label className="data-detail-item">
                     <span>Bad data type behavior (read)：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                     <i className="icon infor-icon"></i>
                 </label>
                 <label className="data-detail-item">
                     <span>Bad data type behavior (write)：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                     <i className="icon infor-icon"></i>
                 </label>
                 <label className="data-detail-item">
@@ -89,12 +92,12 @@ export default function SubPreview () {
 
                 <label className="data-detail-item">
                     <span>Add. columns behavior (read)：</span>
-                    <input type="text" value="" />
+                    <input type="text" defaultValue="" />
                     <i className="icon infor-icon"></i>
                 </label>
             </div>
             <label className="sub-btn">
-                <input type="button" value="保存" />
+                <input type="button" defaultValue="保存" />
             </label>
         </div>
     );

@@ -15,7 +15,6 @@ a{text-decoration:none;}
 
 .data-detail{
     box-sizing: border-box;
-    height:100%;
     padding:0 50px 50px 50px;
     background-color:#edf0f5;
 
@@ -31,7 +30,6 @@ a{text-decoration:none;}
     margin-right:6px;
 }
 .data-detail-wrap{
-    height:95%;
     border-radius: 4px;
     background-color:#fff;
 }
@@ -65,9 +63,14 @@ a{text-decoration:none;}
 
 }
 .data-detail-item{
-    display:flex;
     margin-top:20px;
     align-items: center;
+    display:flex;
+    justify-content: center;
+}
+
+.data-detail-centent.shallow input{
+    width:200px;
 }
 .data-detail-checkbox{
     display: flex;
@@ -307,8 +310,9 @@ a{text-decoration:none;}
     border-bottom:1px solid #dfe3e9;
     padding-bottom:25px;
 }
-.data-detail-centent,.new-data-gather,.ununited-data{
-    overflow-y:auto;
-    height:80vh;
+.data-detail-centent,.new-data-gather,.ununited-data,.data-detail-preview{
     padding:20px 0;
+}
+.data-detail-item-time>input{
+    width:200px;
 }
