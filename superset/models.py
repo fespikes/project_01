@@ -579,6 +579,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     @classmethod
     def export_dashboards(cls, dashboard_ids):
         copied_dashboards = []
+        eager_datasources = []
         datasource_ids = set()
         for dashboard_id in dashboard_ids:
             # make sure that dashboard_id is an integer
