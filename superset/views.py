@@ -1747,13 +1747,8 @@ class DashboardModelView(SupersetModelView):  # noqa
             headers=generate_download_headers("pickle"),
             mimetype="application/text")
 
+    @catch_exception_decorator
     @expose("/release/<action>/<dashboard_id>", methods=['GET'])
-    def release_dashboard(self, action, dashboard_id):
-        try:
-            return self.dashbaord_online_or_offline(action, dashboard_id)
-        except Exception as e:
-            return self.build_response(500, False, str(e))
-
     def dashbaord_online_or_offline(self, action, dashboard_id):
         obj = db.session.query(models.Dashboard) \
             .filter_by(id=dashboard_id).first()
