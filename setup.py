@@ -62,7 +62,7 @@ setup(
         'pyodbc==4.0.11',
         'python-dateutil==2.5.3',
         'requests==2.10.0',
-        'requests-kerberos==0.11.0'
+        'requests-kerberos==0.11.0',
         'simplejson==3.8.2',
         'six==1.10.0',
         'sqlalchemy==1.1.5dev',
