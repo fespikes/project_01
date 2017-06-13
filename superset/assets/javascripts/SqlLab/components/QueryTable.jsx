@@ -32,8 +32,8 @@ class QueryTable extends React.PureComponent {
     super(props);
 
     this.clearQueryResults = this.clearQueryResults.bind(this);
-    this.props.onUserClicked = this.props.onUserClicked.bind(this);
-    this.props.onDbClicked = this.props.onDbClicked.bind(this);
+    // this.props.onUserClicked = this.props.onUserClicked.bind(this);
+    // this.props.onDbClicked = this.props.onDbClicked.bind(this);
     this.openAsyncResults = this.openAsyncResults.bind(this);
     this.showVisualizeModal = this.showVisualizeModal.bind(this);
     this.openQueryInNewTab = this.openQueryInNewTab.bind(this);
@@ -99,7 +99,7 @@ class QueryTable extends React.PureComponent {
       q.user = (
         <button
           className="btn btn-link btn-xs"
-          onClick={this.props.onUserClicked(q.userId)}
+          onClick={this.props.onUserClicked.bind(this, q.userId)}
         >
           {q.user}
         </button>
@@ -107,7 +107,7 @@ class QueryTable extends React.PureComponent {
       q.db = (
         <button
           className="btn btn-link btn-xs"
-          onClick={this.props.onDbClicked(q.dbId)}
+          onClick={this.props.onDbClicked.bind(this, q.dbId)}
         >
           {q.db}
         </button>
