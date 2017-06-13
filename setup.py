@@ -42,10 +42,12 @@ setup(
     scripts=['superset/bin/pilot'],
     install_requires=[
         'celery==3.1.23',
+        'configobj==5.0.6',
         'cryptography==1.5.3',
         'flask-appbuilder==1.8.1',
         'flask-cache==0.13.1',
         'flask-migrate==1.5.1',
+        'flask-restful==0.3.6',
         'flask-script==2.0.5',
         'flask-testing==0.5.0',
         'flask-sqlalchemy==2.0',
@@ -60,6 +62,7 @@ setup(
         'pyodbc==4.0.11',
         'python-dateutil==2.5.3',
         'requests==2.10.0',
+        'requests-kerberos==0.11.0'
         'simplejson==3.8.2',
         'six==1.10.0',
         'sqlalchemy==1.1.5dev',
@@ -68,8 +71,7 @@ setup(
         'thrift>=0.9.3',
         'thrift-sasl>=0.2.1',
         'werkzeug==0.11.10',
-        'xlrd==1.0.0',
-        'requests-kerberos==0.11.0'
+        'xlrd==1.0.0'
     ],
     extras_require={
         'cors': ['Flask-Cors>=2.0.0'],
