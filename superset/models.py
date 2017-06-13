@@ -35,8 +35,8 @@ from flask_babel import lazy_gettext as _
 from datetime import date
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, Text, Boolean,
-    DateTime, Date, Table, Numeric,
-    create_engine, MetaData, desc, asc, select, and_, or_
+    DateTime, Date, Table, Numeric, LargeBinary,
+    create_engine, MetaData, desc, asc, select, and_, or_, func, update
 )
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import declared_attr
@@ -55,6 +55,8 @@ from superset.source_registry import SourceRegistry
 from superset.viz import viz_types
 from superset.jinja_context import get_template_processor
 from superset.utils import wrap_clause_in_parens, DTTM_ALIAS, QueryStatus
+
+
 # from superset.utils import flasher, MetricPermException, DimSelector
 
 config = app.config
@@ -579,6 +581,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     @classmethod
     def export_dashboards(cls, dashboard_ids):
         copied_dashboards = []
+        eager_datasources = []
         datasource_ids = set()
         for dashboard_id in dashboard_ids:
             # make sure that dashboard_id is an integer
@@ -2065,3 +2068,51 @@ class DailyNumber(Model):
             )
             db.session.add(new_record)
         db.session.commit()
+
+class Keytab(Model, AuditMixinNullable):
+  """ORM object used to store keytab infomation"""
+
+  __tablename__ = 'keytabs'
+  type = 'table'
+
+  id = Column(Integer, primary_key=True)
+  name = Column(String(256), nullable=False)
+  file = Column(LargeBinary)
+
+  def __repr__(self):
+    return self.name
+
+
+class HDFSConnection(Model, AuditMixinNullable):
+  """An ORM object that stores HDFS related information"""
+
+  __tablename__ = 'hdfsconns'
+  type = 'table'
+
+  id = Column(Integer, primary_key=True)
+  connection_name = Column(String(256), unique=True)
+  httpfs_uri = Column(String(1024), nullable=False)
+  fs_defaultfs = Column(String(512), nullable=False)
+  logical_name = Column(String(512), nullable=False)
+  security_enabled = Column(Boolean, default=True)
+  principal = Column(String(512), nullable=False)
+  keytab_id = Column(Integer, ForeignKey('keytabs.id'))
+  keytab = relationship(
+    'Keytab',
+    backref=backref('hdfsconns', lazy='joined'),
+    foreign_keys=[keytab_id])
+
+  def __repr__(self):
+    return self.connection_name
+
+  @property
+  def name(self):
+    return self.connection_name
+
+  def set_httpfs_uri(self, uri):
+    self.httpfs_uri = uri
+
+
+
+
+

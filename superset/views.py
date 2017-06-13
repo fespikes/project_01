@@ -12,7 +12,6 @@ import sys
 import time
 import traceback
 import zlib
-from collections import Counter
 from distutils.util import strtobool
 
 import functools
@@ -20,12 +19,12 @@ import sqlalchemy as sqla
 
 from flask import (g, request, redirect, flash,
                    Response, render_template, Markup, abort)
-from flask_appbuilder import ModelView, CompactCRUDMixin, BaseView, expose
+from flask_appbuilder import ModelView, BaseView, expose
 from flask_appbuilder.actions import action
 from flask_appbuilder.models.sqla.interface import SQLAInterface
-from flask_appbuilder.security.decorators import has_access, has_access_api
+from flask_appbuilder.security.decorators import has_access
 from flask_appbuilder.widgets import ListWidget
-from flask_appbuilder.models.sqla.filters import BaseFilter
+from flask_appbuilder.models.sqla.filters import (BaseFilter, FilterStartsWith, FilterEqualFunction)
 from flask_appbuilder.security.sqla import models as ab_models
 
 from flask_babel import gettext as __
@@ -35,13 +34,18 @@ from sqlalchemy import create_engine, case
 from werkzeug.routing import BaseConverter
 from wtforms.validators import ValidationError
 
-import superset
+
 from superset import (
     app, appbuilder, cache, db, models, sm, sql_lab, sql_parse,
-    results_backend, security, viz, utils,
+    results_backend, security, viz
 )
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
+from superset.filebrowser import *
+from superset.utils import (get_database_access_error_msg,
+                            get_datasource_access_error_msg,
+                            get_datasource_exist_error_msg,
+                            json_error_response)
 
 from superset.models import Database, SqlaTable, Slice, \
     Dashboard, FavStar, Log, DailyNumber, str_to_model
@@ -56,6 +60,17 @@ log_action = models.Log.log_action
 log_number = models.DailyNumber.log_number
 can_access = utils.can_access
 QueryStatus = models.QueryStatus
+
+
+def get_error_msg():
+  if config.get("SHOW_STACKTRACE"):
+    error_msg = traceback.format_exc()
+  else:
+    error_msg = "FATAL ERROR \n"
+    error_msg += (
+      "Stacktrace is hidden. Change the SHOW_STACKTRACE "
+      "configuration setting to enable it")
+  return error_msg
 
 
 class BaseSupersetView(BaseView):
@@ -116,39 +131,7 @@ def log_number_for_all_users(obj_type):
         log_number(obj_type, user.id)
 
 
-def get_database_access_error_msg(database_name):
-    return __("This view requires the database %(name)s or "
-              "`all_datasource_access` permission", name=database_name)
-
-
-def get_datasource_access_error_msg(datasource_name):
-    return __("This endpoint requires the datasource %(name)s, database or "
-              "`all_datasource_access` permission", name=datasource_name)
-
-
-def get_datasource_exist_error_mgs(full_name):
-    return __("Datasource %(name)s already exists", name=full_name)
-
-
-def get_error_msg():
-    if config.get("SHOW_STACKTRACE"):
-        error_msg = traceback.format_exc()
-    else:
-        error_msg = "FATAL ERROR \n"
-        error_msg += (
-            "Stacktrace is hidden. Change the SHOW_STACKTRACE "
-            "configuration setting to enable it")
-    return error_msg
-
-
-def json_error_response(msg, status=None):
-    data = {'error': msg}
-    status = status if status else 500
-    return Response(
-        json.dumps(data), status=status, mimetype="application/json")
-
-
-def api(f):
+def catch_exception_decorator(f):
     """
     A decorator to label an endpoint as an API. Catches uncaught exceptions and
     return the response in the JSON format
@@ -158,13 +141,7 @@ def api(f):
             return f(self, *args, **kwargs)
         except Exception as e:
             logging.exception(e)
-            resp = Response(
-                json.dumps({
-                    'message': get_error_msg()
-                }),
-                status=500,
-                mimetype="application/json")
-            return resp
+            return json_error_response(str(e))
 
     return functools.update_wrapper(wraps, f)
 
@@ -1408,6 +1385,7 @@ class SliceModelView(SupersetModelView):  # noqa
         response['data'] = data
         return response
 
+    @catch_exception_decorator
     @expose("/release/<action>/<slice_id>", methods=['GET'])
     def slice_online_or_offline(self, action, slice_id):
         obj = db.session.query(models.Slice) \
@@ -1606,25 +1584,6 @@ class DashboardModelView(SupersetModelView):  # noqa
         # log dashboard number
         log_number('dashboard', g.user.get_id())
 
-    @action("mulexport", "Export", "Export dashboards?", "fa-database")
-    def mulexport(self, items):
-        ids = ''.join('&id={}'.format(d.id) for d in items)
-        return redirect(
-            '/dashboard/export_dashboards_form?{}'.format(ids[1:]))
-
-    @expose("/export_dashboards_form")
-    def download_dashboards(self):
-        if request.args.get('action') == 'go':
-            ids = request.args.getlist('id')
-            return Response(
-                models.Dashboard.export_dashboards(ids),
-                headers=generate_download_headers("pickle"),
-                mimetype="application/text")
-        return self.render_template(
-            'superset/export_dashboards.html',
-            dashboards_url='/dashboard/list'
-        )
-
     def get_object_list_data(self, **kwargs):
         """Return the dashbaords with column 'favorite' and 'online'"""
         user_id = kwargs.get('user_id')
@@ -1712,6 +1671,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             self.handle_exception(404, Exception, msg)
         return objs
 
+    @catch_exception_decorator
     @expose("/import", methods=['GET', 'POST'])
     def import_dashboards(self):
         """Overrides the dashboards using pickled instances from the file."""
@@ -1736,6 +1696,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             # TODO log_action
         return redirect('/dashboard/list/')
 
+    @catch_exception_decorator
     @expose("/export")
     def export_dashboards(self):
         ids = request.args.getlist('id')
@@ -1744,6 +1705,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             headers=generate_download_headers("pickle"),
             mimetype="application/text")
 
+    @catch_exception_decorator
     @expose("/release/<action>/<dashboard_id>", methods=['GET'])
     def dashbaord_online_or_offline(self, action, dashboard_id):
         obj = db.session.query(models.Dashboard) \
@@ -1869,109 +1831,6 @@ class R(BaseSupersetView):
 class Superset(BaseSupersetView):
     route_base = '/pilot'
 
-    """The base views for Superset!"""
-    @expose("/update_role/", methods=['POST'])
-    def update_role(self):
-        """Assigns a list of found users to the given role."""
-        data = request.get_json(force=True)
-        gamma_role = sm.find_role('Gamma')
-
-        username_set = set()
-        user_data_dict = {}
-        for user_data in data['users']:
-            username = user_data['username']
-            if not username:
-                continue
-            user_data_dict[username] = user_data
-            username_set.add(username)
-
-        existing_users = db.session.query(sm.user_model).filter(
-            sm.user_model.username.in_(username_set)).all()
-        missing_users = username_set.difference(
-            set([u.username for u in existing_users]))
-        logging.info('Missing users: {}'.format(missing_users))
-
-        created_users = []
-        for username in missing_users:
-            user_data = user_data_dict[username]
-            user = sm.find_user(email=user_data['email'])
-            if not user:
-                logging.info("Adding user: {}.".format(user_data))
-                sm.add_user(
-                    username=user_data['username'],
-                    first_name=user_data['first_name'],
-                    last_name=user_data['last_name'],
-                    email=user_data['email'],
-                    role=gamma_role,
-                )
-                sm.get_session.commit()
-                user = sm.find_user(username=user_data['username'])
-            existing_users.append(user)
-            created_users.append(user.username)
-
-        role_name = data['role_name']
-        role = sm.find_role(role_name)
-        role.user = existing_users
-        sm.get_session.commit()
-        return Response(json.dumps({
-            'role': role_name,
-            '# missing users': len(missing_users),
-            '# granted': len(existing_users),
-            'created_users': created_users,
-        }), status=201)
-
-    @expose("/override_role_permissions/", methods=['POST'])
-    def override_role_permissions(self):
-        """Updates the role with the give datasource permissions.
-
-          Permissions not in the request will be revoked. This endpoint should
-          be available to admins only. Expects JSON in the format:
-           {
-            'role_name': '{role_name}',
-            'database': [{
-                'datasource_type': '{table|druid}',
-                'name': '{database_name}',
-                'schema': [{
-                    'name': '{schema_name}',
-                    'datasources': ['{datasource name}, {datasource name}']
-                }]
-            }]
-        }
-        """
-        data = request.get_json(force=True)
-        role_name = data['role_name']
-        databases = data['database']
-
-        db_ds_names = set()
-        for dbs in databases:
-            for schema in dbs['schema']:
-                for ds_name in schema['datasources']:
-                    fullname = utils.get_datasource_full_name(
-                        dbs['name'], ds_name, schema=schema['name'])
-                    db_ds_names.add(fullname)
-
-        existing_datasources = SourceRegistry.get_all_datasources(db.session)
-        datasources = [
-            d for d in existing_datasources if d.full_name in db_ds_names]
-        role = sm.find_role(role_name)
-        # remove all permissions
-        role.permissions = []
-        # grant permissions to the list of datasources
-        granted_perms = []
-        for datasource in datasources:
-            view_menu_perm = sm.find_permission_view_menu(
-                    view_menu_name=datasource.perm,
-                    permission_name='datasource_access')
-            # prevent creating empty permissions
-            if view_menu_perm and view_menu_perm.view_menu:
-                role.permissions.append(view_menu_perm)
-                granted_perms.append(view_menu_perm.view_menu.name)
-        db.session.commit()
-        return Response(json.dumps({
-            'granted': granted_perms,
-            'requested': list(db_ds_names)
-        }), status=201)
-
     def temp_table(self, database_id, full_tb_name):
         """A temp table for slice"""
         table = SqlaTable()
@@ -2050,30 +1909,6 @@ class Superset(BaseSupersetView):
             viz_obj.json_dumps(payload),
             status=status,
             mimetype="application/json")
-
-    @expose("/import_dashboards", methods=['GET', 'POST'])
-    def import_dashboards(self):
-        """Overrides the dashboards using pickled instances from the file."""
-        f = request.files.get('file')
-        if request.method == 'POST' and f:
-            current_tt = int(time.time())
-            data = pickle.load(f)
-            # TODO: import DRUID datasources
-            for table in data['datasources']:
-                if table.type == 'table':
-                    models.SqlaTable.import_obj(table, import_time=current_tt)
-                else:
-                    models.DruidDatasource.import_obj(table, import_time=current_tt)
-            db.session.commit()
-            for dashboard in data['dashboards']:
-                models.Dashboard.import_obj(
-                    dashboard, import_time=current_tt)
-                # log user action
-                action_str = 'Import dashboard: {}'.format(dashboard.dashboard_title)
-                log_action('import', action_str, 'dashboard', dashboard.id)
-            db.session.commit()
-            return redirect('/dashboard/list/')
-        return self.render_template('superset/import_dashboards.html')
 
     @expose("/explore/<datasource_type>/<datasource_id>/")
     def explore(self, datasource_type, datasource_id):
@@ -2204,8 +2039,7 @@ class Superset(BaseSupersetView):
         """
         # TODO: Cache endpoint by user, datasource and column
         error_redirect = '/slice/list/'
-        datasource_class = models.SqlaTable \
-            if datasource_type == "table" else models.DruidDatasource
+        datasource_class = models.SqlaTable
 
         datasource = db.session.query(
             datasource_class).filter_by(id=datasource_id).first()
@@ -2332,7 +2166,6 @@ class Superset(BaseSupersetView):
         log_action('add', action_str, 'slice', slc.id)
         # log slice number
         log_number('slice', g.user.get_id())
-
 
     def overwrite_slice(self, slc):
         can_update = check_ownership(slc, raise_if_false=False)
@@ -2802,55 +2635,6 @@ class Superset(BaseSupersetView):
             standalone_mode=standalone,
         )
 
-    @has_access
-    @expose("/sync_druid/", methods=['POST'])
-    def sync_druid_source(self):
-        """Syncs the druid datasource in main db with the provided config.
-
-        The endpoint takes 3 arguments:
-            user - user name to perform the operation as
-            cluster - name of the druid cluster
-            config - configuration stored in json that contains:
-                name: druid datasource name
-                dimensions: list of the dimensions, they become druid columns
-                    with the type STRING
-                metrics_spec: list of metrics (dictionary). Metric consists of
-                    2 attributes: type and name. Type can be count,
-                    etc. `count` type is stored internally as longSum
-            other fields will be ignored.
-
-            Example: {
-                "name": "test_click",
-                "metrics_spec": [{"type": "count", "name": "count"}],
-                "dimensions": ["affiliate_id", "campaign", "first_seen"]
-            }
-        """
-        payload = request.get_json(force=True)
-        druid_config = payload['config']
-        user_name = payload['user']
-        cluster_name = payload['cluster']
-
-        user = sm.find_user(username=user_name)
-        if not user:
-            err_msg = __("Can't find User '%(name)s', please ask your admin "
-                         "to create one.", name=user_name)
-            logging.error(err_msg)
-            return json_error_response(err_msg)
-        cluster = db.session.query(models.DruidCluster).filter_by(
-            cluster_name=cluster_name).first()
-        if not cluster:
-            err_msg = __("Can't find DruidCluster with cluster_name = "
-                         "'%(name)s'", name=cluster_name)
-            logging.error(err_msg)
-            return json_error_response(err_msg)
-        try:
-            models.DruidDatasource.sync_to_db_from_config(
-                druid_config, user, cluster)
-        except Exception as e:
-            logging.exception(utils.error_msg_from_exception(e))
-            return json_error_response(utils.error_msg_from_exception(e))
-        return Response(status=201)
-
     @expose("/sqllab_viz/", methods=['POST'])
     def sqllab_viz(self):
         data = json.loads(request.form.get('data'))
@@ -3270,29 +3054,6 @@ class Superset(BaseSupersetView):
             status=200,
             mimetype="application/json")
 
-    @expose("/refresh_datasources/")
-    def refresh_datasources(self):
-        """endpoint that refreshes druid datasources metadata"""
-        session = db.session()
-        for cluster in session.query(models.DruidCluster).all():
-            cluster_name = cluster.cluster_name
-            try:
-                cluster.refresh_datasources()
-            except Exception as e:
-                flash(
-                    "Error while processing cluster '{}'\n{}".format(
-                        cluster_name, utils.error_msg_from_exception(e)),
-                    "danger")
-                logging.exception(e)
-                return redirect('/druidclustermodelview/list/')
-            cluster.metadata_last_refreshed = datetime.now()
-            flash(
-                "Refreshed metadata from cluster "
-                "[" + cluster.cluster_name + "]",
-                'info')
-        session.commit()
-        return redirect("/druiddatasourcemodelview/list/")
-
     @app.errorhandler(500)
     def show_traceback(self):
         return render_template(
@@ -3702,32 +3463,6 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
 
-    def get_edited_slices_api(self, **kwargs):
-        kwargs = self.get_request_args(kwargs)
-        kwargs['user_id'] = self.get_user_id()
-        count, data = self.get_edited_slices(**kwargs)
-        response = {}
-        response['data'] = data
-        response['count'] = count
-        response['page'] = kwargs.get('page')
-        response['page_size'] = kwargs.get('page_size')
-        response['order_column'] = kwargs.get('order_column')
-        response['order_direction'] = kwargs.get('order_direction')
-        return json.dumps(response)
-
-    def get_edited_dashboards_api(self, **kwargs):
-        kwargs = self.get_request_args(kwargs)
-        kwargs['user_id'] = self.get_user_id()
-        count, data = self.get_edited_dashboards(**kwargs)
-        response = {}
-        response['data'] = data
-        response['count'] = count
-        response['page'] = kwargs.get('page')
-        response['page_size'] = kwargs.get('page_size')
-        response['order_column'] = kwargs.get('order_column')
-        response['order_direction'] = kwargs.get('order_direction')
-        return json.dumps(response)
-
     def get_user_actions(self, **kwargs):
         """The actions of user"""
         user_id = kwargs.get('user_id')
@@ -3792,20 +3527,6 @@ class Home(BaseSupersetView):
                     }
             rows.append(line)
         return count, rows
-
-    def get_user_actions_api(self, **kwargs):
-        kwargs = self.get_request_args(kwargs)
-        kwargs['user_id'] = self.get_user_id()
-        kwargs['types'] = kwargs.get('types', self.default_types.get('actions'))
-        count, data = self.get_user_actions(**kwargs)
-        response = {}
-        response['data'] = data
-        response['count'] = count
-        response['page'] = kwargs.get('page')
-        response['page_size'] = kwargs.get('page_size')
-        response['order_column'] = kwargs.get('order_column')
-        response['order_direction'] = kwargs.get('order_direction')
-        return json.dumps(response)
 
     @expose('/actions/')
     def get_user_actions_by_url(self):
@@ -3956,6 +3677,7 @@ class Home(BaseSupersetView):
             json.dumps({'index': response}),
             status=status_,
             mimetype="application/json")
+
 
 appbuilder.add_view_no_menu(DatabaseAsync)
 appbuilder.add_view_no_menu(DatabaseTablesAsync)
