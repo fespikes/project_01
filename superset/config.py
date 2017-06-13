@@ -263,6 +263,21 @@ JINJA_CONTEXT_ADDONS = {}
 # by humans.
 ROBOT_PERMISSION_ROLES = ['Public', 'Gamma', 'Alpha', 'Admin', 'sql_lab']
 
+
+# ---------------------------------------------------
+# kerberos settings
+# ---------------------------------------------------
+KEYTABS_TMP_DIR = '/tmp/kerberos/keytabs'
+KINIT_PATH = 'kinit'
+CCACHE_BASE_DIR = '/tmp/kerberos/ccache'
+
+# ---------------------------------------------------
+# filebrowser settings
+# ---------------------------------------------------
+UPLOAD_CHUNK_SIZE = 1024 * 1024 * 64
+ARCHIVE_UPLOAD_TEMPDIR = None
+
+
 CONFIG_PATH_ENV_VAR = 'PILOT_CONFIG_PATH'
 
 try:
@@ -288,16 +303,3 @@ SMTP_MAIL_FROM = 'pilot@pilot.com'
 
 if not CACHE_DEFAULT_TIMEOUT:
     CACHE_DEFAULT_TIMEOUT = CACHE_CONFIG.get('CACHE_DEFAULT_TIMEOUT')
-
-# ---------------------------------------------------
-# kerberos settings
-# ---------------------------------------------------
-KEYTABS_TMP_DIR = '/Users/Shannon/Downloads/keytabs'
-KINIT_PATH = 'kinit'
-CCACHE_BASE_DIR = '/Users/Shannon/Downloads/ccaches'
-
-# ---------------------------------------------------
-# filebrowser settings
-# ---------------------------------------------------
-UPLOAD_CHUNK_SIZE = 1024 * 1024 * 64
-ARCHIVE_UPLOAD_TEMPDIR = None
