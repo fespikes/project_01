@@ -4,12 +4,14 @@ import { bindActionCreators } from 'redux';
 import {
     fetchIfNeeded,
     setPopupParam
-    } from '../actions';
-import { Pagination, Table, Operate } from '../components';
-//import PopupConn from "./PopupConn"
+} from '../actions';
+import {
+    Pagination,
+    Table,
+    Operate
+} from '../components';
 import { Popup } from '../../common/components';
 import PropTypes from 'prop-types';
-
 
 class App extends Component {
 

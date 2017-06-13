@@ -2,22 +2,20 @@ import React from 'react';
 import { render } from 'react-dom';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
-
 import {
     Main,
-    DatabaseAdd,
-//        SubDetail,
-//        SubPreview,
-//        SubColumns,
-//        SubSqlMetric
-    } from './databaseList/containers';
-
+    DatabaseAdd
+} from './databaseList/containers';
 import configureStore from './databaseList/stores/configureStore';
-const store = configureStore();
-
-import { HashRouter, BrowserRouter, Route, IndexRoute } from 'react-router-dom';
+import {
+    HashRouter,
+    BrowserRouter,
+    Route,
+    IndexRoute
+} from 'react-router-dom';
 import './databaseList/style/database.scss';
 
+const store = configureStore();
 const rootElement = document.querySelector('#databaseList');
 
 render(
@@ -31,12 +29,3 @@ render(
     </Provider>,
     rootElement
 );
-
-/*
-render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
-  rootElement
-);
-*/

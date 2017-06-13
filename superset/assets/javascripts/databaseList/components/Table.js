@@ -84,7 +84,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.dataset_name.substring(0, 1).charCodeAt() - b.dataset_name.substring(0, 1).charCodeAt();
+                    return a.database_name.substring(0, 1).charCodeAt() - b.database_name.substring(0, 1).charCodeAt();
                 }
             }, {
                 title: '连接类型',

@@ -22,7 +22,6 @@ class Operate extends React.Component {
         this.onDelete = this.onDelete.bind(this);
         this.onAdd = this.onAdd.bind(this);
         this.onSearch = this.onSearch.bind(this);
-        this.handleSelectChange = this.handleSelectChange.bind(this);
         this.timer = null;
         this.dispatch = context.dispatch;
     }
@@ -96,12 +95,6 @@ class Operate extends React.Component {
 
     }
 
-    handleSelectChange (argus) {
-        console.log(`selected ${argus}`);
-        const me = this;
-        me.dispatch(selectType(argus));
-    }
-
     onSearch () {
         const filter = this.refs.searchField.value;
         const me = this;
@@ -111,26 +104,14 @@ class Operate extends React.Component {
 
     render() {
 
-        const { tableType } = this.props;
         return (
             <div className="operations">
                 <ul className="icon-list">
                     {/*<li onClick={this.onAdd}>*/}
                     <li>
-                        <Link to="/add"><i className="icon"></i></Link></li>
+                        <Link to="/add"><i className="icon"></i>新建连接</Link></li>
                     <li onClick={this.onDelete}><i className="icon"></i></li>
                 </ul>
-                <div className="tab-btn">
-                    {/*<button className={typeName === SHOW_ALL ? 'active' : ''} onClick={()=>this.onFilter(SHOW_ALL)}>全部</button>
-                    <button className={typeName === SHOW_FAVORITE ? 'active' : ''} onClick={()=>this.onFilter(SHOW_FAVORITE)}>
-                        <i className="icon"></i>收藏</button>*/}
-                    <Select ref="tableType" defaultValue={tableType} style={{ width: 120 }} onChange={this.handleSelectChange}>
-                        <Option value="all">all types</Option>
-                        <Option value="database">database</Option>
-                        <Option value="hdfs">hdfs</Option>
-                        <Option value="upload">upload</Option>
-                    </Select>
-                </div>
                 <div className="search-input">
                     <input onChange={this.onChange} ref="searchField" placeholder="search..." />
                     <i className="icon" onClick={this.onSearch} ref="searchIcon"></i>
