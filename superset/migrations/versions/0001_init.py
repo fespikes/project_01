@@ -262,11 +262,11 @@ def upgrade():
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('hdfs_path', sa.String(length=256), nullable=False),
         sa.Column('separator', sa.String(length=256), nullable=False),
-        sa.Column('hdfs_connection_id', sa.Integer(), sa.ForeignKey("hdfs_connection2.id"), nullable=True),
+        sa.Column('hdfs_connection_id', sa.Integer(), sa.ForeignKey("hdfs_connection.id"), nullable=True),
         sa.Column('table_id', sa.Integer(), sa.ForeignKey("tables.id"), nullable=True),
         sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
-        sa.ForeignKeyConstraint(['hdfs_connection_id'], ['hdfs_connection2.id'], ),
+        sa.ForeignKeyConstraint(['hdfs_connection_id'], ['hdfs_connection.id'], ),
         sa.ForeignKeyConstraint(['table_id'], ['tables.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
