@@ -1545,12 +1545,6 @@ class DashboardModelView(SupersetModelView):  # noqa
         return slices_list
 
     def pre_add(self, obj):
-        if not obj.slug:
-            obj.slug = obj.dashboard_title
-        obj.slug = obj.slug.strip() or None
-        if obj.slug:
-            obj.slug = obj.slug.replace(" ", "-")
-            obj.slug = re.sub(r'\W+', '', obj.slug)
         if g.user not in obj.owners:
             obj.owners.append(g.user)
         utils.validate_json(obj.json_metadata)

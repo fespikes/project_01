@@ -410,14 +410,14 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
     __tablename__ = 'dashboards'
     id = Column(Integer, primary_key=True)
-    dashboard_title = Column(String(500))
+    dashboard_title = Column(String(500), unique=True)
     position_json = Column(Text)
     description = Column(Text)
     department = Column(Text)
     css = Column(Text)
     online = Column(Boolean, default=False)
     json_metadata = Column(Text)
-    slug = Column(String(255), unique=True)
+    slug = Column(String(255))
     slices = relationship(
         'Slice', secondary=dashboard_slices, backref='dashboards')
     owners = relationship("User", secondary=dashboard_user)
@@ -435,7 +435,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
     @property
     def url(self):
-        return "/pilot/dashboard/{}/".format(self.slug or self.id)
+        return "/pilot/dashboard/{}/".format(self.id)
 
     @property
     def datasources(self):

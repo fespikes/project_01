@@ -30,7 +30,7 @@ def upgrade():
         sa.Column('created_on', sa.DateTime(), nullable=True),
         sa.Column('changed_on', sa.DateTime(), nullable=True),
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('dashboard_title', sa.String(length=500), nullable=True),
+        sa.Column('dashboard_title', sa.String(length=500), nullable=False),
         sa.Column('position_json', sa.Text(), nullable=True),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('department', sa.Text(), nullable=True),
@@ -41,7 +41,7 @@ def upgrade():
         sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('slug')
+        sa.UniqueConstraint('dashboard_title')
     )
     op.create_table('dbs',
         sa.Column('created_on', sa.DateTime(), nullable=True),
