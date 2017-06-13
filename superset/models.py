@@ -410,7 +410,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
     __tablename__ = 'dashboards'
     id = Column(Integer, primary_key=True)
-    dashboard_title = Column(String(500), unique=True)
+    dashboard_title = Column(String(255), unique=True)
     position_json = Column(Text)
     description = Column(Text)
     department = Column(Text)

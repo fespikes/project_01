@@ -30,7 +30,7 @@ def upgrade():
         sa.Column('created_on', sa.DateTime(), nullable=True),
         sa.Column('changed_on', sa.DateTime(), nullable=True),
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('dashboard_title', sa.String(length=500), nullable=False),
+        sa.Column('dashboard_title', sa.String(length=255), nullable=False),
         sa.Column('position_json', sa.Text(), nullable=True),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('department', sa.Text(), nullable=True),
