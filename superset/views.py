@@ -131,7 +131,7 @@ def log_number_for_all_users(obj_type):
         log_number(obj_type, user.id)
 
 
-def catch_exception_decorator(f):
+def catch_exception(f):
     """
     A decorator to label an endpoint as an API. Catches uncaught exceptions and
     return the response in the JSON format
@@ -1385,7 +1385,7 @@ class SliceModelView(SupersetModelView):  # noqa
         response['data'] = data
         return response
 
-    @catch_exception_decorator
+    @catch_exception
     @expose("/release/<action>/<slice_id>", methods=['GET'])
     def slice_online_or_offline(self, action, slice_id):
         obj = db.session.query(models.Slice) \
@@ -1671,7 +1671,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             self.handle_exception(404, Exception, msg)
         return objs
 
-    @catch_exception_decorator
+    @catch_exception
     @expose("/import", methods=['GET', 'POST'])
     def import_dashboards(self):
         """Overrides the dashboards using pickled instances from the file."""
@@ -1696,7 +1696,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             # TODO log_action
         return redirect('/dashboard/list/')
 
-    @catch_exception_decorator
+    @catch_exception
     @expose("/export")
     def export_dashboards(self):
         ids = request.args.getlist('id')
@@ -1705,7 +1705,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             headers=generate_download_headers("pickle"),
             mimetype="application/text")
 
-    @catch_exception_decorator
+    @catch_exception
     @expose("/release/<action>/<dashboard_id>", methods=['GET'])
     def dashbaord_online_or_offline(self, action, dashboard_id):
         obj = db.session.query(models.Dashboard) \
@@ -1863,11 +1863,13 @@ class Superset(BaseSupersetView):
                 datasource, request.args if request.args else args)
             return viz_obj
 
+    @catch_exception
     @expose("/slice/<slice_id>/")
     def slice(self, slice_id):
         viz_obj = self.get_viz(slice_id)
         return redirect(viz_obj.get_url(**request.args))
 
+    @catch_exception
     @expose("/explore_json/<datasource_type>/<datasource_id>/")
     def explore_json(self, datasource_type, datasource_id):
         """render the chart of slice"""
@@ -1910,6 +1912,7 @@ class Superset(BaseSupersetView):
             status=status,
             mimetype="application/json")
 
+    @catch_exception
     @expose("/explore/<datasource_type>/<datasource_id>/")
     def explore(self, datasource_type, datasource_id):
         """render the parameters of slice"""
@@ -2027,6 +2030,7 @@ class Superset(BaseSupersetView):
                 userid=g.user.get_id() if g.user else ''
             )
 
+    @catch_exception
     @expose("/filter/<datasource_type>/<datasource_id>/<column>/")
     def filter(self, datasource_type, datasource_id, column):
         """
@@ -2181,6 +2185,7 @@ class Superset(BaseSupersetView):
             action_str = 'Edit slice: {}'.format(slc.slice_name)
             log_action('edit', action_str, 'slice', slc.id)
 
+    @catch_exception
     @expose("/checkbox/<model_view>/<id_>/<attr>/<value>", methods=['GET'])
     def checkbox(self, model_view, id_, attr, value):
         """endpoint for checking/unchecking any boolean in a sqla model"""
@@ -2194,6 +2199,7 @@ class Superset(BaseSupersetView):
             db.session.commit()
         return Response("OK", mimetype="application/json")
 
+    @catch_exception
     @expose("/activity_per_day")
     def activity_per_day(self):
         """endpoint to power the calendar heatmap on the welcome page"""
@@ -2207,6 +2213,7 @@ class Superset(BaseSupersetView):
                    ccount for dt, ccount in qry if dt}
         return Response(json.dumps(payload), mimetype="application/json")
 
+    @catch_exception
     @expose("/all_tables/<db_id>")
     def all_tables(self, db_id):
         """Endpoint that returns all tables and views from the database"""
@@ -2229,6 +2236,7 @@ class Superset(BaseSupersetView):
             json.dumps({"tables": all_tables, "views": all_views}),
             mimetype="application/json")
 
+    @catch_exception
     @expose("/tables/<db_id>/<schema>")
     def tables(self, db_id, schema):
         """endpoint to power the calendar heatmap on the welcome page"""
@@ -2246,6 +2254,7 @@ class Superset(BaseSupersetView):
         return Response(
             json.dumps(payload), mimetype="application/json")
 
+    @catch_exception
     @expose("/copy_dash/<dashboard_id>/", methods=['GET', 'POST'])
     def copy_dash(self, dashboard_id):
         """Copy dashboard"""
@@ -2268,6 +2277,7 @@ class Superset(BaseSupersetView):
         return Response(
             dash_json, mimetype="application/json")
 
+    @catch_exception
     @expose("/save_dash/<dashboard_id>/", methods=['GET', 'POST'])
     def save_dash(self, dashboard_id):
         """Save a dashboard's metadata"""
@@ -2300,6 +2310,7 @@ class Superset(BaseSupersetView):
         md['expanded_slices'] = data['expanded_slices']
         dashboard.json_metadata = json.dumps(md, indent=4)
 
+    @catch_exception
     @expose("/add_slices/<dashboard_id>/", methods=['POST'])
     def add_slices(self, dashboard_id):
         """Add and save slices to a dashboard"""
@@ -2316,6 +2327,7 @@ class Superset(BaseSupersetView):
         session.close()
         return "SLICES ADDED"
 
+    @catch_exception
     @expose("/testconn", methods=["POST", "GET"])
     def testconn(self):
         """Tests a sqla connection"""
@@ -2347,6 +2359,7 @@ class Superset(BaseSupersetView):
                 status=500,
                 mimetype="application/json")
 
+    @catch_exception
     @expose("/recent_activity/<user_id>/", methods=['GET'])
     def recent_activity(self, user_id):
         """Recent activity (actions) for a given user"""
@@ -2383,6 +2396,7 @@ class Superset(BaseSupersetView):
             json.dumps(payload, default=utils.json_int_dttm_ser),
             mimetype="application/json")
 
+    @catch_exception
     @expose("/fave_dashboards/<user_id>/", methods=['GET'])
     def fave_dashboards(self, user_id):
         qry = (
@@ -2413,6 +2427,7 @@ class Superset(BaseSupersetView):
             json.dumps(payload, default=utils.json_int_dttm_ser),
             mimetype="application/json")
 
+    @catch_exception
     @expose("/created_dashboards/<user_id>/", methods=['GET'])
     def created_dashboards(self, user_id):
         Dash = models.Dashboard  # noqa
@@ -2435,6 +2450,7 @@ class Superset(BaseSupersetView):
             json.dumps(payload, default=utils.json_int_dttm_ser),
             mimetype="application/json")
 
+    @catch_exception
     @expose("/created_slices/<user_id>/", methods=['GET'])
     def created_slices(self, user_id):
         """List of slices created by this user"""
@@ -2457,6 +2473,7 @@ class Superset(BaseSupersetView):
             json.dumps(payload, default=utils.json_int_dttm_ser),
             mimetype="application/json")
 
+    @catch_exception
     @expose("/fave_slices/<user_id>/", methods=['GET'])
     def fave_slices(self, user_id):
         """Favorite slices for a user"""
@@ -2487,6 +2504,7 @@ class Superset(BaseSupersetView):
             json.dumps(payload, default=utils.json_int_dttm_ser),
             mimetype="application/json")
 
+    @catch_exception
     @expose("/warm_up_cache/", methods=['GET'])
     def warm_up_cache(self):
         """Warms up the cache for the slice or table."""
@@ -2534,6 +2552,7 @@ class Superset(BaseSupersetView):
             status=200,
             mimetype="application/json")
 
+    @catch_exception
     @expose("/favstar/<class_name>/<obj_id>/<action>/")
     def favstar(self, class_name, obj_id, action):
         """Toggle favorite stars on Slices and Dashboard"""
@@ -2579,6 +2598,7 @@ class Superset(BaseSupersetView):
             json.dumps({'count': count}),
             mimetype="application/json")
 
+    @catch_exception
     @expose('/if_online/<class_name>/<obj_id>')
     def if_online(self, class_name, obj_id):
         try:
@@ -2591,6 +2611,7 @@ class Superset(BaseSupersetView):
         except Exception as e:
             return json_error_response(utils.error_msg_from_exception(e))
 
+    @catch_exception
     @expose("/dashboard/<dashboard_id>/")
     def dashboard(self, dashboard_id):
         """Server side rendering for a dashboard"""
@@ -2635,6 +2656,7 @@ class Superset(BaseSupersetView):
             standalone_mode=standalone,
         )
 
+    @catch_exception
     @expose("/sqllab_viz/", methods=['POST'])
     def sqllab_viz(self):
         data = json.loads(request.form.get('data'))
@@ -2705,6 +2727,7 @@ class Superset(BaseSupersetView):
         params = "&".join([k + '=' + v for k, v in params.items() if v])
         return '/pilot/explore/table/{table.id}/?{params}'.format(**locals())
 
+    @catch_exception
     @expose("/table/<database_id>/<table_name>/<schema>/")
     def table(self, database_id, table_name, schema):
         schema = None if schema in ('null', 'undefined') else schema
@@ -2760,6 +2783,7 @@ class Superset(BaseSupersetView):
         }
         return Response(json.dumps(tbl), mimetype="application/json")
 
+    @catch_exception
     @expose("/extra_table_metadata/<database_id>/<table_name>/<schema>/")
     def extra_table_metadata(self, database_id, table_name, schema):
         schema = None if schema in ('null', 'undefined') else schema
@@ -2768,6 +2792,7 @@ class Superset(BaseSupersetView):
             mydb, table_name, schema)
         return Response(json.dumps(payload), mimetype="application/json")
 
+    @catch_exception
     @expose("/select_star/<database_id>/<table_name>/")
     def select_star(self, database_id, table_name):
         mydb = db.session.query(
@@ -2792,6 +2817,7 @@ class Superset(BaseSupersetView):
     def theme(self):
         return self.render_template('superset/theme.html')
 
+    @catch_exception
     @expose("/cached_key/<key>/")
     def cached_key(self, key):
         """Returns a key from the cache"""
@@ -2800,6 +2826,7 @@ class Superset(BaseSupersetView):
             return resp
         return "nope"
 
+    @catch_exception
     @expose("/results/<key>/")
     def results(self, key):
         """Serves a key off of the results backend"""
@@ -2833,6 +2860,7 @@ class Superset(BaseSupersetView):
                 status=410,
                 mimetype="application/json")
 
+    @catch_exception
     @expose("/sql_json/", methods=['POST', 'GET'])
     def sql_json(self):
         """Runs arbitrary sql and returns and json"""
@@ -2931,6 +2959,7 @@ class Superset(BaseSupersetView):
             status=200,
             mimetype="application/json")
 
+    @catch_exception
     @expose("/csv/<client_id>")
     def csv(self, client_id):
         """Download the query results as csv."""
@@ -2953,6 +2982,7 @@ class Superset(BaseSupersetView):
             'attachment; filename={}.csv'.format(query.name))
         return response
 
+    @catch_exception
     @expose("/fetch_datasource_metadata")
     def fetch_datasource_metadata(self):
         datasource_type = request.args.get('datasource_type')
@@ -2976,6 +3006,7 @@ class Superset(BaseSupersetView):
             mimetype="application/json"
         )
 
+    @catch_exception
     @expose("/queries/<last_updated_ms>")
     def queries(self, last_updated_ms):
         """Get the updated queries."""
@@ -3005,6 +3036,7 @@ class Superset(BaseSupersetView):
             status=200,
             mimetype="application/json")
 
+    @catch_exception
     @expose("/search_queries")
     def search_queries(self):
         """Search for queries."""
@@ -3061,6 +3093,7 @@ class Superset(BaseSupersetView):
             error_msg=get_error_msg(),
         ), 500
 
+    @catch_exception
     @expose("/welcome")
     def welcome(self):
         """Personalized welcome page"""
@@ -3068,6 +3101,7 @@ class Superset(BaseSupersetView):
             return redirect(appbuilder.get_url_for_login)
         return self.render_template('superset/welcome.html', utils=utils)
 
+    @catch_exception
     @has_access
     @expose("/profile/<username>/")
     def profile(self, username):
@@ -3114,6 +3148,7 @@ class Superset(BaseSupersetView):
             bootstrap_data=json.dumps(payload, default=utils.json_iso_dttm_ser)
         )
 
+    @catch_exception
     @expose("/sqllab")
     def sqllab(self):
         """SQL Editor"""
