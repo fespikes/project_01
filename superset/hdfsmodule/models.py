@@ -7,7 +7,7 @@ from sqlalchemy.orm import backref, relationship
 
 
 class HDFSConnection2(Model, AuditMixinNullable):
-  __tablename__ = 'hdfs_connection2'
+  __tablename__ = 'hdfs_connection'
   type = 'table'
 
   id = Column(Integer, primary_key=True)
@@ -21,8 +21,9 @@ class HDFSConnection2(Model, AuditMixinNullable):
   keytab_file = Column(LargeBinary)
   database = relationship(
     'Database',
-    backref=backref('hdfs_connection2', lazy='dynamic'),
+    backref=backref('hdfs_connection', lazy='dynamic'),
     foreign_keys=[database_id])
+
 
 class HDFSTable(Model, AuditMixinNullable):
   __tablename__ = "hdfs_table"

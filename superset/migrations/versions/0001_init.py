@@ -239,34 +239,7 @@ def upgrade():
         sa.ForeignKeyConstraint(['table_id'], ['tables.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('keytabs',
-        sa.Column('created_on', sa.DateTime(), nullable=True),
-        sa.Column('changed_on', sa.DateTime(), nullable=True),
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('name', sa.String(length=256), nullable=False),
-        sa.Column('file', sa.LargeBinary(), nullable=True),
-        sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
-        sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
-        sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('hdfsconns',
-        sa.Column('created_on', sa.DateTime(), nullable=True),
-        sa.Column('changed_on', sa.DateTime(), nullable=True),
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('connection_name', sa.String(length=256), nullable=False),
-        sa.Column('httpfs_uri', sa.String(length=1024), nullable=False),
-        sa.Column('fs_defaultfs', sa.String(length=512), nullable=False),
-        sa.Column('logical_name', sa.String(length=512), nullable=False),
-        sa.Column('security_enabled', sa.Boolean(), nullable=True),
-        sa.Column('principal', sa.String(length=512), nullable=False),
-        sa.Column('keytab_id', sa.Integer(), sa.ForeignKey("keytabs.id"), nullable=True),
-        sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
-        sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
-        sa.ForeignKeyConstraint(['keytab_id'], ['keytabs.id'], ),
-        sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('connection_name')
-    )
-    op.create_table('hdfs_connection2',
+    op.create_table('hdfs_connection',
         sa.Column('created_on', sa.DateTime(), nullable=True),
         sa.Column('changed_on', sa.DateTime(), nullable=True),
         sa.Column('id', sa.Integer(), nullable=False),
@@ -317,8 +290,6 @@ def downgrade():
     op.drop_table('dbs')
     op.drop_table('dashboards')
     op.drop_table('daily_number')
-    op.drop_table('keytabs')
-    op.drop_table('hdfsconns')
-    op.drop_table('hdfs_connection2')
+    op.drop_table('hdfs_connection')
     op.drop_table('hdfs_table')
     # ### end Alembic commands ###
