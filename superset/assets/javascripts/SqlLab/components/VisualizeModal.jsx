@@ -108,7 +108,7 @@ class VisualizeModal extends React.PureComponent {
     };
     $.ajax({
       type: 'POST',
-      url: '/superset/sqllab_viz/',
+      url: '/pilot/sqllab_viz/',
       async: false,
       data: {
         data: JSON.stringify(vizOptions),
