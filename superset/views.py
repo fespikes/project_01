@@ -3712,6 +3712,14 @@ class Home(BaseSupersetView):
             mimetype="application/json")
 
 
+class HDFSBrowser(BaseSupersetView):
+    route_base = '/hdfs'
+
+    @expose('/list')
+    def sqllab(self):
+        return self.render_template('superset/hdfsbrowserList.html')
+
+
 appbuilder.add_view_no_menu(DatabaseAsync)
 appbuilder.add_view_no_menu(DatabaseTablesAsync)
 appbuilder.add_view_no_menu(TableColumnInlineView)
@@ -3721,6 +3729,7 @@ appbuilder.add_view_no_menu(SliceAddView)
 appbuilder.add_view_no_menu(DashboardModelViewAsync)
 appbuilder.add_view_no_menu(R)
 appbuilder.add_view_no_menu(Superset)
+appbuilder.add_view_no_menu(HDFSBrowser)
 
 appbuilder.add_view(
     Home,
@@ -3775,6 +3784,14 @@ appbuilder.add_link(
     icon="fa-search",
     category_icon="fa-flask",
     category='SQL Lab')
+appbuilder.add_link(
+    'HDFS Browser',
+    href='/hdfs/list',
+    label=__("HDFS Browser"),
+    icon="",
+    category='',
+    category_icon='')
+
 
 @app.after_request
 def apply_caching(response):
