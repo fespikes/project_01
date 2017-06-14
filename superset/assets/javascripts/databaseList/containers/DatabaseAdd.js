@@ -16,6 +16,8 @@ import '../style/databaseAdd.css';
 
 const DatabaseAdd = ({ match }) => {
     console.log( 'in DatabaseAdd, arguments is: ', arguments );
+    const isActive = match => match&& match.isExact;
+
     return (
         <div className="data-detail">
            <h1 className="title"><i className="icon"></i>新建数据集</h1>
@@ -23,7 +25,12 @@ const DatabaseAdd = ({ match }) => {
                <div className="data-wrap-center">
                    <nav className="detail-nav">
                        <ul>
-                           <li><NavLink to={`${match.url}/detail`} activeClassName="active">Detail</NavLink></li>
+                           <li>
+                                <NavLink
+                                    activeClassName="active"
+                                    to={`${match.url}/detail`}
+                                    isActive={isActive}
+                                >Detail</NavLink></li>
                            <li><NavLink to={`${match.url}/preview`} activeClassName="active">Preview</NavLink></li>
                            <li><NavLink to={`${match.url}/columns`} activeClassName="active">List Table Column</NavLink></li>
                            <li><NavLink to={`${match.url}/sqlMetric`} activeClassName="active">SqlMetric</NavLink></li>
