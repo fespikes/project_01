@@ -326,6 +326,8 @@ class HDFSTableRes(Resource):
         engine.execute(create_sql)
 
         sqlaTable = SqlaTable()
+        sqlaTable.dataset_name = table_name
+        sqlaTable.dataset_type = 'hdfs_folder'
         sqlaTable.table_name = table_name
         sqlaTable.database_id = database.id
 
