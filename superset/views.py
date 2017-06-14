@@ -3716,8 +3716,8 @@ class HDFSBrowser(BaseSupersetView):
     route_base = '/hdfs'
 
     @expose('/list')
-    def sqllab(self):
-        return self.render_template('superset/hdfsbrowserList.html')
+    def list(self):
+        return self.render_template('superset/hdfsList.html')
 
 
 appbuilder.add_view_no_menu(DatabaseAsync)
@@ -3787,8 +3787,8 @@ appbuilder.add_link(
 appbuilder.add_link(
     'HDFS Browser',
     href='/hdfs/list',
-    label=__("HDFS Browser"),
-    icon="",
+    label="HDFS Browser",
+    icon="fa-flask",
     category='',
     category_icon='')
 
