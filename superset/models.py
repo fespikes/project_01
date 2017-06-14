@@ -410,14 +410,14 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
     __tablename__ = 'dashboards'
     id = Column(Integer, primary_key=True)
-    dashboard_title = Column(String(500))
+    dashboard_title = Column(String(255), unique=True)
     position_json = Column(Text)
     description = Column(Text)
     department = Column(Text)
     css = Column(Text)
     online = Column(Boolean, default=False)
     json_metadata = Column(Text)
-    slug = Column(String(255), unique=True)
+    slug = Column(String(255))
     slices = relationship(
         'Slice', secondary=dashboard_slices, backref='dashboards')
     owners = relationship("User", secondary=dashboard_user)
@@ -435,7 +435,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
     @property
     def url(self):
-        return "/pilot/dashboard/{}/".format(self.slug or self.id)
+        return "/pilot/dashboard/{}/".format(self.id)
 
     @property
     def datasources(self):
@@ -2068,51 +2068,3 @@ class DailyNumber(Model):
             )
             db.session.add(new_record)
         db.session.commit()
-
-class Keytab(Model, AuditMixinNullable):
-  """ORM object used to store keytab infomation"""
-
-  __tablename__ = 'keytabs'
-  type = 'table'
-
-  id = Column(Integer, primary_key=True)
-  name = Column(String(256), nullable=False)
-  file = Column(LargeBinary)
-
-  def __repr__(self):
-    return self.name
-
-
-class HDFSConnection(Model, AuditMixinNullable):
-  """An ORM object that stores HDFS related information"""
-
-  __tablename__ = 'hdfsconns'
-  type = 'table'
-
-  id = Column(Integer, primary_key=True)
-  connection_name = Column(String(256), unique=True)
-  httpfs_uri = Column(String(1024), nullable=False)
-  fs_defaultfs = Column(String(512), nullable=False)
-  logical_name = Column(String(512), nullable=False)
-  security_enabled = Column(Boolean, default=True)
-  principal = Column(String(512), nullable=False)
-  keytab_id = Column(Integer, ForeignKey('keytabs.id'))
-  keytab = relationship(
-    'Keytab',
-    backref=backref('hdfsconns', lazy='joined'),
-    foreign_keys=[keytab_id])
-
-  def __repr__(self):
-    return self.connection_name
-
-  @property
-  def name(self):
-    return self.connection_name
-
-  def set_httpfs_uri(self, uri):
-    self.httpfs_uri = uri
-
-
-
-
-
