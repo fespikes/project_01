@@ -73,8 +73,6 @@ class SliceTable extends React.Component {
                 width: '5%',
                 render: (text, record) => {
                     const datasetType = record.dataset_type;
-                    console.log(record);
-
                     return (
                         <i className={'icon ' + record.iconClass}
                            onClick={() => favoriteSlice(record)}></i>

@@ -3,7 +3,7 @@ import { actionTypes  } from '../actions';
 
 function condition(state = {
     page: 1,
-    pageSize: 2,
+    pageSize: 10,
 //    order_column,
     orderDirection: 'desc',//取值 ('desc' or 'asc'),
     filter: '',//搜索字符串,
