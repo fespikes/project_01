@@ -3,175 +3,137 @@ import PropTypes from 'prop-types';
 
 import { Table, Input, Button, Icon } from 'antd';
 
-const data = [{
-  key: '1',
-  name: 'John Brown',
-  rowId: 'rowId001',
-  age: 32,
-  address: 'New York No. 1 Lake Park',
-}, {
-  key: '2',
-  name: 'Joe Black',
-  rowId: 'rowId002',
-  age: 42,
-  address: 'London No. 1 Lake Park',
-}, {
-  key: '3',
-  name: 'Jim Green',
-  rowId: 'rowId003',
-  age: 32,
-  address: 'Sidney No. 1 Lake Park',
-}, {
-  key: '4',
-  name: 'Jim Red',
-  rowId: 'rowId004',
-  age: 32,
-  address: 'London No. 2 Lake Park',
-}];
+const getData = (length) => {
+    length = length||12;
+    let arr = [];
+    for( let i=length; i--;) {
+        arr.push({
+            key: i,
+            rowId: 'rowId'+i,
+            orderId: 'orderId'+i,
+            orderDate: 'orderDate'+i,
+            shippingDate: 'shippingDate'+i,
+            shippingType: 'shippingType'+i,
+            customerID: 'customerID'+i,
+            customerName: 'customerName'+i,
+            customerType: 'customerType'+i,
+            zipCode: 200001+i,
+            customerCity: 'customerCity'+i
+        });
+    }
+    return arr;
+};
+
+const data = getData();
 
 class SubPreview extends Component {
-  state = {
-    filterDropdownVisible: false,
-    data,
-    searchText: '',
-    filtered: false,
-  };
-  onInputChange = (e) => {
-    this.setState({ searchText: e.target.value });
-  }
-  onSearch = () => {
-    const { searchText } = this.state;
-    const reg = new RegExp(searchText, 'gi');
-    this.setState({
-      filterDropdownVisible: false,
-      filtered: !!searchText,
-      data: data.map((record) => {
-        const match = record.name.match(reg);
-        if (!match) {
-          return null;
-        }
-        return {
-          ...record,
-          name: (
-            <span>
-              {record.name.split(reg).map((text, i) => (
-                i > 0 ? [<span className="highlight">{match[0]}</span>, text] : text
-              ))}
-            </span>
-          ),
-        };
-      }).filter(record => !!record),
-    });
-  }
+    state = {
+        filterDropdownVisible: false,
+        data,
+        searchText: '',
+        filtered: false,
+    };
+    onInputChange = (e) => {
+        this.setState({ searchText: e.target.value });
+    }
+    onSearch = () => {
+        const { searchText } = this.state;
+        const reg = new RegExp(searchText, 'gi');
+        this.setState({
+            filterDropdownVisible: false,
+            filtered: !!searchText,
+            data: data.map((record) => {
+                const match = record.name.match(reg);
+                if (!match) {
+                    return null;
+                }
+                return {
+                    ...record,
+                    name: (
+                        <span>
+                            {record.name.split(reg).map((text, i) => (
+                                i > 0 ? [<span className="highlight">{match[0]}</span>, text] : text
+                            ))}
+                        </span>
+                    ),
+                };
+            }).filter(record => !!record),
+        });
+    }
 
-  render() { const me = this;
-const columns = [{
-  title: 'Name',
-  dataIndex: 'name',
-  key: 'name',
-  filterDropdown: (
-    <div className="custom-filter-dropdown">
-      <Input
-        ref={ele => this.searchInput = ele}
-        placeholder="Search here..."
-        value={this.state.searchText}
-        onChange={this.onInputChange}
-        onPressEnter={this.onSearch}
-      />
-      <Button type="primary" onClick={this.onSearch}>Search</Button>
-    </div>
-  ),
-  filterIcon: <Icon type="smile-o" style={{ color: this.state.filtered ? '#108ee9' : '#aaa' }} />,
-  filterDropdownVisible: this.state.filterDropdownVisible,
-  onFilterDropdownVisibleChange: (visible) => {
-    this.setState({
-      filterDropdownVisible: visible,
-    }, () => this.searchInput.focus());
-  },
-}, {
-  title: 'Age',
-  dataIndex: 'age',
-  key: 'age',
-}, {
-  title: 'Address',
-  dataIndex: 'address',
-  key: 'address',
-  filters: [{
-    text: 'London',
-    value: 'London',
-  }, {
-    text: 'New York',
-    value: 'New York',
-  }],
-  onFilter: (value, record) => record.address.indexOf(value) === 0,
-}];
+    onCellClick (a, b) {
+        console.log(a, b, 'in onCellClick');
+    }
 
-const ownColumns = [{
-    title: 'Name',
-    dataIndex: 'name',
-    key: 'name',
-    filterDropdown: (
-    <div className="custom-filter-dropdown">
-      <Input
-        ref={ele => this.searchInput = ele}
-        placeholder="Search here..."
-        value={this.state.searchText}
-        onChange={this.onInputChange}
-        onPressEnter={this.onSearch}
-      />
-      <Button type="primary" onClick={this.onSearch}>Search</Button>
-    </div>
-    ),
-    filterIcon: <Icon type="smile-o" style={{ color: this.state.filtered ? '#108ee9' : '#aaa' }} />,
-    filterDropdownVisible: this.state.filterDropdownVisible,
-    onFilterDropdownVisibleChange: (visible) => {
-    this.setState({
-      filterDropdownVisible: visible,
-    }, () => this.searchInput.focus());
-    },
-  }, {
-  title: '行ID',
-  dataIndex: 'rowId',
-  key: 'rowId',
-  filterDropdown: (
-      <div className="custom-filter-dropdown">
-        <Input
-          ref={ele => this.searchInput = ele}
-          placeholder="Search here..."
-          value={this.state.searchText}
-          onChange={this.onInputChange}
-          onPressEnter={this.onSearch}
-        />
-        <Button type="primary" onClick={this.onSearch}>Search</Button>
-      </div>
-    ),
-  filterIcon: <Icon type="smile-o" style={{ color: this.state.filtered ? '#108ee9' : '#aaa' }} />,
-  filterDropdownVisible: me.state.filterDropdownVisible,
-  onFilterDropdownVisibleChange: (visible) => {
-    me.setState({
-      filterDropdownVisible: visible,
-    }, () => this.searchInput.focus());
-  },
-}, {
-  title: 'Age',
-  dataIndex: 'age',
-  key: 'age',
-}, {
-  title: 'Address',
-  dataIndex: 'address',
-  key: 'address',
-  filters: [{
-    text: 'London',
-    value: 'London',
-  }, {
-    text: 'New York',
-    value: 'New York',
-  }],
-  onFilter: (value, record) => record.address.indexOf(value) === 0,
-}];
 
-    return <Table columns={ownColumns} dataSource={this.state.data} />;
-  }
+    onRowClick (a, b) {return;
+        console.log(a, b, 'in onRowClick');
+    }
+
+    render() {
+        const me = this;
+
+        const ownColumns = [{
+            title: '行ID',
+            dataIndex: 'rowId',
+            key: 'rowId',
+            width: '8%'
+        }, {
+            title: '订单ID',
+            dataIndex: 'orderId',
+            key: 'orderId',
+            width: '8%'
+        }, {
+            title: '订购日期',
+            dataIndex: 'orderDate',
+            key: 'orderDate',
+            width: '8%'
+        }, {
+            title: '装运日期',
+            dataIndex: 'shippingDate',
+            key: 'shippingDate',
+            width: '12%'
+        }, {
+            title: '装运方式',
+            dataIndex: 'shippingType',
+            key: 'shippingType',
+            width: '12%'
+        },{
+            title: '客户ID',
+            dataIndex: 'customerID',
+            key: 'customerID',
+            width: '10%'
+        },{
+            title: '客户名称',
+            dataIndex: 'customerName',
+            key: 'customerName',
+            width: '12%',
+            onCellClick:me.onCellClick
+        },{
+            title: '客户种类',
+            dataIndex: 'customerType',
+            key: 'customerType',
+            width: '12%'
+        },{
+            title: '邮政编码',
+            dataIndex: 'zipCode',
+            key: 'zipCode',
+            width: '8%'
+        },{
+            title: '城市',
+            dataIndex: 'customerCity',
+            key: 'customerCity',
+            width: '10%'
+        }];
+
+        return <Table
+            columns={ownColumns}
+            dataSource={this.state.data}
+            size='small'
+            pagination={false}
+            onRowClick={me.onRowClick}
+        />;
+    }
 }
 
 export default SubPreview;

@@ -13,7 +13,11 @@ export const actionTypes = {
     invalidateCondition: 'INVALIDATE_CONDITION',
 
     setPopupTitle: 'SET_POPUP_TITLE',
-    setPopupParam: 'SET_POPUP_PARAM'
+    setPopupParam: 'SET_POPUP_PARAM',
+
+    switchDatasetType: 'SWITCH_DATASET_TYPE',
+    switchHDFSConnected: 'SWITCH_HDFS_CONNECTED',
+    switchOperationType: 'SWITCH_OPERATION_TYPE'
 }
 
 const baseURL = window.location.origin + '/database/';
@@ -179,9 +183,29 @@ export function setPopupParam (param) {
 
 export function showPopup (param) {
     return (dispatch, getState) => {
-        //TODO: show the popup
         const box = getState().popupParam.popupContainer;
         const container = document.querySelector('.' + box);
         container.style.display = 'flex';
     }
+}
+
+export function switchDatasetType (datasetType) {
+    return {
+        type: actionTypes.switchDatasetType,
+        datasetType
+    };
+}
+
+export function switchHDFSConnected (HDFSConnected) {
+    return {
+        type: actionTypes.switchHDFSConnected,
+        HDFSConnected
+    };
+}
+
+export function switchOperationType (operationType) {
+    return {
+        type: actionTypes.switchOperationType,
+        operationType
+    };
 }

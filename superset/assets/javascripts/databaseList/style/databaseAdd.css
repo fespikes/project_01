@@ -34,7 +34,6 @@ a{text-decoration:none;}
     background-color:#fff;
 }
 .data-detail-wrap>.data-wrap-center{
-    width:920px;
     margin:0 auto;
 }
 .detail-nav{
@@ -70,9 +69,9 @@ a{text-decoration:none;}
     justify-content: flex-start;
 }
 
-.data-detail-centent.shallow input{
+/*.data-detail-centent.shallow input{
     width:200px;
-}
+}*/
 .data-detail-checkbox{
     display: flex;
     align-items: center;
@@ -316,4 +315,7 @@ a{text-decoration:none;}
 }
 .data-detail-item-time>input{
     width:200px;
+}
+.none{
+    display: none;
 }

@@ -24,7 +24,7 @@ const DatabaseAdd = ({ match }) => {
                    <nav className="detail-nav">
                        <ul>
                            <li><NavLink to={`${match.url}/detail`} activeClassName="active">Detail</NavLink></li>
-                           <li><NavLink to={`${match.url}/preview`} activeClassName="active">preview</NavLink></li>
+                           <li><NavLink to={`${match.url}/preview`} activeClassName="active">Preview</NavLink></li>
                            <li><NavLink to={`${match.url}/columns`} activeClassName="active">List Table Column</NavLink></li>
                            <li><NavLink to={`${match.url}/sqlMetric`} activeClassName="active">SqlMetric</NavLink></li>
                        </ul>
