@@ -92,7 +92,7 @@ class SubDetail extends Component {
                         <div className={operationType==='table'?'':'none'}>
                             <label className="data-detail-item">
                                 <span>选择表：</span>
-                                <input type="text" value="Heatmap" />
+                                <input type="text" defaultValue="Heatmap" />
                             </label>
                         </div>
 

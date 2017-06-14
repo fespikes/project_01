@@ -96,7 +96,6 @@ class SubColumns extends Component {
             width: '8%',
             className: 'checkb',
             render: (a, b) => {
-                console.log(a, b, 'in render');
                 return (<input type="checkbox" />)
             }
         }, {
@@ -106,7 +105,6 @@ class SubColumns extends Component {
             width: '8%',
             className: 'checkb',
             render: (a, b) => {
-                console.log(a, b, 'in render');
                 return (<input type="checkbox" />)
             }
         }, {
@@ -116,7 +114,6 @@ class SubColumns extends Component {
             width: '8%',
             className: 'checkb',
             render: (a, b) => {
-                console.log(a, b, 'in render');
                 return (<input type="checkbox" />)
             }
         },{
@@ -126,7 +123,6 @@ class SubColumns extends Component {
             width: '8%',
             className: 'checkb',
             render: (a, b) => {
-                console.log(a, b, 'in render');
                 return (<input type="checkbox" />)
             }
         },{
@@ -137,7 +133,6 @@ class SubColumns extends Component {
             onCellClick:me.onCellClick,
             className: 'checkb',
             render: (a, b) => {
-                console.log(a, b, 'in render');
                 return (<input type="checkbox" />)
             }
         },{
@@ -147,7 +142,6 @@ class SubColumns extends Component {
             width: '12%',
             className: 'checkb',
             render: (a, b) => {
-                console.log(a, b, 'in render');
                 return (<input className="checkbox" type="checkbox" />)
             }
         },{
@@ -157,7 +151,6 @@ class SubColumns extends Component {
             width: '12%',
             className: 'checkb',
             render: (a, b) => {
-                console.log(a, b, 'in render');
                 return (<input type="checkbox" />)
             },
             onCellClick: (record, event) => {
