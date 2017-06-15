@@ -38,3 +38,16 @@ class HDFSTable(Model, AuditMixinNullable):
         backref=backref('ref_hdfs_connection', lazy='joined'),
         foreign_keys=[hdfs_connection_id]
     )
+
+    def create_out_table(self, table_name, column_desc):
+        create_sql = "create external table " + table_name + "("
+        for column_name, column_type in column_desc.items():
+          create_sql = create_sql + column_name + " " + column_type + ","
+        create_sql = create_sql[:-1] \
+                     + ") row format delimited fields terminated by '" \
+                     + self.separator + "' location '" \
+                     + self.hdfs_path + "'"
+
+        engine = self.hdfsconnection.database.get_sqla_engine()
+        engine.execute("drop table if exists " + table_name)
+        engine.execute(create_sql)
