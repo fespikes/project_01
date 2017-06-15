@@ -51,6 +51,7 @@ from superset.models import Database, SqlaTable, Slice, \
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset.message import *
+from superset.hdfsmodule.models import HDFSTable
 from superset.hdfsmodule.views import HDFSConnRes, \
     HDFSFileBrowserRes, HDFSFilePreviewRes, HDFSTableRes
 
@@ -1166,6 +1167,11 @@ class TableModelView(SupersetModelView):  # noqa
         log_action('edit', action_str, 'table', table.id)
 
     def post_delete(self, table):
+        if table.hdfs_table_id:
+            db.session.query(HDFSTable)\
+                .filter_by(id=table.hdfs_table_id)\
+                .delete(synchronize_session=False)
+            db.session.commit()
         # log user action
         action_str = 'Delete table: {}'.format(repr(table))
         log_action('delete', action_str, 'table', table.id)

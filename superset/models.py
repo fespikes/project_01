@@ -1165,27 +1165,36 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     id = Column(Integer, primary_key=True)
     dataset_name = Column(String(250), unique=True, nullable=False)
     dataset_type = Column(String(250))
-    main_dttm_col = Column(String(250))
-    description = Column(Text)
-    default_endpoint = Column(Text)
+    table_name = Column(String(250))
+    schema = Column(String(255))
+    sql = Column(Text)
+
+    hdfs_table_id = Column(Integer, ForeignKey('hdfs_table.id'), nullable=True)
+    hdfs_table = relationship(
+        'HDFSTable',
+        backref=backref('tables', cascade='all, delete, delete-orphan'),
+        foreign_keys=[hdfs_table_id])
+
     database_id = Column(Integer, ForeignKey('dbs.id'), nullable=False)
-    is_featured = Column(Boolean, default=False)
-    filter_select_enabled = Column(Boolean, default=False)
-    user_id = Column(Integer, ForeignKey('ab_user.id'))
-    owner = relationship('User', backref='tables', foreign_keys=[user_id])
     database = relationship(
         'Database',
         backref=backref('tables', cascade='all, delete-orphan'),
         foreign_keys=[database_id])
-    offset = Column(Integer, default=0)
-    cache_timeout = Column(Integer)
-    table_name = Column(String(250))
-    schema = Column(String(255))
-    sql = Column(Text)
+
+    user_id = Column(Integer, ForeignKey('ab_user.id'))
+    owner = relationship('User', backref='tables', foreign_keys=[user_id])
+
+    description = Column(Text)
+    filter_select_enabled = Column(Boolean, default=False)
+    main_dttm_col = Column(String(250))
     params = Column(Text)
     perm = Column(String(1000))
+    offset = Column(Integer, default=0)
+    default_endpoint = Column(Text)
+    is_featured = Column(Boolean, default=False)
+    cache_timeout = Column(Integer)
 
-    baselink = "tablemodelview"
+    baselink = "table"
     column_cls = TableColumn
     metric_cls = SqlMetric
     temp_columns = []      # for creating slice with source table
@@ -1217,7 +1226,9 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     @property
     def connection(self):
-        if self.database:
+        if self.dataset_type.lower() == 'hdfs_folder':
+            return self.hdfs_table.hdfs_path
+        elif self.database:
             return str(self.database)
         else:
             return 'No connection'
