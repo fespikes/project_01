@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
 import { SliceDelete, SliceEdit } from '../../components/popup';
@@ -27,7 +28,7 @@ const getData = (length) => {
 
 const data = getData();
 
-class SliceTable extends React.Component {
+class InnerTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -93,7 +94,8 @@ class SliceTable extends React.Component {
                 width: '15%',
                 sorter(a, b) {
                     return a.dataset_name.substring(0, 1).charCodeAt() - b.dataset_name.substring(0, 1).charCodeAt();
-                }
+                },
+                render: text => <Link to="/filebrowser">{text}</Link>
             }, {
                 title: '大小',
                 dataIndex: 'size',
@@ -134,7 +136,8 @@ class SliceTable extends React.Component {
                sorter(a, b) {
                    return a.changed_on - b.changed_on ? 1 : -1;
                }
-           },{
+           }
+/*           ,{
                 title: '操作',
                 width: '10%',
                 render: (record) => {
@@ -146,7 +149,7 @@ class SliceTable extends React.Component {
                         </div>
                     )
                 }
-            }
+            }*/
         ];
 
         return (
@@ -161,4 +164,4 @@ class SliceTable extends React.Component {
     }
 }
 
-export default SliceTable;
+export default InnerTable;
