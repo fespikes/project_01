@@ -265,7 +265,9 @@ class HDFSTableRes(Resource):
             return "no hdfs table satisfied the condition found", 404
 
         for index in range(len(hdfstable_list)):
-            data = {'id':hdfstable_list[index].id, 'table_name':hdfstable_list[index].table.table_name, 'changed_on':hdfstable_list[index].changed_on.strftime('%Y-%m-%d %H:%M:%S')}
+            data = {'id': hdfstable_list[index].id,
+                    'hdfs_path': hdfstable_list[index].hdfs_path,
+                    'changed_on': str(hdfstable_list[index].changed_on)}
             rs.append(data)
 
         return json.dumps(rs), 200
@@ -325,21 +327,19 @@ class HDFSTableRes(Resource):
         engine.execute("drop table if exists " + table_name)
         engine.execute(create_sql)
 
+        db.session.add(hdfstable)
+        db.session.commit()
+
         sqlaTable = SqlaTable()
         sqlaTable.dataset_name = table_name
         sqlaTable.dataset_type = 'hdfs_folder'
         sqlaTable.table_name = table_name
         sqlaTable.database_id = database.id
+        sqlaTable.hdfs_table_id = hdfstable.id
 
         db.session.add(sqlaTable)
         db.session.commit()
-
         self.merge_perm(sqlaTable)
-
-        hdfstable.table_id = sqlaTable.id
-        db.session.add(hdfstable)
-        db.session.commit()
-
         return "succeed to add a new hdfs table", 201
 
     def put(self, table_id=None):
@@ -379,20 +379,9 @@ class HDFSTableRes(Resource):
         hdfstable = db.session.query(HDFSTable).get(table_id)
         if hdfstable is None:
             return "hdfs table not found", 400
-        sqlaTable = db.session.query(SqlaTable).get(hdfstable.table_id)
-        if sqlaTable is None:
-            return "sqlaTable not found", 400
-        database = db.session.query(Database).get(sqlaTable.database_id)
-        if database is None:
-            return "database not found", 400
-
-        engine = database.get_sqla_engine()
-        engine.execute("drop table if exists " + sqlaTable.table_name)
 
         db.session.delete(hdfstable)
-        db.session.delete(sqlaTable)
         db.session.commit()
-
         return "succeed to delete an hdfs table", 204
 
     @staticmethod
@@ -401,11 +390,6 @@ class HDFSTableRes(Resource):
         security.merge_perm(sm, 'datasource_access', table.get_perm())
         if table.schema:
             security.merge_perm(sm, 'schema_access', table.schema_perm)
-        flash(_(
-            "The table was created. As part of this two phase configuration "
-            "process, you should now click the edit button by "
-            "the new table to configure it."),
-            "info")
 
 
 hdfsfilebrowser_get_parser = reqparse.RequestParser()

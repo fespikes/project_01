@@ -38,8 +38,3 @@ class HDFSTable(Model, AuditMixinNullable):
     backref=backref('ref_hdfs_connection', lazy='joined'),
     foreign_keys=[hdfs_connection_id]
   )
-  table_id = Column(Integer, ForeignKey('tables.id'))
-  table = relationship(
-    'SqlaTable',
-    backref=backref('ref_hdfs_table', cascade='all, delete-orphan'),
-    foreign_keys=[table_id])
