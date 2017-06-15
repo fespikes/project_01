@@ -6,7 +6,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import backref, relationship
 
 
-class HDFSConnection2(Model, AuditMixinNullable):
+class HDFSConnection(Model, AuditMixinNullable):
   __tablename__ = 'hdfs_connection'
   type = 'table'
 
@@ -34,7 +34,7 @@ class HDFSTable(Model, AuditMixinNullable):
   separator = Column(String(256), nullable=False)
   hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection.id'))
   hdfsconnection = relationship(
-    'HDFSConnection2',
+    'HDFSConnection',
     backref=backref('ref_hdfs_connection', lazy='joined'),
     foreign_keys=[hdfs_connection_id]
   )
