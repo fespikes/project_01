@@ -115,8 +115,8 @@ class DashboardEdit extends React.Component {
                         <span>描述：</span>
                     </div>
                     <div className="item-right">
-                                <textarea className="dialog-area" value={this.state.dashboard.description}
-                                          onChange={this.handleDescriptionChange}></textarea>
+                        <textarea className="dialog-area" value={this.state.dashboard.description}
+                                  onChange={this.handleDescriptionChange}></textarea>
                     </div>
                 </div>
                 <div className="dialog-item">

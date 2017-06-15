@@ -145,6 +145,12 @@ button:disabled {
     input.dialog-area {
 
     }
+    .error {
+        margin-bottom: 20px;
+        .ant-alert {
+            padding: 5px 5px 5px 60px;
+        }
+    }
 }
 
 /*  overlay modal-dialog css  */

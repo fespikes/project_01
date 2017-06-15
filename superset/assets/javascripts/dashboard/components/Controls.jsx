@@ -48,10 +48,6 @@ class Controls extends React.PureComponent {
         });
     }
 
-    editDashboard() {
-
-    }
-
     componentDidMount() {
         const self = this;
         const { dashboard } = self.props;

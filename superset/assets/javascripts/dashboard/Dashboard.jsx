@@ -10,6 +10,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import GridLayout from './components/GridLayout';
 import Header from './components/Header';
+import { getNewDashboard } from '../../utils/common2';
 
 require('bootstrap');
 require('../../stylesheets/dashboard.css');
@@ -100,27 +101,6 @@ function initDashboardView(dashboard) {
     });
     px.initFavStars();
     $('[data-toggle="tooltip"]').tooltip({ container: 'body' });
-}
-
-function getNewDashboard(dashboard, selectedSlices, availableSlices) {
-    let obj = {};
-    obj.id = dashboard.id;
-    obj.dashboard_title = dashboard.dashboard_title;
-    obj.description = dashboard.description;
-    obj.slices = getSelectedSlices(selectedSlices, availableSlices);
-    return obj;
-}
-
-function getSelectedSlices(selectedSlices, availableSlices) {
-    let array = [];
-    selectedSlices.forEach(function(selected) {
-        availableSlices.forEach(function(slice) {
-            if(selected === slice.id.toString()) {
-                array.push(slice);
-            }
-        });
-    });
-    return array;
 }
 
 export function dashboardContainer(dashboard) {
@@ -360,7 +340,7 @@ export function dashboardContainer(dashboard) {
                 type: 'POST',
                 url: '/dashboard/edit/' + dashboard.id,
                 contentType: 'application/json',
-                data: JSON.stringify(getNewDashboard(dashboard, selectedSlices, dashboard.available_slices)),
+                data: JSON.stringify(getNewDashboard(dashboard, selectedSlices)),
                 success() {
                     window.location.reload();
                 },
