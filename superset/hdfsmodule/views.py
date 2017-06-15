@@ -93,9 +93,10 @@ class HDFSConnRes(Resource):
 
         if hdfsconnection_list == []:
             return "no hdfs connection satisfied the condition found", 404
-
         for index in range(len(hdfsconnection_list)):
-            data = {'id':hdfsconnection_list[index].id, 'connection_name':hdfsconnection_list[index].connection_name, 'changed_on':hdfsconnection_list[index].changed_on.strftime('%Y-%m-%d %H:%M:%S')}
+            data = {'id': hdfsconnection_list[index].id,
+                    'connection_name': hdfsconnection_list[index].connection_name,
+                    'changed_on': str(hdfsconnection_list[index].changed_on)}
             rs.append(data)
 
         return json.dumps(rs), 200
@@ -103,7 +104,9 @@ class HDFSConnRes(Resource):
     def post(self):
         args = hdfsconn_post_parser.parse_args(strict=True)
 
-        if db.session.query(HDFSConnection).filter_by(connection_name=args['connection_name']).one_or_none() is not None:
+        if db.session.query(HDFSConnection)\
+                .filter_by(connection_name=args['connection_name'])\
+                .one_or_none() is not None:
             return "the hdfs connection with the same name has already been created", 400
 
         hdfsconnection = HDFSConnection()
@@ -126,7 +129,6 @@ class HDFSConnRes(Resource):
 
         db.session.add(hdfsconnection)
         db.session.commit()
-
         return "succeed to add a new hdfs connection", 201
 
     def put(self, hdfsconnection_id=None):
@@ -318,9 +320,14 @@ class HDFSTableRes(Resource):
             create_sql = "create external table " + table_name + "("
             for column_name, column_type in column_desc.items():
                 create_sql = create_sql + column_name + " " + column_type + ","
-            create_sql = create_sql[:-1] + ") row format delimited fields terminated by ',' location '" + hdfstable.hdfs_path + "'"
+            create_sql = create_sql[:-1] \
+                         + ") row format delimited fields terminated by ',' location '" \
+                         + hdfstable.hdfs_path + "'"
 
-        database = db.session.query(Database).filter(Database.id == HDFSConnection.database_id, HDFSConnection.id == hdfstable.hdfs_connection_id).one_or_none()
+        database = db.session.query(Database)\
+            .filter(Database.id == HDFSConnection.database_id,
+                    HDFSConnection.id == hdfstable.hdfs_connection_id)\
+            .one_or_none()
         if database is None:
             return "no database found with the hdfs connection id", 400
         engine = database.get_sqla_engine()
@@ -363,14 +370,15 @@ class HDFSTableRes(Resource):
         create_sql = "create external table " + sqlaTable.table_name + "("
         for column_name, column_type in args['column_desc'].items():
             create_sql = create_sql + column_name + " " + column_type + ","
-        create_sql = create_sql[:-1] + ") row format delimited fields terminated by '" + hdfstable.separator + "' location '" + hdfstable.hdfs_path + "'"
+        create_sql = create_sql[:-1] \
+                     + ") row format delimited fields terminated by '" \
+                     + hdfstable.separator + "' location '" \
+                     + hdfstable.hdfs_path + "'"
 
         engine = database.get_sqla_engine()
         engine.execute("drop table if exists " + sqlaTable.table_name)
         engine.execute(create_sql)
-
         self.merge_perm(sqlaTable)
-
         return "succeed to modify an hdfs table", 200
 
     def delete(self, table_id=None):
@@ -379,7 +387,6 @@ class HDFSTableRes(Resource):
         hdfstable = db.session.query(HDFSTable).get(table_id)
         if hdfstable is None:
             return "hdfs table not found", 400
-
         db.session.delete(hdfstable)
         db.session.commit()
         return "succeed to delete an hdfs table", 204
@@ -495,7 +502,6 @@ class HDFSFileBrowserRes(Resource):
         hdfs_path = args['hdfs_path']
         if hdfs_path is None:
             hdfs_path = "/user/" + get_hdfs_user_from_principal(connection.principal)
-
         fs = self.filebrowser.get_fs_from_cache(connection)
         return self.filebrowser.view(request, fs, hdfs_path)
 
@@ -503,7 +509,6 @@ class HDFSFileBrowserRes(Resource):
         hdfs_path = args['hdfs_path']
         if hdfs_path is None:
             return "hdfs path not found", 400
-
         fs = self.filebrowser.get_fs_from_cache(connection)
         return self.filebrowser.download_file(fs, hdfs_path)
 
@@ -511,7 +516,6 @@ class HDFSFileBrowserRes(Resource):
         hdfs_file = request.files['hdfs_file']
         if hdfs_file is None:
             return "hdfs file not found", 400
-
         fs = self.filebrowser.get_fs_from_cache(connection)
         return self.filebrowser.upload_file(fs, args['hdfs_path'], hdfs_file)
 
@@ -523,7 +527,6 @@ class HDFSFileBrowserRes(Resource):
         dest_path = args['dest_path']
         if dest_path is None:
             return "destination path not found", 400
-
         fs = self.filebrowser.get_fs_from_cache(connection)
         return self.filebrowser.copy_or_move(fs, args['hdfs_path'], dest_path, args['action'])
 
@@ -531,7 +534,6 @@ class HDFSFileBrowserRes(Resource):
         dest_path = args['dest_path']
         if dest_path is None:
             return "destination path not found", 400
-
         fs = self.filebrowser.get_fs_from_cache(connection)
         return self.filebrowser.copy_or_move(fs, args['hdfs_path'], dest_path, args['action'])
 
@@ -539,7 +541,6 @@ class HDFSFileBrowserRes(Resource):
         dir_name = args['dir_name']
         if dir_name is None:
             return "dir name not found", 400
-
         fs = self.filebrowser.get_fs_from_cache(connection)
         return self.filebrowser.mkdir(fs, args['hdfs_path'], dir_name)
 
@@ -578,7 +579,9 @@ class HDFSFilePreviewRes(Resource):
     def get(self):
         args = hdfsfilepreview_get_parser.parse_args(strict=True)
 
-        connection = db.session.query(HDFSConnection).filter_by(connection_name=args['connection_name']).one()
+        connection = db.session.query(HDFSConnection)\
+            .filter_by(connection_name=args['connection_name'])\
+            .one()
         fs = self.filebrowser.get_fs_from_cache(connection)
         return self.filebrowser.read(fs, args['hdfs_path'], args['separator'])
 
