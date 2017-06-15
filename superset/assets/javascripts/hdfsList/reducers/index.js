@@ -1,9 +1,5 @@
 import { combineReducers } from 'redux';
-import {routerReducer } from 'react-router-redux';
-
 import { actionTypes  } from '../actions';
-import popupParam from './popupParam';
-import subDetail from './subDetail';
 
 function condition(state = {
     page: 1,
@@ -11,10 +7,8 @@ function condition(state = {
     orderDirection: 'desc',//取值 ('desc' or 'asc'),
     filter: '',//搜索字符串,
     tableType: 'all',//选择数据集类型时需要('database','hdfs', 'upload');
-
-//    onlyFavorite: 0,//全部or收藏，取值 (0 or 1),
-//    order_column,
-//    table_id: list column/metric时需要
+    selectedRowKeys: [],
+    selectedRowNames: []
 }, action) {
     switch (action.type) {
         case actionTypes.navigateTo:
@@ -27,25 +21,13 @@ function condition(state = {
             return {...state, filter: action.filter};
             break;
         case actionTypes.selectType:
-            return {...state, tableType: action.tableType, page:1};
+            return {...state, tableType: action.tableType};
             break;
         default:
             return state;
     }
 }
 
-function paramOfDelete(state={
-    selectedRowKeys: [],
-    selectedRowNames: []
-}, action) {
-    switch (action.type) {
-        case actionTypes.selectRows:
-            return {...state, selectedRowKeys: action.selectedRowKeys, selectedRowNames: action.selectedRowNames};
-            break;
-        default:
-            return state;
-    }
-}
 function emitFetch(state = {
     isFetching: false,
     didInvalidate: false,
@@ -75,7 +57,10 @@ function requestByCondition (state = {}, action) {
         case actionTypes.invalidateCondition:
         case actionTypes.sendRequest:
         case actionTypes.receiveData:
-            return Object.assign({}, state, emitFetch(state, action));
+            return Object.assign({}, state, {
+                [action.condition.tableType]: emitFetch(state[action.condition.tableType], action),
+            });
+
         default:
             return state;
     }
@@ -83,11 +68,7 @@ function requestByCondition (state = {}, action) {
 
 const rootReducer = combineReducers({
     condition,
-    paramOfDelete,
-    requestByCondition,
-    popupParam,
-    subDetail
-//    ,router: routerReducer
+    requestByCondition
 });
 
 export default rootReducer;

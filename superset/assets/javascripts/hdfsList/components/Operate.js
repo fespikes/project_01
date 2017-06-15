@@ -1,0 +1,91 @@
+import React from 'react';
+import { render } from 'react-dom';
+import { Select } from 'antd';
+
+import PropTypes from 'prop-types';
+import {
+    selectType,
+    search
+} from '../actions';
+import { SliceDelete } from '../../components/popup';
+//TODO:
+
+class SliceOperate extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
+
+        this.onChange = this.onChange.bind(this);
+        this.onDelete = this.onDelete.bind(this);
+        this.onSearch = this.onSearch.bind(this);
+        this.handleSelectChange = this.handleSelectChange.bind(this);
+    }
+
+    onChange () {
+        const { dispatch } = this.props;
+        if( this.refs.searchField.value ){
+            this.refs.searchIcon.removeAttribute('disabled');
+        } else {
+            this.refs.searchIcon.setAttribute('disabled', 'disabled');
+        }
+    }
+
+    onDelete () {
+        const { dispatch, selectedRowNames } = this.props;
+        let deleteType = 'multiple';
+        let deleteTips = '确定删除' + selectedRowNames + '?';
+        if(selectedRowNames.length === 0) {
+            deleteType = 'none';
+            deleteTips = '没有选择任何将要删除的记录，请选择！';
+        }
+        let deleteSlicePopup = render(
+            <SliceDelete
+                dispatch={dispatch}
+                deleteType={deleteType}
+                deleteTips={deleteTips} />,
+            document.getElementById('popup_root'));
+        if(deleteSlicePopup) {
+            deleteSlicePopup.showDialog();
+        }
+    }
+
+    handleSelectChange (argus) {
+        console.log(`selected ${argus}`);
+        this.props.dispatch(selectType(argus));
+    }
+
+    onSearch () {
+        const filter = this.refs.searchField.value;
+        this.props.dispatch(search(filter));
+        //TODO: not sure that componentWillReceiveProps be triggered
+    }
+
+    render() {
+
+        const { tableType } = this.props;
+        return (
+            <div className="operations">
+                <ul className="icon-list">
+                    <li><a ><i className="icon"></i>操作</a></li>
+                    <li onClick={this.onDelete}><i className="icon"></i>上传</li>
+                </ul>
+                <ul className="icon-list">
+                    <li><i className="icon"></i></li>
+                    <li onClick={this.onDelete}><i className="icon"></i></li>
+                </ul>
+                <div className="icon-list">
+                    <li><i className="icon refresh"></i></li>
+                    <li><i className="icon clock"></i></li>
+                </div>
+                <div className="search-input">
+                    <input onChange={this.onChange} ref="searchField" placeholder="search..." />
+                    <i className="icon" onClick={this.onSearch} ref="searchIcon"></i>
+                </div>
+            </div>
+        );
+    }
+}
+
+SliceOperate.propTypes = {};
+
+export default SliceOperate;

@@ -1,15 +1,39 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
 import { SliceDelete, SliceEdit } from '../../components/popup';
-import style from '../style/database.scss'
+import style from '../style/hdfs.scss'
 
-class SliceTable extends React.Component {
+
+
+const getData = (length) => {
+    length = length||12;
+    let arr = [];
+    for( let i=length; i--;) {
+        arr.push({
+            key: i,
+            name: 'rowId'+i,
+            size: 'size'+i,
+            user: 'user'+i,
+            group: 'group'+i,
+            permission: 'permission'+i,
+            date: 'date'+i
+        });
+    }
+    return arr;
+};
+
+const data = getData();
+
+class InnerTable extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            data
+        };
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
@@ -24,22 +48,6 @@ class SliceTable extends React.Component {
     render() {
 
         const { dispatch, data } = this.props;
-
-        function editSlice(record) {
-            dispatch(fetchSliceDetail(record.id, callback));
-            function callback(success, data) {
-                if(success) {
-                    var editSlicePopup = render(
-                        <SliceEdit
-                            dispatch={dispatch}
-                            sliceDetail={data}/>,
-                        document.getElementById('popup_root'));
-                    if(editSlicePopup) {
-                        editSlicePopup.showDialog();
-                    }
-                }
-            }
-        }
 
         function deleteSlice(record) {
 
@@ -70,7 +78,7 @@ class SliceTable extends React.Component {
 
         const columns = [
             {
-                width: '5%',
+                width: '10%',
                 render: (text, record) => {
                     const datasetType = record.dataset_type;
                     return (
@@ -81,65 +89,79 @@ class SliceTable extends React.Component {
             },
             {
                 title: '名称',  //TODO: title need to i18n
-                key: 'datasetName',
-                dataIndex: 'dataset_name',
-                width: '30%',
-                render: (text, record) => {
-                    return (
-                        <div className="entity-name">
-                            <div className="entity-title highlight">
-                                <a href={record.explore_url} target="_blank">{record.dataset_name}</a>
-                            </div>
-                            <div className="entity-description">{record.dataset_type} | {record.connection}</div>
-                        </div>
-                    )
-                },
+                key: 'name',
+                dataIndex: 'name',
+                width: '15%',
                 sorter(a, b) {
                     return a.dataset_name.substring(0, 1).charCodeAt() - b.dataset_name.substring(0, 1).charCodeAt();
-                }
+                },
+                render: text => <Link to="/filebrowser">{text}</Link>
             }, {
-                title: '所有者',
-                dataIndex: 'created_by_user',
-                key: 'created_by_user',
-                width: '25%',
+                title: '大小',
+                dataIndex: 'size',
+                key: 'size',
+                width: '15%',
                 sorter(a, b) {
                     return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
                 }
             }, {
-                title: '更新时间',
-                dataIndex: 'changed_on',
-                key: 'changed_on',
-                width: '25%',
+                title: '用户',
+                dataIndex: 'user',
+                key: 'user',
+                width: '15%',
                 sorter(a, b) {
                     return a.changed_on - b.changed_on ? 1 : -1;
                 }
             }, {
+               title: '组',
+               dataIndex: 'group',
+               key: 'group',
+               width: '15%',
+               sorter(a, b) {
+                   return a.changed_on - b.changed_on ? 1 : -1;
+               }
+            }, {
+               title: '权限',
+               dataIndex: 'permission',
+               key: 'permission',
+               width: '10%',
+               sorter(a, b) {
+                   return a.changed_on - b.changed_on ? 1 : -1;
+               }
+            }, {
+               title: '日期',
+               dataIndex: 'date',
+               key: 'date',
+               width: '15%',
+               sorter(a, b) {
+                   return a.changed_on - b.changed_on ? 1 : -1;
+               }
+           }
+/*           ,{
                 title: '操作',
-                key: 'action',
-                width: '15%',
+                width: '10%',
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <i className="icon" onClick={() => editSlice(record)}></i>&nbsp;
-                            <i className={record.online ? 'icon online' : 'icon offline'}
-                               onClick={() => publishSlice(record)}></i>&nbsp;
-                            <i className="icon" onClick={() => deleteSlice(record)}></i>
+                            <i className="icon" ></i>
+                            &nbsp;&nbsp;
+                            <i className="icon " onClick={() => deleteSlice(record)}></i>
                         </div>
                     )
                 }
-            }
+            }*/
         ];
 
         return (
             <Table
                 rowSelection={rowSelection}
-                dataSource={data}
+                dataSource={this.state.data}
                 columns={columns}
                 pagination={false}
-                rowKey={record => record.id}
+                rowKey={record => record.key}
             />
         );
     }
 }
 
-export default SliceTable;
+export default InnerTable;
