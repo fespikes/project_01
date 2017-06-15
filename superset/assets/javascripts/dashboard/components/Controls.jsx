@@ -96,20 +96,19 @@ class Controls extends React.PureComponent {
                         <i className="icon clock" />
                     }
                 />
-                <Button
-                    onClick={this.publish.bind(this)}
-                    tooltip="设置仪表盘"
-                    placement="bottom"
-                    >
-                    <i className="icon setting"></i>
-                </Button>
-                <Button
-                    onClick={this.publish.bind(this)}
-                    tooltip="拖拽工作表"
-                    placement="bottom"
-                    >
-                    <i className="icon drag"></i>
-                </Button>
+                <CodeModal
+                    codeCallback={dashboard.readFilters.bind(dashboard)}
+                    triggerNode={<i className="icon setting" />}
+                />
+                <CssEditor
+                    dashboard={dashboard}
+                    triggerNode={
+                        <i className="icon drag" />
+                    }
+                    initialCss={dashboard.css}
+                    templates={this.state.cssTemplates}
+                    onChange={this.changeCss.bind(this)}
+                />
                 <DashboardEdit
                     dashboard={dashboard}
                     triggerNode={
