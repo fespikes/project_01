@@ -17,7 +17,7 @@ class FileBrowser extends Component {
         return (
             <div className="file-browse">
                 <div className="title-bar">
-                    <i className="icon icon-browser-ps icon-text-hover"></i>
+                    <i className="icon icon-edit-slice edit-slice-ps"></i>
                     <span>文件浏览器</span>
                 </div>
                 <div className="content">
@@ -54,7 +54,7 @@ class FileBrowser extends Component {
                                 <span className="slash">/</span>
                                 <span className="text">recommend</span>
                             </span>
-                            <i className="icon icon-pattern-ps icon-pattern-default"></i>
+                            <i className="icon icon-pattern-ps icon-edit"></i>
                         </div>
                         <div className="tableWrapper">
                             <FileBrowserTable />
