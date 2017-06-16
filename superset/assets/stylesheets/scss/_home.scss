@@ -69,6 +69,7 @@
             dl {
                 display: flex;
                 align-items: center;
+                cursor: pointer;
             }
             dt{
                 i{
@@ -88,7 +89,6 @@
 
                 .name {
                     color: #9fa9ba;
-                    cursor: pointer;
                     text-align: left;
                 }
 
@@ -157,6 +157,12 @@
                     padding-left: 20px !important;
                 }
 
+                th {
+                    span {
+                        font-weight: 500;
+                    }
+                }
+
                 .ant-table-row {
                     border-left: 4px solid #ffffff;
                     &:hover {
@@ -177,6 +183,7 @@
                         overflow: hidden;
                         white-space: nowrap;
                         padding-left: 20px;
+                        font-weight: bold;
                     }
 
                     .action-column {
@@ -194,11 +201,16 @@
                         padding: 6px 8px;
                         height: 40px;
 
+                        span {
+                            font-weight: 500;
+                        }
+
                         a {
                             display: block;
                             text-overflow: ellipsis;
                             overflow: hidden;
                             white-space: nowrap;
+                            font-weight: 500;
                         }
                     }
                 }
@@ -210,8 +222,17 @@
         .event-list{
             .ant-table table {
                 border-collapse: collapse !important;
-                .user-column {
-                    padding-left: 24px !important;
+
+                .ant-table-thead {
+                    .user-column {
+                        padding-left: 24px !important;
+                    }
+                }
+
+                th {
+                    span {
+                        font-weight: 500;
+                    }
                 }
 
                 .ant-table-row {
@@ -274,6 +295,18 @@
 
                     td {
                         padding: 8px;
+
+                        a {
+                            font-weight: 500;
+                        }
+
+                        span {
+                            font-weight: 500;
+                        }
+
+                        div {
+                            font-weight: 500;
+                        }
                     }
 
                     .icon {
@@ -423,6 +456,14 @@
 
                 td {
                     font-size: 14px;
+
+                    a {
+                        font-weight: 500;
+                    }
+
+                    span {
+                        font-weight: 500;
+                    }
                 }
 
                 .time-col {
@@ -480,6 +521,16 @@
 
                 .time-col {
                     color: #7f8fa4;
+                }
+
+                td {
+                    a {
+                        font-weight: 500;
+                    }
+
+                    span {
+                        font-weight: 500;
+                    }
                 }
 
                 .user-td {

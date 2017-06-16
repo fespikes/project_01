@@ -53,47 +53,47 @@ class DataTendency extends Component {
                 <aside className="data-tendency white-bg-and-border-radius">
                     <hgroup className="data-title">
                         <h2>
-                            <dl>
+                            <dl onClick={ () => {onChangeCatagory('dashboard')}}>
                                 <dt>
                                     <i className="icon dashboard-icon"></i>
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.dashboard}</div>
-                                    <div className={catagory === 'dashboard' ? 'current name' : 'name'} onClick={ () => {onChangeCatagory('dashboard')}}>仪表盘</div>
+                                    <div className={catagory === 'dashboard' ? 'current name' : 'name'}>仪表盘</div>
                                 </dd>
                             </dl>
                         </h2>
                         <h2>
-                            <dl>
+                            <dl onClick={ () => {onChangeCatagory('slice')}}>
                                 <dt>
                                     <i className="icon slice-icon"></i>
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.slice}</div>
-                                    <div className={catagory === 'slice' ? 'current name' : 'name'} onClick={ () => {onChangeCatagory('slice')}}>工作表</div>
+                                    <div className={catagory === 'slice' ? 'current name' : 'name'}>工作表</div>
                                 </dd>
 
                             </dl>
                         </h2>
                         <h2>
-                            <dl>
+                            <dl onClick={ () => {onChangeCatagory('database')}}>
                                 <dt>
                                     <i className="icon database-icon"></i>
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.database}</div>
-                                    <div className={catagory === 'database' ? 'current name' : 'name'} onClick={ () => {onChangeCatagory('database')}}>连接</div>
+                                    <div className={catagory === 'database' ? 'current name' : 'name'}>连接</div>
                                 </dd>
                             </dl>
                         </h2>
                         <h2>
-                            <dl>
+                            <dl onClick={ () => {onChangeCatagory('table')}}>
                                 <dt>
                                     <i className="icon table-icon"></i>
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.table}</div>
-                                    <div className={catagory === 'table' ? 'current name' : 'name'} onClick={ () => {onChangeCatagory('table')}}>数据集</div>
+                                    <div className={catagory === 'table' ? 'current name' : 'name'}>数据集</div>
                                 </dd>
                             </dl>
                         </h2>

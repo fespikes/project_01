@@ -1,6 +1,10 @@
 import React from 'react';
 import ReactHighcharts from 'react-highcharts';
 import PropTypes from 'prop-types';
+import Highcharts from 'highcharts';
+import HighchartsNoData from "highcharts-no-data-to-display";
+
+HighchartsNoData(Highcharts);
 
 function Line(props) {
 
@@ -17,6 +21,9 @@ function Line(props) {
             type: 'area',
             height: '240'
         },
+        lang: {
+            noData: "暂无数据"
+        },
         credits: {
             enabled: false
         },
@@ -24,9 +31,27 @@ function Line(props) {
             text: title + '数量变化趋势',
             align: "left"
         },
+        noData: {
+            style: {
+                fontWeight: 'bold',
+                fontSize: '15px',
+                color: '#303030'
+            }
+        },
         yAxis: {
             title: {
                 text: ''
+            }
+        },
+        plotOptions: {
+            series: {
+                color: '#1991eb',
+                fillOpacity: 0.1,
+                marker: {
+                    fillColor: '#FFFFFF',
+                    lineWidth: 2,
+                    lineColor: null
+                }
             }
         },
         tooltip: {
@@ -57,6 +82,10 @@ function Line(props) {
         xAxis: {
             categories: catagories,
             labels: {
+                style: {
+                    color: '#adafb2',
+                    fontSize: 12
+                },
                 formatter: function() {
                     var result = this.value.substr(5);
                     return result;
