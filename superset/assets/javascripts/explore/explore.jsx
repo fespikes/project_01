@@ -17,7 +17,7 @@ import { Radio } from 'antd';
 
 require('jquery-ui');
 $.widget.bridge('uitooltip', $.ui.tooltip); // Shutting down jq-ui tooltips
-require('bootstrap');
+// require('bootstrap');
 
 require('./../superset-select2.js');
 
