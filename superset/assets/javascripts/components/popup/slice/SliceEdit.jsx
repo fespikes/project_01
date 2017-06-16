@@ -4,13 +4,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { fetchUpdateSlice } from '../../../sliceList/actions';
-import { Select } from 'antd';
+import { Select, Alert } from 'antd';
 import PropTypes from 'prop-types';
 
 class SliceEdit extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            exception: {},
             selectedDashboards: initDefaultOptions()
         };
 
@@ -55,14 +56,21 @@ class SliceEdit extends React.Component {
         const self = this;
         const { dispatch } = self.props;
         dispatch(fetchUpdateSlice(self.state, self.props.sliceDetail, callback));
-        function callback(success) {
+        function callback(success, message) {
             if(success) {
                 self.setState({
                     selectedDashboards: []
                 });
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
-
+                self.refs.alertRef.style.display = "block";
+                let exception = {};
+                exception.type = "error";
+                exception.message = "Error";
+                exception.description = message;
+                self.setState({
+                    exception: exception
+                });
             }
         }
     }
@@ -95,6 +103,15 @@ class SliceEdit extends React.Component {
                             </div>
                         </div>
                         <div className="popup-body">
+                            <div className="error" ref="alertRef" style={{display: 'none'}}>
+                                <Alert
+                                    message={this.state.exception.message}
+                                    description={this.state.exception.description}
+                                    type={this.state.exception.type}
+                                    closeText="close"
+                                    showIcon
+                                />
+                            </div>
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <span>名称：</span>

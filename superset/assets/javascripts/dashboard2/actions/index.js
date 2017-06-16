@@ -187,14 +187,19 @@ export function fetchUpdateDashboard(state, dashboard, callback) {
             body: JSON.stringify(newDashboard)
         }).then(function(response) {
             if(response.ok) {
-                dispatch(fetchPosts());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
+                response.json().then(
+                    data => {
+                        if(data.success) {
+                            dispatch(fetchPosts());
+                            callback(true);
+                        }else {
+                            callback(false, data.message);
+                        }
+                    }
+                );
             }else {
-                if(typeof callback == "function") {
-                    callback(false);
-                }
+                const message = '服务器响应错误!';
+                callback(false, message);
             }
         });
     }
