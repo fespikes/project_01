@@ -193,14 +193,20 @@ export function fetchUpdateSlice(state, slice, callback) {
             body: JSON.stringify(newSlice)
         }).then(function(response) {
             if(response.ok) {
-                dispatch(fetchLists());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
+                response.json().then(
+                    data => {
+                        console.log('data=', data);
+                        if(data.success) {
+                            dispatch(fetchLists());
+                            callback(true);
+                        }else {
+                            callback(false, data.message);
+                        }
+                    }
+                );
             }else {
-                if(typeof callback == "function") {
-                    callback(false);
-                }
+                const message = '服务器响应错误!';
+                callback(false, message);
             }
         });
     }
