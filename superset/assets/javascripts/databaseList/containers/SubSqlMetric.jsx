@@ -60,6 +60,14 @@ class SubSqlMetric extends Component {
         alert('TODO: addSQLMetric');
     }
 
+    editMetric () {
+        alert(`TODO: editMetric, argus: ${arguments}`);
+    }
+
+    removeMetric () {
+        alert(`TODO: removeMetric, argus: ${arguments}`);
+    }
+
     render() {
         const me = this;
 
@@ -87,19 +95,25 @@ class SubSqlMetric extends Component {
             render: (text, record, index) => {
                 return (
                     <div className="icon-group">
-                        <i className="icon" onClick={() => editSlice(record)}></i>&nbsp;
-                        <i className={record.online ? 'icon online' : 'icon offline'}
-                           onClick={() => publishSlice(record)}></i>&nbsp;
-                        <i className="icon" onClick={() => deleteSlice(record)}></i>
+                        <i className="icon edit" onClick={() => editMetric(record)}></i>&nbsp;
+                        <i className="icon remove"
+                            onClick={() => removeMetric(record)}
+                            style={{marginLeft:'30px'}}
+                        ></i>
                     </div>
                 )
             }
         }];
 
         return (
-            <div>
-                <div>
-                    <button onClick={me.addSQLMetric} className='' >+&nbsp; 添加SQL Metric</button>
+            <div style={{padding: '10px'}}>
+                <div style={{width:'100%',
+                     height:'50px',
+                     textAlign:'right'}}>
+                    <button
+                        className='btn-blue tab-btn-ps'
+                        onClick={me.addSQLMetric}
+                    >+&nbsp; 添加SQL Metric</button>
                 </div>
                 <Table
                     columns={columns}

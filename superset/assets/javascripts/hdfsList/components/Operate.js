@@ -62,10 +62,11 @@ class SliceOperate extends React.Component {
     render() {
 
         const { tableType } = this.props;
+
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    <li><a ><i className="icon"></i>操作</a></li>
+                    <li style={{padding:'0 10px'}}><i className="icon setting"></i>操作</li>
                     <li onClick={this.onDelete}><i className="icon"></i>上传</li>
                 </ul>
                 <ul className="icon-list">

@@ -5,16 +5,21 @@
     }
 }
 
-#breadCrumb{
+/*
+.dashboard-panel .panel-top .panel-top .left .icon.edit:hover{
+    background-position: -212px -213px;
+}
+*/
+
+.breadCrumb{
     font-size:12px;
-    span{
-        float:left;
-        padding:0 3px;
-    }
+    border-bottom:1px blue solid;
 }
-#breadCrumb a.crumb{
-   font-size:12px;
+
+.breadCrumb small.slash{
+    padding:0 5px;
 }
+
 
 /*common*/
 .f14{
