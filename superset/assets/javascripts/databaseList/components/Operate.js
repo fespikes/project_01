@@ -109,12 +109,12 @@ class Operate extends React.Component {
                 <ul className="icon-list">
                     {/*<li onClick={this.onAdd}>*/}
                     <li>
-                        <Link to="/add"><i className="icon"></i></Link></li>
-                    <li onClick={this.onDelete}><i className="icon"></i></li>
+                        <Link to="/add"><i className="icon icon-plus"></i></Link></li>
+                    <li onClick={this.onDelete}><i className="icon icon-trash"></i></li>
                 </ul>
                 <div className="search-input">
                     <input onChange={this.onChange} ref="searchField" placeholder="search..." />
-                    <i className="icon" onClick={this.onSearch} ref="searchIcon"></i>
+                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"></i>
 
                 </div>
             </div>

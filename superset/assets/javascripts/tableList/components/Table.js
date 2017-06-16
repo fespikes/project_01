@@ -120,10 +120,10 @@ class SliceTable extends React.Component {
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <i className="icon" onClick={() => editSlice(record)}></i>&nbsp;
-                            <i className={record.online ? 'icon online' : 'icon offline'}
+                            <i className="icon icon-edit" onClick={() => editSlice(record)}></i>&nbsp;
+                            <i className={record.online ? 'icon icon-online' : 'icon icon-offline'}
                                onClick={() => publishSlice(record)}></i>&nbsp;
-                            <i className="icon" onClick={() => deleteSlice(record)}></i>
+                            <i className="icon icon-delete" onClick={() => deleteSlice(record)}></i>
                         </div>
                     )
                 }

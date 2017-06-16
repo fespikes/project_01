@@ -21,16 +21,19 @@
     }
 }
 /***** dashboard slice page icon start ******/
-.star {
+.icon-star {
     background-position: -92px -132px;
 }
-.star-fav {
+.icon-star-fav {
     background-position: -52px -211px;
 }
-.info {
+.icon-star-active {
+    background-position:-211px -252px;
+}
+.icon-info {
     background-position: -290px -251px;
 }
-.online {
+.icon-online {
     width:20px;
     height:14px;
     background-position:-50px -173px;
@@ -38,7 +41,7 @@
         background-position: -9px -252px;
     }
 }
-.offline {
+.icon-offline {
     width:17px;
     height:15px;
     background-position:-291px -133px;
@@ -46,7 +49,7 @@
         background-position: -250px -212px;
     }
 }
-.refresh {
+.icon-refresh {
     width: 20px;
     height: 14px;
     background-position: -130px -333px;
@@ -54,7 +57,7 @@
         background-position: -129px -412px;
     }
 }
-.plus {
+.icon-plus {
     width: 16px;
     height: 16px;
     background-position: -251px -92px;
@@ -62,13 +65,13 @@
         background-position: -212px -172px;
     }
 }
-.clock {
+.icon-clock {
     background-position: -251px -451px;
     &:hover {
         background-position: -212px -572px;
     }
 }
-.setting {
+.icon-setting {
     width: 16px;
     height: 14px;
     background-position: -212px -331px;
@@ -76,7 +79,7 @@
         background-position: -212px -411px;
     }
 }
-.drag {
+.icon-drag {
     width: 14px;
     height: 14px;
     background-position: -253px -332px;
@@ -84,7 +87,7 @@
         background-position: -253px -413px;
     }
 }
-.edit {
+.icon-edit {
     width: 15px;
     height: 14px;
     background-position: -253px -134px;
@@ -92,7 +95,7 @@
         background-position: -212px -213px;
     }
 }
-.save {
+.icon-save {
     width: 14px;
     height: 14px;
     background-position: -293px -332px;
@@ -100,13 +103,78 @@
         background-position: -292px -413px;
     }
 }
-.email {
+.icon-email {
     width: 19px;
     height: 13px;
     background-position: -272px -665px;
     &:hover {
         background-position: -11px -452px;
     }
+}
+.icon-trash {
+    background-position: -292px -92px;
+    &:hover {
+        background-position: -251px -172px;
+    }
+}
+.icon-delete {
+    width: 14px;
+    height: 16px;
+    background-position: -12px -172px;
+    &:hover {
+        background-position: -292px -211px;
+    }
+}
+.icon-export {
+    background-position: -11px -131px;
+    &:hover {
+        background-position: -291px -171px;
+    }
+}
+.icon-import {
+    background-position: -52px -131px;
+    &:hover {
+        background-position: -12px -210px;
+    }
+}
+.icon-search {
+    width: 14px;
+    height: 14px;
+    background-position: -133px -133px;
+    &:hover {
+        background-position: -92px -212px;
+    }
+}
+.icon-table-mode {
+    width: 21px;
+    height: 13px;
+    background-position: -169px -134px;
+    &.active {
+        background-position: -129px -213px;
+    }
+}
+.icon-graph-mode {
+    width: 18px;
+    height: 18px;
+    background-position: -211px -132px;
+    &.active {
+        background-position: -170px -211px;
+    }
+}
+.icon-dashboard {
+    width: 19px;
+    height: 19px;
+    background-position: -250px -50px;
+}
+.icon-slice {
+    width: 18px;
+    height: 23px;
+    background-position: -291px -51px;
+}
+.icon-edit-slice {
+    width: 22px;
+    height: 22px;
+    background-position: -10px -368px;
 }
 /***** dashboard slice page icon end ******/
 
