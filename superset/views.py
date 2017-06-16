@@ -1034,6 +1034,19 @@ class TableModelView(SupersetModelView):  # noqa
         except Exception as e:
             return self.build_response(500, False, str(e))
 
+    @expose('/edit/hdfstable/<pk>', methods=['GET', 'POST'])
+    def edit_hdfs_table(self, pk):
+        try:
+            json_data = self.get_request_data()
+            obj = self.get_object(pk)
+            self.pre_update(obj)
+            self.update_hdfs_table(obj, json_data)
+            self.datamodel.edit(obj)
+            self.post_update(obj)
+            return self.build_response(200, True, UPDATE_SUCCESS)
+        except Exception as e:
+            return self.build_response(self.status, False, str(e))
+
     def get_object_list_data(self, **kwargs):
         """Return the table list"""
         order_column = kwargs.get('order_column')
@@ -1159,6 +1172,15 @@ class TableModelView(SupersetModelView):  # noqa
         log_action('add', action_str, 'table', table.id)
         # log table number
         log_number('table', g.user.get_id())
+
+    def update_hdfs_table(self, table, json_date):
+        hdfs_table = table.hdfs_table
+        hdfs_table.separator = json_date.get('separator')
+        db.session.commit()
+        hdfs_table.create_out_table(table.table_name, json_date.get('column_desc'))
+        db.session.delete(table.ref_columns)
+        db.session.delete(table.ref_metrics)
+        table.fetch_metadata()
 
     def post_update(self, table):
         TableModelView.merge_perm(table)
