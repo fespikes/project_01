@@ -9,6 +9,11 @@ class SliceTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
+
+        this.editSlice = this.editSlice.bind(this);
+        this.deleteSlice = this.deleteSlice.bind(this);
+        this.publishSlice = this.publishSlice.bind(this);
+        this.favoriteSlice = this.favoriteSlice.bind(this);
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
@@ -20,50 +25,54 @@ class SliceTable extends React.Component {
         dispatch(setSelectedRows(selectedRowKeys, selectedRowNames));
     };
 
-    render() {
-
-        const { dispatch, sliceList } = this.props;
-
-        function editSlice(record) {
-            dispatch(fetchSliceDetail(record.id, callback));
-            function callback(success, data) {
-                if(success) {
-                    var editSlicePopup = render(
-                        <SliceEdit
-                            dispatch={dispatch}
-                            sliceDetail={data}/>,
-                        document.getElementById('popup_root'));
-                    if(editSlicePopup) {
-                        editSlicePopup.showDialog();
-                    }
+    editSlice(record) {
+        const { dispatch } = this.props;
+        dispatch(fetchSliceDetail(record.id, callback));
+        function callback(success, data) {
+            if(success) {
+                var editSlicePopup = render(
+                    <SliceEdit
+                        dispatch={dispatch}
+                        sliceDetail={data}/>,
+                    document.getElementById('popup_root'));
+                if(editSlicePopup) {
+                    editSlicePopup.showDialog();
                 }
             }
         }
+    }
 
-        function deleteSlice(record) {
-
-            let deleteTips = "确定删除" + record.slice_name + "?";
-            let deleteSlicePopup = render(
-                <SliceDelete
-                    dispatch={dispatch}
-                    deleteType={'single'}
-                    deleteTips={deleteTips}
-                    slice={record}/>,
-                document.getElementById('popup_root'));
-            if(deleteSlicePopup) {
-                deleteSlicePopup.showDialog();
-            }
+    deleteSlice(record) {
+        const { dispatch } = this.props;
+        let deleteTips = "确定删除" + record.slice_name + "?";
+        let deleteSlicePopup = render(
+            <SliceDelete
+                dispatch={dispatch}
+                deleteType={'single'}
+                deleteTips={deleteTips}
+                slice={record}/>,
+            document.getElementById('popup_root'));
+        if(deleteSlicePopup) {
+            deleteSlicePopup.showDialog();
         }
+    }
 
-        function publishSlice(record) {
-            dispatch(fetchStateChange(record, "publish"));
-        }
+    publishSlice(record) {
+        const { dispatch } = this.props;
+        dispatch(fetchStateChange(record, "publish"));
+    }
 
-        function favoriteSlice(record) {
-            dispatch(fetchStateChange(record, "favorite"));
-        }
+    favoriteSlice(record) {
+        const { dispatch } = this.props;
+        dispatch(fetchStateChange(record, "favorite"));
+    }
+
+    render() {
+
+        const { sliceList, selectedRowKeys } = this.props;
 
         const rowSelection = {
+            selectedRowKeys,
             onChange: this.onSelectChange
         };
 
@@ -76,7 +85,7 @@ class SliceTable extends React.Component {
                 render: (text, record) => {
                     return (
                         <i className={record.favorite ? 'icon icon-star-fav' : 'icon icon-star'}
-                           onClick={() => favoriteSlice(record)}></i>
+                           onClick={() => this.favoriteSlice(record)}></i>
                     )
                 }
             },
@@ -154,10 +163,10 @@ class SliceTable extends React.Component {
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <i className="icon icon-edit" onClick={() => editSlice(record)}></i>&nbsp;
+                            <i className="icon icon-edit" onClick={() => this.editSlice(record)}></i>&nbsp;
                             <i className={record.online ? 'icon icon-online' : 'icon icon-offline'}
-                               onClick={() => publishSlice(record)}></i>&nbsp;
-                            <i className="icon icon-delete" onClick={() => deleteSlice(record)}></i>
+                               onClick={() => this.publishSlice(record)}></i>&nbsp;
+                            <i className="icon icon-delete" onClick={() => this.deleteSlice(record)}></i>
                         </div>
                     )
                 }
