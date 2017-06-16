@@ -11,7 +11,7 @@ const _ = require('lodash');
 
 const store = configureStore();
 
-$('.navbar-inverse > .nav-container > .nav > li:nth-child(1)').addClass('active');
+$('.nav > li:nth-child(1)').addClass('active');
 
 render(
     <Provider store={store}>

@@ -14,7 +14,7 @@ import configureStore from './dashboard2/store/configureStore';
 const $ = window.$ = require('jquery');
 const store = configureStore();
 
-$('.navbar-inverse > .nav-container > .nav > li:nth-child(2)').addClass('active');
+$('.nav > li:nth-child(2)').addClass('active');
 
 
 $(document).ready(() => {

@@ -9,7 +9,7 @@ import 'antd/dist/antd.css';
 
 const store = configureStore();
 const rootElement = document.querySelector('#slices');
-$('.navbar-inverse > .nav-container > .nav > li:nth-child(3)').addClass('active');
+$('.nav > li:nth-child(3)').addClass('active');
 
 render(
   <Provider store={store}>

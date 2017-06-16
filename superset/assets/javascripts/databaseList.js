@@ -17,7 +17,7 @@ import './databaseList/style/database.scss';
 
 const store = configureStore();
 const rootElement = document.querySelector('#databaseList');
-$('.navbar-inverse > .nav-container > .nav > li:nth-child(4)').addClass('active');
+$('.nav > li:nth-child(4)').addClass('active');
 
 render(
     <Provider store={store}>
