@@ -134,7 +134,11 @@ class SliceTable extends React.Component {
                 key: 'online',
                 width: '10%',
                 sorter: (a, b) => a.online - b.online,
-                render: (text, record) => record.online?'已发布':'未发布'
+                render: (text, record) => {
+                    return (
+                        <span className="entity-publish">{record.online ? "已发布" : "未发布"}</span>
+                    )
+                }
             }, {
                 title: '最后修改时间',
                 dataIndex: 'changed_on',

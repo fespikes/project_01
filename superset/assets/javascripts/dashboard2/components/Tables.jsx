@@ -100,7 +100,7 @@ class Tables extends React.Component {
             width: '15%',
             render: (text, record) => {
                 return (
-                    <span>{record.online ? "已发布" : "未发布"}</span>
+                    <span className="entity-publish">{record.online ? "已发布" : "未发布"}</span>
                 )
             },
             sorter(a, b) {

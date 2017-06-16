@@ -116,12 +116,23 @@ $borderStyle: solid 1px #e9eaed;
                 margin:0 20px;
             }
         }
-        .entity-name .entity-description{
-            font-size: 10px;
+        .entity-name {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .entity-description {
+            font-size: 12px;
+            color: #7f8fa4;
+        }
+        .entity-publish {
+            color: #333c48;
+        }
+        .entity-hover {
+            font-weight: bold;
         }
         .highlight {
             cursor: pointer;
-            color: #00b0e8;
+            color: #279cf2;
         }
     }
     .panel-bottom {
