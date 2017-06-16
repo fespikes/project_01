@@ -32,7 +32,7 @@ class Tables extends React.Component {
         dispatch(fetchDashboardDetail(record.id, callback));
         function callback(success, data) {
             if(success) {
-                var editDashboardPopup = render(
+                let editDashboardPopup = render(
                     <DashboardEdit
                         dispatch={dispatch}
                         dashboardDetail={data}
@@ -48,7 +48,7 @@ class Tables extends React.Component {
     deleteDashboard(record) {
         const { dispatch } = this.props;
         const deleteTips = "确定删除" + record.dashboard_title + "?";
-        var deleteDashboardPopup = render(
+        let deleteDashboardPopup = render(
             <DashboardDelete
                 dispatch={dispatch}
                 deleteType={'single'}
