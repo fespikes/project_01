@@ -4,13 +4,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { fetchAvailableSlices, fetchUpdateDashboard } from '../../../dashboard2/actions';
-import { Select } from 'antd';
+import { Select, Alert } from 'antd';
 import PropTypes from 'prop-types';
 
 class DashboardEdit extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            exception: {},
             selectedSlices: initDefaultOptions()
         };
 
@@ -56,14 +57,21 @@ class DashboardEdit extends React.Component {
         const self = this;
         const { dispatch } = self.props;
         dispatch(fetchUpdateDashboard(self.state, self.props.dashboardDetail, callback));
-        function callback(success) {
+        function callback(success, message) {
             if(success) {
                 self.setState({
                     selectedSlices: []
                 });
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
-
+                self.refs.alertRef.style.display = "block";
+                let exception = {};
+                exception.type = "error";
+                exception.message = "Error";
+                exception.description = message;
+                self.setState({
+                    exception: exception
+                });
             }
         }
     }
@@ -96,6 +104,15 @@ class DashboardEdit extends React.Component {
                             </div>
                         </div>
                         <div className="popup-body">
+                            <div className="error" ref="alertRef" style={{display: 'none'}}>
+                                <Alert
+                                    message={this.state.exception.message}
+                                    description={this.state.exception.description}
+                                    type={this.state.exception.type}
+                                    closeText="close"
+                                    showIcon
+                                />
+                            </div>
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <span>标题：</span>

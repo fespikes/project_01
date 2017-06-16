@@ -18,6 +18,7 @@ export const CONDITION_PARAMS = {
     SHOW_TYPE: 'SHOW_TYPE',
     PAGE_NUMBER: 'PAGE_NUMBER',
     PAGE_SIZE: 'PAGE_SIZE',
+    CLEAR_ROWS: 'CLEAR_ROWS',
     SELECTED_ROWS: 'SELECTED_ROWS'
 };
 
@@ -65,6 +66,14 @@ export function setSelectedRows(selectedRowKeys, selectedRowNames) {
     }
 }
 
+export function clearRows() {
+    return {
+        type: CONDITION_PARAMS.SELECTED_ROWS,
+        selectedRowKeys: [],
+        selectedRowNames: []
+    }
+}
+
 export function receiveLists(json) {
     return {
         type: LISTS.RECEIVE_LISTS,
@@ -103,6 +112,7 @@ export function fetchLists() {
             }
         }).then(response => {
             dispatch(receiveLists(response));
+            dispatch(clearRows());
         }).catch( argus => {
             console.log(argus);
         });
@@ -183,14 +193,20 @@ export function fetchUpdateSlice(state, slice, callback) {
             body: JSON.stringify(newSlice)
         }).then(function(response) {
             if(response.ok) {
-                dispatch(fetchLists());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
+                response.json().then(
+                    data => {
+                        console.log('data=', data);
+                        if(data.success) {
+                            dispatch(fetchLists());
+                            callback(true);
+                        }else {
+                            callback(false, data.message);
+                        }
+                    }
+                );
             }else {
-                if(typeof callback == "function") {
-                    callback(false);
-                }
+                const message = '服务器响应错误!';
+                callback(false, message);
             }
         });
     }

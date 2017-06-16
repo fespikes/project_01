@@ -37,6 +37,11 @@ function conditions(state = {
                 selectedRowKeys: action.selectedRowKeys,
                 selectedRowNames: action.selectedRowNames
             });
+        case CONDITION_PARAMS.CLEAR_ROWS:
+            return Object.assign({}, state, {
+                selectedRowKeys: action.selectedRowKeys,
+                selectedRowNames: action.selectedRowNames
+            });
         default:
             return state;
     }

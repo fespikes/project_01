@@ -39,6 +39,7 @@ class App extends Component {
                 <div className="panel-middle">
                     <Table
                         dispatch={dispatch}
+                        selectedRowKeys={conditions.selectedRowKeys}
                         sliceList={lists.items.data}
                     />
                 </div>

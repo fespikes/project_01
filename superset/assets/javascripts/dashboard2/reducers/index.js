@@ -8,7 +8,7 @@ function configs(state = {
     type: "show_all",
     keyword: "",
     pageNumber: 1,
-    pageSize: 12,
+    pageSize: 10,
     selectedRowKeys: [],
     selectedRowNames: [],
     viewMode: 'table'
