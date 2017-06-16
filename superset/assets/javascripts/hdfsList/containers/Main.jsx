@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { fetchIfNeeded } from '../actions';
-import { Pagination, Table, Operate, Breadcrumb } from '../components';
+import { Pagination, Table, Operate } from '../components';
 import PropTypes from 'prop-types';
 import '../style/hdfs.scss';
 
