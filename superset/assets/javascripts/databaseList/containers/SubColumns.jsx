@@ -166,7 +166,7 @@ class SubColumns extends Component {
                         <i className="icon remove"
                             onClick={() => deleteSlice(record)}
                             style={{marginLeft:'30px'}}
-                            ></i>
+                        ></i>
                     </div>
                 )
             }
@@ -178,10 +178,10 @@ class SubColumns extends Component {
                             height:'50px',
                             textAlign:'right'}}>
                     <button
-                            onClick={me.addTableColumn}
-                            className='btn-blue'
-                            style={{position:'relative', right:'120px'}}
+                        onClick={me.addTableColumn}
+                        className='btn-blue tab-btn-ps'
                     >+&nbsp; 添加列表</button>
+
                 </div>
                 <Table
                     columns={columns}

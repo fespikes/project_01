@@ -9,7 +9,9 @@ import '../style/hdfs.scss';
 class Main extends Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            breadCrumbEditable: false
+        };
     }
 
     componentDidMount() {
@@ -28,25 +30,45 @@ class Main extends Component {
         }
     }
 
+    breadCrumbEditable () {
+        this.setState({
+            breadCrumbEditable: !this.state.breadCrumbEditable
+        })
+    }
+
     render() {
         const {dispatch, response, condition} = this.props;
         const count = response.count;
+        const breadCrumbText = 'Home/Application Center/An Application/';
+
+        const editable = this.state.breadCrumbEditable;
 
         return (
             <div className="slice-panel">
                 <div className="panel-top">
                     <div className="left">
-                        <i className="icon"></i>
-                        <span></span>
-                        <span className="f14">记录</span>
-                        <span data-id="breadCrumb">
-                            <span className="crumb">Home</span>
-                            <span className="crumb">/</span>
-                            <span className="crumb"><a href="">Application Center</a></span>
-                            <span className="crumb">/</span>
-                            <span className="crumb">An Application</span>
-                            <span className="crumb">/</span>
+                        <span className="f14">路径</span>
+                        <span contentEditable={editable} className="breadCrumb">
+                            <small className="text">Home</small>
+                            <small className="slash">/</small>
+                            <small className="text">Application Center</small>
+                            <small className="slash">/</small>
+                            <small>An Application</small>
+                            <small className="crumb">/</small>
                         </span>
+
+                        {/*<textarea contentEditable="true">
+                        {breadCrumbText}
+                        </textarea>*/}
+                        <i
+                            className="icon edit"
+                            onClick={() => this.breadCrumbEditable()}
+                            style={{
+                                width:'15px', height:'14px',
+                                backgroundPosition:'-253px -134px',
+                                position:'relative', left:'10px', top:'12px'
+                            }}
+                        ></i>
                     </div>
                     <div className="right">
                         <Operate
