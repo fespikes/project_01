@@ -1,3 +1,5 @@
+$borderStyle: solid 1px #e9eaed;
+
 .dashboard-panel, .slice-panel {
     margin: 0 50px;
     background-color: #edf0f5;
@@ -6,11 +8,12 @@
         justify-content: space-between;
         margin: 15px 0;
         .left {
-            .icon{
+            i {
                 display:inline-block;
-                width:18px;
-                height:18px;
-                background-position:-250px -50px;
+            }
+            i.icon-slice {
+                position: relative;
+                top: 5px;
             }
             span:nth-of-type(1){
                 font-size:18px;
@@ -46,25 +49,6 @@
                     align-items:center;
                     cursor:pointer;
                 }
-                li:nth-last-child{
-                    border-right:0;
-                }
-                li .icon {
-                    width:16px;
-                    height:16px;
-                }
-                li:nth-of-type(1) .icon {
-                    background-position: -253px -94px;
-                }
-                li:nth-of-type(2) .icon {
-                    background-position: -292px -92px;
-                }
-                li:nth-of-type(3) .icon {
-                    background-position: -11px -131px;
-                }
-                li:nth-of-type(4) .icon {
-                    background-position: -52px -131px;
-                }
             }
             .tab-btn {
                 margin:0 15px;
@@ -80,40 +64,31 @@
                     height:32px;
                     .icon {
                         display:inline-block;
-                        width:16px;
-                        height:16px;
                         position:relative;
                         top:3px;
                         margin-right:5px;
-                        background-position:-92px -132px;
                     }
                 }
 
                 .active {
                     background-color:#279cf2;
                     color:#fff;
-                    .icon {
-                        background-position:-211px -252px;
-                    }
                 }
             }
             .search-input{
                 margin-right:15px;
                 position:relative;
-                input{
+                input {
                     width:243px;
                     height:30px;
                     border:$borderStyle;
                     border-radius: 4px;
                     padding-left:10px;
                 }
-                .icon{
+                i {
                     position:absolute;
                     top:10px;
                     right:15px;
-                    width:14px;
-                    height:14px;
-                    background-position: -92px -212px;
                 }
             }
             .view-btn{
@@ -128,26 +103,6 @@
                     justify-content:center;
                     align-items:center;
                 }
-                a:nth-of-type(1){
-                    .icon{
-                        width:21px;
-                        height:13px;
-                        background-position: -169px -134px;
-                    }
-                    .active{
-                        background-position: -129px -213px;
-                    }
-                }
-                a:nth-of-type(2){
-                    .icon{
-                        width:18px;
-                        height:18px;
-                        background-position: -211px -132px;
-                    }
-                    .active{
-                        background-position: -170px -211px;
-                    }
-                }
             }
         }
     }
@@ -157,52 +112,9 @@
 
         .icon-group{
             display: flex;
-            .icon{
-                cursor:pointer;
-            }
-            .icon:nth-of-type(1) {
-                width:15px;
-                height:14px;
-                background-position: -253px -134px;
-            }
-            .icon:nth-of-type(1):hover {
-                background-position: -212px -213px;
-            }
             .icon:nth-of-type(2) {
-                width:20px;
-                height:18px;
                 margin:0 20px;
             }
-            .icon:nth-of-type(3) {
-                width:14px;
-                height:16px;
-                background-position:-12px -172px;
-            }
-            .icon:nth-of-type(3):hover {
-                background-position: -291px -212px;
-            }
-            .offline {
-                background-position:-291px -133px;
-                &:hover {
-                    background-position: -250px -213px;
-                }
-            }
-            .online {
-                background-position:-50px -172px;
-                &:hover {
-                    background-position: -8px -251px;
-                }
-            }
-        }
-        .star, .star-selected {
-            width:16px;
-            height:16px;
-        }
-        .star {
-            background-position: -92px -132px;
-        }
-        .star-selected {
-            background-position: -52px -210px;
         }
         .entity-name .entity-description{
             font-size: 10px;

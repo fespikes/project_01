@@ -65,8 +65,8 @@ class SliceOperate extends React.Component {
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    <li><a href="/slice/add"><i className="icon"></i></a></li>
-                    <li onClick={this.onDelete}><i className="icon"></i></li>
+                    <li><a href="/slice/add"><i className="icon icon-plus"></i></a></li>
+                    <li onClick={this.onDelete}><i className="icon icon-trash"></i></li>
                 </ul>
                 <div className="tab-btn">
                     {/*<button className={typeName === SHOW_ALL ? 'active' : ''} onClick={()=>this.onFilter(SHOW_ALL)}>全部</button>
@@ -81,7 +81,7 @@ class SliceOperate extends React.Component {
                 </div>
                 <div className="search-input">
                     <input onChange={this.onChange} ref="searchField" placeholder="search..." />
-                    <i className="icon" onClick={this.onSearch} ref="searchIcon"></i>
+                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"></i>
 
                 </div>
             </div>

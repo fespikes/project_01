@@ -71,7 +71,7 @@ class Tables extends React.Component {
             width: '5%',
             render: (text, record) => {
                 return (
-                    <i className={record.favorite ? 'star-selected icon' : 'star icon'}
+                    <i className={record.favorite ? 'icon icon-star-fav' : 'icon icon-star'}
                        onClick={() => favoriteSlice(record)}></i>
                 )
             }
@@ -136,10 +136,10 @@ class Tables extends React.Component {
             render: (record) => {
                 return (
                     <div className="icon-group">
-                        <i className="icon" onClick={() => editDashboard(record)}></i>&nbsp;
-                        <i className={record.online ? 'icon online' : 'icon offline'}
+                        <i className="icon icon-edit" onClick={() => editDashboard(record)}></i>&nbsp;
+                        <i className={record.online ? 'icon icon-online' : 'icon icon-offline'}
                            onClick={() => publishDashboard(record)}></i>&nbsp;
-                        <i className="icon" onClick={() => deleteDashboard(record)}></i>
+                        <i className="icon icon-delete" onClick={() => deleteDashboard(record)}></i>
                     </div>
                 )
             }
