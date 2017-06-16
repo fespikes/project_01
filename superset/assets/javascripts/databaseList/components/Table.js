@@ -13,7 +13,6 @@ class SliceTable extends React.Component {
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
-        console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
 
         //TODO: to make sure when select all of them ,this function been triggered the same
         const { dispatch } = this.props;

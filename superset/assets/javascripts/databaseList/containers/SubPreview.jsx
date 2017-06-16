@@ -62,12 +62,10 @@ class SubPreview extends Component {
     }
 
     onCellClick (a, b) {
-        console.log(a, b, 'in onCellClick');
     }
 
 
     onRowClick (a, b) {return;
-        console.log(a, b, 'in onRowClick');
     }
 
     render() {

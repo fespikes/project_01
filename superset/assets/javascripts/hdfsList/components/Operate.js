@@ -50,7 +50,6 @@ class SliceOperate extends React.Component {
     }
 
     handleSelectChange (argus) {
-        console.log(`selected ${argus}`);
         this.props.dispatch(selectType(argus));
     }
 

@@ -15,7 +15,6 @@ import {
 import '../style/databaseAdd.css';
 
 const DatabaseAdd = ({ match }) => {
-    console.log( 'in DatabaseAdd, arguments is: ', arguments );
 //    const isActive = match => match&& match.isExact;
     const isActive = (match, location) => {
         return location.pathname==='/add' || location.pathname==='/add/detail';

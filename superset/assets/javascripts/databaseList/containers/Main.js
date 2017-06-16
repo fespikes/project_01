@@ -43,14 +43,6 @@ class App extends Component {
         }
     }
 
-//    handleAddDatabase () {
-//        console.log('handleAddDatabase');
-//    }
-
-//    handleRemoveDatabase () {
-//        console.log('handleRemoveDatabase');
-//    }
-
     render() {
         const {dispatch, paramOfDelete, popupParam, response, condition} = this.props;
 
