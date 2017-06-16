@@ -30,7 +30,7 @@ class SliceTable extends React.Component {
         dispatch(fetchSliceDetail(record.id, callback));
         function callback(success, data) {
             if(success) {
-                var editSlicePopup = render(
+                let editSlicePopup = render(
                     <SliceEdit
                         dispatch={dispatch}
                         sliceDetail={data}/>,
