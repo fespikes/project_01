@@ -8,10 +8,10 @@ a{text-decoration:none;}
 
 
 
-.icon{
+/*.icon{
     display:inline-block;
     background-image:url(../../../images/icon-img/icon.png);
-}
+}*/
 
 .data-detail{
     box-sizing: border-box;
@@ -318,4 +318,15 @@ a{text-decoration:none;}
 }
 .none{
     display: none;
+}
+
+
+.btn-blue{
+    width: 100px;
+    height: 36px;
+    color: #fff;
+    background-color: #279cf2;
+    font: 14px/36px Miscrosoft YaHei;
+    border-radius: 4px;
+    cursor: pointer;
 }

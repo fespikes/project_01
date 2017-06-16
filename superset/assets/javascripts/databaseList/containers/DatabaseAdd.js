@@ -16,8 +16,10 @@ import '../style/databaseAdd.css';
 
 const DatabaseAdd = ({ match }) => {
     console.log( 'in DatabaseAdd, arguments is: ', arguments );
-    const isActive = match => match&& match.isExact;
-
+//    const isActive = match => match&& match.isExact;
+    const isActive = (match, location) => {
+        return location.pathname==='/add' || location.pathname==='/add/detail';
+    }
     return (
         <div className="data-detail">
            <h1 className="title"><i className="icon"></i>新建数据集</h1>
