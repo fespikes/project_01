@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 import PropTypes from 'prop-types';
+import { Alert } from 'antd';
 import { fetchLists, fetchSliceDelete, fetchSliceDeleteMul } from '../../../sliceList/actions';
 
 class SliceDelete extends React.Component {
@@ -19,7 +20,7 @@ class SliceDelete extends React.Component {
     }
 
     closeDialog() {
-
+        this.refs.popupSliceDelete.style.display = "none";
         ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
@@ -31,11 +32,13 @@ class SliceDelete extends React.Component {
         }else if(deleteType === "multiple") {
             dispatch(fetchSliceDeleteMul(callback));
         }else if(deleteType === "none") {
+            self.refs.popupSliceDelete.style.display = "none";
             ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
         }
 
         function callback(success) {
             if(success) {
+                self.refs.popupSliceDelete.style.display = "none";
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
 
@@ -50,15 +53,22 @@ class SliceDelete extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon"></i>
-                                <span>删除仪表板</span>
+                                <i className="icon icon-trash"></i>
+                                <span>删除工作表</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog}></i>
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div>{this.props.deleteTips}</div>
+                            <div className="warning">
+                                <Alert
+                                    message="Warning"
+                                    description={this.props.deleteTips}
+                                    type="warning"
+                                    showIcon
+                                />
+                            </div>
                         </div>
                         <div className="popup-footer">
                             <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}>
