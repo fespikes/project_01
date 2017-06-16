@@ -30,6 +30,10 @@ class SliceOperate extends React.Component {
         }
     }
 
+    upload () {
+        alert('upload');
+    }
+
     onDelete () {
         const { dispatch, selectedRowNames } = this.props;
         let deleteType = 'multiple';
@@ -60,26 +64,47 @@ class SliceOperate extends React.Component {
     }
 
     render() {
-
         const { tableType } = this.props;
 
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    <li style={{padding:'0 10px'}}><i className="icon setting"></i>操作</li>
-                    <li onClick={this.onDelete}><i className="icon"></i>上传</li>
-                </ul>
-                <ul className="icon-list">
-                    <li><i className="icon"></i></li>
-                    <li onClick={this.onDelete}><i className="icon"></i></li>
+                    <li
+                        className="bolder-right li-setting"
+                    >
+                        &nbsp;&nbsp;<i className="icon icon-setting ps"></i>操作&nbsp;&nbsp;
+                    </li>
+                    <li
+                        className="bolder-right li-upload"
+                        onClick={this.upload}
+                    >
+                        &nbsp;&nbsp;<i className="icon icon-upload ps"></i>上传&nbsp;&nbsp;
+                    </li>
+                    <li
+                        className="li-plus bolder-right"
+                    >
+                        &nbsp;&nbsp;<i className="icon icon-plus ps"></i>新建&nbsp;&nbsp;
+                    </li>
+                    <li
+                        className="li-trash"
+                        onClick={this.onDelete}
+                    >
+                        &nbsp;&nbsp;<i className="icon icon-trash ps"></i>删除&nbsp;&nbsp;
+                    </li>
                 </ul>
                 <div className="icon-list">
-                    <li><i className="icon refresh"></i></li>
-                    <li><i className="icon clock"></i></li>
+                    <li
+                        className="li-icons bolder-right"
+                    >
+                        &nbsp;&nbsp;<i className="icon icon-flow-refresh "></i>&nbsp;&nbsp;
+                    </li>
+                    <li>
+                        &nbsp;&nbsp;<i className="icon icon-clock ps"></i>
+                    </li>
                 </div>
                 <div className="search-input">
                     <input onChange={this.onChange} ref="searchField" placeholder="search..." />
-                    <i className="icon" onClick={this.onSearch} ref="searchIcon"></i>
+                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"></i>
                 </div>
             </div>
         );

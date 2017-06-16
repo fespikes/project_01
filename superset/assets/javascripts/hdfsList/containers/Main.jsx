@@ -44,11 +44,11 @@ class Main extends Component {
         const editable = this.state.breadCrumbEditable;
 
         return (
-            <div className="slice-panel">
+            <div className="hdfs-panel">
                 <div className="panel-top">
                     <div className="left">
                         <span className="f14">路径</span>
-                        <span contentEditable={editable} className="breadCrumb">
+                        <span contentEditable={editable} className="bread-crumb-span">
                             <small className="text">Home</small>
                             <small className="slash">/</small>
                             <small className="text">Application Center</small>
@@ -61,12 +61,12 @@ class Main extends Component {
                         {breadCrumbText}
                         </textarea>*/}
                         <i
-                            className="icon edit"
+                            className="icon icon-edit"
                             onClick={() => this.breadCrumbEditable()}
                             style={{
                                 width:'15px', height:'14px',
                                 backgroundPosition:'-253px -134px',
-                                position:'relative', left:'10px', top:'12px'
+                                position:'relative', left:'10px', top:'8px'
                             }}
                         ></i>
                     </div>

@@ -131,6 +131,13 @@
         background-position: -291px -171px;
     }
 }
+.icon-upload {
+    background-position: -132px -452px;
+    &:hover {
+        background-position: -92px -572px;
+    }
+}
+
 .icon-import {
     background-position: -52px -131px;
     &:hover {
@@ -161,6 +168,16 @@
         background-position: -170px -211px;
     }
 }
+
+.icon-flow-refresh {
+    width: 22px;
+    height: 22px;
+    background-position: -212px -450px;
+    &:hover {
+        background-position: -172px -570px;
+    }
+}
+
 .icon-dashboard {
     width: 19px;
     height: 19px;
@@ -176,6 +193,7 @@
     height: 22px;
     background-position: -10px -368px;
 }
+
 /***** dashboard slice page icon end ******/
 
 

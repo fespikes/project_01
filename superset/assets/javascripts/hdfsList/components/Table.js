@@ -14,6 +14,8 @@ const getData = (length) => {
     let arr = [];
     for( let i=length; i--;) {
         arr.push({
+//            type: Math.random(),
+
             key: i,
             name: 'rowId'+i,
             size: 'size'+i,
@@ -78,20 +80,30 @@ class InnerTable extends React.Component {
 
         const columns = [
             {
-                width: '10%',
+                title: '名称',  //TODO: title need to i18n
+                width: '5%',
                 render: (text, record) => {
-                    const datasetType = record.dataset_type;
+                    const type = record.type;
+                    let datasetType;
+//                    if (type>0.75) {
+//                        datasetType = 'icon-backfile-default';
+//                    } else if (type>0.5) {
+//                        datasetType = 'icon-backfile-openfile-warning';
+//                    } else if (type>0.25) {
+//                        datasetType = 'icon-disabledfile-info';
+//                    } else {
+//                        datasetType = 'icon-grayfile-info';
+//                    }
                     return (
-                        <i className={'icon ' + record.iconClass}
-                           onClick={() => favoriteSlice(record)}></i>
+                        <i className={'icon ' + 'icon-disabledfile-info'/*datasetType*/}></i>
                     )
                 }
             },
             {
-                title: '名称',  //TODO: title need to i18n
+//                title: '名称',  //TODO: title need to i18n
                 key: 'name',
                 dataIndex: 'name',
-                width: '15%',
+                width: '21%',
                 sorter(a, b) {
                     return a.dataset_name.substring(0, 1).charCodeAt() - b.dataset_name.substring(0, 1).charCodeAt();
                 },
@@ -100,7 +112,7 @@ class InnerTable extends React.Component {
                 title: '大小',
                 dataIndex: 'size',
                 key: 'size',
-                width: '15%',
+                width: '16%',
                 sorter(a, b) {
                     return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
                 }
@@ -108,7 +120,7 @@ class InnerTable extends React.Component {
                 title: '用户',
                 dataIndex: 'user',
                 key: 'user',
-                width: '15%',
+                width: '16%',
                 sorter(a, b) {
                     return a.changed_on - b.changed_on ? 1 : -1;
                 }
@@ -116,7 +128,7 @@ class InnerTable extends React.Component {
                title: '组',
                dataIndex: 'group',
                key: 'group',
-               width: '15%',
+               width: '16%',
                sorter(a, b) {
                    return a.changed_on - b.changed_on ? 1 : -1;
                }
@@ -124,7 +136,7 @@ class InnerTable extends React.Component {
                title: '权限',
                dataIndex: 'permission',
                key: 'permission',
-               width: '10%',
+               width: '15%',
                sorter(a, b) {
                    return a.changed_on - b.changed_on ? 1 : -1;
                }
@@ -132,7 +144,7 @@ class InnerTable extends React.Component {
                title: '日期',
                dataIndex: 'date',
                key: 'date',
-               width: '15%',
+               width: '16%',
                sorter(a, b) {
                    return a.changed_on - b.changed_on ? 1 : -1;
                }
