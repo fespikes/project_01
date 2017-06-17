@@ -18,6 +18,25 @@ button:disabled {
     cursor: not-allowed;
 }
 
+/** for custom popup and react-bootstrap modal header css style **/
+.popup-header {
+    width: 100%;
+    height: 40px;
+    padding: 0 20px;
+    background-color: #0067a6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    color: #fff;
+    .header-left{
+        display:flex;
+        align-items:center;
+        span{
+            margin-left: 10px;
+        }
+    }
+}
 
 .popup {
     position: fixed;
@@ -56,40 +75,7 @@ button:disabled {
         height: auto;
     }
 
-    .popup-header {
-        width: 100%;
-        height: 40px;
-        background-color: #0067a6;
-        padding: 0 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 16px;
-        color: #fff;
-        .header-left{
-            display:flex;
-            align-items:center;
-            .icon{
-                width:13px;
-                height:15px;
-                background-position:-13px -293px;
-            }
-            span{
-                margin-left: 10px;
-            }
-        }
-        .header-right {
-            .icon {
-                width: 14px;
-                height: 14px;
-                background-position: -52px -293px;
-            }
-        }
-    }
-
     .popup-body {
-
-
         width: 100%;
         min-height: 200px;
         padding: 20px 40px;
@@ -151,6 +137,9 @@ button:disabled {
             padding: 5px 5px 5px 60px;
         }
     }
+    .warning {
+        margin-top: 30px;
+    }
 }
 
 /*  overlay modal-dialog css  */
@@ -158,7 +147,9 @@ button:disabled {
 .modal-dialog .modal-content {
 
     .modal-header {
+        height: 40px;
         color: #fff;
+        padding: 0;
         background-color: #0067a6;
     }
 

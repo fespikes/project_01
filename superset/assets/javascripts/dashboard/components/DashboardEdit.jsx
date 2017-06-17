@@ -13,7 +13,9 @@ class DashboardEdit extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            dashboard: {},
+            dashboard: {
+                description: ''
+            },
             selectedSlices: [],
             availableSlices: [],
             slicesLoaded: false
@@ -91,6 +93,8 @@ class DashboardEdit extends React.Component {
                 selectedSlices: value
             });
         }
+        const modalTitle = "编辑工作表";
+        const modalIcon = "icon icon-dashboard-popup"
         const modalContent = (
             <div>
                 <img
@@ -116,7 +120,7 @@ class DashboardEdit extends React.Component {
                     </div>
                     <div className="item-right">
                         <textarea className="dialog-area" value={this.state.dashboard.description}
-                                  onChange={this.handleDescriptionChange}></textarea>
+                              onChange={this.handleDescriptionChange}></textarea>
                     </div>
                 </div>
                 <div className="dialog-item">
@@ -145,7 +149,6 @@ class DashboardEdit extends React.Component {
                         <input className="form-control dialog-input" value={this.state.dashboard.table_names} disabled />
                     </div>
                 </div>
-
             </div>
         );
         const modalFooter = (
@@ -165,9 +168,10 @@ class DashboardEdit extends React.Component {
             <ModalTrigger
                 triggerNode={this.props.triggerNode}
                 isButton
+                modalTitle={modalTitle}
+                modalIcon={modalIcon}
                 modalBody={modalContent}
                 modalFooter={modalFooter}
-                modalTitle="编辑仪表盘"
             />
         );
     }

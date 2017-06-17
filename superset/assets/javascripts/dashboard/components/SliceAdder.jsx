@@ -167,6 +167,7 @@ class SliceAdder extends React.Component {
                 isButton
                 modalBody={modalContent}
                 bsSize="large"
+                modalIcon="icon icon-plus"
                 modalTitle="添加工作表"
             />
         );

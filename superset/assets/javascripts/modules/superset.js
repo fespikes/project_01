@@ -20,9 +20,9 @@ const px = function () {
         // Init star behavihor for favorite
         function show() {
             if ($(this).hasClass('selected')) {
-                $(this).html('<i class="icon star-fav"></i>');
+                $(this).html('<i class="icon icon-star-fav"></i>');
             } else {
-                $(this).html('<i class="icon star"></i>');
+                $(this).html('<i class="icon icon-star"></i>');
             }
         }
         $('.favstar')
