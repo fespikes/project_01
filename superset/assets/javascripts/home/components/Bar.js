@@ -1,7 +1,11 @@
 import React from 'react';
 import ReactHighcharts from 'react-highcharts';
+import Highcharts from 'highcharts';
 import PropTypes from 'prop-types';
+import HighchartsNoData from 'highcharts-no-data-to-display';
 const _ = require('lodash');
+
+HighchartsNoData(Highcharts);
 
 function makeDummy(data, max) {
      var dummy = [];
@@ -23,7 +27,7 @@ function Bar(props) {
             data: []
         }
     };
-    
+
     let height = 40 * catagories.length + 30;
 
     let maxs = [];
@@ -39,6 +43,9 @@ function Bar(props) {
         title: {
             text: ''
         },
+        lang: {
+            noData: "暂无数据"
+        },
         xAxis: {
             categories: catagories,
             title: {
@@ -49,6 +56,15 @@ function Bar(props) {
             lineColor: 'transparent',
             minorTickLength: 0,
             tickLength: 0,
+            labels: {
+                style: {
+                    color: '#7c8ca5',
+                    fontSize: 14,
+                    fontWeight: 'bold',
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'none'
+                }
+            }
         },
         yAxis: {
             min: 0,
@@ -75,13 +91,20 @@ function Bar(props) {
         },
         tooltip: {
             valueSuffix: '',
-            // followPointer: true
+            enabled: false
         },
         legend: {
             enabled: false
         },
         credits: {
             enabled: false
+        },
+        noData: {
+            style: {
+                fontWeight: 'bold',
+                fontSize: '15px',
+                color: '#303030'
+            }
         },
         series: [
             {

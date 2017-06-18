@@ -11,6 +11,8 @@ const _ = require('lodash');
 
 const store = configureStore();
 
+$('.nav > li:nth-child(1)').addClass('active');
+
 render(
     <Provider store={store}>
         <HashRouter>
