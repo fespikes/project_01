@@ -15,6 +15,7 @@ import './hdfsList/style/hdfs.scss';
 
 const store = configureStore();
 const rootElement = document.querySelector('#hdfsList');
+$('.nav > li:nth-child(6)').addClass('active');
 
 render(
     <Provider store={store}>

@@ -264,7 +264,8 @@ $borderStyle:1px solid #e9eaed;
         display:block;
         width:165px;
         height:36px;
-        background-position:-119px -640px;
+        background-size: 165px 36px;
+        background-image: url(../../images/icon-img/pilot-white.png);
       }
     }
     .nav{
@@ -343,6 +344,16 @@ $borderStyle:1px solid #e9eaed;
             width:17px;
             height:17px;
             background-position:-171px -11px;
+          }
+        }
+      }
+
+      .nav-li:nth-of-type(6){
+        a{
+          .icon{
+            width:18px;
+            height:18px;
+            background-position:-210px -11px;
           }
         }
       }

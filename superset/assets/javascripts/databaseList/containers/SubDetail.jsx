@@ -153,7 +153,7 @@ class SubDetail extends Component {
                             <label className="data-detail-item">
                                 <span></span>
                                 <div className="connect-success">
-                                    <span>连接成功</span>
+                                    <span>连接成功</span>&nbsp;&nbsp;
                                     <button>配置&gt;</button>
                                 </div>
                             </label>
@@ -244,7 +244,7 @@ class SubDetail extends Component {
                         <label className="data-detail-item">
                             <span></span>
                             <div className="connect-success">
-                                <span>连接成功</span>
+                                <span>连接成功</span>&nbsp;&nbsp;
                                 <button>配置></button>
                             </div>
                         </label>

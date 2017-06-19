@@ -131,23 +131,28 @@ class Operations extends React.Component {
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    <li onClick={this.addDashboard}><i className="icon"></i></li>
-                    <li onClick={this.deleteDashboardMul}><i className="icon"></i></li>
-                    <li onClick={this.importDashboard}><i className="icon"></i></li>
-                    <li onClick={this.exportDashboard}><i className="icon"></i></li>
+                    <li onClick={this.addDashboard}><i className="icon icon-plus"></i></li>
+                    <li onClick={this.deleteDashboardMul}><i className="icon icon-trash"></i></li>
+                    <li onClick={this.importDashboard}><i className="icon icon-export"></i></li>
+                    <li onClick={this.exportDashboard}><i className="icon icon-import"></i></li>
                 </ul>
                 <div className="tab-btn">
                     <button className={typeName === 'show_all' ? 'active' : ''} onClick={this.showAll}>全部</button>
                     <button className={typeName === 'show_favorite' ? 'active' : ''} onClick={this.showFavorite}>
-                        <i className="icon"></i>收藏</button>
+                        <i className={typeName === 'show_favorite' ? 'icon icon-star-active' : 'icon icon-star'}></i>收藏
+                    </button>
                 </div>
                 <div className="search-input">
                     <input onKeyUp={this.searchDashboard} onChange={this.keywordChange} placeholder="search..." />
-                    <i className="icon" onClick={this.clickSearchDashboard}></i>
+                    <i className="icon icon-search" onClick={this.clickSearchDashboard}></i>
                 </div>
                 <div className="view-btn">
-                    <Link to="/table" onClick={this.switchTableMode}><i className={viewMode === 'table' ? 'icon active' : 'icon'}></i></Link>
-                    <Link to="/graph" onClick={this.switchGraphMode}><i className={viewMode === 'graph' ? 'icon active' : 'icon'}></i></Link>
+                    <Link to="/table" onClick={this.switchTableMode}>
+                        <i className={viewMode === 'table' ? 'icon icon-table-mode active' : 'icon icon-table-mode'}></i>
+                    </Link>
+                    <Link to="/graph" onClick={this.switchGraphMode}>
+                        <i className={viewMode === 'graph' ? 'icon icon-graph-mode active' : 'icon icon-graph-mode'}></i>
+                    </Link>
                 </div>
             </div>
         );

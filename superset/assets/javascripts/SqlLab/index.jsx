@@ -22,7 +22,7 @@ let store = createStore(
   sqlLabReducer, state, compose(applyMiddleware(thunkMiddleware), initEnhancer()));
 
 // jquery hack to highlight the navbar menu
-$('a:contains("SQL Lab")').parent().addClass('active');
+$('.nav > li:nth-child(5)').addClass('active');
 
 render(
   <Provider store={store}>

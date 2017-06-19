@@ -43,14 +43,6 @@ class App extends Component {
         }
     }
 
-//    handleAddDatabase () {
-//        console.log('handleAddDatabase');
-//    }
-
-//    handleRemoveDatabase () {
-//        console.log('handleRemoveDatabase');
-//    }
-
     render() {
         const {dispatch, paramOfDelete, popupParam, response, condition} = this.props;
 
@@ -63,7 +55,7 @@ class App extends Component {
                 </div>
                 <div className="panel-top">
                     <div className="left">
-                        <i className="icon"></i>
+                        <i className="icon icon-database-list"></i>
                         <span>连接</span>
                         <span>记录</span>
                         <span>{count}条</span>

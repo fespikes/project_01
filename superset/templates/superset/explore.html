@@ -81,13 +81,21 @@
                   </div>
                 </div>
                 <div class="check-area">
-                    <span title="Data Source" data-toggle="tooltip">
+                    <span title="Data Source" id="existed_data_source">
                       <select id="datasource_id" class="select2">
                         {% for ds in datasources %}
-                          <option url="{{ ds.explore_url }}" {{ "selected" if ds.id == datasource.id }} value="{{ ds.id }}">{{ ds.full_name }}<i class="fa fa-info"></i></option>
+                          <option url="{{ ds.explore_url }}"
+                                  {{ "selected" if ds.id == datasource.id }}
+                                  value="{{ ds.id }}">
+                              {{ ds.full_name }}
+                              <i class="fa fa-info"></i>
+                          </option>
                         {% endfor %}
                       </select>
                     </span>
+                    <div id="original_table" style="display: none;">
+
+                    </div>
                 </div>
               </div>
             </div>
@@ -228,54 +236,46 @@
         {% include 'appbuilder/flash.html' %}
         <div class="panel panel-default">
           <div class="panel-heading">
-            <div class="panel-title">
-              <div class="clearfix">
+            <div class="panel-title panel-title-slice">
                 <div class="pull-left">
-                  {% include 'superset/partials/_explore_title.html' %}
-                  <div class="cached-time">
-                    <span id="is_cached" class="label label-default m-r-3" title="{{ _("Force refresh" )}}" data-toggle="tooltip">
-                      cached
-                    </span>
+                    <span class="slice-name">{{ slice.slice_name }}</span>
+                    <i class="favstar" class_name="Slice" obj_id="{{ slice.id }}"></i>
+                    <i class="icon info"></i>
                     <span
-                      class="label label-warning m-r-3"
-                      id="timer"
-                      title="{{ _("Query timer") }}"
-                      data-toggle="tooltip">
-                      {{ _("0 sec") }}
+                        class="label label-warning m-r-3"
+                        id="timer"
+                        title="{{ _("Query timer") }}"
+                        data-toggle="tooltip">
+                        {{ _("0 sec") }}
                     </span>
-                  </div>
+                </div>
+                <div class="pull-center">
+                    <div id="view-tab-container"></div>
                 </div>
                 <div class="pull-right">
                   <div class="slice-meta-controls pull-right">
-                    <!-- <span id="is_cached" class="label label-default m-r-3" title="{{ _("Force refresh" )}}" data-toggle="tooltip">
-                      cached
-                    </span> -->
-                    <!-- <span
-                      class="label label-warning m-r-3"
-                      id="timer"
-                      title="{{ _("Query timer") }}"
-                      data-toggle="tooltip">
-                      {{ _("0 sec") }}
-                    </span> -->
 
                     <span
                       id="js-explore-actions"
+                      sliceId="{{ slice.id }}"
                       data-can-download="{{can_download}}"
                     >
                     </span>
                   </div>
                 </div>
-              </div>
             </div>
           </div>
           <div class="panel-body">
             <div
               id="{{ viz.token }}"
-              class="widget viz slice {{ viz.viz_type }}"
+              class="widget viz slice {{ viz.viz_type }} graph-view"
               data-slice="{{ viz.json_data }}"
               style="height: 700px;">
               <img src="{{ url_for("static", filename="assets/images/loading.gif") }}" class="loading" alt="loading">
               <div id="{{ viz.token }}_con" class="slice_container" style="height: 100%; width: 100%"></div>
+            </div>
+            <div class="table-view">
+                data preview
             </div>
           </div>
         </div>

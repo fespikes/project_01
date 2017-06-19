@@ -13,7 +13,6 @@ class SliceTable extends React.Component {
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
-        console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
 
         //TODO: to make sure when select all of them ,this function been triggered the same
         const { dispatch } = this.props;
@@ -117,8 +116,8 @@ class SliceTable extends React.Component {
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <i className="icon" onClick={() => editSlice(record)}></i>&nbsp;
-                            <i className={record.online ? 'icon online' : 'icon offline'}
+                            <i className="icon icon-edit" onClick={() => editSlice(record)}></i>&nbsp;
+                            <i className={record.online ? 'icon icon-online' : 'icon icon-offline'}
                                onClick={() => publishSlice(record)}></i>
                         </div>
                     )

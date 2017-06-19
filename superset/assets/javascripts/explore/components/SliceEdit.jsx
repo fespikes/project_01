@@ -1,94 +1,103 @@
-/**
- * Created by haitao on 17-5-11.
- */
-import React from 'react';
+import $ from 'jquery';
+import React, { PropTypes } from 'react';
 import ReactDOM from 'react-dom';
-import { fetchUpdateSlice } from '../../../sliceList/actions';
 import { Select, Alert } from 'antd';
-import PropTypes from 'prop-types';
+import { getNewSlice } from '../../../utils/common2';
+
+const propTypes = {};
 
 class SliceEdit extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             exception: {},
+            slice: props.slice,
             selectedDashboards: initDefaultOptions()
         };
 
         function initDefaultOptions() {
             let defaultOptions = [];
-            props.sliceDetail.dashboards.map(dashboard => {
+            props.slice.dashboards.map(dashboard => {
                 defaultOptions.push(dashboard.id.toString());
             });
             return defaultOptions;
         }
-        // bindings
+
         this.confirm = this.confirm.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
         this.showDialog = this.showDialog.bind(this);
+        this.onChange = this.onChange.bind(this);
         this.handleTitleChange = this.handleTitleChange.bind(this);
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
-    };
+    }
+
+    handleTitleChange(e) {
+        this.state.slice.slice_name = e.currentTarget.value;
+        this.setState({
+            slice: this.state.slice
+        });
+    }
+
+    handleDescriptionChange(e) {
+        this.state.slice.description = e.currentTarget.value;
+        this.setState({
+            slice: this.state.slice
+        });
+    }
+
+
+    confirm() {
+        const self = this;
+        const newSlice = getNewSlice(self.state.slice, self.state.selectedDashboards);
+        $.ajax({
+            type: "POST",
+            url: "/slice/edit/" + self.state.slice.id,
+            contentType: 'application/json',
+            data: JSON.stringify(newSlice),
+            success(response) {
+                response = JSON.parse(response);
+                if(response.status === 200) {
+                    window.location.reload();
+                    ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+                }else if(response.status === 202) {
+                    self.refs.alertRef.style.display = "block";
+                    let exception = {};
+                    exception.type = "error";
+                    exception.message = "Error";
+                    exception.description = response.message;
+                    self.setState({
+                        exception: exception
+                    });
+                }
+            },
+            error(error) {
+
+            }
+        });
+
+    }
+
+    closeDialog() {
+        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+    }
 
     showDialog() {
         this.refs.popupSliceEdit.style.display = "flex";
     }
 
-    closeDialog() {
-        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));//for resolve ant-design select component cache issue
-    }
-
-    handleTitleChange(e) {
-        this.props.sliceDetail.slice_name = e.currentTarget.value;
+    onChange(value) {
         this.setState({
-            sliceDetail: this.props.sliceDetail
+            selectedDashboards: value
         });
-    }
-
-    handleDescriptionChange(e) {
-        this.props.sliceDetail.description = e.currentTarget.value;
-        this.setState({
-            sliceDetail: this.props.sliceDetail
-        });
-    }
-
-    confirm() {
-        const self = this;
-        const { dispatch } = self.props;
-        dispatch(fetchUpdateSlice(self.state, self.props.sliceDetail, callback));
-        function callback(success, message) {
-            if(success) {
-                self.setState({
-                    selectedDashboards: []
-                });
-                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
-            }else {
-                self.refs.alertRef.style.display = "block";
-                let exception = {};
-                exception.type = "error";
-                exception.message = "Error";
-                exception.description = message;
-                self.setState({
-                    exception: exception
-                });
-            }
-        }
     }
 
     render() {
         const self = this;
         const Option = Select.Option;
         const defaultOptions = self.state.selectedDashboards;
-        const options = self.props.sliceDetail.available_dashboards.map(dashboard => {
+        const options = self.props.slice.available_dashboards.map(dashboard => {
             return <Option key={dashboard.id}>{dashboard.dashboard_title}</Option>
         });
-
-        function onChange(value) {
-            self.setState({
-                selectedDashboards: value
-            });
-        }
-
         return (
             <div className="popup" ref="popupSliceEdit" style={{display:'none'}}>
                 <div className="popup-dialog popup-md">
@@ -117,8 +126,8 @@ class SliceEdit extends React.Component {
                                     <span>名称：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.sliceDetail.slice_name}
-                                       onChange={this.handleTitleChange}/>
+                                    <input className="form-control dialog-input" value={this.props.slice.slice_name}
+                                           onChange={this.handleTitleChange}/>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -126,8 +135,8 @@ class SliceEdit extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" value={this.props.sliceDetail.description}
-                                          onChange={this.handleDescriptionChange}></textarea>
+                                    <textarea className="dialog-area" value={this.props.slice.description}
+                                        onChange={this.handleDescriptionChange}></textarea>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -140,7 +149,7 @@ class SliceEdit extends React.Component {
                                             style={{ width: '100%' }}
                                             defaultValue={defaultOptions}
                                             placeholder="select the dashboards..."
-                                            onChange={onChange}
+                                            onChange={this.onChange}
                                         >
                                             {options}
                                         </Select>
@@ -153,7 +162,7 @@ class SliceEdit extends React.Component {
                                         <span>创建者：</span>
                                     </div>
                                     <div className="item-right">
-                                        <span>{this.props.sliceDetail.created_by_user}</span>
+                                        <span>{this.props.slice.created_by_user}</span>
                                     </div>
                                 </div>
                                 <div className="sub-item">
@@ -161,7 +170,7 @@ class SliceEdit extends React.Component {
                                         <span>修改者：</span>
                                     </div>
                                     <div className="item-right">
-                                        <span>{this.props.sliceDetail.changed_by_user}</span>
+                                        <span>{this.props.slice.changed_by_user}</span>
                                     </div>
                                 </div>
                             </div>
@@ -171,7 +180,7 @@ class SliceEdit extends React.Component {
                                         <span>创建日期：</span>
                                     </div>
                                     <div className="item-right">
-                                        <span>{this.props.sliceDetail.created_on}</span>
+                                        <span>{this.props.slice.created_on}</span>
                                     </div>
                                 </div>
                                 <div className="sub-item">
@@ -179,7 +188,7 @@ class SliceEdit extends React.Component {
                                         <span>修改时间：</span>
                                     </div>
                                     <div className="item-right">
-                                        <span>{this.props.sliceDetail.changed_on}</span>
+                                        <span>{this.props.slice.changed_on}</span>
                                     </div>
                                 </div>
                             </div>
@@ -192,14 +201,10 @@ class SliceEdit extends React.Component {
                     </div>
                 </div>
             </div>
-        );
+        )
     }
 }
 
-const propTypes = {};
-const defaultProps = {};
-
 SliceEdit.propTypes = propTypes;
-SliceEdit.defaultProps = defaultProps;
 
 export default SliceEdit;

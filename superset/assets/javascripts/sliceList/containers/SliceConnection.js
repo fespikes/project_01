@@ -22,7 +22,7 @@ class App extends Component {
             <div className="slice-panel">
                 <div className="panel-top">
                     <div className="left">
-                        <i className="icon"></i>
+                        <i className="icon icon-slice"></i>
                         <span>工作表</span>
                         <span>记录</span>
                         <span>{lists.items.count +''}条</span>
@@ -39,6 +39,7 @@ class App extends Component {
                 <div className="panel-middle">
                     <Table
                         dispatch={dispatch}
+                        selectedRowKeys={conditions.selectedRowKeys}
                         sliceList={lists.items.data}
                     />
                 </div>

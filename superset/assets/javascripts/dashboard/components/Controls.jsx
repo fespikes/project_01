@@ -48,10 +48,6 @@ class Controls extends React.PureComponent {
         });
     }
 
-    editDashboard() {
-
-    }
-
     componentDidMount() {
         const self = this;
         const { dashboard } = self.props;
@@ -79,52 +75,51 @@ class Controls extends React.PureComponent {
                     tooltip="发布仪表盘"
                     placement="bottom"
                     >
-                    <i className={this.state.published ? 'icon online' : 'icon offline'}></i>
+                    <i className={this.state.published ? 'icon icon-online' : 'icon icon-offline'}></i>
                 </Button>
                 <Button
                     onClick={this.refresh.bind(this)}
                     tooltip="刷新仪表盘"
                     placement="bottom"
                     >
-                    <i className="icon refresh" />
+                    <i className="icon icon-refresh" />
                 </Button>
                 <SliceAdder
                     dashboard={dashboard}
                     triggerNode={
-                        <i className="icon plus" />
+                        <i className="icon icon-plus" />
                     }
                 />
                 <RefreshIntervalModal
                     onChange={refreshInterval => dashboard.startPeriodicRender(refreshInterval * 1000)}
                     triggerNode={
-                        <i className="icon clock" />
+                        <i className="icon icon-clock" />
                     }
                 />
-                <Button
-                    onClick={this.publish.bind(this)}
-                    tooltip="设置仪表盘"
-                    placement="bottom"
-                    >
-                    <i className="icon setting"></i>
-                </Button>
-                <Button
-                    onClick={this.publish.bind(this)}
-                    tooltip="拖拽工作表"
-                    placement="bottom"
-                    >
-                    <i className="icon drag"></i>
-                </Button>
+                <CodeModal
+                    codeCallback={dashboard.readFilters.bind(dashboard)}
+                    triggerNode={<i className="icon icon-setting" />}
+                />
+                <CssEditor
+                    dashboard={dashboard}
+                    triggerNode={
+                        <i className="icon icon-drag" />
+                    }
+                    initialCss={dashboard.css}
+                    templates={this.state.cssTemplates}
+                    onChange={this.changeCss.bind(this)}
+                />
                 <DashboardEdit
                     dashboard={dashboard}
                     triggerNode={
-                        <i className="icon edit" />
+                        <i className="icon icon-edit" />
                     }
                 />
                 <SaveModal
                     dashboard={dashboard}
                     css={this.state.css}
                     triggerNode={
-                        <i className="icon save" />
+                        <i className="icon icon-save" />
                     }
                 />
                 <Button
@@ -132,7 +127,7 @@ class Controls extends React.PureComponent {
                     tooltip="发送邮件"
                     placement="bottom"
                     >
-                    <i className="icon email"></i>
+                    <i className="icon icon-email"></i>
                 </Button>
             </ButtonGroup>
         );

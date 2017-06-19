@@ -20,7 +20,7 @@ class SliceDelete extends React.Component {
 
     closeDialog() {
 
-        this.refs.popupSliceDelete.style.display = "none";
+        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
     confirm() {
@@ -31,12 +31,12 @@ class SliceDelete extends React.Component {
         }else if(deleteType === "multiple") {
             dispatch(fetchSliceDeleteMul(callback));
         }else if(deleteType === "none") {
-            self.refs.popupSliceDelete.style.display = "none";
+            ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
         }
 
         function callback(success) {
             if(success) {
-                self.refs.popupSliceDelete.style.display = "none";
+                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
 
             }

@@ -9,6 +9,11 @@ class SliceTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
+
+        this.editSlice = this.editSlice.bind(this);
+        this.deleteSlice = this.deleteSlice.bind(this);
+        this.publishSlice = this.publishSlice.bind(this);
+        this.favoriteSlice = this.favoriteSlice.bind(this);
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
@@ -20,50 +25,54 @@ class SliceTable extends React.Component {
         dispatch(setSelectedRows(selectedRowKeys, selectedRowNames));
     };
 
-    render() {
-
-        const { dispatch, sliceList } = this.props;
-
-        function editSlice(record) {
-            dispatch(fetchSliceDetail(record.id, callback));
-            function callback(success, data) {
-                if(success) {
-                    var editSlicePopup = render(
-                        <SliceEdit
-                            dispatch={dispatch}
-                            sliceDetail={data}/>,
-                        document.getElementById('popup_root'));
-                    if(editSlicePopup) {
-                        editSlicePopup.showDialog();
-                    }
+    editSlice(record) {
+        const { dispatch } = this.props;
+        dispatch(fetchSliceDetail(record.id, callback));
+        function callback(success, data) {
+            if(success) {
+                let editSlicePopup = render(
+                    <SliceEdit
+                        dispatch={dispatch}
+                        sliceDetail={data}/>,
+                    document.getElementById('popup_root'));
+                if(editSlicePopup) {
+                    editSlicePopup.showDialog();
                 }
             }
         }
+    }
 
-        function deleteSlice(record) {
-
-            let deleteTips = "确定删除" + record.slice_name + "?";
-            let deleteSlicePopup = render(
-                <SliceDelete
-                    dispatch={dispatch}
-                    deleteType={'single'}
-                    deleteTips={deleteTips}
-                    slice={record}/>,
-                document.getElementById('popup_root'));
-            if(deleteSlicePopup) {
-                deleteSlicePopup.showDialog();
-            }
+    deleteSlice(record) {
+        const { dispatch } = this.props;
+        let deleteTips = "确定删除" + record.slice_name + "?";
+        let deleteSlicePopup = render(
+            <SliceDelete
+                dispatch={dispatch}
+                deleteType={'single'}
+                deleteTips={deleteTips}
+                slice={record}/>,
+            document.getElementById('popup_root'));
+        if(deleteSlicePopup) {
+            deleteSlicePopup.showDialog();
         }
+    }
 
-        function publishSlice(record) {
-            dispatch(fetchStateChange(record, "publish"));
-        }
+    publishSlice(record) {
+        const { dispatch } = this.props;
+        dispatch(fetchStateChange(record, "publish"));
+    }
 
-        function favoriteSlice(record) {
-            dispatch(fetchStateChange(record, "favorite"));
-        }
+    favoriteSlice(record) {
+        const { dispatch } = this.props;
+        dispatch(fetchStateChange(record, "favorite"));
+    }
+
+    render() {
+
+        const { sliceList, selectedRowKeys } = this.props;
 
         const rowSelection = {
+            selectedRowKeys,
             onChange: this.onSelectChange
         };
 
@@ -75,8 +84,8 @@ class SliceTable extends React.Component {
                 width: '5%',
                 render: (text, record) => {
                     return (
-                        <i className={record.favorite ? 'star-selected icon' : 'star icon'}
-                           onClick={() => favoriteSlice(record)}></i>
+                        <i className={record.favorite ? 'icon icon-star-fav' : 'icon icon-star'}
+                           onClick={() => this.favoriteSlice(record)}></i>
                     )
                 }
             },
@@ -134,7 +143,11 @@ class SliceTable extends React.Component {
                 key: 'online',
                 width: '10%',
                 sorter: (a, b) => a.online - b.online,
-                render: (text, record) => record.online?'已发布':'未发布'
+                render: (text, record) => {
+                    return (
+                        <span className="entity-publish">{record.online ? "已发布" : "未发布"}</span>
+                    )
+                }
             }, {
                 title: '最后修改时间',
                 dataIndex: 'changed_on',
@@ -150,10 +163,10 @@ class SliceTable extends React.Component {
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <i className="icon" onClick={() => editSlice(record)}></i>&nbsp;
-                            <i className={record.online ? 'icon online' : 'icon offline'}
-                               onClick={() => publishSlice(record)}></i>&nbsp;
-                            <i className="icon" onClick={() => deleteSlice(record)}></i>
+                            <i className="icon icon-edit" onClick={() => this.editSlice(record)}></i>&nbsp;
+                            <i className={record.online ? 'icon icon-online' : 'icon icon-offline'}
+                               onClick={() => this.publishSlice(record)}></i>&nbsp;
+                            <i className="icon icon-delete" onClick={() => this.deleteSlice(record)}></i>
                         </div>
                     )
                 }

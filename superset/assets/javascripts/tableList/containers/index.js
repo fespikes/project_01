@@ -27,14 +27,6 @@ class App extends Component {
         }
     }
 
-//    handleAddDatabase () {
-//        console.log('handleAddDatabase');
-//    }
-
-//    handleRemoveDatabase () {
-//        console.log('handleRemoveDatabase');
-//    }
-
     render() {
         const {dispatch, response, condition} = this.props;
         const count = response.count;

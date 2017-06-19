@@ -5,18 +5,154 @@
     }
 }
 
-#breadCrumb{
-    font-size:12px;
-    span{
-        float:left;
-        padding:0 3px;
+$borderStyle: solid 1px #e9eaed;
+
+.hdfs-panel {
+    margin: 0 50px;
+    background-color: #edf0f5;
+    .panel-top {
+        display: flex;
+        justify-content: space-between;
+        margin: 15px 0;
+
+        .right .operations{
+            display:flex;
+            align-items:center;
+            .icon-list{
+                display: flex;
+                height:30px;
+                border:$borderStyle;
+                background-color:#fff;
+                border-radius: 4px;
+                padding:0 10px;
+                margin:0 15px;
+                li{
+
+                    height:30px;
+                    display:flex;
+                    justify-content:center;
+                    align-items:center;
+                    cursor:pointer;
+                }
+                li.bolder-right{
+                    border-right:$borderStyle;
+                }
+                .ps{
+                    margin:0 5px;
+                }
+
+                li.li-setting:hover i.icon-setting {
+                    background-position: -212px -411px;
+                }
+                li.li-upload:hover i.icon-upload {
+                    background-position: -92px -572px;
+                }
+                li.li-plus:hover i.icon-plus {
+                    background-position:-212px -172px;
+                }
+
+                li.li-trash:hover i.icon-trash {
+                    background-position:-251px -172px;
+                }
+                li.li-icons {
+                    .ps {
+                        margin-right:-0px;
+                    }
+                }
+            }
+            .tab-btn {
+                margin:0 15px;
+                background-color:#fff;
+                border: none;
+                border-radius: 4px;
+                overflow: hidden;
+                button {
+                    color:#9a9fa8;
+                    font:14px/32px Miscrosoft YaHei;
+                    text-align:center;
+                    padding:0 10px;
+                    height:32px;
+                    .icon {
+                        display:inline-block;
+                        position:relative;
+                        top:3px;
+                        margin-right:5px;
+                    }
+                }
+
+                .active {
+                    background-color:#279cf2;
+                    color:#fff;
+                }
+            }
+            .search-input{
+                margin-right:15px;
+                position:relative;
+                input {
+                    width:243px;
+                    height:30px;
+                    border:$borderStyle;
+                    border-radius: 4px;
+                    padding-left:10px;
+                }
+                i {
+                    position:absolute;
+                    top:10px;
+                    right:15px;
+                }
+            }
+        }
+    }
+    .panel-middle {
+        display: flex;
+        justify-content: center;
+
+        .icon-group{
+            display: flex;
+            .icon:nth-of-type(2) {
+                margin:0 20px;
+            }
+        }
+        .entity-name {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .entity-description {
+            font-size: 12px;
+            color: #7f8fa4;
+        }
+        .entity-publish {
+            color: #333c48;
+        }
+        .entity-hover {
+            font-weight: bold;
+        }
+        .highlight {
+            cursor: pointer;
+            color: #279cf2;
+        }
+    }
+    .panel-bottom {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+        margin-bottom: 20px;
     }
 }
-#breadCrumb a.crumb{
-   font-size:12px;
+
+
+.bread-crumb-span{
+    margin:0 10px;
+    font-size:12px;
+    line-height:25px;
+    border-bottom:1px blue solid;
+}
+
+.bread-crumb-span small.slash{
+    padding:0 5px;
 }
 
 /*common*/
 .f14{
-    font-size:14px;
+    font-size:16px; font-weight:600;
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-dom';
+import { render, ReactDOM } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange, setSelectedRow } from '../actions';
@@ -11,58 +11,69 @@ class Tables extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
+
+        this.editDashboard = this.editDashboard.bind(this);
+        this.deleteDashboard = this.deleteDashboard.bind(this);
+        this.publishDashboard = this.publishDashboard.bind(this);
+        this.favoriteSlice = this.favoriteSlice.bind(this);
     };
 
-    componentDidMount() {
+    onSelectChange = (selectedRowKeys, selectedRows) => {
+        const { dispatch } = this.props;
+        let selectedRowNames = [];
+        selectedRows.forEach(function(row) {
+            selectedRowNames.push(row.dashboard_title);
+        });
+        dispatch(setSelectedRow(selectedRowKeys, selectedRowNames));
+    };
 
-    }
-
-    render() {
-
-        const { dispatch, dashboardList } = this.props;
-
-        function editDashboard(record) {
-
-            dispatch(fetchDashboardDetail(record.id, callback));
-            function callback(success, data) {
-                if(success) {
-                    var editDashboardPopup = render(
-                        <DashboardEdit
-                            dispatch={dispatch}
-                            dashboardDetail={data}
-                            editable={true}/>,
-                        document.getElementById('popup_root'));
-                    if(editDashboardPopup) {
-                        editDashboardPopup.showDialog();
-                    }
+    editDashboard(record) {
+        const { dispatch } = this.props;
+        dispatch(fetchDashboardDetail(record.id, callback));
+        function callback(success, data) {
+            if(success) {
+                let editDashboardPopup = render(
+                    <DashboardEdit
+                        dispatch={dispatch}
+                        dashboardDetail={data}
+                        editable={true}/>,
+                    document.getElementById('popup_root'));
+                if(editDashboardPopup) {
+                    editDashboardPopup.showDialog();
                 }
             }
         }
+    }
 
-        function deleteDashboard(record) {
-
-            const deleteTips = "确定删除" + record.dashboard_title + "?";
-            var deleteDashboardPopup = render(
-                <DashboardDelete
-                    dispatch={dispatch}
-                    deleteType={'single'}
-                    deleteTips={deleteTips}
-                    dashboard={record}/>,
-                document.getElementById('popup_root'));
-            if(deleteDashboardPopup) {
-                deleteDashboardPopup.showDialog();
-            }
+    deleteDashboard(record) {
+        const { dispatch } = this.props;
+        const deleteTips = "确定删除" + record.dashboard_title + "?";
+        let deleteDashboardPopup = render(
+            <DashboardDelete
+                dispatch={dispatch}
+                deleteType={'single'}
+                deleteTips={deleteTips}
+                dashboard={record}/>,
+            document.getElementById('popup_root'));
+        if(deleteDashboardPopup) {
+            deleteDashboardPopup.showDialog();
         }
+    }
 
-        function publishDashboard(record) {
+    publishDashboard(record) {
+        const { dispatch } = this.props;
+        dispatch(fetchStateChange(record, "publish"));
+    }
 
-            dispatch(fetchStateChange(record, "publish"));
-        }
+    favoriteSlice(record) {
+        const { dispatch } = this.props;
+        dispatch(fetchStateChange(record, "favorite"));
+    }
 
-        function favoriteSlice(record) {
 
-            dispatch(fetchStateChange(record, "favorite"));
-        }
+    render() {
+
+        const { dashboardList, selectedRowKeys } = this.props;
 
         const columns = [{
             title: '',
@@ -71,8 +82,8 @@ class Tables extends React.Component {
             width: '5%',
             render: (text, record) => {
                 return (
-                    <i className={record.favorite ? 'star-selected icon' : 'star icon'}
-                       onClick={() => favoriteSlice(record)}></i>
+                    <i className={record.favorite ? 'icon icon-star-fav' : 'icon icon-star'}
+                       onClick={() => this.favoriteSlice(record)}></i>
                 )
             }
         }, {
@@ -100,7 +111,7 @@ class Tables extends React.Component {
             width: '15%',
             render: (text, record) => {
                 return (
-                    <span>{record.online ? "已发布" : "未发布"}</span>
+                    <span className="entity-publish">{record.online ? "已发布" : "未发布"}</span>
                 )
             },
             sorter(a, b) {
@@ -136,23 +147,18 @@ class Tables extends React.Component {
             render: (record) => {
                 return (
                     <div className="icon-group">
-                        <i className="icon" onClick={() => editDashboard(record)}></i>&nbsp;
-                        <i className={record.online ? 'icon online' : 'icon offline'}
-                           onClick={() => publishDashboard(record)}></i>&nbsp;
-                        <i className="icon" onClick={() => deleteDashboard(record)}></i>
+                        <i className="icon icon-edit" onClick={() => this.editDashboard(record)}></i>&nbsp;
+                        <i className={record.online ? 'icon icon-online' : 'icon icon-offline'}
+                           onClick={() => this.publishDashboard(record)}></i>&nbsp;
+                        <i className="icon icon-delete" onClick={() => this.deleteDashboard(record)}></i>
                     </div>
                 )
             }
         }];
 
         const rowSelection = {
-            onChange: (selectedRowKeys, selectedRows) => {
-                let selectedRowNames = [];
-                selectedRows.forEach(function(row) {
-                    selectedRowNames.push(row.dashboard_title);
-                });
-                dispatch(setSelectedRow(selectedRowKeys, selectedRowNames));
-            }
+            selectedRowKeys,
+            onChange: this.onSelectChange
         };
 
         return (

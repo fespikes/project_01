@@ -22,7 +22,7 @@ class TableContainer extends React.Component {
             <div className="dashboard-panel">
                 <div className="panel-top">
                     <div className="left">
-                        <i className="icon"></i>
+                        <i className="icon icon-dashboard"></i>
                         <span>仪表盘</span>
                         <span>记录条目</span>
                         <span>{posts.params.count}</span>
@@ -39,6 +39,7 @@ class TableContainer extends React.Component {
                 <div className="panel-middle">
                     <Tables
                         dispatch={dispatch}
+                        selectedRowKeys={configs.selectedRowKeys}
                         dashboardList={posts.params.data}
                         />
                 </div>
