@@ -357,11 +357,11 @@ class SupersetModelView(ModelView):
             if args.get('table_id') else None
         return kwargs
 
-    @expose('/list')
+    @expose('/list/')
     def list(self):
          return self.render_template(self.list_template)
 
-    @expose('/listdata')
+    @expose('/listdata/')
     def get_list_data(self):
         try:
             kwargs = self.get_list_args(request.args)
@@ -370,7 +370,7 @@ class SupersetModelView(ModelView):
         except Exception as e:
             return self.build_response(500, False, str(e))
 
-    @expose('/addablechoices', methods=['GET'])
+    @expose('/addablechoices/', methods=['GET'])
     def addable_choices(self):
         try:
             data = self.get_addable_choices()
@@ -379,7 +379,7 @@ class SupersetModelView(ModelView):
             logging.error(str(e))
             return self.build_response(500, False, str(e))
 
-    @expose('/add', methods=['GET', 'POST'])
+    @expose('/add/', methods=['GET', 'POST'])
     def add(self):
         try:
             user_id = self.get_user_id()
@@ -392,7 +392,7 @@ class SupersetModelView(ModelView):
         except Exception as e:
             return self.build_response(500, False, str(e))
 
-    @expose('/show/<pk>', methods=['GET'])
+    @expose('/show/<pk>/', methods=['GET'])
     def show(self, pk):
         try:
             obj = self.get_object(pk)
@@ -402,7 +402,7 @@ class SupersetModelView(ModelView):
         except Exception as e:
             return self.build_response(500, False, str(e))
 
-    @expose('/edit/<pk>', methods=['GET', 'POST'])
+    @expose('/edit/<pk>/', methods=['GET', 'POST'])
     def edit(self, pk):
         try:
             user_id = self.get_user_id()
@@ -415,7 +415,7 @@ class SupersetModelView(ModelView):
         except Exception as e:
             return self.build_response(self.status, False, str(e))
 
-    @expose('/delete/<pk>')
+    @expose('/delete/<pk>/')
     def delete(self, pk):
         try:
             obj = self.get_object(pk)
@@ -430,7 +430,7 @@ class SupersetModelView(ModelView):
         self.datamodel.delete(obj)
         self.post_delete(obj)
 
-    @expose('/muldelete', methods=['GET', 'POST'])
+    @expose('/muldelete/', methods=['GET', 'POST'])
     def muldelete(self):
         try:
             json_data = self.get_request_data()
@@ -1024,7 +1024,7 @@ class TableModelView(SupersetModelView):  # noqa
         except Exception as e:
             return self.build_response(500, False, str(e))
 
-    @expose('/tables/<database_id>/<schema>', methods=['GET', ])
+    @expose('/tables/<database_id>/<schema>/', methods=['GET', ])
     def addable_tables(self, database_id, schema):
         try:
             d = db.session.query(models.Database) \
@@ -1034,7 +1034,7 @@ class TableModelView(SupersetModelView):  # noqa
         except Exception as e:
             return self.build_response(500, False, str(e))
 
-    @expose('/edit/hdfstable/<pk>', methods=['GET', 'POST'])
+    @expose('/edit/hdfstable/<pk>/', methods=['GET', 'POST'])
     def edit_hdfs_table(self, pk):
         try:
             json_data = self.get_request_data()
@@ -1344,12 +1344,12 @@ class SliceModelView(SupersetModelView):  # noqa
         # log slice number
         log_number('slice', g.user.get_id())
 
-    @expose('/add', methods=['GET', 'POST'])
+    @expose('/add/', methods=['GET', 'POST'])
     @has_access
     def add(self):
         table = db.session.query(models.SqlaTable).first()
         if not table:
-            redirect_url = '/pilot/explore/table/0'
+            redirect_url = '/pilot/explore/table/0/'
         else:
             redirect_url = table.explore_url
         return redirect(redirect_url)
@@ -1419,7 +1419,7 @@ class SliceModelView(SupersetModelView):  # noqa
         return response
 
     @catch_exception
-    @expose("/release/<action>/<slice_id>", methods=['GET'])
+    @expose("/release/<action>/<slice_id>/", methods=['GET'])
     def slice_online_or_offline(self, action, slice_id):
         obj = db.session.query(models.Slice) \
             .filter_by(id=slice_id).first()
@@ -1699,7 +1699,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         return objs
 
     @catch_exception
-    @expose("/import", methods=['GET', 'POST'])
+    @expose("/import/", methods=['GET', 'POST'])
     def import_dashboards(self):
         """Overrides the dashboards using pickled instances from the file."""
         f = request.data
@@ -1724,7 +1724,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         return redirect('/dashboard/list/')
 
     @catch_exception
-    @expose("/export")
+    @expose("/export/")
     def export_dashboards(self):
         ids = request.args.getlist('id')
         return Response(
@@ -1733,7 +1733,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             mimetype="application/text")
 
     @catch_exception
-    @expose("/release/<action>/<dashboard_id>", methods=['GET'])
+    @expose("/release/<action>/<dashboard_id>/", methods=['GET'])
     def dashbaord_online_or_offline(self, action, dashboard_id):
         obj = db.session.query(models.Dashboard) \
             .filter_by(id=dashboard_id).first()
@@ -1816,12 +1816,12 @@ class QueryView(SupersetModelView):
     list_columns = ['user', 'database', 'status', 'start_time', 'end_time']
 
 
-@app.route('/health')
+@app.route('/health/')
 def health():
     return "OK"
 
 
-@app.route('/ping')
+@app.route('/ping/')
 def ping():
     return "OK"
 
@@ -2213,7 +2213,7 @@ class Superset(BaseSupersetView):
             log_action('edit', action_str, 'slice', slc.id)
 
     @catch_exception
-    @expose("/checkbox/<model_view>/<id_>/<attr>/<value>", methods=['GET'])
+    @expose("/checkbox/<model_view>/<id_>/<attr>/<value>/", methods=['GET'])
     def checkbox(self, model_view, id_, attr, value):
         """endpoint for checking/unchecking any boolean in a sqla model"""
         views = sys.modules[__name__]
@@ -2227,7 +2227,7 @@ class Superset(BaseSupersetView):
         return Response("OK", mimetype="application/json")
 
     @catch_exception
-    @expose("/activity_per_day")
+    @expose("/activity_per_day/")
     def activity_per_day(self):
         """endpoint to power the calendar heatmap on the welcome page"""
         Log = models.Log  # noqa
@@ -2241,7 +2241,7 @@ class Superset(BaseSupersetView):
         return Response(json.dumps(payload), mimetype="application/json")
 
     @catch_exception
-    @expose("/all_tables/<db_id>")
+    @expose("/all_tables/<db_id>/")
     def all_tables(self, db_id):
         """Endpoint that returns all tables and views from the database"""
         database = (
@@ -2264,7 +2264,7 @@ class Superset(BaseSupersetView):
             mimetype="application/json")
 
     @catch_exception
-    @expose("/tables/<db_id>/<schema>")
+    @expose("/tables/<db_id>/<schema>/")
     def tables(self, db_id, schema):
         """endpoint to power the calendar heatmap on the welcome page"""
         schema = None if schema in ('null', 'undefined') else schema
@@ -2987,7 +2987,7 @@ class Superset(BaseSupersetView):
             mimetype="application/json")
 
     @catch_exception
-    @expose("/csv/<client_id>")
+    @expose("/csv/<client_id>/")
     def csv(self, client_id):
         """Download the query results as csv."""
         query = (
@@ -3010,7 +3010,7 @@ class Superset(BaseSupersetView):
         return response
 
     @catch_exception
-    @expose("/fetch_datasource_metadata")
+    @expose("/fetch_datasource_metadata/")
     def fetch_datasource_metadata(self):
         datasource_type = request.args.get('datasource_type')
         datasource_class = SourceRegistry.sources[datasource_type]
@@ -3034,7 +3034,7 @@ class Superset(BaseSupersetView):
         )
 
     @catch_exception
-    @expose("/queries/<last_updated_ms>")
+    @expose("/queries/<last_updated_ms>/")
     def queries(self, last_updated_ms):
         """Get the updated queries."""
         if not g.user.get_id():
@@ -3064,7 +3064,7 @@ class Superset(BaseSupersetView):
             mimetype="application/json")
 
     @catch_exception
-    @expose("/search_queries")
+    @expose("/search_queries/")
     def search_queries(self):
         """Search for queries."""
         query = db.session.query(models.Query)
@@ -3121,7 +3121,7 @@ class Superset(BaseSupersetView):
         ), 500
 
     @catch_exception
-    @expose("/welcome")
+    @expose("/welcome/")
     def welcome(self):
         """Personalized welcome page"""
         if not g.user or not g.user.get_id():
@@ -3176,7 +3176,7 @@ class Superset(BaseSupersetView):
         )
 
     @catch_exception
-    @expose("/sqllab")
+    @expose("/sqllab/")
     def sqllab(self):
         """SQL Editor"""
         d = {
@@ -3463,7 +3463,7 @@ class Home(BaseSupersetView):
         kwargs['order_direction'] = args.get('order_direction', self.order_direction)
         return kwargs
 
-    @expose('/edits/slice')
+    @expose('/edits/slice/')
     def get_edited_slices_by_url(self):
         success, user_id = self.get_user_id()
         if not success:
@@ -3494,7 +3494,7 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
 
-    @expose('/edits/dashboard')
+    @expose('/edits/dashboard/')
     def get_edited_dashboards_by_url(self):
         success, user_id = self.get_user_id()
         if not success:
@@ -3691,7 +3691,7 @@ class Home(BaseSupersetView):
             return redirect(appbuilder.get_url_for_login)
         return self.render_template('superset/home.html')
 
-    @expose('/alldata')
+    @expose('/alldata/')
     def get_all_statistics_data(self):
         success, user_id = self.get_user_id()
         if not success:
