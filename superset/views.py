@@ -119,13 +119,6 @@ class BaseSupersetView(BaseView):
         return False
 
 
-class ListWidgetWithCheckboxes(ListWidget):
-    """An alternative to list view that renders Boolean fields as checkboxes
-
-    Works in conjunction with the `checkbox` view."""
-    template = 'superset/fab_overrides/list_with_checkboxes.html'
-
-
 def log_number_for_all_users(obj_type):
     users = db.session.query(User).all()
     for user in users:
@@ -603,7 +596,6 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     datamodel = SQLAInterface(models.TableColumn)
     route_base = '/tablecolumn'
     can_delete = False
-    list_widget = ListWidgetWithCheckboxes
     list_columns = [
         'id', 'column_name', 'type', 'groupby', 'filterable',
         'count_distinct', 'sum', 'min', 'max', 'is_dttm']
