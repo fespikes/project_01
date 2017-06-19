@@ -7,7 +7,6 @@ from datetime import datetime, timedelta, date
 import json
 import logging
 import pickle
-import re
 import sys
 import time
 import traceback
@@ -23,7 +22,6 @@ from flask_appbuilder import ModelView, BaseView, expose
 from flask_appbuilder.actions import action
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.decorators import has_access
-from flask_appbuilder.widgets import ListWidget
 from flask_appbuilder.models.sqla.filters import (BaseFilter, FilterStartsWith, FilterEqualFunction)
 from flask_appbuilder.security.sqla import models as ab_models
 
@@ -31,7 +29,6 @@ from flask_babel import gettext as __
 from flask_babel import lazy_gettext as _
 
 from sqlalchemy import create_engine, case
-from werkzeug.routing import BaseConverter
 from wtforms.validators import ValidationError
 
 
@@ -3706,25 +3703,3 @@ def apply_caching(response):
     for k, v in config.get('HTTP_HEADERS').items():
         response.headers[k] = v
     return response
-
-
-# ---------------------------------------------------------------------
-# Redirecting URL from previous names
-class RegexConverter(BaseConverter):
-    def __init__(self, url_map, *items):
-        super(RegexConverter, self).__init__(url_map)
-        self.regex = items[0]
-app.url_map.converters['regex'] = RegexConverter
-
-
-@app.route('/<regex("panoramix\/.*"):url>')
-def panoramix(url):  # noqa
-    return redirect(request.full_path.replace('panoramix', 'pilot'))
-
-
-@app.route('/<regex("caravel\/.*"):url>')
-def caravel(url):  # noqa
-    return redirect(request.full_path.replace('caravel', 'pilot'))
-
-
-# ---------------------------------------------------------------------
