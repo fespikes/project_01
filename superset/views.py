@@ -1059,9 +1059,8 @@ class TableModelView(SupersetModelView):  # noqa
         query = db.session.query(SqlaTable, User)\
             .filter(SqlaTable.created_by_fk == User.id)
 
-        # TODO just query this table_type
-        # if dataset_type:
-        #     query = query.filter(Database.backend.like(dataset_type))
+        if dataset_type:
+            query = query.filter(SqlaTable.dataset_type.ilike(dataset_type))
         if filter:
             filter_str = '%{}%'.format(filter.lower())
             query = query.filter(
@@ -1111,6 +1110,8 @@ class TableModelView(SupersetModelView):  # noqa
 
     def get_add_attributes(self, data, user_id):
         attributes = super().get_add_attributes(data, user_id)
+        attributes['dataset_type'] = self.model.dataset_type_dict\
+            .get(attributes.get('dataset_type'))
         database = db.session.query(models.Database)\
             .filter_by(id=data['database_id'])\
             .first()

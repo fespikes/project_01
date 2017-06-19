@@ -1209,13 +1209,11 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     #         'database_id', 'schema', 'table_name',
     #         name='_customer_location_uc'),)
 
-    table_type_dict = {
-        'database': 'Database',
-        'inceptor': 'Database',
-        'mysql': 'Database',
-        'hdfs': 'HDFS',
-        'upload': 'UploadFile'
-    }
+    # just two kinds of dataset_type
+    dataset_type_dict = {
+        'database': 'INCEPTOR',
+        'inceptor': 'INCEPTOR',
+        'hdfs': 'HDFS'}
 
     def __repr__(self):
         return self.dataset_name
@@ -1226,7 +1224,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     @property
     def connection(self):
-        if self.dataset_type.lower() == 'hdfs_folder':
+        if self.dataset_type.lower() == 'hdfs':
             return self.hdfs_table.hdfs_path
         elif self.database:
             return str(self.database)

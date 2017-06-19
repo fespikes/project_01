@@ -339,7 +339,7 @@ class HDFSTableRes(Resource):
 
         sqlaTable = SqlaTable()
         sqlaTable.dataset_name = table_name
-        sqlaTable.dataset_type = 'hdfs_folder'
+        sqlaTable.dataset_type = sqlaTable.dataset_type_dict.get('hdfs')
         sqlaTable.table_name = table_name
         sqlaTable.database_id = database.id
         sqlaTable.hdfs_table_id = hdfstable.id
