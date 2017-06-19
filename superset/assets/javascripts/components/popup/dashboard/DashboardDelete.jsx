@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-dom';
+import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
 import { fetchPosts, fetchDashboardDelete, fetchDashboardDeleteMul } from '../../../dashboard2/actions';
@@ -20,7 +20,6 @@ class DashboardDelete extends React.Component {
     }
 
     closeDialog() {
-        this.refs.popupDashboardDelete.style.display = "none";
         ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
@@ -32,13 +31,11 @@ class DashboardDelete extends React.Component {
         }else if(deleteType === "multiple") {
             dispatch(fetchDashboardDeleteMul(callback));
         }else if(deleteType === "none") {
-            self.refs.popupDashboardDelete.style.display = "none";
             ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
         }
 
         function callback(success) {
             if(success) {
-                self.refs.popupDashboardDelete.style.display = "none";
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
 

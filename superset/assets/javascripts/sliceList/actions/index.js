@@ -223,7 +223,7 @@ function getSliceListUrl(state) {
 
 function getStateChangeUrl(record, type) {
     if(type === "favorite") {
-        let url_favorite = window.location.origin + "/superset/favstar/Slice/" + record.id;
+        let url_favorite = window.location.origin + "/pilot/favstar/Slice/" + record.id;
         if(record.favorite) {
             url_favorite += "/unselect";
         }else {

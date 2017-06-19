@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-dom';
+import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
 import { fetchLists, fetchSliceDelete, fetchSliceDeleteMul } from '../../../sliceList/actions';
@@ -20,7 +20,6 @@ class SliceDelete extends React.Component {
     }
 
     closeDialog() {
-        this.refs.popupSliceDelete.style.display = "none";
         ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
@@ -32,13 +31,11 @@ class SliceDelete extends React.Component {
         }else if(deleteType === "multiple") {
             dispatch(fetchSliceDeleteMul(callback));
         }else if(deleteType === "none") {
-            self.refs.popupSliceDelete.style.display = "none";
             ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
         }
 
         function callback(success) {
             if(success) {
-                self.refs.popupSliceDelete.style.display = "none";
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
 
