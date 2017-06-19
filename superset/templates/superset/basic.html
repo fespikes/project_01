@@ -27,7 +27,7 @@
   <div id="popup_root"></div>
   {% block navbar %}
       {% if not standalone_mode %}
-        <header class="top" role="header">
+        <header class="top-header" role="header">
           {% include 'appbuilder/navbar.html' %}
         </header>
       {% endif %}
@@ -59,8 +59,6 @@
       </div>
     </div>
     {% block tail_js %}
-      <script src="{{url_for('appbuilder.static',filename='js/jquery-latest.js')}}"></script>
-      <script src="{{url_for('appbuilder.static',filename='js/bootstrap.min.js')}}"></script>
     {% endblock %}
   </body>
 </html>

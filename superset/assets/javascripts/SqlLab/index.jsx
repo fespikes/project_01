@@ -1,6 +1,3 @@
-const $ = window.$ = require('jquery');
-const jQuery = window.jQuery = $; // eslint-disable-line
-
 import React from 'react';
 import { render } from 'react-dom';
 import { getInitialState, sqlLabReducer } from './reducers';
@@ -21,6 +18,10 @@ const state = Object.assign({}, getInitialState(bootstrapData.defaultDbId), boot
 let store = createStore(
   sqlLabReducer, state, compose(applyMiddleware(thunkMiddleware), initEnhancer()));
 
+
+const $ = window.$ = require('jquery');
+const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
+require('bootstrap');
 // jquery hack to highlight the navbar menu
 $('.nav > li:nth-child(5)').addClass('active');
 

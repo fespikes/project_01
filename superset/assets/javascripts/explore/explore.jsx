@@ -13,18 +13,18 @@ import ReactDOM from 'react-dom';
 import QueryAndSaveBtns from './components/QueryAndSaveBtns.jsx';
 import ExploreActionButtons from './components/ExploreActionButtons.jsx';
 import DisplayOriginalTable from './components/DisplayOriginalTable.jsx';
-import { Radio } from 'antd';
+import { Radio, Table } from 'antd';
 
 require('jquery-ui');
 $.widget.bridge('uitooltip', $.ui.tooltip); // Shutting down jq-ui tooltips
-// require('bootstrap');
+require('bootstrap');
 
 require('./../superset-select2.js');
 
 // css
 require('../../vendor/pygments.css');
 require('../../stylesheets/explore.css');
-
+const _ = require('lodash');
 let slice;
 
 const getPanelClass = function (fieldPrefix) {
@@ -371,6 +371,30 @@ function renderExploreActions() {
     );
 }
 
+// function tableView(data) {
+//     let columns = [], dataSource = [];
+    
+//     let columnItem = {}, dataItem = {};
+
+
+//     _.forEach(data, (column, key) => {
+//         columnItem = {
+//             title: column.x,
+//             dataIndex: column.x,
+//             key: column.x
+//         };
+
+//         dataItem = {
+//             key: key + 1,
+//             name: 
+//         };
+
+//         columns.push(columnItem);
+//     });
+
+//     return <Table columns={columns} dataSource={dataSource} />;
+// }
+
 function renderViewTab() {
     const viewTabEl = document.getElementById('view-tab-container');
     const RadioButton = Radio.Button;
@@ -380,6 +404,8 @@ function renderViewTab() {
             $('.graph-view').css('display', 'block');
             $('.table-view').css('display', 'none');
         }else if(event.target.value === "table") {
+            
+            
             $('.graph-view').css('display', 'none');
             $('.table-view').css('display', 'block');
         }

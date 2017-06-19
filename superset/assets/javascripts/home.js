@@ -6,6 +6,9 @@ import configureStore from './home/store/configureStore';
 import { Home, EditDetail, EventDetail} from './home/containers';
 import { App } from './home/components';
 import 'babel-polyfill';
+const $ = window.$ = require('jquery');
+const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
+require('bootstrap');
 
 const _ = require('lodash');
 
