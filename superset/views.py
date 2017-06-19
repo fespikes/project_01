@@ -628,23 +628,6 @@ class TableColumnInlineView(SupersetModelView):  # noqa
             "Superset uses default expression based on DB URI if this "
             "field is blank.",
     }
-    label_columns = {
-        'column_name': _("Column"),
-        'verbose_name': _("Verbose Name"),
-        'description': _("Description"),
-        'type': _("Type"),
-        'groupby': _("Groupable"),
-        'filterable': _("Filterable"),
-        'table': _("Table"),
-        'count_distinct': _("Count Distinct"),
-        'sum': _("Sum"),
-        'min': _("Min"),
-        'max': _("Max"),
-        'expression': _("Expression"),
-        'is_dttm': _("Is temporal"),
-        'python_date_format': _("Datetime Format"),
-        'database_expression': _("Database Expression")
-    }
 
     bool_columns = ['is_dttm', 'is_active', 'groupby', 'count_distinct',
                     'sum', 'avg', 'max', 'min', 'filterable']
@@ -706,14 +689,6 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             "formats"
     }
     page_size = 500
-    label_columns = {
-        'metric_name': _("Metric"),
-        'description': _("Description"),
-        'verbose_name': _("Verbose Name"),
-        'metric_type': _("Type"),
-        'expression': _("SQL Expression"),
-        'table': _("Table"),
-    }
 
     bool_columns = ['is_restricted', ]
     str_columns = ['table', ]
@@ -784,23 +759,6 @@ class DatabaseView(SupersetModelView):  # noqa
             "gets unpacked into the [sqlalchemy.MetaData]"
             "(http://docs.sqlalchemy.org/en/rel_1_0/core/metadata.html"
             "#sqlalchemy.schema.MetaData) call. ",
-    }
-    label_columns = {
-        'tables': _("Tables"),
-        'expose_in_sqllab': _("Expose in SQL Lab"),
-        'allow_dml': _("Allow DML"),
-        'database_name': _("Database"),
-        'creator': _("Creator"),
-        'changed_on_': _("Last Changed"),
-        'sqlalchemy_uri': _("SQLAlchemy URI"),
-        'cache_timeout': _("Cache Timeout"),
-        'extra': _("Extra"),
-        'backend': _("Backend"),
-        'perm': _("Perm"),
-        'created_by': _("Created By"),
-        'created_on': _("Created On"),
-        'changed_by': _("Changed By"),
-        'changed_on': _("Changed On"),
     }
 
     str_to_column = {
