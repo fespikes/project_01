@@ -7,6 +7,10 @@ import App from './sliceList/containers/SliceConnection';
 import configureStore from './sliceList/stores/configureStore';
 import 'antd/dist/antd.css';
 
+const $ = window.$ = require('jquery');
+const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
+require('bootstrap');
+
 const store = configureStore();
 const rootElement = document.querySelector('#slices');
 $('.nav > li:nth-child(3)').addClass('active');

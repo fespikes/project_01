@@ -274,8 +274,7 @@
               <img src="{{ url_for("static", filename="assets/images/loading.gif") }}" class="loading" alt="loading">
               <div id="{{ viz.token }}_con" class="slice_container" style="height: 100%; width: 100%"></div>
             </div>
-            <div class="table-view">
-                data preview
+            <div class="table-view" style="display:none" id="table-view-preview" preview-data="{{ preview_data }}">
             </div>
           </div>
         </div>
