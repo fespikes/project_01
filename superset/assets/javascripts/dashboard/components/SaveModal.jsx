@@ -109,6 +109,7 @@ class SaveModal extends React.PureComponent {
                 triggerNode={this.props.triggerNode}
                 isButton
                 modalTitle="保存仪表盘"
+                modalIcon="icon icon-save"
                 modalBody={
                     <FormGroup>
                         <Radio

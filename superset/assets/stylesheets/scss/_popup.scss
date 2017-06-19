@@ -7,7 +7,7 @@ $borderRadius:4px;
 .tp-btn-middle{
     width:120px;
     height:34px;
-    font:16px/34px Miscrosoft YaHei;
+    font:16px/34px;
 }
 .tp-btn-primary{
     background-color:#2acc28;
@@ -18,6 +18,25 @@ button:disabled {
     cursor: not-allowed;
 }
 
+/** for custom popup and react-bootstrap modal header css style **/
+.popup-header {
+    width: 100%;
+    height: 40px;
+    padding: 0 20px;
+    background-color: #0067a6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    color: #fff;
+    .header-left{
+        display:flex;
+        align-items:center;
+        span{
+            margin-left: 10px;
+        }
+    }
+}
 
 .popup {
     position: fixed;
@@ -56,40 +75,7 @@ button:disabled {
         height: auto;
     }
 
-    .popup-header {
-        width: 100%;
-        height: 40px;
-        background-color: #0067a6;
-        padding: 0 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 16px;
-        color: #fff;
-        .header-left{
-            display:flex;
-            align-items:center;
-            .icon{
-                width:13px;
-                height:15px;
-                background-position:-13px -293px;
-            }
-            span{
-                margin-left: 10px;
-            }
-        }
-        .header-right {
-            .icon {
-                width: 14px;
-                height: 14px;
-                background-position: -52px -293px;
-            }
-        }
-    }
-
     .popup-body {
-
-
         width: 100%;
         min-height: 200px;
         padding: 20px 40px;
@@ -151,65 +137,78 @@ button:disabled {
             padding: 5px 5px 5px 60px;
         }
     }
+    .warning {
+        margin-top: 30px;
+    }
 }
 
 /*  overlay modal-dialog css  */
 
-.modal-dialog .modal-content {
+.modal-dialog{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    height: 100%;
+    .modal-content {
 
-    .modal-header {
-        color: #fff;
-        background-color: #0067a6;
-    }
-
-    .modal-body {
-
-        .form-group .radio {
-            width: 100%;
-            height: 20px;
-            border: none;
-            background: transparent;
+        .modal-header {
+            height: 40px;
+            color: #fff;
+            padding: 0;
+            background-color: #0067a6;
         }
-        .dialog-item {
-            padding-bottom: 10px;
-            display:flex;
-            align-items:center;
-            .item-left {
-                width: 15%;
-                text-align:right;
 
+        .modal-body {
+
+            .form-group .radio {
+                width: 100%;
+                height: 20px;
+                border: none;
+                background: transparent;
             }
-            .item-right {
-                width: 85%;
+            .dialog-item {
+                padding-bottom: 10px;
+                display:flex;
+                align-items:center;
+                .item-left {
+                    width: 15%;
+                    text-align:right;
 
-                .dialog-area{
-                    width:100%;
-                    height:79px;
-                    border:$borderStyle;
-                    border-radius:4px;
-                    padding:10px;
+                }
+                .item-right {
+                    width: 85%;
+
+                    .dialog-area{
+                        width:100%;
+                        height:79px;
+                        border:$borderStyle;
+                        border-radius:4px;
+                        padding:10px;
+                    }
                 }
             }
         }
-    }
 
-    .modal-footer {
-        background-color: #f0f3f8;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 50px;
-        padding: 0;
-        button {
-            color:#fff;
-            width:120px;
-            height:34px;
+        .modal-footer {
+            background-color: #f0f3f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50px;
             padding: 0;
-            text-align:center;
-            font:16px/34px Miscrosoft YaHei;
-            background-color:#2acc28;
-            border-radius:$borderRadius;
+            button {
+                color:#fff;
+                width:120px;
+                height:34px;
+                padding: 0;
+                text-align:center;
+                font:16px/34px;
+                background-color:#2acc28;
+                border-radius:$borderRadius;
+            }
         }
     }
 }
+
 

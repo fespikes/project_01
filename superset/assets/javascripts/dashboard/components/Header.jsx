@@ -16,14 +16,13 @@ class Header extends React.PureComponent {
     }
     render() {
         const dashboard = this.props.dashboard;
-        const tips = "Click to favorite/unfavorite";
         return (
             <div className="title">
                 <div className="pull-left">
                     <span>{dashboard.dashboard_title}</span>
                     <span is class="favstar" class_name="Dashboard" obj_id={dashboard.id} />
-                    <Tooltip title={tips} placement="bottom">
-                        <i className="icon info"></i>
+                    <Tooltip title={dashboard.description} placement="bottom">
+                        <i className="icon icon-info"></i>
                     </Tooltip>
                 </div>
                 <div className="pull-right">
