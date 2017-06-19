@@ -502,6 +502,7 @@ class FormFactory(object):
                     ('28 days ago', _('28 days ago')),
                     ('90 days ago', _('90 days ago')),
                     ('1 year ago', _('1 year ago')),
+                    ('100 years ago', _('100 years ago')),
                 ),
                 "description": _(
                     "Timestamp from filter. This supports free form typing and "
