@@ -133,8 +133,10 @@ class Operations extends React.Component {
                 <ul className="icon-list">
                     <li onClick={this.addDashboard}><i className="icon icon-plus"></i></li>
                     <li onClick={this.deleteDashboardMul}><i className="icon icon-trash"></i></li>
+                    {/*
                     <li onClick={this.importDashboard}><i className="icon icon-export"></i></li>
                     <li onClick={this.exportDashboard}><i className="icon icon-import"></i></li>
+                    */}
                 </ul>
                 <div className="tab-btn">
                     <button className={typeName === 'show_all' ? 'active' : ''} onClick={this.showAll}>全部</button>
