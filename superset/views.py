@@ -2227,20 +2227,6 @@ class Superset(BaseSupersetView):
         return Response("OK", mimetype="application/json")
 
     @catch_exception
-    @expose("/activity_per_day/")
-    def activity_per_day(self):
-        """endpoint to power the calendar heatmap on the welcome page"""
-        Log = models.Log  # noqa
-        qry = (
-            db.session.query(Log.dt, sqla.func.count())
-            .group_by(Log.dt)
-            .all()
-        )
-        payload = {str(time.mktime(dt.timetuple())):
-                   ccount for dt, ccount in qry if dt}
-        return Response(json.dumps(payload), mimetype="application/json")
-
-    @catch_exception
     @expose("/all_tables/<db_id>/")
     def all_tables(self, db_id):
         """Endpoint that returns all tables and views from the database"""
@@ -2662,7 +2648,6 @@ class Superset(BaseSupersetView):
                     ''.format(**locals()))
 
         # Hack to log the dashboard_id properly, even when getting a slug
-        # @log_this
         def dashboard(**kwargs):  # noqa
             pass
         dashboard(dashboard_id=dash.id)
