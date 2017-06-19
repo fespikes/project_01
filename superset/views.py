@@ -921,22 +921,6 @@ class TableModelView(SupersetModelView):  # noqa
             "run a query against this string as a subquery."
     }
     base_filters = [['id', DatasourceFilter, lambda: []]]
-    label_columns = {
-        'link': _("Table"),
-        'table_name': _("Table Name"),
-        'changed_by_': _("Changed By"),
-        'database': _("Database"),
-        'changed_on_': _("Last Changed"),
-        'is_featured': _("Is Featured"),
-        'filter_select_enabled': _("Enable Filter Select"),
-        'schema': _("Schema"),
-        'description': _("Description"),
-        'owner': _("Owner"),
-        'main_dttm_col': _("Main Dttm Col"),
-        'default_endpoint': _("Default Endpoint"),
-        'offset': _("Offset"),
-        'cache_timeout': _("Cache Timeout"),
-    }
 
     str_to_column = {
         'title': SqlaTable.table_name,
@@ -1179,30 +1163,7 @@ class SliceModelView(SupersetModelView):  # noqa
         ,
     }
     base_filters = [['id', SliceFilter, lambda: []]]
-    label_columns = {
-        'cache_timeout': _("Cache Timeout"),
-        'creator': _("Creator"),
-        'dashboards': _("Dashboards"),
-        'datasource_link': _("Datasource"),
-        'description': _("Description"),
-        'department': _("Department"),
-        'modified': _("Last Modified"),
-        'owners': _("Owners"),
-        'params': _("Parameters"),
-        'slice_link': _("Slice"),
-        'slice_name': _("Name"),
-        'table': _("Table"),
-        'viz_type': _("Visualization Type"),
-        'created_by': _("Created By"),
-        'created_on': _("Created On"),
-        'changed_by': _("Changed By"),
-        'changed_on': _("Changed On"),
-        'datasource_id': _("Datasource Id"),
-        'datasource_name': _("Datasource Name"),
-        'datasource_type': _("Datasource Type"),
-    }
 
-    # list_template = "superset/partials/slice/slice.html"
     list_template = "superset/list.html"
 
     str_to_column = {
@@ -1460,21 +1421,6 @@ class DashboardModelView(SupersetModelView):  # noqa
         'slices': [['slices', SliceFilter, None]],
     }
     edit_form_query_rel_fields = add_form_query_rel_fields
-    label_columns = {
-        'dashboard_link': _("Dashboard"),
-        'dashboard_title': _("Title"),
-        'slug': _("Slug"),
-        'slices': _("Slices"),
-        'owners': _("Owners"),
-        'creator': _("Creator"),
-        'modified': _("Modified"),
-        'position_json': _("Position JSON"),
-        'css': _("CSS"),
-        'json_metadata': _("JSON Metadata"),
-        'table_names': _("Underlying Tables"),
-        'description': _("Description"),
-        'department': _('Department')
-    }
 
     list_template = "superset/partials/dashboard/dashboard.html"
 
@@ -1741,9 +1687,6 @@ class DashboardModelView(SupersetModelView):  # noqa
 class DashboardModelViewAsync(DashboardModelView):  # noqa
     route_base = '/dashboardmodelviewasync'
     list_columns = ['dashboard_link', 'creator', 'modified', 'dashboard_title']
-    label_columns = {
-        'dashboard_link': 'Dashboard',
-    }
 
 
 class LogModelView(SupersetModelView):
