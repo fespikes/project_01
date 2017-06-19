@@ -371,29 +371,44 @@ function renderExploreActions() {
     );
 }
 
-// function tableView(data) {
-//     let columns = [], dataSource = [];
+function generateTableView(previewData) {
+    if (!previewData) {
+        return <span>暂无数据</span>;
+    }
+
+    previewData = JSON.parse(previewData);
+    let columns = [], dataSource = [];
     
-//     let columnItem = {}, dataItem = {};
+    let columnItem = {}, dataItem = {}, columnIndex = 1;
 
+    _.forEach(previewData.columns, (column, key) => {
+        columnItem = {
+            title: column,
+            dataIndex: column,
+            key: column
+        };
+        columns.push(columnItem);
+        
+        if (columnIndex > 1) {
+            _.forEach(previewData.data[column], (value, index) => {
+                dataSource[index][column] = value;
+            });
+        }
+        else {
+            _.forEach(previewData.data[column], (value, index) => {
+                dataItem = {};
+                dataItem[column] = value;
+                dataItem['key'] = index + 1;
+                dataSource.push(dataItem);
+            });
+        }
 
-//     _.forEach(data, (column, key) => {
-//         columnItem = {
-//             title: column.x,
-//             dataIndex: column.x,
-//             key: column.x
-//         };
+        columnIndex = columnIndex + 1;
+    });
 
-//         dataItem = {
-//             key: key + 1,
-//             name: 
-//         };
+    return <Table bordered columns={columns} dataSource={dataSource} />;
+}
 
-//         columns.push(columnItem);
-//     });
-
-//     return <Table columns={columns} dataSource={dataSource} />;
-// }
 
 function renderViewTab() {
     const viewTabEl = document.getElementById('view-tab-container');
@@ -405,9 +420,10 @@ function renderViewTab() {
             $('.table-view').css('display', 'none');
         }else if(event.target.value === "table") {
             
-            
+            let table = generateTableView($('.table-view').attr('preview-data'));
             $('.graph-view').css('display', 'none');
             $('.table-view').css('display', 'block');
+            ReactDOM.render(table, document.getElementById('table-view-preview'));
         }
     }
     ReactDOM.render(
