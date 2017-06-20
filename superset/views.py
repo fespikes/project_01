@@ -369,7 +369,7 @@ class SupersetModelView(ModelView):
             logging.error(str(e))
             return self.build_response(500, False, str(e))
 
-    @expose('/add/', methods=['GET', 'POST'])
+    @expose('/add', methods=['GET', 'POST'])
     def add(self):
         try:
             user_id = self.get_user_id()
@@ -392,7 +392,7 @@ class SupersetModelView(ModelView):
         except Exception as e:
             return self.build_response(500, False, str(e))
 
-    @expose('/edit/<pk>/', methods=['GET', 'POST'])
+    @expose('/edit/<pk>', methods=['GET', 'POST'])
     def edit(self, pk):
         try:
             user_id = self.get_user_id()
@@ -405,7 +405,7 @@ class SupersetModelView(ModelView):
         except Exception as e:
             return self.build_response(self.status, False, str(e))
 
-    @expose('/delete/<pk>/')
+    @expose('/delete/<pk>')
     def delete(self, pk):
         try:
             obj = self.get_object(pk)
@@ -420,7 +420,7 @@ class SupersetModelView(ModelView):
         self.datamodel.delete(obj)
         self.post_delete(obj)
 
-    @expose('/muldelete/', methods=['GET', 'POST'])
+    @expose('/muldelete', methods=['GET', 'POST'])
     def muldelete(self):
         try:
             json_data = self.get_request_data()
