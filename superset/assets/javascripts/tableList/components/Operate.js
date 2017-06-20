@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
+import { Link }  from 'react-router-dom';
 import { Select } from 'antd';
 
 import PropTypes from 'prop-types';
@@ -7,8 +8,8 @@ import {
     selectType,
     search
 } from '../actions';
-import { SliceDelete } from '../../components/popup';
-//TODO:
+
+import { SliceDelete } from '../../components/popup';//TODO:
 
 class SliceOperate extends React.Component {
     constructor(props) {
@@ -65,13 +66,16 @@ class SliceOperate extends React.Component {
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    <li><a href="/slice/add"><i className="icon icon-plus"></i></a></li>
-                    <li onClick={this.onDelete}><i className="icon icon-trash"></i></li>
+                    <li>
+                        <Link to="/add">
+                            <i className="icon icon-plus"></i>
+                        </Link>
+                    </li>
+                    <li onClick={this.onDelete}>
+                        <i className="icon icon-trash"></i>
+                    </li>
                 </ul>
                 <div className="tab-btn">
-                    {/*<button className={typeName === SHOW_ALL ? 'active' : ''} onClick={()=>this.onFilter(SHOW_ALL)}>全部</button>
-                    <button className={typeName === SHOW_FAVORITE ? 'active' : ''} onClick={()=>this.onFilter(SHOW_FAVORITE)}>
-                        <i className="icon"></i>收藏</button>*/}
                     <Select ref="tableType" defaultValue={tableType} style={{ width: 120 }} onChange={this.handleSelectChange}>
                         <Option value="all">all types</Option>
                         <Option value="database">database</Option>

@@ -3,7 +3,15 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as actions from '../actions';
-import { HashRouter, BrowserRouter, Route, NavLink, IndexRoute } from 'react-router-dom';
+
+import {
+    Route,
+    NavLink
+
+//    HashRouter,
+//    BrowserRouter,
+//    IndexRoute
+} from 'react-router-dom';
 
 import {
     SubDetail,
@@ -12,9 +20,9 @@ import {
     SubSqlMetric
 } from './';
 
-import '../style/databaseAdd.css';
+import '../style/tableAdd.css';
 
-const DatabaseAdd = ({ match }) => {
+const TableAdd = ({ match }) => {
 //    const isActive = match => match&& match.isExact;
     const isActive = (match, location) => {
         return location.pathname==='/add' || location.pathname==='/add/detail';
@@ -55,4 +63,4 @@ const Topic = ({ match }) => (
   </div>
 )
 
-export default DatabaseAdd;
+export default TableAdd;

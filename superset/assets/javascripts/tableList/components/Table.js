@@ -4,7 +4,7 @@ import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
 import { SliceDelete, SliceEdit } from '../../components/popup';
-import style from '../style/database.scss'
+import style from '../style/table.scss'
 
 class SliceTable extends React.Component {
     constructor(props) {
