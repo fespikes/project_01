@@ -69,7 +69,7 @@ class SliceTable extends React.Component {
 
     render() {
 
-        const { sliceList, selectedRowKeys } = this.props;
+        const { sliceList, selectedRowKeys, loading } = this.props;
 
         const rowSelection = {
             selectedRowKeys,
@@ -179,6 +179,7 @@ class SliceTable extends React.Component {
                 dataSource={sliceList}
                 columns={columns}
                 pagination={false}
+                loading={loading}
                 rowKey={record => record.id}
             />
         );

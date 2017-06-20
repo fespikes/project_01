@@ -16,7 +16,8 @@ export const CONFIG_PARAMS = {
     PAGE_SIZE: 'PAGE_SIZE',
     SELECTED_ROWS: 'SELECTED_ROWS',
     CLEAR_ROWS: 'CLEAR_ROWS',
-    VIEW_MODE: 'VIEW_MODE'
+    VIEW_MODE: 'VIEW_MODE',
+    TABLE_LOADING: 'TABLE_LOADING'
 };
 
 export function requestPosts() {
@@ -109,6 +110,13 @@ export function setViewMode(viewMode) {
     return {
         type: CONFIG_PARAMS.VIEW_MODE,
         viewMode: viewMode
+    }
+}
+
+export function setTableLoadingStatus(loading) {
+    return {
+        type: CONFIG_PARAMS.TABLE_LOADING,
+        tableLoading: loading
     }
 }
 
@@ -231,13 +239,15 @@ export function fetchAddDashboard(state, availableSlices, callback) {
 export function fetchStateChange(record, type) {
     const url = getStateChangeUrl(record, type);
     return dispatch => {
+        dispatch(setTableLoadingStatus(true));
         return fetch(url, {
             credentials: "same-origin",
         }).then(function(response) {
             if(response.ok) {
                 dispatch(fetchPosts());
+                dispatch(setTableLoadingStatus(false));
             }else {
-
+                dispatch(setTableLoadingStatus(false));
             }
         })
     }
