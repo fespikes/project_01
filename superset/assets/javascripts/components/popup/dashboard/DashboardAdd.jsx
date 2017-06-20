@@ -34,6 +34,7 @@ class DashboardAdd extends React.Component {
             enableConfirm: false
         });
         this.refs.popupDashboardAdd.style.display = "none";
+        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
     handleTitleChange(e) {
@@ -71,14 +72,11 @@ class DashboardAdd extends React.Component {
                     enableConfirm: false
                 });
                 self.refs.popupDashboardAdd.style.display = "none";
+                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
 
             }
         }
-    }
-
-    componentDidMount() {
-
     }
 
     render() {
@@ -100,11 +98,11 @@ class DashboardAdd extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon"></i>
-                                <span>仪表盘基本信息</span>
+                                <i className="icon icon-dashboard-popup"></i>
+                                <span>添加仪表盘</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog}></i>
                             </div>
                         </div>
                         <div className="popup-body">

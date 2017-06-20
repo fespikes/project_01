@@ -13,6 +13,10 @@ import {
 } from 'react-router-dom';
 import './hdfsList/style/hdfs.scss';
 
+const $ = window.$ = require('jquery');
+const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
+require('bootstrap');
+
 const store = configureStore();
 const rootElement = document.querySelector('#hdfsList');
 $('.nav > li:nth-child(6)').addClass('active');

@@ -96,11 +96,11 @@ class DashboardEdit extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon"></i>
-                                <span>仪表盘基本信息</span>
+                                <i className="icon icon-dashboard-popup"></i>
+                                <span>编辑仪表盘</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog}></i>
                             </div>
                         </div>
                         <div className="popup-body">

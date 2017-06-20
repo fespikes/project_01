@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux';
 import { actionTypes  } from '../actions';
+import subDetail from './subDetail';
 
 function condition(state = {
     page: 1,
@@ -72,7 +73,9 @@ function requestByCondition (state = {}, action) {
 
 const rootReducer = combineReducers({
     condition,
-    requestByCondition
+    requestByCondition,
+
+    subDetail
 });
 
 export default rootReducer;

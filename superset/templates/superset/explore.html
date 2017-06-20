@@ -240,7 +240,7 @@
                 <div class="pull-left">
                     <span class="slice-name">{{ slice.slice_name }}</span>
                     <i class="favstar" class_name="Slice" obj_id="{{ slice.id }}"></i>
-                    <i class="icon info"></i>
+                    <i class="icon icon-info" style="margin-right: 5px;"></i>
                     <span
                         class="label label-warning m-r-3"
                         id="timer"
@@ -274,8 +274,7 @@
               <img src="{{ url_for("static", filename="assets/images/loading.gif") }}" class="loading" alt="loading">
               <div id="{{ viz.token }}_con" class="slice_container" style="height: 100%; width: 100%"></div>
             </div>
-            <div class="table-view">
-                data preview
+            <div class="table-view" style="display:none" id="table-view-preview" preview-data="{{ preview_data }}">
             </div>
           </div>
         </div>
@@ -303,10 +302,15 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-              <h4 class="modal-title">{{ _("Save a Slice") }}</h4>
+                <div class="popup-header">
+                    <div class="header-left">
+                        <i class="icon icon-save"></i>
+                        <span>保存工作表</span>
+                    </div>
+                    <div class="header-right">
+                        <i class="icon icon-close" data-dismiss="modal" aria-label="Close"></i>
+                    </div>
+                </div>
             </div>
             <div class="modal-body">
               {% if slice %}
@@ -338,7 +342,7 @@
                 {{ _("Save") }}
               </button>
               <button type="button" id="btn_modal_save_goto_dash" class="btn btn-primary pull-left gotodash" disabled>
-                {{ _("Save & go to dashboard") }}
+                保存并跳转
               </button>
               <button type="button" class="btn btn-default pull-right" data-dismiss="modal">
                 {{ _("Cancel") }}
