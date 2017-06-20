@@ -342,7 +342,7 @@ class SupersetModelView(ModelView):
         kwargs['filter'] = args.get('filter', self.filter)
         fav = args.get('only_favorite')
         kwargs['only_favorite'] = strtobool(fav) if fav else self.only_favorite
-        kwargs['table_type'] = args.get('table_type')
+        kwargs['dataset_type'] = args.get('dataset_type')
         kwargs['table_id'] = int(args.get('table_id')) \
             if args.get('table_id') else None
         return kwargs
@@ -996,7 +996,8 @@ class TableModelView(SupersetModelView):  # noqa
             filter_str = '%{}%'.format(filter.lower())
             query = query.filter(
                 or_(
-                    SqlaTable.table_name.ilike(filter_str),
+                    SqlaTable.dataset_name.ilike(filter_str),
+                    SqlaTable.dataset_type.ilike(filter_str),
                     User.username.ilike(filter_str)
                 )
             )
