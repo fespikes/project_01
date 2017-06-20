@@ -500,6 +500,10 @@ msgstr "90天前"
 msgid "1 year ago"
 msgstr "1年前"
 
+#: superset/forms.py:457 superset/forms.py:473
+msgid "100 years ago"
+msgstr "100年前"
+
 #: superset/forms.py:459
 msgid ""
 "Timestamp from filter. This supports free form typing and natural "
