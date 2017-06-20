@@ -1301,8 +1301,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     @property
     def metrics_combo(self):
         return sorted(
-            [
-                (m.metric_name, m.verbose_name or m.metric_name)
+            [(m.metric_name, m.verbose_name or m.metric_name)
                 for m in self.metrics],
             key=lambda x: x[1])
 
@@ -1356,11 +1355,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
         data = json.loads(df.to_json())
         return json.dumps({'columns': columns, 'types': types, 'data': data})
 
-    def values_for_column(self,
-                          column_name,
-                          from_dttm,
-                          to_dttm,
-                          limit=500):
+    def values_for_column(self, column_name, from_dttm, to_dttm, limit=500):
         """Runs query against sqla to retrieve some
         sample values for the given column.
         """
@@ -1395,20 +1390,10 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
             con=engine
         )
 
-    def query(  # sqla
-            self, groupby, metrics,
-            granularity,
-            from_dttm, to_dttm,
-            filter=None,  # noqa
-            is_timeseries=True,
-            timeseries_limit=15,
-            timeseries_limit_metric=None,
-            row_limit=None,
-            inner_from_dttm=None,
-            inner_to_dttm=None,
-            orderby=None,
-            extras=None,
-            columns=None):
+    def query(self, groupby, metrics, granularity, from_dttm, to_dttm,
+            filter=None, is_timeseries=True, timeseries_limit=15,
+            timeseries_limit_metric=None, row_limit=None, inner_from_dttm=None,
+            inner_to_dttm=None, orderby=None, extras=None, columns=None):
         """Querying any sqla table from this common interface"""
         template_processor = get_template_processor(
             table=self, database=self.database)
