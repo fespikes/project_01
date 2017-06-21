@@ -247,8 +247,6 @@ function initExploreView() {
         addFilter(undefined, 'having');
     });
     $('input:radio').change(function() {
-        console.log("123...");
-        console.log(this.value);
         if(this.value === "datasource") {
             $('#existed_data_source').css('display', 'block');
             $('#original_table').css('display', 'none');
@@ -354,6 +352,8 @@ function renderOriginalTable() {
     const originalTableEl = document.getElementById('original_table');
     ReactDOM.render(
         <DisplayOriginalTable
+            sliceId={originalTableEl.getAttribute('sliceId')}
+            vizType={originalTableEl.getAttribute('vizType')}
         />,
         originalTableEl
     );
@@ -477,7 +477,6 @@ exploreController = Object.assign({}, utils.controllerInterface, exploreControll
 
 $(document).ready(function () {
     const data = $('.slice').data('slice');
-    console.log('slice-data=', data);
 
     initExploreView();
 

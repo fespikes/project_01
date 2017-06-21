@@ -42,10 +42,13 @@ class DisplayOriginalTable extends React.Component {
     };
 
     onSelect(value, node, extra) {
+        const {sliceId, vizType} = this.props;
         if(node.props.category === 'file') {
             this.setState({
                 value: value
             });
+            window.location = window.location.origin + '/pilot/explore/table/0?database_id=' + this.state.currentDbId +
+                '&full_tb_name=' + this.state.currentSchema + '.' + value + '&slice_id=' + sliceId + '&viz_type=' + vizType;
         }else if(node.props.category === 'folder') {
             return;
         }
