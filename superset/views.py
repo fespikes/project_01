@@ -1487,7 +1487,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         log_number('dashboard', g.user.get_id())
 
     def pre_update(self, obj):
-        check_ownership(obj)
+        # check_ownership(obj)
         self.pre_add(obj)
 
     def post_update(self, obj):
