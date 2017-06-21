@@ -313,7 +313,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
 
     @property
     def edit_url(self):
-        return "/slicemodelview/edit/{}".format(self.id)
+        return "/slice/edit/{}".format(self.id)
 
     @property
     def slice_link(self):
