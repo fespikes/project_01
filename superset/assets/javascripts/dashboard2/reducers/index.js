@@ -11,7 +11,8 @@ function configs(state = {
     pageSize: 10,
     selectedRowKeys: [],
     selectedRowNames: [],
-    viewMode: 'table'
+    viewMode: 'table',
+    tableLoading: false
 }, action) {
     switch (action.type) {
         case CONFIG_PARAMS.SHOW_TYPE:
@@ -47,6 +48,10 @@ function configs(state = {
         case CONFIG_PARAMS.VIEW_MODE:
             return Object.assign({}, state, {
                 viewMode: action.viewMode
+            });
+        case CONFIG_PARAMS.TABLE_LOADING:
+            return Object.assign({}, state, {
+                tableLoading: action.tableLoading
             });
         default:
             return state;

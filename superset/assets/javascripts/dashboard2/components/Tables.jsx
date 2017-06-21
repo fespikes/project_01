@@ -73,7 +73,7 @@ class Tables extends React.Component {
 
     render() {
 
-        const { dashboardList, selectedRowKeys } = this.props;
+        const { dashboardList, selectedRowKeys, loading } = this.props;
 
         const columns = [{
             title: '',
@@ -167,6 +167,7 @@ class Tables extends React.Component {
                 dataSource={dashboardList}
                 columns={columns}
                 pagination={false}
+                loading={loading}
             />
         );
     }
