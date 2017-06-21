@@ -1235,7 +1235,8 @@ class SliceModelView(SupersetModelView):  # noqa
         return dashs_list
 
     def pre_update(self, obj):
-        check_ownership(obj)
+        # check_ownership(obj)
+        pass
 
     def post_update(self, obj):
         # log user action
