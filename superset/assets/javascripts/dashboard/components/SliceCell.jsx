@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import { Tooltip } from 'antd';
 
 const propTypes = {
@@ -22,11 +23,11 @@ function SliceCell({ expandedSlices, removeSlice, slice }) {
                                     <i className="fa fa-arrows drag" />
                                 </a>
                             </Tooltip>
-                            <Tooltip title="Force refresh data" placement="top">
-                                <a>
-                                    <i className="fa fa-repeat" />
-                                </a>
-                            </Tooltip>
+ 
+                            <a className="refresh">
+                                <i className="fa fa-repeat" />
+                            </a>
+
                             {slice.description &&
                             <Tooltip title={slice.description} placement="top">
                                 <a>
@@ -36,11 +37,14 @@ function SliceCell({ expandedSlices, removeSlice, slice }) {
                                 </a>
                             </Tooltip>
                             }
-                            <Tooltip title="Edit chart" placement="top">
-                                <a href={slice.edit_url}>
-                                    <i className="fa fa-pencil" />
-                                </a>
-                            </Tooltip>
+                            
+                            {
+                                /*<Tooltip title="Edit chart" placement="top">
+                                    <a href={slice.edit_url}>
+                                        <i className="fa fa-pencil" />
+                                    </a>
+                                </Tooltip> */
+                            }
                             <Tooltip title="Explore chart" placement="top">
                                 <a href={slice.slice_url}>
                                     <i className="fa fa-share" />
