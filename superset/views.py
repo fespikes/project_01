@@ -447,7 +447,7 @@ class SupersetModelView(ModelView):
 
     def get_addable_choices(self):
         data = {}
-        data['readme'] = self.get_column_readme()
+        # data['readme'] = self.get_column_readme()
         return data
 
     def get_object_list_data(self, **kwargs):
