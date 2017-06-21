@@ -986,9 +986,11 @@ class TableModelView(SupersetModelView):  # noqa
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
         dataset_type = kwargs.get('dataset_type')
+        user_id = kwargs.get('user_id')
 
         query = db.session.query(SqlaTable, User)\
-            .filter(SqlaTable.created_by_fk == User.id)
+            .filter(SqlaTable.created_by_fk == User.id,
+                    SqlaTable.created_by_fk == user_id)
 
         if dataset_type:
             query = query.filter(SqlaTable.dataset_type.ilike(dataset_type))
