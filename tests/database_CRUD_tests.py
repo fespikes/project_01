@@ -93,8 +93,5 @@ class DatabaseCRUDTests(SupersetTestCase,PageMixin):
         assert target_database is None
 
 
-
-
-
 if __name__ == '__main__':
     unittest.main()
