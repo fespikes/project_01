@@ -2192,7 +2192,7 @@ class Superset(BaseSupersetView):
         """Save a dashboard's metadata"""
         session = db.session()
         dash = session.query(models.Dashboard).filter_by(id=dashboard_id).first()
-        check_ownership(dash, raise_if_false=True)
+        # check_ownership(dash, raise_if_false=True)
         data = json.loads(request.form.get('data'))
         self._set_dash_metadata(dash, data)
         session.merge(dash)
@@ -2227,7 +2227,7 @@ class Superset(BaseSupersetView):
         session = db.session()
         Slice = models.Slice  # noqa
         dash = session.query(models.Dashboard).filter_by(id=dashboard_id).first()
-        check_ownership(dash, raise_if_false=True)
+        # check_ownership(dash, raise_if_false=True)
         new_slices = session.query(Slice).filter(
             Slice.id.in_(data['slice_ids']))
         dash.slices += new_slices
