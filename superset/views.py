@@ -825,9 +825,11 @@ class DatabaseView(SupersetModelView):  # noqa
         page = kwargs.get('page')
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
+        user_id = kwargs.get('user_id')
 
         query = db.session.query(Database, User)\
-            .filter(Database.created_by_fk == User.id)
+            .filter(Database.created_by_fk == User.id,
+                    Database.created_by_fk == user_id)
 
         if filter:
             filter_str = '%{}%'.format(filter.lower())
