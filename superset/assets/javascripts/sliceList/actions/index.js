@@ -19,7 +19,8 @@ export const CONDITION_PARAMS = {
     PAGE_NUMBER: 'PAGE_NUMBER',
     PAGE_SIZE: 'PAGE_SIZE',
     CLEAR_ROWS: 'CLEAR_ROWS',
-    SELECTED_ROWS: 'SELECTED_ROWS'
+    SELECTED_ROWS: 'SELECTED_ROWS',
+    TABLE_LOADING: 'TABLE_LOADING'
 };
 
 const baseURL = window.location.origin + '/slice/';
@@ -66,6 +67,13 @@ export function setSelectedRows(selectedRowKeys, selectedRowNames) {
     }
 }
 
+export function setTableLoadingStatus(loading) {
+    return {
+        type: CONDITION_PARAMS.TABLE_LOADING,
+        tableLoading: loading
+    }
+}
+
 export function clearRows() {
     return {
         type: CONDITION_PARAMS.SELECTED_ROWS,
@@ -84,14 +92,16 @@ export function receiveLists(json) {
 export function fetchStateChange(record, type) {
     const url = getStateChangeUrl(record, type);
     return dispatch => {
+        dispatch(setTableLoadingStatus(true));
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
         }).then(function(response) {
             if(response.ok) {
                 dispatch(fetchLists());
+                dispatch(setTableLoadingStatus(false));
             }else {
-
+                dispatch(setTableLoadingStatus(false));
             }
         });
     }
@@ -223,7 +233,7 @@ function getSliceListUrl(state) {
 
 function getStateChangeUrl(record, type) {
     if(type === "favorite") {
-        let url_favorite = window.location.origin + "/superset/favstar/Slice/" + record.id;
+        let url_favorite = window.location.origin + "/pilot/favstar/Slice/" + record.id;
         if(record.favorite) {
             url_favorite += "/unselect";
         }else {

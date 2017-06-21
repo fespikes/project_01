@@ -95,11 +95,11 @@ class SliceEdit extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon"></i>
-                                <span>工作表基本信息</span>
+                                <i className="icon icon-slice-popup"></i>
+                                <span>编辑工作表</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog}></i>
                             </div>
                         </div>
                         <div className="popup-body">

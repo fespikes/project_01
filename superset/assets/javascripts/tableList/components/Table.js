@@ -4,7 +4,7 @@ import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
 import { SliceDelete, SliceEdit } from '../../components/popup';
-import style from '../style/database.scss'
+import style from '../style/table.scss'
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -54,10 +54,6 @@ class SliceTable extends React.Component {
             if(deleteSlicePopup) {
                 deleteSlicePopup.showDialog();
             }
-        }
-
-        function publishSlice(record) {
-            dispatch(fetchStateChange(record, "publish"));
         }
 
         function favoriteSlice(record) {
@@ -120,10 +116,14 @@ class SliceTable extends React.Component {
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <i className="icon icon-edit" onClick={() => editSlice(record)}></i>&nbsp;
-                            <i className={record.online ? 'icon icon-online' : 'icon icon-offline'}
-                               onClick={() => publishSlice(record)}></i>&nbsp;
-                            <i className="icon icon-delete" onClick={() => deleteSlice(record)}></i>
+                            <i
+                                className="icon icon-edit"
+                                onClick={() => editSlice(record)}
+                            ></i>&nbsp;&nbsp;
+                            <i
+                                className="icon icon-delete"
+                                onClick={() => deleteSlice(record)}
+                            ></i>
                         </div>
                     )
                 }

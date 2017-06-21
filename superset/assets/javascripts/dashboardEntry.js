@@ -12,6 +12,8 @@ import GraphContainer from './dashboard2/containers/GraphContainer';
 import configureStore from './dashboard2/store/configureStore';
 
 const $ = window.$ = require('jquery');
+const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
+require('bootstrap');
 const store = configureStore();
 
 $('.nav > li:nth-child(2)').addClass('active');

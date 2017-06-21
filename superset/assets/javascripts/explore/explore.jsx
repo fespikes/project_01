@@ -13,18 +13,18 @@ import ReactDOM from 'react-dom';
 import QueryAndSaveBtns from './components/QueryAndSaveBtns.jsx';
 import ExploreActionButtons from './components/ExploreActionButtons.jsx';
 import DisplayOriginalTable from './components/DisplayOriginalTable.jsx';
-import { Radio } from 'antd';
+import { Radio, Table } from 'antd';
 
 require('jquery-ui');
 $.widget.bridge('uitooltip', $.ui.tooltip); // Shutting down jq-ui tooltips
-// require('bootstrap');
+require('bootstrap');
 
 require('./../superset-select2.js');
 
 // css
 require('../../vendor/pygments.css');
 require('../../stylesheets/explore.css');
-
+const _ = require('lodash');
 let slice;
 
 const getPanelClass = function (fieldPrefix) {
@@ -371,6 +371,45 @@ function renderExploreActions() {
     );
 }
 
+function generateTableView(previewData) {
+    if (!previewData) {
+        return <span>暂无数据</span>;
+    }
+
+    previewData = JSON.parse(previewData);
+    let columns = [], dataSource = [];
+    
+    let columnItem = {}, dataItem = {}, columnIndex = 1;
+
+    _.forEach(previewData.columns, (column, key) => {
+        columnItem = {
+            title: column,
+            dataIndex: column,
+            key: column
+        };
+        columns.push(columnItem);
+        
+        if (columnIndex > 1) {
+            _.forEach(previewData.data[column], (value, index) => {
+                dataSource[index][column] = value;
+            });
+        }
+        else {
+            _.forEach(previewData.data[column], (value, index) => {
+                dataItem = {};
+                dataItem[column] = value;
+                dataItem['key'] = index + 1;
+                dataSource.push(dataItem);
+            });
+        }
+
+        columnIndex = columnIndex + 1;
+    });
+
+    return <Table bordered columns={columns} dataSource={dataSource} />;
+}
+
+
 function renderViewTab() {
     const viewTabEl = document.getElementById('view-tab-container');
     const RadioButton = Radio.Button;
@@ -380,8 +419,11 @@ function renderViewTab() {
             $('.graph-view').css('display', 'block');
             $('.table-view').css('display', 'none');
         }else if(event.target.value === "table") {
+            
+            let table = generateTableView($('.table-view').attr('preview-data'));
             $('.graph-view').css('display', 'none');
             $('.table-view').css('display', 'block');
+            ReactDOM.render(table, document.getElementById('table-view-preview'));
         }
     }
     ReactDOM.render(

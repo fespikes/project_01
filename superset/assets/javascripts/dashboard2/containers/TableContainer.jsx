@@ -39,6 +39,7 @@ class TableContainer extends React.Component {
                 <div className="panel-middle">
                     <Tables
                         dispatch={dispatch}
+                        loading={configs.tableLoading}
                         selectedRowKeys={configs.selectedRowKeys}
                         dashboardList={posts.params.data}
                         />

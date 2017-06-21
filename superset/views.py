@@ -7,7 +7,6 @@ from datetime import datetime, timedelta, date
 import json
 import logging
 import pickle
-import re
 import sys
 import time
 import traceback
@@ -23,7 +22,6 @@ from flask_appbuilder import ModelView, BaseView, expose
 from flask_appbuilder.actions import action
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.decorators import has_access
-from flask_appbuilder.widgets import ListWidget
 from flask_appbuilder.models.sqla.filters import (BaseFilter, FilterStartsWith, FilterEqualFunction)
 from flask_appbuilder.security.sqla import models as ab_models
 
@@ -31,7 +29,6 @@ from flask_babel import gettext as __
 from flask_babel import lazy_gettext as _
 
 from sqlalchemy import create_engine, case
-from werkzeug.routing import BaseConverter
 from wtforms.validators import ValidationError
 
 
@@ -117,13 +114,6 @@ class BaseSupersetView(BaseView):
             if self.can_access("datasource_access", datasource.perm):
                 return True
         return False
-
-
-class ListWidgetWithCheckboxes(ListWidget):
-    """An alternative to list view that renders Boolean fields as checkboxes
-
-    Works in conjunction with the `checkbox` view."""
-    template = 'superset/fab_overrides/list_with_checkboxes.html'
 
 
 def log_number_for_all_users(obj_type):
@@ -352,16 +342,16 @@ class SupersetModelView(ModelView):
         kwargs['filter'] = args.get('filter', self.filter)
         fav = args.get('only_favorite')
         kwargs['only_favorite'] = strtobool(fav) if fav else self.only_favorite
-        kwargs['table_type'] = args.get('table_type')
+        kwargs['dataset_type'] = args.get('dataset_type')
         kwargs['table_id'] = int(args.get('table_id')) \
             if args.get('table_id') else None
         return kwargs
 
-    @expose('/list')
+    @expose('/list/')
     def list(self):
          return self.render_template(self.list_template)
 
-    @expose('/listdata')
+    @expose('/listdata/')
     def get_list_data(self):
         try:
             kwargs = self.get_list_args(request.args)
@@ -370,7 +360,7 @@ class SupersetModelView(ModelView):
         except Exception as e:
             return self.build_response(500, False, str(e))
 
-    @expose('/addablechoices', methods=['GET'])
+    @expose('/addablechoices/', methods=['GET'])
     def addable_choices(self):
         try:
             data = self.get_addable_choices()
@@ -392,7 +382,7 @@ class SupersetModelView(ModelView):
         except Exception as e:
             return self.build_response(500, False, str(e))
 
-    @expose('/show/<pk>', methods=['GET'])
+    @expose('/show/<pk>/', methods=['GET'])
     def show(self, pk):
         try:
             obj = self.get_object(pk)
@@ -457,7 +447,7 @@ class SupersetModelView(ModelView):
 
     def get_addable_choices(self):
         data = {}
-        data['readme'] = self.get_column_readme()
+        # data['readme'] = self.get_column_readme()
         return data
 
     def get_object_list_data(self, **kwargs):
@@ -603,7 +593,6 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     datamodel = SQLAInterface(models.TableColumn)
     route_base = '/tablecolumn'
     can_delete = False
-    list_widget = ListWidgetWithCheckboxes
     list_columns = [
         'id', 'column_name', 'type', 'groupby', 'filterable',
         'count_distinct', 'sum', 'min', 'max', 'is_dttm']
@@ -635,23 +624,6 @@ class TableColumnInlineView(SupersetModelView):  # noqa
             "`Ex: TO_DATE('{}', 'YYYY-MM-DD HH24:MI:SS')` for Oracle"
             "Superset uses default expression based on DB URI if this "
             "field is blank.",
-    }
-    label_columns = {
-        'column_name': _("Column"),
-        'verbose_name': _("Verbose Name"),
-        'description': _("Description"),
-        'type': _("Type"),
-        'groupby': _("Groupable"),
-        'filterable': _("Filterable"),
-        'table': _("Table"),
-        'count_distinct': _("Count Distinct"),
-        'sum': _("Sum"),
-        'min': _("Min"),
-        'max': _("Max"),
-        'expression': _("Expression"),
-        'is_dttm': _("Is temporal"),
-        'python_date_format': _("Datetime Format"),
-        'database_expression': _("Database Expression")
     }
 
     bool_columns = ['is_dttm', 'is_active', 'groupby', 'count_distinct',
@@ -714,14 +686,6 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             "formats"
     }
     page_size = 500
-    label_columns = {
-        'metric_name': _("Metric"),
-        'description': _("Description"),
-        'verbose_name': _("Verbose Name"),
-        'metric_type': _("Type"),
-        'expression': _("SQL Expression"),
-        'table': _("Table"),
-    }
 
     bool_columns = ['is_restricted', ]
     str_columns = ['table', ]
@@ -793,23 +757,6 @@ class DatabaseView(SupersetModelView):  # noqa
             "(http://docs.sqlalchemy.org/en/rel_1_0/core/metadata.html"
             "#sqlalchemy.schema.MetaData) call. ",
     }
-    label_columns = {
-        'tables': _("Tables"),
-        'expose_in_sqllab': _("Expose in SQL Lab"),
-        'allow_dml': _("Allow DML"),
-        'database_name': _("Database"),
-        'creator': _("Creator"),
-        'changed_on_': _("Last Changed"),
-        'sqlalchemy_uri': _("SQLAlchemy URI"),
-        'cache_timeout': _("Cache Timeout"),
-        'extra': _("Extra"),
-        'backend': _("Backend"),
-        'perm': _("Perm"),
-        'created_by': _("Created By"),
-        'created_on': _("Created On"),
-        'changed_by': _("Changed By"),
-        'changed_on': _("Changed On"),
-    }
 
     str_to_column = {
         'title': Database.database_name,
@@ -878,9 +825,11 @@ class DatabaseView(SupersetModelView):  # noqa
         page = kwargs.get('page')
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
+        user_id = kwargs.get('user_id')
 
         query = db.session.query(Database, User)\
-            .filter(Database.created_by_fk == User.id)
+            .filter(Database.created_by_fk == User.id,
+                    Database.created_by_fk == user_id)
 
         if filter:
             filter_str = '%{}%'.format(filter.lower())
@@ -971,22 +920,6 @@ class TableModelView(SupersetModelView):  # noqa
             "run a query against this string as a subquery."
     }
     base_filters = [['id', DatasourceFilter, lambda: []]]
-    label_columns = {
-        'link': _("Table"),
-        'table_name': _("Table Name"),
-        'changed_by_': _("Changed By"),
-        'database': _("Database"),
-        'changed_on_': _("Last Changed"),
-        'is_featured': _("Is Featured"),
-        'filter_select_enabled': _("Enable Filter Select"),
-        'schema': _("Schema"),
-        'description': _("Description"),
-        'owner': _("Owner"),
-        'main_dttm_col': _("Main Dttm Col"),
-        'default_endpoint': _("Default Endpoint"),
-        'offset': _("Offset"),
-        'cache_timeout': _("Cache Timeout"),
-    }
 
     str_to_column = {
         'title': SqlaTable.table_name,
@@ -1024,7 +957,7 @@ class TableModelView(SupersetModelView):  # noqa
         except Exception as e:
             return self.build_response(500, False, str(e))
 
-    @expose('/tables/<database_id>/<schema>', methods=['GET', ])
+    @expose('/tables/<database_id>/<schema>/', methods=['GET', ])
     def addable_tables(self, database_id, schema):
         try:
             d = db.session.query(models.Database) \
@@ -1034,7 +967,7 @@ class TableModelView(SupersetModelView):  # noqa
         except Exception as e:
             return self.build_response(500, False, str(e))
 
-    @expose('/edit/hdfstable/<pk>', methods=['GET', 'POST'])
+    @expose('/edit/hdfstable/<pk>/', methods=['GET', 'POST'])
     def edit_hdfs_table(self, pk):
         try:
             json_data = self.get_request_data()
@@ -1055,9 +988,11 @@ class TableModelView(SupersetModelView):  # noqa
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
         dataset_type = kwargs.get('dataset_type')
+        user_id = kwargs.get('user_id')
 
         query = db.session.query(SqlaTable, User)\
-            .filter(SqlaTable.created_by_fk == User.id)
+            .filter(SqlaTable.created_by_fk == User.id,
+                    SqlaTable.created_by_fk == user_id)
 
         if dataset_type:
             query = query.filter(SqlaTable.dataset_type.ilike(dataset_type))
@@ -1065,7 +1000,8 @@ class TableModelView(SupersetModelView):  # noqa
             filter_str = '%{}%'.format(filter.lower())
             query = query.filter(
                 or_(
-                    SqlaTable.table_name.ilike(filter_str),
+                    SqlaTable.dataset_name.ilike(filter_str),
+                    SqlaTable.dataset_type.ilike(filter_str),
                     User.username.ilike(filter_str)
                 )
             )
@@ -1229,30 +1165,7 @@ class SliceModelView(SupersetModelView):  # noqa
         ,
     }
     base_filters = [['id', SliceFilter, lambda: []]]
-    label_columns = {
-        'cache_timeout': _("Cache Timeout"),
-        'creator': _("Creator"),
-        'dashboards': _("Dashboards"),
-        'datasource_link': _("Datasource"),
-        'description': _("Description"),
-        'department': _("Department"),
-        'modified': _("Last Modified"),
-        'owners': _("Owners"),
-        'params': _("Parameters"),
-        'slice_link': _("Slice"),
-        'slice_name': _("Name"),
-        'table': _("Table"),
-        'viz_type': _("Visualization Type"),
-        'created_by': _("Created By"),
-        'created_on': _("Created On"),
-        'changed_by': _("Changed By"),
-        'changed_on': _("Changed On"),
-        'datasource_id': _("Datasource Id"),
-        'datasource_name': _("Datasource Name"),
-        'datasource_type': _("Datasource Type"),
-    }
 
-    # list_template = "superset/partials/slice/slice.html"
     list_template = "superset/list.html"
 
     str_to_column = {
@@ -1322,7 +1235,8 @@ class SliceModelView(SupersetModelView):  # noqa
         return dashs_list
 
     def pre_update(self, obj):
-        check_ownership(obj)
+        # check_ownership(obj)
+        pass
 
     def post_update(self, obj):
         # log user action
@@ -1344,12 +1258,12 @@ class SliceModelView(SupersetModelView):  # noqa
         # log slice number
         log_number('slice', g.user.get_id())
 
-    @expose('/add', methods=['GET', 'POST'])
+    @expose('/add/', methods=['GET', 'POST'])
     @has_access
     def add(self):
         table = db.session.query(models.SqlaTable).first()
         if not table:
-            redirect_url = '/pilot/explore/table/0'
+            redirect_url = '/pilot/explore/table/0/'
         else:
             redirect_url = table.explore_url
         return redirect(redirect_url)
@@ -1419,7 +1333,7 @@ class SliceModelView(SupersetModelView):  # noqa
         return response
 
     @catch_exception
-    @expose("/release/<action>/<slice_id>", methods=['GET'])
+    @expose("/release/<action>/<slice_id>/", methods=['GET'])
     def slice_online_or_offline(self, action, slice_id):
         obj = db.session.query(models.Slice) \
             .filter_by(id=slice_id).first()
@@ -1510,21 +1424,6 @@ class DashboardModelView(SupersetModelView):  # noqa
         'slices': [['slices', SliceFilter, None]],
     }
     edit_form_query_rel_fields = add_form_query_rel_fields
-    label_columns = {
-        'dashboard_link': _("Dashboard"),
-        'dashboard_title': _("Title"),
-        'slug': _("Slug"),
-        'slices': _("Slices"),
-        'owners': _("Owners"),
-        'creator': _("Creator"),
-        'modified': _("Modified"),
-        'position_json': _("Position JSON"),
-        'css': _("CSS"),
-        'json_metadata': _("JSON Metadata"),
-        'table_names': _("Underlying Tables"),
-        'description': _("Description"),
-        'department': _('Department')
-    }
 
     list_template = "superset/partials/dashboard/dashboard.html"
 
@@ -1588,7 +1487,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         log_number('dashboard', g.user.get_id())
 
     def pre_update(self, obj):
-        check_ownership(obj)
+        # check_ownership(obj)
         self.pre_add(obj)
 
     def post_update(self, obj):
@@ -1699,7 +1598,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         return objs
 
     @catch_exception
-    @expose("/import", methods=['GET', 'POST'])
+    @expose("/import/", methods=['GET', 'POST'])
     def import_dashboards(self):
         """Overrides the dashboards using pickled instances from the file."""
         f = request.data
@@ -1724,7 +1623,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         return redirect('/dashboard/list/')
 
     @catch_exception
-    @expose("/export")
+    @expose("/export/")
     def export_dashboards(self):
         ids = request.args.getlist('id')
         return Response(
@@ -1733,7 +1632,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             mimetype="application/text")
 
     @catch_exception
-    @expose("/release/<action>/<dashboard_id>", methods=['GET'])
+    @expose("/release/<action>/<dashboard_id>/", methods=['GET'])
     def dashbaord_online_or_offline(self, action, dashboard_id):
         obj = db.session.query(models.Dashboard) \
             .filter_by(id=dashboard_id).first()
@@ -1791,9 +1690,6 @@ class DashboardModelView(SupersetModelView):  # noqa
 class DashboardModelViewAsync(DashboardModelView):  # noqa
     route_base = '/dashboardmodelviewasync'
     list_columns = ['dashboard_link', 'creator', 'modified', 'dashboard_title']
-    label_columns = {
-        'dashboard_link': 'Dashboard',
-    }
 
 
 class LogModelView(SupersetModelView):
@@ -1816,12 +1712,12 @@ class QueryView(SupersetModelView):
     list_columns = ['user', 'database', 'status', 'start_time', 'end_time']
 
 
-@app.route('/health')
+@app.route('/health/')
 def health():
     return "OK"
 
 
-@app.route('/ping')
+@app.route('/ping/')
 def ping():
     return "OK"
 
@@ -2213,7 +2109,7 @@ class Superset(BaseSupersetView):
             log_action('edit', action_str, 'slice', slc.id)
 
     @catch_exception
-    @expose("/checkbox/<model_view>/<id_>/<attr>/<value>", methods=['GET'])
+    @expose("/checkbox/<model_view>/<id_>/<attr>/<value>/", methods=['GET'])
     def checkbox(self, model_view, id_, attr, value):
         """endpoint for checking/unchecking any boolean in a sqla model"""
         views = sys.modules[__name__]
@@ -2227,21 +2123,7 @@ class Superset(BaseSupersetView):
         return Response("OK", mimetype="application/json")
 
     @catch_exception
-    @expose("/activity_per_day")
-    def activity_per_day(self):
-        """endpoint to power the calendar heatmap on the welcome page"""
-        Log = models.Log  # noqa
-        qry = (
-            db.session.query(Log.dt, sqla.func.count())
-            .group_by(Log.dt)
-            .all()
-        )
-        payload = {str(time.mktime(dt.timetuple())):
-                   ccount for dt, ccount in qry if dt}
-        return Response(json.dumps(payload), mimetype="application/json")
-
-    @catch_exception
-    @expose("/all_tables/<db_id>")
+    @expose("/all_tables/<db_id>/")
     def all_tables(self, db_id):
         """Endpoint that returns all tables and views from the database"""
         database = (
@@ -2264,7 +2146,7 @@ class Superset(BaseSupersetView):
             mimetype="application/json")
 
     @catch_exception
-    @expose("/tables/<db_id>/<schema>")
+    @expose("/tables/<db_id>/<schema>/")
     def tables(self, db_id, schema):
         """endpoint to power the calendar heatmap on the welcome page"""
         schema = None if schema in ('null', 'undefined') else schema
@@ -2310,7 +2192,7 @@ class Superset(BaseSupersetView):
         """Save a dashboard's metadata"""
         session = db.session()
         dash = session.query(models.Dashboard).filter_by(id=dashboard_id).first()
-        check_ownership(dash, raise_if_false=True)
+        # check_ownership(dash, raise_if_false=True)
         data = json.loads(request.form.get('data'))
         self._set_dash_metadata(dash, data)
         session.merge(dash)
@@ -2345,7 +2227,7 @@ class Superset(BaseSupersetView):
         session = db.session()
         Slice = models.Slice  # noqa
         dash = session.query(models.Dashboard).filter_by(id=dashboard_id).first()
-        check_ownership(dash, raise_if_false=True)
+        # check_ownership(dash, raise_if_false=True)
         new_slices = session.query(Slice).filter(
             Slice.id.in_(data['slice_ids']))
         dash.slices += new_slices
@@ -2662,7 +2544,6 @@ class Superset(BaseSupersetView):
                     ''.format(**locals()))
 
         # Hack to log the dashboard_id properly, even when getting a slug
-        # @log_this
         def dashboard(**kwargs):  # noqa
             pass
         dashboard(dashboard_id=dash.id)
@@ -2691,22 +2572,20 @@ class Superset(BaseSupersetView):
         viz_type = data.get('chartType')
         table = (
             db.session.query(models.SqlaTable)
-            .filter_by(table_name=table_name)
+            .filter_by(dataset_name=table_name)
             .first()
         )
         if not table:
-            table = models.SqlaTable(table_name=table_name)
+            table = models.SqlaTable(dataset_name=table_name)
+        table.dataset_type = models.SqlaTable.dataset_type_dict.get("inceptor")
         table.database_id = data.get('dbId')
         q = SupersetQuery(data.get('sql'))
         table.sql = q.stripped()
         db.session.add(table)
+        db.session.commit()
         # log user action
         action_str = 'Add table: {}'.format(table_name)
-        new_tb = db.session.query(models.SqlaTable) \
-                .filter_by(database_id=table.database_id) \
-                .filter_by(table_name=table_name) \
-                .first()
-        log_action('add', action_str, 'table', new_tb.id)
+        log_action('add', action_str, 'table', table.id)
 
         cols = []
         dims = []
@@ -2740,8 +2619,8 @@ class Superset(BaseSupersetView):
                 metric_name="count".format(**locals()),
                 expression="count(*)".format(**locals()),
             ))
-        table.columns = cols
-        table.metrics = metrics
+        table.ref_columns = cols
+        table.ref_metrics = metrics
         db.session.commit()
         params = {
             'viz_type': viz_type,
@@ -2987,7 +2866,7 @@ class Superset(BaseSupersetView):
             mimetype="application/json")
 
     @catch_exception
-    @expose("/csv/<client_id>")
+    @expose("/csv/<client_id>/")
     def csv(self, client_id):
         """Download the query results as csv."""
         query = (
@@ -3010,7 +2889,7 @@ class Superset(BaseSupersetView):
         return response
 
     @catch_exception
-    @expose("/fetch_datasource_metadata")
+    @expose("/fetch_datasource_metadata/")
     def fetch_datasource_metadata(self):
         datasource_type = request.args.get('datasource_type')
         datasource_class = SourceRegistry.sources[datasource_type]
@@ -3034,7 +2913,7 @@ class Superset(BaseSupersetView):
         )
 
     @catch_exception
-    @expose("/queries/<last_updated_ms>")
+    @expose("/queries/<last_updated_ms>/")
     def queries(self, last_updated_ms):
         """Get the updated queries."""
         if not g.user.get_id():
@@ -3064,7 +2943,7 @@ class Superset(BaseSupersetView):
             mimetype="application/json")
 
     @catch_exception
-    @expose("/search_queries")
+    @expose("/search_queries/")
     def search_queries(self):
         """Search for queries."""
         query = db.session.query(models.Query)
@@ -3121,7 +3000,7 @@ class Superset(BaseSupersetView):
         ), 500
 
     @catch_exception
-    @expose("/welcome")
+    @expose("/welcome/")
     def welcome(self):
         """Personalized welcome page"""
         if not g.user or not g.user.get_id():
@@ -3176,7 +3055,7 @@ class Superset(BaseSupersetView):
         )
 
     @catch_exception
-    @expose("/sqllab")
+    @expose("/sqllab/")
     def sqllab(self):
         """SQL Editor"""
         d = {
@@ -3463,7 +3342,7 @@ class Home(BaseSupersetView):
         kwargs['order_direction'] = args.get('order_direction', self.order_direction)
         return kwargs
 
-    @expose('/edits/slice')
+    @expose('/edits/slice/')
     def get_edited_slices_by_url(self):
         success, user_id = self.get_user_id()
         if not success:
@@ -3494,7 +3373,7 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
 
-    @expose('/edits/dashboard')
+    @expose('/edits/dashboard/')
     def get_edited_dashboards_by_url(self):
         success, user_id = self.get_user_id()
         if not success:
@@ -3691,7 +3570,7 @@ class Home(BaseSupersetView):
             return redirect(appbuilder.get_url_for_login)
         return self.render_template('superset/home.html')
 
-    @expose('/alldata')
+    @expose('/alldata/')
     def get_all_statistics_data(self):
         success, user_id = self.get_user_id()
         if not success:
@@ -3828,25 +3707,3 @@ def apply_caching(response):
     for k, v in config.get('HTTP_HEADERS').items():
         response.headers[k] = v
     return response
-
-
-# ---------------------------------------------------------------------
-# Redirecting URL from previous names
-class RegexConverter(BaseConverter):
-    def __init__(self, url_map, *items):
-        super(RegexConverter, self).__init__(url_map)
-        self.regex = items[0]
-app.url_map.converters['regex'] = RegexConverter
-
-
-@app.route('/<regex("panoramix\/.*"):url>')
-def panoramix(url):  # noqa
-    return redirect(request.full_path.replace('panoramix', 'pilot'))
-
-
-@app.route('/<regex("caravel\/.*"):url>')
-def caravel(url):  # noqa
-    return redirect(request.full_path.replace('caravel', 'pilot'))
-
-
-# ---------------------------------------------------------------------

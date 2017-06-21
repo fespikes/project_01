@@ -85,13 +85,13 @@ class SubSqlMetric extends Component {
             title: '类型',
             dataIndex: 'type',
             key: 'type',
-            width: '25%',
+            width: '30%',
             className: 'checkb'
         }, {
             title: '操作',
             dataIndex: 'operation',
             key: 'operation',
-            width: '20%',
+            width: '15%',
             render: (text, record, index) => {
                 return (
                     <div className="icon-group">
