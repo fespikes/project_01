@@ -307,7 +307,7 @@ class DeleteMixin(object):
             cls_name = items[0].__class__.__name__.lower()
         for item in items:
             obj_name = repr(item)
-            action_str = 'Delete {}: {}'.format(cls_name, obj_name)
+            action_str = 'Delete {}: [{}]'.format(cls_name, obj_name)
             log_action('delete', action_str, cls_name, item.id)
         return redirect(self.get_redirect())
 
@@ -432,7 +432,7 @@ class SupersetModelView(ModelView):
                     cls_name = 'table'
                 else:
                     cls_name = self.model.__name__.lower()
-                action_str = 'Delete {}: {}'.format(cls_name, repr(obj))
+                action_str = 'Delete {}: [{}]'.format(cls_name, repr(obj))
                 log_action('delete', action_str, cls_name, obj.id)
             return self.build_response(200, True, DELETE_SUCCESS)
         except Exception as e:
@@ -784,7 +784,7 @@ class DatabaseView(SupersetModelView):  # noqa
         #     security.merge_perm(
         #         sm, 'schema_access', utils.get_schema_perm(obj, schema))
         # log user aciton
-        action_str = 'Add connection: {}'.format(repr(obj))
+        action_str = 'Add connection: [{}]'.format(repr(obj))
         log_action('add', action_str, 'database', obj.id)
         # log database number
         log_number('database', g.user.get_id())
@@ -795,7 +795,7 @@ class DatabaseView(SupersetModelView):  # noqa
     def post_update(self, obj):
         self.add_or_edit_database_account(obj)
         # log user action
-        action_str = 'Edit connection: {}'.format(repr(obj))
+        action_str = 'Edit connection: [{}]'.format(repr(obj))
         log_action('edit', action_str, 'database', obj.id)
 
     def pre_delete(self, obj):
@@ -806,7 +806,7 @@ class DatabaseView(SupersetModelView):  # noqa
 
     def post_delete(self, obj):
         # log user action
-        action_str = 'Delete connection: {}'.format(repr(obj))
+        action_str = 'Delete connection: [{}]'.format(repr(obj))
         log_action('delete', action_str, 'database', obj.id)
         # log database number
         log_number('database', g.user.get_id())
@@ -1105,7 +1105,7 @@ class TableModelView(SupersetModelView):  # noqa
         table.fetch_metadata()
         TableModelView.merge_perm(table)
         # log user aciton
-        action_str = 'Add table: {}'.format(repr(table))
+        action_str = 'Add table: [{}]'.format(repr(table))
         log_action('add', action_str, 'table', table.id)
         # log table number
         log_number('table', g.user.get_id())
@@ -1122,7 +1122,7 @@ class TableModelView(SupersetModelView):  # noqa
     def post_update(self, table):
         TableModelView.merge_perm(table)
         # log user action
-        action_str = 'Edit table: {}'.format(repr(table))
+        action_str = 'Edit table: [{}]'.format(repr(table))
         log_action('edit', action_str, 'table', table.id)
 
     def post_delete(self, table):
@@ -1132,7 +1132,7 @@ class TableModelView(SupersetModelView):  # noqa
                 .delete(synchronize_session=False)
             db.session.commit()
         # log user action
-        action_str = 'Delete table: {}'.format(repr(table))
+        action_str = 'Delete table: [{}]'.format(repr(table))
         log_action('delete', action_str, 'table', table.id)
         # log table number
         log_number('table', g.user.get_id())
@@ -1240,7 +1240,7 @@ class SliceModelView(SupersetModelView):  # noqa
 
     def post_update(self, obj):
         # log user action
-        action_str = 'Edit slice: {}'.format(repr(obj))
+        action_str = 'Edit slice: [{}]'.format(repr(obj))
         log_action('edit', action_str, 'slice', obj.id)
 
     def pre_delete(self, obj):
@@ -1253,7 +1253,7 @@ class SliceModelView(SupersetModelView):  # noqa
             .delete(synchronize_session=False)
         db.session.commit()
         # log user action
-        action_str = 'Delete slice: {}'.format(repr(obj))
+        action_str = 'Delete slice: [{}]'.format(repr(obj))
         log_action('delete', action_str, 'slice', obj.id)
         # log slice number
         log_number('slice', g.user.get_id())
@@ -1352,7 +1352,7 @@ class SliceModelView(SupersetModelView):  # noqa
             else:
                 obj.online = True
                 db.session.commit()
-                action_str = 'Change slice to online: {}'.format(repr(obj))
+                action_str = 'Change slice to online: [{}]'.format(repr(obj))
                 log_action('online', action_str, 'slice', slice_id)
                 log_number_for_all_users('slice')
                 msg = ONLINE_SUCCESS + ': {}'.format(obj.slice_name)
@@ -1364,7 +1364,7 @@ class SliceModelView(SupersetModelView):  # noqa
             else:
                 obj.online = False
                 db.session.commit()
-                action_str = 'Change slice to offline: {}'.format(repr(obj))
+                action_str = 'Change slice to offline: [{}]'.format(repr(obj))
                 log_action('offline', action_str, 'slice', slice_id)
                 log_number_for_all_users('slice')
                 msg = OFFLINE_SUCCESS + ': {}'.format(obj.slice_name)
@@ -1481,7 +1481,7 @@ class DashboardModelView(SupersetModelView):  # noqa
 
     def post_add(self, obj):
         # log user action
-        action_str = 'Add dashboard: {}'.format(repr(obj))
+        action_str = 'Add dashboard: [{}]'.format(repr(obj))
         log_action('add', action_str, 'dashboard', obj.id)
         # log dashboard number
         log_number('dashboard', g.user.get_id())
@@ -1492,7 +1492,7 @@ class DashboardModelView(SupersetModelView):  # noqa
 
     def post_update(self, obj):
         # log user action
-        action_str = 'Edit dashboard: {}'.format(repr(obj))
+        action_str = 'Edit dashboard: [{}]'.format(repr(obj))
         log_action('edit', action_str, 'dashboard', obj.id)
 
     def pre_delete(self, obj):
@@ -1505,7 +1505,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             .delete(synchronize_session=False)
         db.session.commit()
         # log user action
-        action_str = 'Delete dashboard: {}'.format(repr(obj))
+        action_str = 'Delete dashboard: [{}]'.format(repr(obj))
         log_action('delete', action_str, 'dashboard', obj.id)
         # log dashboard number
         log_number('dashboard', g.user.get_id())
@@ -1615,7 +1615,7 @@ class DashboardModelView(SupersetModelView):  # noqa
                 models.Dashboard.import_obj(
                     dashboard, import_time=current_tt)
                 # log user action
-                action_str = 'Import dashboard: {}'.format(dashboard.dashboard_title)
+                action_str = 'Import dashboard: [{}]'.format(dashboard.dashboard_title)
                 log_action('import', action_str, 'dashboard', dashboard.id)
             db.session.commit()
             # TODO log_number
@@ -1651,7 +1651,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             else:
                 obj.online = True
                 db.session.commit()
-                action_str = 'Change dashboard to online: {}'.format(repr(obj))
+                action_str = 'Change dashboard to online: [{}]'.format(repr(obj))
                 log_action('online', action_str, 'dashboard', dashboard_id)
                 log_number_for_all_users('dashboard')
                 msg = ONLINE_SUCCESS + ': {}'.format(obj.dashboard_title)
@@ -1663,7 +1663,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             else:
                 obj.online = False
                 db.session.commit()
-                action_str = 'Change dashboard to offline: {}'.format(repr(obj))
+                action_str = 'Change dashboard to offline: [{}]'.format(repr(obj))
                 log_action('offline', action_str, 'dashboard', dashboard_id)
                 log_number_for_all_users('dashboard')
                 msg = OFFLINE_SUCCESS + ': {}'.format(obj.dashboard_title)
@@ -1905,9 +1905,6 @@ class Superset(BaseSupersetView):
         # handle different endpoints
         if request.args.get("csv") == "true":
             payload = viz_obj.get_csv()
-            # log user action
-            # action_str = 'Save slice\'s data to csv'
-            # log_action('csv', action_str, 'slice', datasource_id)
             return Response(
                 payload,
                 status=200,
@@ -2070,7 +2067,7 @@ class Superset(BaseSupersetView):
             dash.slices.append(slc)
             db.session.commit()
             # log user aciton
-            action_str = 'Add dashboard: {}'.format(dash.dashboard_title)
+            action_str = 'Add dashboard: [{}]'.format(dash.dashboard_title)
             log_action('add', action_str, 'dashboard', dash.id)
 
         if request.args.get('goto_dash') == 'true':
@@ -2089,7 +2086,7 @@ class Superset(BaseSupersetView):
         session.commit()
         flash(msg, "info")
         # log user action
-        action_str = 'Add slice: {}'.format(slc.slice_name)
+        action_str = 'Add slice: [{}]'.format(slc.slice_name)
         log_action('add', action_str, 'slice', slc.id)
         # log slice number
         log_number('slice', g.user.get_id())
@@ -2105,7 +2102,7 @@ class Superset(BaseSupersetView):
             msg = "Slice [{}] has been overwritten".format(slc.slice_name)
             flash(msg, "info")
             # log user action
-            action_str = 'Edit slice: {}'.format(slc.slice_name)
+            action_str = 'Edit slice: [{}]'.format(slc.slice_name)
             log_action('edit', action_str, 'slice', slc.id)
 
     @catch_exception
@@ -2181,7 +2178,7 @@ class Superset(BaseSupersetView):
         session.commit()
         dash_json = dash.json_data
         # log user action
-        action_str = 'Add dashboard: {}'.format(dash.dashboard_title)
+        action_str = 'Add dashboard: [{}]'.format(dash.dashboard_title)
         log_action('add', action_str, 'dashboard', dash.id)
         return Response(
             dash_json, mimetype="application/json")
@@ -2198,7 +2195,7 @@ class Superset(BaseSupersetView):
         session.merge(dash)
         session.commit()
         # log user aciton
-        action_str = 'Edit dashboard: {}'.format(repr(dash))
+        action_str = 'Edit dashboard: [{}]'.format(repr(dash))
         log_action('edit', action_str, 'dashboard', dashboard_id)
         return "SUCCESS"
 
@@ -2492,13 +2489,13 @@ class Superset(BaseSupersetView):
                 )
             count = 1
             # log user aciton
-            action_str = 'Like {}: {}'.format(class_name.lower(), repr(obj))
+            action_str = 'Like {}: [{}]'.format(class_name.lower(), repr(obj))
             log_action('like', action_str, class_name.lower(), obj_id)
         elif action == 'unselect':
             for fav in favs:
                 session.delete(fav)
             # log user aciton
-            action_str = 'Dislike {}: {}'.format(class_name.lower(), repr(obj))
+            action_str = 'Dislike {}: [{}]'.format(class_name.lower(), repr(obj))
             log_action('dislike', action_str, class_name.lower(), obj_id)
         else:
             count = len(favs)
@@ -2584,7 +2581,7 @@ class Superset(BaseSupersetView):
         db.session.add(table)
         db.session.commit()
         # log user action
-        action_str = 'Add table: {}'.format(table_name)
+        action_str = 'Add table: [{}]'.format(table_name)
         log_action('add', action_str, 'table', table.id)
 
         cols = []
