@@ -96,19 +96,23 @@ class Controls extends React.PureComponent {
                         <i className="icon icon-clock" />
                     }
                 />
-                <CodeModal
-                    codeCallback={dashboard.readFilters.bind(dashboard)}
-                    triggerNode={<i className="icon icon-setting" />}
-                />
-                <CssEditor
-                    dashboard={dashboard}
-                    triggerNode={
-                        <i className="icon icon-drag" />
-                    }
-                    initialCss={dashboard.css}
-                    templates={this.state.cssTemplates}
-                    onChange={this.changeCss.bind(this)}
-                />
+                {
+                    /*
+                    <CodeModal
+                        codeCallback={dashboard.readFilters.bind(dashboard)}
+                        triggerNode={<i className="icon icon-setting" />}
+                    />
+                    <CssEditor
+                        dashboard={dashboard}
+                        triggerNode={
+                            <i className="icon icon-drag" />
+                        }
+                        initialCss={dashboard.css}
+                        templates={this.state.cssTemplates}
+                        onChange={this.changeCss.bind(this)}
+                    />
+                     */
+                }
                 <DashboardEdit
                     dashboard={dashboard}
                     triggerNode={
