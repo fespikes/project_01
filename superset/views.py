@@ -2572,22 +2572,20 @@ class Superset(BaseSupersetView):
         viz_type = data.get('chartType')
         table = (
             db.session.query(models.SqlaTable)
-            .filter_by(table_name=table_name)
+            .filter_by(dataset_name=table_name)
             .first()
         )
         if not table:
-            table = models.SqlaTable(table_name=table_name)
+            table = models.SqlaTable(dataset_name=table_name)
+        table.dataset_type = models.SqlaTable.dataset_type_dict.get("inceptor")
         table.database_id = data.get('dbId')
         q = SupersetQuery(data.get('sql'))
         table.sql = q.stripped()
         db.session.add(table)
+        db.session.commit()
         # log user action
         action_str = 'Add table: {}'.format(table_name)
-        new_tb = db.session.query(models.SqlaTable) \
-                .filter_by(database_id=table.database_id) \
-                .filter_by(table_name=table_name) \
-                .first()
-        log_action('add', action_str, 'table', new_tb.id)
+        log_action('add', action_str, 'table', table.id)
 
         cols = []
         dims = []
@@ -2621,8 +2619,8 @@ class Superset(BaseSupersetView):
                 metric_name="count".format(**locals()),
                 expression="count(*)".format(**locals()),
             ))
-        table.columns = cols
-        table.metrics = metrics
+        table.ref_columns = cols
+        table.ref_metrics = metrics
         db.session.commit()
         params = {
             'viz_type': viz_type,
