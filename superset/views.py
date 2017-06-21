@@ -11,6 +11,7 @@ import sys
 import time
 import traceback
 import zlib
+import re
 from distutils.util import strtobool
 
 import functools
@@ -3451,16 +3452,18 @@ class Home(BaseSupersetView):
         rows = []
         for log, username, dash, slice in query.all():
             if dash:
-                title, link, obj_type = dash.dashboard_title, dash.url, 'dashboard'
+                title, link = dash.dashboard_title, dash.url
             elif slice:
-                title, link, obj_type = slice.slice_name, slice.slice_url, 'slice'
+                title, link = slice.slice_name, slice.slice_url
             else:
-                title, link, obj_type = 'No this object', None, None
+                link = None
+                g = re.compile(r"\[.*\]").search(log.action)
+                title = g.group(0)[1:-1] if g else 'No this object'
             line = {'user': username,
                     'action': log.action,
                     'title': title,
                     'link': link,
-                    'obj_type': obj_type,
+                    'obj_type': log.obj_type,
                     'time': str(log.dttm)
                     }
             rows.append(line)
