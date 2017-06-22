@@ -8,9 +8,12 @@ import {
     selectType,
     search,
 
+    applyAdd,
+    testConnection,
+
     setPopupParam,
     applyDelete,
-    showPopup
+    popupActions
 } from '../actions';
 
 class Operate extends React.Component {
@@ -22,8 +25,9 @@ class Operate extends React.Component {
         this.onDelete = this.onDelete.bind(this);
         this.onAdd = this.onAdd.bind(this);
         this.onSearch = this.onSearch.bind(this);
-        this.timer = null;
+
         this.dispatch = context.dispatch;
+        this.timer = null;
     }
 
     onChange () {
@@ -41,7 +45,7 @@ class Operate extends React.Component {
 
     onAdd () {
         const dispatch = this.dispatch;
-        dispatch(fetchAvailableSlices(callback));
+/*        dispatch(fetchAvailableSlices(callback));
         function callback(success, data) {
             if(success) {
                 var dashboard = {dashboard_title: '', description: ''};
@@ -56,7 +60,20 @@ class Operate extends React.Component {
                     addSlicePopup.showDialog();
                 }
             }
-        }
+        }*/
+
+        let popupParam = {
+            popupTitle: '新建连接',
+            submit: (callback) => {
+                dispatch(applyAdd(callback));
+            },
+            testConnection: (argus) => {
+                console.log(argus);
+                dispatch(testConnection(argus));
+            }
+        };
+
+        dispatch(popupActions.showPopup(popupParam));
     }
 
     //multi delete
@@ -90,7 +107,7 @@ class Operate extends React.Component {
 
             deleteType: deleteType
         }));
-        me.dispatch(showPopup());
+//        me.dispatch(showPopup());
 //        deletePopup.showDialog();
 
     }
@@ -102,13 +119,13 @@ class Operate extends React.Component {
         //TODO: not sure that componentWillReceiveProps be triggered
     }
 
-    render() {
+    render () {
 
         return (
             <div className="operations">
                 <ul className="icon-list">
                     {/*<li onClick={this.onAdd}>*/}
-                    <li>
+                    <li onClick={argus => this.onAdd(argus)}>
                         <i className="icon icon-plus"></i>
                     </li>
                     <li onClick={this.onDelete}><i className="icon icon-trash"></i></li>

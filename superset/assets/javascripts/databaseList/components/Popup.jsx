@@ -1,8 +1,12 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { Tooltip } from 'antd';
+
+import {Select} from './';
 import PropTypes from 'prop-types';
 import './popup.scss';
+
+console.log('Select:', Select);
 
 class Popup extends React.Component {
     constructor (props, context) {
@@ -12,13 +16,20 @@ class Popup extends React.Component {
             databaseName: '',
             sqlalchemyUri: '',
 
-            verfifyType: 'password'     //verfifyType: keyTab password
+            verfifyType: 'password',     //verfifyType: keyTab password
+            connectionNames: [],
+            connectionName:'',
+            databaseId:'',
+            configFile:''
         };
         this.dispatch = context.dispatch;
 
         this.submit = this.submit.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
         this.onChange = this.onChange.bind(this);
+
+        this.HDFSOnChange = this.HDFSOnChange.bind(this);
+        this.keyTabOnChange = this.keyTabOnChange.bind(this);
     };
 
     //showDialog () {
@@ -37,21 +48,48 @@ class Popup extends React.Component {
     }
 
     setSubmitParam () {
-        const datasetType = this.state.datasetType;
+        const me = this;
+        const {
+            datasetType,
+            databaseId,
+            configFile,
+            keytabFile
+        } = this.state;
+
         const databaseName = this.refs.databaseName.value;
         const sqlalchemyUri = this.refs.sqlalchemyUri.value;
+        const setPopupParam = this.props.setPopupParam;
 
-        this.dispatch(setPopupParam({datasetType, databaseName, sqlalchemyUri}));
+        const connectionName = this.refs.connectionName.value;
+        const principal = this.refs.principal.value;
+
+        if (datasetType==='inceptor') {
+            this.dispatch(setPopupParam({datasetType, databaseName, sqlalchemyUri}));
+        } else if (datasetType==='HDFS') {
+            this.dispatch(setPopupParam({
+                                            datasetType,
+                                            connectionName,
+                                            databaseId,
+                                            configFile,
+                                            principal,
+                                            keytabFile
+                                        }));
+
+        }
     }
 
     testConnection () {
-
+        const testConnection = this.props.testConnection;
+        testConnection();
+        //TODO: the button status change
     }
 
     submit () {
         const me = this;
         const {setPopupParam} = this.props;
         //unnecessary to set state
+
+        me.setSubmitParam();
 
         function callback(success, msg) {
             if(success) {
@@ -64,9 +102,17 @@ class Popup extends React.Component {
     }
 
     switchDatasetType (type) {
+        const me = this;
         this.setState({
             datasetType: type
         });
+        const fetchConnectionNames = this.props.fetchConnectionNames;
+
+        const callback = (connectionNames) => {
+            me.setState({connectionNames:connectionNames});
+        }
+
+        this.dispatch(fetchConnectionNames(callback));
     }
 
     switchVerfifyType (type) {
@@ -75,36 +121,69 @@ class Popup extends React.Component {
         });
     }
 
+    HDFSOnChange (argus) {
+
+        const me = this;
+        const input = this.refs.configFile;
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        // We read the file and call the upload function with the result
+        reader.onload = function (e) {
+            const result = e.currentTarget.result;
+            me.setState({
+                configFile: result
+            });
+        };
+        let text = reader.readAsText(file);
+    }
+
+    keyTabOnChange (argus) {
+        const me = this;
+        const input = me.refs.keytabFile;
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        // We read the file and call the upload function with the result
+        reader.onload = function (e) {
+            const result = e.currentTarget.result;
+            me.setState({
+                keytabFile: result
+            });
+        };
+        let text = reader.readAsText(file);
+    }
+
     render () {
-        //dialogType:
-        //title: 删除数据库连接
-        /*
-        const {title, deleteTips, confirm, closeDialog, showDialog,
-            setPopupParam, setPopupTitle } = this.props;
-        */
+        const me = this;
 
         const {
             title, deleteTips, confirm, closeDialog, showDialog,
             setPopupParam,
-            status
+            status,
+
+            //from popupParams,
+            ////
+
+            testConnection
         } = this.props;
+
 
         const {
             datasetType,     //uploadFile HDFS inceptor
             databaseName,
             sqlalchemyUri,
 
-            verfifyType
+            verfifyType,
+            connectionNames
         } = this.state;
 
-        /*setPopupParam({
-            popupContainer: 'popup'
-        });
-        */
+        const setPopupState = (obj) => {
+            me.setState(obj);
+        }
+
         let iconClass = 'icon-connect';
         let tipMsg = <span>this is the tip message text.</span>;
-
-        console.log('render popup');
 
         return (
             <div className="popup" ref="popupContainer" style={{display: status}}>
@@ -123,6 +202,7 @@ class Popup extends React.Component {
 
                             <div className="add-connection">
                                 <div className="data-detail-border">
+
                                     <label className="data-detail-item">
                                         <span>数据集类型：</span>
                                         <dl onClick={()=>this.switchDatasetType('inceptor')}>
@@ -166,36 +246,36 @@ class Popup extends React.Component {
                                     </div>
                                     <div style={{ display: datasetType==='HDFS'?'block':'none' }} >
                                         <label className="data-detail-item">
-                                            <span>关联inceptor连接：</span>
+                                            <span>连接名称：</span>
                                             <input
                                                 type="text"
-                                                defaultValue="Heatmap"
+                                                defaultValue=""
                                                 required="required"
+                                                ref="connectionName"
+                                            />
+                                        </label>
+                                        <label className="data-detail-item">
+                                            <span>关联inceptor连接：</span>
+                                            <Select
+                                                ref="databaseId"
+                                                connectionNames={connectionNames}
+                                                setPopupState={(argus)=>setPopupState(argus)}
                                             />
                                         </label>
                                         <label className="data-detail-item">
                                             <span>HDFS配置文件：</span>
                                             <input
+                                                ref="configFile"
                                                 type="file"
                                                 defaultValue="file"
                                                 required="required"
+                                                onChange={this.HDFSOnChange}
                                             />
                                         </label>
-
-                                        {/*
-                                        <label className="data-detail-item">
-                                            <span></span>
-                                            <div className="file-uploading">
-                                                <i className="icon"></i>
-                                                <span>package.json</span>
-                                                <div className="progress"></div>
-                                            </div>
-                                        </label>
-                                        */}
-
                                         <label className="data-detail-item">
                                             <span>用户名：</span>
                                             <input
+                                                ref="principal"
                                                 type="text"
                                                 defaultValue="Heatmap"
                                                 required="required"
@@ -218,6 +298,7 @@ class Popup extends React.Component {
                                         >
                                             <span>密码：</span>
                                             <input
+                                                ref="password"
                                                 type="text"
                                                 required="required"
                                                 defaultValue="Heatmap" />
@@ -228,20 +309,12 @@ class Popup extends React.Component {
                                         >
                                             <span>keyTab：</span>
                                             <input
+                                                onChange={this.keyTabOnChange}
+                                                ref="keytabFile"
                                                 required="required"
                                                 type="file"
                                                 defaultValue="Heatmap" />
                                         </label>
-                                        {/*
-                                        <label className="data-detail-item">
-                                            <span></span>
-                                            <div className="file-uploading">
-                                                <i className="icon"></i>
-                                                <span>package.json</span>
-                                                <div className="progress"></div>
-                                            </div>
-                                        </label>
-                                        */}
                                     </div>
                                 </div>
                             </div>

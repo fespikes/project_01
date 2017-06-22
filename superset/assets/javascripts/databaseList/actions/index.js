@@ -10,11 +10,22 @@ export const actionTypes = {
 
     sendRequest: 'SEND_REQUEST',
     receiveData: 'RECEIVE_DATA',
-    invalidateCondition: 'INVALIDATE_CONDITION'
+    invalidateCondition: 'INVALIDATE_CONDITION',
+
+    //for popup only
+    setPopupTitle: 'SET_POPUP_TITLE',
+    setPopupParam: 'SET_POPUP_PARAM',
+    changePopupStatus: 'CHNAGE_POPUP_STATUS',
+
+    receiveConnectionNames: 'RECEIVE_CONNECTION_NAMES'
 }
 
-const baseURL = window.location.origin + '/database/';
-const errorHandler = error => alert(error);
+const origin = window.location.origin;
+const baseURL = origin + '/database/';
+const errorHandler = (error) => {
+    console.log(error);
+    return error;
+}
 
 /**
 @deprecated
@@ -55,6 +66,103 @@ export function selectRows (selectedRowKeys, selectedRowNames) {
     }
 }
 
+/**
+@description: this is only for inceptor connection test
+*/
+export const testConnection = () => {
+    return (dispatch) => {
+        const URL = origin + '/pilot/testconn';
+        const {
+            datasetType,
+            databaseName,
+            sqlalchemyUri
+        } = getState().popupParam;
+
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'post',
+            body: JSON.stringify({
+                'database_name': databaseName,
+                'sqlalchemy_uri':sqlalchemyUri
+            })
+        })
+        .then(
+            response => response.ok?
+                response.json() : ((response)=>errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(json => {
+            if (json.success) {
+                callback(true);
+            } else {
+                callback(false, json);
+            }
+        });
+
+    }
+}
+
+/**
+@description: add connection in database list
+
+*/
+export function applyAdd (callback) {
+    return (dispatch, getState) => {
+        const inceptorAddURL = baseURL + 'add/';
+        const HDFSAddURL = origin + '/hdfsconnection';
+        let URL;
+        //{"database_name":"1.198_copy", "sqlalchemy_uri":"inceptor://hive:123"}
+        const {
+            datasetType,
+            databaseName,
+            sqlalchemyUri,
+            connectionName,
+            databaseId,
+            verfifyType,
+            configFile,
+            principal,
+            keytabFile
+        } = getState().popupParam;
+
+        let paramObj = {credentials: 'include', method: 'post',};
+        if (datasetType==='inceptor') {
+            URL = inceptorAddURL;
+            paramObj= {
+                ...paramObj,
+                body: JSON.stringify({
+                    'database_name': databaseName,
+                    'sqlalchemy_uri':sqlalchemyUri
+                })
+            };
+        } else {
+            URL = HDFSAddURL;
+            paramObj= {
+                ...paramObj,
+                body: JSON.stringify({
+                    'connection_name': connectionName,
+                    'database_id':databaseId,
+                    'config_file': configFile,
+                    'principal':principal,
+                    'keytab_file':keytabFile
+                })
+            };
+        }
+        return fetch(URL, paramObj)
+        .then(
+            response => response.ok?
+                response.json() : ((response)=>errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(json => {
+            if (json.success) {
+                callback(true);
+            } else {
+                callback(false, json);
+            }
+        });
+    }
+}
+
 export function applyDelete (callback) {
     return (dispatch, getState) => {
         const URL = baseURL + 'muldelete';
@@ -70,7 +178,7 @@ export function applyDelete (callback) {
         })
         .then(
             response => response.ok?
-                response.json() : (errorHandler(response))(response),
+                response.json() : ((response)=>errorHandler(response))(response),
             error => errorHandler(error)
         )
         .then(json => {
@@ -159,3 +267,5 @@ export function fetchIfNeeded (condition) {
         return null;
     };
 }
+
+export * as popupActions from './popupAction';

@@ -3,35 +3,42 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {
     fetchIfNeeded,
-    setPopupParam
+    setPopupParam,
+
+    popupActions
 } from '../actions';
+
 import {
     Pagination,
     Table,
     Operate
 } from '../components';
-import { Popup } from '../../common/components';
+import { Popup } from '../components';
+
+import '../style/popupAdd.scss';
+
 import PropTypes from 'prop-types';
 
 class App extends Component {
 
-    getChildContext() {
+    getChildContext () {
         const { dispatch } = this.props;
         return {
             dispatch: dispatch
         }
     }
-    constructor(props) {
+
+    constructor (props) {
         super(props);
         this.state = {};
     }
 
-    componentDidMount() {
+    componentDidMount () {
         const { dispatch, condition } = this.props;
         dispatch(fetchIfNeeded());
     }
 
-    componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps (nextProps) {
         const { dispatch, condition } = nextProps;
 
         if (nextProps.condition.filter !== this.props.condition.filter ||
@@ -43,7 +50,7 @@ class App extends Component {
         }
     }
 
-    render() {
+    render () {
         const {dispatch, paramOfDelete, popupParam, response, condition} = this.props;
 
         const count = response&&response.count ||0;
@@ -51,7 +58,10 @@ class App extends Component {
         return (
             <div className="slice-panel">
                 <div className="popupContainer">
-                    <Popup {...popupParam} setPopupParam={ argu=>dispatch(setPopupParam(argu))}  />
+                    <Popup
+                        {...popupParam}
+                        {...popupActions}
+                    />
                 </div>
                 <div className="panel-top">
                     <div className="left">
@@ -69,7 +79,6 @@ class App extends Component {
                 </div>
                 <div className="panel-middle">
                     <Table
-                        dispatch={dispatch}
                         {...response}
                     />
                 </div>

@@ -6,12 +6,7 @@ import {
     Main
 } from './databaseList/containers';
 import configureStore from './databaseList/stores/configureStore';
-/*import {
-    HashRouter,
-    BrowserRouter,
-    Route,
-    IndexRoute
-} from 'react-router-dom';*/
+
 import './databaseList/style/database.scss';
 
 const store = configureStore();
@@ -19,6 +14,7 @@ const rootElement = document.querySelector('#databaseList');
 const $ = window.$ = require('jquery');
 const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
 require('bootstrap');
+
 $('.nav > li:nth-child(4)').addClass('active');
 
 render(
