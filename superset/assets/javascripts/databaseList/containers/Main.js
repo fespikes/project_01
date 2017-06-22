@@ -65,7 +65,7 @@ class App extends Component {
                 </div>
                 <div className="panel-top">
                     <div className="left">
-                        <i className="icon icon-database-list"></i>
+                        <i className="icon icon-database-list"/>
                         <span>连接</span>
                         <span>记录</span>
                         <span>{count}条</span>
@@ -73,12 +73,14 @@ class App extends Component {
                     <div className="right">
                         <Operate
                             tableType={condition.tableType}
+                            dispatch={dispatch}
                             {...paramOfDelete}
                         />
                     </div>
                 </div>
                 <div className="panel-middle">
                     <Table
+                        dispatch={dispatch}
                         {...response}
                     />
                 </div>

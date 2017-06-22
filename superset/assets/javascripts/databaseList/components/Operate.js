@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Select } from 'antd';
 import { Link }  from 'react-router-dom';
+import { ConnectionDelete } from '../../components/popup';
 
 import PropTypes from 'prop-types';
 import {
@@ -78,38 +79,22 @@ class Operate extends React.Component {
 
     //multi delete
     onDelete () {
-        const { selectedRowNames } = this.props;
-        const me = this;
+        const { dispatch, selectedRowNames } = this.props;
         let deleteType = 'multiple';
         let deleteTips = '确定删除' + selectedRowNames + '?';
         if(selectedRowNames.length === 0) {
             deleteType = 'none';
             deleteTips = '没有选择任何将要删除的记录，请选择！';
         }
-
-        me.dispatch(setPopupParam({
-            title: '删除数据库连接',
-            deleteTips: deleteTips,
-            confirm: function(callback) {
-                if (selectedRowNames.length===0) {
-                    return;
-                }
-                me.dispatch(applyDelete(callback));
-            },
-            closeDialog: function(argus) {
-                alert('on confirm')
-            },
-            showDialog:function(argus) {
-                alert('on confirm');
-            },
-
-            popupContainer: 'popup',
-
-            deleteType: deleteType
-        }));
-//        me.dispatch(showPopup());
-//        deletePopup.showDialog();
-
+        let deleteConnectionPopup = render(
+            <ConnectionDelete
+                dispatch={dispatch}
+                deleteType={deleteType}
+                deleteTips={deleteTips} />,
+            document.getElementById('popup_root'));
+        if(deleteConnectionPopup) {
+            deleteConnectionPopup.showDialog();
+        }
     }
 
     onSearch () {
