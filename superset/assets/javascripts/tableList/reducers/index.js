@@ -5,7 +5,7 @@ import subDetail from './subDetail';
 function condition(state = {
     page: 1,
     pageSize: 10,
-//    order_column,
+    // order_column: 'changed_on',
     orderDirection: 'desc',//取值 ('desc' or 'asc'),
     filter: '',//搜索字符串,
 //    onlyFavorite: 0,//全部or收藏，取值 (0 or 1),
@@ -28,6 +28,8 @@ function condition(state = {
         case actionTypes.selectType:
             return {...state, tableType: action.tableType};
             break;
+        case actionTypes.selectRows:
+            return {...state, selectedRowKeys: action.selectedRowKeys, selectedRowNames: action.selectedRowNames};
         default:
             return state;
     }
