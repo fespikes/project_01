@@ -937,13 +937,14 @@ class TableModelView(SupersetModelView):  # noqa
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        data['available_databases'] = self.get_available_databases()
+        data['available_databases'] = \
+            self.get_available_databases(self.get_user_id())
         return data
 
     @expose('/databases/', methods=['GET', ])
     def addable_databases(self):
         try:
-            dbs = self.get_available_databases()
+            dbs = self.get_available_databases(self.get_user_id())
             return json.dumps(dbs)
         except Exception as e:
             return self.build_response(500, False, str(e))
@@ -1057,16 +1058,17 @@ class TableModelView(SupersetModelView):  # noqa
 
     def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
-        attributes['available_databases'] = self.get_available_databases()
+        attributes['available_databases'] = \
+            self.get_available_databases(self.get_user_id())
         return attributes
 
-    def get_available_databases(self):
+    def get_available_databases(self, user_id):
         dbs = db.session.query(models.Database)\
-            .filter(models.Database.database_name != 'main').all()
-        dbs_list = []
-        for d in dbs:
-            row = {'id': d.id, 'database_name': d.database_name}
-            dbs_list.append(row)
+            .filter(models.Database.database_name != 'main',
+                    models.Database.created_by_fk == user_id)\
+            .all()
+        dbs_list = [{'id': d.id, 'database_name': d.database_name}
+                    for d in dbs]
         return dbs_list
 
     def pre_add(self, table):
