@@ -9,7 +9,8 @@ function conditions(state = {
     pageNumber: 1,
     pageSize: 10,
     selectedRowKeys: [],
-    selectedRowNames: []
+    selectedRowNames: [],
+    tableLoading: false
 }, action) {
     switch (action.type) {
         case CONDITION_PARAMS.SHOW_TYPE:
@@ -41,6 +42,10 @@ function conditions(state = {
             return Object.assign({}, state, {
                 selectedRowKeys: action.selectedRowKeys,
                 selectedRowNames: action.selectedRowNames
+            });
+        case CONDITION_PARAMS.TABLE_LOADING:
+            return Object.assign({}, state, {
+                tableLoading: action.tableLoading
             });
         default:
             return state;

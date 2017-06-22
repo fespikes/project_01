@@ -358,7 +358,8 @@ export function dashboardContainer(dashboard) {
 
 $(document).ready(() => {
     // Getting bootstrapped data from the DOM
-    const dashboardData = $('.dashboard').data('dashboard');
+    let dashboardData = $('.dashboard').data('dashboard');
+    dashboardData.description = $('.dashboard').data('dashboard-description');
     const contextData = $('.dashboard').data('context');
 
     const state = getInitialState(dashboardData, contextData);

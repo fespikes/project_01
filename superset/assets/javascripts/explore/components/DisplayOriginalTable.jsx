@@ -3,13 +3,15 @@ import ReactDOM from 'react-dom';
 import { Select, TreeSelect } from 'antd';
 import PropTypes from 'prop-types';
 
-function constructTreeData(entities) {
+function constructTreeData(entities, isLeaf, category) {
     let nodeData = [];
     entities.map(entity => {
         var node = {};
         node.label = entity;
         node.value = entity;
         node.key = entity;
+        node.isLeaf = isLeaf;
+        node.category = category;
         nodeData.push(node);
     });
     return nodeData;
@@ -18,7 +20,7 @@ function constructTreeData(entities) {
 function appendTreeData(schemaAppended, tables, treeData) {
     treeData.map(schema => {
         if(schema.value === schemaAppended) {
-            schema.children = constructTreeData(tables);
+            schema.children = constructTreeData(tables, true, 'file');
         }
     });
     return treeData;
@@ -30,25 +32,26 @@ class DisplayOriginalTable extends React.Component {
         this.state = {
             databaseNames: [],
             treeData: [],
-            currentDbId: ''
+            currentDbId: '',
+            currentSchema: '',
+            value: ''
         };
-        this.onChange = this.onChange.bind(this);
         this.onSelect = this.onSelect.bind(this);
         this.onLoadData = this.onLoadData.bind(this);
-        this.onSearch = this.onSearch.bind(this);
         this.onConnectionChange = this.onConnectionChange.bind(this);
     };
 
-    onChange(value, label, extra) {
-
-    }
-
     onSelect(value, node, extra) {
-
-    }
-
-    onSearch(value) {
-        console.log("onSearch=", value);
+        const {sliceId, vizType} = this.props;
+        if(node.props.category === 'file') {
+            this.setState({
+                value: value
+            });
+            window.location = window.location.origin + '/pilot/explore/table/0?database_id=' + this.state.currentDbId +
+                '&full_tb_name=' + this.state.currentSchema + '.' + value + '&slice_id=' + sliceId + '&viz_type=' + vizType;
+        }else if(node.props.category === 'folder') {
+            return;
+        }
     }
 
     onLoadData(node) {
@@ -59,13 +62,11 @@ class DisplayOriginalTable extends React.Component {
             url: url,
             type: 'GET',
             success: response => {
-                setTimeout(() => {
-                    response = JSON.parse(response);
-                    console.log(response);
-                    let treeData = appendTreeData(schema, response, self.state.treeData);
-                    self.setState({
-                        treeData: treeData
-                    });
+                response = JSON.parse(response);
+                let treeData = appendTreeData(schema, response, JSON.parse(JSON.stringify(self.state.treeData)));
+                self.setState({
+                    treeData: treeData,
+                    currentSchema: schema
                 });
             },
             error: error => {
@@ -87,8 +88,7 @@ class DisplayOriginalTable extends React.Component {
             type: 'GET',
             success: response => {
                 response = JSON.parse(response);
-                console.log(response);
-                let treeData = constructTreeData(response);
+                let treeData = constructTreeData(response, false, 'folder');
                 self.setState({
                     treeData: treeData
                 });
@@ -126,7 +126,6 @@ class DisplayOriginalTable extends React.Component {
                 return <Option key={database.id}>{database.database_name}</Option>
             }
         );
-        console.log("self.state.treeData=", self.state.treeData);
         return (
             <div className="originalTable">
                 <Select
@@ -138,11 +137,13 @@ class DisplayOriginalTable extends React.Component {
                     {conOptions}
                 </Select>
                 <TreeSelect
-                    labelInValue
+                    showSearch
+                    value={this.state.value}
                     style={{ width: '100%' }}
                     placeholder="Please select"
                     treeData={this.state.treeData}
                     loadData={this.onLoadData}
+                    onSelect={this.onSelect}
                     dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
                 >
                 </TreeSelect>
