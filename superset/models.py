@@ -1345,10 +1345,8 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
         # rs.cursor.description  # could not obtain sql types
         if self.table_name:
             tb = self.get_sqla_table_object()
-            col_types = {}
-            for col in tb.columns:
-                col_types[col.name] = col.type
-            types = [str(col_types.get(c)) for c in columns]
+            col_types = {col.name: str(col.type) for col in tb.columns}
+            types = [col_types.get(c) for c in columns]
         return json.dumps({'columns': columns, 'types': types, 'data': data})
 
     def values_for_column(self, column_name, from_dttm, to_dttm, limit=500):
