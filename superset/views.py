@@ -2241,8 +2241,9 @@ class Superset(BaseSupersetView):
     def testconn(self):
         """Tests a sqla connection"""
         try:
-            uri = request.json.get('uri')
-            db_name = request.json.get('name')
+            args = json.loads(str(request.data, encoding='utf-8'))
+            uri = args.get('sqlalchemy_uri')
+            db_name = args.get('database_name')
             if db_name:
                 database = (
                     db.session.query(models.Database)
@@ -2254,10 +2255,9 @@ class Superset(BaseSupersetView):
                     # use the URI associated with this database
                     uri = database.sqlalchemy_uri_decrypted
             connect_args = (
-                request.json
-                .get('extras', {})
-                .get('engine_params', {})
-                .get('connect_args', {}))
+                args.get('extras', {})
+                    .get('engine_params', {})
+                    .get('connect_args', {}))
             engine = create_engine(uri, connect_args=connect_args)
             engine.connect()
             return json.dumps(engine.table_names(), indent=4)
