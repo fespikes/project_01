@@ -113,7 +113,9 @@ class Operate extends React.Component {
                     <li onClick={argus => this.onAdd(argus)}>
                         <i className="icon icon-plus"></i>
                     </li>
-                    <li onClick={this.onDelete}><i className="icon icon-trash"></i></li>
+                    <li onClick={this.onDelete}>
+                        <i className="icon icon-trash"/>
+                    </li>
                 </ul>
                 <div className="search-input">
                     <input onChange={this.onChange} ref="searchField" placeholder="search..." />

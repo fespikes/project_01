@@ -1,4 +1,5 @@
 import fetch from 'isomorphic-fetch';
+import { getEditConData } from '../utils'
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -109,6 +110,31 @@ export const testConnection = () => {
     }
 }
 
+export function testConnection2(database, callback) {
+    return (dispatch, getState) => {
+        const URL = origin + '/pilot/testconn';
+        const db = getEditConData(database);
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(db)
+        })
+        .then(
+            response => response.ok?
+                response.json() : ((response)=>errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(json => {
+            if(json.success) {
+                dispatch(fetchIfNeeded());
+                callback(true);
+            }else {
+                callback(false, json);
+            }
+        });
+    }
+}
+
 /**
 @description: add connection in database list
 
@@ -204,6 +230,49 @@ export function applyDeleteSingle (id, callback) {
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
+        })
+        .then(
+            response => response.ok?
+                response.json() : ((response)=>errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(json => {
+            if(json.success) {
+                dispatch(fetchIfNeeded());
+                callback(true);
+            }else {
+                callback(false, json);
+            }
+        });
+    }
+}
+
+export function fetchDBDetail(id, callback) {
+    return dispatch => {
+        const URL = baseURL + 'show/' + id;
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'GET'
+        })
+        .then(
+            response => response.ok?
+                response.json() : ((response)=>errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(json => {
+            callback(true, json);
+        });
+    }
+}
+
+export function fetchUpdateConnection(database, callback) {
+    return (dispatch, getState) => {
+        const URL = baseURL + 'edit/' + database.id;
+        const db = getEditConData(database);
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(db)
         })
         .then(
             response => response.ok?

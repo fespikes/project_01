@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { selectRows } from '../actions';
+import { fetchDBDetail } from '../actions';
 import { ConnectionDelete, ConnectionEdit } from '../../components/popup';
 import style from '../style/database.scss'
 
@@ -17,7 +17,6 @@ class SliceTable extends React.Component {
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
 
-        //TODO: to make sure when select all of them ,this function been triggered the same
         const { dispatch } = this.props;
         let selectedRowNames = [];
         selectedRows.forEach(function(row) {
@@ -27,18 +26,18 @@ class SliceTable extends React.Component {
 
     };
 
-    editConnection(record) {//TODO:
+    editConnection(record) {
         const { dispatch } = this.props;
-        dispatch(fetchSliceDetail(record.id, callback));
+        dispatch(fetchDBDetail(record.id, callback));
         function callback(success, data) {
             if(success) {
-                var editSlicePopup = render(
+                let editConnectionPopup = render(
                     <ConnectionEdit
                         dispatch={dispatch}
-                        sliceDetail={data} />,
+                        database={data} />,
                     document.getElementById('popup_root'));
-                if(editSlicePopup) {
-                    editSlicePopup.showDialog();
+                if(editConnectionPopup) {
+                    editConnectionPopup.showDialog();
                 }
             }
         }
