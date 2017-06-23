@@ -20,7 +20,7 @@ from superset.security import get_or_create_main_db
 # Shortcuts
 DB = models.Database
 Slice = models.Slice
-TBL = models.SqlaTable
+TBL = models.Dataset
 Dash = models.Dashboard
 
 config = app.config
