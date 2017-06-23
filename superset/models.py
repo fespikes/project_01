@@ -1185,6 +1185,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     user_id = Column(Integer, ForeignKey('ab_user.id'))
     owner = relationship('User', backref='tables', foreign_keys=[user_id])
 
+    online = Column(Boolean, default=False)
     description = Column(Text)
     filter_select_enabled = Column(Boolean, default=False)
     main_dttm_col = Column(String(250))
@@ -1972,7 +1973,9 @@ str_to_model = {
     'slice': Slice,
     'dashboard': Dashboard,
     'table': SqlaTable,
-    'database': Database
+    'dataset': SqlaTable,
+    'database': Database,
+    'connection': Database
 }
 
 

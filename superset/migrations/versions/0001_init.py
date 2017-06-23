@@ -205,6 +205,7 @@ def upgrade():
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('dataset_name', sa.String(length=250), nullable=False),
         sa.Column('dataset_type', sa.String(length=250), nullable=True),
+        sa.Column('online', sa.Boolean(), nullable=True, server_default="0"),
         sa.Column('main_dttm_col', sa.String(length=250), nullable=True),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('default_endpoint', sa.Text(), nullable=True),

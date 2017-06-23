@@ -180,6 +180,19 @@ def check_ownership(obj, raise_if_false=True):
         return False
 
 
+def get_user_id():
+    try:
+        return int(g.user.get_id())
+    except Exception as e:
+        raise Exception(NO_USER)
+
+
+def build_response(status=200, success=True, message=""):
+    return json.dumps({'status': status,
+                       'success': success,
+                       'message': message})
+
+
 def get_user_roles():
     if g.user.is_anonymous():
         public_role = config.get('AUTH_ROLE_PUBLIC')
@@ -1795,6 +1808,42 @@ class Superset(BaseSupersetView):
             viz_obj = viz.viz_types[viz_type](
                 datasource, request.args if request.args else args)
             return viz_obj
+
+    @catch_exception
+    @expose("/release/<model>/<action>/<id>/", methods=['GET'])
+    def release_object(self, model, action, id):
+        """model could be 'dashboard' 'slice' 'connection' 'dataset' """
+        cls = str_to_model.get(model)
+        obj = db.session.query(cls).filter_by(id=id).first()
+        if not obj:
+            msg = '{}. Model:{} Id:{}'.format(OBJECT_NOT_FOUND, cls.__name__, id)
+            logging.error(msg)
+            return build_response(400, False, msg)
+        elif obj.created_by_fk != get_user_id():
+            return build_response(200, True, NO_ONLINE_PERMISSION)
+        elif action.lower() == 'online':
+            if obj.online is True:
+                return build_response(200, True, OBJECT_IS_ONLINE)
+            else:
+                obj.online = True
+                db.session.commit()
+                action_str = 'Change {} to online: [{}]'.format(model, repr(obj))
+                log_action('online', action_str, model, id)
+                log_number_for_all_users(model)
+                return build_response(200, True, ONLINE_SUCCESS)
+        elif action.lower() == 'offline':
+            if obj.online is False:
+                return build_response(200, True, OBJECT_IS_OFFLINE)
+            else:
+                obj.online = False
+                db.session.commit()
+                action_str = 'Change {} to offline: [{}]'.format(model, repr(obj))
+                log_action('offline', action_str, model, id)
+                log_number_for_all_users(model)
+                return build_response(200, True, OFFLINE_SUCCESS)
+        else:
+            msg = ERROR_URL + ': {}'.format(request.url)
+            return build_response(400, False, msg)
 
     @catch_exception
     @expose("/slice/<slice_id>/")
