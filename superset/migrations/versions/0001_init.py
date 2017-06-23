@@ -48,6 +48,7 @@ def upgrade():
         sa.Column('changed_on', sa.DateTime(), nullable=True),
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('database_name', sa.String(length=250), nullable=True),
+        sa.Column('description', sa.Text(), nullable=True),
         sa.Column('sqlalchemy_uri', sa.String(length=1024), nullable=True),
         sa.Column('password', EncryptedType(), nullable=True),
         sa.Column('cache_timeout', sa.Integer(), nullable=True),

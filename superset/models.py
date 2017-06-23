@@ -698,6 +698,7 @@ class Database(Model, AuditMixinNullable):
 
     id = Column(Integer, primary_key=True)
     database_name = Column(String(250), unique=True)
+    description = Column(Text)
     sqlalchemy_uri = Column(String(1024))
     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
     cache_timeout = Column(Integer)
@@ -1209,11 +1210,11 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     #         'database_id', 'schema', 'table_name',
     #         name='_customer_location_uc'),)
 
-    # just two kinds of dataset_type
+    # three wayS to create dateset, but two kinds of dataset_type: INCEPTOR and HDFS
     dataset_type_dict = {
-        'database': 'INCEPTOR',
         'inceptor': 'INCEPTOR',
-        'hdfs': 'HDFS'}
+        'hdfs': 'HDFS',
+        'upload': 'UPLOAD'}
 
     def __repr__(self):
         return self.dataset_name
@@ -1233,11 +1234,11 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     @property
     def columns(self):
-        return self.temp_columns if len(self.temp_columns) > 0 else self.ref_columns
+        return self.temp_columns if self.temp_columns else self.ref_columns
 
     @property
     def metrics(self):
-        return self.temp_metrics if len(self.temp_metrics) > 0 else self.ref_metrics
+        return self.temp_metrics if self.temp_metrics else self.ref_metrics
 
     @property
     def description_markeddown(self):
@@ -1330,29 +1331,23 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
             tbl = TextAsFrom(sqla.text(self.sql), []).alias('expr_qry')
         qry = select("*").select_from(tbl).limit(limit)
         engine = self.database.get_sqla_engine()
-        sql = "{}".format(
-            qry.compile(
-                engine, compile_kwargs={"literal_binds": True},),
-        )
-
-        try:
-            tb = self.get_sqla_table_object()
-        except Exception:
-            raise Exception(
-                "Table doesn't seem to exist in the specified database, "
-                "couldn't fetch column information")
-        col_types = {}
-        for col in tb.columns:
-            col_types[col.name] = col.type
+        sql = str(qry.compile(engine, compile_kwargs={"literal_binds": True},))
 
         df = None
         try:
-            df = pd.read_sql_query(sql, con=engine)
+            df = pd.read_sql(sql, con=engine)
         except Exception as e:
             raise e
         columns = list(df.keys().values)
-        types = [str(col_types.get(c)) for c in columns]
         data = json.loads(df.to_json())
+
+        types = []
+        # rs = engine.execute(sql)
+        # rs.cursor.description  # could not obtain sql types
+        if self.table_name:
+            tb = self.get_sqla_table_object()
+            col_types = {col.name: str(col.type) for col in tb.columns}
+            types = [col_types.get(c) for c in columns]
         return json.dumps({'columns': columns, 'types': types, 'data': data})
 
     def values_for_column(self, column_name, from_dttm, to_dttm, limit=500):
@@ -1575,16 +1570,15 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
             error_message=error_message)
 
     def get_sqla_table_object(self):
-        return self.database.get_table(self.table_name, schema=self.schema)
+        try:
+            return self.database.get_table(self.table_name, schema=self.schema)
+        except Exception:
+            raise Exception("Couldn't fetch table: [{}]'s information "
+                            "in the specified database".format(self.table_name))
 
     def set_temp_columns_and_metrics(self):
         """Get table's columns and metrics"""
-        try:
-            table = self.get_sqla_table_object()
-        except Exception:
-            raise Exception(
-                "Table doesn't seem to exist in the specified database, "
-                "couldn't fetch column information")
+        table = self.get_sqla_table_object()
 
         any_date_col = None
         self.temp_columns = []
@@ -1660,13 +1654,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     def fetch_metadata(self):
         """Fetches the metadata for the table and merges it in"""
-        try:
-            table = self.get_sqla_table_object()
-        except Exception:
-            raise Exception(
-                "Table doesn't seem to exist in the specified database, "
-                "couldn't fetch column information")
-
+        table = self.get_sqla_table_object()
         TC = TableColumn  # noqa shortcut to class
         M = SqlMetric  # noqa
         metrics = []

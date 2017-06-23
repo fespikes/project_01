@@ -477,7 +477,7 @@ class SupersetModelView(ModelView):
             else:
                 attributes[col] = getattr(obj, col, None)
 
-        attributes['readme'] = self.get_column_readme()
+        # attributes['readme'] = self.get_column_readme()
         attributes['created_by_user'] = obj.created_by.username \
             if obj.created_by else None
         attributes['changed_by_user'] = obj.changed_by.username \
@@ -733,11 +733,11 @@ class DatabaseView(SupersetModelView):  # noqa
     model = models.Database
     datamodel = SQLAInterface(models.Database)
     route_base = '/database'
-    list_columns = ['id', 'database_name', 'backend', 'changed_on']
+    list_columns = ['id', 'database_name', 'description', 'backend', 'changed_on']
     _list_columns = list_columns
-    show_columns = ['id', 'database_name', 'sqlalchemy_uri',
+    show_columns = ['id', 'database_name', 'description', 'sqlalchemy_uri',
                     'backend',  'created_on', 'changed_on']
-    add_columns = ['database_name', 'sqlalchemy_uri']
+    add_columns = ['database_name', 'description', 'sqlalchemy_uri']
     edit_columns = add_columns
     readme_columns = ['sqlalchemy_uri']
     add_template = "superset/models/database/add.html"
@@ -937,13 +937,14 @@ class TableModelView(SupersetModelView):  # noqa
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        data['available_databases'] = self.get_available_databases()
+        data['available_databases'] = \
+            self.get_available_databases(self.get_user_id())
         return data
 
     @expose('/databases/', methods=['GET', ])
     def addable_databases(self):
         try:
-            dbs = self.get_available_databases()
+            dbs = self.get_available_databases(self.get_user_id())
             return json.dumps(dbs)
         except Exception as e:
             return self.build_response(500, False, str(e))
@@ -980,6 +981,13 @@ class TableModelView(SupersetModelView):  # noqa
             return self.build_response(200, True, UPDATE_SUCCESS)
         except Exception as e:
             return self.build_response(self.status, False, str(e))
+
+    @expose('/dataset_types/', methods=['GET', ])
+    def dataset_types(self):
+        try:
+            return json.dumps(list(self.model.dataset_type_dict.values()))
+        except Exception as e:
+            return self.build_response(500, False, str(e))
 
     def get_object_list_data(self, **kwargs):
         """Return the table list"""
@@ -1057,16 +1065,17 @@ class TableModelView(SupersetModelView):  # noqa
 
     def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
-        attributes['available_databases'] = self.get_available_databases()
+        attributes['available_databases'] = \
+            self.get_available_databases(self.get_user_id())
         return attributes
 
-    def get_available_databases(self):
+    def get_available_databases(self, user_id):
         dbs = db.session.query(models.Database)\
-            .filter(models.Database.database_name != 'main').all()
-        dbs_list = []
-        for d in dbs:
-            row = {'id': d.id, 'database_name': d.database_name}
-            dbs_list.append(row)
+            .filter(models.Database.database_name != 'main',
+                    models.Database.created_by_fk == user_id)\
+            .all()
+        dbs_list = [{'id': d.id, 'database_name': d.database_name}
+                    for d in dbs]
         return dbs_list
 
     def pre_add(self, table):
@@ -2239,8 +2248,9 @@ class Superset(BaseSupersetView):
     def testconn(self):
         """Tests a sqla connection"""
         try:
-            uri = request.json.get('uri')
-            db_name = request.json.get('name')
+            args = json.loads(str(request.data, encoding='utf-8'))
+            uri = args.get('sqlalchemy_uri')
+            db_name = args.get('database_name')
             if db_name:
                 database = (
                     db.session.query(models.Database)
@@ -2252,10 +2262,9 @@ class Superset(BaseSupersetView):
                     # use the URI associated with this database
                     uri = database.sqlalchemy_uri_decrypted
             connect_args = (
-                request.json
-                .get('extras', {})
-                .get('engine_params', {})
-                .get('connect_args', {}))
+                args.get('extras', {})
+                    .get('engine_params', {})
+                    .get('connect_args', {}))
             engine = create_engine(uri, connect_args=connect_args)
             engine.connect()
             return json.dumps(engine.table_names(), indent=4)
