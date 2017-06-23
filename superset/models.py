@@ -699,6 +699,7 @@ class Database(Model, AuditMixinNullable):
     id = Column(Integer, primary_key=True)
     database_name = Column(String(250), unique=True)
     description = Column(Text)
+    online = Column(Boolean, default=False)
     sqlalchemy_uri = Column(String(1024))
     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
     cache_timeout = Column(Integer)
