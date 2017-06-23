@@ -120,18 +120,15 @@ export function testConnection2(database, callback) {
             body: JSON.stringify(db)
         })
         .then(
-            response => response.ok?
-                response.json() : ((response)=>errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            if(json.success) {
-                dispatch(fetchIfNeeded());
-                callback(true);
-            }else {
-                callback(false, json);
+            response => {
+                if(response.ok) {
+                    dispatch(fetchIfNeeded());
+                    callback(true);
+                }else {
+                    callback(false);
+                }
             }
-        });
+        );
     }
 }
 
