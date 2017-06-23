@@ -477,7 +477,7 @@ class SupersetModelView(ModelView):
             else:
                 attributes[col] = getattr(obj, col, None)
 
-        attributes['readme'] = self.get_column_readme()
+        # attributes['readme'] = self.get_column_readme()
         attributes['created_by_user'] = obj.created_by.username \
             if obj.created_by else None
         attributes['changed_by_user'] = obj.changed_by.username \
@@ -733,11 +733,11 @@ class DatabaseView(SupersetModelView):  # noqa
     model = models.Database
     datamodel = SQLAInterface(models.Database)
     route_base = '/database'
-    list_columns = ['id', 'database_name', 'backend', 'changed_on']
+    list_columns = ['id', 'database_name', 'description', 'backend', 'changed_on']
     _list_columns = list_columns
-    show_columns = ['id', 'database_name', 'sqlalchemy_uri',
+    show_columns = ['id', 'database_name', 'description', 'sqlalchemy_uri',
                     'backend',  'created_on', 'changed_on']
-    add_columns = ['database_name', 'sqlalchemy_uri']
+    add_columns = ['database_name', 'description', 'sqlalchemy_uri']
     edit_columns = add_columns
     readme_columns = ['sqlalchemy_uri']
     add_template = "superset/models/database/add.html"
