@@ -41,6 +41,9 @@ function paramOfDelete(state={
         case actionTypes.selectRows:
             return {...state, selectedRowKeys: action.selectedRowKeys, selectedRowNames: action.selectedRowNames};
             break;
+        case actionTypes.clearRows:
+            return {...state, selectedRowKeys: [], selectedRowNames: []};
+            break;
         default:
             return state;
     }

@@ -2,70 +2,67 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { selectRows, applyDelete, fetchSliceDetail } from '../actions';
-import { SliceDelete, SliceEdit } from '../../components/popup';
+import { fetchDBDetail, selectRows } from '../actions';
+import { ConnectionDelete, ConnectionEdit } from '../../components/popup';
 import style from '../style/database.scss'
 
 class SliceTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
+        //bindings
+        this.deleteConnection = this.deleteConnection.bind(this);
+        this.editConnection = this.editConnection.bind(this);
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
 
-        //TODO: to make sure when select all of them ,this function been triggered the same
         const { dispatch } = this.props;
         let selectedRowNames = [];
         selectedRows.forEach(function(row) {
             selectedRowNames.push(row.database_name);
         });
-
-        console.log(selectedRowKeys.length, selectedRowNames.length);
-
         dispatch(selectRows(selectedRowKeys, selectedRowNames));
 
     };
 
-    render() {
-
-        const { dispatch, data } = this.props;
-
-        function editSlice(record) {//TODO:
-            dispatch(fetchSliceDetail(record.id, callback));
-            function callback(success, data) {
-                if(success) {
-                    var editSlicePopup = render(
-                        <SliceEdit
-                            dispatch={dispatch}
-                            sliceDetail={data}/>,
-                        document.getElementById('popup_root'));
-                    if(editSlicePopup) {
-                        editSlicePopup.showDialog();
-                    }
+    editConnection(record) {
+        const { dispatch } = this.props;
+        dispatch(fetchDBDetail(record.id, callback));
+        function callback(success, data) {
+            if(success) {
+                let editConnectionPopup = render(
+                    <ConnectionEdit
+                        dispatch={dispatch}
+                        database={data} />,
+                    document.getElementById('popup_root'));
+                if(editConnectionPopup) {
+                    editConnectionPopup.showDialog();
                 }
             }
         }
+    }
 
-        //delete one of them
-        function deleteSlice(record) {
-
-            let deleteTips = "确定删除" + record.slice_name + "?";      //i18n
-            //applyDelete
-
-            let deleteSlicePopup = render(
-                <SliceDelete
-                    dispatch={dispatch}
-                    deleteType={'single'}
-                    deleteTips={deleteTips}
-                    slice={record}/>,
-                document.getElementById('popup_root'));
-            if(deleteSlicePopup) {
-                deleteSlicePopup.showDialog();
-            }
+    //delete one of them
+    deleteConnection(record) {
+        const { dispatch } = this.props;
+        let deleteTips = "确定删除" + record.database_name + "?";      //i18n
+        let deleteConnectionPopup = render(
+            <ConnectionDelete
+                dispatch={dispatch}
+                deleteType={'single'}
+                deleteTips={deleteTips}
+                connection={record}/>,
+            document.getElementById('popup_root'));
+        if(deleteConnectionPopup) {
+            deleteConnectionPopup.showDialog();
         }
+    }
 
+    render() {
+        const { data, selectedRowKeys } = this.props;
         const rowSelection = {
+            selectedRowKeys,
             onChange: this.onSelectChange
         };
 
@@ -118,12 +115,12 @@ class SliceTable extends React.Component {
                         <div className="icon-group">
                             <i
                                 className="icon icon-edit"
-                                onClick={() => editSlice(record)}
-                            ></i>&nbsp;
+                                onClick={() => this.editConnection(record)}
+                            />
                             <i
                                 className="icon icon-delete"
-                                onClick={() => deleteSlice(record)}
-                            ></i>
+                                onClick={() => this.deleteConnection(record)}
+                            />
                         </div>
                     )
                 }
