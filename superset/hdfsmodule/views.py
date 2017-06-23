@@ -3,7 +3,7 @@ from flask_babel import lazy_gettext as _
 from flask_restful import Resource, Api, reqparse
 
 from superset import (app, db, security, sm)
-from superset.models import Database, SqlaTable
+from superset.models import Database, Dataset
 from superset.hdfsmodule.filebrowser import Filebrowser
 from superset.hdfsmodule.models import HDFSConnection, HDFSTable
 from superset.utils import get_hdfs_user_from_principal
@@ -337,16 +337,16 @@ class HDFSTableRes(Resource):
         db.session.add(hdfstable)
         db.session.commit()
 
-        sqlaTable = SqlaTable()
-        sqlaTable.dataset_name = table_name
-        sqlaTable.dataset_type = sqlaTable.dataset_type_dict.get('hdfs')
-        sqlaTable.table_name = table_name
-        sqlaTable.database_id = database.id
-        sqlaTable.hdfs_table_id = hdfstable.id
+        dataset = Dataset()
+        dataset.dataset_name = table_name
+        dataset.dataset_type = dataset.dataset_type_dict.get('hdfs')
+        dataset.table_name = table_name
+        dataset.database_id = database.id
+        dataset.hdfs_table_id = hdfstable.id
 
-        db.session.add(sqlaTable)
+        db.session.add(dataset)
         db.session.commit()
-        self.merge_perm(sqlaTable)
+        self.merge_perm(dataset)
         return "succeed to add a new hdfs table", 201
 
     def put(self, table_id=None):
@@ -357,17 +357,17 @@ class HDFSTableRes(Resource):
         hdfstable = db.session.query(HDFSTable).get(table_id)
         if hdfstable is None:
             return "hdfs table not found", 400
-        sqlaTable = db.session.query(SqlaTable).get(hdfstable.table_id)
-        if sqlaTable is None:
-            return "sqlaTable not found", 400
-        database = db.session.query(Database).get(sqlaTable.database_id)
+        dataset = db.session.query(Dataset).get(hdfstable.table_id)
+        if dataset is None:
+            return "dataset not found", 400
+        database = db.session.query(Database).get(dataset.database_id)
         if database is None:
             return "database not found", 400
 
         hdfstable.separator = args['separator']
         db.session.commit()
 
-        create_sql = "create external table " + sqlaTable.table_name + "("
+        create_sql = "create external table " + dataset.table_name + "("
         for column_name, column_type in args['column_desc'].items():
             create_sql = create_sql + column_name + " " + column_type + ","
         create_sql = create_sql[:-1] \
@@ -376,9 +376,9 @@ class HDFSTableRes(Resource):
                      + hdfstable.hdfs_path + "'"
 
         engine = database.get_sqla_engine()
-        engine.execute("drop table if exists " + sqlaTable.table_name)
+        engine.execute("drop table if exists " + dataset.table_name)
         engine.execute(create_sql)
-        self.merge_perm(sqlaTable)
+        self.merge_perm(dataset)
         return "succeed to modify an hdfs table", 200
 
     def delete(self, table_id=None):
