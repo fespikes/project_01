@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchDBDetail } from '../actions';
+import { fetchDBDetail, selectRows } from '../actions';
 import { ConnectionDelete, ConnectionEdit } from '../../components/popup';
 import style from '../style/database.scss'
 
@@ -60,8 +60,9 @@ class SliceTable extends React.Component {
     }
 
     render() {
-        const { data } = this.props;
+        const { data, selectedRowKeys } = this.props;
         const rowSelection = {
+            selectedRowKeys,
             onChange: this.onSelectChange
         };
 

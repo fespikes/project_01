@@ -82,6 +82,7 @@ class App extends Component {
                     <Table
                         dispatch={dispatch}
                         {...response}
+                        {...paramOfDelete}
                     />
                 </div>
                 <div className="panel-bottom">
