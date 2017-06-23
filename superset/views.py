@@ -982,6 +982,13 @@ class TableModelView(SupersetModelView):  # noqa
         except Exception as e:
             return self.build_response(self.status, False, str(e))
 
+    @expose('/dataset_types/', methods=['GET', ])
+    def dataset_types(self):
+        try:
+            return json.dumps(list(self.model.dataset_type_dict.values()))
+        except Exception as e:
+            return self.build_response(500, False, str(e))
+
     def get_object_list_data(self, **kwargs):
         """Return the table list"""
         order_column = kwargs.get('order_column')

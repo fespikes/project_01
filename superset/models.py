@@ -1210,11 +1210,11 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     #         'database_id', 'schema', 'table_name',
     #         name='_customer_location_uc'),)
 
-    # just two kinds of dataset_type
+    # three wayS to create dateset, but two kinds of dataset_type: INCEPTOR and HDFS
     dataset_type_dict = {
-        'database': 'INCEPTOR',
         'inceptor': 'INCEPTOR',
-        'hdfs': 'HDFS'}
+        'hdfs': 'HDFS',
+        'upload': 'UPLOAD'}
 
     def __repr__(self):
         return self.dataset_name
