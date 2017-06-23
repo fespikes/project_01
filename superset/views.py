@@ -1613,47 +1613,6 @@ class DashboardModelView(SupersetModelView):  # noqa
             headers=generate_download_headers("pickle"),
             mimetype="application/text")
 
-    @catch_exception
-    @expose("/release/<action>/<dashboard_id>/", methods=['GET'])
-    def dashbaord_online_or_offline(self, action, dashboard_id):
-        obj = db.session.query(models.Dashboard) \
-            .filter_by(id=dashboard_id).first()
-        if not obj:
-            msg = '{}. Model:{} Id:{}'.format(
-                OBJECT_NOT_FOUND, self.model.__name__, dashboard_id)
-            logging.error(msg)
-            return self.build_response(400, False, msg)
-        elif obj.created_by_fk != self.get_user_id():
-            msg = NO_ONLINE_PERMISSION + ': {}'.format(obj.dashboard_title)
-            return self.build_response(200, True, msg)
-        elif action.lower() == 'online':
-            if obj.online is True:
-                msg = OBJECT_IS_ONLINE + ': {}'.format(obj.dashboard_title)
-                return self.build_response(200, True, msg)
-            else:
-                obj.online = True
-                db.session.commit()
-                action_str = 'Change dashboard to online: [{}]'.format(repr(obj))
-                log_action('online', action_str, 'dashboard', dashboard_id)
-                log_number_for_all_users('dashboard')
-                msg = ONLINE_SUCCESS + ': {}'.format(obj.dashboard_title)
-                return self.build_response(200, True, msg)
-        elif action.lower() == 'offline':
-            if obj.online is False:
-                msg = OBJECT_IS_OFFLINE + ': {}'.format(obj.dashboard_title)
-                return self.build_response(200, True, msg)
-            else:
-                obj.online = False
-                db.session.commit()
-                action_str = 'Change dashboard to offline: [{}]'.format(repr(obj))
-                log_action('offline', action_str, 'dashboard', dashboard_id)
-                log_number_for_all_users('dashboard')
-                msg = OFFLINE_SUCCESS + ': {}'.format(obj.dashboard_title)
-                return self.build_response(200, True, msg)
-        else:
-            msg = ERROR_URL + ': {}'.format(request.url)
-            return self.build_response(400, False, msg)
-
     @staticmethod
     def add_slices_api(dashboard_id, slice_ids):
         """Add and save slices to a dashboard"""
