@@ -600,6 +600,29 @@ class SupersetModelView(ModelView):
             dashs_list.append(row)
         return dashs_list
 
+    @staticmethod
+    def get_available_slices(user_id):
+        slices = (
+            db.session.query(models.Slice)
+            .filter(
+                or_(models.Slice.created_by_fk == user_id,
+                    models.Slice.online == 1)
+            )
+            .order_by(models.Slice.changed_on.desc())
+            .all()
+        )
+        return slices
+
+    @staticmethod
+    def slices_to_dict(slices):
+        slices_list = []
+        for slice in slices:
+            row = {'id': slice.id,
+                   'slice_name': slice.slice_name,
+                   'viz_type': slice.viz_type}
+            slices_list.append(row)
+        return slices_list
+
     def get_user_id(self):
         try:
             user_id = g.user.get_id()
@@ -1425,35 +1448,6 @@ class DashboardModelView(SupersetModelView):  # noqa
         slices = self.get_available_slices(self.get_user_id())
         data['available_slices'] = self.slices_to_dict(slices)
         return data
-
-    def available_slices_api(self):
-        user_id = self.get_user_id()
-        slices = self.get_available_slices(user_id)
-        data = self.slices_to_dict(slices)
-        return json.dumps(data)
-
-    @staticmethod
-    def get_available_slices(user_id):
-        slices = (
-            db.session.query(models.Slice)
-            .filter(
-                or_(models.Slice.created_by_fk == user_id,
-                    models.Slice.online == 1)
-            )
-            .order_by(models.Slice.changed_on.desc())
-            .all()
-        )
-        return slices
-
-    @staticmethod
-    def slices_to_dict(slices):
-        slices_list = []
-        for slice in slices:
-            row = {'id': slice.id,
-                   'slice_name': slice.slice_name,
-                   'viz_type': slice.viz_type}
-            slices_list.append(row)
-        return slices_list
 
     def pre_add(self, obj):
         if g.user not in obj.owners:
