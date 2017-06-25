@@ -582,6 +582,24 @@ class SupersetModelView(ModelView):
                     for d in dbs]
         return dbs_list
 
+    @staticmethod
+    def get_available_dashboards(user_id):
+        dashs = (
+            db.session.query(models.Dashboard)
+            .filter_by(created_by_fk=user_id)
+            .order_by(models.Dashboard.changed_on.desc())
+            .all()
+        )
+        return dashs
+
+    @staticmethod
+    def dashboards_to_dict(dashs):
+        dashs_list = []
+        for dash in dashs:
+            row = {'id': dash.id, 'dashboard_title': dash.dashboard_title}
+            dashs_list.append(row)
+        return dashs_list
+
     def get_user_id(self):
         try:
             user_id = g.user.get_id()
@@ -1238,30 +1256,6 @@ class SliceModelView(SupersetModelView):  # noqa
             msg = "Some dashboards are not found by ids: {}".format(ids)
             self.handle_exception(404, Exception, msg)
         return objs
-
-    def available_dashboards_api(self):
-        user_id = self.get_user_id()
-        dashs = self.get_available_dashboards(user_id)
-        data = self.dashboards_to_dict(dashs)
-        return json.dumps(data)
-
-    @staticmethod
-    def get_available_dashboards(user_id):
-        dashs = (
-            db.session.query(models.Dashboard)
-            .filter_by(created_by_fk=user_id)
-            .order_by(models.Dashboard.changed_on.desc())
-            .all()
-        )
-        return dashs
-
-    @staticmethod
-    def dashboards_to_dict(dashs):
-        dashs_list = []
-        for dash in dashs:
-            row = {'id': dash.id, 'dashboard_title': dash.dashboard_title}
-            dashs_list.append(row)
-        return dashs_list
 
     def pre_update(self, obj):
         # check_ownership(obj)
