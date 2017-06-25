@@ -782,6 +782,13 @@ class DatabaseView(SupersetModelView):  # noqa
 
     list_template = "superset/databaseList.html"
 
+    @expose('/connection_types/', methods=['GET', ])
+    def connection_types(self):
+        try:
+            return json.dumps(list(self.model.connection_type_dict.values()))
+        except Exception as e:
+            return self.build_response(500, False, str(e))
+
     def pre_add(self, obj):
         if obj.test_uri(obj.sqlalchemy_uri):
             obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)

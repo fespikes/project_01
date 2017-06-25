@@ -718,6 +718,10 @@ class Database(Model, AuditMixinNullable):
     """))
     perm = Column(String(1000))
 
+    connection_type_dict = {
+        'inceptor': 'INCEPTOR',
+        'hdfs': 'HDFS'}
+
     def __repr__(self):
         return self.database_name
 
