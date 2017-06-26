@@ -1175,10 +1175,10 @@ class DatasetModelView(SupersetModelView):  # noqa
         table.fetch_metadata()
         DatasetModelView.merge_perm(table)
         # log user aciton
-        action_str = 'Add table: [{}]'.format(repr(table))
+        action_str = 'Add dataset: [{}]'.format(repr(table))
         log_action('add', action_str, 'table', table.id)
         # log table number
-        log_number('table', g.user.get_id())
+        log_number('dataset', g.user.get_id())
 
     def update_hdfs_table(self, table, json_date):
         hdfs_table = table.hdfs_table
@@ -1202,10 +1202,10 @@ class DatasetModelView(SupersetModelView):  # noqa
                 .delete(synchronize_session=False)
             db.session.commit()
         # log user action
-        action_str = 'Delete table: [{}]'.format(repr(table))
+        action_str = 'Delete dataset: [{}]'.format(repr(table))
         log_action('delete', action_str, 'table', table.id)
         # log table number
-        log_number('table', g.user.get_id())
+        log_number('dataset', g.user.get_id())
 
 
 class SliceModelView(SupersetModelView):  # noqa
