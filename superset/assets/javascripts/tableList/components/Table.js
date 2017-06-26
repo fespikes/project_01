@@ -3,7 +3,6 @@ import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
-import { SliceDelete, SliceEdit } from '../../components/popup';
 import style from '../style/table.scss'
 
 class SliceTable extends React.Component {
@@ -26,7 +25,7 @@ class SliceTable extends React.Component {
         const { dispatch, data } = this.props;
 
         function editSlice(record) {
-            dispatch(fetchSliceDetail(record.id, callback));
+            /* dispatch(fetchSliceDetail(record.id, callback));
             function callback(success, data) {
                 if(success) {
                     var editSlicePopup = render(
@@ -38,12 +37,12 @@ class SliceTable extends React.Component {
                         editSlicePopup.showDialog();
                     }
                 }
-            }
+            } */
         }
 
         function deleteSlice(record) {
 
-            let deleteTips = "确定删除" + record.slice_name + "?";
+            /* let deleteTips = "确定删除" + record.slice_name + "?";
             let deleteSlicePopup = render(
                 <SliceDelete
                     dispatch={dispatch}
@@ -53,7 +52,7 @@ class SliceTable extends React.Component {
                 document.getElementById('popup_root'));
             if(deleteSlicePopup) {
                 deleteSlicePopup.showDialog();
-            }
+            } */
         }
 
         function favoriteSlice(record) {

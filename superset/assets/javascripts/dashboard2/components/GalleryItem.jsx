@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Checkbox } from 'antd';
 import { render } from 'react-dom';
 import { fetchStateChange, fetchDashboardDetail, appendRow, removeRow } from '../actions';
-import { DashboardEdit, DashboardDelete } from '../../components/popup';
+import { DashboardEdit, DashboardDelete } from '../popup';
 
 class GalleryItem extends React.Component {
     constructor(props) {

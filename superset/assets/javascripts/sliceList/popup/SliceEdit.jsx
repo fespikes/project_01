@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetchUpdateSlice } from '../../../sliceList/actions';
+import { fetchUpdateSlice } from '../actions';
 import { Select, Alert } from 'antd';
 import PropTypes from 'prop-types';
 
@@ -95,11 +95,11 @@ class SliceEdit extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon icon-slice-popup"></i>
+                                <i className="icon icon-slice-popup" />
                                 <span>编辑工作表</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog} />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -127,7 +127,7 @@ class SliceEdit extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <textarea className="dialog-area" value={this.props.sliceDetail.description}
-                                          onChange={this.handleDescriptionChange}></textarea>
+                                          onChange={this.handleDescriptionChange} />
                                 </div>
                             </div>
                             <div className="dialog-item">

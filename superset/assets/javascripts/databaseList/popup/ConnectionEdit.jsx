@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { render } from 'react-dom'
-import { fetchUpdateConnection, testConnection2 } from '../../../databaseList/actions';
+import { fetchUpdateConnection, testConnectionInEditConnectPopup } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
 
@@ -34,7 +34,7 @@ class ConnectionEdit extends React.Component {
     testConnection() {
         const self = this;
         const { dispatch } = self.props;
-        dispatch(testConnection2(self.state.database, callback));
+        dispatch(testConnectionInEditConnectPopup(self.state.database, callback));
 
         function callback(success) {
             let exception = {};

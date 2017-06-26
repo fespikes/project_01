@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
 import { fetchDBDetail, selectRows } from '../actions';
-import { ConnectionDelete, ConnectionEdit } from '../../components/popup';
+import { ConnectionDelete, ConnectionEdit } from '../popup';
 import style from '../style/database.scss'
 
 class SliceTable extends React.Component {

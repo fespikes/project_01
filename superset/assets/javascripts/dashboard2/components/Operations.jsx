@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { DashboardAdd, DashboardDelete } from '../../components/popup';
+import { DashboardAdd, DashboardDelete } from '../popup';
 import { fetchAvailableSlices, fetchPosts, fetchDashboardDeleteMul, setShowType, setKeyword,
     setPageNumber, setViewMode } from '../actions';
 

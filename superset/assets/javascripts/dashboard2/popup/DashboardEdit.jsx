@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetchAvailableSlices, fetchUpdateDashboard } from '../../../dashboard2/actions';
+import { fetchAvailableSlices, fetchUpdateDashboard } from '../actions';
 import { Select, Alert } from 'antd';
 import PropTypes from 'prop-types';
 
@@ -96,11 +96,11 @@ class DashboardEdit extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon icon-dashboard-popup"></i>
+                                <i className="icon icon-dashboard-popup" />
                                 <span>编辑仪表盘</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog} />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -128,7 +128,7 @@ class DashboardEdit extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <textarea className="dialog-area" value={this.props.dashboardDetail.description}
-                                        onChange={this.handleDescriptionChange} disabled={!self.props.editable}></textarea>
+                                        onChange={this.handleDescriptionChange} disabled={!self.props.editable} />
                                 </div>
                             </div>
                             <div className="dialog-item">

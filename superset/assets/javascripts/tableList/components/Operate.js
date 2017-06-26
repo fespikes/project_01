@@ -9,8 +9,6 @@ import {
     search
 } from '../actions';
 
-import { SliceDelete } from '../../components/popup';//TODO:
-
 class SliceOperate extends React.Component {
     constructor(props) {
         super(props);
@@ -32,7 +30,7 @@ class SliceOperate extends React.Component {
     }
 
     onDelete () {//TODO:
-        const { dispatch, selectedRowNames } = this.props;
+        /* const { dispatch, selectedRowNames } = this.props;
         let deleteType = 'multiple';
         let deleteTips = '确定删除' + selectedRowNames + '?';
         if(selectedRowNames.length === 0) {
@@ -47,7 +45,7 @@ class SliceOperate extends React.Component {
             document.getElementById('popup_root'));
         if(deleteSlicePopup) {
             deleteSlicePopup.showDialog();
-        }
+        } */
     }
 
     handleSelectChange (argus) {
