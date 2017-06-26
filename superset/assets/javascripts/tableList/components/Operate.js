@@ -9,7 +9,7 @@ import {
     search
 } from '../actions';
 
-import { SliceDelete } from '../../components/popup';//TODO:
+import { TableDelete } from '../../components/popup';//TODO:
 
 class SliceOperate extends React.Component {
     constructor(props) {
@@ -39,14 +39,14 @@ class SliceOperate extends React.Component {
             deleteType = 'none';
             deleteTips = '没有选择任何将要删除的记录，请选择！';
         }
-        let deleteSlicePopup = render(
-            <SliceDelete
+        let deleteTablePopup = render(
+            <TableDelete
                 dispatch={dispatch}
                 deleteType={deleteType}
                 deleteTips={deleteTips} />,
             document.getElementById('popup_root'));
-        if(deleteSlicePopup) {
-            deleteSlicePopup.showDialog();
+        if(deleteTablePopup) {
+            deleteTablePopup.showDialog();
         }
     }
 
@@ -78,9 +78,8 @@ class SliceOperate extends React.Component {
                 <div className="tab-btn">
                     <Select ref="tableType" defaultValue={tableType} style={{ width: 120 }} onChange={this.handleSelectChange}>
                         <Option value="all">all types</Option>
-                        <Option value="database">database</Option>
-                        <Option value="hdfs">hdfs</Option>
-                        <Option value="upload">upload</Option>
+                        <Option value="HDFS">HDFS</Option>
+                        <Option value="INCEPTOR">INCEPTOR</Option>
                     </Select>
                 </div>
                 <div className="search-input">
