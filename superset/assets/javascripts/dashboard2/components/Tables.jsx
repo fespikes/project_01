@@ -3,7 +3,7 @@ import { render, ReactDOM } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange, setSelectedRow } from '../actions';
-import { DashboardEdit, DashboardDelete } from '../../components/popup';
+import { DashboardEdit, DashboardDelete } from '../popup';
 import { Table } from 'antd';
 import 'antd/lib/table/style';
 

@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
 import { selectRows } from '../actions';
-import { TableDelete } from '../../components/popup';
+import { TableDelete } from '../popup';
 import style from '../style/table.scss'
 
 class SliceTable extends React.Component {
@@ -58,7 +58,7 @@ class SliceTable extends React.Component {
                 render: (text, record) => {
                     const datasetType = record.dataset_type;
                     return (
-                        <i className={'icon ' + record.iconClass}></i>
+                        <i className={'icon ' + record.iconClass} />
                     )
                 }
             },
@@ -106,11 +106,11 @@ class SliceTable extends React.Component {
                             <i
                                 className="icon icon-edit"
                                 onClick={() => editTable(record)}
-                            ></i>&nbsp;&nbsp;
+                            />
                             <i
                                 className="icon icon-delete"
                                 onClick={() => deleteTable(record)}
-                            ></i>
+                            />
                         </div>
                     )
                 }

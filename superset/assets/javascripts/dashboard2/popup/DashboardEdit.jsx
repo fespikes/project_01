@@ -3,22 +3,25 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetchUpdateSlice } from '../../../sliceList/actions';
+import { fetchAvailableSlices, fetchUpdateDashboard } from '../actions';
 import { Select, Alert } from 'antd';
 import PropTypes from 'prop-types';
 
-class SliceEdit extends React.Component {
+class DashboardEdit extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             exception: {},
-            selectedDashboards: initDefaultOptions()
+            dashboardDetail: {
+                description: ''
+            },
+            selectedSlices: initDefaultOptions()
         };
 
         function initDefaultOptions() {
             let defaultOptions = [];
-            props.sliceDetail.dashboards.map(dashboard => {
-                defaultOptions.push(dashboard.id.toString());
+            props.dashboardDetail.slices.map(slice => {
+                defaultOptions.push(slice.id.toString());
             });
             return defaultOptions;
         }
@@ -26,40 +29,41 @@ class SliceEdit extends React.Component {
         this.confirm = this.confirm.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
         this.showDialog = this.showDialog.bind(this);
+
         this.handleTitleChange = this.handleTitleChange.bind(this);
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
     };
 
     showDialog() {
-        this.refs.popupSliceEdit.style.display = "flex";
+        this.refs.popupDashboardEdit.style.display = "flex";
     }
 
     closeDialog() {
-        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));//for resolve ant-design select component cache issue
+        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
     handleTitleChange(e) {
-        this.props.sliceDetail.slice_name = e.currentTarget.value;
+        this.props.dashboardDetail.dashboard_title = e.currentTarget.value;
         this.setState({
-            sliceDetail: this.props.sliceDetail
+            dashboardDetail: this.props.dashboardDetail
         });
     }
 
     handleDescriptionChange(e) {
-        this.props.sliceDetail.description = e.currentTarget.value;
+        this.props.dashboardDetail.description = e.currentTarget.value;
         this.setState({
-            sliceDetail: this.props.sliceDetail
+            dashboardDetail: this.props.dashboardDetail
         });
     }
 
     confirm() {
         const self = this;
         const { dispatch } = self.props;
-        dispatch(fetchUpdateSlice(self.state, self.props.sliceDetail, callback));
+        dispatch(fetchUpdateDashboard(self.state, self.props.dashboardDetail, callback));
         function callback(success, message) {
             if(success) {
                 self.setState({
-                    selectedDashboards: []
+                    selectedSlices: []
                 });
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
@@ -78,28 +82,28 @@ class SliceEdit extends React.Component {
     render() {
         const self = this;
         const Option = Select.Option;
-        const defaultOptions = self.state.selectedDashboards;
-        const options = self.props.sliceDetail.available_dashboards.map(dashboard => {
-            return <Option key={dashboard.id}>{dashboard.dashboard_title}</Option>
+        const options = self.props.dashboardDetail.available_slices.map(slice => {
+            return <Option key={slice.id}>{slice.slice_name}</Option>
         });
+        const defaultOptions = this.state.selectedSlices;
 
         function onChange(value) {
             self.setState({
-                selectedDashboards: value
+                selectedSlices: value
             });
         }
 
         return (
-            <div className="popup" ref="popupSliceEdit" style={{display:'none'}}>
+            <div className="popup" ref="popupDashboardEdit">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon icon-slice-popup"></i>
-                                <span>编辑工作表</span>
+                                <i className="icon icon-dashboard-popup" />
+                                <span>编辑仪表盘</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog} />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -114,11 +118,11 @@ class SliceEdit extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
-                                    <span>名称：</span>
+                                    <span>标题：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.sliceDetail.slice_name}
-                                       onChange={this.handleTitleChange}/>
+                                    <input className="form-control dialog-input" value={this.props.dashboardDetail.dashboard_title}
+                                      onChange={this.handleTitleChange} disabled={!self.props.editable}/>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -126,21 +130,22 @@ class SliceEdit extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" value={this.props.sliceDetail.description}
-                                          onChange={this.handleDescriptionChange}></textarea>
+                                    <textarea className="dialog-area" value={this.props.dashboardDetail.description}
+                                        onChange={this.handleDescriptionChange} disabled={!self.props.editable} />
                                 </div>
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
-                                    <span>仪表盘：</span>
+                                    <span>工作表：</span>
                                 </div>
                                 <div className="item-right">
                                     <div id="edit_pop_select">
                                         <Select mode={'multiple'}
                                             style={{ width: '100%' }}
                                             defaultValue={defaultOptions}
-                                            placeholder="select the dashboards..."
+                                            placeholder="select the slices..."
                                             onChange={onChange}
+                                            disabled={!self.props.editable}
                                         >
                                             {options}
                                         </Select>
@@ -148,39 +153,11 @@ class SliceEdit extends React.Component {
                                 </div>
                             </div>
                             <div className="dialog-item">
-                                <div className="sub-item">
-                                    <div className="item-left">
-                                        <span>创建者：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <span>{this.props.sliceDetail.created_by_user}</span>
-                                    </div>
+                                <div className="item-left">
+                                    <span>数据集：</span>
                                 </div>
-                                <div className="sub-item">
-                                    <div className="item-left">
-                                        <span>修改者：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <span>{this.props.sliceDetail.changed_by_user}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="dialog-item">
-                                <div className="sub-item">
-                                    <div className="item-left">
-                                        <span>创建日期：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <span>{this.props.sliceDetail.created_on}</span>
-                                    </div>
-                                </div>
-                                <div className="sub-item">
-                                    <div className="item-left">
-                                        <span>修改时间：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <span>{this.props.sliceDetail.changed_on}</span>
-                                    </div>
+                                <div className="item-right">
+                                    <input className="form-control dialog-input" value={this.props.dashboardDetail.table_names} disabled />
                                 </div>
                             </div>
                         </div>
@@ -199,7 +176,7 @@ class SliceEdit extends React.Component {
 const propTypes = {};
 const defaultProps = {};
 
-SliceEdit.propTypes = propTypes;
-SliceEdit.defaultProps = defaultProps;
+DashboardEdit.propTypes = propTypes;
+DashboardEdit.defaultProps = defaultProps;
 
-export default SliceEdit;
+export default DashboardEdit;
