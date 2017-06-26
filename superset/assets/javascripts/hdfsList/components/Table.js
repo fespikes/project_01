@@ -4,7 +4,6 @@ import { message, Table, Icon } from 'antd';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
-import { SliceDelete, SliceEdit } from '../../components/popup';
 import style from '../style/hdfs.scss'
 
 
@@ -53,7 +52,7 @@ class InnerTable extends React.Component {
 
         function deleteSlice(record) {
 
-            let deleteTips = "确定删除" + record.slice_name + "?";
+            /* let deleteTips = "确定删除" + record.slice_name + "?";
             let deleteSlicePopup = render(
                 <SliceDelete
                     dispatch={dispatch}
@@ -63,7 +62,7 @@ class InnerTable extends React.Component {
                 document.getElementById('popup_root'));
             if(deleteSlicePopup) {
                 deleteSlicePopup.showDialog();
-            }
+            } */
         }
 
         function publishSlice(record) {

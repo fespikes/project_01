@@ -110,7 +110,7 @@ export const testConnection = () => {
     }
 }
 
-export function testConnection2(database, callback) {
+export function testConnectionInEditConnectPopup(database, callback) {
     return (dispatch, getState) => {
         const URL = origin + '/pilot/testconn';
         const db = getEditConData(database);

@@ -40,7 +40,7 @@ class App extends Component {
                         <i
                             className="icon icon-table"
                             style={{marginBottom:'-3px'}}
-                        ></i>
+                        />
                         <span>数据集</span>
                         <span>记录条目</span>
                         <span>{count +''}</span>

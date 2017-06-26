@@ -9,7 +9,7 @@ import {
     search
 } from '../actions';
 
-import { TableDelete } from '../../components/popup';//TODO:
+import { TableDelete } from '../popup';
 
 class SliceOperate extends React.Component {
     constructor(props) {
@@ -68,11 +68,11 @@ class SliceOperate extends React.Component {
                 <ul className="icon-list">
                     <li>
                         <Link to="/add">
-                            <i className="icon icon-plus"></i>
+                            <i className="icon icon-plus" />
                         </Link>
                     </li>
                     <li onClick={this.onDelete}>
-                        <i className="icon icon-trash"></i>
+                        <i className="icon icon-trash" />
                     </li>
                 </ul>
                 <div className="tab-btn">
@@ -84,7 +84,7 @@ class SliceOperate extends React.Component {
                 </div>
                 <div className="search-input">
                     <input onChange={this.onChange} ref="searchField" placeholder="search..." />
-                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"></i>
+                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon" />
 
                 </div>
             </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { render } from 'react-dom'
-import { fetchUpdateConnection, testConnection2 } from '../../../databaseList/actions';
+import { render } from 'react-dom';
+import { fetchUpdateConnection, testConnectionInEditConnectPopup } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
 
@@ -19,6 +19,7 @@ class ConnectionEdit extends React.Component {
         this.showDialog = this.showDialog.bind(this);
         this.handleNameChange = this.handleNameChange.bind(this);
         this.handleURIChange = this.handleURIChange.bind(this);
+        this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
         this.testConnection = this.testConnection.bind(this);
         this.closeAlert = this.closeAlert.bind(this);
     };
@@ -34,7 +35,7 @@ class ConnectionEdit extends React.Component {
     testConnection() {
         const self = this;
         const { dispatch } = self.props;
-        dispatch(testConnection2(self.state.database, callback));
+        dispatch(testConnectionInEditConnectPopup(self.state.database, callback));
 
         function callback(success) {
             let exception = {};
@@ -84,10 +85,17 @@ class ConnectionEdit extends React.Component {
         });
     }
 
+    handleDescriptionChange(e) {
+        this.props.database.description = e.currentTarget.value;
+        this.setState({
+            database: this.props.database
+        });
+    }
+
     confirm() {
         const self = this;
-        const { dispatch, database } = self.props;
-        dispatch(fetchUpdateConnection(database, callback));
+        const { dispatch } = self.props;
+        dispatch(fetchUpdateConnection(self.state.database, callback));
         function callback(success, message) {
             if(success) {
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
@@ -96,7 +104,7 @@ class ConnectionEdit extends React.Component {
                     <Alert
                         message="Error"
                         type="error"
-                        description={message}
+                        description={message.message}
                         onClose={self.closeAlert('edit-connect-tip')}
                         closable={true}
                         showIcon
@@ -138,6 +146,15 @@ class ConnectionEdit extends React.Component {
                                 <div className="item-right">
                                     <input className="form-control dialog-input" value={this.props.database.database_name}
                                            onChange={this.handleNameChange}/>
+                                </div>
+                            </div>
+                            <div className="dialog-item">
+                                <div className="item-left">
+                                    <span>描述：</span>
+                                </div>
+                                <div className="item-right">
+                                    <textarea className="dialog-area" value={this.props.database.description}
+                                              onChange={this.handleDescriptionChange} />
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -200,7 +217,8 @@ class ConnectionEdit extends React.Component {
                             </div>
                         </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm} disabled={!this.state.connected}>
+                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}
+                                    disabled={!this.state.connected}>
                                 确定
                             </button>
                         </div>

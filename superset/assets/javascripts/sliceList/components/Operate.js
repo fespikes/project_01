@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import PropTypes from 'prop-types';
 import { fetchLists, switchFavorite, setKeyword, navigateTo,  } from '../actions';
-import { SliceDelete } from '../../components/popup';
+import { SliceDelete } from '../popup';
 
 const SHOW_ALL = "showAll";
 const SHOW_FAVORITE = "showFavorite";
