@@ -20,7 +20,7 @@ export const actionTypes = {
     switchOperationType: 'SWITCH_OPERATION_TYPE'
 }
 
-const baseURL = window.location.origin + '/database/';
+const baseURL = window.location.origin + '/table/';
 
 /**
 @deprecated
@@ -53,12 +53,13 @@ export function changePageSize (pageSize) {
     }
 }
 
-//export function selectRows(rows) {
-//    return {
-//        type: actionTypes.selectRows,
-//        rows: rows
-//    }
-//}
+export function selectRows(selectedRowKeys, selectedRowNames) {
+   return {
+        type: actionTypes.selectRows,
+        selectedRowKeys: selectedRowKeys,
+        selectedRowNames: selectedRowNames
+   }
+}
 
 export function search (filter) {
     return {
@@ -83,23 +84,68 @@ function receiveData (condition, json) {
   };
 }
 
+export function fetchTableDelete(tableId, callback) {
+    const url = baseURL + "delete/" + tableId;
+    return (dispatch, getState) => {
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(function(response) {
+            if(response.ok) {
+                dispatch(applyFetch(getState().condition));
+                if(typeof callback === "function") {
+                    callback(true);
+                }
+            }else {
+                if(typeof callback === "function") {
+                    callback(false);
+                }
+            }
+        });
+    }
+}
+
+export function fetchTableDeleteMul(callback) {
+    const url = baseURL + "muldelete";
+    return (dispatch, getState) => {
+        const selectedRowKeys = getState().condition.selectedRowKeys;
+        let data = {selectedRowKeys: selectedRowKeys};
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(data)
+        }).then(function(response) {
+            if(response.ok) {
+                dispatch(applyFetch(getState().condition));
+                if(typeof callback === "function") {
+                    callback(true);
+                }
+            }else {
+                if(typeof callback === "function") {
+                    callback(false);
+                }
+            }
+        });
+    }
+}
+
 function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
 
         const URL = baseURL + 'listdata?' +
-            (condition.page? 'page' + condition.page : '') +
+            (condition.page? 'page=' + (condition.page - 1) : '') +
             (condition.pageSize? '&page_size=' + condition.pageSize : '') +
             (condition.orderColumn? '&order_column=' + condition.orderColumn : '') +
             (condition.orderDirection? '&order_direction=' + condition.orderDirection : '') +
             (condition.filter? '&filter=' + condition.filter : '') +
-            (condition.tableType&&condition.tableType!=='all'? '&table_type=' + condition.tableType : '');
+            (condition.tableType&&condition.tableType!=='all'? '&dataset_type=' + condition.tableType : '');
 
         const errorHandler = error => alert(error);
         const dataMatch = json => {
             if(!json.data) return json;
             json.data.map(function(obj, index, arr){
-                obj.iconClass = (obj.dataset_type == 'hdfs_folder'? 'HDFS' : obj.dataset_type == 'Inceptor'?'Inceptor' : 'upload');
+                obj.iconClass = (obj.dataset_type == 'HDFS'? 'HDFS' : obj.dataset_type == 'INCEPTOR'?'Inceptor' : 'upload');
             });
             return json;
         }
