@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetchAddDashboard, setDashAddConfirmState } from '../../../dashboard2/actions';
+import { fetchAddDashboard, setDashAddConfirmState } from '../actions';
 import { Select } from 'antd';
 import PropTypes from 'prop-types';
 
@@ -98,11 +98,11 @@ class DashboardAdd extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon icon-dashboard-popup"></i>
+                                <i className="icon icon-dashboard-popup" />
                                 <span>添加仪表盘</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog} />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -121,7 +121,7 @@ class DashboardAdd extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <textarea className="dialog-area" value={this.props.dashboard.description}
-                                              onChange={this.handleDescriptionChange}></textarea>
+                                              onChange={this.handleDescriptionChange} />
                                 </div>
                             </div>
                             <div className="dialog-item">

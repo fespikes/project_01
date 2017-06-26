@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
-import { SliceDelete, SliceEdit } from '../../components/popup';
+import { SliceDelete, SliceEdit } from '../popup';
 
 class SliceTable extends React.Component {
     constructor(props) {

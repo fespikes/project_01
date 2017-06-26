@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
-import { fetchLists, fetchSliceDelete, fetchSliceDeleteMul } from '../../../sliceList/actions';
+import { fetchLists, fetchSliceDelete, fetchSliceDeleteMul } from '../actions';
 
 class SliceDelete extends React.Component {
     constructor(props) {
@@ -50,11 +50,11 @@ class SliceDelete extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon icon-trash"></i>
+                                <i className="icon icon-trash" />
                                 <span>删除工作表</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog} />
                             </div>
                         </div>
                         <div className="popup-body">

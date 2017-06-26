@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
-import { fetchPosts, fetchDashboardDelete, fetchDashboardDeleteMul } from '../../../dashboard2/actions';
+import { fetchPosts, fetchDashboardDelete, fetchDashboardDeleteMul } from '../actions';
 
 class DashboardDelete extends React.Component {
     constructor(props) {
@@ -50,11 +50,11 @@ class DashboardDelete extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon icon-trash"></i>
+                                <i className="icon icon-trash" />
                                 <span>删除仪表板</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog} />
                             </div>
                         </div>
                         <div className="popup-body">

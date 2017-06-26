@@ -2,9 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
-import { applyDeleteSingle, applyDeleteMulti } from '../../../databaseList/actions';
+import { fetchTableDelete,  fetchTableDeleteMul } from '../actions';
 
-class ConnectionDelete extends React.Component {
+class TableDelete extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
@@ -16,7 +16,7 @@ class ConnectionDelete extends React.Component {
 
     showDialog() {
 
-        this.refs.popupDatabaseDelete.style.display = "flex";
+        this.refs.popupTableDelete.style.display = "flex";
     }
 
     closeDialog() {
@@ -25,11 +25,11 @@ class ConnectionDelete extends React.Component {
 
     confirm() {
         const self = this;
-        const { dispatch, deleteType, connection } = self.props;
+        const { dispatch, table, deleteType } = self.props;
         if(deleteType === "single") {
-            dispatch(applyDeleteSingle(connection.id, callback));
+            dispatch(fetchTableDelete(table.id, callback));
         }else if(deleteType === "multiple") {
-            dispatch(applyDeleteMulti(callback));
+            dispatch(fetchTableDeleteMul(callback));
         }else if(deleteType === "none") {
             ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
         }
@@ -37,19 +37,21 @@ class ConnectionDelete extends React.Component {
         function callback(success) {
             if(success) {
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+            }else {
+
             }
         }
     }
 
     render() {
         return (
-            <div className="popup" ref="popupDatabaseDelete">
+            <div className="popup" ref="popupTableDelete">
                 <div className="popup-dialog popup-sm">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-trash" />
-                                <span>删除数据库连接</span>
+                                <span>删除数据集</span>
                             </div>
                             <div className="header-right">
                                 <i className="icon icon-close" onClick={this.closeDialog} />
@@ -80,7 +82,7 @@ class ConnectionDelete extends React.Component {
 const propTypes = {};
 const defaultProps = {};
 
-ConnectionDelete.propTypes = propTypes;
-ConnectionDelete.defaultProps = defaultProps;
+TableDelete.propTypes = propTypes;
+TableDelete.defaultProps = defaultProps;
 
-export default ConnectionDelete;
+export default TableDelete;

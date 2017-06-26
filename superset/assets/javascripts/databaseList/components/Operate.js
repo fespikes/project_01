@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Select } from 'antd';
 import { Link }  from 'react-router-dom';
-import { ConnectionDelete } from '../../components/popup';
+import { ConnectionDelete } from '../popup';
 
 import PropTypes from 'prop-types';
 import {
