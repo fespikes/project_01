@@ -3049,8 +3049,8 @@ class Home(BaseSupersetView):
     order_column = 'time'
     order_direction = 'desc'
     default_types = {
-        'counts': ['dashboard', 'slice', 'table', 'database'],
-        'trends': ['dashboard', 'slice', 'table', 'database'],
+        'counts': ['dashboard', 'slice', 'dataset', 'database'],
+        'trends': ['dashboard', 'slice', 'dataset', 'database'],
         'favorits': ['dashboard', 'slice'],
         'edits': ['dashboard', 'slice'],
         'actions': ['online', 'offline']
