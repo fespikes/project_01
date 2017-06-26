@@ -699,6 +699,7 @@ class Database(Model, AuditMixinNullable):
     id = Column(Integer, primary_key=True)
     database_name = Column(String(250), unique=True)
     description = Column(Text)
+    online = Column(Boolean, default=False)
     sqlalchemy_uri = Column(String(1024))
     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
     cache_timeout = Column(Integer)
@@ -716,6 +717,10 @@ class Database(Model, AuditMixinNullable):
     }
     """))
     perm = Column(String(1000))
+
+    connection_type_dict = {
+        'inceptor': 'INCEPTOR',
+        'hdfs': 'HDFS'}
 
     def __repr__(self):
         return self.database_name
@@ -997,11 +1002,11 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
 
     __tablename__ = 'table_columns'
     id = Column(Integer, primary_key=True)
-    table_id = Column(Integer, ForeignKey('tables.id'))
-    table = relationship(
-        'SqlaTable',
+    dataset_id = Column(Integer, ForeignKey('dataset.id'))
+    dataset = relationship(
+        'Dataset',
         backref=backref('ref_columns', cascade='all, delete-orphan'),
-        foreign_keys=[table_id])
+        foreign_keys=[dataset_id])
     column_name = Column(String(255))
     verbose_name = Column(String(1024))
     is_dttm = Column(Boolean, default=False)
@@ -1118,11 +1123,11 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
     metric_name = Column(String(512))
     verbose_name = Column(String(1024))
     metric_type = Column(String(32))
-    table_id = Column(Integer, ForeignKey('tables.id'))
-    table = relationship(
-        'SqlaTable',
+    dataset_id = Column(Integer, ForeignKey('dataset.id'))
+    dataset = relationship(
+        'Dataset',
         backref=backref('ref_metrics', cascade='all, delete-orphan'),
-        foreign_keys=[table_id])
+        foreign_keys=[dataset_id])
     expression = Column(Text)
     description = Column(Text)
     is_restricted = Column(Boolean, default=False, nullable=True)
@@ -1156,13 +1161,13 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
         return import_util.import_simple_obj(db.session, i_metric, lookup_obj)
 
 
-class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
+class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     """An ORM object for SqlAlchemy table references"""
 
     type = "table"
 
-    __tablename__ = 'tables'
+    __tablename__ = 'dataset'
     id = Column(Integer, primary_key=True)
     dataset_name = Column(String(250), unique=True, nullable=False)
     dataset_type = Column(String(250))
@@ -1173,18 +1178,19 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
     hdfs_table_id = Column(Integer, ForeignKey('hdfs_table.id'), nullable=True)
     hdfs_table = relationship(
         'HDFSTable',
-        backref=backref('tables', cascade='all, delete, delete-orphan'),
+        backref=backref('dataset', cascade='all, delete, delete-orphan'),
         foreign_keys=[hdfs_table_id])
 
     database_id = Column(Integer, ForeignKey('dbs.id'), nullable=False)
     database = relationship(
         'Database',
-        backref=backref('tables', cascade='all, delete-orphan'),
+        backref=backref('dataset', cascade='all, delete-orphan'),
         foreign_keys=[database_id])
 
     user_id = Column(Integer, ForeignKey('ab_user.id'))
-    owner = relationship('User', backref='tables', foreign_keys=[user_id])
+    owner = relationship('User', backref='dataset', foreign_keys=[user_id])
 
+    online = Column(Boolean, default=False)
     description = Column(Text)
     filter_select_enabled = Column(Boolean, default=False)
     main_dttm_col = Column(String(250))
@@ -1670,7 +1676,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
             dbcol = (
                 db.session
                 .query(TC)
-                .filter(TC.table == self)
+                .filter(TC.dataset == self)
                 .filter(TC.column_name == col.name)
                 .first()
             )
@@ -1740,10 +1746,10 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
             m = (
                 db.session.query(M)
                 .filter(M.metric_name == metric.metric_name)
-                .filter(M.table_id == self.id)
+                .filter(M.dataset_id == self.id)
                 .first()
             )
-            metric.table_id = self.id
+            metric.dataset_id = self.id
             if not m:
                 db.session.add(metric)
                 db.session.commit()
@@ -1758,10 +1764,10 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
          This function can be used to import/export dashboards between multiple
          superset instances. Audit metadata isn't copies over.
         """
-        def lookup_sqlatable(table):
-            return db.session.query(SqlaTable).join(Database).filter(
-                SqlaTable.table_name == table.table_name,
-                SqlaTable.schema == table.schema,
+        def lookup_dataset(table):
+            return db.session.query(Dataset).join(Database).filter(
+                Dataset.table_name == table.table_name,
+                Dataset.schema == table.schema,
                 Database.id == table.database_id,
             ).first()
 
@@ -1769,11 +1775,11 @@ class SqlaTable(Model, Queryable, AuditMixinNullable, ImportMixin):
             return db.session.query(Database).filter_by(
                 database_name=table.params_dict['database_name']).one()
         return import_util.import_datasource(
-            db.session, i_datasource, lookup_database, lookup_sqlatable,
+            db.session, i_datasource, lookup_database, lookup_dataset,
             import_time)
 
-sqla.event.listen(SqlaTable, 'after_insert', set_perm)
-sqla.event.listen(SqlaTable, 'after_update', set_perm)
+sqla.event.listen(Dataset, 'after_insert', set_perm)
+sqla.event.listen(Dataset, 'after_update', set_perm)
 
 
 class Log(Model):
@@ -1971,8 +1977,9 @@ class Query(Model):
 str_to_model = {
     'slice': Slice,
     'dashboard': Dashboard,
-    'table': SqlaTable,
-    'database': Database
+    'dataset': Dataset,
+    'database': Database,
+    'connection': Database
 }
 
 

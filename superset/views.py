@@ -44,7 +44,7 @@ from superset.utils import (get_database_access_error_msg,
                             get_datasource_exist_error_msg,
                             json_error_response)
 
-from superset.models import Database, SqlaTable, Slice, \
+from superset.models import Database, Dataset, Slice, \
     Dashboard, FavStar, Log, DailyNumber, str_to_model
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
@@ -180,6 +180,19 @@ def check_ownership(obj, raise_if_false=True):
         return False
 
 
+def get_user_id():
+    try:
+        return int(g.user.get_id())
+    except Exception as e:
+        raise Exception(NO_USER)
+
+
+def build_response(status=200, success=True, message=""):
+    return json.dumps({'status': status,
+                       'success': success,
+                       'message': message})
+
+
 def get_user_roles():
     if g.user.is_anonymous():
         public_role = config.get('AUTH_ROLE_PUBLIC')
@@ -302,7 +315,7 @@ class DeleteMixin(object):
         self.datamodel.delete_all(items)
         self.update_redirect()
         # log_action
-        if isinstance(items[0], models.SqlaTable):
+        if isinstance(items[0], models.Dataset):
             cls_name = 'table'
         else:
             cls_name = items[0].__class__.__name__.lower()
@@ -344,8 +357,8 @@ class SupersetModelView(ModelView):
         fav = args.get('only_favorite')
         kwargs['only_favorite'] = strtobool(fav) if fav else self.only_favorite
         kwargs['dataset_type'] = args.get('dataset_type')
-        kwargs['table_id'] = int(args.get('table_id')) \
-            if args.get('table_id') else None
+        kwargs['dataset_id'] = int(args.get('dataset_id')) \
+            if args.get('dataset_id') else None
         return kwargs
 
     @expose('/list/')
@@ -429,10 +442,7 @@ class SupersetModelView(ModelView):
             for id in ids:
                 obj = self.get_object(id)
                 self._delete(obj)
-                if isinstance(obj, models.SqlaTable):
-                    cls_name = 'table'
-                else:
-                    cls_name = self.model.__name__.lower()
+                cls_name = self.model.__name__.lower()
                 action_str = 'Delete {}: [{}]'.format(cls_name, repr(obj))
                 log_action('delete', action_str, cls_name, obj.id)
             return self.build_response(200, True, DELETE_SUCCESS)
@@ -554,12 +564,64 @@ class SupersetModelView(ModelView):
         return query
 
     def get_available_tables(self):
-        tbs = db.session.query(models.SqlaTable).all()
+        # TODO just return dataset_type=='inceptor'
+        tbs = db.session.query(models.Dataset).all()
         tb_list = []
         for t in tbs:
             row = {'id': t.id, 'dataset_name': t.dataset_name}
             tb_list.append(row)
         return tb_list
+
+    def get_available_connections(self, user_id):
+        """TODO just return connection_type=='inceptor'"""
+        dbs = db.session.query(models.Database) \
+            .filter(models.Database.database_name != 'main',
+                    models.Database.created_by_fk == user_id) \
+            .all()
+        dbs_list = [{'id': d.id, 'database_name': d.database_name}
+                    for d in dbs]
+        return dbs_list
+
+    @staticmethod
+    def get_available_dashboards(user_id):
+        dashs = (
+            db.session.query(models.Dashboard)
+            .filter_by(created_by_fk=user_id)
+            .order_by(models.Dashboard.changed_on.desc())
+            .all()
+        )
+        return dashs
+
+    @staticmethod
+    def dashboards_to_dict(dashs):
+        dashs_list = []
+        for dash in dashs:
+            row = {'id': dash.id, 'dashboard_title': dash.dashboard_title}
+            dashs_list.append(row)
+        return dashs_list
+
+    @staticmethod
+    def get_available_slices(user_id):
+        slices = (
+            db.session.query(models.Slice)
+            .filter(
+                or_(models.Slice.created_by_fk == user_id,
+                    models.Slice.online == 1)
+            )
+            .order_by(models.Slice.changed_on.desc())
+            .all()
+        )
+        return slices
+
+    @staticmethod
+    def slices_to_dict(slices):
+        slices_list = []
+        for slice in slices:
+            row = {'id': slice.id,
+                   'slice_name': slice.slice_name,
+                   'viz_type': slice.viz_type}
+            slices_list.append(row)
+        return slices_list
 
     def get_user_id(self):
         try:
@@ -600,7 +662,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     _list_columns = list_columns
     edit_columns = [
         'column_name', 'verbose_name', 'groupby', 'filterable',
-        'table_id', 'count_distinct', 'sum', 'min', 'max', 'expression',
+        'dataset_id', 'count_distinct', 'sum', 'min', 'max', 'expression',
         'is_dttm', 'python_date_format', 'database_expression']
     show_columns = edit_columns + ['id']
     add_columns = edit_columns
@@ -632,12 +694,12 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     str_columns = ['table', ]
 
     def get_object_list_data(self, **kwargs):
-        table_id = kwargs.get('table_id')
-        if not table_id:
-            msg = "Need parameter 'table_id' to query columns"
+        dataset_id = kwargs.get('dataset_id')
+        if not dataset_id:
+            msg = "Need parameter 'dataset_id' to query columns"
             self.handle_exception(404, Exception, msg)
         rows = db.session.query(self.model)\
-            .filter_by(table_id=table_id).all()
+            .filter_by(dataset_id=dataset_id).all()
         data = []
         for row in rows:
             line = {}
@@ -665,10 +727,10 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     _list_columns = list_columns
     show_columns = [
         'id', 'metric_name', 'description', 'verbose_name',
-        'metric_type', 'expression', 'table_id', 'table', 'd3format']
+        'metric_type', 'expression', 'dataset_id', 'table', 'd3format']
     edit_columns = [
         'metric_name', 'description', 'verbose_name',
-        'metric_type', 'expression', 'table_id', 'd3format']
+        'metric_type', 'expression', 'dataset_id', 'd3format']
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
     description_columns = {
@@ -697,13 +759,13 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
         return data
 
     def get_object_list_data(self, **kwargs):
-        table_id = kwargs.get('table_id')
-        if not table_id:
-            msg = "Need parameter 'table_id' to query metrics"
+        dataset_id = kwargs.get('dataset_id')
+        if not dataset_id:
+            msg = "Need parameter 'dataset_id' to query metrics"
             self.handle_exception(404, Exception, msg)
         rows = (
             db.session.query(self.model)
-            .filter_by(table_id=table_id)
+            .filter_by(dataset_id=dataset_id)
             .order_by(self.model.metric_name)
             .all()
         )
@@ -771,6 +833,13 @@ class DatabaseView(SupersetModelView):  # noqa
     str_columns = ['created_on', 'changed_on']
 
     list_template = "superset/databaseList.html"
+
+    @expose('/connection_types/', methods=['GET', ])
+    def connection_types(self):
+        try:
+            return json.dumps(list(self.model.connection_type_dict.values()))
+        except Exception as e:
+            return self.build_response(500, False, str(e))
 
     def pre_add(self, obj):
         if obj.test_uri(obj.sqlalchemy_uri):
@@ -894,9 +963,9 @@ class DatabaseTablesAsync(DatabaseView):
     list_columns = ['id', 'all_table_names', 'all_schema_names']
 
 
-class TableModelView(SupersetModelView):  # noqa
-    model = models.SqlaTable
-    datamodel = SQLAInterface(models.SqlaTable)
+class DatasetModelView(SupersetModelView):  # noqa
+    model = models.Dataset
+    datamodel = SQLAInterface(models.Dataset)
     route_base = '/table'
     list_columns = ['id', 'dataset_name', 'dataset_type',
                     'explore_url', 'connection', 'changed_on']
@@ -923,9 +992,9 @@ class TableModelView(SupersetModelView):  # noqa
     base_filters = [['id', DatasourceFilter, lambda: []]]
 
     str_to_column = {
-        'title': SqlaTable.table_name,
-        'time': SqlaTable.changed_on,
-        'changed_on': SqlaTable.changed_on,
+        'title': Dataset.dataset_name,
+        'time': Dataset.changed_on,
+        'changed_on': Dataset.changed_on,
         'owner': User.username
     }
 
@@ -938,13 +1007,13 @@ class TableModelView(SupersetModelView):  # noqa
     def get_addable_choices(self):
         data = super().get_addable_choices()
         data['available_databases'] = \
-            self.get_available_databases(self.get_user_id())
+            self.get_available_connections(self.get_user_id())
         return data
 
     @expose('/databases/', methods=['GET', ])
     def addable_databases(self):
         try:
-            dbs = self.get_available_databases(self.get_user_id())
+            dbs = self.get_available_connections(self.get_user_id())
             return json.dumps(dbs)
         except Exception as e:
             return self.build_response(500, False, str(e))
@@ -999,18 +1068,18 @@ class TableModelView(SupersetModelView):  # noqa
         dataset_type = kwargs.get('dataset_type')
         user_id = kwargs.get('user_id')
 
-        query = db.session.query(SqlaTable, User)\
-            .filter(SqlaTable.created_by_fk == User.id,
-                    SqlaTable.created_by_fk == user_id)
+        query = db.session.query(Dataset, User)\
+            .filter(Dataset.created_by_fk == User.id,
+                    Dataset.created_by_fk == user_id)
 
         if dataset_type:
-            query = query.filter(SqlaTable.dataset_type.ilike(dataset_type))
+            query = query.filter(Dataset.dataset_type.ilike(dataset_type))
         if filter:
             filter_str = '%{}%'.format(filter.lower())
             query = query.filter(
                 or_(
-                    SqlaTable.dataset_name.ilike(filter_str),
-                    SqlaTable.dataset_type.ilike(filter_str),
+                    Dataset.dataset_name.ilike(filter_str),
+                    Dataset.dataset_type.ilike(filter_str),
                     User.username.ilike(filter_str)
                 )
             )
@@ -1066,24 +1135,15 @@ class TableModelView(SupersetModelView):  # noqa
     def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
         attributes['available_databases'] = \
-            self.get_available_databases(self.get_user_id())
+            self.get_available_connections(self.get_user_id())
         return attributes
-
-    def get_available_databases(self, user_id):
-        dbs = db.session.query(models.Database)\
-            .filter(models.Database.database_name != 'main',
-                    models.Database.created_by_fk == user_id)\
-            .all()
-        dbs_list = [{'id': d.id, 'database_name': d.database_name}
-                    for d in dbs]
-        return dbs_list
 
     def pre_add(self, table):
         # number_of_existing_tables = db.session.query(
         #     sqla.func.count('*')).filter(
-        #     models.SqlaTable.table_name == table.table_name,
-        #     models.SqlaTable.schema == table.schema,
-        #     models.SqlaTable.database_id == table.database.id
+        #     models.Dataset.table_name == table.table_name,
+        #     models.Dataset.schema == table.schema,
+        #     models.Dataset.database_id == table.database.id
         # ).scalar()
         # table object is already added to the session
         # if number_of_existing_tables > 1:
@@ -1113,7 +1173,7 @@ class TableModelView(SupersetModelView):  # noqa
 
     def post_add(self, table):
         table.fetch_metadata()
-        TableModelView.merge_perm(table)
+        DatasetModelView.merge_perm(table)
         # log user aciton
         action_str = 'Add table: [{}]'.format(repr(table))
         log_action('add', action_str, 'table', table.id)
@@ -1130,7 +1190,7 @@ class TableModelView(SupersetModelView):  # noqa
         table.fetch_metadata()
 
     def post_update(self, table):
-        TableModelView.merge_perm(table)
+        DatasetModelView.merge_perm(table)
         # log user action
         action_str = 'Edit table: [{}]'.format(repr(table))
         log_action('edit', action_str, 'table', table.id)
@@ -1220,30 +1280,6 @@ class SliceModelView(SupersetModelView):  # noqa
             self.handle_exception(404, Exception, msg)
         return objs
 
-    def available_dashboards_api(self):
-        user_id = self.get_user_id()
-        dashs = self.get_available_dashboards(user_id)
-        data = self.dashboards_to_dict(dashs)
-        return json.dumps(data)
-
-    @staticmethod
-    def get_available_dashboards(user_id):
-        dashs = (
-            db.session.query(models.Dashboard)
-            .filter_by(created_by_fk=user_id)
-            .order_by(models.Dashboard.changed_on.desc())
-            .all()
-        )
-        return dashs
-
-    @staticmethod
-    def dashboards_to_dict(dashs):
-        dashs_list = []
-        for dash in dashs:
-            row = {'id': dash.id, 'dashboard_title': dash.dashboard_title}
-            dashs_list.append(row)
-        return dashs_list
-
     def pre_update(self, obj):
         # check_ownership(obj)
         pass
@@ -1271,7 +1307,7 @@ class SliceModelView(SupersetModelView):  # noqa
     @expose('/add/', methods=['GET', 'POST'])
     @has_access
     def add(self):
-        table = db.session.query(models.SqlaTable).first()
+        table = db.session.query(models.Dataset).first()
         if not table:
             redirect_url = '/pilot/explore/table/0/'
         else:
@@ -1341,47 +1377,6 @@ class SliceModelView(SupersetModelView):  # noqa
         response['only_favorite'] = only_favorite
         response['data'] = data
         return response
-
-    @catch_exception
-    @expose("/release/<action>/<slice_id>/", methods=['GET'])
-    def slice_online_or_offline(self, action, slice_id):
-        obj = db.session.query(models.Slice) \
-            .filter_by(id=slice_id).first()
-        if not obj:
-            msg = '{}. Model:{} Id:{}'.format(
-                OBJECT_NOT_FOUND, self.model.__name__, slice_id)
-            logging.error(msg)
-            return self.build_response(400, False, msg)
-        elif obj.created_by_fk != int(g.user.get_id()):
-            msg = NO_ONLINE_PERMISSION + ': {}'.format(obj.slice_name)
-            return self.build_response(200, True, msg)
-        elif action.lower() == 'online':
-            if obj.online is True:
-                msg = OBJECT_IS_ONLINE + ': {}'.format(obj.slice_name)
-                return self.build_response(200, True, msg)
-            else:
-                obj.online = True
-                db.session.commit()
-                action_str = 'Change slice to online: [{}]'.format(repr(obj))
-                log_action('online', action_str, 'slice', slice_id)
-                log_number_for_all_users('slice')
-                msg = ONLINE_SUCCESS + ': {}'.format(obj.slice_name)
-                return self.build_response(200, True, msg)
-        elif action.lower() == 'offline':
-            if obj.online is False:
-                msg = OBJECT_IS_OFFLINE + ': {}'.format(obj.slice_name)
-                return self.build_response(200, True, msg)
-            else:
-                obj.online = False
-                db.session.commit()
-                action_str = 'Change slice to offline: [{}]'.format(repr(obj))
-                log_action('offline', action_str, 'slice', slice_id)
-                log_number_for_all_users('slice')
-                msg = OFFLINE_SUCCESS + ': {}'.format(obj.slice_name)
-                return self.build_response(200, True, msg)
-        else:
-            msg = ERROR_URL + ': {}'.format(request.url)
-            return self.build_response(400, False, msg)
 
 
 class SliceAsync(SliceModelView):  # noqa
@@ -1453,35 +1448,6 @@ class DashboardModelView(SupersetModelView):  # noqa
         slices = self.get_available_slices(self.get_user_id())
         data['available_slices'] = self.slices_to_dict(slices)
         return data
-
-    def available_slices_api(self):
-        user_id = self.get_user_id()
-        slices = self.get_available_slices(user_id)
-        data = self.slices_to_dict(slices)
-        return json.dumps(data)
-
-    @staticmethod
-    def get_available_slices(user_id):
-        slices = (
-            db.session.query(models.Slice)
-            .filter(
-                or_(models.Slice.created_by_fk == user_id,
-                    models.Slice.online == 1)
-            )
-            .order_by(models.Slice.changed_on.desc())
-            .all()
-        )
-        return slices
-
-    @staticmethod
-    def slices_to_dict(slices):
-        slices_list = []
-        for slice in slices:
-            row = {'id': slice.id,
-                   'slice_name': slice.slice_name,
-                   'viz_type': slice.viz_type}
-            slices_list.append(row)
-        return slices_list
 
     def pre_add(self, obj):
         if g.user not in obj.owners:
@@ -1617,7 +1583,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             data = pickle.loads(f)
             for table in data['datasources']:
                 if table.type == 'table':
-                    models.SqlaTable.import_obj(table, import_time=current_tt)
+                    models.Dataset.import_obj(table, import_time=current_tt)
                 else:
                     pass
             db.session.commit()
@@ -1640,47 +1606,6 @@ class DashboardModelView(SupersetModelView):  # noqa
             models.Dashboard.export_dashboards(ids),
             headers=generate_download_headers("pickle"),
             mimetype="application/text")
-
-    @catch_exception
-    @expose("/release/<action>/<dashboard_id>/", methods=['GET'])
-    def dashbaord_online_or_offline(self, action, dashboard_id):
-        obj = db.session.query(models.Dashboard) \
-            .filter_by(id=dashboard_id).first()
-        if not obj:
-            msg = '{}. Model:{} Id:{}'.format(
-                OBJECT_NOT_FOUND, self.model.__name__, dashboard_id)
-            logging.error(msg)
-            return self.build_response(400, False, msg)
-        elif obj.created_by_fk != self.get_user_id():
-            msg = NO_ONLINE_PERMISSION + ': {}'.format(obj.dashboard_title)
-            return self.build_response(200, True, msg)
-        elif action.lower() == 'online':
-            if obj.online is True:
-                msg = OBJECT_IS_ONLINE + ': {}'.format(obj.dashboard_title)
-                return self.build_response(200, True, msg)
-            else:
-                obj.online = True
-                db.session.commit()
-                action_str = 'Change dashboard to online: [{}]'.format(repr(obj))
-                log_action('online', action_str, 'dashboard', dashboard_id)
-                log_number_for_all_users('dashboard')
-                msg = ONLINE_SUCCESS + ': {}'.format(obj.dashboard_title)
-                return self.build_response(200, True, msg)
-        elif action.lower() == 'offline':
-            if obj.online is False:
-                msg = OBJECT_IS_OFFLINE + ': {}'.format(obj.dashboard_title)
-                return self.build_response(200, True, msg)
-            else:
-                obj.online = False
-                db.session.commit()
-                action_str = 'Change dashboard to offline: [{}]'.format(repr(obj))
-                log_action('offline', action_str, 'dashboard', dashboard_id)
-                log_number_for_all_users('dashboard')
-                msg = OFFLINE_SUCCESS + ': {}'.format(obj.dashboard_title)
-                return self.build_response(200, True, msg)
-        else:
-            msg = ERROR_URL + ': {}'.format(request.url)
-            return self.build_response(400, False, msg)
 
     @staticmethod
     def add_slices_api(dashboard_id, slice_ids):
@@ -1766,7 +1691,7 @@ class Superset(BaseSupersetView):
 
     def temp_table(self, database_id, full_tb_name):
         """A temp table for slice"""
-        table = SqlaTable()
+        table = Dataset()
         table.id = 0
         if '.' in full_tb_name:
             table.schema, table.table_name = full_tb_name.split('.')
@@ -1795,6 +1720,42 @@ class Superset(BaseSupersetView):
             viz_obj = viz.viz_types[viz_type](
                 datasource, request.args if request.args else args)
             return viz_obj
+
+    @catch_exception
+    @expose("/release/<model>/<action>/<id>/", methods=['GET'])
+    def release_object(self, model, action, id):
+        """model could be 'dashboard' 'slice' 'connection' 'dataset' """
+        cls = str_to_model.get(model)
+        obj = db.session.query(cls).filter_by(id=id).first()
+        if not obj:
+            msg = '{}. Model:{} Id:{}'.format(OBJECT_NOT_FOUND, cls.__name__, id)
+            logging.error(msg)
+            return build_response(400, False, msg)
+        elif obj.created_by_fk != get_user_id():
+            return build_response(200, True, NO_ONLINE_PERMISSION)
+        elif action.lower() == 'online':
+            if obj.online is True:
+                return build_response(200, True, OBJECT_IS_ONLINE)
+            else:
+                obj.online = True
+                db.session.commit()
+                action_str = 'Change {} to online: [{}]'.format(model, repr(obj))
+                log_action('online', action_str, model, id)
+                log_number_for_all_users(model)
+                return build_response(200, True, ONLINE_SUCCESS)
+        elif action.lower() == 'offline':
+            if obj.online is False:
+                return build_response(200, True, OBJECT_IS_OFFLINE)
+            else:
+                obj.online = False
+                db.session.commit()
+                action_str = 'Change {} to offline: [{}]'.format(model, repr(obj))
+                log_action('offline', action_str, model, id)
+                log_number_for_all_users(model)
+                return build_response(200, True, OFFLINE_SUCCESS)
+        else:
+            msg = ERROR_URL + ': {}'.format(request.url)
+            return build_response(400, False, msg)
 
     @catch_exception
     @expose("/slice/<slice_id>/")
@@ -1973,7 +1934,7 @@ class Superset(BaseSupersetView):
         """
         # TODO: Cache endpoint by user, datasource and column
         error_redirect = '/slice/list/'
-        datasource_class = models.SqlaTable
+        datasource_class = models.Dataset
 
         datasource = db.session.query(
             datasource_class).filter_by(id=datasource_id).first()
@@ -2441,11 +2402,11 @@ class Superset(BaseSupersetView):
                     "Slice %(id)s not found", id=slice_id), status=404)
         elif table_name and db_name:
             table = (
-                session.query(models.SqlaTable)
+                session.query(models.Dataset)
                 .join(models.Database)
                 .filter(
                     models.Database.database_name == db_name or
-                    models.SqlaTable.table_name == table_name)
+                    models.Dataset.table_name == table_name)
             ).first()
             if not table:
                 return json_error_response(__(
@@ -2578,13 +2539,13 @@ class Superset(BaseSupersetView):
         table_name = data.get('datasourceName')
         viz_type = data.get('chartType')
         table = (
-            db.session.query(models.SqlaTable)
+            db.session.query(models.Dataset)
             .filter_by(dataset_name=table_name)
             .first()
         )
         if not table:
-            table = models.SqlaTable(dataset_name=table_name)
-        table.dataset_type = models.SqlaTable.dataset_type_dict.get("inceptor")
+            table = models.Dataset(dataset_name=table_name)
+        table.dataset_type = models.Dataset.dataset_type_dict.get("inceptor")
         table.database_id = data.get('dbId')
         q = SupersetQuery(data.get('sql'))
         table.sql = q.stripped()
@@ -3682,9 +3643,9 @@ appbuilder.add_view(
     category_icon='fa-database',)
 
 appbuilder.add_view(
-    TableModelView,
-    "Tables",
-    label=__("Tables"),
+    DatasetModelView,
+    "Dataset",
+    label=__("Dataset"),
     category="Sources",
     category_label=__("Sources"),
     icon='fa-table',)
