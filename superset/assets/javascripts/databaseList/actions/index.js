@@ -1,4 +1,5 @@
 import fetch from 'isomorphic-fetch';
+import { getEditConData } from '../utils'
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -6,6 +7,7 @@ export const actionTypes = {
     changePageSize: 'CHANGE_PAGE_SIZE',
 
     selectRows: 'SELECT_ROWS',
+    clearRows: 'CLEAR_ROWS',
     search: 'SEARCH',
 
     sendRequest: 'SEND_REQUEST',
@@ -66,6 +68,12 @@ export function selectRows (selectedRowKeys, selectedRowNames) {
     }
 }
 
+export function clearRows () {
+    return {
+        type: actionTypes.clearRows
+    }
+}
+
 /**
 @description: this is only for inceptor connection test
 */
@@ -99,6 +107,28 @@ export const testConnection = () => {
             }
         });
 
+    }
+}
+
+export function testConnection2(database, callback) {
+    return (dispatch, getState) => {
+        const URL = origin + '/pilot/testconn';
+        const db = getEditConData(database);
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(db)
+        })
+        .then(
+            response => {
+                if(response.ok) {
+                    dispatch(fetchIfNeeded());
+                    callback(true);
+                }else {
+                    callback(false);
+                }
+            }
+        );
     }
 }
 
@@ -163,10 +193,9 @@ export function applyAdd (callback) {
     }
 }
 
-export function applyDelete (callback) {
+export function applyDeleteMulti (callback) {
     return (dispatch, getState) => {
         const URL = baseURL + 'muldelete';
-
         const selectedRowKeys = getState().paramOfDelete.selectedRowKeys;
 
         return fetch(URL, {
@@ -187,6 +216,72 @@ export function applyDelete (callback) {
                 callback(true)
             } else {
                 callback(false, json)
+            }
+        });
+    }
+}
+
+export function applyDeleteSingle (id, callback) {
+    return (dispatch, getState) => {
+        const URL = baseURL + 'delete/' + id;
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'GET'
+        })
+        .then(
+            response => response.ok?
+                response.json() : ((response)=>errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(json => {
+            if(json.success) {
+                dispatch(fetchIfNeeded());
+                callback(true);
+            }else {
+                callback(false, json);
+            }
+        });
+    }
+}
+
+export function fetchDBDetail(id, callback) {
+    return dispatch => {
+        const URL = baseURL + 'show/' + id;
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'GET'
+        })
+        .then(
+            response => response.ok?
+                response.json() : ((response)=>errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(json => {
+            callback(true, json);
+        });
+    }
+}
+
+export function fetchUpdateConnection(database, callback) {
+    return (dispatch, getState) => {
+        const URL = baseURL + 'edit/' + database.id;
+        const db = getEditConData(database);
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(db)
+        })
+        .then(
+            response => response.ok?
+                response.json() : ((response)=>errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(json => {
+            if(json.success) {
+                dispatch(fetchIfNeeded());
+                callback(true);
+            }else {
+                callback(false, json);
             }
         });
     }
@@ -262,6 +357,7 @@ export function fetchIfNeeded (condition) {
     return (dispatch, getState) => {
         const conditionInside = condition || getState().condition;
         if (shouldFetch(getState(), conditionInside)) {
+            dispatch(clearRows());
             return dispatch(applyFetch(conditionInside));
         }
         return null;
