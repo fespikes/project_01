@@ -357,8 +357,8 @@ class SupersetModelView(ModelView):
         fav = args.get('only_favorite')
         kwargs['only_favorite'] = strtobool(fav) if fav else self.only_favorite
         kwargs['dataset_type'] = args.get('dataset_type')
-        kwargs['table_id'] = int(args.get('table_id')) \
-            if args.get('table_id') else None
+        kwargs['dataset_id'] = int(args.get('dataset_id')) \
+            if args.get('dataset_id') else None
         return kwargs
 
     @expose('/list/')
@@ -694,12 +694,12 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     str_columns = ['table', ]
 
     def get_object_list_data(self, **kwargs):
-        table_id = kwargs.get('table_id')
-        if not table_id:
-            msg = "Need parameter 'table_id' to query columns"
+        dataset_id = kwargs.get('dataset_id')
+        if not dataset_id:
+            msg = "Need parameter 'dataset_id' to query columns"
             self.handle_exception(404, Exception, msg)
         rows = db.session.query(self.model)\
-            .filter_by(table_id=table_id).all()
+            .filter_by(dataset_id=dataset_id).all()
         data = []
         for row in rows:
             line = {}
@@ -759,13 +759,13 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
         return data
 
     def get_object_list_data(self, **kwargs):
-        table_id = kwargs.get('table_id')
-        if not table_id:
-            msg = "Need parameter 'table_id' to query metrics"
+        dataset_id = kwargs.get('dataset_id')
+        if not dataset_id:
+            msg = "Need parameter 'dataset_id' to query metrics"
             self.handle_exception(404, Exception, msg)
         rows = (
             db.session.query(self.model)
-            .filter_by(table_id=table_id)
+            .filter_by(dataset_id=dataset_id)
             .order_by(self.model.metric_name)
             .all()
         )
