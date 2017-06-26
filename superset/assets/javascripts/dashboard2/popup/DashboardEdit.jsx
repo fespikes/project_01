@@ -12,6 +12,9 @@ class DashboardEdit extends React.Component {
         super(props);
         this.state = {
             exception: {},
+            dashboardDetail: {
+                description: ''
+            },
             selectedSlices: initDefaultOptions()
         };
 
@@ -36,7 +39,7 @@ class DashboardEdit extends React.Component {
     }
 
     closeDialog() {
-        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));//for resolve ant-design select component cache issue
+        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
     handleTitleChange(e) {

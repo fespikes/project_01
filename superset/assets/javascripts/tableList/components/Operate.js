@@ -9,7 +9,7 @@ import {
     search
 } from '../actions';
 
-import { TableDelete } from '../../components/popup';//TODO:
+import { TableDelete } from '../popup';
 
 class SliceOperate extends React.Component {
     constructor(props) {

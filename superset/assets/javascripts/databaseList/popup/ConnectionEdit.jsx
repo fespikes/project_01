@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { render } from 'react-dom'
+import { render } from 'react-dom';
 import { fetchUpdateConnection, testConnectionInEditConnectPopup } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
@@ -87,7 +87,7 @@ class ConnectionEdit extends React.Component {
     confirm() {
         const self = this;
         const { dispatch, database } = self.props;
-        dispatch(fetchUpdateConnection(database, callback));
+        dispatch(fetchUpdateConnection(self.state.database, callback));
         function callback(success, message) {
             if(success) {
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
@@ -96,7 +96,7 @@ class ConnectionEdit extends React.Component {
                     <Alert
                         message="Error"
                         type="error"
-                        description={message}
+                        description={message.message}
                         onClose={self.closeAlert('edit-connect-tip')}
                         closable={true}
                         showIcon
@@ -200,7 +200,8 @@ class ConnectionEdit extends React.Component {
                             </div>
                         </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm} disabled={!this.state.connected}>
+                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}
+                                    disabled={!this.state.connected}>
                                 确定
                             </button>
                         </div>
