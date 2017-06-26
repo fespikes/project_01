@@ -19,6 +19,7 @@ class ConnectionEdit extends React.Component {
         this.showDialog = this.showDialog.bind(this);
         this.handleNameChange = this.handleNameChange.bind(this);
         this.handleURIChange = this.handleURIChange.bind(this);
+        this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
         this.testConnection = this.testConnection.bind(this);
         this.closeAlert = this.closeAlert.bind(this);
     };
@@ -84,9 +85,16 @@ class ConnectionEdit extends React.Component {
         });
     }
 
+    handleDescriptionChange(e) {
+        this.props.database.description = e.currentTarget.value;
+        this.setState({
+            database: this.props.database
+        });
+    }
+
     confirm() {
         const self = this;
-        const { dispatch, database } = self.props;
+        const { dispatch } = self.props;
         dispatch(fetchUpdateConnection(self.state.database, callback));
         function callback(success, message) {
             if(success) {
@@ -138,6 +146,15 @@ class ConnectionEdit extends React.Component {
                                 <div className="item-right">
                                     <input className="form-control dialog-input" value={this.props.database.database_name}
                                            onChange={this.handleNameChange}/>
+                                </div>
+                            </div>
+                            <div className="dialog-item">
+                                <div className="item-left">
+                                    <span>描述：</span>
+                                </div>
+                                <div className="item-right">
+                                    <textarea className="dialog-area" value={this.props.database.description}
+                                              onChange={this.handleDescriptionChange} />
                                 </div>
                             </div>
                             <div className="dialog-item">
