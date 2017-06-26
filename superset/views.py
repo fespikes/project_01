@@ -308,24 +308,6 @@ def generate_download_headers(extension):
     return headers
 
 
-class DeleteMixin(object):
-    @action(
-        "muldelete", "Delete", "Delete all Really?", "fa-trash", single=False)
-    def muldelete(self, items):
-        self.datamodel.delete_all(items)
-        self.update_redirect()
-        # log_action
-        if isinstance(items[0], models.Dataset):
-            cls_name = 'table'
-        else:
-            cls_name = items[0].__class__.__name__.lower()
-        for item in items:
-            obj_name = repr(item)
-            action_str = 'Delete {}: [{}]'.format(cls_name, obj_name)
-            log_action('delete', action_str, cls_name, item.id)
-        return redirect(self.get_redirect())
-
-
 class SupersetModelView(ModelView):
     model = models.Model
     # used for querying
