@@ -2067,6 +2067,7 @@ class HDFSConnection(Model, AuditMixinNullable):
     id = Column(Integer, primary_key=True)
     connection_name = Column(String(256), nullable=False, unique=True)
     description = Column(Text)
+    online = Column(Boolean, default=False)
     database_id = Column(Integer, ForeignKey('dbs.id'))
     webhdfs_url = Column(String(256), nullable=False)
     fs_defaultfs = Column(String(256), nullable=False)

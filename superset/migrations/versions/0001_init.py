@@ -177,6 +177,7 @@ def upgrade():
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('connection_name', sa.String(length=256), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
+        sa.Column('online', sa.Boolean(), nullable=True, server_default="0"),
         sa.Column('database_id', sa.Integer(), sa.ForeignKey("dbs.id"), nullable=True),
         sa.Column('webhdfs_url', sa.String(length=256), nullable=False),
         sa.Column('fs_defaultfs', sa.String(length=256), nullable=False),
