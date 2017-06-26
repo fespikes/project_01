@@ -56,7 +56,8 @@ export function fetchPosts() {
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
-            credentials: 'same-origin'
+            credentials: 'include',
+            method: 'GET'
         })
         .then(response => response.json())
         .then(json => dispatch(receivePosts(json)));
@@ -71,7 +72,8 @@ export function fetchEditDetail(catagory, index, orderColumn, orderDirection) {
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
-            credentials: 'same-origin'
+            credentials: 'include',
+            method: 'GET'
         })
         .then(response => response.json())
         .then(json => dispatch(receiveData(json)));
@@ -86,7 +88,8 @@ export function fetchEventDetail(index, orderColumn, orderDirection) {
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
-            credentials: 'same-origin'
+            credentials: 'include',
+            method: 'GET'
         })
         .then(response => response.json())
         .then(json => dispatch(receiveData(json)));
