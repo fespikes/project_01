@@ -1175,10 +1175,10 @@ class DatasetModelView(SupersetModelView):  # noqa
         table.fetch_metadata()
         DatasetModelView.merge_perm(table)
         # log user aciton
-        action_str = 'Add table: [{}]'.format(repr(table))
-        log_action('add', action_str, 'table', table.id)
+        action_str = 'Add dataset: [{}]'.format(repr(table))
+        log_action('add', action_str, 'dataset', table.id)
         # log table number
-        log_number('table', g.user.get_id())
+        log_number('dataset', g.user.get_id())
 
     def update_hdfs_table(self, table, json_date):
         hdfs_table = table.hdfs_table
@@ -1192,8 +1192,8 @@ class DatasetModelView(SupersetModelView):  # noqa
     def post_update(self, table):
         DatasetModelView.merge_perm(table)
         # log user action
-        action_str = 'Edit table: [{}]'.format(repr(table))
-        log_action('edit', action_str, 'table', table.id)
+        action_str = 'Edit dataset: [{}]'.format(repr(table))
+        log_action('edit', action_str, 'dataset', table.id)
 
     def post_delete(self, table):
         if table.hdfs_table_id:
@@ -1202,10 +1202,10 @@ class DatasetModelView(SupersetModelView):  # noqa
                 .delete(synchronize_session=False)
             db.session.commit()
         # log user action
-        action_str = 'Delete table: [{}]'.format(repr(table))
-        log_action('delete', action_str, 'table', table.id)
+        action_str = 'Delete dataset: [{}]'.format(repr(table))
+        log_action('delete', action_str, 'dataset', table.id)
         # log table number
-        log_number('table', g.user.get_id())
+        log_number('dataset', g.user.get_id())
 
 
 class SliceModelView(SupersetModelView):  # noqa
@@ -2552,8 +2552,8 @@ class Superset(BaseSupersetView):
         db.session.add(table)
         db.session.commit()
         # log user action
-        action_str = 'Add table: [{}]'.format(table_name)
-        log_action('add', action_str, 'table', table.id)
+        action_str = 'Add dataset: [{}]'.format(table_name)
+        log_action('add', action_str, 'dataset', table.id)
 
         cols = []
         dims = []
@@ -3049,8 +3049,8 @@ class Home(BaseSupersetView):
     order_column = 'time'
     order_direction = 'desc'
     default_types = {
-        'counts': ['dashboard', 'slice', 'table', 'database'],
-        'trends': ['dashboard', 'slice', 'table', 'database'],
+        'counts': ['dashboard', 'slice', 'dataset', 'database'],
+        'trends': ['dashboard', 'slice', 'dataset', 'database'],
         'favorits': ['dashboard', 'slice'],
         'edits': ['dashboard', 'slice'],
         'actions': ['online', 'offline']
