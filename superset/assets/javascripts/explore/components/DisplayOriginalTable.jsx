@@ -62,15 +62,20 @@ class DisplayOriginalTable extends React.Component {
             url: url,
             type: 'GET',
             success: response => {
-                response = JSON.parse(response);
-                let treeData = appendTreeData(schema, response, JSON.parse(JSON.stringify(self.state.treeData)));
-                self.setState({
-                    treeData: treeData,
-                    currentSchema: schema
-                });
+
+                if (response.status===200) {
+                    response = JSON.parse(response);
+                    let treeData = appendTreeData(schema, response, JSON.parse(JSON.stringify(self.state.treeData)));
+                    self.setState({
+                        treeData: treeData,
+                        currentSchema: schema
+                    });
+                } else {
+                    console.log(response.message);
+                }
             },
             error: error => {
-
+                console.log(error);
             }
         });
     }
