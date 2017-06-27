@@ -643,16 +643,14 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     route_base = '/tablecolumn'
     can_delete = False
     list_columns = [
-        'id', 'column_name', 'type', 'groupby', 'filterable',
+        'id', 'column_name', 'description', 'type', 'groupby', 'filterable',
         'count_distinct', 'sum', 'min', 'max', 'is_dttm']
     _list_columns = list_columns
     edit_columns = [
-        'column_name', 'verbose_name', 'groupby', 'filterable',
-        'dataset_id', 'count_distinct', 'sum', 'min', 'max', 'expression',
-        'is_dttm', 'python_date_format', 'database_expression']
+        'column_name', 'description', 'groupby', 'filterable',
+        'count_distinct', 'sum', 'min', 'max', 'expression']
     show_columns = edit_columns + ['id']
     add_columns = edit_columns
-    # TODO can't json.dumps lazy_gettext()
     readme_columns = ['is_dttm', 'expression']
     description_columns = {
         'is_dttm': "是否将此列作为[时间粒度]选项, 列中的数据类型必须是DATETIME",
@@ -677,7 +675,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
 
     bool_columns = ['is_dttm', 'is_active', 'groupby', 'count_distinct',
                     'sum', 'avg', 'max', 'min', 'filterable']
-    str_columns = ['table', ]
+    str_columns = ['dataset', ]
 
     def get_object_list_data(self, **kwargs):
         dataset_id = kwargs.get('dataset_id')
