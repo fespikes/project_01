@@ -832,7 +832,8 @@ class DatabaseView(SupersetModelView):  # noqa
         log_number('database', g.user.get_id())
 
     def pre_update(self, obj):
-        self.pre_add(obj)
+        # self.pre_add(obj)
+        pass
 
     def post_update(self, obj):
         self.add_or_edit_database_account(obj)

@@ -742,8 +742,6 @@ class Database(Model, AuditMixinNullable):
     def test_uri(self, url):
         extra = self.get_extra()
         params = extra.get('engine_params', {})
-        if url == self.safe_sqlalchemy_uri():
-            url = self.sqlalchemy_uri_decrypted
         try:
             inspector = sqla.inspect(create_engine(url, **params))
             inspector.get_schema_names()
