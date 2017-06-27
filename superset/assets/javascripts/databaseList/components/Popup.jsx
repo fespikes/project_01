@@ -6,8 +6,6 @@ import {Select} from './';
 import PropTypes from 'prop-types';
 import './popup.scss';
 
-console.log('Select:', Select);
-
 class Popup extends React.Component {
     constructor (props, context) {
         super(props);
