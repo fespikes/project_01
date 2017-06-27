@@ -2,112 +2,206 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
-
+import { Select, Tooltip, TreeSelect } from 'antd';
 import * as actionCreators from '../actions';
+import { appendTreeData, constructTreeData } from '../../../utils/common2';
 
 class SubDetail extends Component {
 
-    static staticProps = {
-    }
-
     constructor (props) {
         super(props);
+        this.state = {
+            databases: [],
+            dataset: {
+                dataset_type: props.match.params.type,
+                dataset_name: '',
+                table_name: '',
+                schema: '',
+                database_id: '',
+                sql: '',
+                description: ''
+            },
+            treeData: [],
+        };
+
+        this.onSave = this.onSave.bind(this);
+        this.onSelect = this.onSelect.bind(this);
+        this.onLoadData = this.onLoadData.bind(this);
+        this.onConnectChange = this.onConnectChange.bind(this);
+        this.handleSQLChange = this.handleSQLChange.bind(this);
+        this.handleDatasetChange = this.handleDatasetChange.bind(this);
+        this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
     }
 
-    switchDatasetType (datasetType) {
-        this.props.dispatch(switchDatasetType(datasetType));
+    handleDatasetChange(e) {
+        this.state.dataset.dataset_name = e.currentTarget.value;
+        this.setState({
+            dataset: this.state.dataset
+        });
+    }
+
+    handleDescriptionChange(e) {
+        this.state.dataset.description = e.currentTarget.value;
+        this.setState({
+            dataset: this.state.dataset
+        });
+    }
+
+    handleSQLChange(e) {
+        this.state.dataset.sql = e.currentTarget.value;
+        this.setState({
+            dataset: this.state.dataset
+        });
+    }
+
+    onConnectChange(dbId) {
+        const me = this;
+        const { dispatch, fetchSchemaList } = me.props;
+        dispatch(fetchSchemaList(dbId, callback));
+        function callback(success, data) {
+            if(success) {
+                let treeData = constructTreeData(data, false, 'folder');
+                me.state.dataset.database_id = dbId;
+                me.setState({
+                    dataset: me.state.dataset,
+                    treeData: treeData
+                });
+            }else {
+
+            }
+        }
+    }
+
+    onSelect(value, node) {
+        if(node.props.category === 'file') {
+            this.state.dataset.table_name = value;
+            this.setState({
+                dataset: this.state.dataset
+            });
+        }
+    }
+
+    onLoadData(node) {
+        const me = this;
+        const schema = node.props.value;
+        const { dispatch, fetchTableList } = me.props;
+        dispatch(fetchTableList(me.state.dataset.database_id, schema, callback));
+
+        function callback(success, data) {
+            if(success) {
+                let treeData = appendTreeData(
+                    schema,
+                    data,
+                    JSON.parse(JSON.stringify(me.state.treeData))
+                );
+                me.state.dataset.schema = schema;
+                me.setState({
+                    treeData: treeData,
+                    dataset: me.state.dataset
+                });
+            }else {
+
+            }
+        }
+    }
+
+    onSave() {
+        const me = this;
+        const { dispatch, createDataset } = this.props;
+        dispatch(createDataset(me.state.dataset, callback));
+        function callback(success) {
+            if(success) {
+                let url = window.location.origin + '/table/list';
+                me.props.history.push(url);
+            }else {
+
+            }
+        }
+    }
+
+    componentDidMount() {
+        const me = this;
+        const { dispatch, fetchDatabaseList } = me.props;
+        if(this.state.dataset.dataset_type === 'inceptor') {
+            dispatch(fetchDatabaseList(callback));
+            function callback(success, data) {
+                if(success) {
+                    me.setState({
+                        databases: data
+                    });
+                }else {
+
+                }
+            }
+        }
     }
 
     render () {
         const me = this;
+        const { datasetType, operationType, HDFSConnected } = this.props;
 
-        const {
-            datasetType,
-            operationType,
-            HDFSConnected,
-
-            switchDatasetType,
-            switchOperationType
-        } = this.props;
+        const Option = Select.Option;
+        const dbOptions = me.state.databases.map(database => {
+            return <Option key={database.id}>{database.database_name}</Option>
+        });
 
         return (
             <div className="data-detail-centent shallow">
                 <div className="data-detail-border">
-                    <label className="data-detail-item">
-                        <span>数据集名称：</span>
-                        <input type="text" defaultValue="Heatmap" />
-                    </label>
-                    <label className="data-detail-item">
-                        <span>数据集类型：</span>
-                        <dl>
-                            <dt
-                                className={(datasetType==='inceptor'?'radio-glugin-active ':'') + 'radio-glugin'}
-                                onClick={() => switchDatasetType('inceptor')} >
-                            </dt>
-                            <dd className="active">inceptor</dd>
-                        </dl>
-                        <dl>
-                            <dt
-                                className={(datasetType==='HDFS'?'radio-glugin-active ':'') + 'radio-glugin'}
-                                onClick={() => switchDatasetType('HDFS')}>
-                            </dt>
-                            <dd>HDFS</dd>
-                        </dl>
-                        <dl>
-                            <dt
-                                className={(datasetType==='uploadFile'?'radio-glugin-active ':'') + 'radio-glugin'}
-                                onClick={() => switchDatasetType('uploadFile')}>
-                            </dt>
-                            <dd>上传文件</dd>
-                        </dl>
-                    </label>
-
                     {/* inceptor corresponding dom*/}
-                    <div className={datasetType==='inceptor'?'':'none'}>
+                    <div className={datasetType==='INCEPTOR'?'':'none'}>
+                        <label className="data-detail-item">
+                            <span>数据集名称：</span>
+                            <input type="text" onChange={this.handleDatasetChange} />
+                        </label>
+                        <label className="data-detail-item">
+                            <span>描述：</span>
+                            <textarea onChange={this.handleDescriptionChange}/>
+                        </label>
                         <label className="data-detail-item">
                             <span>选择连接：</span>
-                            <input type="text" defaultValue="Heatmap" />
+                            <Select
+                                style={{ width: 230 }}
+                                onChange={this.onConnectChange}
+                            >
+                                {dbOptions}
+                            </Select>
                             <div className="connect-success">
                                 &nbsp;<button>新建连接</button>
                             </div>
                         </label>
-                        <label className="data-detail-item">
-                            <span></span>
-                            <dl>
-                                <dt
-                                    className={(operationType==='table'?'radio-glugin-active ':'') + 'radio-glugin'}
-                                    onClick={() => switchOperationType('table')}
-                                ></dt>
-                                <dd>选择表</dd>
-                            </dl>
-                            <dl>
-                                <dt
-                                    className={(operationType==='SQL'?'radio-glugin-active ':'') + 'radio-glugin'}
-                                    onClick={() => switchOperationType('SQL')}
-                                ></dt>
-                                <dd>SQL</dd>
-                            </dl>
-                        </label>
-
                         <div className={operationType==='table'?'':'none'}>
                             <label className="data-detail-item">
                                 <span>选择表：</span>
-                                <input type="text" defaultValue="Heatmap" />
+                                <TreeSelect
+                                    showSearch
+                                    value={this.state.dataset.table_name}
+                                    style={{ width: 782 }}
+                                    placeholder="Please select"
+                                    treeData={this.state.treeData}
+                                    loadData={this.onLoadData}
+                                    onSelect={this.onSelect}
+                                    dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+                                >
+                                </TreeSelect>
+                                <Tooltip title="选择表">
+                                    <i className="icon icon-info"/>
+                                </Tooltip>
                             </label>
                         </div>
 
-                        <div className={operationType==='SQL'?'':'none'}>
+                        <div>
                             <label className="data-detail-item">
                                 <span>SQL：</span>
-                                <textarea name="" id="" cols="30" rows="10">
-                                </textarea>
-                            </label>
-                            <label className="data-detail-item">
-                                <span>描述：</span>
-                                <textarea name="" id="" cols="30" rows="10">
-                                </textarea>
+                                <textarea name="" id="" cols="30" rows="10" onChange={this.handleSQLChange}/>
+                                <a href={ window.location.origin + '/pilot/sqllab' } target="_blank">
+                                    切换至SQL LAB编辑
+                                </a>
                             </label>
                         </div>
+                        <label className="sub-btn">
+                            <input type="button" defaultValue="保存" onClick={this.onSave}/>
+                        </label>
                     </div>
 
                     {/* HDFS corresponding dom*/}
@@ -117,35 +211,35 @@ class SubDetail extends Component {
                                 <span></span>
                                 <div className="file-show">
                                     <div className="file-fold">
-                                        <i className="icon"></i>
+                                        <i className="icon"/>
                                         <span>DEV</span>
                                     </div>
                                     <div className="file-fold-active">
-                                        <i className="icon"></i>
+                                        <i className="icon"/>
                                         <span>AD</span>
                                         <div className="file-fold">
-                                            <i className="icon"></i>
+                                            <i className="icon"/>
                                             <span>DEV</span>
                                         </div>
                                         <div className="file-fold">
-                                            <i className="icon"></i>
+                                            <i className="icon"/>
                                             <span className="active">DEV</span>
                                         </div>
                                         <div className="file-fold">
-                                            <i className="icon"></i>
+                                            <i className="icon"/>
                                             <span>DEV</span>
                                         </div>
                                     </div>
                                     <div className="file-fold">
-                                        <i className="icon"></i>
+                                        <i className="icon"/>
                                         <span>DEV</span>
                                     </div>
                                     <div className="file-fold">
-                                        <i className="icon"></i>
+                                        <i className="icon"/>
                                         <span>DEV</span>
                                     </div>
                                     <div className="file-fold">
-                                        <i className="icon"></i>
+                                        <i className="icon"/>
                                         <span>DEV</span>
                                     </div>
                                 </div>
@@ -159,7 +253,7 @@ class SubDetail extends Component {
                             </label>
                             <label className="data-detail-item">
                                 <span>描述：</span>
-                                <textarea name="" id="" cols="30" rows="10"></textarea>
+                                <textarea name="" id="" cols="30" rows="10"/>
                             </label>
                         </div>
                         <div className={HDFSConnected===true?'none':''}>
@@ -172,46 +266,46 @@ class SubDetail extends Component {
                             </label>
                             <label className="data-detail-item">
                                 <span>描述：</span>
-                                <textarea name="" id="" cols="30" rows="10"></textarea>
+                                <textarea name="" id="" cols="30" rows="10"/>
                             </label>
                         </div>
                     </div>
 
                     {/* upload file corresponding dom*/}
-                    <div className={datasetType==='uploadFile'?'':'none'} >
+                    <div className={datasetType==='UPLOAD'?'':'none'} >
                         <label className="data-detail-item">
                             <span></span>
                             <div className="file-show">
                                 <div className="file-fold">
-                                    <i className="icon"></i>
+                                    <i className="icon"/>
                                     <span>DEV</span>
                                 </div>
                                 <div className="file-fold-active">
-                                    <i className="icon"></i>
+                                    <i className="icon"/>
                                     <span>AD</span>
                                     <div className="file-fold">
-                                        <i className="icon"></i>
+                                        <i className="icon"/>
                                         <span>DEV</span>
                                     </div>
                                     <div className="file-fold">
-                                        <i className="icon"></i>
+                                        <i className="icon"/>
                                         <span className="active">DEV</span>
                                     </div>
                                     <div className="file-fold">
-                                        <i className="icon"></i>
+                                        <i className="icon"/>
                                         <span>DEV</span>
                                     </div>
                                 </div>
                                 <div className="file-fold">
-                                    <i className="icon"></i>
+                                    <i className="icon"/>
                                     <span>DEV</span>
                                 </div>
                                 <div className="file-fold">
-                                    <i className="icon"></i>
+                                    <i className="icon"/>
                                     <span>DEV</span>
                                 </div>
                                 <div className="file-fold">
-                                    <i className="icon"></i>
+                                    <i className="icon"/>
                                     <span>DEV</span>
                                 </div>
                             </div>
@@ -227,7 +321,7 @@ class SubDetail extends Component {
                         <label className="data-detail-item">
                             <span></span>
                             <div className="file-uploading">
-                                <i className="icon"></i>
+                                <i className="icon"/>
                                 <span>package.json</span>
                                 <div className="progress"></div>
                             </div>
@@ -236,7 +330,7 @@ class SubDetail extends Component {
                         <label className="data-detail-item">
                             <span></span>
                             <div className="file-uploaded">
-                                <i className="icon"></i>
+                                <i className="icon"/>
                                 <span>package.json</span>
                                 <div className="finish"></div>
                             </div>
@@ -250,24 +344,10 @@ class SubDetail extends Component {
                         </label>
                         <label className="data-detail-item">
                             <span>描述：</span>
-                            <textarea name="" id="" cols="30" rows="10"></textarea>
-                        </label>
-                    </div>
-
-                    <div className="data-detail-wrap-item">
-                        <label className="data-detail-item data-detail-item-time">
-                            <span>主列时间：</span>
-                            <input type="text"/>
-                        </label>
-                        <label className="data-detail-item data-detail-item-time">
-                            <span>缓存时间：</span>
-                            <input type="text" />
+                            <textarea name="" id="" cols="30" rows="10"/>
                         </label>
                     </div>
                 </div>
-                <label className="sub-btn">
-                    <input type="button" defaultValue="保存" />
-                </label>
             </div>
         );
     }
@@ -281,15 +361,18 @@ function mapDispatchToProps (dispatch) {
 
     //filter out all necessary properties
     const {
-        switchDatasetType,
-        switchHDFSConnected,
-        switchOperationType
+        fetchDatabaseList,
+        fetchTableList,
+        fetchSchemaList,
+        createDataset,
     } = bindActionCreators(actionCreators, dispatch);
 
     return {
-        switchDatasetType,
-        switchHDFSConnected,
-        switchOperationType
+        fetchDatabaseList,
+        fetchTableList,
+        fetchSchemaList,
+        createDataset,
+        dispatch
     };
 }
 export default connect (mapStateToProps, mapDispatchToProps ) (SubDetail);

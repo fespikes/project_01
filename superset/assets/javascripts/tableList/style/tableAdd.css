@@ -316,6 +316,11 @@ a{text-decoration:none;}
 .data-detail-item-time>input{
     width:200px;
 }
+.data-detail-item>a{
+    position: relative;
+    left: -120px;
+    top: -20px;
+}
 .none{
     display: none;
 }

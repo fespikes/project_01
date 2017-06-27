@@ -3,9 +3,9 @@ import { actionTypes  } from '../actions';
 
 export default function subDetail(state = {
     //all below are radios
-    datasetType: 'uploadFile',     //uploadFile HDFS inceptor
+    datasetType: 'INCEPTOR',     //uploadFile HDFS inceptor
     HDFSConnected: false,
-    operationType: 'table'    //table or SQL in inceptor
+    operationType: 'table',    //table or SQL in inceptor
 }, action) {
     switch (action.type) {
         case actionTypes.switchDatasetType:
@@ -16,7 +16,6 @@ export default function subDetail(state = {
             break;
         case actionTypes.switchOperationType:
             return {...state, operationType: action.operationType};
-            break;
             break;
         default:
             return state;
