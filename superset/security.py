@@ -203,7 +203,7 @@ def sync_role_definitions():
     # if conf.get('PUBLIC_ROLE_LIKE_GAMMA', False):
     #     set_role('Public', pvms, is_gamma_pvm)
 
-    view_menu_set = db.session.query(models.SqlaTable).all()
+    view_menu_set = db.session.query(models.Dataset).all()
     create_missing_datasource_perms(view_menu_set)
     create_missing_database_perms(view_menu_set)
     create_missing_metrics_perm(view_menu_set)

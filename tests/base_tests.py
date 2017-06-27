@@ -91,7 +91,7 @@ class SupersetTestCase(unittest.TestCase):
     def update_example_user(self, username):
         user = appbuilder.sm.find_user(username)
         classes = [models.Dashboard, models.Slice, models.Database,
-                   models.SqlaTable, models.TableColumn, models.SqlMetric]
+                   models.Dataset, models.TableColumn, models.SqlMetric]
         for cls in classes:
             self.update_object_user(cls, user.id)
 
@@ -105,7 +105,7 @@ class SupersetTestCase(unittest.TestCase):
         db.session.commit()
 
     def get_table(self, table_id):
-        return db.session.query(models.SqlaTable).filter_by(
+        return db.session.query(models.Dataset).filter_by(
             id=table_id).first()
 
     def get_or_create(self, cls, criteria, session):
@@ -146,7 +146,7 @@ class SupersetTestCase(unittest.TestCase):
         return slc
 
     def get_table_by_name(self, name):
-        return db.session.query(models.SqlaTable).filter_by(
+        return db.session.query(models.Dataset).filter_by(
             table_name=name).first()
 
     def get_resp(
