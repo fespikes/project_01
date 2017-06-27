@@ -5,13 +5,9 @@ import subDetail from './subDetail';
 function condition(state = {
     page: 1,
     pageSize: 10,
-    // order_column: 'changed_on',
     orderDirection: 'desc',//取值 ('desc' or 'asc'),
     filter: '',//搜索字符串,
-//    onlyFavorite: 0,//全部or收藏，取值 (0 or 1),
     tableType: 'all',//选择数据集类型时需要('database','hdfs', 'upload');
-//    table_id: list column/metric时需要
-
     selectedRowKeys: [],
     selectedRowNames: []
 }, action) {

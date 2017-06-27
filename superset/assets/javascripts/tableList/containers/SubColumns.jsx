@@ -36,7 +36,7 @@ class SubColumns extends Component {
     };
     onInputChange = (e) => {
         this.setState({ searchText: e.target.value });
-    }
+    };
     onSearch = () => {
         const { searchText } = this.state;
         const reg = new RegExp(searchText, 'gi');
@@ -60,7 +60,7 @@ class SubColumns extends Component {
                 };
             }).filter(record => !!record),
         });
-    }
+    };
 
     addTableColumn (argus) {
         //TODO: show popup
@@ -162,11 +162,11 @@ class SubColumns extends Component {
             render: (text, record, index) => {
                 return (
                     <div className="icon-group">
-                        <i className="icon edit" onClick={() => editSlice(record)}></i>&nbsp;
+                        <i className="icon edit" onClick={() => editSlice(record)}/>
                         <i className="icon remove"
                             onClick={() => deleteSlice(record)}
                             style={{marginLeft:'30px'}}
-                        ></i>
+                        />
                     </div>
                 )
             }

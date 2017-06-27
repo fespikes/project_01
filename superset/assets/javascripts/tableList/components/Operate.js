@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { Select } from 'antd';
-
+import { switchDatasetType } from '../actions';
 import PropTypes from 'prop-types';
 import {
     selectType,
@@ -19,6 +19,7 @@ class SliceOperate extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onDelete = this.onDelete.bind(this);
         this.onSearch = this.onSearch.bind(this);
+        this.selectChange = this.selectChange.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
     }
 
@@ -50,6 +51,11 @@ class SliceOperate extends React.Component {
         }
     }
 
+    selectChange(value) {
+        const { dispatch } = this.props;
+        dispatch(switchDatasetType(value));
+    }
+
     handleSelectChange (argus) {
         this.props.dispatch(selectType(argus));
     }
@@ -66,10 +72,22 @@ class SliceOperate extends React.Component {
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    <li>
-                        <Link to="/add">
-                            <i className="icon icon-plus" />
-                        </Link>
+                    <li style={{ width: 100 }}>
+                        <Select
+                            style={{ width: '100%' }}
+                            placeholder="新建连接"
+                            onChange={this.selectChange}
+                        >
+                            <Option value="inceptor">
+                                <Link to="/add/inceptor">inceptor</Link>
+                            </Option>
+                            <Option value="HDFS">
+                                <Link to="/add/HDFS">HDFS</Link>
+                            </Option>
+                            <Option value="uploadFile">
+                                <Link to="/add/uploadFile">uploadFile</Link>
+                            </Option>
+                        </Select>
                     </li>
                     <li onClick={this.onDelete}>
                         <i className="icon icon-trash" />
