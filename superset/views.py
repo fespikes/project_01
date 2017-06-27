@@ -1315,6 +1315,7 @@ class DatasetModelView(SupersetModelView):  # noqa
 
 class HDFSTableModelView(SupersetModelView):
     model = models.HDFSTable
+    datamodel = SQLAInterface(models.HDFSTable)
     route_base = '/hdfstable'
     show_columns = []
     edit_columns = []
