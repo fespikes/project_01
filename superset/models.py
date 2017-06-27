@@ -1075,12 +1075,12 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
             pdf = self.python_date_format
             if pdf in ('epoch_s', 'epoch_ms'):
                 # if epoch, translate to DATE using db specific conf
-                db_spec = self.table.database.db_engine_spec
+                db_spec = self.dataset.database.db_engine_spec
                 if pdf == 'epoch_s':
                     expr = db_spec.epoch_to_dttm().format(col=expr)
                 elif pdf == 'epoch_ms':
                     expr = db_spec.epoch_ms_to_dttm().format(col=expr)
-            grain = self.table.database.grains_dict().get(time_grain, '{col}')
+            grain = self.dataset.database.grains_dict().get(time_grain, '{col}')
             expr = grain.function.format(col=expr)
         return literal_column(expr, type_=DateTime).label(DTTM_ALIAS)
 
@@ -1110,7 +1110,7 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
         elif tf == 'epoch_ms':
             return str((dttm - datetime(1970, 1, 1)).total_seconds() * 1000.0)
         else:
-            s = self.table.database.db_engine_spec.convert_dttm(
+            s = self.dataset.database.db_engine_spec.convert_dttm(
                 self.type, dttm)
             return s or "'{}'".format(dttm.strftime(tf))
 
@@ -1151,7 +1151,7 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
         return (
             "{parent_name}.[{obj.metric_name}](id:{obj.id})"
         ).format(obj=self,
-                 parent_name=self.table.full_name) if self.table else None
+                 parent_name=self.dataset.full_name) if self.dataset else None
 
     @classmethod
     def import_obj(cls, i_metric):
