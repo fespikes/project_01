@@ -1296,6 +1296,22 @@ class DatasetModelView(SupersetModelView):  # noqa
         log_number('dataset', g.user.get_id())
 
 
+class HDFSTableModelView(SupersetModelView):
+    model = models.HDFSTable
+    route_base = '/hdfstable'
+    show_columns = []
+    edit_columns = []
+
+    def add(self):
+        pass
+
+    def show(self):
+        pass
+
+    def edit(self):
+        pass
+
+
 class SliceModelView(SupersetModelView):  # noqa
     model = models.Slice
     datamodel = SQLAInterface(models.Slice)
@@ -3689,6 +3705,7 @@ class HDFSBrowser(BaseSupersetView):
 appbuilder.add_view_no_menu(DatabaseAsync)
 appbuilder.add_view_no_menu(DatabaseTablesAsync)
 appbuilder.add_view_no_menu(ConnectionView)
+appbuilder.add_view_no_menu(HDFSTableModelView)
 appbuilder.add_view_no_menu(TableColumnInlineView)
 appbuilder.add_view_no_menu(SqlMetricInlineView)
 appbuilder.add_view_no_menu(SliceAsync)
