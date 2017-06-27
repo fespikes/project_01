@@ -940,6 +940,23 @@ class DatabaseTablesAsync(DatabaseView):
     list_columns = ['id', 'all_table_names', 'all_schema_names']
 
 
+class HDFSConnectionModelView(SupersetModelView):
+    model = models.HDFSConnection
+    datamodel = SQLAInterface(models.Database)
+    route_base = '/hdfsconnection'
+    show_columns = []
+    edit_columns = []
+
+    def add(self):
+        pass
+
+    def show(self):
+        pass
+
+    def edit(self):
+        pass
+
+
 class ConnectionView(BaseSupersetView, PageMixin):
     """Connection includes Database and HDFSConnection.
     This view just gets the list data of Database and HDFSConnection
@@ -3705,6 +3722,7 @@ class HDFSBrowser(BaseSupersetView):
 appbuilder.add_view_no_menu(DatabaseAsync)
 appbuilder.add_view_no_menu(DatabaseTablesAsync)
 appbuilder.add_view_no_menu(ConnectionView)
+appbuilder.add_view_no_menu(HDFSConnectionModelView)
 appbuilder.add_view_no_menu(HDFSTableModelView)
 appbuilder.add_view_no_menu(TableColumnInlineView)
 appbuilder.add_view_no_menu(SqlMetricInlineView)
