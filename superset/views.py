@@ -648,7 +648,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     _list_columns = list_columns
     edit_columns = [
         'column_name', 'description', 'groupby', 'filterable',
-        'count_distinct', 'sum', 'min', 'max', 'expression']
+        'count_distinct', 'sum', 'min', 'max', 'expression', 'dataset_id']
     show_columns = edit_columns + ['id']
     add_columns = edit_columns
     readme_columns = ['is_dttm', 'expression']
@@ -707,14 +707,12 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     model = models.SqlMetric
     datamodel = SQLAInterface(models.SqlMetric)
     route_base = '/sqlmetric'
-    list_columns = ['id', 'metric_name', 'metric_type', 'expression']
+    list_columns = ['id', 'metric_name', 'description',
+                    'metric_type', 'expression']
     _list_columns = list_columns
-    show_columns = [
-        'id', 'metric_name', 'description', 'verbose_name',
-        'metric_type', 'expression', 'dataset_id', 'dataset', 'd3format']
-    edit_columns = [
-        'metric_name', 'description', 'verbose_name',
-        'metric_type', 'expression', 'dataset_id', 'd3format']
+    show_columns = list_columns
+    edit_columns = ['metric_name', 'description', 'metric_type',
+                    'expression', 'dataset_id']
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
     description_columns = {
@@ -735,7 +733,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     page_size = 500
 
     bool_columns = ['is_restricted', ]
-    str_columns = ['table', ]
+    str_columns = ['dataset', ]
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
@@ -767,12 +765,10 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
         return attributes
 
     def post_add(self, metric):
-        if metric.is_restricted:
-            security.merge_perm(sm, 'metric_access', metric.get_perm())
+        pass
 
     def post_update(self, metric):
-        if metric.is_restricted:
-            security.merge_perm(sm, 'metric_access', metric.get_perm())
+        pass
 
 
 class DatabaseView(SupersetModelView):  # noqa
