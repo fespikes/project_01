@@ -709,7 +709,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     _list_columns = list_columns
     show_columns = [
         'id', 'metric_name', 'description', 'verbose_name',
-        'metric_type', 'expression', 'dataset_id', 'table', 'd3format']
+        'metric_type', 'expression', 'dataset_id', 'dataset', 'd3format']
     edit_columns = [
         'metric_name', 'description', 'verbose_name',
         'metric_type', 'expression', 'dataset_id', 'd3format']
