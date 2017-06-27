@@ -184,10 +184,11 @@ def get_user_id():
         raise Exception(NO_USER)
 
 
-def build_response(status=200, success=True, message=""):
+def build_response(status=200, success=True, message="", data=None):
     return json.dumps({'status': status,
                        'success': success,
-                       'message': message})
+                       'message': message,
+                       'data': data})
 
 
 def get_user_roles():
@@ -378,7 +379,8 @@ class SupersetModelView(ModelView, PageMixin):
             self.pre_add(obj)
             self.datamodel.add(obj)
             self.post_add(obj)
-            return self.build_response(200, True, ADD_SUCCESS)
+            data = {'object_id': obj.id}
+            return self.build_response(200, True, ADD_SUCCESS, data)
         except Exception as e:
             return self.build_response(500, False, str(e))
 
@@ -435,11 +437,12 @@ class SupersetModelView(ModelView, PageMixin):
         except Exception as e:
             return self.build_response(500, False, str(e))
 
-    def build_response(self, status=None, success=None, message=None):
+    def build_response(self, status=None, success=None, message=None, data=None):
         response = {}
         response['status'] = status if status else self.status
         response['success'] = success if success is not None else self.success
         response['message'] = message if message else self.message
+        response['data'] = data
         return json.dumps(response)
 
     def get_addable_choices(self):
