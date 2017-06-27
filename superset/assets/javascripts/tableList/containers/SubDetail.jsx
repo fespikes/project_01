@@ -111,7 +111,6 @@ class SubDetail extends Component {
         dispatch(createDataset(me.state.dataset, callback));
         function callback(success) {
             if(success) {
-                console.log('success...');
                 let url = window.location.origin + '/table/list';
                 me.props.history.push(url);
             }else {
@@ -150,7 +149,7 @@ class SubDetail extends Component {
             <div className="data-detail-centent shallow">
                 <div className="data-detail-border">
                     {/* inceptor corresponding dom*/}
-                    <div className={datasetType==='inceptor'?'':'none'}>
+                    <div className={datasetType==='INCEPTOR'?'':'none'}>
                         <label className="data-detail-item">
                             <span>数据集名称：</span>
                             <input type="text" onChange={this.handleDatasetChange} />
@@ -273,7 +272,7 @@ class SubDetail extends Component {
                     </div>
 
                     {/* upload file corresponding dom*/}
-                    <div className={datasetType==='uploadFile'?'':'none'} >
+                    <div className={datasetType==='UPLOAD'?'':'none'} >
                         <label className="data-detail-item">
                             <span></span>
                             <div className="file-show">

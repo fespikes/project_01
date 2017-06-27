@@ -3,7 +3,7 @@ import { actionTypes  } from '../actions';
 
 export default function subDetail(state = {
     //all below are radios
-    datasetType: 'inceptor',     //uploadFile HDFS inceptor
+    datasetType: 'INCEPTOR',     //uploadFile HDFS inceptor
     HDFSConnected: false,
     operationType: 'table',    //table or SQL in inceptor
 }, action) {

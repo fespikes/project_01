@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { Select } from 'antd';
-import { switchDatasetType } from '../actions';
+import { switchDatasetType, fetchTypeList } from '../actions';
 import PropTypes from 'prop-types';
 import {
     selectType,
@@ -14,7 +14,9 @@ import { TableDelete } from '../popup';
 class SliceOperate extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            datasetTypes: []
+        };
 
         this.onChange = this.onChange.bind(this);
         this.onDelete = this.onDelete.bind(this);
@@ -66,9 +68,34 @@ class SliceOperate extends React.Component {
         //TODO: not sure that componentWillReceiveProps be triggered
     }
 
+    componentDidMount() {
+        const self = this;
+        const { dispatch } = self.props;
+        dispatch(fetchTypeList(callback));
+        function callback(success, data) {
+            if(success) {
+                self.setState({
+                    datasetTypes: data
+                });
+            }else {
+
+            }
+        }
+    }
+
     render() {
 
-        const { tableType } = this.props;
+        const Option = Select.Option;
+        const addOptions = this.state.datasetTypes.map(dataset => {
+            return <Option key={dataset} value={dataset}>
+                <Link to={`/add/${dataset}`}>{dataset}</Link>
+            </Option>
+        });
+        let datasetTypes = JSON.parse(JSON.stringify(this.state.datasetTypes));
+        datasetTypes.splice(0, 0, 'all');
+        const filterOptions = datasetTypes.map(dataset => {
+            return <Option key={dataset} value={dataset}>{dataset}</Option>
+        });
         return (
             <div className="operations">
                 <ul className="icon-list">
@@ -78,15 +105,7 @@ class SliceOperate extends React.Component {
                             placeholder="新建连接"
                             onChange={this.selectChange}
                         >
-                            <Option value="inceptor">
-                                <Link to="/add/inceptor">inceptor</Link>
-                            </Option>
-                            <Option value="HDFS">
-                                <Link to="/add/HDFS">HDFS</Link>
-                            </Option>
-                            <Option value="uploadFile">
-                                <Link to="/add/uploadFile">uploadFile</Link>
-                            </Option>
+                            {addOptions}
                         </Select>
                     </li>
                     <li onClick={this.onDelete}>
@@ -94,10 +113,13 @@ class SliceOperate extends React.Component {
                     </li>
                 </ul>
                 <div className="tab-btn">
-                    <Select ref="tableType" defaultValue={tableType} style={{ width: 120 }} onChange={this.handleSelectChange}>
-                        <Option value="all">all types</Option>
-                        <Option value="HDFS">HDFS</Option>
-                        <Option value="INCEPTOR">INCEPTOR</Option>
+                    <Select
+                        ref="tableType"
+                        defaultValue={datasetTypes[0]}
+                        style={{ width: 120 }}
+                        onChange={this.handleSelectChange}
+                    >
+                        {filterOptions}
                     </Select>
                 </div>
                 <div className="search-input">

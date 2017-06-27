@@ -192,7 +192,6 @@ export function fetchTableList(dbId, schema, callback) {
 export function createDataset(dataset, callback) {
     return () => {
         const url = baseURL + 'add';
-        //const errorHandler = error => alert(error);
         return fetch(url, {
             credentials: 'include',
             method: 'POST',
@@ -202,6 +201,26 @@ export function createDataset(dataset, callback) {
                 if(response.ok) {
                     response.json().then(response => {
                         callback(true);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchTypeList(callback) {
+    return () => {
+        const url = baseURL + 'dataset_types';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
                     });
                 }else {
                     callback(false);
