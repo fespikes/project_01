@@ -18,7 +18,7 @@ export const actionTypes = {
     switchDatasetType: 'SWITCH_DATASET_TYPE',
     switchHDFSConnected: 'SWITCH_HDFS_CONNECTED',
     switchOperationType: 'SWITCH_OPERATION_TYPE'
-}
+};
 
 const baseURL = window.location.origin + '/table/';
 
@@ -129,6 +129,107 @@ export function fetchTableDeleteMul(callback) {
     }
 }
 
+export function fetchDatabaseList(callback) {
+    return () => {
+        const url = baseURL + 'databases';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchSchemaList(dbId, callback) {
+    return () => {
+        const url = baseURL + 'schemas/' + dbId;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchTableList(dbId, schema, callback) {
+    return () => {
+        const url = baseURL + 'tables/' + dbId + '/' + schema;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function createDataset(dataset, callback) {
+    return () => {
+        const url = baseURL + 'add';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(dataset)
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchTypeList(callback) {
+    return () => {
+        const url = baseURL + 'dataset_types';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
 function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
@@ -162,10 +263,7 @@ function applyFetch(condition) {
         .then(json => {
             dispatch(receiveData(condition, dataMatch(json)));
         });
-
-//        const json = require('./d40cb439062601b83de7.json');
-//        dispatch(receiveData(condition, dataMatch(json)));
-  };
+    };
 }
 
 function shouldFetch(state, condition) {
@@ -188,9 +286,6 @@ export function fetchIfNeeded(condition) {
   };
 }
 
-
-
-//////////////////
 export function setPopupTitle (title) {
     return {
         type: actionTypes.setPopupTitle,
