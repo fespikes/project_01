@@ -305,8 +305,7 @@ def generate_download_headers(extension):
     return headers
 
 
-class SupersetModelView(ModelView):
-    model = models.Model
+class PageMixin(object):
     # used for querying
     page = 0
     page_size = 10
@@ -314,6 +313,22 @@ class SupersetModelView(ModelView):
     order_direction = 'desc'
     filter = None
     only_favorite = False        # all or favorite
+
+    def get_list_args(self, args):
+        kwargs = {}
+        kwargs['user_id'] = get_user_id()
+        kwargs['order_column'] = args.get('order_column', self.order_column)
+        kwargs['order_direction'] = args.get('order_direction', self.order_direction)
+        kwargs['page'] = int(args.get('page', self.page))
+        kwargs['page_size'] = int(args.get('page_size', self.page_size))
+        kwargs['filter'] = args.get('filter', self.filter)
+        fav = args.get('only_favorite')
+        kwargs['only_favorite'] = strtobool(fav) if fav else self.only_favorite
+        return kwargs
+
+
+class SupersetModelView(ModelView, PageMixin):
+    model = models.Model
 
     # used for Data type conversion
     int_columns = []
@@ -326,15 +341,7 @@ class SupersetModelView(ModelView):
     message = ""
 
     def get_list_args(self, args):
-        kwargs = {}
-        kwargs['user_id'] = self.get_user_id()
-        kwargs['order_column'] = args.get('order_column', self.order_column)
-        kwargs['order_direction'] = args.get('order_direction', self.order_direction)
-        kwargs['page'] = int(args.get('page', self.page))
-        kwargs['page_size'] = int(args.get('page_size', self.page_size))
-        kwargs['filter'] = args.get('filter', self.filter)
-        fav = args.get('only_favorite')
-        kwargs['only_favorite'] = strtobool(fav) if fav else self.only_favorite
+        kwargs = super().get_list_args(args)
         kwargs['dataset_type'] = args.get('dataset_type')
         kwargs['dataset_id'] = int(args.get('dataset_id')) \
             if args.get('dataset_id') else None
@@ -936,7 +943,7 @@ class DatabaseTablesAsync(DatabaseView):
     list_columns = ['id', 'all_table_names', 'all_schema_names']
 
 
-class ConnectionView(BaseSupersetView):
+class ConnectionView(BaseSupersetView, PageMixin):
     """Connection includes Database and HDFSConnection.
     This view just gets the list data of Database and HDFSConnection
     """
@@ -948,7 +955,103 @@ class ConnectionView(BaseSupersetView):
         try:
             return json.dumps(list(self.model.connection_type_dict.values()))
         except Exception as e:
-            return self.build_response(500, False, str(e))
+            return build_response(500, False, str(e))
+
+    @catch_exception
+    @expose('/listdata/', methods=['GET', ])
+    def get_list_data(self):
+        try:
+            kwargs = self.get_list_args(request.args)
+            list_data = self.get_object_list_data(**kwargs)
+            return json.dumps(list_data)
+        except Exception as e:
+            return build_response(500, False, str(e))
+
+    def get_object_list_data(self, **kwargs):
+        order_column = kwargs.get('order_column')
+        order_direction = kwargs.get('order_direction')
+        page = kwargs.get('page')
+        page_size = kwargs.get('page_size')
+        filter = kwargs.get('filter')
+        user_id = kwargs.get('user_id')
+
+        s1 = select([Database.id.label('id'),
+                     Database.database_name.label('name'),
+                     Database.online.label('online'),
+                     Database.created_by_fk.label('user_id'),
+                     Database.changed_on.label('changed_on'),
+                     cast(literal('INCEPTOR'), type_=sqla.String).label('connection_type')])
+        s2 = select([HDFSConnection.id.label('id'),
+                     HDFSConnection.connection_name.label('name'),
+                     HDFSConnection.online.label('online'),
+                     HDFSConnection.created_by_fk.label('user_id'),
+                     HDFSConnection.changed_on.label('changed_on'),
+                     cast(literal('HDFS'), type_=sqla.String).label('connection_type')])
+        union_q = s1.union_all(s2).alias('connection')
+        query = (
+            db.session.query(union_q, User.username)
+            .join(User, User.id == union_q.c.user_id)
+            .filter(
+                or_(
+                    union_q.c.user_id == user_id,
+                    union_q.c.online == 1)
+            )
+        )
+
+        if filter:
+            filter_str = '%{}%'.format(filter.lower())
+            query = query.filter(
+                or_(
+                    union_q.c.name.ilike(filter_str),
+                    union_q.c.connection_type.ilike(filter_str),
+                    User.username.ilike(filter_str)
+                )
+            )
+        count = query.count()
+
+        if order_column:
+            try:
+                column = self.str_to_column(union_q).get(order_column)
+                if order_direction == 'desc':
+                    query = query.order_by(column.desc())
+                else:
+                    query = query.order_by(column)
+            except KeyError:
+                msg = 'Error order column name: \'{}\''.format(order_column)
+
+        if page is not None and page >= 0 and page_size and page_size > 0:
+            query = query.limit(page_size).offset(page * page_size)
+
+        rs = query.all()
+        data = []
+        for row in rs:
+            data.append({
+                'id': row[0],
+                'name': row[1],
+                'online': row[2],
+                'changed_on': str(row[4]),
+                'connection_type': row[5],
+                'owner': row[6],
+            })
+
+        response = {}
+        response['count'] = count
+        response['order_column'] = order_column
+        response['order_direction'] = 'desc' if order_direction == 'desc' else 'asc'
+        response['page'] = page
+        response['page_size'] = page_size
+        response['data'] = data
+        return response
+
+    @staticmethod
+    def str_to_column(q):
+        return {
+            'name': q.c.name,
+            'online': q.c.online,
+            'changed_on': q.c.changed_on,
+            'connection_type': q.c.connection_type,
+            'owner': User.username
+        }
 
 
 class DatasetModelView(SupersetModelView):  # noqa
