@@ -326,6 +326,7 @@ function applyFetch (condition) {
             if(!json.data) return json;
             json.data.map(function(obj, index, arr){
                 obj.iconClass = (obj.dataset_type == 'hdfs_folder'? 'HDFS' : obj.dataset_type == 'Inceptor'?'Inceptor' : 'upload');
+                obj.recordId = index+1;
             });
             return json;
         }
@@ -342,7 +343,6 @@ function applyFetch (condition) {
         .then(json => {
             dispatch(receiveData(condition, dataMatch(json)));
         });
-
 //        const json = require('./d40cb439062601b83de7.json');
 //        dispatch(receiveData(condition, dataMatch(json)));
   };

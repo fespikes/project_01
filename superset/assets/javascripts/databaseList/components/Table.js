@@ -133,7 +133,7 @@ class SliceTable extends React.Component {
                 dataSource={data}
                 columns={columns}
                 pagination={false}
-                rowKey={record => record.id}
+                rowKey={record => record.recordId}
             />
         );
     }
