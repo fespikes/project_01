@@ -718,10 +718,6 @@ class Database(Model, AuditMixinNullable):
     """))
     perm = Column(String(1000))
 
-    connection_type_dict = {
-        'inceptor': 'INCEPTOR',
-        'hdfs': 'HDFS'}
-
     def __repr__(self):
         return self.database_name
 
@@ -2094,3 +2090,9 @@ class HDFSTable(Model, AuditMixinNullable):
         backref=backref('ref_hdfs_connection', lazy='joined'),
         foreign_keys=[hdfs_connection_id]
     )
+
+
+class Connection(object):
+    connection_type_dict = {
+        'inceptor': 'INCEPTOR',
+        'hdfs': 'HDFS'}

@@ -20,7 +20,6 @@ import sqlalchemy as sqla
 from flask import (g, request, redirect, flash,
                    Response, render_template, Markup, abort)
 from flask_appbuilder import ModelView, BaseView, expose
-from flask_appbuilder.actions import action
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.decorators import has_access
 from flask_appbuilder.models.sqla.filters import (BaseFilter, FilterStartsWith, FilterEqualFunction)
@@ -29,7 +28,7 @@ from flask_appbuilder.security.sqla import models as ab_models
 from flask_babel import gettext as __
 from flask_babel import lazy_gettext as _
 
-from sqlalchemy import create_engine, case
+from sqlalchemy import create_engine, case, select, literal, cast
 from wtforms.validators import ValidationError
 
 
@@ -44,14 +43,12 @@ from superset.utils import (get_database_access_error_msg,
                             get_datasource_exist_error_msg,
                             json_error_response)
 
-from superset.models import Database, Dataset, Slice, \
-    Dashboard, FavStar, Log, DailyNumber, str_to_model
+from superset.models import Database, Dataset, Slice, Dashboard, \
+    FavStar, Log, DailyNumber, HDFSTable, HDFSConnection, str_to_model
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset.message import *
-from superset.hdfsmodule.models import HDFSTable
-from superset.hdfsmodule.views import HDFSConnRes, \
-    HDFSFileBrowserRes, HDFSFilePreviewRes, HDFSTableRes
+
 
 config = app.config
 log_this = models.Log.log_this
@@ -816,13 +813,6 @@ class DatabaseView(SupersetModelView):  # noqa
 
     list_template = "superset/databaseList.html"
 
-    @expose('/connection_types/', methods=['GET', ])
-    def connection_types(self):
-        try:
-            return json.dumps(list(self.model.connection_type_dict.values()))
-        except Exception as e:
-            return self.build_response(500, False, str(e))
-
     def pre_add(self, obj):
         if obj.test_uri(obj.sqlalchemy_uri):
             obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
@@ -943,6 +933,21 @@ class DatabaseAsync(DatabaseView):
 class DatabaseTablesAsync(DatabaseView):
     route_base = '/databasetablesasync'
     list_columns = ['id', 'all_table_names', 'all_schema_names']
+
+
+class ConnectionView(BaseSupersetView):
+    """Connection includes Database and HDFSConnection.
+    This view just gets the list data of Database and HDFSConnection
+    """
+    model = models.Connection
+    route_base = '/connection'
+
+    @expose('/connection_types/', methods=['GET', ])
+    def connection_types(self):
+        try:
+            return json.dumps(list(self.model.connection_type_dict.values()))
+        except Exception as e:
+            return self.build_response(500, False, str(e))
 
 
 class DatasetModelView(SupersetModelView):  # noqa
@@ -3582,6 +3587,7 @@ class HDFSBrowser(BaseSupersetView):
 
 appbuilder.add_view_no_menu(DatabaseAsync)
 appbuilder.add_view_no_menu(DatabaseTablesAsync)
+appbuilder.add_view_no_menu(ConnectionView)
 appbuilder.add_view_no_menu(TableColumnInlineView)
 appbuilder.add_view_no_menu(SqlMetricInlineView)
 appbuilder.add_view_no_menu(SliceAsync)
