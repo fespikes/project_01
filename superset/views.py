@@ -1163,6 +1163,11 @@ class DatasetModelView(SupersetModelView):  # noqa
         except Exception as e:
             return self.build_response(500, False, str(e))
 
+    @catch_exception
+    @expose('/preview_data/<id>/', methods=['GET', ])
+    def get_preview_data(self, id):
+        return self.get_object(id).preview_data()
+
     def get_object_list_data(self, **kwargs):
         """Return the table list"""
         order_column = kwargs.get('order_column')
