@@ -321,6 +321,10 @@ a{text-decoration:none;}
     left: -120px;
     top: -20px;
 }
+.alert-tip {
+    display: flex;
+    justify-content: center;
+}
 .none{
     display: none;
 }

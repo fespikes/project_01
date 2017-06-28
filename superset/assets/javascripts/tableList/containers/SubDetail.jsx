@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { render } from 'react-dom';
+import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
-import { Select, Tooltip, TreeSelect } from 'antd';
+import { Select, Tooltip, TreeSelect, Alert } from 'antd';
 import * as actionCreators from '../actions';
 import { appendTreeData, constructTreeData } from '../../../utils/common2';
 
@@ -56,8 +58,8 @@ class SubDetail extends Component {
 
     onConnectChange(dbId) {
         const me = this;
-        const { dispatch, fetchSchemaList } = me.props;
-        dispatch(fetchSchemaList(dbId, callback));
+        const { fetchSchemaList } = me.props;
+        fetchSchemaList(dbId, callback);
         function callback(success, data) {
             if(success) {
                 let treeData = constructTreeData(data, false, 'folder');
@@ -84,8 +86,8 @@ class SubDetail extends Component {
     onLoadData(node) {
         const me = this;
         const schema = node.props.value;
-        const { dispatch, fetchTableList } = me.props;
-        dispatch(fetchTableList(me.state.dataset.database_id, schema, callback));
+        const { fetchTableList } = me.props;
+        return fetchTableList(me.state.dataset.database_id, schema, callback);
 
         function callback(success, data) {
             if(success) {
@@ -107,23 +109,39 @@ class SubDetail extends Component {
 
     onSave() {
         const me = this;
-        const { dispatch, createDataset } = this.props;
-        dispatch(createDataset(me.state.dataset, callback));
-        function callback(success) {
+        const { createDataset, saveDatasetId } = this.props;
+        createDataset(me.state.dataset, callback);
+        function callback(success, data) {
+            let response = {};
             if(success) {
-                let url = window.location.origin + '/table/list';
-                me.props.history.push(url);
+                response.type = 'success';
+                response.message = '创建成功';
+                saveDatasetId(data.object_id);
             }else {
-
+                response.type = 'error';
+                response.message = data;
             }
+            render(
+                <Alert
+                    style={{ width: 400 }}
+                    type={response.type}
+                    message={response.message}
+                    closable={true}
+                    showIcon
+                />,
+                document.getElementById('showAlert')
+            );
+            setTimeout(function() {
+                ReactDOM.unmountComponentAtNode(document.getElementById('showAlert'));
+            }, 5000);
         }
     }
 
     componentDidMount() {
         const me = this;
-        const { dispatch, fetchDatabaseList } = me.props;
-        if(this.state.dataset.dataset_type === 'inceptor') {
-            dispatch(fetchDatabaseList(callback));
+        const { fetchDatabaseList } = me.props;
+        if(this.state.dataset.dataset_type === 'INCEPTOR') {
+            fetchDatabaseList(callback);
             function callback(success, data) {
                 if(success) {
                     me.setState({
@@ -202,6 +220,7 @@ class SubDetail extends Component {
                         <label className="sub-btn">
                             <input type="button" defaultValue="保存" onClick={this.onSave}/>
                         </label>
+                        <div id="showAlert" className="alert-tip"></div>
                     </div>
 
                     {/* HDFS corresponding dom*/}
@@ -365,6 +384,7 @@ function mapDispatchToProps (dispatch) {
         fetchTableList,
         fetchSchemaList,
         createDataset,
+        saveDatasetId,
     } = bindActionCreators(actionCreators, dispatch);
 
     return {
@@ -372,7 +392,7 @@ function mapDispatchToProps (dispatch) {
         fetchTableList,
         fetchSchemaList,
         createDataset,
-        dispatch
+        saveDatasetId
     };
 }
 export default connect (mapStateToProps, mapDispatchToProps ) (SubDetail);

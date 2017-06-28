@@ -17,7 +17,9 @@ export const actionTypes = {
 
     switchDatasetType: 'SWITCH_DATASET_TYPE',
     switchHDFSConnected: 'SWITCH_HDFS_CONNECTED',
-    switchOperationType: 'SWITCH_OPERATION_TYPE'
+    switchOperationType: 'SWITCH_OPERATION_TYPE',
+
+    saveDatasetId: 'SAVE_DATASET_ID'
 };
 
 const baseURL = window.location.origin + '/table/';
@@ -200,13 +202,24 @@ export function createDataset(dataset, callback) {
             response => {
                 if(response.ok) {
                     response.json().then(response => {
-                        callback(true);
+                        if(response.success) {
+                            callback(true, response.data);
+                        }else {
+                            callback(false, response.message);
+                        }
                     });
                 }else {
                     callback(false);
                 }
             }
         );
+    }
+}
+
+export function saveDatasetId(datasetId) {
+    return {
+        type: actionTypes.saveDatasetId,
+        datasetId: datasetId
     }
 }
 
