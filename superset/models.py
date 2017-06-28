@@ -1242,7 +1242,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     dataset_type_dict = {
         'inceptor': 'INCEPTOR',
         'hdfs': 'HDFS',
-        'upload': 'UPLOAD'}
+        'upload': 'INCEPTOR'}
 
     def __repr__(self):
         return self.dataset_name

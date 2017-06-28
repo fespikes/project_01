@@ -1157,7 +1157,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     @expose('/dataset_types/', methods=['GET', ])
     def dataset_types(self):
         try:
-            return json.dumps(list(self.model.dataset_type_dict.values()))
+            return json.dumps(list(set(self.model.dataset_type_dict.values())))
         except Exception as e:
             return self.build_response(500, False, str(e))
 
