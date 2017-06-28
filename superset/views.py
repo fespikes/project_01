@@ -1153,53 +1153,38 @@ class DatasetModelView(SupersetModelView):  # noqa
             self.get_available_connections(self.get_user_id())
         return data
 
+    @catch_exception
     @expose('/databases/', methods=['GET', ])
     def addable_databases(self):
-        try:
-            dbs = self.get_available_connections(self.get_user_id())
-            return json.dumps(dbs)
-        except Exception as e:
-            return self.build_response(500, False, str(e))
+        return json.dumps(self.get_available_connections(self.get_user_id()))
 
+    @catch_exception
     @expose('/schemas/<database_id>/', methods=['GET', ])
     def addable_schemas(self, database_id):
-        try:
-            d = db.session.query(models.Database) \
-                .filter_by(id=database_id).first()
-            schemas = d.all_schema_names()
-            return json.dumps(schemas)
-        except Exception as e:
-            return self.build_response(500, False, str(e))
+        d = db.session.query(models.Database).filter_by(id=database_id).first()
+        return json.dumps(d.all_schema_names())
 
+    @catch_exception
     @expose('/tables/<database_id>/<schema>/', methods=['GET', ])
     def addable_tables(self, database_id, schema):
-        try:
-            d = db.session.query(models.Database) \
-                .filter_by(id=database_id).first()
-            tables = d.all_table_names(schema=schema)
-            return json.dumps(tables)
-        except Exception as e:
-            return self.build_response(500, False, str(e))
+        d = db.session.query(models.Database).filter_by(id=database_id).first()
+        return json.dumps(d.all_table_names(schema=schema))
 
+    @catch_exception
     @expose('/edit/hdfstable/<pk>/', methods=['GET', 'POST'])
     def edit_hdfs_table(self, pk):
-        try:
-            json_data = self.get_request_data()
-            obj = self.get_object(pk)
-            self.pre_update(obj)
-            self.update_hdfs_table(obj, json_data)
-            self.datamodel.edit(obj)
-            self.post_update(obj)
-            return self.build_response(200, True, UPDATE_SUCCESS)
-        except Exception as e:
-            return self.build_response(self.status, False, str(e))
+        json_data = self.get_request_data()
+        obj = self.get_object(pk)
+        self.pre_update(obj)
+        self.update_hdfs_table(obj, json_data)
+        self.datamodel.edit(obj)
+        self.post_update(obj)
+        return self.build_response(200, True, UPDATE_SUCCESS)
 
+    @catch_exception
     @expose('/dataset_types/', methods=['GET', ])
     def dataset_types(self):
-        try:
-            return json.dumps(list(set(self.model.dataset_type_dict.values())))
-        except Exception as e:
-            return self.build_response(500, False, str(e))
+        return json.dumps(list(set(self.model.dataset_type_dict.values())))
 
     @catch_exception
     @expose('/preview_data/<id>/', methods=['GET', ])
