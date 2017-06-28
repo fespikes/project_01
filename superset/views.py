@@ -818,10 +818,9 @@ class DatabaseView(SupersetModelView):  # noqa
     list_template = "superset/databaseList.html"
 
     def pre_add(self, obj):
-        if obj.test_uri(obj.sqlalchemy_uri):
-            obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
-        else:
-            raise Exception("Not a valid connection")
+        obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
+        if not obj.test_uri(obj.sqlalchemy_uri_decrypted):
+             raise Exception("Not a valid connection")
 
     def post_add(self, obj):
         self.add_or_edit_database_account(obj)
@@ -836,8 +835,7 @@ class DatabaseView(SupersetModelView):  # noqa
         log_number('database', g.user.get_id())
 
     def pre_update(self, obj):
-        # self.pre_add(obj)
-        pass
+        self.pre_add(obj)
 
     def post_update(self, obj):
         self.add_or_edit_database_account(obj)
