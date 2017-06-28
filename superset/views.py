@@ -1073,12 +1073,10 @@ class DatasetModelView(SupersetModelView):  # noqa
     list_columns = ['id', 'dataset_name', 'dataset_type',
                     'explore_url', 'connection', 'changed_on']
     _list_columns = list_columns
-    add_columns = ['dataset_name', 'dataset_type', 'schema', 'table_name',
+    add_columns = ['dataset_name', 'schema', 'table_name',
                    'sql', 'database_id', 'description']
-    show_columns = add_columns + ['id']
+    show_columns = add_columns + ['id', 'dataset_type']
     edit_columns = add_columns
-    order_columns = ['link', 'database', 'changed_on_']
-    related_views = [TableColumnInlineView, SqlMetricInlineView]
     description_columns = {
         'offset': "Timezone offset (in hours) for this datasource",
         'table_name': "Name of the table that exists in the source database",
@@ -1232,8 +1230,8 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def get_add_attributes(self, data, user_id):
         attributes = super().get_add_attributes(data, user_id)
-        attributes['dataset_type'] = self.model.dataset_type_dict\
-            .get(attributes.get('dataset_type'))
+        attributes['dataset_type'] = \
+            self.model.dataset_type_dict.get('inceptor')
         database = db.session.query(models.Database)\
             .filter_by(id=data['database_id'])\
             .first()
@@ -1247,26 +1245,16 @@ class DatasetModelView(SupersetModelView):  # noqa
         return attributes
 
     def pre_add(self, table):
-        # number_of_existing_tables = db.session.query(
-        #     sqla.func.count('*')).filter(
-        #     models.Dataset.table_name == table.table_name,
-        #     models.Dataset.schema == table.schema,
-        #     models.Dataset.database_id == table.database.id
-        # ).scalar()
-        # table object is already added to the session
-        # if number_of_existing_tables > 1:
-        #     raise Exception(get_datasource_exist_error_mgs(table.full_name))
-
-        # Fail before adding if the table can't be found
-        try:
-            table.get_sqla_table_object()
-        except Exception as e:
-            logging.exception(e)
-            raise Exception(
-                "Table [{}] could not be found, "
-                "please double check your "
-                "database connection, schema, and "
-                "table name".format(table.name))
+        if table.table_name:
+            try:
+                table.get_sqla_table_object()
+            except Exception as e:
+                logging.exception(e)
+                raise Exception(
+                    "Table [{}] could not be found, "
+                    "please double check your "
+                    "database connection, schema, and "
+                    "table name".format(table.name))
 
     @staticmethod
     def merge_perm(table):
@@ -1286,7 +1274,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         action_str = 'Add dataset: [{}]'.format(repr(table))
         log_action('add', action_str, 'dataset', table.id)
         # log table number
-        log_number('dataset', g.user.get_id())
+        log_number('dataset', get_user_id())
 
     def update_hdfs_table(self, table, json_date):
         hdfs_table = table.hdfs_table
