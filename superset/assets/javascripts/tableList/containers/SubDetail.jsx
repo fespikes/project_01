@@ -58,8 +58,8 @@ class SubDetail extends Component {
 
     onConnectChange(dbId) {
         const me = this;
-        const { dispatch, fetchSchemaList } = me.props;
-        dispatch(fetchSchemaList(dbId, callback));
+        const { fetchSchemaList } = me.props;
+        fetchSchemaList(dbId, callback);
         function callback(success, data) {
             if(success) {
                 let treeData = constructTreeData(data, false, 'folder');
@@ -86,8 +86,8 @@ class SubDetail extends Component {
     onLoadData(node) {
         const me = this;
         const schema = node.props.value;
-        const { dispatch, fetchTableList } = me.props;
-        dispatch(fetchTableList(me.state.dataset.database_id, schema, callback));
+        const { fetchTableList } = me.props;
+        return fetchTableList(me.state.dataset.database_id, schema, callback);
 
         function callback(success, data) {
             if(success) {
@@ -109,14 +109,14 @@ class SubDetail extends Component {
 
     onSave() {
         const me = this;
-        const { dispatch, createDataset, saveDatasetId } = this.props;
-        dispatch(createDataset(me.state.dataset, callback));
+        const { createDataset, saveDatasetId } = this.props;
+        createDataset(me.state.dataset, callback);
         function callback(success, data) {
             let response = {};
             if(success) {
                 response.type = 'success';
                 response.message = '创建成功';
-                dispatch(saveDatasetId(data.object_id));
+                saveDatasetId(data.object_id);
             }else {
                 response.type = 'error';
                 response.message = data;
@@ -139,9 +139,9 @@ class SubDetail extends Component {
 
     componentDidMount() {
         const me = this;
-        const { dispatch, fetchDatabaseList } = me.props;
+        const { fetchDatabaseList } = me.props;
         if(this.state.dataset.dataset_type === 'INCEPTOR') {
-            dispatch(fetchDatabaseList(callback));
+            fetchDatabaseList(callback);
             function callback(success, data) {
                 if(success) {
                     me.setState({
@@ -392,8 +392,7 @@ function mapDispatchToProps (dispatch) {
         fetchTableList,
         fetchSchemaList,
         createDataset,
-        saveDatasetId,
-        dispatch
+        saveDatasetId
     };
 }
 export default connect (mapStateToProps, mapDispatchToProps ) (SubDetail);
