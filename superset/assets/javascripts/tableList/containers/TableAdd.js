@@ -26,8 +26,8 @@ const TableAdd = ({ match, location }) => {
         tab2Name = '预览';
     }
     const isActive = (match, location) => {
-        return location.pathname==='/add/inceptor' || location.pathname==='/add/HDFS' || location.pathname==='/add/uploadFile'
-            || location.pathname==='/add/detail/inceptor' || location.pathname==='/add/detail/HDFS' || location.pathname==='/add/detail/uploadFile';
+        return location.pathname==='/add/INCEPTOR' || location.pathname==='/add/HDFS' || location.pathname==='/add/UPLOAD'
+            || location.pathname==='/add/detail/INCEPTOR' || location.pathname==='/add/detail/HDFS' || location.pathname==='/add/detail/UPLOAD';
     };
     return (
         <div className="data-detail">

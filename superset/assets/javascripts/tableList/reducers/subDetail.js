@@ -6,6 +6,7 @@ export default function subDetail(state = {
     datasetType: 'INCEPTOR',     //uploadFile HDFS inceptor
     HDFSConnected: false,
     operationType: 'table',    //table or SQL in inceptor
+    datasetId: ''
 }, action) {
     switch (action.type) {
         case actionTypes.switchDatasetType:
@@ -16,6 +17,9 @@ export default function subDetail(state = {
             break;
         case actionTypes.switchOperationType:
             return {...state, operationType: action.operationType};
+            break;
+        case actionTypes.saveDatasetId:
+            return {...state, datasetId: action.datasetId};
             break;
         default:
             return state;
