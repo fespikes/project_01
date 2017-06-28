@@ -19,7 +19,7 @@ class DataTendency extends Component {
             dashboard: "",
             database: "",
             slice: "",
-            table: ""
+            dataset: ""
         };
 
         let lineChart = {};
@@ -38,7 +38,7 @@ class DataTendency extends Component {
             case "database":
                 chartTitle = "连接";
                 break;
-            case "table":
+            case "dataset":
                 chartTitle = "数据集";
                 break;
             case "slice":
@@ -87,13 +87,13 @@ class DataTendency extends Component {
                             </dl>
                         </h2>
                         <h2>
-                            <dl onClick={ () => {onChangeCatagory('table')}}>
+                            <dl onClick={ () => {onChangeCatagory('dataset')}}>
                                 <dt>
-                                    <i className="icon table-icon"></i>
+                                    <i className="icon dataset-icon"></i>
                                 </dt>
                                 <dd>
-                                    <div className="count">{counts.table}</div>
-                                    <div className={catagory === 'table' ? 'current name' : 'name'}>数据集</div>
+                                    <div className="count">{counts.dataset}</div>
+                                    <div className={catagory === 'dataset' ? 'current name' : 'name'}>数据集</div>
                                 </dd>
                             </dl>
                         </h2>
