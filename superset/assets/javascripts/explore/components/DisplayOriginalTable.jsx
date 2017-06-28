@@ -2,29 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Select, TreeSelect } from 'antd';
 import PropTypes from 'prop-types';
-
-function constructTreeData(entities, isLeaf, category) {
-    let nodeData = [];
-    entities.map(entity => {
-        var node = {};
-        node.label = entity;
-        node.value = entity;
-        node.key = entity;
-        node.isLeaf = isLeaf;
-        node.category = category;
-        nodeData.push(node);
-    });
-    return nodeData;
-}
-
-function appendTreeData(schemaAppended, tables, treeData) {
-    treeData.map(schema => {
-        if(schema.value === schemaAppended) {
-            schema.children = constructTreeData(tables, true, 'file');
-        }
-    });
-    return treeData;
-}
+import { appendTreeData, constructTreeData } from '../../../utils/common2'
 
 class DisplayOriginalTable extends React.Component {
     constructor(props) {

@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { Select } from 'antd';
-
+import { switchDatasetType, fetchTypeList } from '../actions';
 import PropTypes from 'prop-types';
 import {
     selectType,
@@ -14,11 +14,14 @@ import { TableDelete } from '../popup';
 class SliceOperate extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            datasetTypes: []
+        };
 
         this.onChange = this.onChange.bind(this);
         this.onDelete = this.onDelete.bind(this);
         this.onSearch = this.onSearch.bind(this);
+        this.selectChange = this.selectChange.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
     }
 
@@ -50,6 +53,11 @@ class SliceOperate extends React.Component {
         }
     }
 
+    selectChange(value) {
+        const { dispatch } = this.props;
+        dispatch(switchDatasetType(value));
+    }
+
     handleSelectChange (argus) {
         this.props.dispatch(selectType(argus));
     }
@@ -60,26 +68,58 @@ class SliceOperate extends React.Component {
         //TODO: not sure that componentWillReceiveProps be triggered
     }
 
+    componentDidMount() {
+        const self = this;
+        const { dispatch } = self.props;
+        dispatch(fetchTypeList(callback));
+        function callback(success, data) {
+            if(success) {
+                self.setState({
+                    datasetTypes: data
+                });
+            }else {
+
+            }
+        }
+    }
+
     render() {
 
-        const { tableType } = this.props;
+        const Option = Select.Option;
+        const addOptions = this.state.datasetTypes.map(dataset => {
+            return <Option key={dataset} value={dataset}>
+                <Link to={`/add/${dataset}`}>{dataset}</Link>
+            </Option>
+        });
+        let datasetTypes = JSON.parse(JSON.stringify(this.state.datasetTypes));
+        datasetTypes.splice(0, 0, 'all');
+        const filterOptions = datasetTypes.map(dataset => {
+            return <Option key={dataset} value={dataset}>{dataset}</Option>
+        });
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    <li>
-                        <Link to="/add">
-                            <i className="icon icon-plus" />
-                        </Link>
+                    <li style={{ width: 100 }}>
+                        <Select
+                            style={{ width: '100%' }}
+                            placeholder="新建连接"
+                            onChange={this.selectChange}
+                        >
+                            {addOptions}
+                        </Select>
                     </li>
                     <li onClick={this.onDelete}>
                         <i className="icon icon-trash" />
                     </li>
                 </ul>
                 <div className="tab-btn">
-                    <Select ref="tableType" defaultValue={tableType} style={{ width: 120 }} onChange={this.handleSelectChange}>
-                        <Option value="all">all types</Option>
-                        <Option value="HDFS">HDFS</Option>
-                        <Option value="INCEPTOR">INCEPTOR</Option>
+                    <Select
+                        ref="tableType"
+                        defaultValue={datasetTypes[0]}
+                        style={{ width: 120 }}
+                        onChange={this.handleSelectChange}
+                    >
+                        {filterOptions}
                     </Select>
                 </div>
                 <div className="search-input">
