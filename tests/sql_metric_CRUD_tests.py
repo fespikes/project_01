@@ -74,13 +74,9 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
             'metric_name': 'avg_num',
             'expression': 'AVG(num)',
             'metric_type': 'avg',
-            'table': one_table.table_name,
-            'verbose_name': 'avg_num',
             'dataset_id': one_table.id,
-            'd3format': None,
             'description': 'added metric'+str(datetime.now()),
         }
-
         # add
         obj = self.view.populate_object(None, self.user.id, json_data)
         self.view.pre_add(obj)
@@ -90,11 +86,10 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
         added_sql_metric = db.session.query(SqlMetric)\
             .filter_by(metric_name=json_data.get('metric_name'))\
             .filter_by(expression=json_data.get('expression'))\
-            .filter_by(verbose_name=json_data.get('verbose_name'))\
             .filter_by(dataset_id=json_data.get('dataset_id'))\
             .filter_by(description=json_data.get('description'))\
             .first()
-        assert added_sql_metric.dataset.table_name == json_data['table']
+        assert added_sql_metric is not None
 
         # edit
         json_data['description'] = 'this is for test'
@@ -105,7 +100,6 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
         edited_sql_metric = db.session.query(SqlMetric)\
             .filter_by(metric_name=json_data.get('metric_name'))\
             .filter_by(expression=json_data.get('expression'))\
-            .filter_by(verbose_name=json_data.get('verbose_name'))\
             .filter_by(dataset_id=json_data.get('dataset_id'))\
             .filter_by(description=json_data.get('description'))\
             .first()
