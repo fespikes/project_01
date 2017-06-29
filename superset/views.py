@@ -48,14 +48,13 @@ from superset.models import Database, Dataset, Slice, Dashboard, \
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset.message import *
-<<<<<<< Updated upstream
+
 from superset.hdfsmodule.views import HDFSFileBrowserRes
 
-=======
 #from superset.hdfsmodule.models import HDFSTable
 #from superset.hdfsmodule.views import HDFSConnRes, \
 #    HDFSFileBrowserRes, HDFSFilePreviewRes, HDFSTableRes
->>>>>>> Stashed changes
+
 
 config = app.config
 log_this = models.Log.log_this
@@ -720,18 +719,10 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     list_columns = ['id', 'metric_name', 'description',
                     'metric_type', 'expression']
     _list_columns = list_columns
-<<<<<<< Updated upstream
+
     show_columns = list_columns
     edit_columns = ['metric_name', 'description', 'metric_type',
                     'expression', 'dataset_id']
-=======
-    show_columns = [
-        'id', 'metric_name', 'description', 'verbose_name',
-        'metric_type', 'expression', 'dataset_id', 'dataset', 'd3format']
-    edit_columns = [
-        'metric_name', 'description', 'verbose_name',
-        'metric_type', 'expression', 'dataset_id', 'd3format']
->>>>>>> Stashed changes
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
     description_columns = {
