@@ -1000,22 +1000,36 @@ class ConnectionView(BaseSupersetView, PageMixin):
     model = models.Connection
     route_base = '/connection'
 
+    @catch_exception
     @expose('/connection_types/', methods=['GET', ])
     def connection_types(self):
-        try:
-            return json.dumps(list(self.model.connection_type_dict.values()))
-        except Exception as e:
-            return build_response(500, False, str(e))
+        return json.dumps(list(self.model.connection_type_dict.values()))
 
     @catch_exception
     @expose('/listdata/', methods=['GET', ])
     def get_list_data(self):
-        try:
-            kwargs = self.get_list_args(request.args)
-            list_data = self.get_object_list_data(**kwargs)
-            return json.dumps(list_data)
-        except Exception as e:
-            return build_response(500, False, str(e))
+        kwargs = self.get_list_args(request.args)
+        list_data = self.get_object_list_data(**kwargs)
+        return json.dumps(list_data)
+
+    @catch_exception
+    @expose('/muldelete/', methods=['POST', ])
+    def muldelete(self):
+        json_data = json.loads(str(request.data, encoding='utf-8'))
+        db_ids = json_data.get('inceptor')
+        for id in db_ids:
+            obj = db.session.query(Database).filter_by(id=id).first()
+            DatabaseView()._delete(obj)
+            action_str = 'Delete {}: [{}]'.format(Database.__name__.lower(), repr(obj))
+            log_action('delete', action_str, Database.__name__.lower(), obj.id)
+
+        hdfs_conn_ids = json_data.get('hdfs')
+        for id in hdfs_conn_ids:
+            obj = db.session.query(HDFSConnection).filter_by(id=id).first()
+            HDFSConnectionModelView()._delete(obj)
+            action_str = 'Delete {}: [{}]'.format(HDFSConnection.__name__.lower(), repr(obj))
+            log_action('delete', action_str, HDFSConnection.__name__.lower(), obj.id)
+        return build_response(200, True, DELETE_SUCCESS)
 
     def get_object_list_data(self, **kwargs):
         order_column = kwargs.get('order_column')
@@ -1094,12 +1108,12 @@ class ConnectionView(BaseSupersetView, PageMixin):
         return response
 
     @staticmethod
-    def str_to_column(q):
+    def str_to_column(query):
         return {
-            'name': q.c.name,
-            'online': q.c.online,
-            'changed_on': q.c.changed_on,
-            'connection_type': q.c.connection_type,
+            'name': query.c.name,
+            'online': query.c.online,
+            'changed_on': query.c.changed_on,
+            'connection_type': query.c.connection_type,
             'owner': User.username
         }
 
