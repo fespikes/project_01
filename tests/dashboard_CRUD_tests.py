@@ -5,10 +5,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import unittest
-import logging
 
-from sqlalchemy import and_, or_
-from flask_appbuilder.security.sqla.models import User
+from datetime import datetime
 from superset import db
 from superset.models import Dashboard
 from superset.views import DashboardModelView
@@ -16,7 +14,7 @@ from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 
 class DashboardCRUDTests(SupersetTestCase, PageMixin):
-    requires_examples = True
+    #requires_examples = True
 
     def __init__(self, *args, **kwargs):
         super(DashboardCRUDTests, self).__init__(*args, **kwargs)
@@ -63,7 +61,7 @@ class DashboardCRUDTests(SupersetTestCase, PageMixin):
 
         # add
         new_slices = self.view.get_available_slices(self.user.id)[:2]
-        new_dash = {'dashboard_title': 'new_dashboard',
+        new_dash = {'dashboard_title': 'new_dashboard' + str(datetime.now()),
                     'description': 'new dashboard',
                     'slices': self.view.slices_to_dict(new_slices)}
         obj = self.view.populate_object(None, self.user.id, new_dash)
@@ -84,7 +82,7 @@ class DashboardCRUDTests(SupersetTestCase, PageMixin):
 
         # edit
         new_slices = self.view.get_available_slices(self.user.id)[0:2]
-        new_dash = {'dashboard_title': 'edited_dashboard',
+        new_dash = {'dashboard_title': 'edited_dashboard' + str(datetime.now()),
                     'description': 'edit dashboard',
                     'slices': self.view.slices_to_dict(new_slices)}
         obj = self.view.populate_object(new_dash_id, self.user.id, new_dash)

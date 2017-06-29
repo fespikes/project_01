@@ -13,13 +13,13 @@ from flask_appbuilder.security.sqla.models import User
 from superset import db
 from superset.views import SqlMetricInlineView
 from superset.models import SqlMetric
-from superset.models import SqlaTable
+from superset.models import Dataset
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 
 
 class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
-    requires_examples = True
+    #requires_examples = True
 
     def __init__(self, *args, **kwargs):
         super(SqlMetricCRUDTests, self).__init__(*args, **kwargs)
@@ -32,8 +32,8 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
         pass
 
     def test_listdata(self):
-        one_table = db.session.query(SqlaTable).first()
-        self.kwargs['table_id'] = one_table.id
+        one_table = db.session.query(Dataset).first()
+        self.kwargs['dataset_id'] = one_table.id
         self.check_base_param(no_check=True)
         sql_metric_data_list = self.real_value.get('data')
         for sql_metric_data in sql_metric_data_list:
@@ -64,23 +64,19 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
                 available_tables_list = real_value.get('available_tables')
                 for single_table in available_tables_list:
                     assert self.check_available_tables(single_table, available_tables) == True
-            else :
+            else:
                 assert getattr(one_sql_metric, attr) == real_value.get(attr)
 
     def test_add_edit_delete(self):
         
-        one_table = db.session.query(SqlaTable).first()
+        one_table = db.session.query(Dataset).first()
         json_data = {
             'metric_name': 'avg_num',
             'expression': 'AVG(num)',
             'metric_type': 'avg',
-            'table': one_table.table_name,
-            'verbose_name': 'avg_num',
-            'table_id': one_table.id,
-            'd3format': None,
+            'dataset_id': one_table.id,
             'description': 'added metric'+str(datetime.now()),
         }
-
         # add
         obj = self.view.populate_object(None, self.user.id, json_data)
         self.view.pre_add(obj)
@@ -90,11 +86,10 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
         added_sql_metric = db.session.query(SqlMetric)\
             .filter_by(metric_name=json_data.get('metric_name'))\
             .filter_by(expression=json_data.get('expression'))\
-            .filter_by(verbose_name=json_data.get('verbose_name'))\
-            .filter_by(table_id=json_data.get('table_id'))\
+            .filter_by(dataset_id=json_data.get('dataset_id'))\
             .filter_by(description=json_data.get('description'))\
             .first()
-        assert added_sql_metric.table.table_name == json_data['table']
+        assert added_sql_metric is not None
 
         # edit
         json_data['description'] = 'this is for test'
@@ -105,8 +100,7 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
         edited_sql_metric = db.session.query(SqlMetric)\
             .filter_by(metric_name=json_data.get('metric_name'))\
             .filter_by(expression=json_data.get('expression'))\
-            .filter_by(verbose_name=json_data.get('verbose_name'))\
-            .filter_by(table_id=json_data.get('table_id'))\
+            .filter_by(dataset_id=json_data.get('dataset_id'))\
             .filter_by(description=json_data.get('description'))\
             .first()
         assert edited_sql_metric is not None
@@ -123,7 +117,7 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
         result = self.view.get_addable_choices()
         available_table_list = result.get('available_tables')
         for one_available_table in available_table_list:
-            target_table = db.session.query(SqlaTable) \
+            target_table = db.session.query(Dataset) \
                 .filter_by(id=one_available_table.get('id'), dataset_name=one_available_table.get('dataset_name')) \
                 .first()
             assert target_table is not None

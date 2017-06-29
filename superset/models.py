@@ -953,6 +953,33 @@ sqla.event.listen(Database, 'after_insert', set_perm)
 sqla.event.listen(Database, 'after_update', set_perm)
 
 
+class HDFSConnection(Model, AuditMixinNullable):
+    __tablename__ = 'hdfs_connection'
+    type = 'table'
+
+    id = Column(Integer, primary_key=True)
+    connection_name = Column(String(256), nullable=False, unique=True)
+    description = Column(Text)
+    online = Column(Boolean, default=False)
+    database_id = Column(Integer, ForeignKey('dbs.id'))
+    webhdfs_url = Column(String(256), nullable=False)
+    fs_defaultfs = Column(String(256), nullable=False)
+    logical_name = Column(String(256), nullable=False)
+    principal = Column(String(256), nullable=False)
+    hdfs_user = Column(String(256), nullable=False)
+    keytab_file = Column(LargeBinary)
+    database = relationship(
+        'Database',
+        backref=backref('hdfs_connection', lazy='dynamic'),
+        foreign_keys=[database_id])
+
+
+class Connection(object):
+    connection_type_dict = {
+        'inceptor': 'INCEPTOR',
+        'hdfs': 'HDFS'}
+
+
 class DatabaseAccount(Model):
     """ORM object to store the account info of database"""
     __tablename__ = 'database_account'
@@ -1157,15 +1184,13 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
 
 
 class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
-
     """An ORM object for SqlAlchemy table references"""
-
     type = "table"
-
     __tablename__ = 'dataset'
+
     id = Column(Integer, primary_key=True)
     dataset_name = Column(String(250), unique=True, nullable=False)
-    dataset_type = Column(String(250))
+    dataset_type = Column(String(250), nullable=False)
     table_name = Column(String(250))
     schema = Column(String(255))
     sql = Column(Text)
@@ -1215,7 +1240,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     dataset_type_dict = {
         'inceptor': 'INCEPTOR',
         'hdfs': 'HDFS',
-        'upload': 'UPLOAD'}
+        'upload': 'INCEPTOR'}
 
     def __repr__(self):
         return self.dataset_name
@@ -1777,6 +1802,21 @@ sqla.event.listen(Dataset, 'after_insert', set_perm)
 sqla.event.listen(Dataset, 'after_update', set_perm)
 
 
+class HDFSTable(Model, AuditMixinNullable):
+    __tablename__ = "hdfs_table"
+    type = 'table'
+
+    id = Column(Integer, primary_key=True)
+    hdfs_path = Column(String(256), nullable=False)
+    separator = Column(String(256), nullable=False)
+    hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection.id'))
+    hdfsconnection = relationship(
+        'HDFSConnection',
+        backref=backref('ref_hdfs_connection', lazy='joined'),
+        foreign_keys=[hdfs_connection_id]
+    )
+
+
 class Log(Model):
 
     """ORM object used to log Superset actions to the database"""
@@ -1974,7 +2014,7 @@ str_to_model = {
     'dashboard': Dashboard,
     'dataset': Dataset,
     'database': Database,
-    'connection': Database
+    'hdfsconnection': HDFSConnection
 }
 
 
@@ -2052,45 +2092,3 @@ class DailyNumber(Model):
             )
             db.session.add(new_record)
         db.session.commit()
-
-
-class HDFSConnection(Model, AuditMixinNullable):
-    __tablename__ = 'hdfs_connection'
-    type = 'table'
-
-    id = Column(Integer, primary_key=True)
-    connection_name = Column(String(256), nullable=False, unique=True)
-    description = Column(Text)
-    online = Column(Boolean, default=False)
-    database_id = Column(Integer, ForeignKey('dbs.id'))
-    webhdfs_url = Column(String(256), nullable=False)
-    fs_defaultfs = Column(String(256), nullable=False)
-    logical_name = Column(String(256), nullable=False)
-    principal = Column(String(256), nullable=False)
-    hdfs_user = Column(String(256), nullable=False)
-    keytab_file = Column(LargeBinary)
-    database = relationship(
-        'Database',
-        backref=backref('hdfs_connection', lazy='dynamic'),
-        foreign_keys=[database_id])
-
-
-class HDFSTable(Model, AuditMixinNullable):
-    __tablename__ = "hdfs_table"
-    type = 'table'
-
-    id = Column(Integer, primary_key=True)
-    hdfs_path = Column(String(256), nullable=False)
-    separator = Column(String(256), nullable=False)
-    hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection.id'))
-    hdfsconnection = relationship(
-        'HDFSConnection',
-        backref=backref('ref_hdfs_connection', lazy='joined'),
-        foreign_keys=[hdfs_connection_id]
-    )
-
-
-class Connection(object):
-    connection_type_dict = {
-        'inceptor': 'INCEPTOR',
-        'hdfs': 'HDFS'}
