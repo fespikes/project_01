@@ -657,7 +657,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     edit_columns = [
         'column_name', 'description', 'groupby', 'filterable', 'is_dttm',
         'count_distinct', 'sum', 'min', 'max', 'expression', 'dataset_id']
-    show_columns = edit_columns + ['id']
+    show_columns = edit_columns + ['id', 'dataset']
     add_columns = edit_columns
     readme_columns = ['is_dttm', 'expression']
     description_columns = {
@@ -696,20 +696,18 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         for row in rows:
             line = {}
             for col in self._list_columns:
-                line[col] = str(getattr(row, col, None))
+                if col in self.str_columns:
+                    line[col] = str(getattr(row, col, None))
+                else:
+                    line[col] = getattr(row, col, None)
             data.append(line)
         return {'data': data}
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        data['available_tables'] = self.get_available_tables()
+        data['available_dataset'] = self.get_available_tables()
         return data
-
-    def get_show_attributes(self, obj, user_id=None):
-        attributes = super().get_show_attributes(obj)
-        attributes['available_tables'] = self.get_available_tables()
-        return attributes
-
+    
 
 class SqlMetricInlineView(SupersetModelView):  # noqa
     model = models.SqlMetric
