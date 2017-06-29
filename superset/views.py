@@ -707,7 +707,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         data = super().get_addable_choices()
         data['available_dataset'] = self.get_available_tables()
         return data
-    
+
 
 class SqlMetricInlineView(SupersetModelView):  # noqa
     model = models.SqlMetric
@@ -717,10 +717,9 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
                     'metric_type', 'expression']
     _list_columns = list_columns
 
-    show_columns = list_columns
+    show_columns = list_columns + ['dataset_id', 'dataset']
     edit_columns = ['metric_name', 'description', 'metric_type',
                     'expression', 'dataset_id']
-
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
     description_columns = {
@@ -738,14 +737,13 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             "visualization and allow for different metric to use different "
             "formats"
     }
-    page_size = 500
 
     bool_columns = ['is_restricted', ]
     str_columns = ['dataset', ]
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        data['available_tables'] = self.get_available_tables()
+        data['available_dataset'] = self.get_available_tables()
         return data
 
     def get_object_list_data(self, **kwargs):
@@ -763,20 +761,12 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
         for row in rows:
             line = {}
             for col in self._list_columns:
-                line[col] = str(getattr(row, col, None))
+                if col in self.str_columns:
+                    line[col] = str(getattr(row, col, None))
+                else:
+                    line[col] = getattr(row, col, None)
             data.append(line)
         return {'data': data}
-
-    def get_show_attributes(self, obj, user_id=None):
-        attributes = super().get_show_attributes(obj)
-        attributes['available_tables'] = self.get_available_tables()
-        return attributes
-
-    def post_add(self, metric):
-        pass
-
-    def post_update(self, metric):
-        pass
 
 
 class DatabaseView(SupersetModelView):  # noqa
