@@ -48,8 +48,12 @@ from superset.models import Database, Dataset, Slice, Dashboard, \
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset.message import *
+
 from superset.hdfsmodule.views import HDFSFileBrowserRes
 
+#from superset.hdfsmodule.models import HDFSTable
+#from superset.hdfsmodule.views import HDFSConnRes, \
+#    HDFSFileBrowserRes, HDFSFilePreviewRes, HDFSTableRes
 
 config = app.config
 log_this = models.Log.log_this
@@ -714,9 +718,11 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     list_columns = ['id', 'metric_name', 'description',
                     'metric_type', 'expression']
     _list_columns = list_columns
+
     show_columns = list_columns
     edit_columns = ['metric_name', 'description', 'metric_type',
                     'expression', 'dataset_id']
+
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
     description_columns = {
@@ -1257,8 +1263,12 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
-        attributes['available_databases'] = \
-            self.get_available_connections(self.get_user_id())
+        if not user_id:
+            attributes['available_databases'] = \
+                self.get_available_connections(self.get_user_id())
+        else:
+            attributes['available_databases'] = \
+                self.get_available_connections(user_id)
         return attributes
 
     def pre_add(self, table):
@@ -3331,7 +3341,7 @@ class Home(BaseSupersetView):
             AND (
                 slices.created_by_fk = {}
                 OR
-                slices.online = True)
+                slices.online = 1)
             GROUP BY slices.slice_name
             ORDER BY count(slices.slice_name) DESC
             LIMIT {}""".format(user_id, limit)
@@ -3393,7 +3403,7 @@ class Home(BaseSupersetView):
         query = db.session.query(Dashboard).filter(
             or_(
                 Dashboard.created_by_fk == user_id,
-                Dashboard.online == 1
+                Dashboard.online == True
             )
         )
         count = query.count()
