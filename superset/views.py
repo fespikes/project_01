@@ -417,8 +417,7 @@ class SupersetModelView(ModelView, PageMixin):
         try:
             obj = self.get_object(pk)
             self._delete(obj)
-            self.update_redirect()
-            return self.build_response(500, True, DELETE_SUCCESS)
+            return self.build_response(200, True, DELETE_SUCCESS)
         except Exception as e:
             return self.build_response(500, success=False, message=str(e))
 
@@ -935,11 +934,16 @@ class DatabaseTablesAsync(DatabaseView):
 
 class HDFSConnectionModelView(SupersetModelView):
     model = models.HDFSConnection
-    datamodel = SQLAInterface(models.Database)
+    datamodel = SQLAInterface(models.HDFSConnection)
     route_base = '/hdfsconnection'
-    _list_columns = ['id', 'connection_name']
-    show_columns = []
-    edit_columns = []
+    list_columns = ['id', 'connection_name']
+    _list_columns = list_columns
+    show_columns = ['id', 'connection_name', 'description', 'httpfs',
+                    'database_id', 'database']
+    add_columns = ['connection_name', 'description', 'httpfs', 'database_id']
+    edit_columns = add_columns
+
+    str_columns = ['database', ]
 
     def get_object_list_data(self, **kwargs):
         """Return the hdfs connections.
@@ -970,15 +974,6 @@ class HDFSConnectionModelView(SupersetModelView):
         response['page_size'] = page_size
         response['data'] = data
         return response
-
-    def add(self):
-        pass
-
-    def show(self):
-        pass
-
-    def edit(self):
-        pass
 
 
 class ConnectionView(BaseSupersetView, PageMixin):
