@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
-import { applyDeleteSingle, applyDeleteMulti } from '../../../databaseList/actions';
+import { applyDeleteSingle, applyDeleteMulti } from '../actions';
 
 class ConnectionDelete extends React.Component {
     constructor(props) {

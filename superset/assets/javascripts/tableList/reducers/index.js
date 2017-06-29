@@ -5,13 +5,9 @@ import subDetail from './subDetail';
 function condition(state = {
     page: 1,
     pageSize: 10,
-//    order_column,
     orderDirection: 'desc',//取值 ('desc' or 'asc'),
     filter: '',//搜索字符串,
-//    onlyFavorite: 0,//全部or收藏，取值 (0 or 1),
     tableType: 'all',//选择数据集类型时需要('database','hdfs', 'upload');
-//    table_id: list column/metric时需要
-
     selectedRowKeys: [],
     selectedRowNames: []
 }, action) {
@@ -28,6 +24,8 @@ function condition(state = {
         case actionTypes.selectType:
             return {...state, tableType: action.tableType};
             break;
+        case actionTypes.selectRows:
+            return {...state, selectedRowKeys: action.selectedRowKeys, selectedRowNames: action.selectedRowNames};
         default:
             return state;
     }

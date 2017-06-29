@@ -2,29 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Select, TreeSelect } from 'antd';
 import PropTypes from 'prop-types';
-
-function constructTreeData(entities, isLeaf, category) {
-    let nodeData = [];
-    entities.map(entity => {
-        var node = {};
-        node.label = entity;
-        node.value = entity;
-        node.key = entity;
-        node.isLeaf = isLeaf;
-        node.category = category;
-        nodeData.push(node);
-    });
-    return nodeData;
-}
-
-function appendTreeData(schemaAppended, tables, treeData) {
-    treeData.map(schema => {
-        if(schema.value === schemaAppended) {
-            schema.children = constructTreeData(tables, true, 'file');
-        }
-    });
-    return treeData;
-}
+import { appendTreeData, constructTreeData } from '../../../utils/common2'
 
 class DisplayOriginalTable extends React.Component {
     constructor(props) {
@@ -62,15 +40,20 @@ class DisplayOriginalTable extends React.Component {
             url: url,
             type: 'GET',
             success: response => {
-                response = JSON.parse(response);
-                let treeData = appendTreeData(schema, response, JSON.parse(JSON.stringify(self.state.treeData)));
-                self.setState({
-                    treeData: treeData,
-                    currentSchema: schema
-                });
+
+                if (response.status===200) {
+                    response = JSON.parse(response);
+                    let treeData = appendTreeData(schema, response, JSON.parse(JSON.stringify(self.state.treeData)));
+                    self.setState({
+                        treeData: treeData,
+                        currentSchema: schema
+                    });
+                } else {
+                    console.log(response.message);
+                }
             },
             error: error => {
-
+                console.log(error);
             }
         });
     }

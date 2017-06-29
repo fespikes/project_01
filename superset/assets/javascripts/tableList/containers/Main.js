@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { fetchIfNeeded } from '../actions';
+import { fetchIfNeeded, invalidateCondition } from '../actions';
 import { Pagination, Table, Operate } from '../components';
 import PropTypes from 'prop-types';
 
@@ -20,9 +20,11 @@ class App extends Component {
         const { dispatch, condition } = nextProps;
 
         if (nextProps.condition.filter !== this.props.condition.filter ||
-            nextProps.condition.onlyFavorite !== this.props.condition.onlyFavorite ||
-            nextProps.condition.tableType !== this.props.condition.tableType
-        ) {
+            nextProps.condition.pageSize !== this.props.condition.pageSize ||
+            nextProps.condition.tableType !== this.props.condition.tableType ||
+            nextProps.condition.page !== this.props.condition.page)
+        {
+            dispatch(invalidateCondition(condition));
             dispatch(fetchIfNeeded(condition));
         }
     }
@@ -38,10 +40,10 @@ class App extends Component {
                         <i
                             className="icon icon-table"
                             style={{marginBottom:'-3px'}}
-                        ></i>
+                        />
                         <span>数据集</span>
-                        <span>记录</span>
-                        <span>{count +''}条</span>
+                        <span>记录条目</span>
+                        <span>{count +''}</span>
                     </div>
                     <div className="right">
                         <Operate

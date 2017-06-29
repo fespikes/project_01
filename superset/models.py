@@ -718,10 +718,6 @@ class Database(Model, AuditMixinNullable):
     """))
     perm = Column(String(1000))
 
-    connection_type_dict = {
-        'inceptor': 'INCEPTOR',
-        'hdfs': 'HDFS'}
-
     def __repr__(self):
         return self.database_name
 
@@ -746,8 +742,6 @@ class Database(Model, AuditMixinNullable):
     def test_uri(self, url):
         extra = self.get_extra()
         params = extra.get('engine_params', {})
-        if url == self.safe_sqlalchemy_uri():
-            url = self.sqlalchemy_uri_decrypted
         try:
             inspector = sqla.inspect(create_engine(url, **params))
             inspector.get_schema_names()
@@ -959,6 +953,33 @@ sqla.event.listen(Database, 'after_insert', set_perm)
 sqla.event.listen(Database, 'after_update', set_perm)
 
 
+class HDFSConnection(Model, AuditMixinNullable):
+    __tablename__ = 'hdfs_connection'
+    type = 'table'
+
+    id = Column(Integer, primary_key=True)
+    connection_name = Column(String(256), nullable=False, unique=True)
+    description = Column(Text)
+    online = Column(Boolean, default=False)
+    database_id = Column(Integer, ForeignKey('dbs.id'))
+    webhdfs_url = Column(String(256), nullable=False)
+    fs_defaultfs = Column(String(256), nullable=False)
+    logical_name = Column(String(256), nullable=False)
+    principal = Column(String(256), nullable=False)
+    hdfs_user = Column(String(256), nullable=False)
+    keytab_file = Column(LargeBinary)
+    database = relationship(
+        'Database',
+        backref=backref('hdfs_connection', lazy='dynamic'),
+        foreign_keys=[database_id])
+
+
+class Connection(object):
+    connection_type_dict = {
+        'inceptor': 'INCEPTOR',
+        'hdfs': 'HDFS'}
+
+
 class DatabaseAccount(Model):
     """ORM object to store the account info of database"""
     __tablename__ = 'database_account'
@@ -1075,12 +1096,12 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
             pdf = self.python_date_format
             if pdf in ('epoch_s', 'epoch_ms'):
                 # if epoch, translate to DATE using db specific conf
-                db_spec = self.table.database.db_engine_spec
+                db_spec = self.dataset.database.db_engine_spec
                 if pdf == 'epoch_s':
                     expr = db_spec.epoch_to_dttm().format(col=expr)
                 elif pdf == 'epoch_ms':
                     expr = db_spec.epoch_ms_to_dttm().format(col=expr)
-            grain = self.table.database.grains_dict().get(time_grain, '{col}')
+            grain = self.dataset.database.grains_dict().get(time_grain, '{col}')
             expr = grain.function.format(col=expr)
         return literal_column(expr, type_=DateTime).label(DTTM_ALIAS)
 
@@ -1110,7 +1131,7 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
         elif tf == 'epoch_ms':
             return str((dttm - datetime(1970, 1, 1)).total_seconds() * 1000.0)
         else:
-            s = self.table.database.db_engine_spec.convert_dttm(
+            s = self.dataset.database.db_engine_spec.convert_dttm(
                 self.type, dttm)
             return s or "'{}'".format(dttm.strftime(tf))
 
@@ -1151,7 +1172,7 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
         return (
             "{parent_name}.[{obj.metric_name}](id:{obj.id})"
         ).format(obj=self,
-                 parent_name=self.table.full_name) if self.table else None
+                 parent_name=self.dataset.full_name) if self.dataset else None
 
     @classmethod
     def import_obj(cls, i_metric):
@@ -1163,15 +1184,13 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
 
 
 class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
-
     """An ORM object for SqlAlchemy table references"""
-
     type = "table"
-
     __tablename__ = 'dataset'
+
     id = Column(Integer, primary_key=True)
     dataset_name = Column(String(250), unique=True, nullable=False)
-    dataset_type = Column(String(250))
+    dataset_type = Column(String(250), nullable=False)
     table_name = Column(String(250))
     schema = Column(String(255))
     sql = Column(Text)
@@ -1221,7 +1240,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     dataset_type_dict = {
         'inceptor': 'INCEPTOR',
         'hdfs': 'HDFS',
-        'upload': 'UPLOAD'}
+        'upload': 'INCEPTOR'}
 
     def __repr__(self):
         return self.dataset_name
@@ -1783,6 +1802,21 @@ sqla.event.listen(Dataset, 'after_insert', set_perm)
 sqla.event.listen(Dataset, 'after_update', set_perm)
 
 
+class HDFSTable(Model, AuditMixinNullable):
+    __tablename__ = "hdfs_table"
+    type = 'table'
+
+    id = Column(Integer, primary_key=True)
+    hdfs_path = Column(String(256), nullable=False)
+    separator = Column(String(256), nullable=False)
+    hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection.id'))
+    hdfsconnection = relationship(
+        'HDFSConnection',
+        backref=backref('ref_hdfs_connection', lazy='joined'),
+        foreign_keys=[hdfs_connection_id]
+    )
+
+
 class Log(Model):
 
     """ORM object used to log Superset actions to the database"""
@@ -1980,7 +2014,7 @@ str_to_model = {
     'dashboard': Dashboard,
     'dataset': Dataset,
     'database': Database,
-    'connection': Database
+    'hdfsconnection': HDFSConnection
 }
 
 
@@ -2058,39 +2092,3 @@ class DailyNumber(Model):
             )
             db.session.add(new_record)
         db.session.commit()
-
-
-class HDFSConnection(Model, AuditMixinNullable):
-    __tablename__ = 'hdfs_connection'
-    type = 'table'
-
-    id = Column(Integer, primary_key=True)
-    connection_name = Column(String(256), nullable=False, unique=True)
-    description = Column(Text)
-    online = Column(Boolean, default=False)
-    database_id = Column(Integer, ForeignKey('dbs.id'))
-    webhdfs_url = Column(String(256), nullable=False)
-    fs_defaultfs = Column(String(256), nullable=False)
-    logical_name = Column(String(256), nullable=False)
-    principal = Column(String(256), nullable=False)
-    hdfs_user = Column(String(256), nullable=False)
-    keytab_file = Column(LargeBinary)
-    database = relationship(
-        'Database',
-        backref=backref('hdfs_connection', lazy='dynamic'),
-        foreign_keys=[database_id])
-
-
-class HDFSTable(Model, AuditMixinNullable):
-    __tablename__ = "hdfs_table"
-    type = 'table'
-
-    id = Column(Integer, primary_key=True)
-    hdfs_path = Column(String(256), nullable=False)
-    separator = Column(String(256), nullable=False)
-    hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection.id'))
-    hdfsconnection = relationship(
-        'HDFSConnection',
-        backref=backref('ref_hdfs_connection', lazy='joined'),
-        foreign_keys=[hdfs_connection_id]
-    )

@@ -17,10 +17,12 @@ export const actionTypes = {
 
     switchDatasetType: 'SWITCH_DATASET_TYPE',
     switchHDFSConnected: 'SWITCH_HDFS_CONNECTED',
-    switchOperationType: 'SWITCH_OPERATION_TYPE'
-}
+    switchOperationType: 'SWITCH_OPERATION_TYPE',
 
-const baseURL = window.location.origin + '/database/';
+    saveDatasetId: 'SAVE_DATASET_ID'
+};
+
+const baseURL = window.location.origin + '/table/';
 
 /**
 @deprecated
@@ -53,12 +55,13 @@ export function changePageSize (pageSize) {
     }
 }
 
-//export function selectRows(rows) {
-//    return {
-//        type: actionTypes.selectRows,
-//        rows: rows
-//    }
-//}
+export function selectRows(selectedRowKeys, selectedRowNames) {
+   return {
+        type: actionTypes.selectRows,
+        selectedRowKeys: selectedRowKeys,
+        selectedRowNames: selectedRowNames
+   }
+}
 
 export function search (filter) {
     return {
@@ -83,23 +86,180 @@ function receiveData (condition, json) {
   };
 }
 
+export function fetchTableDelete(tableId, callback) {
+    const url = baseURL + "delete/" + tableId;
+    return (dispatch, getState) => {
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(function(response) {
+            if(response.ok) {
+                dispatch(applyFetch(getState().condition));
+                if(typeof callback === "function") {
+                    callback(true);
+                }
+            }else {
+                if(typeof callback === "function") {
+                    callback(false);
+                }
+            }
+        });
+    }
+}
+
+export function fetchTableDeleteMul(callback) {
+    const url = baseURL + "muldelete";
+    return (dispatch, getState) => {
+        const selectedRowKeys = getState().condition.selectedRowKeys;
+        let data = {selectedRowKeys: selectedRowKeys};
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(data)
+        }).then(function(response) {
+            if(response.ok) {
+                dispatch(applyFetch(getState().condition));
+                if(typeof callback === "function") {
+                    callback(true);
+                }
+            }else {
+                if(typeof callback === "function") {
+                    callback(false);
+                }
+            }
+        });
+    }
+}
+
+export function fetchDatabaseList(callback) {
+    return () => {
+        const url = baseURL + 'databases';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchSchemaList(dbId, callback) {
+    return () => {
+        const url = baseURL + 'schemas/' + dbId;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchTableList(dbId, schema, callback) {
+    return () => {
+        const url = baseURL + 'tables/' + dbId + '/' + schema;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function createDataset(dataset, callback) {
+    return () => {
+        const url = baseURL + 'add';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(dataset)
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        if(response.success) {
+                            callback(true, response.data);
+                        }else {
+                            callback(false, response.message);
+                        }
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function saveDatasetId(datasetId) {
+    return {
+        type: actionTypes.saveDatasetId,
+        datasetId: datasetId
+    }
+}
+
+export function fetchTypeList(callback) {
+    return () => {
+        const url = baseURL + 'dataset_types';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
 function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
 
         const URL = baseURL + 'listdata?' +
-            (condition.page? 'page' + condition.page : '') +
+            (condition.page? 'page=' + (condition.page - 1) : '') +
             (condition.pageSize? '&page_size=' + condition.pageSize : '') +
             (condition.orderColumn? '&order_column=' + condition.orderColumn : '') +
             (condition.orderDirection? '&order_direction=' + condition.orderDirection : '') +
             (condition.filter? '&filter=' + condition.filter : '') +
-            (condition.tableType&&condition.tableType!=='all'? '&table_type=' + condition.tableType : '');
+            (condition.tableType&&condition.tableType!=='all'? '&dataset_type=' + condition.tableType : '');
 
         const errorHandler = error => alert(error);
         const dataMatch = json => {
             if(!json.data) return json;
             json.data.map(function(obj, index, arr){
-                obj.iconClass = (obj.dataset_type == 'hdfs_folder'? 'HDFS' : obj.dataset_type == 'Inceptor'?'Inceptor' : 'upload');
+                obj.iconClass = (obj.dataset_type == 'HDFS'? 'HDFS' : obj.dataset_type == 'INCEPTOR'?'Inceptor' : 'upload');
             });
             return json;
         }
@@ -116,10 +276,7 @@ function applyFetch(condition) {
         .then(json => {
             dispatch(receiveData(condition, dataMatch(json)));
         });
-
-//        const json = require('./d40cb439062601b83de7.json');
-//        dispatch(receiveData(condition, dataMatch(json)));
-  };
+    };
 }
 
 function shouldFetch(state, condition) {
@@ -142,9 +299,6 @@ export function fetchIfNeeded(condition) {
   };
 }
 
-
-
-//////////////////
 export function setPopupTitle (title) {
     return {
         type: actionTypes.setPopupTitle,

@@ -2,8 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
-import { SliceDelete, SliceEdit } from '../../components/popup';
+import { selectRows } from '../actions';
+import { TableDelete } from '../popup';
 import style from '../style/table.scss'
 
 class SliceTable extends React.Component {
@@ -16,43 +16,31 @@ class SliceTable extends React.Component {
         const { dispatch } = this.props;
         let selectedRowNames = [];
         selectedRows.forEach(function(row) {
-            selectedRowNames.push(row.slice_name);
+            selectedRowNames.push(row.dataset_name);
         });
-        dispatch(setSelectedRows(selectedRowKeys, selectedRowNames));
+        dispatch(selectRows(selectedRowKeys, selectedRowNames));
     };
 
     render() {
 
         const { dispatch, data } = this.props;
 
-        function editSlice(record) {
-            dispatch(fetchSliceDetail(record.id, callback));
-            function callback(success, data) {
-                if(success) {
-                    var editSlicePopup = render(
-                        <SliceEdit
-                            dispatch={dispatch}
-                            sliceDetail={data}/>,
-                        document.getElementById('popup_root'));
-                    if(editSlicePopup) {
-                        editSlicePopup.showDialog();
-                    }
-                }
-            }
+        function editTable(record) {
+            // TODO
         }
 
-        function deleteSlice(record) {
+        function deleteTable(record) {
 
-            let deleteTips = "确定删除" + record.slice_name + "?";
-            let deleteSlicePopup = render(
-                <SliceDelete
+            let deleteTips = "确定删除" + record.dataset_name+ "?";
+            let deleteTablePopup = render(
+                <TableDelete
                     dispatch={dispatch}
                     deleteType={'single'}
                     deleteTips={deleteTips}
-                    slice={record}/>,
+                    table={record} />,
                 document.getElementById('popup_root'));
-            if(deleteSlicePopup) {
-                deleteSlicePopup.showDialog();
+            if(deleteTablePopup) {
+                deleteTablePopup.showDialog();
             }
         }
 
@@ -70,8 +58,7 @@ class SliceTable extends React.Component {
                 render: (text, record) => {
                     const datasetType = record.dataset_type;
                     return (
-                        <i className={'icon ' + record.iconClass}
-                           onClick={() => favoriteSlice(record)}></i>
+                        <i className={'icon ' + record.iconClass} />
                     )
                 }
             },
@@ -118,12 +105,12 @@ class SliceTable extends React.Component {
                         <div className="icon-group">
                             <i
                                 className="icon icon-edit"
-                                onClick={() => editSlice(record)}
-                            ></i>&nbsp;&nbsp;
+                                onClick={() => editTable(record)}
+                            />
                             <i
                                 className="icon icon-delete"
-                                onClick={() => deleteSlice(record)}
-                            ></i>
+                                onClick={() => deleteTable(record)}
+                            />
                         </div>
                     )
                 }
