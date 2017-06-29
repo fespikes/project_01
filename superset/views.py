@@ -48,6 +48,7 @@ from superset.models import Database, Dataset, Slice, Dashboard, \
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset.message import *
+from superset.hdfsmodule.views import HDFSFileBrowserRes
 
 
 config = app.config
