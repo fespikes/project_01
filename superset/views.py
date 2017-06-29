@@ -652,7 +652,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     can_delete = False
     list_columns = [
         'id', 'column_name', 'description', 'type', 'groupby', 'filterable',
-        'count_distinct', 'sum', 'min', 'max', 'is_dttm']
+        'count_distinct', 'sum', 'min', 'max', 'is_dttm', 'expression']
     _list_columns = list_columns
     edit_columns = [
         'column_name', 'description', 'groupby', 'filterable', 'is_dttm',
