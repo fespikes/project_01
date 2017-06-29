@@ -91,18 +91,15 @@ class TableColumnCRUDTests(SupersetTestCase, PageMixin):
             'dataset_id': one_table.id,
             'is_dttm': False,
             'min': False,
+            'description': 'the test dataset'+str(datetime.now()),
         }
         # add
         obj = self.view.populate_object(None, self.user.id, json_data)
-        self.view.pre_add(obj)
         self.view.datamodel.add(obj)
-        self.view.post_add(obj)
         
         added_table = db.session.query(TableColumn) \
-            .filter_by(count_distinct=json_data.get('count_distinct')) \
-            .filter_by(verbose_name=json_data.get('verbose_name')) \
             .filter_by(column_name=json_data['column_name']) \
-            .one()
+            .first()
         assert added_table is not None
 
         #edit
@@ -112,7 +109,7 @@ class TableColumnCRUDTests(SupersetTestCase, PageMixin):
         edited_table = db.session.query(TableColumn)\
             .filter_by(id=added_table.id) \
             .filter_by(column_name=json_data['column_name']) \
-            .one()
+            .first()
         assert edited_table is not None
 
         #delete
