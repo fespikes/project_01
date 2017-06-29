@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
-import { applyDeleteSingle, applyDeleteMulti } from '../actions';
+import { selectRows, applyDelete } from '../actions';
 
 class ConnectionDelete extends React.Component {
     constructor(props) {
@@ -11,12 +11,6 @@ class ConnectionDelete extends React.Component {
         // bindings
         this.confirm = this.confirm.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
-        this.showDialog = this.showDialog.bind(this);
-    };
-
-    showDialog() {
-
-        this.refs.popupDatabaseDelete.style.display = "flex";
     }
 
     closeDialog() {
@@ -24,32 +18,35 @@ class ConnectionDelete extends React.Component {
     }
 
     confirm() {
-        const self = this;
-        const { dispatch, deleteType, connection } = self.props;
-        if(deleteType === "single") {
-            dispatch(applyDeleteSingle(connection.id, callback));
-        }else if(deleteType === "multiple") {
-            dispatch(applyDeleteMulti(callback));
-        }else if(deleteType === "none") {
-            ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
-        }
-
-        function callback(success) {
+        const {dispatch, deleteType} = this.props;
+        const callback = (success, json) => {
             if(success) {
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }
+            console.log('TODO: API not ready - http://172.16.1.168:8090/display/TRAN/Pilot+api+-+CRUD - /connection/muldelete/');
+            console.log('json.message:', json.message );
+        }
+
+        if(deleteType === "none") {
+            ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+        } else {
+            dispatch(applyDelete(callback));
         }
     }
 
     render() {
         return (
-            <div className="popup" ref="popupDatabaseDelete">
+            <div
+                className="popup"
+                ref="popupDatabaseDelete"
+                style={{display:'flex'}}
+            >
                 <div className="popup-dialog popup-sm">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-trash" />
-                                <span>删除数据库连接</span>
+                                <span>删除连接</span>
                             </div>
                             <div className="header-right">
                                 <i className="icon icon-close" onClick={this.closeDialog} />
@@ -66,7 +63,9 @@ class ConnectionDelete extends React.Component {
                             </div>
                         </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}>
+                            <button
+                                className="tp-btn tp-btn-middle tp-btn-primary"
+                                onClick={this.confirm}>
                                 确定
                             </button>
                         </div>
@@ -77,10 +76,7 @@ class ConnectionDelete extends React.Component {
     }
 }
 
-const propTypes = {};
-const defaultProps = {};
-
-ConnectionDelete.propTypes = propTypes;
-ConnectionDelete.defaultProps = defaultProps;
+ConnectionDelete.propTypes = {};
+ConnectionDelete.defaultProps = {};
 
 export default ConnectionDelete;

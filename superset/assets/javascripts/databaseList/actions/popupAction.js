@@ -54,7 +54,7 @@ export const fetchConnectionNames = (callback) => {
             json.data.map((obj, key) => {
                 connectionNames.push({
                     id:obj.id,
-                    database_name:obj.database_name
+                    label:obj.database_name
                 })
             })
             callback && callback(connectionNames);
