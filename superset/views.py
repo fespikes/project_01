@@ -55,7 +55,6 @@ from superset.hdfsmodule.views import HDFSFileBrowserRes
 #from superset.hdfsmodule.views import HDFSConnRes, \
 #    HDFSFileBrowserRes, HDFSFilePreviewRes, HDFSTableRes
 
-
 config = app.config
 log_this = models.Log.log_this
 log_action = models.Log.log_action
@@ -723,6 +722,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     show_columns = list_columns
     edit_columns = ['metric_name', 'description', 'metric_type',
                     'expression', 'dataset_id']
+
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
     description_columns = {
