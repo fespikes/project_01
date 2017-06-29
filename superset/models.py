@@ -973,6 +973,9 @@ class HDFSConnection(Model, AuditMixinNullable):
         backref=backref('hdfs_connection', lazy='dynamic'),
         foreign_keys=[database_id])
 
+    def __repr__(self):
+        return self.connection_name
+
 
 class Connection(object):
     connection_type_dict = {
