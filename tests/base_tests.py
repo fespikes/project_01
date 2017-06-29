@@ -11,6 +11,8 @@ import unittest
 from datetime import datetime
 
 from flask_appbuilder.security.sqla import models as ab_models
+from flask import (g, request, redirect, flash,
+                   Response, render_template, Markup, abort)
 
 from superset import app, cli, db, models, appbuilder, security, sm
 from superset.security import sync_role_definitions
@@ -73,7 +75,7 @@ class SupersetTestCase(unittest.TestCase):
             self.update_example_user(self.test_username)
             self.add_admin_user('hive')
             logging.info("Done loading examples")
-            os.environ['examples_loaded'] = 1
+            os.environ['examples_loaded'] = '1'
 
         sync_role_definitions()
         super(SupersetTestCase, self).__init__(*args, **kwargs)
@@ -114,7 +116,7 @@ class SupersetTestCase(unittest.TestCase):
             obj = cls(**criteria)
         return obj
 
-    def login(self, username='admin', password='general'):
+    def login(self, username='admin', password='general'):#general
         resp = self.get_resp(
             '/login/',
             data=dict(username=username, password=password))
