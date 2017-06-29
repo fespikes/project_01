@@ -1184,15 +1184,13 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
 
 
 class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
-
     """An ORM object for SqlAlchemy table references"""
-
     type = "table"
-
     __tablename__ = 'dataset'
+
     id = Column(Integer, primary_key=True)
     dataset_name = Column(String(250), unique=True, nullable=False)
-    dataset_type = Column(String(250))
+    dataset_type = Column(String(250), nullable=False)
     table_name = Column(String(250))
     schema = Column(String(255))
     sql = Column(Text)
@@ -1242,7 +1240,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     dataset_type_dict = {
         'inceptor': 'INCEPTOR',
         'hdfs': 'HDFS',
-        'upload': 'UPLOAD'}
+        'upload': 'INCEPTOR'}
 
     def __repr__(self):
         return self.dataset_name

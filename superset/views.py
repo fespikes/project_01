@@ -49,6 +49,11 @@ from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset.message import *
 
+from superset.hdfsmodule.views import HDFSFileBrowserRes
+
+#from superset.hdfsmodule.models import HDFSTable
+#from superset.hdfsmodule.views import HDFSConnRes, \
+#    HDFSFileBrowserRes, HDFSFilePreviewRes, HDFSTableRes
 
 config = app.config
 log_this = models.Log.log_this
@@ -713,9 +718,11 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     list_columns = ['id', 'metric_name', 'description',
                     'metric_type', 'expression']
     _list_columns = list_columns
+
     show_columns = list_columns
     edit_columns = ['metric_name', 'description', 'metric_type',
                     'expression', 'dataset_id']
+
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
     description_columns = {
@@ -942,8 +949,39 @@ class HDFSConnectionModelView(SupersetModelView):
     model = models.HDFSConnection
     datamodel = SQLAInterface(models.Database)
     route_base = '/hdfsconnection'
+    _list_columns = ['id', 'connection_name']
     show_columns = []
     edit_columns = []
+
+    def get_object_list_data(self, **kwargs):
+        """Return the hdfs connections.
+        There won't be a lot of hdfs conenctions, so just use 'page_size'
+        """
+        page_size = kwargs.get('page_size')
+        user_id = kwargs.get('user_id')
+
+        query = db.session.query(HDFSConnection, User) \
+            .filter(HDFSConnection.created_by_fk == User.id,
+                    HDFSConnection.created_by_fk == user_id)
+        count = query.count()
+        query = query.order_by(HDFSConnection.connection_name.desc())\
+            .limit(page_size)
+
+        data = []
+        for obj, user in query.all():
+            line = {}
+            for col in self._list_columns:
+                if col in self.str_columns:
+                    line[col] = str(getattr(obj, col, None))
+                else:
+                    line[col] = getattr(obj, col, None)
+            data.append(line)
+
+        response = {}
+        response['count'] = count
+        response['page_size'] = page_size
+        response['data'] = data
+        return response
 
     def add(self):
         pass
@@ -1073,12 +1111,10 @@ class DatasetModelView(SupersetModelView):  # noqa
     list_columns = ['id', 'dataset_name', 'dataset_type',
                     'explore_url', 'connection', 'changed_on']
     _list_columns = list_columns
-    add_columns = ['dataset_name', 'dataset_type', 'schema', 'table_name',
+    add_columns = ['dataset_name', 'schema', 'table_name',
                    'sql', 'database_id', 'description']
-    show_columns = add_columns + ['id']
+    show_columns = add_columns + ['id', 'dataset_type']
     edit_columns = add_columns
-    order_columns = ['link', 'database', 'changed_on_']
-    related_views = [TableColumnInlineView, SqlMetricInlineView]
     description_columns = {
         'offset': "Timezone offset (in hours) for this datasource",
         'table_name': "Name of the table that exists in the source database",
@@ -1113,53 +1149,38 @@ class DatasetModelView(SupersetModelView):  # noqa
             self.get_available_connections(self.get_user_id())
         return data
 
+    @catch_exception
     @expose('/databases/', methods=['GET', ])
     def addable_databases(self):
-        try:
-            dbs = self.get_available_connections(self.get_user_id())
-            return json.dumps(dbs)
-        except Exception as e:
-            return self.build_response(500, False, str(e))
+        return json.dumps(self.get_available_connections(self.get_user_id()))
 
+    @catch_exception
     @expose('/schemas/<database_id>/', methods=['GET', ])
     def addable_schemas(self, database_id):
-        try:
-            d = db.session.query(models.Database) \
-                .filter_by(id=database_id).first()
-            schemas = d.all_schema_names()
-            return json.dumps(schemas)
-        except Exception as e:
-            return self.build_response(500, False, str(e))
+        d = db.session.query(models.Database).filter_by(id=database_id).first()
+        return json.dumps(d.all_schema_names())
 
+    @catch_exception
     @expose('/tables/<database_id>/<schema>/', methods=['GET', ])
     def addable_tables(self, database_id, schema):
-        try:
-            d = db.session.query(models.Database) \
-                .filter_by(id=database_id).first()
-            tables = d.all_table_names(schema=schema)
-            return json.dumps(tables)
-        except Exception as e:
-            return self.build_response(500, False, str(e))
+        d = db.session.query(models.Database).filter_by(id=database_id).first()
+        return json.dumps(d.all_table_names(schema=schema))
 
+    @catch_exception
     @expose('/edit/hdfstable/<pk>/', methods=['GET', 'POST'])
     def edit_hdfs_table(self, pk):
-        try:
-            json_data = self.get_request_data()
-            obj = self.get_object(pk)
-            self.pre_update(obj)
-            self.update_hdfs_table(obj, json_data)
-            self.datamodel.edit(obj)
-            self.post_update(obj)
-            return self.build_response(200, True, UPDATE_SUCCESS)
-        except Exception as e:
-            return self.build_response(self.status, False, str(e))
+        json_data = self.get_request_data()
+        obj = self.get_object(pk)
+        self.pre_update(obj)
+        self.update_hdfs_table(obj, json_data)
+        self.datamodel.edit(obj)
+        self.post_update(obj)
+        return self.build_response(200, True, UPDATE_SUCCESS)
 
+    @catch_exception
     @expose('/dataset_types/', methods=['GET', ])
     def dataset_types(self):
-        try:
-            return json.dumps(list(self.model.dataset_type_dict.values()))
-        except Exception as e:
-            return self.build_response(500, False, str(e))
+        return json.dumps(list(set(self.model.dataset_type_dict.values())))
 
     @catch_exception
     @expose('/preview_data/<id>/', methods=['GET', ])
@@ -1232,8 +1253,8 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def get_add_attributes(self, data, user_id):
         attributes = super().get_add_attributes(data, user_id)
-        attributes['dataset_type'] = self.model.dataset_type_dict\
-            .get(attributes.get('dataset_type'))
+        attributes['dataset_type'] = \
+            self.model.dataset_type_dict.get('inceptor')
         database = db.session.query(models.Database)\
             .filter_by(id=data['database_id'])\
             .first()
@@ -1242,31 +1263,25 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def get_show_attributes(self, obj, user_id=None):
         attributes = super().get_show_attributes(obj)
-        attributes['available_databases'] = \
-            self.get_available_connections(self.get_user_id())
+        if not user_id:
+            attributes['available_databases'] = \
+                self.get_available_connections(self.get_user_id())
+        else:
+            attributes['available_databases'] = \
+                self.get_available_connections(user_id)
         return attributes
 
     def pre_add(self, table):
-        # number_of_existing_tables = db.session.query(
-        #     sqla.func.count('*')).filter(
-        #     models.Dataset.table_name == table.table_name,
-        #     models.Dataset.schema == table.schema,
-        #     models.Dataset.database_id == table.database.id
-        # ).scalar()
-        # table object is already added to the session
-        # if number_of_existing_tables > 1:
-        #     raise Exception(get_datasource_exist_error_mgs(table.full_name))
-
-        # Fail before adding if the table can't be found
-        try:
-            table.get_sqla_table_object()
-        except Exception as e:
-            logging.exception(e)
-            raise Exception(
-                "Table [{}] could not be found, "
-                "please double check your "
-                "database connection, schema, and "
-                "table name".format(table.name))
+        if table.table_name:
+            try:
+                table.get_sqla_table_object()
+            except Exception as e:
+                logging.exception(e)
+                raise Exception(
+                    "Table [{}] could not be found, "
+                    "please double check your "
+                    "database connection, schema, and "
+                    "table name".format(table.name))
 
     @staticmethod
     def merge_perm(table):
@@ -1286,7 +1301,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         action_str = 'Add dataset: [{}]'.format(repr(table))
         log_action('add', action_str, 'dataset', table.id)
         # log table number
-        log_number('dataset', g.user.get_id())
+        log_number('dataset', get_user_id())
 
     def update_hdfs_table(self, table, json_date):
         hdfs_table = table.hdfs_table
@@ -1488,7 +1503,8 @@ class SliceModelView(SupersetModelView):  # noqa
                     line[col] = str(getattr(obj, col, None))
                 else:
                     line[col] = getattr(obj, col, None)
-            line['explore_url'] = obj.datasource.explore_url
+            line['explore_url'] = obj.datasource.explore_url \
+                if obj.datasource else None
             line['created_by_user'] = username
             line['favorite'] = True if fav_id else False
             data.append(line)
@@ -3326,7 +3342,7 @@ class Home(BaseSupersetView):
             AND (
                 slices.created_by_fk = {}
                 OR
-                slices.online = True)
+                slices.online = 1)
             GROUP BY slices.slice_name
             ORDER BY count(slices.slice_name) DESC
             LIMIT {}""".format(user_id, limit)
@@ -3388,7 +3404,7 @@ class Home(BaseSupersetView):
         query = db.session.query(Dashboard).filter(
             or_(
                 Dashboard.created_by_fk == user_id,
-                Dashboard.online == 1
+                Dashboard.online == True
             )
         )
         count = query.count()
