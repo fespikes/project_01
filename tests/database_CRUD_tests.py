@@ -56,14 +56,13 @@ class DatabaseCRUDTests(SupersetTestCase,PageMixin):
 
         # add
         new_database = {
-            'database_name':'1.198_copy_test_lc'+str(datetime.now()),
-            'sqlalchemy_uri':one_database.sqlalchemy_uri,
+            'database_name': '1.198_copy_test_lc'+str(datetime.now()),
+            'sqlalchemy_uri': one_database.sqlalchemy_uri,
+            'description': 'test the database',
         }
         new_database_obj = self.view.populate_object(None, self.user.id, new_database)
 
-        #self.view.pre_add(new_database_obj)
         self.view.datamodel.add(new_database_obj)
-        #self.view.post_add(new_database_obj)
 
         added_database = db.session.query(Database) \
             .filter_by(sqlalchemy_uri=new_database.get('sqlalchemy_uri'), database_name=new_database.get('database_name')) \
@@ -74,9 +73,7 @@ class DatabaseCRUDTests(SupersetTestCase,PageMixin):
         # edit
         new_database['database_name']='1.198_copy_test_lc_edited'+str(datetime.now())
         new_database_obj = self.view.populate_object(new_database_id, self.user.id, new_database)
-        #self.view.pre_update(new_database_obj)
         self.view.datamodel.edit(new_database_obj)
-        #self.view.post_update(new_database_obj)
 
         edited_database = db.session.query(Database) \
             .filter_by(id=new_database_id) \
@@ -87,7 +84,6 @@ class DatabaseCRUDTests(SupersetTestCase,PageMixin):
         # delete
         new_database_obj = self.view.get_object(new_database_id)
         self.view.datamodel.delete(new_database_obj)
-        #self.view.delete(new_database_obj)
         target_database = db.session.query(Database) \
             .filter_by(id=new_database_id).first()
         assert target_database is None
