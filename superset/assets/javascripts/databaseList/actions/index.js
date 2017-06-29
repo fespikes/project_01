@@ -24,8 +24,11 @@ export const actionTypes = {
 
 const origin = window.location.origin;
 const baseURL = origin + '/database/';
+const connBaseURL = origin + '/connection/';
+const INCEPTORConnectionBaseURL = origin + '/database/';
+const HDFSConnectionBaseURL = origin + '/hdfsconnection/';
+
 const errorHandler = (error) => {
-    console.log(error);
     return error;
 }
 
@@ -60,11 +63,12 @@ export function changePageSize (pageSize) {
     }
 }
 
-export function selectRows (selectedRowKeys, selectedRowNames) {
+export function selectRows (selectedRowKeys, connToBeDeleted, selectedRowNames) {
     return {
         type: actionTypes.selectRows,
-        selectedRowKeys: selectedRowKeys,
-        selectedRowNames: selectedRowNames
+        selectedRowKeys,
+        connToBeDeleted,
+        selectedRowNames
     }
 }
 
@@ -77,8 +81,8 @@ export function clearRows () {
 /**
 @description: this is only for inceptor connection test
 */
-export const testConnection = () => {
-    return (dispatch) => {
+export const testConnection = (callback) => {
+    return (dispatch, getState) => {
         const URL = origin + '/pilot/testconn';
         const {
             datasetType,
@@ -138,7 +142,7 @@ export function testConnectionInEditConnectPopup(database, callback) {
 */
 export function applyAdd (callback) {
     return (dispatch, getState) => {
-        const inceptorAddURL = baseURL + 'add/';
+        const inceptorAddURL = baseURL + 'add';
         const HDFSAddURL = origin + '/hdfsconnection';
         let URL;
         //{"database_name":"1.198_copy", "sqlalchemy_uri":"inceptor://hive:123"}
@@ -147,6 +151,7 @@ export function applyAdd (callback) {
             databaseName,
             sqlalchemyUri,
             connectionName,
+            description,
             databaseId,
             verfifyType,
             configFile,
@@ -155,13 +160,14 @@ export function applyAdd (callback) {
         } = getState().popupParam;
 
         let paramObj = {credentials: 'include', method: 'post',};
-        if (datasetType==='inceptor') {
+        if (datasetType==='INCEPTOR') {
             URL = inceptorAddURL;
             paramObj= {
                 ...paramObj,
                 body: JSON.stringify({
                     'database_name': databaseName,
-                    'sqlalchemy_uri':sqlalchemyUri
+                    'sqlalchemy_uri':sqlalchemyUri,
+                    'description':description
                 })
             };
         } else {
@@ -185,7 +191,7 @@ export function applyAdd (callback) {
         )
         .then(json => {
             if (json.success) {
-                callback(true);
+                callback(true, json);
             } else {
                 callback(false, json);
             }
@@ -193,17 +199,15 @@ export function applyAdd (callback) {
     }
 }
 
-export function applyDeleteMulti (callback) {
+export function applyDelete (callback) {
     return (dispatch, getState) => {
-        const URL = baseURL + 'muldelete';
-        const selectedRowKeys = getState().paramOfDelete.selectedRowKeys;
+        const URL = connBaseURL + 'muldelete';
+        const connToBeDeleted = getState().paramOfDelete.connToBeDeleted;
 
         return fetch(URL, {
             credentials: 'include',
             method: 'post',
-            body: JSON.stringify({
-                'selectedRowKeys': selectedRowKeys
-            })
+            body: JSON.stringify(connToBeDeleted)
         })
         .then(
             response => response.ok?
@@ -212,41 +216,36 @@ export function applyDeleteMulti (callback) {
         )
         .then(json => {
             if (json.success) {
-                dispatch(fetchIfNeeded());
-                callback(true)
+                callback(true, json);
+                dispatch(fetchIfNeeded(getState().condition));
             } else {
-                callback(false, json)
-            }
-        });
-    }
-}
-
-export function applyDeleteSingle (id, callback) {
-    return (dispatch, getState) => {
-        const URL = baseURL + 'delete/' + id;
-        return fetch(URL, {
-            credentials: 'include',
-            method: 'GET'
-        })
-        .then(
-            response => response.ok?
-                response.json() : ((response)=>errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            if(json.success) {
-                dispatch(fetchIfNeeded());
-                callback(true);
-            }else {
                 callback(false, json);
             }
         });
     }
 }
 
-export function fetchDBDetail(id, callback) {
+const getURLBase = (type, subfix) => {
+    if (!type) return;
+    let URL = '';
+    switch (type.toUpperCase()) {
+        case 'HDFS':
+            URL = HDFSConnectionBaseURL;
+            break;
+        case 'INCEPTOR':
+            URL = INCEPTORConnectionBaseURL;
+            break;
+        default:
+            break;
+    }
+    return URL + subfix;
+}
+
+export function fetchDBDetail(record, callback) {
+    const type = record.connection_type;
+
     return dispatch => {
-        const URL = baseURL + 'show/' + id;
+        const URL = getURLBase(type, 'show/') + record.id;
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
@@ -263,9 +262,11 @@ export function fetchDBDetail(id, callback) {
 }
 
 export function fetchUpdateConnection(database, callback) {
+
     return (dispatch, getState) => {
-        const URL = baseURL + 'edit/' + database.id;
+        const URL = getURLBase(database.backend, 'edit/') + database.id;
         const db = getEditConData(database);
+
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',
@@ -310,11 +311,38 @@ function receiveData (condition, json) {
     };
 }
 
+export function fetchTypes (callback) {
+    return (dispatch, getState) => {
+        const URL = connBaseURL + 'connection_types';
+        let types = [];
+
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'GET'
+        })
+        .then(
+            response => response.ok?
+                response.json() : (errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(function(data){
+            data.map((obj, index) => {
+            //format the data for the options
+                types.push({
+                    id: index+1,
+                    label: obj
+                });
+            });
+            callback(types);
+        }, errorHandler);
+    };
+}
+
 function applyFetch (condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
 
-        const URL = baseURL + 'listdata?' +
+        const URL = connBaseURL + 'listdata/?' +
             (condition.page? 'page=' + (+condition.page-1) : '') +
             (condition.pageSize? '&page_size=' + condition.pageSize : '') +
             (condition.orderColumn? '&order_column=' + condition.orderColumn : '') +
@@ -326,6 +354,7 @@ function applyFetch (condition) {
             if(!json.data) return json;
             json.data.map(function(obj, index, arr){
                 obj.iconClass = (obj.dataset_type == 'hdfs_folder'? 'HDFS' : obj.dataset_type == 'Inceptor'?'Inceptor' : 'upload');
+                obj.elementId = index+1;
             });
             return json;
         }
@@ -342,10 +371,9 @@ function applyFetch (condition) {
         .then(json => {
             dispatch(receiveData(condition, dataMatch(json)));
         });
-
 //        const json = require('./d40cb439062601b83de7.json');
 //        dispatch(receiveData(condition, dataMatch(json)));
-  };
+    };
 }
 
 function shouldFetch (state, condition) {

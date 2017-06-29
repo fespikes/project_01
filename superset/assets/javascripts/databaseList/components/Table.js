@@ -7,28 +7,34 @@ import { ConnectionDelete, ConnectionEdit } from '../popup';
 import style from '../style/database.scss'
 
 class SliceTable extends React.Component {
-    constructor(props) {
+    constructor(props, context) {
         super(props);
         this.state = {};
         //bindings
         this.deleteConnection = this.deleteConnection.bind(this);
         this.editConnection = this.editConnection.bind(this);
+
+        this.dispatch = context.dispatch;
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
-
-        const { dispatch } = this.props;
         let selectedRowNames = [];
-        selectedRows.forEach(function(row) {
-            selectedRowNames.push(row.database_name);
+        let connToBeDeleted = {};
+        selectedRows.map(function(row) {
+            if (connToBeDeleted[row.connection_type]) {
+                connToBeDeleted[row.connection_type].push(row.id);
+            } else {
+                connToBeDeleted[row.connection_type] = [row.id];
+            }
+            selectedRowNames.push(row.name);
         });
-        dispatch(selectRows(selectedRowKeys, selectedRowNames));
+        this.dispatch(selectRows(selectedRowKeys, connToBeDeleted, selectedRowNames));
 
     };
 
     editConnection(record) {
-        const { dispatch } = this.props;
-        dispatch(fetchDBDetail(record.id, callback));
+        const dispatch = this.dispatch;
+        dispatch(fetchDBDetail(record, callback));
         function callback(success, data) {
             if(success) {
                 let editConnectionPopup = render(
@@ -45,18 +51,14 @@ class SliceTable extends React.Component {
 
     //delete one of them
     deleteConnection(record) {
-        const { dispatch } = this.props;
-        let deleteTips = "确定删除" + record.database_name + "?";      //i18n
+        const dispatch = this.dispatch;
+        let deleteTips = "确定删除: " + record.name + "?";      //i18n
         let deleteConnectionPopup = render(
             <ConnectionDelete
                 dispatch={dispatch}
-                deleteType={'single'}
                 deleteTips={deleteTips}
                 connection={record}/>,
             document.getElementById('popup_root'));
-        if(deleteConnectionPopup) {
-            deleteConnectionPopup.showDialog();
-        }
     }
 
     render() {
@@ -69,31 +71,31 @@ class SliceTable extends React.Component {
         const columns = [
             {
                 title: '名称',  //TODO: title need to i18n
-                key: 'databaseName',
-                dataIndex: 'database_name',
+                key: 'name',
+                dataIndex: 'name',
                 width: '25%',
                 render: (text, record) => {
                     return (
                         <div className="entity-name">
-                            <div className="entity-title">{record.database_name}</div>
+                            <div className="entity-title">{record.name}</div>
                         </div>
                     )
                 },
                 sorter(a, b) {
-                    return a.database_name.substring(0, 1).charCodeAt() - b.database_name.substring(0, 1).charCodeAt();
+                    return a.name.substring(0, 1).charCodeAt() - b.name.substring(0, 1).charCodeAt();
                 }
             }, {
                 title: '连接类型',
-                dataIndex: 'backend',
-                key: 'backend',
+                dataIndex: 'connection_type',
+                key: 'connection_type',
                 width: '15%',
                 sorter(a, b) {
                     return a.backend.substring(0, 1).charCodeAt() - b.backend.substring(0, 1).charCodeAt();
                 }
             }, {
                 title: '所有者',
-                dataIndex: 'created_by_user',
-                key: 'created_by_user',
+                dataIndex: 'owner',
+                key: 'owner',
                 width: '20%',
                 sorter(a, b) {
                  return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
@@ -133,10 +135,14 @@ class SliceTable extends React.Component {
                 dataSource={data}
                 columns={columns}
                 pagination={false}
-                rowKey={record => record.id}
+                rowKey={record => record.elementId}
             />
         );
     }
 }
+
+SliceTable.contextTypes = {
+    dispatch: PropTypes.func.isRequired
+};
 
 export default SliceTable;

@@ -23,12 +23,14 @@ export default function popupParam(state = {
         configFile:'',
         principal:'用户名',
         keytabFile: '',
+        description:'',
 
     connectionNames:[],
 
     //popup callbacks
-    submit: function () {},
-    closeDialog: function () {},
+    submit: argu=>argu,
+    closeDialog: argu=>argu,
+    testConnection: argu=>argu,
 
     status: 'none'//flex, none
 }, action) {
