@@ -243,6 +243,26 @@ export function fetchTypeList(callback) {
     }
 }
 
+export function fetchDatasetPreviewData(id, callback) {
+    return () => {
+        const url = baseURL + 'preview_data/' + id;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
 function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));

@@ -22,7 +22,7 @@ const TableAdd = ({ match, location }) => {
     const pathArray = location.pathname.split('/');
     const type = pathArray[pathArray.length -1];
     let tab2Name = "配置";
-    if(type === 'inceptor') {
+    if(type === 'INCEPTOR') {
         tab2Name = '预览';
     }
     const isActive = (match, location) => {
