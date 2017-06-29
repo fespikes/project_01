@@ -951,39 +951,28 @@ class HDFSConnectionModelView(SupersetModelView):
         """Return the hdfs connections.
         There won't be a lot of hdfs conenctions, so just use 'page_size'
         """
-        order_column = kwargs.get('order_column')
-        order_direction = kwargs.get('order_direction')
-        page = kwargs.get('page')
         page_size = kwargs.get('page_size')
-        filter = kwargs.get('filter')
         user_id = kwargs.get('user_id')
 
         query = db.session.query(HDFSConnection, User) \
             .filter(HDFSConnection.created_by_fk == User.id,
                     HDFSConnection.created_by_fk == user_id)
         count = query.count()
+        query = query.order_by(HDFSConnection.connection_name.desc())\
+            .limit(page_size)
 
-        query = query.order_by(HDFSConnection.connection_name.desc())
-        query = query.limit(page_size)
-
-        rs = query.all()
         data = []
-        for obj, user in rs:
+        for obj, user in query.all():
             line = {}
             for col in self._list_columns:
                 if col in self.str_columns:
                     line[col] = str(getattr(obj, col, None))
                 else:
                     line[col] = getattr(obj, col, None)
-            line['created_by_user'] = obj.created_by.username \
-                if obj.created_by else None
             data.append(line)
 
         response = {}
         response['count'] = count
-        response['order_column'] = order_column
-        response['order_direction'] = 'desc' if order_direction == 'desc' else 'asc'
-        response['page'] = page
         response['page_size'] = page_size
         response['data'] = data
         return response
