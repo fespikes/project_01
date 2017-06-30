@@ -1604,7 +1604,8 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             return self.database.get_table(self.table_name, schema=self.schema)
         except Exception:
             raise Exception("Couldn't fetch table: [{}]'s information "
-                            "in the specified database".format(self.table_name))
+                            "in the specified database: [{}]"
+                            .format(self.table_name, self.schema))
 
     def set_temp_columns_and_metrics(self):
         """Get table's columns and metrics"""
@@ -1812,13 +1813,36 @@ class HDFSTable(Model, AuditMixinNullable):
 
     id = Column(Integer, primary_key=True)
     hdfs_path = Column(String(256), nullable=False)
-    separator = Column(String(256), nullable=False)
+    file_type = Column(String(32))
+    separator = Column(String(8), nullable=False, default=',')
+    quote = Column(String(8), default='"')
+    skip_rows = Column(Integer, default=0)         # skip rows, start with 0
+    next_as_header = Column(Boolean, default=False)  # if next line as header
+    skip_more_rows = Column(Integer)    # below the header, skip rows again
+    nrows = Column(Integer)             # the rows of data readed
+    charset = Column(String(32))
     hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection.id'))
     hdfsconnection = relationship(
         'HDFSConnection',
         backref=backref('ref_hdfs_connection', lazy='joined'),
         foreign_keys=[hdfs_connection_id]
     )
+
+    @staticmethod
+    def create_external_table(database, table_name, column_desc, hdfs_path,
+                              separator=',', schema='default'):
+        table_name = '{}.{}'.format(schema, table_name)
+        sql = 'create external table {}('.format(table_name)
+        columns = json.loads(column_desc, object_pairs_hook=OrderedDict)
+        for c_name, c_type in columns.items():
+            sql = sql + c_name + " " + c_type + ","
+        sql = sql[:-1] \
+              + ") row format delimited fields terminated by '" + separator \
+              + "' location '" + hdfs_path + "'"
+
+        engine = database.get_sqla_engine()
+        engine.execute("drop table if exists " + table_name)
+        engine.execute(sql)
 
 
 class Log(Model):
