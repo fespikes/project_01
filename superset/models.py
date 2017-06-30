@@ -1812,10 +1812,10 @@ class HDFSTable(Model, AuditMixinNullable):
 
     id = Column(Integer, primary_key=True)
     hdfs_path = Column(String(256), nullable=False)
-    separator = Column(String(256), nullable=False)
     file_type = Column(String(32))
-    quote = Column(String(8))
-    skip_rows = Column(Integer)         # skip rows, start with 0
+    separator = Column(String(8), nullable=False, default=',')
+    quote = Column(String(8), default='"')
+    skip_rows = Column(Integer, default=0)         # skip rows, start with 0
     next_as_header = Column(Boolean, default=False)  # if next line as header
     skip_more_rows = Column(Integer)    # below the header, skip rows again
     nrows = Column(Integer)             # the rows of data readed
