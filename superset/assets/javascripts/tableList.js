@@ -33,6 +33,7 @@ render(
             <div>
                 <Route exact path="/" component={Main} />
                 <Route path="/add" component={TableAdd} />
+                <Route path="/edit" component={TableAdd} />
             </div>
         </HashRouter>
     </Provider>,

@@ -1,86 +1,92 @@
 import React, { Component } from 'react';
+import { render } from 'react-dom';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import {bindActionCreators} from 'redux';
 
 import { Table, Input, Button, Icon } from 'antd';
 
-const getData = (length) => {
-    length = length||12;
-    let arr = [];
-    for( let i=length; i--;) {
-        arr.push({
-            key: i,
-            row: 'row'+i,
-            type: 'type'+i,
-            groupAble: 'groupAble'+i,
-            filterAble: 'filterAble'+i,
-            accountAble: 'accountAble'+i,
-            sumAble: 'sumAble'+i,
-            minimumSeekAble  : 'minimumSeekAble'+i,
-            maximumSeekAble: 'maximumSeekAble'+i,
-            timeExpressAble: 'timeExpressAble'+i,
-            customerCity: 'customerCity'+i,
-            online: Math.random()>0.5
-        });
-    }
-    return arr;
-};
-
-const data = getData();
+import { TableColumnAdd, TableColumnDelete } from '../popup';
+import * as actionCreators from '../actions';
+const _ = require('lodash');
 
 class SubColumns extends Component {
-    state = {
-        filterDropdownVisible: false,
-        data,
-        searchText: '',
-        filtered: false,
-    };
-    onInputChange = (e) => {
-        this.setState({ searchText: e.target.value });
-    };
-    onSearch = () => {
-        const { searchText } = this.state;
-        const reg = new RegExp(searchText, 'gi');
-        this.setState({
-            filterDropdownVisible: false,
-            filtered: !!searchText,
-            data: data.map((record) => {
-                const match = record.name.match(reg);
-                if (!match) {
-                    return null;
-                }
-                return {
-                    ...record,
-                    name: (
-                        <span>
-                            {record.name.split(reg).map((text, i) => (
-                                i > 0 ? [<span className="highlight">{match[0]}</span>, text] : text
-                            ))}
-                        </span>
-                    ),
-                };
-            }).filter(record => !!record),
-        });
-    };
+    constructor(props) {
+        super(props);
+        this.state = {};
+
+        this.deleteTableColumn = this.deleteTableColumn.bind(this);
+        this.editTableColumn = this.editTableColumn.bind(this);
+        this.addTableColumn = this.addTableColumn.bind(this);
+    }
+
+    componentDidMount() {
+        const { datasetId, getTableColumn } = this.props;
+        if (datasetId) {
+            getTableColumn(datasetId);
+        }
+    }
 
     addTableColumn (argus) {
-        //TODO: show popup
-        alert('TODO: add table column');
+        console.log(this.props.datasetId);
+        const { fetchTableColumnAdd } = this.props;
+        let addTableColumnPopup = render(
+            <TableColumnAdd datasetId={this.props.datasetId} fetchTableColumnAdd={fetchTableColumnAdd} />,
+            document.getElementById('popup_root')
+        );
+
+        if (addTableColumnPopup) {
+            addTableColumnPopup.showDialog();
+        }
     }
 
-    onCellClick (a, b) {
+    editTableColumn(record) {
+        const { datasetId, fetchTableColumnEdit } = this.props;
+        record.dataset_id = datasetId;
+        let editTableColumnPopup = render(
+            <TableColumnAdd
+                editedColumn={record}
+                datasetId={datasetId}
+                fetchTableColumnEdit={fetchTableColumnEdit} />,
+            document.getElementById('popup_root')
+        );
+
+        if (editTableColumnPopup) {
+            editTableColumnPopup.showDialog();
+        }
     }
 
+    deleteTableColumn(record) {
+        const { fetchTableColumnDelete } = this.props;
+        let deleteTips = "确定删除" + record.column_name + "?";
+        let deleteTableColumnPopup = render(
+            <TableColumnDelete
+                fetchTableColumnDelete={fetchTableColumnDelete}
+                column={record}
+                deleteTips={deleteTips}>
+            </TableColumnDelete>,
+            document.getElementById('popup_root')
+        );
 
-    onRowClick (a, b) {return;
+        if (deleteTableColumnPopup) {
+            deleteTableColumnPopup.showDialog();
+        }
     }
-
+ 
     render() {
         const me = this;
 
+        let data = [];
+
+        _.forEach(me.props.tableColumn, function(item, index) {
+            item.key = index;
+            data.push(item);
+        });
+
         const columns = [{
-            title: '行',
-            dataIndex: 'row',
-            key: 'row',
+            title: '列',
+            dataIndex: 'column_name',
+            key: 'column_name',
             width: '10%'
         }, {
             title: '类型',
@@ -93,8 +99,8 @@ class SubColumns extends Component {
             key: 'groupAble',
             width: '8%',
             className: 'checkb',
-            render: (a, b) => {
-                return (<input type="checkbox" />)
+            render: (text, record) => {
+                return (<input type="checkbox" checked={record.groupby} readOnly />)
             }
         }, {
             title: '可筛选',
@@ -102,8 +108,8 @@ class SubColumns extends Component {
             key: 'filterAble',
             width: '8%',
             className: 'checkb',
-            render: (a, b) => {
-                return (<input type="checkbox" />)
+            render: (text, record) => {
+                return (<input type="checkbox" checked={record.filterable} readOnly />)
             }
         }, {
             title: '可计数',
@@ -111,8 +117,8 @@ class SubColumns extends Component {
             key: 'accountAble',
             width: '8%',
             className: 'checkb',
-            render: (a, b) => {
-                return (<input type="checkbox" />)
+            render: (text, record) => {
+                return (<input type="checkbox" checked={record.count_distinct} readOnly />)
             }
         },{
             title: '可求和',
@@ -120,18 +126,17 @@ class SubColumns extends Component {
             key: 'sumAble',
             width: '8%',
             className: 'checkb',
-            render: (a, b) => {
-                return (<input type="checkbox" />)
+            render: (text, record) => {
+                return (<input type="checkbox" checked={record.sum} readOnly />)
             }
         },{
             title: '可求最小值',
             dataIndex: 'minimumSeekAble',
             key: 'minimumSeekAble',
             width: '12%',
-            onCellClick:me.onCellClick,
             className: 'checkb',
-            render: (a, b) => {
-                return (<input type="checkbox" />)
+            render: (text, record) => {
+                return (<input type="checkbox" checked={record.min} readOnly />)
             }
         },{
             title: '可求最大值',
@@ -139,8 +144,8 @@ class SubColumns extends Component {
             key: 'maximumSeekAble',
             width: '12%',
             className: 'checkb',
-            render: (a, b) => {
-                return (<input className="checkbox" type="checkbox" />)
+            render: (text, record) => {
+                return (<input type="checkbox" checked={record.max} readOnly />)
             }
         },{
             title: '可表示时间',
@@ -148,11 +153,8 @@ class SubColumns extends Component {
             key: 'timeExpressAble',
             width: '12%',
             className: 'checkb',
-            render: (a, b) => {
-                return (<input type="checkbox" />)
-            },
-            onCellClick: (record, event) => {
-                console.log(record, event, 'onCellClick:record, event');
+            render: (text, record) => {
+                return (<input type="checkbox" checked={record.is_dttm} readOnly />)
             }
         },{
             title: '操作',
@@ -162,9 +164,9 @@ class SubColumns extends Component {
             render: (text, record, index) => {
                 return (
                     <div className="icon-group">
-                        <i className="icon edit" onClick={() => editSlice(record)}/>
+                        <i className="icon edit" onClick={() => this.editTableColumn(record)}></i>&nbsp;
                         <i className="icon remove"
-                            onClick={() => deleteSlice(record)}
+                            onClick={() => this.deleteTableColumn(record)}
                             style={{marginLeft:'30px'}}
                         />
                     </div>
@@ -173,26 +175,49 @@ class SubColumns extends Component {
         }];
 
         return (
-            <div style={{padding: '10px'}}>
-                <div style={{width:'100%',
-                            height:'50px',
-                            textAlign:'right'}}>
+            <div className="list-table-column" style={{padding: '10px'}}>
+                <div style={{width:'100%', height:'50px', textAlign:'right'}}>
                     <button
-                        onClick={me.addTableColumn}
+                        onClick={this.addTableColumn}
                         className='btn-blue tab-btn-ps'
+                        disabled={this.props.datasetId === '' ? true : false}
                     >+&nbsp; 添加列表</button>
-
                 </div>
                 <Table
                     columns={columns}
-                    dataSource={this.state.data}
+                    dataSource={data}
                     size='small'
                     pagination={false}
-                    onRowClick={me.onRowClick}
                 />
             </div>
         );
     }
 }
 
-export default SubColumns;
+function mapStateToProps(state) {
+    const { tabData, subDetail } = state;
+
+    return {
+        tableColumn: tabData.tableColumn.data,
+        datasetId:  subDetail.datasetId
+    };
+}
+
+function mapDispatchToProps(dispatch) {
+    const {
+        getTableColumn,
+        fetchTableColumnAdd,
+        fetchTableColumnDelete,
+        fetchTableColumnEdit
+    } = bindActionCreators(actionCreators, dispatch);
+
+    return  {
+        getTableColumn,
+        fetchTableColumnAdd,
+        fetchTableColumnDelete,
+        fetchTableColumnEdit
+    };
+}
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(SubColumns);

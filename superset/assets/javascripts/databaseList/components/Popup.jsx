@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-dom';
+import { render, unmountComponentAtNode } from 'react-dom';
 import { Tooltip, Alert } from 'antd';
 
 import {Select} from './';
@@ -86,11 +86,45 @@ class Popup extends React.Component {
         }
     }
 
-    testConnection () {
+    testConnection() {
+        const me = this;
         const testConnection = this.props.testConnection;
         this.setSubmitParam();
 
-        testConnection();
+        this.dispatch(testConnection(callback));
+
+        function callback(json) {
+            let exception = {};
+            let connected;
+            if(json) {
+                exception.type = "success";
+                exception.message = "该连接是一个合法连接";
+                connected = true;
+            }else {
+                exception.type = "error";
+                exception.message = "该连接是一个不合法连接";
+                connected = false;
+            }
+            /*
+            me.setState({
+                exception: exception,
+                connected: connected
+            });*/
+            const tipBox = me.refs['testConnectTip'];
+            render(
+                <Alert
+                    message={exception.message}
+                    type={exception.type}
+                    onClose={
+                        () => unmountComponentAtNode(tipBox)
+                    }
+                    closable={true}
+                    showIcon
+                />,
+                tipBox
+            );
+        }
+
     }
 
     submit () {
@@ -263,9 +297,12 @@ class Popup extends React.Component {
                                         <label className="data-detail-item">
                                             <span>&nbsp;</span>
                                             <button
-                                                className="uploading-btn"
-                                                onClick={ag=> me.testConnection(ag)}
-                                            >测试连接</button>
+                                                className="test-connect"
+                                                onClick={ag=> me.testConnection(ag)}>
+                                                <i className="icon icon-connect-test"></i>
+                                                <span>测试连接</span>
+                                            </button>
+                                            <div ref="testConnectTip"></div>
                                         </label>
                                     </div>
                                     <div style={{ display: datasetType==='HDFS'?'block':'none' }} >

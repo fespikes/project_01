@@ -69,10 +69,26 @@ function requestByCondition (state = {}, action) {
     }
 }
 
+function tabData(state={
+    tableColumn: {},
+    sqlMetric: {}
+}, action) {
+    switch (action.type) {
+        case actionTypes.getTableColumn:
+            return {...state, tableColumn: action.tableColumn};
+            break;
+        case actionTypes.getSQLMetric:
+            return {...state, sqlMetric: action.sqlMetric};
+            break;
+        default:
+            return state;
+    }
+}
+
 const rootReducer = combineReducers({
     condition,
     requestByCondition,
-
+    tabData,
     subDetail
 });
 
