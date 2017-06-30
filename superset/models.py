@@ -962,11 +962,12 @@ class HDFSConnection(Model, AuditMixinNullable):
     description = Column(Text)
     online = Column(Boolean, default=False)
     database_id = Column(Integer, ForeignKey('dbs.id'))
-    webhdfs_url = Column(String(256), nullable=False)
-    fs_defaultfs = Column(String(256), nullable=False)
-    logical_name = Column(String(256), nullable=False)
-    principal = Column(String(256), nullable=False)
-    hdfs_user = Column(String(256), nullable=False)
+    httpfs = Column(String(256))
+    webhdfs_url = Column(String(256))
+    fs_defaultfs = Column(String(256))
+    logical_name = Column(String(256))
+    principal = Column(String(256))
+    hdfs_user = Column(String(256))
     keytab_file = Column(LargeBinary)
     database = relationship(
         'Database',
