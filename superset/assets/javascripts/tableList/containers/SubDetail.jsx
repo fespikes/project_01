@@ -4,7 +4,7 @@ import { render } from 'react-dom';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import * as actionCreators from '../actions';
 import { extractUrlType } from '../utils';
@@ -459,7 +459,7 @@ class SubDetail extends Component {
                             </label>
                         </div>
                         <label className="sub-btn">
-                            <input type="button" defaultValue="上传文件" className={this.state.dataset_type==='UPLOAD'?'none':''}
+                            <input type="button" defaultValue="上传文件" className={this.state.dataset_type==='HDFS'?'none':''}
                                    onClick={this.uploadFile}/>
                             <Link to={`/add/preview/${this.state.dataset_type}`}>
                                 配置

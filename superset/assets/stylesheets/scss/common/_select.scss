@@ -9,6 +9,10 @@
     }
 }
 
+li.ant-select-dropdown-menu-item > a {
+    display: block;
+}
+
 div.ant-select-dropdown {
     border-radius: 2px;
     border: 1px solid #66afe9;
