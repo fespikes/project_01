@@ -27,6 +27,13 @@ class SubColumns extends Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        const { datasetId, getTableColumn } = this.props;
+        if (nextProps.datasetId !== datasetId && nextProps.datasetId) {
+            getTableColumn(nextProps.datasetId);
+        }
+    }
+
     addTableColumn (argus) {
         console.log(this.props.datasetId);
         const { fetchTableColumnAdd } = this.props;
