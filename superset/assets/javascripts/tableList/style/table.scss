@@ -18,6 +18,16 @@
     cursor: default;
 }
 
+.list-table-column {
+    input[type="checkbox"][readonly] {
+        pointer-events: none;
+    }
+
+    input[type="checkbox"] {
+        float: none;
+    }
+}
+
 .table-content .ant-table-placeholder {
     display: none;
 }

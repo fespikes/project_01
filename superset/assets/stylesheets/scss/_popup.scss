@@ -95,12 +95,15 @@ button:disabled {
         display:flex;
         align-items:center;
         .item-left {
-            width: 15%;
+            width: 17%;
             text-align:right;
-
+            
+            .item-label {
+                color: #7f8fa4;
+            }
         }
         .item-right {
-            width: 85%;
+            width: 83%;
 
             .dialog-area{
                 width:100%;
@@ -109,6 +112,22 @@ button:disabled {
                 border-radius:4px;
                 padding:10px;
             }
+
+            .after-textarea-icon {
+                position: absolute;
+                margin-top: 30px;
+                margin-left: 6px;
+            }
+
+            .after-input-icon {
+                position: absolute;
+                margin-top: 8px;
+                margin-left: 6px;
+            }
+        }
+        .space-between {
+            display: flex;
+            justify-content: space-between;
         }
     }
     .sub-item {
@@ -127,6 +146,14 @@ button:disabled {
 
     input.dialog-input {
         height: 32px;
+    }
+
+    input.dialog-input-sm {
+        width: 246px;
+    }
+
+    input.inline {
+        display: inline;
     }
 
     input.dialog-area {

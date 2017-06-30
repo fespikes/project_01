@@ -22,7 +22,7 @@ function EventList(props) {
             return (
                 <div>
                     <div className="action-text"><Tooltip placement="topRight" title={text} arrowPointAtCenter>{text}</Tooltip></div>
-                    <div className="action-title"><i className={classes}></i>{record.title}</div>
+                    <div className="action-title"><i className={classes}></i><span>{record.title}</span></div>
                 </div>
             );
         }

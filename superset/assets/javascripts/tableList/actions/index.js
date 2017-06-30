@@ -19,8 +19,12 @@ export const actionTypes = {
     switchHDFSConnected: 'SWITCH_HDFS_CONNECTED',
     switchOperationType: 'SWITCH_OPERATION_TYPE',
 
-    saveDatasetId: 'SAVE_DATASET_ID'
+    saveDatasetId: 'SAVE_DATASET_ID',
+
+    getTableColumn: 'GET_TABLE_COLUMNS',
+    getSQLMetric: 'GET_SQL_METRICS'
 };
+
 
 const baseURL = window.location.origin + '/table/';
 
@@ -86,8 +90,190 @@ function receiveData (condition, json) {
   };
 }
 
+function receiveTableColumn(json) {
+    return {
+        type: actionTypes.getTableColumn,
+        tableColumn: json
+    };
+}
+
+function receiveSQLMetric(json) {
+    return {
+        type: actionTypes.getSQLMetric,
+        sqlMetric: json
+    };
+}
+
+export function getTableColumn(dataset_id) {
+    const url = window.location.origin + '/tablecolumn/listdata/?dataset_id=' + dataset_id;
+    return (dispatch, getState) => {
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        })
+        .then(
+            response => response.ok?
+                response.json() : (response => errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(json => {
+            dispatch(receiveTableColumn(json));
+        });
+    }
+}
+
+export function fetchTableColumnAdd(column, callback) {
+    const url = window.location.origin + '/tablecolumn/add';
+    return (dispatch, getState) => {
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(column)
+        }).then(function(response) {
+            if(response.ok) {
+                dispatch(getTableColumn(column.dataset_id));
+                if(typeof callback === "function") {
+                    callback(true);
+                }
+            }else {
+                // if(typeof callback === "function") {
+                //     callback(false);
+                // }
+            }
+        });
+    }
+}
+
+export function fetchTableColumnEdit(column, callback) {
+    const url = window.location.origin + '/tablecolumn/edit/' + column.id;
+    return (dispatch, getState) => {
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(column)
+        }).then(function(response) {
+            if(response.ok) {
+                dispatch(getTableColumn(column.dataset_id));
+                if(typeof callback === "function") {
+                    callback(true);
+                }
+            }else {
+                // if(typeof callback === "function") {
+                //     callback(false);
+                // }
+            }
+        });
+    }
+}
+
+export function fetchTableColumnDelete(id, callback) {
+    const url = window.location.origin + '/tablecolumn/delete/' + id;
+    const errorHandler = error => alert(error);
+    return (dispatch, getState) => {
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(function(response) {
+            if(response.ok) {
+                dispatch(getTableColumn(getState().subDetail.datasetId));
+                if(typeof callback === "function") {
+                    callback(true);
+                }
+            }else {
+                if(typeof callback === "function") {
+                    callback(false);
+                }
+            }
+        });
+    }
+}
+
+export function fetchSQLMetricAdd(metric, callback) {
+    const url = window.location.origin + '/sqlmetric/add';
+    return (dispatch, getState) => {
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(metric)
+        }).then(function(response) {
+            if(response.ok) {
+                dispatch(getSQLMetric(metric.dataset_id));
+                if(typeof callback === "function") {
+                    callback(true);
+                }
+            }else {
+                if(typeof callback === "function") {
+                    callback(false);
+                }
+            }
+        });
+    }
+}
+
+export function fetchSQLMetricEdit(metric, callback) {
+    const url = window.location.origin + '/sqlmetric/edit/' + metric.id;
+    return (dispatch, getState) => {
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(metric)
+        }).then(function(response) {
+            if(response.ok) {
+                dispatch(getSQLMetric(metric.dataset_id));
+                if(typeof callback === "function") {
+                    callback(true);
+                }
+            }else {
+                if(typeof callback === "function") {
+                    callback(false);
+                }
+            }
+        });
+    }
+}
+
+export function fetchSQLMetricDelete(id, callback) {
+    const url = window.location.origin + '/sqlmetric/delete/' + id;
+    return (dispatch, getState) => {
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(function(response) {
+            if(response.ok) {
+                dispatch(getSQLMetric(getState().subDetail.datasetId));
+                if(typeof callback === "function") {
+                    callback(true);
+                }
+            }else {
+                if(typeof callback === "function") {
+                    callback(false);
+                }
+            }
+        });
+    }
+}
+
+export function getSQLMetric(dataset_id) {
+    const url = window.location.origin + '/sqlmetric/listdata/?dataset_id=' + dataset_id;
+    return (dispatch, getState) => {
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        })
+        .then(
+            response => response.ok?
+                response.json() : (response => errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(json => {
+            dispatch(receiveSQLMetric(json));
+        });
+    }
+}
+
 export function fetchTableDelete(tableId, callback) {
     const url = baseURL + "delete/" + tableId;
+    const errorHandler = error => alert(error);
     return (dispatch, getState) => {
         return fetch(url, {
             credentials: 'include',
@@ -355,7 +541,7 @@ function applyFetch(condition) {
         })
         .then(
             response => response.ok?
-                response.json() : (errorHandler(response))(response),
+                response.json() : (response => errorHandler(response))(response),
             error => errorHandler(error)
         )
         .then(json => {

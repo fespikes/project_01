@@ -22,7 +22,8 @@ const TableAdd = ({ match, location }) => {
     }
     const isActive = (match, location) => {
         return location.pathname==='/add/INCEPTOR' || location.pathname==='/add/HDFS' || location.pathname==='/add/UPLOAD'
-            || location.pathname==='/add/detail/INCEPTOR' || location.pathname==='/add/detail/HDFS' || location.pathname==='/add/detail/UPLOAD';
+            || location.pathname==='/add/detail/INCEPTOR' || location.pathname==='/add/detail/HDFS' || location.pathname==='/add/detail/UPLOAD'
+            || location.pathname.indexOf('/edit/INCEPTOR') !== -1;
     };
     return (
         <div className="data-detail">
