@@ -27,3 +27,6 @@ UPDATE_SUCCESS = __("Updated success")
 UPDATE_FAILED = __("Updated failed")
 DELETE_SUCCESS = __("Deleted success")
 DELETE_FAILED = __("Deleted failed")
+
+ERROR_DATASET_TYPE = "Error dataset type"
+ERROR_CONNECTION_TYPE = "Error connection type"
