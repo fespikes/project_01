@@ -28,6 +28,13 @@ class SubSqlMetric extends Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        const { datasetId, getSQLMetric } = this.props;
+        if (nextProps.datasetId !== datasetId && nextProps.datasetId) {
+            getSQLMetric(nextProps.datasetId);
+        }
+    }
+
     addSQLMetric (argus) {
         const { datasetId, fetchSQLMetricAdd } =  this.props;
         let addSQLMetricPopup = render(

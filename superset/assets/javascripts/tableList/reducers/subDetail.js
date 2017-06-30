@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux';
 import { actionTypes  } from '../actions';
+import {REHYDRATE} from 'redux-persist/constants';
 
 export default function subDetail(state = {
     //all below are radios
@@ -20,6 +21,9 @@ export default function subDetail(state = {
             break;
         case actionTypes.saveDatasetId:
             return {...state, datasetId: action.datasetId};
+            break;
+        case REHYDRATE:
+            return {...state, datasetId: action.payload.subDetail.datasetId};
             break;
         default:
             return state;

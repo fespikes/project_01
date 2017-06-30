@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux';
 import { actionTypes  } from '../actions';
 import subDetail from './subDetail';
+import {REHYDRATE} from 'redux-persist/constants';
 
 function condition(state = {
     page: 1,
