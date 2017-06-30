@@ -381,11 +381,8 @@ export function fetchHDFSFileBrowser(callback) {
     return () => {
         const url = '';
         return fetch(url, {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-                'Access-Control-Allow-Origin': '*'
-            }
+            credentials: 'include',
+            method: 'GET'
         }).then(
             response => {
                 if(response.ok) {
@@ -397,6 +394,27 @@ export function fetchHDFSFileBrowser(callback) {
                 }
             }
         );
+    }
+}
+
+export function fetchUploadFile(data, id, path, callback) {
+    const url = window.location.origin + '/hdfsfilebrowser?action=upload&connection_id=' + id + '&hdfs_path=' + path;
+    return () => {
+        return fetch(url, {
+            credentials: 'include',
+            method: "POST",
+            body: data
+        }).then(response => {
+            if(response.ok) {
+                response.json().then(
+                    () => {
+                        callback(true);
+                    }
+                )
+            }else {
+                callback(true);
+            }
+        });
     }
 }
 

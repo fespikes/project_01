@@ -6,3 +6,4 @@ export TableColumnAdd from './TableColumnAdd';
 export SQLMetricAdd from './SQLMetricAdd';
 export TableColumnDelete from './TableColumnDelete';
 export SQLMetricDelete from './SQLMetricDelete';
+export Confirm from './Confirm';
