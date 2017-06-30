@@ -295,7 +295,7 @@ a{text-decoration:none;}
     font-size:14px;
     color:#7c8ca5;
 }
-.data-connect-status>button{
+.data-connect-status>button, .sub-btn>a{
     width:160px;
     height:40px;
     text-align: center;
@@ -321,6 +321,11 @@ a{text-decoration:none;}
     left: -120px;
     top: -20px;
 }
+.column-type {
+    border: 1px solid #e9e9e9;
+    border-radius: 4px;
+    height: 28px;
+}
 .alert-tip {
     display: flex;
     justify-content: center;
@@ -328,8 +333,6 @@ a{text-decoration:none;}
 .none{
     display: none;
 }
-
-
 .btn-blue{
     padding:0 12px;
     height: 36px;

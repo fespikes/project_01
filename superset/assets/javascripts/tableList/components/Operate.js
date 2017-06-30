@@ -99,10 +99,12 @@ class SliceOperate extends React.Component {
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    <li style={{ width: 100 }}>
+                    <li style={{ width: '130px', textAlign: 'left' }}>
+                        <i className="icon icon-plus"/>
                         <Select
-                            style={{ width: '100%' }}
+                            style={{ width: '100px' }}
                             placeholder="新建连接"
+                            showText="新建连接"
                             onChange={this.selectChange}
                         >
                             {addOptions}
