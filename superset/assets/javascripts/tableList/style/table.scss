@@ -40,3 +40,35 @@ ul > li .ant-select-selection {
     border: none;
     height: 26px;
 }
+
+.file-browser, .file-name, .file-upload {
+    width: 200px;
+    height: 40px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+.file-browser {
+    cursor: pointer;
+    background-color: #279cf2;
+    span {
+        margin-left: 5px;
+    }
+}
+.file-name {
+    justify-content: flex-start;
+    span {
+        margin-left: 5px;
+    }
+}
+.file-upload {
+    cursor: pointer;
+    background-color: #2ccc26;
+    .file-select {
+        position: absolute;
+        clip: rect(0 0 0 0);
+    }
+}
+

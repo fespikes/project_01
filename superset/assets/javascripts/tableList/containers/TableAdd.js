@@ -17,8 +17,13 @@ import '../style/tableAdd.css';
 const TableAdd = ({ match, location }) => {
     const type = extractUrlType(location.pathname);
     let tab2Name = "配置";
+    let title = "新建Inceptor数据集";
     if(type === 'INCEPTOR') {
         tab2Name = '预览';
+    }else if(type === "HDFS") {
+        title = "新建HDFS数据集";
+    }else if(type === "UPLOAD") {
+        title = "新建上传文件数据集";
     }
     const isActive = (match, location) => {
         return location.pathname==='/add/INCEPTOR' || location.pathname==='/add/HDFS' || location.pathname==='/add/UPLOAD'
@@ -28,7 +33,7 @@ const TableAdd = ({ match, location }) => {
     return (
         <div className="data-detail">
            <h1 className="title">
-               <i className="icon"/>新建数据集
+               <i className="icon"/>{title}
            </h1>
            <div className="data-detail-wrap">
                <div className="data-wrap-center">

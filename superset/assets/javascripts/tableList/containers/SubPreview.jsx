@@ -14,33 +14,6 @@ class SubPreview extends Component {
         searchText: '',
         filtered: false
     };
-    onInputChange = (e) => {
-        this.setState({ searchText: e.target.value });
-    };
-    onSearch = () => {
-        const { searchText } = this.state;
-        const reg = new RegExp(searchText, 'gi');
-        this.setState({
-            filterDropdownVisible: false,
-            filtered: !!searchText,
-            data: data.map((record) => {
-                const match = record.name.match(reg);
-                if (!match) {
-                    return null;
-                }
-                return {
-                    ...record,
-                    name: (
-                        <span>
-                            {record.name.split(reg).map((text, i) => (
-                                i > 0 ? [<span className="highlight">{match[0]}</span>, text] : text
-                            ))}
-                        </span>
-                    ),
-                };
-            }).filter(record => !!record),
-        });
-    }
 
     componentDidMount() {
         const me = this;
@@ -55,6 +28,10 @@ class SubPreview extends Component {
 
             }
         }
+    }
+
+    charsetChange() {
+
     }
 
     render() {
@@ -110,37 +87,45 @@ class SubPreview extends Component {
                 <div className={datasetType==='INCEPTOR'?'none':'data-detail-preview'}>
                     <div className="data-detail-border">
                         <label className="data-detail-item">
-                            <span>type：</span>
-                            <input type="text" defaultValue="Separated values(CSV,TSV,...)" />
+                            <span>文件类型：</span>
+                            <input type="text" defaultValue="csv" />
                         </label>
                         <label className="data-detail-item">
-                            <span>Separator：</span>
-                            <input type="text" defaultValue="" />
+                            <span>分隔符：</span>
+                            <input type="text" defaultValue="," />
                             <i className="icon infor-icon" />
                         </label>
                         <label className="data-detail-item">
-                            <span>Quoting character：</span>
-                            <input type="text" defaultValue="" />
+                            <span>引号符：</span>
+                            <input type="text" defaultValue="'" />
                             <i className="icon infor-icon" />
                         </label>
                         <label className="data-detail-item">
-                            <span>Skip first lines：</span>
-                            <input type="text" defaultValue="" />
+                            <span>忽略行数：</span>
+                            <input type="text" defaultValue="0" />
                         </label>
                         <label className="data-detail-item">
                             <span></span>
                             <div className="data-detail-checkbox">
                                 <input type="checkbox" name="" id=""/>
-                                <p>Parse next line as column headers </p>
+                                <p>下一行为列名</p>
                             </div>
                         </label>
                         <label className="data-detail-item">
-                            <span>Skip next lines：</span>
-                            <input type="text" defaultValue=""/>
+                            <span>再忽略行数：</span>
+                            <input type="text" defaultValue="0"/>
                         </label>
                         <label className="data-detail-item">
-                            <span>Charset：</span>
-                            <input type="text" defaultValue=""/>
+                            <span>字符集：</span>
+                            <Select
+                                style={{width: 312}}
+                                defaultValue={'utf-8'}
+                                onChange={this.charsetChange}
+                            >
+                                <Option value="utf-8">utf-8</Option>
+                                <Option value="gbk">gbk</Option>
+                                <Option value="iso-8859-15">iso-8859-15</Option>
+                            </Select>
                         </label>
                     </div>
                     <label className="sub-btn">

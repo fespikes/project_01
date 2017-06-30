@@ -4,15 +4,32 @@ import { render } from 'react-dom';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
-import { Link } from 'react-router-dom';
-import { Select, Tooltip, TreeSelect, Alert } from 'antd';
+import { Link, withRouter } from 'react-router-dom';
+import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import * as actionCreators from '../actions';
 import { extractUrlType } from '../utils';
+import { Confirm } from '../popup';
 import { constructInceptorDataset, constructFileBrowserData, appendTreeChildren } from '../module';
 import { appendTreeData, constructTreeData } from '../../../utils/common2';
 
-const fileBrowserData = {"path": "/user/hive/employee", "descending": null, "sortby": null, "files": [{"path": "/user/hive", "mtime": "May 13, 2017 12:00 AM", "name": "..", "size": 0, "mode": 16832, "stats": {"path": "/user/hive/employee/..", "mtime": 1494663357.534, "atime": 0.0, "size": 0, "mode": 16832, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwx------", "url": "http://localhost:8086/view/user/hive", "type": "dir"}, {"path": "/user/hive/employee", "mtime": "May 27, 2017 12:00 AM", "name": ".", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee", "mtime": 1495874611.498, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee", "type": "dir"}, {"path": "/user/hive/employee/employee5.txt", "mtime": "May 26, 2017 12:00 AM", "name": "employee5.txt", "size": 27, "mode": 33188, "stats": {"path": "/user/hive/employee/employee5.txt", "mtime": 1495784089.918, "atime": 1495784089.356, "size": 27, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/employee5.txt", "type": "file"}, {"path": "/user/hive/employee/subdir", "mtime": "May 27, 2017 12:00 AM", "name": "subdir", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee/subdir", "mtime": 1495874578.136, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee/subdir", "type": "dir"}, {"path": "/user/hive/employee/test_upload2.txt", "mtime": "May 27, 2017 12:00 AM", "name": "test_upload2.txt", "size": 14, "mode": 33188, "stats": {"path": "/user/hive/employee/test_upload2.txt", "mtime": 1495874611.693, "atime": 1495874611.498, "size": 14, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/test_upload2.txt", "type": "file"}], "pagesize": 4, "page": {"number": 2, "end_index": 7, "next_page_number": 2, "previous_page_number": 1, "num_pages": 2, "total_count": 7, "start_index": 5}}
-const fileBrowserData2 = {"path": "/user/hive/employee", "descending": null, "sortby": null, "files": [{"path": "/user/hive", "mtime": "May 13, 2017 12:00 AM", "name": "..", "size": 0, "mode": 16832, "stats": {"path": "/user/hive/employee/..", "mtime": 1494663357.534, "atime": 0.0, "size": 0, "mode": 16832, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwx------", "url": "http://localhost:8086/view/user/hive", "type": "dir"}, {"path": "/user/hive/employee", "mtime": "May 27, 2017 12:00 AM", "name": ".", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee", "mtime": 1495874611.498, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee", "type": "dir"}, {"path": "/user/hive/employee/employee5.txt", "mtime": "May 26, 2017 12:00 AM", "name": "employee55.txt", "size": 27, "mode": 33188, "stats": {"path": "/user/hive/employee/employee5.txt", "mtime": 1495784089.918, "atime": 1495784089.356, "size": 27, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/employee5.txt", "type": "file"}, {"path": "/user/hive/employee/subdir", "mtime": "May 27, 2017 12:00 AM", "name": "subdirr", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee/subdir", "mtime": 1495874578.136, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee/subdir", "type": "dir"}, {"path": "/user/hive/employee/test_upload2.txt", "mtime": "May 27, 2017 12:00 AM", "name": "test_upload22.txt", "size": 14, "mode": 33188, "stats": {"path": "/user/hive/employee/test_upload2.txt", "mtime": 1495874611.693, "atime": 1495874611.498, "size": 14, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/test_upload2.txt", "type": "file"}], "pagesize": 4, "page": {"number": 2, "end_index": 7, "next_page_number": 2, "previous_page_number": 1, "num_pages": 2, "total_count": 7, "start_index": 5}}
+const fileBrowserData = {"path": "/user/hive/employee", "descending": null, "sortby": null, "files": [{"path": "/user/hive", "mtime": "May 13, 2017 12:00 AM", "name": "..", "size": 0, "mode": 16832, "stats": {"path": "/user/hive/employee/..", "mtime": 1494663357.534, "atime": 0.0, "size": 0, "mode": 16832, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwx------", "url": "http://localhost:8086/view/user/hive", "type": "dir"}, {"path": "/user/hive/employee", "mtime": "May 27, 2017 12:00 AM", "name": ".", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee", "mtime": 1495874611.498, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee", "type": "dir"}, {"path": "/user/hive/employee/employee5.txt", "mtime": "May 26, 2017 12:00 AM", "name": "employee5.txt", "size": 27, "mode": 33188, "stats": {"path": "/user/hive/employee/employee5.txt", "mtime": 1495784089.918, "atime": 1495784089.356, "size": 27, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/employee5.txt", "type": "file"}, {"path": "/user/hive/employee/subdir", "mtime": "May 27, 2017 12:00 AM", "name": "subdir", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee/subdir", "mtime": 1495874578.136, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee/subdir", "type": "dir"}, {"path": "/user/hive/employee/test_upload2.txt", "mtime": "May 27, 2017 12:00 AM", "name": "test_upload2.txt", "size": 14, "mode": 33188, "stats": {"path": "/user/hive/employee/test_upload2.txt", "mtime": 1495874611.693, "atime": 1495874611.498, "size": 14, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/test_upload2.txt", "type": "file"}], "pagesize": 4, "page": {"number": 2, "end_index": 7, "next_page_number": 2, "previous_page_number": 1, "num_pages": 2, "total_count": 7, "start_index": 5}};
+const fileBrowserData2 = {"path": "/user/hive/employee", "descending": null, "sortby": null, "files": [{"path": "/user/hive", "mtime": "May 13, 2017 12:00 AM", "name": "..", "size": 0, "mode": 16832, "stats": {"path": "/user/hive/employee/..", "mtime": 1494663357.534, "atime": 0.0, "size": 0, "mode": 16832, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwx------", "url": "http://localhost:8086/view/user/hive", "type": "dir"}, {"path": "/user/hive/employee", "mtime": "May 27, 2017 12:00 AM", "name": ".", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee", "mtime": 1495874611.498, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee", "type": "dir"}, {"path": "/user/hive/employee/employee5.txt", "mtime": "May 26, 2017 12:00 AM", "name": "employee55.txt", "size": 27, "mode": 33188, "stats": {"path": "/user/hive/employee/employee5.txt", "mtime": 1495784089.918, "atime": 1495784089.356, "size": 27, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/employee5.txt", "type": "file"}, {"path": "/user/hive/employee/subdir", "mtime": "May 27, 2017 12:00 AM", "name": "subdirr", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee/subdir", "mtime": 1495874578.136, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee/subdir", "type": "dir"}, {"path": "/user/hive/employee/test_upload2.txt", "mtime": "May 27, 2017 12:00 AM", "name": "test_upload22.txt", "size": 14, "mode": 33188, "stats": {"path": "/user/hive/employee/test_upload2.txt", "mtime": 1495874611.693, "atime": 1495874611.498, "size": 14, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/test_upload2.txt", "type": "file"}], "pagesize": 4, "page": {"number": 2, "end_index": 7, "next_page_number": 2, "previous_page_number": 1, "num_pages": 2, "total_count": 7, "start_index": 5}};
+
+function showAlert(response) {
+    render(
+        <Alert
+            style={{ width: 400 }}
+            type={response.type}
+            message={response.message}
+            closable={true}
+            showIcon
+        />,
+        document.getElementById('showAlert')
+    );
+    setTimeout(function() {
+        ReactDOM.unmountComponentAtNode(document.getElementById('showAlert'));
+    }, 5000);
+}
 
 class SubDetail extends Component {
 
@@ -34,12 +51,11 @@ class SubDetail extends Component {
             dsHDFS: {
                 hdfsConnections: [],
                 inceptorConnections: [],
-                hdfsConnect: '',
-                inceptorConnect: '',
-                fileBrowserData: []
-            },
-            dsUpload: {
-
+                hdfsConnectId: '',
+                inceptorConnectId: '',
+                fileBrowserData: [],
+                hdfsPath: '',
+                uploadFileName: ''
             }
         };
 
@@ -54,6 +70,8 @@ class SubDetail extends Component {
         this.handleSQLChange = this.handleSQLChange.bind(this);
         this.handleDatasetChange = this.handleDatasetChange.bind(this);
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
+        this.handleFile = this.handleFile.bind(this);
+        this.uploadFile = this.uploadFile.bind(this);
     }
 
     handleDatasetChange(e) {
@@ -62,13 +80,11 @@ class SubDetail extends Component {
             this.setState({
                 dsInceptor: this.state.dsInceptor
             });
-        }else if(this.state.dataset_type === 'HDFS') {
+        }else if(this.state.dataset_type === 'HDFS' || this.state.dataset_type === 'UPLOAD') {
             this.state.dsHDFS.dataset_name = e.currentTarget.value;
             this.setState({
                 dsHDFS: this.state.dsHDFS
             });
-        }else if(this.state.dataset_type === 'UPLOAD') {
-
         }
     }
 
@@ -78,13 +94,11 @@ class SubDetail extends Component {
             this.setState({
                 dsInceptor: this.state.dsInceptor
             });
-        }else if(this.state.dataset_type === 'HDFS') {
+        }else if(this.state.dataset_type === 'HDFS' || this.state.dataset_type === 'UPLOAD') {
             this.state.dsHDFS.description = e.currentTarget.value;
             this.setState({
                 dsHDFS: this.state.dsHDFS
             });
-        }else if(this.state.dataset_type === 'UPLOAD') {
-
         }
     }
 
@@ -114,16 +128,14 @@ class SubDetail extends Component {
     }
 
     onHDFSConnectChange(value) {
-        console.log('value-hdfs=', value);
-        this.state.dsHDFS.hdfsConnect = value;
+        this.state.dsHDFS.hdfsConnectId = value;
         this.setState({
             dsHDFS: this.state.dsHDFS
         });
     }
 
     onInceptorConnectChange(value) {
-        console.log('value-inceptor=', value);
-        this.state.dsHDFS.inceptorConnect = value;
+        this.state.dsHDFS.inceptorConnectId = value;
         this.setState({
             dsHDFS: this.state.dsHDFS
         });
@@ -163,13 +175,15 @@ class SubDetail extends Component {
     }
 
     onSelectHDFS(value, node) {
-
+        this.state.dsHDFS.hdfsPath = node.props.hdfs_path;
+        this.setState({
+            dsHDFS: this.state.dsHDFS
+        });
     }
 
     onLoadDataHDFS(node) {
         const me = this;
         const folderName = node.props.value;
-        const path = node.props.hdfs_path;
         const { fetchHDFSFileBrowser } = me.props;
         //return fetchHDFSFileBrowser(callback);
         callback(true, fileBrowserData2);
@@ -181,6 +195,44 @@ class SubDetail extends Component {
                     dsHDFS: me.state.dsHDFS
                 });
             }
+        }
+    }
+
+    handleFile() {
+        this.refs.fileName.innerText = this.refs.fileSelect.files[0].name;
+        this.state.dsHDFS.uploadFileName = this.refs.fileSelect.files[0].name;
+        this.setState({
+            dsHDFS: this.state.dsHDFS
+        });
+    }
+
+    uploadFile() {//only upload one file
+        if(this.state.dsHDFS.uploadFileName === '') {
+            let confirmPopup = render(
+                <Confirm />,
+                document.getElementById('popup_root'));
+            if(confirmPopup) {
+                confirmPopup.showDialog();
+            }
+            return;
+        }
+        const { fetchUploadFile } = this.props;
+        fetchUploadFile(
+            this.refs.fileSelect.files[0],
+            this.state.dsHDFS.hdfsConnectId,
+            this.state.dsHDFS.hdfsPath,
+            callback
+        );
+        function callback(success) {
+            let response = {};
+            if(success) {
+                response.type = 'success';
+                response.message = '上传成功';
+            }else {
+                response.type = 'error';
+                response.message = '上传失败';
+            }
+            showAlert(response);
         }
     }
 
@@ -199,25 +251,18 @@ class SubDetail extends Component {
                 response.type = 'error';
                 response.message = data;
             }
-            render(
-                <Alert
-                    style={{ width: 400 }}
-                    type={response.type}
-                    message={response.message}
-                    closable={true}
-                    showIcon
-                />,
-                document.getElementById('showAlert')
-            );
-            setTimeout(function() {
-                ReactDOM.unmountComponentAtNode(document.getElementById('showAlert'));
-            }, 5000);
+            showAlert(response);
         }
     }
 
     componentDidMount() {
         const me = this;
-        const { fetchDatabaseList, fetchHDFSConnectList, fetchInceptorConnectList, fetchHDFSFileBrowser } = me.props;
+        const {
+            fetchDatabaseList,
+            fetchHDFSConnectList,
+            fetchInceptorConnectList,
+            fetchHDFSFileBrowser
+        } = me.props;
         if(this.state.dataset_type === 'INCEPTOR') {
             fetchDatabaseList(callback);
             function callback(success, data) {
@@ -230,14 +275,13 @@ class SubDetail extends Component {
 
                 }
             }
-        }else if(this.state.dataset_type === 'HDFS') {
+        }else if(this.state.dataset_type === 'HDFS' || this.state.dataset_type === 'UPLOAD') {
             fetchHDFSConnectList(hdfsCallback);
             fetchInceptorConnectList(inceptorCallback);
             //fetchHDFSFileBrowser(fileCallback);
             fileCallback(true, fileBrowserData);
             function hdfsCallback(success, data) {
                 if(success) {
-                    console.log('data-hdfs=', data);
                     me.state.dsHDFS.hdfsConnections = data;
                     me.setState({
                         dsHDFS: me.state.dsHDFS
@@ -246,7 +290,6 @@ class SubDetail extends Component {
             }
             function inceptorCallback(success, data) {
                 if(success) {
-                    console.log('data-inceptor=', data);
                     me.state.dsHDFS.inceptorConnections = data;
                     me.setState({
                         dsHDFS: me.state.dsHDFS
@@ -254,7 +297,6 @@ class SubDetail extends Component {
                 }
             }
             function fileCallback(success, fileBrowserData) {
-                console.log('fileBrowserData=', fileBrowserData);
                 if(success) {
                     me.state.dsHDFS.fileBrowserData = constructFileBrowserData(fileBrowserData);
                     me.setState({
@@ -262,8 +304,6 @@ class SubDetail extends Component {
                     });
                 }
             }
-        }else if(this.state.dataset_type === 'UPLOAD') {
-
         }
     }
 
@@ -280,15 +320,13 @@ class SubDetail extends Component {
             dbOptions = me.state.dsInceptor.databases.map(database => {
                 return <Option key={database.id}>{database.database_name}</Option>
             });
-        }else if(datasetType === 'HDFS') {
+        }else if(datasetType === 'HDFS' || datasetType === 'UPLOAD') {
             hdfsOptions = me.state.dsHDFS.hdfsConnections.map(hdfs => {
                 return <Option key={hdfs.id}>{hdfs.connection_name}</Option>
             });
             inceptorOptions = me.state.dsHDFS.inceptorConnections.map(inceptor => {
                 return <Option key={inceptor.id}>{inceptor.database_name}</Option>
             });
-        }else if(datasetType === 'UPLOAD') {
-
         }
         return (
             <div className="data-detail-centent shallow">
@@ -349,11 +387,28 @@ class SubDetail extends Component {
                         <label className="sub-btn">
                             <input type="button" defaultValue="保存" onClick={this.onSave}/>
                         </label>
-                        <div id="showAlert" className="alert-tip"></div>
                     </div>
 
                     {/* HDFS corresponding dom*/}
-                    <div className={datasetType==='HDFS'?'':'none'} >
+                    <div className={(datasetType==='HDFS' || datasetType==='UPLOAD')?'':'none'}>
+                        <div className={datasetType==='UPLOAD'?'':'none'}>
+                            <label className="data-detail-item">
+                                <span></span>
+                                <div>
+                                    <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
+                                        <span>选择文件</span>
+                                    </label>
+                                    <div className="file-name">
+                                        <i className="icon icon-file"/>
+                                        <span ref="fileName"/>
+                                    </div>
+                                    <div className="file-upload" style={{display: 'none'}}>
+                                        <input type="file" id="xFile" className="file-select" onChange={this.handleFile}
+                                               ref="fileSelect"/>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
                         <div className={HDFSConnected===false?'none':''}>
                             <label className="data-detail-item">
                                 <span></span>
@@ -394,9 +449,7 @@ class SubDetail extends Component {
                                     showSearch
                                     style={{ width: 300 }}
                                     placeholder="please select"
-                                    multiple={true}
-                                    treeCheckable={true}
-                                    showCheckedStrategy={TreeSelect.SHOW_PARENT}
+                                    treeCheckable={false}
                                     treeData={this.state.dsHDFS.fileBrowserData}
                                     onSelect={this.onSelectHDFS}
                                     loadData={this.onLoadDataHDFS}
@@ -406,55 +459,14 @@ class SubDetail extends Component {
                             </label>
                         </div>
                         <label className="sub-btn">
+                            <input type="button" defaultValue="上传文件" className={this.state.dataset_type==='HDFS'?'none':''}
+                                   onClick={this.uploadFile}/>
                             <Link to={`/add/preview/${this.state.dataset_type}`}>
                                 配置
                             </Link>
                         </label>
                     </div>
-
-                    {/* upload file corresponding dom*/}
-                    <div className={datasetType==='UPLOAD'?'':'none'} >
-                        <label className="data-detail-item">
-                            <span></span>
-
-                        </label>
-                        <label className="data-detail-item">
-                            <span>路径：</span>
-                            <input type="text" defaultValue="" />
-                        </label>
-                        <label className="data-detail-item">
-                            <span></span>
-                            <button className="uploading-btn">上传文件</button>
-                        </label>
-                        <label className="data-detail-item">
-                            <span></span>
-                            <div className="file-uploading">
-                                <i className="icon"/>
-                                <span>package.json</span>
-                                <div className="progress"></div>
-                            </div>
-
-                        </label>
-                        <label className="data-detail-item">
-                            <span></span>
-                            <div className="file-uploaded">
-                                <i className="icon"/>
-                                <span>package.json</span>
-                                <div className="finish"></div>
-                            </div>
-                        </label>
-                        <label className="data-detail-item">
-                            <span></span>
-                            <div className="connect-success">
-                                <span>连接成功</span>&nbsp;&nbsp;
-                                <button>配置></button>
-                            </div>
-                        </label>
-                        <label className="data-detail-item">
-                            <span>描述：</span>
-                            <textarea name="" id="" cols="30" rows="10"/>
-                        </label>
-                    </div>
+                    <div id="showAlert" className="alert-tip"></div>
                 </div>
             </div>
         );
@@ -476,7 +488,8 @@ function mapDispatchToProps (dispatch) {
         saveDatasetId,
         fetchHDFSConnectList,
         fetchInceptorConnectList,
-        fetchHDFSFileBrowser
+        fetchHDFSFileBrowser,
+        fetchUploadFile
     } = bindActionCreators(actionCreators, dispatch);
 
     return {
@@ -487,7 +500,8 @@ function mapDispatchToProps (dispatch) {
         saveDatasetId,
         fetchHDFSConnectList,
         fetchInceptorConnectList,
-        fetchHDFSFileBrowser
+        fetchHDFSFileBrowser,
+        fetchUploadFile
     };
 }
 export default connect (mapStateToProps, mapDispatchToProps ) (SubDetail);
