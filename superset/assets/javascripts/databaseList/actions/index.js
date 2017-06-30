@@ -78,42 +78,6 @@ export function clearRows () {
     }
 }
 
-/**
-@description: this is only for inceptor connection test
-*/
-export const testConnection = (callback) => {
-    return (dispatch, getState) => {
-        const URL = origin + '/pilot/testconn';
-        const {
-            datasetType,
-            databaseName,
-            sqlalchemyUri
-        } = getState().popupParam;
-
-        return fetch(URL, {
-            credentials: 'include',
-            method: 'post',
-            body: JSON.stringify({
-                'database_name': databaseName,
-                'sqlalchemy_uri':sqlalchemyUri
-            })
-        })
-        .then(
-            response => response.ok?
-                response.json() : ((response)=>errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            if (json.success) {
-                callback(true);
-            } else {
-                callback(false, json);
-            }
-        });
-
-    }
-}
-
 export function testConnectionInEditConnectPopup(database, callback) {
     return (dispatch, getState) => {
         const URL = origin + '/pilot/testconn';
