@@ -45,6 +45,7 @@ class App extends Component {
             nextProps.condition.onlyFavorite !== this.props.condition.onlyFavorite ||
             nextProps.condition.tableType !== this.props.condition.tableType ||
             nextProps.condition.page !== this.props.condition.page
+//            nextProps.paramOfDelete.connToBeDeleted !== this.props.paramOfDelete.connToBeDeleted
         ) {
             dispatch(fetchIfNeeded(nextProps.condition));
         }
@@ -73,14 +74,12 @@ class App extends Component {
                     <div className="right">
                         <Operate
                             tableType={condition.tableType}
-                            dispatch={dispatch}
                             {...paramOfDelete}
                         />
                     </div>
                 </div>
                 <div className="panel-middle">
                     <Table
-                        dispatch={dispatch}
                         {...response}
                         {...paramOfDelete}
                     />

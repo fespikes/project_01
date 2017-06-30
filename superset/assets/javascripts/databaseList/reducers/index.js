@@ -35,11 +35,17 @@ function condition(state = {
 
 function paramOfDelete(state={
     selectedRowKeys: [],
+    connToBeDeleted: {},
     selectedRowNames: []
 }, action) {
     switch (action.type) {
         case actionTypes.selectRows:
-            return {...state, selectedRowKeys: action.selectedRowKeys, selectedRowNames: action.selectedRowNames};
+            return {
+                ...state,
+                selectedRowKeys: action.selectedRowKeys,
+                connToBeDeleted: action.connToBeDeleted,
+                selectedRowNames: action.selectedRowNames
+            };
             break;
         case actionTypes.clearRows:
             return {...state, selectedRowKeys: [], selectedRowNames: []};

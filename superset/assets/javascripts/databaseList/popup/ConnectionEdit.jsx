@@ -116,6 +116,7 @@ class ConnectionEdit extends React.Component {
     }
 
     render() {
+
         return (
             <div className="popup" ref="popupConnectionEdit" style={{display:'none'}}>
                 <div className="popup-dialog popup-md">
@@ -136,7 +137,11 @@ class ConnectionEdit extends React.Component {
                                     <span>连接类型：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.database.backend} />
+                                    <input
+                                        className="form-control dialog-input"
+                                        value={this.props.database.backend}
+                                        onChange={argu=>argu}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -144,8 +149,10 @@ class ConnectionEdit extends React.Component {
                                     <span>连接名称：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.database.database_name}
-                                           onChange={this.handleNameChange}/>
+                                    <input
+                                        className="form-control dialog-input"
+                                        value={this.props.database.database_name}
+                                        onChange={this.handleNameChange}/>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -153,8 +160,11 @@ class ConnectionEdit extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" value={this.props.database.description}
-                                              onChange={this.handleDescriptionChange} />
+                                    <textarea
+                                        className="dialog-area"
+                                        value={this.props.database.description}
+                                        onChange={this.handleDescriptionChange}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -217,10 +227,11 @@ class ConnectionEdit extends React.Component {
                             </div>
                         </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}
-                                    disabled={!this.state.connected}>
-                                确定
-                            </button>
+                            <button
+                                className="tp-btn tp-btn-middle tp-btn-primary"
+                                onClick={this.confirm}
+                                disabled={!this.state.connected}
+                            >确定</button>
                         </div>
                     </div>
                 </div>

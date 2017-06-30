@@ -655,9 +655,9 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         'count_distinct', 'sum', 'min', 'max', 'is_dttm']
     _list_columns = list_columns
     edit_columns = [
-        'column_name', 'description', 'groupby', 'filterable',
+        'column_name', 'description', 'groupby', 'filterable', 'is_dttm',
         'count_distinct', 'sum', 'min', 'max', 'expression', 'dataset_id']
-    show_columns = edit_columns + ['id']
+    show_columns = edit_columns + ['id', 'dataset']
     add_columns = edit_columns
     readme_columns = ['is_dttm', 'expression']
     description_columns = {
@@ -696,19 +696,17 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         for row in rows:
             line = {}
             for col in self._list_columns:
-                line[col] = str(getattr(row, col, None))
+                if col in self.str_columns:
+                    line[col] = str(getattr(row, col, None))
+                else:
+                    line[col] = getattr(row, col, None)
             data.append(line)
         return {'data': data}
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        data['available_tables'] = self.get_available_tables()
+        data['available_dataset'] = self.get_available_tables()
         return data
-
-    def get_show_attributes(self, obj, user_id=None):
-        attributes = super().get_show_attributes(obj)
-        attributes['available_tables'] = self.get_available_tables()
-        return attributes
 
 
 class SqlMetricInlineView(SupersetModelView):  # noqa
@@ -719,10 +717,9 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
                     'metric_type', 'expression']
     _list_columns = list_columns
 
-    show_columns = list_columns
+    show_columns = list_columns + ['dataset_id', 'dataset']
     edit_columns = ['metric_name', 'description', 'metric_type',
                     'expression', 'dataset_id']
-
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
     description_columns = {
@@ -740,14 +737,13 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             "visualization and allow for different metric to use different "
             "formats"
     }
-    page_size = 500
 
     bool_columns = ['is_restricted', ]
     str_columns = ['dataset', ]
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        data['available_tables'] = self.get_available_tables()
+        data['available_dataset'] = self.get_available_tables()
         return data
 
     def get_object_list_data(self, **kwargs):
@@ -765,20 +761,12 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
         for row in rows:
             line = {}
             for col in self._list_columns:
-                line[col] = str(getattr(row, col, None))
+                if col in self.str_columns:
+                    line[col] = str(getattr(row, col, None))
+                else:
+                    line[col] = getattr(row, col, None)
             data.append(line)
         return {'data': data}
-
-    def get_show_attributes(self, obj, user_id=None):
-        attributes = super().get_show_attributes(obj)
-        attributes['available_tables'] = self.get_available_tables()
-        return attributes
-
-    def post_add(self, metric):
-        pass
-
-    def post_update(self, metric):
-        pass
 
 
 class DatabaseView(SupersetModelView):  # noqa
@@ -1000,22 +988,36 @@ class ConnectionView(BaseSupersetView, PageMixin):
     model = models.Connection
     route_base = '/connection'
 
+    @catch_exception
     @expose('/connection_types/', methods=['GET', ])
     def connection_types(self):
-        try:
-            return json.dumps(list(self.model.connection_type_dict.values()))
-        except Exception as e:
-            return build_response(500, False, str(e))
+        return json.dumps(list(self.model.connection_type_dict.values()))
 
     @catch_exception
     @expose('/listdata/', methods=['GET', ])
     def get_list_data(self):
-        try:
-            kwargs = self.get_list_args(request.args)
-            list_data = self.get_object_list_data(**kwargs)
-            return json.dumps(list_data)
-        except Exception as e:
-            return build_response(500, False, str(e))
+        kwargs = self.get_list_args(request.args)
+        list_data = self.get_object_list_data(**kwargs)
+        return json.dumps(list_data)
+
+    @catch_exception
+    @expose('/muldelete/', methods=['POST', ])
+    def muldelete(self):
+        json_data = json.loads(str(request.data, encoding='utf-8'))
+        db_ids = json_data.get('inceptor')
+        for id in db_ids:
+            obj = db.session.query(Database).filter_by(id=id).first()
+            DatabaseView()._delete(obj)
+            action_str = 'Delete {}: [{}]'.format(Database.__name__.lower(), repr(obj))
+            log_action('delete', action_str, Database.__name__.lower(), obj.id)
+
+        hdfs_conn_ids = json_data.get('hdfs')
+        for id in hdfs_conn_ids:
+            obj = db.session.query(HDFSConnection).filter_by(id=id).first()
+            HDFSConnectionModelView()._delete(obj)
+            action_str = 'Delete {}: [{}]'.format(HDFSConnection.__name__.lower(), repr(obj))
+            log_action('delete', action_str, HDFSConnection.__name__.lower(), obj.id)
+        return build_response(200, True, DELETE_SUCCESS)
 
     def get_object_list_data(self, **kwargs):
         order_column = kwargs.get('order_column')
@@ -1094,12 +1096,12 @@ class ConnectionView(BaseSupersetView, PageMixin):
         return response
 
     @staticmethod
-    def str_to_column(q):
+    def str_to_column(query):
         return {
-            'name': q.c.name,
-            'online': q.c.online,
-            'changed_on': q.c.changed_on,
-            'connection_type': q.c.connection_type,
+            'name': query.c.name,
+            'online': query.c.online,
+            'changed_on': query.c.changed_on,
+            'connection_type': query.c.connection_type,
             'owner': User.username
         }
 

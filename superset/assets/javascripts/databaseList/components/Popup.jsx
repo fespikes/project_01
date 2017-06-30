@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Tooltip } from 'antd';
+import { Tooltip, Alert } from 'antd';
 
 import {Select} from './';
 import PropTypes from 'prop-types';
@@ -10,7 +10,6 @@ class Popup extends React.Component {
     constructor (props, context) {
         super(props);
         this.state = {
-            datasetType: 'inceptor',     //uploadFile HDFS inceptor
             databaseName: '',
             sqlalchemyUri: '',
 
@@ -18,7 +17,10 @@ class Popup extends React.Component {
             connectionNames: [],
             connectionName:'',
             databaseId:'',
-            configFile:''
+            configFile:'',
+
+            submitState:'',
+            submitMsg:''
         };
         this.dispatch = context.dispatch;
 
@@ -28,11 +30,11 @@ class Popup extends React.Component {
 
         this.HDFSOnChange = this.HDFSOnChange.bind(this);
         this.keyTabOnChange = this.keyTabOnChange.bind(this);
-    };
+    }
 
-    //showDialog () {
-    //    this.refs.popupContainer.style.display = "flex";
-    //}
+    componentDidMount () {
+        this.fetchConnectionNames();
+    }
 
     closeDialog () {
         const {changePopupStatus} = this.props;
@@ -47,8 +49,8 @@ class Popup extends React.Component {
 
     setSubmitParam () {
         const me = this;
+        const { datasetType } = this.props;
         const {
-            datasetType,
             databaseId,
             configFile,
             keytabFile
@@ -56,13 +58,21 @@ class Popup extends React.Component {
 
         const databaseName = this.refs.databaseName.value;
         const sqlalchemyUri = this.refs.sqlalchemyUri.value;
+        const description = this.refs.description.value;
         const setPopupParam = this.props.setPopupParam;
 
         const connectionName = this.refs.connectionName.value;
         const principal = this.refs.principal.value;
 
-        if (datasetType==='inceptor') {
-            this.dispatch(setPopupParam({datasetType, databaseName, sqlalchemyUri}));
+        if (datasetType==='INCEPTOR') {
+            this.dispatch(
+                setPopupParam({
+                    datasetType,
+                    databaseName,
+                    sqlalchemyUri,
+                    description
+                }
+            ));
         } else if (datasetType==='HDFS') {
             this.dispatch(setPopupParam({
                                             datasetType,
@@ -78,8 +88,9 @@ class Popup extends React.Component {
 
     testConnection () {
         const testConnection = this.props.testConnection;
+        this.setSubmitParam();
+
         testConnection();
-        //TODO: the button status change
     }
 
     submit () {
@@ -89,27 +100,38 @@ class Popup extends React.Component {
 
         me.setSubmitParam();
 
-        function callback(success, msg) {
+        function callback(success, json) {
             if(success) {
-                me.closeDialog();
+                me.setState({
+                    submitState:'success',
+                    submitMsg:json.message
+                });
+                setTimeout(argu =>{
+                    me.setState({
+                        submitState:'',
+                        submitMsg:''
+                    });
+                    me.closeDialog();
+                }, 3000);
             }else {
-                //to make sure the error tips
+                me.setState({
+                    submitState:'error',
+                    submitMsg:json.message
+                });
             }
         }
         me.props.submit(callback);
     }
 
-    switchDatasetType (type) {
+
+
+    fetchConnectionNames (type) {
         const me = this;
-        this.setState({
-            datasetType: type
-        });
         const fetchConnectionNames = this.props.fetchConnectionNames;
 
         const callback = (connectionNames) => {
             me.setState({connectionNames:connectionNames});
         }
-
         this.dispatch(fetchConnectionNames(callback));
     }
 
@@ -157,18 +179,13 @@ class Popup extends React.Component {
 
         const {
             title, deleteTips, confirm, closeDialog, showDialog,
+
+            datasetType,            //'inceptor', //uploadFile HDFS inceptor
             setPopupParam,
-            status,
-
-            //from popupParams,
-            ////
-
-            testConnection
+            status
         } = this.props;
 
-
         const {
-            datasetType,     //uploadFile HDFS inceptor
             databaseName,
             sqlalchemyUri,
 
@@ -177,11 +194,17 @@ class Popup extends React.Component {
         } = this.state;
 
         const setPopupState = (obj) => {
-            me.setState(obj);
+            me.setState({
+                databaseId: obj.key
+            });
         }
 
         let iconClass = 'icon-connect';
         let tipMsg = <span>this is the tip message text.</span>;
+
+        let {submitState} = this.state;
+        let showAlert = !(submitState==='error' || submitState==='succeed') && submitState ;
+
 
         return (
             <div className="popup" ref="popupContainer" style={{display: status}}>
@@ -201,31 +224,31 @@ class Popup extends React.Component {
                             <div className="add-connection">
                                 <div className="data-detail-border">
 
-                                    <label className="data-detail-item">
-                                        <span>数据集类型：</span>
-                                        <dl onClick={()=>this.switchDatasetType('inceptor')}>
-                                            <dd className={(datasetType==='inceptor'?'radio-glugin-active':'')+' radio-glugin'} ></dd>
-                                            <dd className={datasetType==='inceptor'?'active':''}>inceptor</dd>
-                                        </dl>
-                                        <dl onClick={()=>this.switchDatasetType('HDFS')}>
-                                            <dd className={(datasetType==='HDFS'?'radio-glugin-active':'')+' radio-glugin'}></dd>
-                                            <dd className={datasetType==='HDFS'?'active':''}>HDFS</dd>
-                                        </dl>
-                                    </label>
-                                    <div style={{ display: datasetType==='inceptor'?'block':'none' }} >
+                                    <div style={{ display: datasetType==='INCEPTOR'?'block':'none' }} >
                                         <label className="data-detail-item">
                                             <span>连接名称：</span>
                                             <input
                                                 type="text"
                                                 defaultValue=""
                                                 required="required"
+                                                name="database_name"
                                                 ref="databaseName"
+                                            />
+                                        </label>
+                                        <label className="data-detail-item">
+                                            <span>描述：</span>
+                                            <input
+                                                type="text"
+                                                defaultValue=""
+                                                ref="description"
+                                                name="description"
                                             />
                                         </label>
                                         <label className="data-detail-item">
                                             <span>连接串：</span>
                                             <input
                                                 ref="sqlalchemyUri"
+                                                name="sqlalchemy_uri"
                                                 type="text"
                                                 placeholder="SQLAlchemy连接串"
                                                 defaultValue={this.state.sqlalchemyUri}
@@ -239,7 +262,10 @@ class Popup extends React.Component {
 
                                         <label className="data-detail-item">
                                             <span>&nbsp;</span>
-                                            <button className="uploading-btn">测试连接</button>
+                                            <button
+                                                className="uploading-btn"
+                                                onClick={ag=> me.testConnection(ag)}
+                                            >测试连接</button>
                                         </label>
                                     </div>
                                     <div style={{ display: datasetType==='HDFS'?'block':'none' }} >
@@ -256,20 +282,23 @@ class Popup extends React.Component {
                                             <span>关联inceptor连接：</span>
                                             <Select
                                                 ref="databaseId"
-                                                connectionNames={connectionNames}
-                                                setPopupState={(argus)=>setPopupState(argus)}
+                                                options={connectionNames}
+                                                width={420}
+                                                handleSelect={(argus)=>setPopupState(argus)}
                                             />
                                         </label>
-                                        <label className="data-detail-item">
-                                            <span>HDFS配置文件：</span>
-                                            <input
-                                                ref="configFile"
-                                                type="file"
-                                                defaultValue="file"
-                                                required="required"
-                                                onChange={this.HDFSOnChange}
-                                            />
-                                        </label>
+{/*
+<label className="data-detail-item">
+<span>HDFS配置文件：</span>
+<input
+    ref="configFile"
+    type="file"
+    defaultValue="file"
+    required="required"
+    onChange={this.HDFSOnChange}
+/>
+</label>
+*/}
                                         <label className="data-detail-item">
                                             <span>用户名：</span>
                                             <input
@@ -301,28 +330,36 @@ class Popup extends React.Component {
                                                 required="required"
                                                 defaultValue="Heatmap" />
                                         </label>
-                                        <label
-                                            style={{display: verfifyType==='keyTab'?'':'none' }}
-                                            className="data-detail-item"
-                                        >
-                                            <span>keyTab：</span>
-                                            <input
-                                                onChange={this.keyTabOnChange}
-                                                ref="keytabFile"
-                                                required="required"
-                                                type="file"
-                                                defaultValue="Heatmap" />
-                                        </label>
+{/*
+<label
+    style={{display: verfifyType==='keyTab'?'':'none' }}
+    className="data-detail-item"
+>
+    <span>keyTab：</span>
+    <input
+        onChange={this.keyTabOnChange}
+        ref="keytabFile"
+        required="required"
+        type="file"
+        defaultValue="Heatmap" />
+</label>
+*/}
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        <Alert
+                            message={this.state.submitMsg}
+                            type={this.state.submitState}
+                            style={{display:(showAlert?'':'none')}}
+                        />
                         <div className="popup-footer">
                             <button
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.submit}>
                                 确定
                             </button>
+
                         </div>
                     </div>
                 </div>

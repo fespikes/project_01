@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { Select } from 'antd';
+
 import { Link }  from 'react-router-dom';
 import { ConnectionDelete } from '../popup';
 
@@ -11,16 +11,21 @@ import {
 
     applyAdd,
     testConnection,
+    fetchTypes,
 
     setPopupParam,
     applyDelete,
     popupActions
 } from '../actions';
 
+import { Select }  from './';
+
 class Operate extends React.Component {
     constructor(props, context) {
         super(props);
-        this.state = {};
+        this.state = {
+            DBTypes: []
+        };
 
         this.onChange = this.onChange.bind(this);
         this.onDelete = this.onDelete.bind(this);
@@ -29,6 +34,20 @@ class Operate extends React.Component {
 
         this.dispatch = context.dispatch;
         this.timer = null;
+    }
+
+    componentDidMount () {
+        this.fetchTypes();
+    }
+
+    fetchTypes () {
+        const me = this;
+        const callback = data =>
+            me.setState({
+                DBTypes: data
+            });
+
+        me.dispatch(fetchTypes(callback));
     }
 
     onChange () {
@@ -44,74 +63,65 @@ class Operate extends React.Component {
         }
     }
 
-    onAdd () {
+    onAdd (typeObj) {
         const dispatch = this.dispatch;
-/*        dispatch(fetchAvailableSlices(callback));
-        function callback(success, data) {
-            if(success) {
-                var dashboard = {dashboard_title: '', description: ''};
-                var addSlicePopup = render(
-                    <DashboardAdd
-                        dispatch={dispatch}
-                        dashboard={dashboard}
-                        availableSlices={data.data.available_slices}
-                        enableConfirm={false}/>,
-                    document.getElementById('popup_root'));
-                if(addSlicePopup) {
-                    addSlicePopup.showDialog();
-                }
-            }
-        }*/
 
         let popupParam = {
             popupTitle: '新建连接',
+            datasetType: typeObj.label,
+
             submit: (callback) => {
                 dispatch(applyAdd(callback));
             },
             testConnection: (argus) => {
-                console.log(argus);
-                dispatch(testConnection(argus));
+                const callback = (argus) => {
+                    console.log('inside callback:', argus );
+                }
+                dispatch(testConnection(callback));
             }
         };
-
         dispatch(popupActions.showPopup(popupParam));
     }
 
     //multi delete
     onDelete () {
-        const { dispatch, selectedRowNames } = this.props;
-        let deleteType = 'multiple';
-        let deleteTips = '确定删除' + selectedRowNames + '?';
+        const { selectedRowNames } = this.props;
+        let deleteType;
+        let deleteTips = '确定删除: ' + selectedRowNames + '?';
         if(selectedRowNames.length === 0) {
             deleteType = 'none';
             deleteTips = '没有选择任何将要删除的记录，请选择！';
         }
         let deleteConnectionPopup = render(
             <ConnectionDelete
-                dispatch={dispatch}
+                dispatch={this.dispatch}
+                deleteTips={deleteTips}
                 deleteType={deleteType}
-                deleteTips={deleteTips} />,
+            />,
             document.getElementById('popup_root'));
-        if(deleteConnectionPopup) {
-            deleteConnectionPopup.showDialog();
-        }
     }
 
     onSearch () {
         const filter = this.refs.searchField.value;
-        const me = this;
-        me.dispatch(search(filter));
-        //TODO: not sure that componentWillReceiveProps be triggered
+        this.dispatch(search(filter));
     }
 
     render () {
+        const DBTypes = this.state.DBTypes;
 
         return (
             <div className="operations">
                 <ul className="icon-list">
-                    {/*<li onClick={this.onAdd}>*/}
-                    <li onClick={argus => this.onAdd(argus)}>
+                    <li
+                        style={{width:'130px', textAlign:'left'}}
+                    >
                         <i className="icon icon-plus"></i>
+                        <Select
+                            options={DBTypes}
+                            showText="database_name"
+                            handleSelect={(argus)=>this.onAdd(argus)}
+                            width={100}
+                        />
                     </li>
                     <li onClick={this.onDelete}>
                         <i className="icon icon-trash"/>
