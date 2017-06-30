@@ -1604,7 +1604,8 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             return self.database.get_table(self.table_name, schema=self.schema)
         except Exception:
             raise Exception("Couldn't fetch table: [{}]'s information "
-                            "in the specified database".format(self.table_name))
+                            "in the specified database: [{}]"
+                            .format(self.table_name, self.schema))
 
     def set_temp_columns_and_metrics(self):
         """Get table's columns and metrics"""
@@ -1826,6 +1827,22 @@ class HDFSTable(Model, AuditMixinNullable):
         backref=backref('ref_hdfs_connection', lazy='joined'),
         foreign_keys=[hdfs_connection_id]
     )
+
+    @staticmethod
+    def create_external_table(database, table_name, column_desc, hdfs_path,
+                              separator=',', schema='default'):
+        table_name = '{}.{}'.format(schema, table_name)
+        sql = 'create external table {}('.format(table_name)
+        columns = json.loads(column_desc, object_pairs_hook=OrderedDict)
+        for c_name, c_type in columns.items():
+            sql = sql + c_name + " " + c_type + ","
+        sql = sql[:-1] \
+              + ") row format delimited fields terminated by '" + separator \
+              + "' location '" + hdfs_path + "'"
+
+        engine = database.get_sqla_engine()
+        engine.execute("drop table if exists " + table_name)
+        engine.execute(sql)
 
 
 class Log(Model):

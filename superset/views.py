@@ -381,13 +381,16 @@ class SupersetModelView(ModelView, PageMixin):
             user_id = self.get_user_id()
             json_data = self.get_request_data()
             obj = self.populate_object(None, user_id, json_data)
-            self.pre_add(obj)
-            self.datamodel.add(obj)
-            self.post_add(obj)
+            self._add(obj)
             data = {'object_id': obj.id}
             return self.build_response(200, True, ADD_SUCCESS, data)
         except Exception as e:
             return self.build_response(500, False, str(e))
+
+    def _add(self, obj):
+        self.pre_add(obj)
+        self.datamodel.add(obj)
+        self.post_add(obj)
 
     @expose('/show/<pk>/', methods=['GET'])
     def show(self, pk):
@@ -405,12 +408,15 @@ class SupersetModelView(ModelView, PageMixin):
             user_id = self.get_user_id()
             json_data = self.get_request_data()
             obj = self.populate_object(pk, user_id, json_data)
-            self.pre_update(obj)
-            self.datamodel.edit(obj)
-            self.post_update(obj)
+            self._edit(obj)
             return self.build_response(200, True, UPDATE_SUCCESS)
         except Exception as e:
             return self.build_response(self.status, False, str(e))
+
+    def _edit(self, obj):
+        self.pre_update(obj)
+        self.datamodel.edit(obj)
+        self.post_update(obj)
 
     @expose('/delete/<pk>')
     def delete(self, pk):
@@ -1105,13 +1111,14 @@ class DatasetModelView(SupersetModelView):  # noqa
     model = models.Dataset
     datamodel = SQLAInterface(models.Dataset)
     route_base = '/table'
-    list_columns = ['id', 'dataset_name', 'dataset_type',
-                    'explore_url', 'connection', 'changed_on']
+    list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url',
+                    'connection', 'changed_on']
     _list_columns = list_columns
-    add_columns = ['dataset_name', 'schema', 'table_name',
-                   'sql', 'database_id', 'description']
-    show_columns = add_columns + ['id', 'dataset_type']
-    edit_columns = add_columns
+    add_columns = ['dataset_name', 'dataset_type', 'database_id', 'description',
+                   'schema', 'table_name', 'sql']
+    show_columns = add_columns + ['id']
+    edit_columns = ['dataset_name', 'database_id', 'description', 'schema',
+                    'table_name', 'sql']
     description_columns = {
         'offset': "Timezone offset (in hours) for this datasource",
         'table_name': "Name of the table that exists in the source database",
@@ -1183,6 +1190,91 @@ class DatasetModelView(SupersetModelView):  # noqa
     @expose('/preview_data/<id>/', methods=['GET', ])
     def get_preview_data(self, id):
         return self.get_object(id).preview_data()
+
+    @catch_exception
+    @expose('/add', methods=['POST', ])
+    def add(self):
+        # TODO log_number, and rollback
+        args = self.get_request_data()
+        dataset_type = args.get('dataset_type').lower()
+        if dataset_type == 'inceptor':
+            dataset = self.populate_object(None, get_user_id(), args)
+            self._add(dataset)
+            return self.build_response(
+                200, True, ADD_SUCCESS, {'object_id': dataset.id})
+        elif dataset_type == 'hdfs':
+            # create hdfs_table
+            hdfs_table_view = HDFSTableModelView()
+            hdfs_table = hdfs_table_view.populate_object(None, get_user_id(), args)
+            database = db.session.query(Database)\
+                .filter_by(id=args.get('database_id'))\
+                .first()
+            hdfs_table.create_external_table(
+                database, args.get('dataset_name'),
+                args.get('column_desc'), args.get('hdfs_path'), args.get('separator'))
+            hdfs_table_view._add(hdfs_table)
+            db.session.commit()
+            # create dataset
+            dataset = self.model(
+                dataset_type=self.model.dataset_type_dict.get('hdfs'),
+                dataset_name=args.get('dataset_name'),
+                table_name=args.get('dataset_name'),
+                description=args.get('description'),
+                database_id=args.get('database_id'),
+                database=database,
+                hdfs_table_id=hdfs_table.id
+            )
+            self._add(dataset)
+            return self.build_response(200, True, ADD_SUCCESS, {'object_id': dataset.id})
+        else:
+            raise Exception('{}: [{}]'.format(ERROR_DATASET_TYPE, dataset_type))
+
+    @catch_exception
+    @expose('/show/<pk>/', methods=['GET'])
+    def show(self, pk):
+        obj = self.get_object(pk)
+        attributes = self.get_show_attributes(obj, get_user_id())
+        if obj.dataset_type.lower() == 'hdfs':
+            hdfs_tb_attr = HDFSTableModelView().get_show_attributes(obj.hdfs_table)
+            hdfs_tb_attr.pop('created_by_user')
+            hdfs_tb_attr.pop('changed_by_user')
+            attributes.update(hdfs_tb_attr)
+        return json.dumps(attributes)
+
+    @catch_exception
+    @expose('/edit/<pk>', methods=['POST', ])
+    def edit(self, pk):
+        # TODO rollback
+        args = self.get_request_data()
+        dataset = self.get_object(pk)
+        dataset_type = dataset.dataset_type.lower()
+        if dataset_type == 'inceptor':
+            dataset = self.populate_object(pk, get_user_id(), args)
+            self._edit(dataset)
+            return self.build_response(200, True, UPDATE_SUCCESS)
+        elif dataset_type == 'hdfs':
+            # edit hdfs_table
+            hdfs_table = dataset.hdfs_table
+            hdfs_table.separator = args.get('separator')
+            hdfs_table.hdfs_path = args.get('hdfs_path')
+            database = db.session.query(Database) \
+                .filter_by(id=args.get('database_id')) \
+                .first()
+            dataset.hdfs_table.create_external_table(
+                database, args.get('dataset_name'),
+                args.get('column_desc'), hdfs_table.hdfs_path, hdfs_table.separator)
+            HDFSTableModelView()._edit(hdfs_table)
+
+            # edit dataset
+            dataset.dataset_name = args.get('dataset_name')
+            dataset.table_name = args.get('dataset_name')
+            dataset.description = args.get('description')
+            dataset.database_id = args.get('database_id')
+            dataset.database = database
+            self._edit(dataset)
+            return self.build_response(200, True, UPDATE_SUCCESS)
+        else:
+            raise Exception('{}: [{}]'.format(ERROR_DATASET_TYPE, dataset_type))
 
     def get_object_list_data(self, **kwargs):
         """Return the table list"""
@@ -1258,16 +1350,6 @@ class DatasetModelView(SupersetModelView):  # noqa
         attributes['database'] = database
         return attributes
 
-    def get_show_attributes(self, obj, user_id=None):
-        attributes = super().get_show_attributes(obj)
-        if not user_id:
-            attributes['available_databases'] = \
-                self.get_available_connections(self.get_user_id())
-        else:
-            attributes['available_databases'] = \
-                self.get_available_connections(user_id)
-        return attributes
-
     def pre_add(self, table):
         if table.table_name:
             try:
@@ -1275,10 +1357,8 @@ class DatasetModelView(SupersetModelView):  # noqa
             except Exception as e:
                 logging.exception(e)
                 raise Exception(
-                    "Table [{}] could not be found, "
-                    "please double check your "
-                    "database connection, schema, and "
-                    "table name".format(table.name))
+                    "Table [{}] could not be found, please double check your "
+                    "database connection, schema, and table name".format(table.name))
 
     @staticmethod
     def merge_perm(table):
@@ -1331,18 +1411,11 @@ class DatasetModelView(SupersetModelView):  # noqa
 class HDFSTableModelView(SupersetModelView):
     model = models.HDFSTable
     datamodel = SQLAInterface(models.HDFSTable)
-    route_base = '/hdfstable'
-    show_columns = []
-    edit_columns = []
-
-    def add(self):
-        pass
-
-    def show(self):
-        pass
-
-    def edit(self):
-        pass
+    add_columns = ['hdfs_path', 'separator', 'file_type', 'quote',
+                   'skip_rows', 'next_as_header', 'skip_more_rows',
+                   'charset', 'hdfs_connection_id']
+    show_columns = add_columns
+    edit_columns = add_columns
 
 
 class SliceModelView(SupersetModelView):  # noqa
