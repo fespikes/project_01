@@ -191,6 +191,29 @@ export function fetchTableList(dbId, schema, callback) {
     }
 }
 
+export function fetchHDFSFileBrowser(callback) {
+    return () => {
+        const url = '';
+        return fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Access-Control-Allow-Origin': '*'
+            }
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
 export function createDataset(dataset, callback) {
     return () => {
         const url = baseURL + 'add';
@@ -254,6 +277,48 @@ export function fetchDatasetPreviewData(id, callback) {
                 if(response.ok) {
                     response.json().then(response => {
                         callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchHDFSConnectList(callback) {
+    return () => {
+        const MAX_PAGE_SIZE = 1000;
+        const url = window.location.origin + '/hdfsconnection/listdata?page_size=' + MAX_PAGE_SIZE;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response.data);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchInceptorConnectList(callback) {
+    return () => {
+        const MAX_PAGE_SIZE = 1000;
+        const url = window.location.origin + '/database/listdata?page_size=' + MAX_PAGE_SIZE;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response.data);
                     });
                 }else {
                     callback(false);

@@ -25,3 +25,8 @@
 .table-content .ant-table-header{
     display: none;
 }
+
+ul > li .ant-select-selection {
+    border: none;
+    height: 26px;
+}

@@ -4,8 +4,9 @@ import { connect } from 'react-redux';
 import { render } from 'react-dom';
 import {bindActionCreators} from 'redux';
 import * as actionCreators from '../actions';
+import { extractUrlType } from '../utils';
 import { Table, Input, Button, Icon, Select } from 'antd';
-import { getWidthPercent, getTbTitle, getTbContent, getTbType } from '../utils';
+import { getWidthPercent, getTbTitle, getTbContent, getTbType, getTbTitleHDFS, getTbTitleInceptor } from '../module.jsx';
 
 class SubPreview extends Component {
     state = {
@@ -44,7 +45,7 @@ class SubPreview extends Component {
     componentDidMount() {
         const me = this;
         const { datasetId, fetchDatasetPreviewData } = me.props;
-        fetchDatasetPreviewData(11, callback);
+        fetchDatasetPreviewData(datasetId, callback);
         function callback(success, data) {
             if(success) {
                 me.setState({
@@ -58,19 +59,30 @@ class SubPreview extends Component {
 
     render() {
         const me = this;
-        const { datasetType } = me.props;
-        let tbTitle = [], tbContent = [], tbType=[];
+        let datasetType = me.props.datasetType;
+        if(datasetType === '') { //for browser refresh
+            datasetType = extractUrlType(window.location.hash);
+        }
+        let tbTitle=[], tbTitleOnly=[], tbContent=[], tbType=[], tbContentHDFS=[], tbContentInceptor=[];
         if(me.state.data) {
             let widthPercent = getWidthPercent(me.state.data.columns.length);
-            tbTitle = getTbTitle(me.state.data, widthPercent);
+            tbTitleOnly = getTbTitle(me.state.data, widthPercent);
             tbType = getTbType(me.state.data, widthPercent);
             tbContent = getTbContent(me.state.data, widthPercent);
+            if(datasetType === 'INCEPTOR') {
+                tbTitle = getTbTitleInceptor(JSON.parse(JSON.stringify(tbTitleOnly)));
+            }else if(datasetType === 'HDFS') {
+                tbTitle = getTbTitleHDFS(JSON.parse(JSON.stringify(tbTitleOnly)));
+                tbContentHDFS = [{
+                    key: '1'
+                }];
+            }
         }
 
         return (
             <div>
                 <div style={{width:'100%', height:'30px', background:'#fff', marginTop:'-2px'}}> </div>
-                <div className="table-header">
+                <div className={datasetType==='INCEPTOR'?'table-header':'none'}>
                     <Table
                         columns={tbTitle}
                         dataSource={tbType}
@@ -78,9 +90,17 @@ class SubPreview extends Component {
                         pagination={false}
                     />
                 </div>
-                <div className="table-content">
+                <div className={datasetType==='HDFS'?'table-header':'none'}>
                     <Table
                         columns={tbTitle}
+                        dataSource={tbContentHDFS}
+                        size='small'
+                        pagination={false}
+                    />
+                </div>
+                <div className="table-content">
+                    <Table
+                        columns={tbTitleOnly}
                         dataSource={tbContent}
                         size='small'
                         pagination={false}
@@ -92,11 +112,6 @@ class SubPreview extends Component {
                         <label className="data-detail-item">
                             <span>type：</span>
                             <input type="text" defaultValue="Separated values(CSV,TSV,...)" />
-                        </label>
-                        <label className="data-detail-item">
-                            <span>Quoting style：</span>
-                            <input type="text" defaultValue="" />
-                            <i className="icon infor-icon" />
                         </label>
                         <label className="data-detail-item">
                             <span>Separator：</span>
@@ -127,60 +142,9 @@ class SubPreview extends Component {
                             <span>Charset：</span>
                             <input type="text" defaultValue=""/>
                         </label>
-                        <label className="data-detail-item">
-                            <span>arrayMapFormat：</span>
-                            <input type="text" defaultValue=""/>
-                            <i className="icon infor-icon"/>
-                        </label>
-                        <label className="data-detail-item">
-                            <span>arrayItemSeparator：</span>
-                            <input type="text" defaultValue=""/>
-                        </label>
-                        <label className="data-detail-item">
-                            <span>mapKeySeparator：</span>
-                            <input type="text" defaultValue=""/>
-                        </label>
-                        <label className="data-detail-item">
-                            <span>Date serialization format：</span>
-                            <input type="text" defaultValue=""/>
-                        </label>
-                        <label className="data-detail-item">
-                            <span>File Compression：</span>
-                            <input type="text" defaultValue=""/>
-                            <i className="icon infor-icon"/>
-                        </label>
-                        <label className="data-detail-item">
-                            <span>Bad data type behavior (read)：</span>
-                            <input type="text" defaultValue=""/>
-                            <i className="icon infor-icon"/>
-                        </label>
-                        <label className="data-detail-item">
-                            <span>Bad data type behavior (write)：</span>
-                            <input type="text" defaultValue="" />
-                            <i className="icon infor-icon"/>
-                        </label>
-                        <label className="data-detail-item">
-                            <span></span>
-                            <div className="data-detail-checkbox">
-                                <input type="checkbox" name="" id=""/>
-                                <p>Normalize booleans Normalize all possible boolean values (0, 1, yes, no, …) to 'true' and 'false' </p>
-                            </div>
-                        </label>
-                        <label className="data-detail-item">
-                            <span></span>
-                            <div className="data-detail-checkbox">
-                                <input type="checkbox" name="" id=""/>
-                                <p>Normalize floats & doubles Normalize floating point values (force '42' to '42.0')</p>
-                            </div>
-                        </label>
-
-                        <label className="data-detail-item">
-                            <span>Add. columns behavior (read)：</span>
-                            <input type="text" defaultValue=""/>
-                            <i className="icon infor-icon"/>
-                        </label>
                     </div>
                     <label className="sub-btn">
+                        <input type="button" defaultValue="预览" style={{marginRight: 20}}/>
                         <input type="button" defaultValue="保存"/>
                     </label>
                 </div>

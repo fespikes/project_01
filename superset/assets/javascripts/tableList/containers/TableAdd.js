@@ -1,9 +1,5 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
-import * as actions from '../actions';
-
+import { extractUrlType } from '../utils';
 import {
     Route,
     NavLink
@@ -19,8 +15,7 @@ import {
 import '../style/tableAdd.css';
 
 const TableAdd = ({ match, location }) => {
-    const pathArray = location.pathname.split('/');
-    const type = pathArray[pathArray.length -1];
+    const type = extractUrlType(location.pathname);
     let tab2Name = "配置";
     if(type === 'INCEPTOR') {
         tab2Name = '预览';
