@@ -36,7 +36,7 @@ class SubDetail extends Component {
                 inceptorConnections: [],
                 hdfsConnect: '',
                 inceptorConnect: '',
-                fileBrowserData: {}
+                fileBrowserData: []
             },
             dsUpload: {
 
