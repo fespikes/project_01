@@ -17,3 +17,13 @@
     width:15px;height:16px;background-position:-172px -371px;
     cursor: default;
 }
+
+.list-table-column {
+    input[type="checkbox"][readonly] {
+        pointer-events: none;
+    }
+
+    input[type="checkbox"] {
+        float: none;
+    }
+}
