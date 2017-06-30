@@ -162,7 +162,7 @@ class ConnectionEdit extends React.Component {
                                 <div className="item-right">
                                     <textarea
                                         className="dialog-area"
-                                        value={this.props.database.description}
+                                        value={this.props.database.description||' '}
                                         onChange={this.handleDescriptionChange}
                                     />
                                 </div>
