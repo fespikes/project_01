@@ -1,8 +1,9 @@
 import React from 'react';
 import { render } from 'react-dom';
+import { Link }  from 'react-router-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { selectRows } from '../actions';
+import { selectRows, switchDatasetType, saveDatasetId } from '../actions';
 import { TableDelete } from '../popup';
 import style from '../style/table.scss'
 
@@ -15,8 +16,10 @@ class SliceTable extends React.Component {
     onSelectChange = (selectedRowKeys, selectedRows) => {
         const { dispatch } = this.props;
         let selectedRowNames = [];
+        selectedRowKeys = [];
         selectedRows.forEach(function(row) {
             selectedRowNames.push(row.dataset_name);
+            selectedRowKeys.push(row.id);
         });
         dispatch(selectRows(selectedRowKeys, selectedRowNames));
     };
@@ -26,7 +29,9 @@ class SliceTable extends React.Component {
         const { dispatch, data } = this.props;
 
         function editTable(record) {
-            // TODO
+            dispatch(switchDatasetType(record.dataset_type));
+            dispatch(saveDatasetId(record.id));
+            console.log(record);
         }
 
         function deleteTable(record) {
@@ -103,10 +108,9 @@ class SliceTable extends React.Component {
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <i
-                                className="icon icon-edit"
-                                onClick={() => editTable(record)}
-                            />
+                            <Link onClick={() => editTable(record)} to={`/edit/${record.dataset_type}`}>
+                                <i className="icon icon-edit"/>
+                            </Link>
                             <i
                                 className="icon icon-delete"
                                 onClick={() => deleteTable(record)}
