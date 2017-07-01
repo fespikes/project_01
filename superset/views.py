@@ -330,16 +330,10 @@ class PageMixin(object):
 
 class SupersetModelView(ModelView, PageMixin):
     model = models.Model
-
     # used for Data type conversion
     int_columns = []
     bool_columns = []
     str_columns = []
-
-    # used for returning to frontend
-    status = 202
-    success = True
-    message = ""
 
     def get_list_args(self, args):
         kwargs = super().get_list_args(args)
@@ -359,7 +353,7 @@ class SupersetModelView(ModelView, PageMixin):
             list_data = self.get_object_list_data(**kwargs)
             return json.dumps(list_data)
         except Exception as e:
-            return self.build_response(500, False, str(e))
+            return build_response(500, False, str(e))
 
     @expose('/addablechoices/', methods=['GET'])
     def addable_choices(self):
@@ -368,7 +362,7 @@ class SupersetModelView(ModelView, PageMixin):
             return json.dumps({'data': data})
         except Exception as e:
             logging.error(str(e))
-            return self.build_response(500, False, str(e))
+            return build_response(500, False, str(e))
 
     @expose('/add', methods=['GET', 'POST'])
     def add(self):
@@ -378,9 +372,9 @@ class SupersetModelView(ModelView, PageMixin):
             obj = self.populate_object(None, user_id, json_data)
             self._add(obj)
             data = {'object_id': obj.id}
-            return self.build_response(200, True, ADD_SUCCESS, data)
+            return build_response(200, True, ADD_SUCCESS, data)
         except Exception as e:
-            return self.build_response(500, False, str(e))
+            return build_response(500, False, str(e))
 
     def _add(self, obj):
         self.pre_add(obj)
@@ -395,7 +389,7 @@ class SupersetModelView(ModelView, PageMixin):
             attributes = self.get_show_attributes(obj, user_id=user_id)
             return json.dumps(attributes)
         except Exception as e:
-            return self.build_response(500, False, str(e))
+            return build_response(500, False, str(e))
 
     @expose('/edit/<pk>', methods=['GET', 'POST'])
     def edit(self, pk):
@@ -404,9 +398,9 @@ class SupersetModelView(ModelView, PageMixin):
             json_data = self.get_request_data()
             obj = self.populate_object(pk, user_id, json_data)
             self._edit(obj)
-            return self.build_response(200, True, UPDATE_SUCCESS)
+            return build_response(200, True, UPDATE_SUCCESS)
         except Exception as e:
-            return self.build_response(self.status, False, str(e))
+            return build_response(500, False, str(e))
 
     def _edit(self, obj):
         self.pre_update(obj)
@@ -418,9 +412,9 @@ class SupersetModelView(ModelView, PageMixin):
         try:
             obj = self.get_object(pk)
             self._delete(obj)
-            return self.build_response(200, True, DELETE_SUCCESS)
+            return build_response(200, True, DELETE_SUCCESS)
         except Exception as e:
-            return self.build_response(500, success=False, message=str(e))
+            return build_response(500, False, str(e))
 
     def _delete(self, obj):
         self.pre_delete(obj)
@@ -438,17 +432,9 @@ class SupersetModelView(ModelView, PageMixin):
                 cls_name = self.model.__name__.lower()
                 action_str = 'Delete {}: [{}]'.format(cls_name, repr(obj))
                 log_action('delete', action_str, cls_name, obj.id)
-            return self.build_response(200, True, DELETE_SUCCESS)
+            return build_response(200, True, DELETE_SUCCESS)
         except Exception as e:
-            return self.build_response(500, False, str(e))
-
-    def build_response(self, status=None, success=None, message=None, data=None):
-        response = {}
-        response['status'] = status if status else self.status
-        response['success'] = success if success is not None else self.success
-        response['message'] = message if message else self.message
-        response['data'] = data
-        return json.dumps(response)
+            return build_response(500, False, str(e))
 
     def get_addable_choices(self):
         data = {}
@@ -1184,7 +1170,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         self.update_hdfs_table(obj, json_data)
         self.datamodel.edit(obj)
         self.post_update(obj)
-        return self.build_response(200, True, UPDATE_SUCCESS)
+        return build_response(200, True, UPDATE_SUCCESS)
 
     @catch_exception
     @expose('/dataset_types/', methods=['GET', ])
@@ -1205,7 +1191,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         if dataset_type == 'inceptor':
             dataset = self.populate_object(None, get_user_id(), args)
             self._add(dataset)
-            return self.build_response(
+            return build_response(
                 200, True, ADD_SUCCESS, {'object_id': dataset.id})
         elif dataset_type == 'hdfs':
             # create hdfs_table
@@ -1230,7 +1216,7 @@ class DatasetModelView(SupersetModelView):  # noqa
                 hdfs_table_id=hdfs_table.id
             )
             self._add(dataset)
-            return self.build_response(200, True, ADD_SUCCESS, {'object_id': dataset.id})
+            return build_response(200, True, ADD_SUCCESS, {'object_id': dataset.id})
         else:
             raise Exception('{}: [{}]'.format(ERROR_DATASET_TYPE, dataset_type))
 
@@ -1256,7 +1242,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         if dataset_type == 'inceptor':
             dataset = self.populate_object(pk, get_user_id(), args)
             self._edit(dataset)
-            return self.build_response(200, True, UPDATE_SUCCESS)
+            return build_response(200, True, UPDATE_SUCCESS)
         elif dataset_type == 'hdfs':
             # edit hdfs_table
             hdfs_table = dataset.hdfs_table
@@ -1277,7 +1263,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             dataset.database_id = args.get('database_id')
             dataset.database = database
             self._edit(dataset)
-            return self.build_response(200, True, UPDATE_SUCCESS)
+            return build_response(200, True, UPDATE_SUCCESS)
         else:
             raise Exception('{}: [{}]'.format(ERROR_DATASET_TYPE, dataset_type))
 
