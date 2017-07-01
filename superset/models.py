@@ -2086,8 +2086,7 @@ str_to_model = {
 
 
 class DailyNumber(Model):
-    """ORM object used to log the daily number of Superset objects
-    'user_id = -1' means all user's number
+    """ORM object used to log the daily number of objects
     """
     __tablename__ = 'daily_number'
     id = Column(Integer, primary_key=True)
@@ -2096,55 +2095,21 @@ class DailyNumber(Model):
     count = Column(Integer, nullable=False)
     dt = Column(Date, default=date.today())
 
-    all_obj_type = ['slice', 'dashboard', 'table', 'database']
+    # connection is the set of database and hdfsconnection
+    all_obj_type = ['slice', 'dashboard', 'dataset', 'connection']
 
     def __str__(self):
         return '{} {}s on {}'.format(self.count, self.type, self.dt)
 
     @classmethod
     def log_number(cls, obj_type, user_id):
-        try:
-            obj_model = str_to_model[obj_type.lower()]
-        except KeyError as e:
-            logging.error("Unrecognized object type in {}".format(obj_type.lower()))
-            logging.exception(e)
-            return 0
-
-        user_id = int(user_id)
-        today_count = 0
-        if user_id > 0:
-            # object number of present user or is_online
-            if hasattr(obj_model, 'online'):
-                today_count = (
-                    db.session.query(obj_model)
-                    .filter(
-                        or_(
-                            obj_model.created_by_fk == user_id,
-                            obj_model.online == 1
-                        )
-                    )
-                    .count())
-            else:
-                today_count = (
-                    db.session.query(obj_model)
-                    .filter(obj_model.created_by_fk == user_id)
-                    .count()
-                )
-        elif user_id == 0:
-            today_count = db.session.query(obj_model).count()
-        else:
-            logging.error("Error user_id value: {} passed to {}"
-                          .format(obj_type.lower(), 'log_number()'))
-            return 0
-
+        today_count = cls.object_present_count(obj_type, int(user_id))
         today_record = (
             db.session.query(cls)
-            .filter(
-                and_(
+            .filter(and_(
                     cls.obj_type.ilike(obj_type),
                     cls.dt == date.today(),
-                    cls.user_id == user_id
-                )
+                    cls.user_id == user_id)
             )
             .first()
         )
@@ -2159,6 +2124,33 @@ class DailyNumber(Model):
             )
             db.session.add(new_record)
         db.session.commit()
+
+    @classmethod
+    def object_present_count(cls, obj_type, user_id):
+        if obj_type == 'connection':
+            model_db = str_to_model['database']
+            model_hdfs = str_to_model['hdfsconnection']
+            return cls.query_count(model_db, user_id) + \
+                   cls.query_count(model_hdfs, user_id)
+        else:
+            model = str_to_model[obj_type.lower()]
+            return cls.query_count(model, user_id)
+
+    @staticmethod
+    def query_count(model, user_id):
+        if hasattr(model, 'online'):
+            count = (
+                db.session.query(model).filter(or_(
+                    model.created_by_fk == user_id,
+                    model.online == 1))
+                    .count())
+        else:
+            count = (
+                db.session.query(model).filter(
+                    model.created_by_fk == user_id)
+                    .count()
+            )
+        return count
 
     @classmethod
     def log_number_for_all_users(cls, obj_type):
