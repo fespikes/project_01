@@ -384,6 +384,14 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         session.flush()
         return slc_to_import.id
 
+    @classmethod
+    def release(cls, slice):
+        if slice.datasource:  # datasource may be deleted
+            Dataset.release(slice.datasource)
+        slice.online = True
+        db.session.commit()
+        DailyNumber.log_number_for_all_users('slice')
+
 
 sqla.event.listen(Slice, 'before_insert', set_related_perm)
 sqla.event.listen(Slice, 'before_update', set_related_perm)
@@ -623,6 +631,14 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             'dashboards': copied_dashboards,
             'datasources': eager_datasources,
         })
+
+    @classmethod
+    def release(cls, dash):
+        for slc in dash.slices:
+            Slice.release(slc)
+        dash.online = True
+        db.session.commit()
+        DailyNumber.log_number_for_all_users('dashboard')
 
 
 class Queryable(object):
@@ -949,6 +965,12 @@ class Database(Model, AuditMixinNullable):
         return (
             "[{obj.database_name}].(id:{obj.id})").format(obj=self)
 
+    @classmethod
+    def release(cls, database):
+        database.online = True
+        db.session.commit()
+        DailyNumber.log_number_for_all_users('connection')
+
 sqla.event.listen(Database, 'after_insert', set_perm)
 sqla.event.listen(Database, 'after_update', set_perm)
 
@@ -976,6 +998,12 @@ class HDFSConnection(Model, AuditMixinNullable):
 
     def __repr__(self):
         return self.connection_name
+
+    @classmethod
+    def release(cls, conn):
+        conn.online = True
+        db.session.commit()
+        DailyNumber.log_number_for_all_users('connection')
 
 
 class Connection(object):
@@ -1803,6 +1831,17 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             db.session, i_datasource, lookup_database, lookup_dataset,
             import_time)
 
+    @classmethod
+    def release(cls, dataset):
+        if dataset.dataset_type.lower() == 'inceptor' and dataset.database:
+            Database.release(dataset.database)
+        elif dataset.dataset_type.lower() == 'hdfs' \
+                and dataset.hdfs_table.hdfs_connection:
+            HDFSConnection.release(dataset.hdfs_table.hdfs_connection)
+        dataset.online = True
+        db.session.commit()
+        DailyNumber.log_number_for_all_users('dataset')
+
 sqla.event.listen(Dataset, 'after_insert', set_perm)
 sqla.event.listen(Dataset, 'after_update', set_perm)
 
@@ -2120,3 +2159,9 @@ class DailyNumber(Model):
             )
             db.session.add(new_record)
         db.session.commit()
+
+    @classmethod
+    def log_number_for_all_users(cls, obj_type):
+        users = db.session.query(User).all()
+        for user in users:
+            cls.log_number(obj_type, user.id)
