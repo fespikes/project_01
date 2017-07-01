@@ -1885,9 +1885,9 @@ class HDFSTable(Model, AuditMixinNullable):
 
 
 class Log(Model):
-
-    """ORM object used to log Superset actions to the database"""
-
+    """ORM object used to log Superset actions to the database
+       object type string:  slice/dashboard/dataset/database/hdfsconnection
+    """
     __tablename__ = 'logs'
 
     id = Column(Integer, primary_key=True)
@@ -2086,7 +2086,9 @@ str_to_model = {
 
 
 class DailyNumber(Model):
-    """ORM object used to log the daily number of objects
+    """ORM object used to log the daily number of objects.
+       object type string: slice'/dashboard/dataset/connection.
+       connection is the set of database and hdfsconnection
     """
     __tablename__ = 'daily_number'
     id = Column(Integer, primary_key=True)
@@ -2094,9 +2096,6 @@ class DailyNumber(Model):
     obj_type = Column(String(32), nullable=False)
     count = Column(Integer, nullable=False)
     dt = Column(Date, default=date.today())
-
-    # connection is the set of database and hdfsconnection
-    all_obj_type = ['slice', 'dashboard', 'dataset', 'connection']
 
     def __str__(self):
         return '{} {}s on {}'.format(self.count, self.type, self.dt)
