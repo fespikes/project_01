@@ -976,6 +976,16 @@ class HDFSConnectionModelView(SupersetModelView):
         response['data'] = data
         return response
 
+    def post_add(self, conn):
+        action_str = 'Add hdfsconnection: [{}]'.format(repr(conn))
+        log_action('add', action_str, 'hdfsconnection', conn.id)
+        log_number('connection', get_user_id())
+
+    def post_delete(self, conn):
+        action_str = 'Delete hdfsconnection: [{}]'.format(repr(conn))
+        log_action('delete', action_str, 'dataset', conn.id)
+        log_number('connection', get_user_id())
+
 
 class ConnectionView(BaseSupersetView, PageMixin):
     """Connection includes Database and HDFSConnection.
