@@ -1809,20 +1809,6 @@ class DashboardModelViewAsync(DashboardModelView):  # noqa
     list_columns = ['dashboard_link', 'creator', 'modified', 'dashboard_title']
 
 
-class LogModelView(SupersetModelView):
-    route_base = '/logmodelview'
-    datamodel = SQLAInterface(models.Log)
-    list_columns = ('user', 'action_type', 'action', 'obj_type', 'obj_id', 'dttm')
-    edit_columns = ('user', 'action', 'dttm', 'json')
-    base_order = ('dttm', 'desc')
-    label_columns = {
-        'user': _("User"),
-        'action': _("Action"),
-        'dttm': _("dttm"),
-        'json': _("JSON"),
-    }
-    
-
 class QueryView(SupersetModelView):
     route_base = '/queryview'
     datamodel = SQLAInterface(models.Query)
