@@ -59,6 +59,7 @@ config = app.config
 log_this = models.Log.log_this
 log_action = models.Log.log_action
 log_number = models.DailyNumber.log_number
+log_number_for_all_users = models.DailyNumber.log_number_for_all_users
 can_access = utils.can_access
 QueryStatus = models.QueryStatus
 
@@ -117,12 +118,6 @@ class BaseSupersetView(BaseView):
             if self.can_access("datasource_access", datasource.perm):
                 return True
         return False
-
-
-def log_number_for_all_users(obj_type):
-    users = db.session.query(User).all()
-    for user in users:
-        log_number(obj_type, user.id)
 
 
 def catch_exception(f):
@@ -1935,7 +1930,9 @@ class Superset(BaseSupersetView):
     @catch_exception
     @expose("/release/<model>/<action>/<id>/", methods=['GET'])
     def release_object(self, model, action, id):
-        """model could be 'dashboard' 'slice' 'connection' 'dataset' """
+        """model: dashboard, slice, dataset, database, hdfsconnection
+           action: online, offline
+           """
         cls = str_to_model.get(model)
         obj = db.session.query(cls).filter_by(id=id).first()
         if not obj:
@@ -1948,11 +1945,10 @@ class Superset(BaseSupersetView):
             if obj.online is True:
                 return build_response(200, True, OBJECT_IS_ONLINE)
             else:
-                obj.online = True
-                db.session.commit()
-                action_str = 'Change {} to online: [{}]'.format(model, repr(obj))
+                cls.release(obj)  # release releated objects
+                action_str = 'Change {} and dependent objects to online: [{}]'\
+                    .format(model, repr(obj))
                 log_action('online', action_str, model, id)
-                log_number_for_all_users(model)
                 return build_response(200, True, ONLINE_SUCCESS)
         elif action.lower() == 'offline':
             if obj.online is False:
