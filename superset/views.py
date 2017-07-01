@@ -22,7 +22,7 @@ from flask import (g, request, redirect, flash,
 from flask_appbuilder import ModelView, BaseView, expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.decorators import has_access
-from flask_appbuilder.models.sqla.filters import (BaseFilter, FilterStartsWith, FilterEqualFunction)
+from flask_appbuilder.models.sqla.filters import BaseFilter
 from flask_appbuilder.security.sqla import models as ab_models
 
 from flask_babel import gettext as __
@@ -48,12 +48,8 @@ from superset.models import Database, Dataset, Slice, Dashboard, \
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset.message import *
-
 from superset.hdfsmodule.views import HDFSFileBrowserRes
 
-#from superset.hdfsmodule.models import HDFSTable
-#from superset.hdfsmodule.views import HDFSConnRes, \
-#    HDFSFileBrowserRes, HDFSFilePreviewRes, HDFSTableRes
 
 config = app.config
 log_this = models.Log.log_this
@@ -346,95 +342,80 @@ class SupersetModelView(ModelView, PageMixin):
     def list(self):
          return self.render_template(self.list_template)
 
+    @catch_exception
     @expose('/listdata/')
     def get_list_data(self):
-        try:
-            kwargs = self.get_list_args(request.args)
-            list_data = self.get_object_list_data(**kwargs)
-            return json.dumps(list_data)
-        except Exception as e:
-            return build_response(500, False, str(e))
+        kwargs = self.get_list_args(request.args)
+        list_data = self.get_object_list_data(**kwargs)
+        return json.dumps(list_data)
 
+    @catch_exception
     @expose('/addablechoices/', methods=['GET'])
     def addable_choices(self):
-        try:
-            data = self.get_addable_choices()
-            return json.dumps({'data': data})
-        except Exception as e:
-            logging.error(str(e))
-            return build_response(500, False, str(e))
+        data = self.get_addable_choices()
+        return json.dumps({'data': data})
 
+    @catch_exception
     @expose('/add', methods=['GET', 'POST'])
     def add(self):
-        try:
-            user_id = self.get_user_id()
-            json_data = self.get_request_data()
-            obj = self.populate_object(None, user_id, json_data)
-            self._add(obj)
-            data = {'object_id': obj.id}
-            return build_response(200, True, ADD_SUCCESS, data)
-        except Exception as e:
-            return build_response(500, False, str(e))
+        user_id = self.get_user_id()
+        json_data = self.get_request_data()
+        obj = self.populate_object(None, user_id, json_data)
+        self._add(obj)
+        data = {'object_id': obj.id}
+        return build_response(200, True, ADD_SUCCESS, data)
 
     def _add(self, obj):
         self.pre_add(obj)
         self.datamodel.add(obj)
         self.post_add(obj)
 
+    @catch_exception
     @expose('/show/<pk>/', methods=['GET'])
     def show(self, pk):
-        try:
-            obj = self.get_object(pk)
-            user_id = self.get_user_id()
-            attributes = self.get_show_attributes(obj, user_id=user_id)
-            return json.dumps(attributes)
-        except Exception as e:
-            return build_response(500, False, str(e))
+        obj = self.get_object(pk)
+        user_id = self.get_user_id()
+        attributes = self.get_show_attributes(obj, user_id=user_id)
+        return json.dumps(attributes)
 
+    @catch_exception
     @expose('/edit/<pk>', methods=['GET', 'POST'])
     def edit(self, pk):
-        try:
-            user_id = self.get_user_id()
-            json_data = self.get_request_data()
-            obj = self.populate_object(pk, user_id, json_data)
-            self._edit(obj)
-            return build_response(200, True, UPDATE_SUCCESS)
-        except Exception as e:
-            return build_response(500, False, str(e))
+        user_id = self.get_user_id()
+        json_data = self.get_request_data()
+        obj = self.populate_object(pk, user_id, json_data)
+        self._edit(obj)
+        return build_response(200, True, UPDATE_SUCCESS)
 
     def _edit(self, obj):
         self.pre_update(obj)
         self.datamodel.edit(obj)
         self.post_update(obj)
 
+    @catch_exception
     @expose('/delete/<pk>')
     def delete(self, pk):
-        try:
-            obj = self.get_object(pk)
-            self._delete(obj)
-            return build_response(200, True, DELETE_SUCCESS)
-        except Exception as e:
-            return build_response(500, False, str(e))
+        obj = self.get_object(pk)
+        self._delete(obj)
+        return build_response(200, True, DELETE_SUCCESS)
 
     def _delete(self, obj):
         self.pre_delete(obj)
         self.datamodel.delete(obj)
         self.post_delete(obj)
 
+    @catch_exception
     @expose('/muldelete', methods=['GET', 'POST'])
     def muldelete(self):
-        try:
-            json_data = self.get_request_data()
-            ids = json_data.get('selectedRowKeys')
-            for id in ids:
-                obj = self.get_object(id)
-                self._delete(obj)
-                cls_name = self.model.__name__.lower()
-                action_str = 'Delete {}: [{}]'.format(cls_name, repr(obj))
-                log_action('delete', action_str, cls_name, obj.id)
-            return build_response(200, True, DELETE_SUCCESS)
-        except Exception as e:
-            return build_response(500, False, str(e))
+        json_data = self.get_request_data()
+        ids = json_data.get('selectedRowKeys')
+        query = db.session.query(self.model).filter(self.model.id.in_(ids))
+        if len(ids) != query.count():
+            raise Exception("Error parameter ids: {}, get {} "
+                            "object(s) in database".format(ids, query.count))
+        query.delete(synchronize_session=False)
+        db.session.commit()
+        return build_response(200, True, DELETE_SUCCESS)
 
     def get_addable_choices(self):
         data = {}
@@ -1506,7 +1487,6 @@ class SliceModelView(SupersetModelView):  # noqa
         log_number('slice', g.user.get_id())
 
     @expose('/add/', methods=['GET', 'POST'])
-    @has_access
     def add(self):
         table = db.session.query(models.Dataset).first()
         if not table:
@@ -3492,6 +3472,7 @@ class Home(BaseSupersetView):
         kwargs['order_direction'] = args.get('order_direction', self.order_direction)
         return kwargs
 
+    @catch_exception
     @expose('/edits/slice/')
     def get_edited_slices_by_url(self):
         success, user_id = self.get_user_id()
@@ -3523,6 +3504,7 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
 
+    @catch_exception
     @expose('/edits/dashboard/')
     def get_edited_dashboards_by_url(self):
         success, user_id = self.get_user_id()
@@ -3621,6 +3603,7 @@ class Home(BaseSupersetView):
             rows.append(line)
         return count, rows
 
+    @catch_exception
     @expose('/actions/')
     def get_user_actions_by_url(self):
         success, user_id = self.get_user_id()
@@ -3715,6 +3698,7 @@ class Home(BaseSupersetView):
             json_rows.append({'date': full_dt[index], 'count': full_count[index]})
         return json_rows
 
+    @catch_exception
     @expose('/')
     def home(self):
         """default page"""
@@ -3722,6 +3706,7 @@ class Home(BaseSupersetView):
             return redirect(appbuilder.get_url_for_login)
         return self.render_template('superset/home.html')
 
+    @catch_exception
     @expose('/alldata/')
     def get_all_statistics_data(self):
         success, user_id = self.get_user_id()
