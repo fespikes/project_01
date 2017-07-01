@@ -827,7 +827,7 @@ class DatabaseView(SupersetModelView):  # noqa
         action_str = 'Add connection: [{}]'.format(repr(obj))
         log_action('add', action_str, 'database', obj.id)
         # log database number
-        log_number('database', g.user.get_id())
+        log_number('connection', get_user_id())
 
     def pre_update(self, obj):
         self.pre_add(obj)
@@ -849,7 +849,7 @@ class DatabaseView(SupersetModelView):  # noqa
         action_str = 'Delete connection: [{}]'.format(repr(obj))
         log_action('delete', action_str, 'database', obj.id)
         # log database number
-        log_number('database', g.user.get_id())
+        log_number('connection', get_user_id())
 
     def add_or_edit_database_account(self, obj):
         url = sqla.engine.url.make_url(obj.sqlalchemy_uri_decrypted)
@@ -2267,7 +2267,7 @@ class Superset(BaseSupersetView):
         action_str = 'Add slice: [{}]'.format(slc.slice_name)
         log_action('add', action_str, 'slice', slc.id)
         # log slice number
-        log_number('slice', g.user.get_id())
+        log_number('slice', get_user_id())
 
     def overwrite_slice(self, slc):
         can_update = check_ownership(slc, raise_if_false=False)
@@ -3256,8 +3256,8 @@ class Home(BaseSupersetView):
     order_column = 'time'
     order_direction = 'desc'
     default_types = {
-        'counts': ['dashboard', 'slice', 'dataset', 'database'],
-        'trends': ['dashboard', 'slice', 'dataset', 'database'],
+        'counts': ['dashboard', 'slice', 'dataset', 'connection'],
+        'trends': ['dashboard', 'slice', 'dataset', 'connection'],
         'favorits': ['dashboard', 'slice'],
         'edits': ['dashboard', 'slice'],
         'actions': ['online', 'offline']
@@ -3303,28 +3303,7 @@ class Home(BaseSupersetView):
             return True, model
 
     def get_object_count(self, user_id, type_):
-        success, model = self.get_obj_class(type_)
-        if not success:
-            return 0
-        count = 0
-        if user_id == 0:
-            count = db.session.query(model).count()
-        else:
-            if hasattr(model, 'online'):
-                count = (
-                    db.session.query(model)
-                    .filter(
-                        sqla.or_(
-                            model.created_by_fk == user_id,
-                            model.online == 1
-                        )
-                    )
-                    .count())
-            else:
-                count = db.session.query(model)\
-                    .filter(model.created_by_fk == user_id)\
-                    .count()
-        return count
+        return DailyNumber.object_present_count(type_, user_id)
 
     def get_object_counts(self, user_id, types):
         dt = {}
