@@ -1886,7 +1886,9 @@ class HDFSTable(Model, AuditMixinNullable):
 
 class Log(Model):
     """ORM object used to log Superset actions to the database
-       object type string:  slice/dashboard/dataset/database/hdfsconnection
+       Object type: ['slice', 'dashboard', 'dataset', database', 'hdfsconnection']
+       Action type: ['add', 'edit', 'delete', 'online', 'offline', 'import',
+                      'export', 'like', 'dislike']
     """
     __tablename__ = 'logs'
 
@@ -1902,6 +1904,8 @@ class Log(Model):
     dt = Column(Date, default=date.today())
     duration_ms = Column(Integer)
     referrer = Column(String(1024))
+
+    record_action_types = ['online', 'offline']
 
     @classmethod
     def log_this(cls, action_str, obj=None, obj_id=None):
@@ -1946,6 +1950,8 @@ class Log(Model):
 
     @classmethod
     def log_action(cls, action_type, action, obj_type, obj_id):
+        if action_type not in cls.record_action_types:
+            return
         d = request.args.to_dict()
         post_data = request.form or {}
         d.update(post_data)
