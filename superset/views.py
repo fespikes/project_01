@@ -1172,7 +1172,6 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/add', methods=['POST', ])
     def add(self):
-        # TODO log_number, and rollback
         args = self.get_request_data()
         dataset_type = args.get('dataset_type').lower()
         if dataset_type == 'inceptor':
@@ -1184,14 +1183,13 @@ class DatasetModelView(SupersetModelView):  # noqa
             # create hdfs_table
             hdfs_table_view = HDFSTableModelView()
             hdfs_table = hdfs_table_view.populate_object(None, get_user_id(), args)
-            database = db.session.query(Database)\
-                .filter_by(id=args.get('database_id'))\
+            database = db.session.query(Database) \
+                .filter_by(id=args.get('database_id')) \
                 .first()
             hdfs_table.create_external_table(
                 database, args.get('dataset_name'),
                 args.get('column_desc'), args.get('hdfs_path'), args.get('separator'))
-            hdfs_table_view._add(hdfs_table)
-            db.session.commit()
+
             # create dataset
             dataset = self.model(
                 dataset_type=self.model.dataset_type_dict.get('hdfs'),
@@ -1199,10 +1197,11 @@ class DatasetModelView(SupersetModelView):  # noqa
                 table_name=args.get('dataset_name'),
                 description=args.get('description'),
                 database_id=args.get('database_id'),
-                database=database,
-                hdfs_table_id=hdfs_table.id
+                database=database
             )
             self._add(dataset)
+            hdfs_table.dataset_id = dataset.id
+            hdfs_table_view._add(hdfs_table)
             return build_response(200, True, ADD_SUCCESS, {'object_id': dataset.id})
         else:
             raise Exception('{}: [{}]'.format(ERROR_DATASET_TYPE, dataset_type))
@@ -1374,11 +1373,6 @@ class DatasetModelView(SupersetModelView):  # noqa
         log_action('edit', action_str, 'dataset', table.id)
 
     def post_delete(self, table):
-        if table.hdfs_table_id:
-            db.session.query(HDFSTable)\
-                .filter_by(id=table.hdfs_table_id)\
-                .delete(synchronize_session=False)
-            db.session.commit()
         # log user action
         action_str = 'Delete dataset: [{}]'.format(repr(table))
         log_action('delete', action_str, 'dataset', table.id)
