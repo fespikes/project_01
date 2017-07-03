@@ -413,8 +413,7 @@ class SupersetModelView(ModelView, PageMixin):
         if len(ids) != query.count():
             raise Exception("Error parameter ids: {}, get {} "
                             "object(s) in database".format(ids, query.count))
-        query.delete(synchronize_session=False)
-        db.session.commit()
+        self.datamodel.delete_all(query.all())
         return build_response(200, True, DELETE_SUCCESS)
 
     def get_addable_choices(self):
@@ -974,22 +973,29 @@ class ConnectionView(BaseSupersetView, PageMixin):
         return json.dumps(list_data)
 
     @catch_exception
-    @expose('/muldelete/', methods=['POST', ])
+    @expose('/muldelete', methods=['POST', ])
     def muldelete(self):
         json_data = json.loads(str(request.data, encoding='utf-8'))
+        json_data = {k.lower(): v for k, v in json_data.items()}
+        #
         db_ids = json_data.get('inceptor')
-        for id in db_ids:
-            obj = db.session.query(Database).filter_by(id=id).first()
-            DatabaseView()._delete(obj)
-            action_str = 'Delete {}: [{}]'.format(Database.__name__.lower(), repr(obj))
-            log_action('delete', action_str, Database.__name__.lower(), obj.id)
-
+        if db_ids:
+            query = db.session.query(Database).filter(Database.id.in_(db_ids))
+            if len(db_ids) != query.count():
+                raise Exception("Error parameter ids: {}, get {} inceptor "
+                                "connection(s) in database"
+                                .format(db_ids, query.count))
+            DatabaseView.datamodel.delete_all(query.all())
+        #
         hdfs_conn_ids = json_data.get('hdfs')
-        for id in hdfs_conn_ids:
-            obj = db.session.query(HDFSConnection).filter_by(id=id).first()
-            HDFSConnectionModelView()._delete(obj)
-            action_str = 'Delete {}: [{}]'.format(HDFSConnection.__name__.lower(), repr(obj))
-            log_action('delete', action_str, HDFSConnection.__name__.lower(), obj.id)
+        if hdfs_conn_ids:
+            query = db.session.query(HDFSConnection)\
+                .filter(HDFSConnection.id.in_(hdfs_conn_ids))
+            if len(hdfs_conn_ids) != query.count():
+                raise Exception("Error parameter ids: {}, get {} hdfs "
+                                "connection(s) in database"
+                                .format(hdfs_conn_ids, query.count))
+            HDFSConnectionModelView.datamodel.delete_all(query.all())
         return build_response(200, True, DELETE_SUCCESS)
 
     def get_object_list_data(self, **kwargs):
