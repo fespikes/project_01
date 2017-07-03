@@ -16,14 +16,12 @@ export default function popupParam(state = {
     databaseName: '',
     sqlalchemyUri: '',
 
+        description:'',
+
         //2.datasetType: 'HDFS'
         connectionName:'',      //连接名  /database/listdata   param-》 page_size:1000
             databaseId:2,      //related to above name
-        verfifyType:'keyTab',  //verfifyType: keyTab password. only keyTab available now
-        configFile:'',
-        principal:'用户名',
-        keytabFile: '',
-        description:'',
+        httpfs:'httpfs',
 
     connectionNames:[],
 

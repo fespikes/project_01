@@ -17,7 +17,6 @@ class Popup extends React.Component {
             connectionNames: [],
             connectionName:'',
             databaseId:'',
-            configFile:'',
 
             submitState:'',
             submitMsg:''
@@ -55,14 +54,15 @@ class Popup extends React.Component {
             configFile,
             keytabFile
         } = this.state;
+        const setPopupParam = this.props.setPopupParam;
 
         const databaseName = this.refs.databaseName.value;
         const sqlalchemyUri = this.refs.sqlalchemyUri.value;
+
         const description = this.refs.description.value;
-        const setPopupParam = this.props.setPopupParam;
 
         const connectionName = this.refs.connectionName.value;
-        const principal = this.refs.principal.value;
+        const httpfs = this.refs.httpfs.value;
 
         if (datasetType==='INCEPTOR') {
             this.dispatch(
@@ -78,11 +78,9 @@ class Popup extends React.Component {
                                             datasetType,
                                             connectionName,
                                             databaseId,
-                                            configFile,
-                                            principal,
-                                            keytabFile
+                                            httpfs,
+                                            description
                                         }));
-
         }
     }
 
@@ -222,8 +220,6 @@ class Popup extends React.Component {
         const {
             databaseName,
             sqlalchemyUri,
-
-            verfifyType,
             connectionNames
         } = this.state;
 
@@ -316,7 +312,25 @@ class Popup extends React.Component {
                                             />
                                         </label>
                                         <label className="data-detail-item">
-                                            <span>关联inceptor连接：</span>
+                                            <span>描述：</span>
+                                            <textarea
+                                                rows="5"
+                                                style={{width:'420px'}}
+                                                required="required"
+                                                ref="description"
+                                            ></textarea>
+                                        </label>
+                                        <label className="data-detail-item">
+                                            <span>httpfs地址：</span>
+                                            <input
+                                                ref="httpfs"
+                                                type="text"
+                                                defaultValue="httpfs地址"
+                                                required="required"
+                                            />
+                                        </label>
+                                        <label className="data-detail-item">
+                                            <span>默认inceptor连接：</span>
                                             <Select
                                                 ref="databaseId"
                                                 options={connectionNames}
@@ -335,39 +349,37 @@ class Popup extends React.Component {
     onChange={this.HDFSOnChange}
 />
 </label>
-*/}
-                                        <label className="data-detail-item">
-                                            <span>用户名：</span>
-                                            <input
-                                                ref="principal"
-                                                type="text"
-                                                defaultValue="Heatmap"
-                                                required="required"
-                                            />
-                                        </label>
-                                        <label className="data-detail-item">
-                                            <span>认证类型：</span>
-                                            <dl onClick={()=>this.switchVerfifyType('password')}>
-                                                <dd className={(verfifyType==='password'?'radio-glugin-active':'')+' radio-glugin'} ></dd>
-                                                <dd className={verfifyType==='password'?'active':''}>密码认证</dd>
-                                            </dl>
-                                            <dl onClick={()=>this.switchVerfifyType('keyTab')}>
-                                                <dd className={(verfifyType==='keyTab'?'radio-glugin-active':'')+' radio-glugin'}></dd>
-                                                <dd className={verfifyType==='keyTab'?'active':''}>keyTab</dd>
-                                            </dl>
-                                        </label>
-                                        <label
-                                            style={{display: verfifyType==='password'?'':'none' }}
-                                            className="data-detail-item "
-                                        >
-                                            <span>密码：</span>
-                                            <input
-                                                ref="password"
-                                                type="text"
-                                                required="required"
-                                                defaultValue="Heatmap" />
-                                        </label>
-{/*
+<label className="data-detail-item">
+    <span>用户名：</span>
+    <input
+        ref="principal"
+        type="text"
+        defaultValue="Heatmap"
+        required="required"
+    />
+</label>
+<label className="data-detail-item">
+    <span>认证类型：</span>
+    <dl onClick={()=>this.switchVerfifyType('password')}>
+        <dd className={(verfifyType==='password'?'radio-glugin-active':'')+' radio-glugin'} ></dd>
+        <dd className={verfifyType==='password'?'active':''}>密码认证</dd>
+    </dl>
+    <dl onClick={()=>this.switchVerfifyType('keyTab')}>
+        <dd className={(verfifyType==='keyTab'?'radio-glugin-active':'')+' radio-glugin'}></dd>
+        <dd className={verfifyType==='keyTab'?'active':''}>keyTab</dd>
+    </dl>
+</label>
+<label
+    style={{display: verfifyType==='password'?'':'none' }}
+    className="data-detail-item "
+>
+    <span>密码：</span>
+    <input
+        ref="password"
+        type="text"
+        required="required"
+        defaultValue="Heatmap" />
+</label>
 <label
     style={{display: verfifyType==='keyTab'?'':'none' }}
     className="data-detail-item"
