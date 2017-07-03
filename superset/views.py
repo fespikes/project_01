@@ -921,7 +921,10 @@ class HDFSConnectionModelView(SupersetModelView):
 
         query = db.session.query(HDFSConnection, User) \
             .filter(HDFSConnection.created_by_fk == User.id,
-                    HDFSConnection.created_by_fk == user_id)
+                    or_(
+                        HDFSConnection.created_by_fk == user_id,
+                        HDFSConnection.online == 1)
+                    )
         count = query.count()
         query = query.order_by(HDFSConnection.connection_name.desc())\
             .limit(page_size)
