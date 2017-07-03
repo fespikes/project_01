@@ -7,3 +7,5 @@ export SQLMetricAdd from './SQLMetricAdd';
 export TableColumnDelete from './TableColumnDelete';
 export SQLMetricDelete from './SQLMetricDelete';
 export Confirm from './Confirm';
+export CreateHDFSConnect from './CreateHDFSConnect';
+export CreateInceptorConnect from './CreateInceptorConnect';

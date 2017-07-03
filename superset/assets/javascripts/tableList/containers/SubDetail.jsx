@@ -8,7 +8,7 @@ import { Link, withRouter } from 'react-router-dom';
 import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import * as actionCreators from '../actions';
 import { extractUrlType } from '../utils';
-import { Confirm } from '../popup';
+import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../popup';
 import { constructInceptorDataset, constructFileBrowserData, appendTreeChildren } from '../module';
 import { appendTreeData, constructTreeData } from '../../../utils/common2';
 
@@ -72,6 +72,9 @@ class SubDetail extends Component {
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
         this.handleFile = this.handleFile.bind(this);
         this.uploadFile = this.uploadFile.bind(this);
+        this.createHDFSConnect = this.createHDFSConnect.bind(this);
+        this.createInceptorConnect = this.createInceptorConnect.bind(this);
+        this.callbackRefresh = this.callbackRefresh.bind(this);
     }
 
     handleDatasetChange(e) {
@@ -107,6 +110,33 @@ class SubDetail extends Component {
         this.setState({
             dsInceptor: this.state.dsInceptor
         });
+    }
+
+    createHDFSConnect() {
+        const { dispatch } = this.props;
+        let createHDFSConnectPopup = render(
+            <CreateHDFSConnect
+                dispatch={dispatch}
+                />,
+            document.getElementById('popup_root')
+        );
+        if(createHDFSConnectPopup) {
+            createHDFSConnectPopup.showDialog();
+        }
+    }
+
+    createInceptorConnect() {
+        const { dispatch } = this.props;
+        let createInceptorConnectPopup = render(
+            <CreateInceptorConnect
+                dispatch={dispatch}
+                callbackRefresh={this.callbackRefresh}
+            />,
+            document.getElementById('popup_root')
+        );
+        if(createInceptorConnectPopup) {
+            createInceptorConnectPopup.showDialog();
+        }
     }
 
     onConnectChange(dbId) {
@@ -255,47 +285,72 @@ class SubDetail extends Component {
         }
     }
 
+    callbackRefresh(type) {
+        if(type === 'inceptor') {
+            this.doFetchDatabaseList();
+        }else if(type === 'hdfs') {
+            this.doFetchInceptorList();
+            this.doFetchHDFSList();
+        }
+    }
+
+    doFetchDatabaseList() {
+        const { fetchDatabaseList } = this.props;
+        const me = this;
+        fetchDatabaseList(callback);
+        function callback(success, data) {
+            if(success) {
+                me.state.dsInceptor.databases = data;
+                me.setState({
+                    dsInceptor: me.state.dsInceptor
+                });
+            }
+        }
+    }
+
+    doFetchInceptorList() {
+        const { fetchInceptorConnectList } = this.props;
+        const me = this;
+        fetchInceptorConnectList(inceptorCallback);
+        function inceptorCallback(success, data) {
+            if(success) {
+                me.state.dsHDFS.inceptorConnections = data;
+                me.setState({
+                    dsHDFS: me.state.dsHDFS
+                });
+            }
+        }
+    }
+
+    doFetchHDFSList() {
+        const { fetchHDFSConnectList, switchHDFSConnected } = this.props;
+        const me = this;
+        fetchHDFSConnectList(hdfsCallback);
+        function hdfsCallback(success, data) {
+            if(success) {
+                me.state.dsHDFS.hdfsConnections = data;
+                me.setState({
+                    dsHDFS: me.state.dsHDFS
+                });
+                if(data.length > 0) {
+                    switchHDFSConnected(true);
+                }else {
+                    switchHDFSConnected(false);
+                }
+            }
+        }
+    }
+
     componentDidMount() {
         const me = this;
-        const {
-            fetchDatabaseList,
-            fetchHDFSConnectList,
-            fetchInceptorConnectList,
-            fetchHDFSFileBrowser
-        } = me.props;
+        const {fetchHDFSFileBrowser} = me.props;
         if(this.state.dataset_type === 'INCEPTOR') {
-            fetchDatabaseList(callback);
-            function callback(success, data) {
-                if(success) {
-                    me.state.dsInceptor.databases = data;
-                    me.setState({
-                        dsInceptor: me.state.dsInceptor
-                    });
-                }else {
-
-                }
-            }
+            this.doFetchDatabaseList();
         }else if(this.state.dataset_type === 'HDFS' || this.state.dataset_type === 'UPLOAD') {
-            fetchHDFSConnectList(hdfsCallback);
-            fetchInceptorConnectList(inceptorCallback);
+            this.doFetchInceptorList();
+            this.doFetchHDFSList();
             //fetchHDFSFileBrowser(fileCallback);
             fileCallback(true, fileBrowserData);
-            function hdfsCallback(success, data) {
-                if(success) {
-                    me.state.dsHDFS.hdfsConnections = data;
-                    me.setState({
-                        dsHDFS: me.state.dsHDFS
-                    });
-                }
-            }
-            function inceptorCallback(success, data) {
-                if(success) {
-                    me.state.dsHDFS.inceptorConnections = data;
-                    me.setState({
-                        dsHDFS: me.state.dsHDFS
-                    });
-                }
-            }
             function fileCallback(success, fileBrowserData) {
                 if(success) {
                     me.state.dsHDFS.fileBrowserData = constructFileBrowserData(fileBrowserData);
@@ -353,7 +408,7 @@ class SubDetail extends Component {
                                 {dbOptions}
                             </Select>
                             <div className="connect-success">
-                                &nbsp;<button>新建连接</button>
+                                &nbsp;<button onClick={this.createInceptorConnect}>新建连接</button>
                             </div>
                         </label>
                         <div className={operationType==='table'?'':'none'}>
@@ -409,12 +464,12 @@ class SubDetail extends Component {
                                 </div>
                             </label>
                         </div>
-                        <div className={HDFSConnected===false?'none':''}>
+                        <div className={HDFSConnected===false?'':'none'}>
                             <label className="data-detail-item">
                                 <span></span>
                                 <div className="data-connect-status">
                                     <span>尚未建立HDFS连接</span>
-                                    <button>建立HDFS连接</button>
+                                    <button onClick={this.createHDFSConnect}>建立HDFS连接</button>
                                 </div>
                             </label>
                             <label className="data-detail-item">
@@ -422,7 +477,7 @@ class SubDetail extends Component {
                                 <textarea name="" id="" cols="30" rows="10"/>
                             </label>
                         </div>
-                        <div className={HDFSConnected===true?'none':''}>
+                        <div className={HDFSConnected===true?'':'none'}>
                             <label className="data-detail-item">
                                 <span>选择连接：</span>
                                 <Select
@@ -489,7 +544,8 @@ function mapDispatchToProps (dispatch) {
         fetchHDFSConnectList,
         fetchInceptorConnectList,
         fetchHDFSFileBrowser,
-        fetchUploadFile
+        fetchUploadFile,
+        switchHDFSConnected
     } = bindActionCreators(actionCreators, dispatch);
 
     return {
@@ -501,7 +557,9 @@ function mapDispatchToProps (dispatch) {
         fetchHDFSConnectList,
         fetchInceptorConnectList,
         fetchHDFSFileBrowser,
-        fetchUploadFile
+        fetchUploadFile,
+        switchHDFSConnected,
+        dispatch
     };
 }
 export default connect (mapStateToProps, mapDispatchToProps ) (SubDetail);

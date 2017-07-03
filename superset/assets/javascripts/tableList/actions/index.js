@@ -532,6 +532,27 @@ export function fetchInceptorConnectList(callback) {
     }
 }
 
+export function fetchCreateHDFSConnect(data, callback) {
+    return () => {
+        const url = window.location.origin + '/hdfsconnection/add';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(data)
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
 function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));

@@ -18,6 +18,26 @@ button:disabled {
     cursor: not-allowed;
 }
 
+button.test-connect {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 36px;
+    width: 104px;
+    border-radius: 4px;
+    background-color: #c5d0de;
+    span {
+        color: #fff;
+        font-size: 14px;
+        margin-left: 5px;
+    }
+}
+.item-connect-test {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 /** for custom popup and react-bootstrap modal header css style **/
 .popup-header {
     width: 100%;

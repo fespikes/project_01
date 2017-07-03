@@ -100,6 +100,31 @@ export function testConnectionInEditConnectPopup(database, callback) {
     }
 }
 
+export function fetchInceptorConnectAdd(connect, callback) {
+
+    return (dispatch, getState) => {
+        const URL = baseURL + 'add';
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(connect)
+        })
+        .then(
+            response => response.ok?
+                response.json() : ((response)=>errorHandler(response))(response),
+            error => errorHandler(error)
+        )
+        .then(json => {
+            if(json.success) {
+                dispatch(fetchIfNeeded());
+                callback(true);
+            }else {
+                callback(false, json);
+            }
+        });
+    }
+}
+
 /**
 @description: add connection in database list
 
