@@ -1227,12 +1227,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     schema = Column(String(255))
     sql = Column(Text)
 
-    hdfs_table_id = Column(Integer, ForeignKey('hdfs_table.id'), nullable=True)
-    hdfs_table = relationship(
-        'HDFSTable',
-        backref=backref('dataset', cascade='all, delete, delete-orphan'),
-        foreign_keys=[hdfs_table_id])
-
     database_id = Column(Integer, ForeignKey('dbs.id'), nullable=False)
     database = relationship(
         'Database',
@@ -1866,6 +1860,15 @@ class HDFSTable(Model, AuditMixinNullable):
         backref=backref('ref_hdfs_connection', lazy='joined'),
         foreign_keys=[hdfs_connection_id]
     )
+    dataset_id = Column(Integer, ForeignKey('dataset.id'))
+    dataset = relationship(
+        'Dataset',
+        backref=backref('hdfs_table', uselist=False, cascade='all, delete-orphan'),
+        foreign_keys=[dataset_id]
+    )
+
+    def __repr__(self):
+        return self.hdfs_path
 
     @staticmethod
     def create_external_table(database, table_name, column_desc, hdfs_path,
