@@ -277,6 +277,8 @@ class SubDetail extends Component {
                 response.type = 'success';
                 response.message = '创建成功';
                 saveDatasetId(data.object_id);
+                let url = '/add/preview/' + me.state.dataset_type;
+                me.props.history.push(url);
             }else {
                 response.type = 'error';
                 response.message = data;
@@ -562,4 +564,4 @@ function mapDispatchToProps (dispatch) {
         dispatch
     };
 }
-export default connect (mapStateToProps, mapDispatchToProps ) (SubDetail);
+export default connect (mapStateToProps, mapDispatchToProps ) (withRouter(SubDetail));
