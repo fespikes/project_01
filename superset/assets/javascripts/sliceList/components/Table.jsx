@@ -100,7 +100,10 @@ class SliceTable extends React.Component {
                             <div className="entity-title highlight">
                                 <a href={record.slice_url}>{record.slice_name}</a>
                             </div>
-                            <div className="entity-description">{record.description}</div>
+                            <div
+                                className="entity-description"
+                                style={{textOverflow:'ellipsis', whiteSpace:'nowrap', overflow:'hidden', maxWidth:'230px'}}
+                            >{record.description}</div>
                         </div>
                     )
                 },
