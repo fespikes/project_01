@@ -11,13 +11,14 @@ import logging
 import pickle
 import re
 import textwrap
+import random
+import string
 from copy import deepcopy, copy
-from datetime import timedelta, datetime, date
+from datetime import datetime
 from itertools import groupby
 
 import humanize
 import pandas as pd
-import requests
 import sqlalchemy as sqla
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import subqueryload
@@ -36,7 +37,7 @@ from datetime import date
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, Text, Boolean,
     DateTime, Date, Table, Numeric, LargeBinary,
-    create_engine, MetaData, desc, asc, select, and_, or_, func, update
+    create_engine, MetaData, desc, asc, select, and_, or_
 )
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import declared_attr
@@ -56,8 +57,6 @@ from superset.viz import viz_types
 from superset.jinja_context import get_template_processor
 from superset.utils import wrap_clause_in_parens, DTTM_ALIAS, QueryStatus
 
-
-# from superset.utils import flasher, MetricPermException, DimSelector
 
 config = app.config
 
@@ -1621,9 +1620,27 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             query=sql,
             error_message=error_message)
 
+    def drop_temp_view(self, engine, view_name):
+        drop_view = "DROP VIEW IF EXISTS {}".format(view_name)
+        engine.execute(drop_view)
+
+    def create_temp_view(self, engine, view_name, sql):
+        self.drop_temp_view(engine, view_name)
+        create_view = "CREATE VIEW {} AS {}".format(view_name, sql)
+        engine.execute(create_view)
+
     def get_sqla_table_object(self):
         try:
-            return self.database.get_table(self.table_name, schema=self.schema)
+            engine = self.database.get_sqla_engine()
+            if self.sql:
+                view_name = "pilot_view_{}"\
+                    .format(''.join(random.sample(string.ascii_lowercase, 10)))
+                self.create_temp_view(engine, view_name, self.sql)
+                table = self.database.get_table(view_name, schema=self.schema)
+                self.drop_temp_view(engine, view_name)
+                return table
+            else:
+                return self.database.get_table(self.table_name, schema=self.schema)
         except Exception:
             raise Exception("Couldn't fetch table: [{}]'s information "
                             "in the specified database: [{}]"
