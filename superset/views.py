@@ -54,7 +54,6 @@ from superset.hdfsmodule.views import HDFSFileBrowserRes
 config = app.config
 log_action = models.Log.log_action
 log_number = models.DailyNumber.log_number
-log_number_for_all_users = models.DailyNumber.log_number_for_all_users
 can_access = utils.can_access
 QueryStatus = models.QueryStatus
 
@@ -409,9 +408,12 @@ class SupersetModelView(ModelView, PageMixin):
         if len(ids) != len(objs):
             raise Exception("Error parameter ids: {}, get {} "
                             "object(s) in database".format(ids, len(objs)))
+        all_user = False
         for obj in objs:
+            all_user = True if obj.online else all_user
             check_ownership(obj)
         self.datamodel.delete_all(objs)
+        log_number(self.model.__class__.__name__, all_user, get_user_id())
         return build_response(200, True, DELETE_SUCCESS)
 
     def get_addable_choices(self):
@@ -802,8 +804,7 @@ class DatabaseView(SupersetModelView):  # noqa
         # log user aciton
         action_str = 'Add connection: [{}]'.format(repr(obj))
         log_action('add', action_str, 'database', obj.id)
-        # log database number
-        log_number('connection', get_user_id())
+        log_number('connection', obj.online, get_user_id())
 
     def pre_update(self, obj):
         check_ownership(obj)
@@ -817,17 +818,11 @@ class DatabaseView(SupersetModelView):  # noqa
 
     def pre_delete(self, obj):
         check_ownership(obj)
-        db.session.query(models.DatabaseAccount) \
-            .filter(models.DatabaseAccount.database_id == obj.id) \
-            .delete(synchronize_session=False)
-        db.session.commit()
 
     def post_delete(self, obj):
-        # log user action
         action_str = 'Delete connection: [{}]'.format(repr(obj))
         log_action('delete', action_str, 'database', obj.id)
-        # log database number
-        log_number('connection', get_user_id())
+        log_number('connection', obj.online, get_user_id())
 
     def add_or_edit_database_account(self, obj):
         url = sqla.engine.url.make_url(obj.sqlalchemy_uri_decrypted)
@@ -960,7 +955,7 @@ class HDFSConnectionModelView(SupersetModelView):
     def post_add(self, conn):
         action_str = 'Add hdfsconnection: [{}]'.format(repr(conn))
         log_action('add', action_str, 'hdfsconnection', conn.id)
-        log_number('connection', get_user_id())
+        log_number('connection', conn.online, get_user_id())
 
     def pre_update(self, conn):
         check_ownership(conn)
@@ -971,7 +966,7 @@ class HDFSConnectionModelView(SupersetModelView):
     def post_delete(self, conn):
         action_str = 'Delete hdfsconnection: [{}]'.format(repr(conn))
         log_action('delete', action_str, 'dataset', conn.id)
-        log_number('connection', get_user_id())
+        log_number('connection', conn.online, get_user_id())
 
 
 class ConnectionView(BaseSupersetView, PageMixin):
@@ -999,6 +994,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
         json_data = json.loads(str(request.data, encoding='utf-8'))
         json_data = {k.lower(): v for k, v in json_data.items()}
         #
+        all_user = False
         db_ids = json_data.get('inceptor')
         if db_ids:
             objs = db.session.query(Database)\
@@ -1008,6 +1004,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
                                 "connection(s) in database"
                                 .format(db_ids, len(objs)))
             for obj in objs:
+                all_user = True if obj.online else all_user
                 check_ownership(obj)
                 db.session.delete(obj)
         #
@@ -1020,9 +1017,11 @@ class ConnectionView(BaseSupersetView, PageMixin):
                                 "connection(s) in database"
                                 .format(hdfs_conn_ids, len(objs)))
             for obj in objs:
+                all_user = True if obj.online else all_user
                 check_ownership(obj)
                 db.session.delete(obj)
         db.session.commit()
+        log_number('connection', all_user, get_user_id())
         return build_response(200, True, DELETE_SUCCESS)
 
     def get_object_list_data(self, **kwargs):
@@ -1378,11 +1377,9 @@ class DatasetModelView(SupersetModelView):  # noqa
     def post_add(self, table):
         table.fetch_metadata()
         DatasetModelView.merge_perm(table)
-        # log user aciton
         action_str = 'Add dataset: [{}]'.format(repr(table))
         log_action('add', action_str, 'dataset', table.id)
-        # log table number
-        log_number('dataset', get_user_id())
+        log_number('dataset', table.online, get_user_id())
 
     def update_hdfs_table(self, table, json_date):
         hdfs_table = table.hdfs_table
@@ -1406,11 +1403,9 @@ class DatasetModelView(SupersetModelView):  # noqa
         check_ownership(table)
 
     def post_delete(self, table):
-        # log user action
         action_str = 'Delete dataset: [{}]'.format(repr(table))
         log_action('delete', action_str, 'dataset', table.id)
-        # log table number
-        log_number('dataset', g.user.get_id())
+        log_number('dataset', table.online, get_user_id())
 
 
 class HDFSTableModelView(SupersetModelView):
@@ -1513,11 +1508,9 @@ class SliceModelView(SupersetModelView):  # noqa
                     models.FavStar.obj_id == obj.id) \
             .delete(synchronize_session=False)
         db.session.commit()
-        # log user action
         action_str = 'Delete slice: [{}]'.format(repr(obj))
         log_action('delete', action_str, 'slice', obj.id)
-        # log slice number
-        log_number('slice', g.user.get_id())
+        log_number('slice', obj.online, get_user_id())
 
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
@@ -1671,11 +1664,9 @@ class DashboardModelView(SupersetModelView):  # noqa
         utils.validate_json(obj.position_json)
 
     def post_add(self, obj):
-        # log user action
         action_str = 'Add dashboard: [{}]'.format(repr(obj))
         log_action('add', action_str, 'dashboard', obj.id)
-        # log dashboard number
-        log_number('dashboard', g.user.get_id())
+        log_number('dashboard', obj.online, get_user_id())
 
     def pre_update(self, obj):
         # check_ownership(obj)
@@ -1695,11 +1686,9 @@ class DashboardModelView(SupersetModelView):  # noqa
                     models.FavStar.obj_id == obj.id)\
             .delete(synchronize_session=False)
         db.session.commit()
-        # log user action
         action_str = 'Delete dashboard: [{}]'.format(repr(obj))
         log_action('delete', action_str, 'dashboard', obj.id)
-        # log dashboard number
-        log_number('dashboard', g.user.get_id())
+        log_number('dashboard', obj.online, get_user_id())
 
     def get_object_list_data(self, **kwargs):
         """Return the dashbaords with column 'favorite' and 'online'"""
@@ -1924,7 +1913,7 @@ class Superset(BaseSupersetView):
                 db.session.commit()
                 action_str = 'Change {} to offline: [{}]'.format(model, repr(obj))
                 log_action('offline', action_str, model, id)
-                log_number_for_all_users(model)
+                log_number(model, True, None)
                 return build_response(200, True, OFFLINE_SUCCESS)
         else:
             msg = ERROR_URL + ': {}'.format(request.url)
@@ -2229,11 +2218,9 @@ class Superset(BaseSupersetView):
         session.add(slc)
         session.commit()
         flash(msg, "info")
-        # log user action
         action_str = 'Add slice: [{}]'.format(slc.slice_name)
         log_action('add', action_str, 'slice', slc.id)
-        # log slice number
-        log_number('slice', get_user_id())
+        log_number('slice', slc.online, get_user_id())
 
     def overwrite_slice(self, slc):
         can_update = check_ownership(slc, raise_if_false=False)

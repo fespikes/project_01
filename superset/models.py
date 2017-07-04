@@ -380,7 +380,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
             Dataset.release(slice.datasource)
         slice.online = True
         db.session.commit()
-        DailyNumber.log_number_for_all_users('slice')
+        DailyNumber.log_number('slice', True, None)
 
 
 sqla.event.listen(Slice, 'before_insert', set_related_perm)
@@ -628,7 +628,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             Slice.release(slc)
         dash.online = True
         db.session.commit()
-        DailyNumber.log_number_for_all_users('dashboard')
+        DailyNumber.log_number('dashboard', True, None)
 
 
 class Queryable(object):
@@ -959,7 +959,7 @@ class Database(Model, AuditMixinNullable):
     def release(cls, database):
         database.online = True
         db.session.commit()
-        DailyNumber.log_number_for_all_users('connection')
+        DailyNumber.log_number('connection', True, None)
 
 sqla.event.listen(Database, 'after_insert', set_perm)
 sqla.event.listen(Database, 'after_update', set_perm)
@@ -993,7 +993,7 @@ class HDFSConnection(Model, AuditMixinNullable):
     def release(cls, conn):
         conn.online = True
         db.session.commit()
-        DailyNumber.log_number_for_all_users('connection')
+        DailyNumber.log_number('connection', True, None)
 
 
 class Connection(object):
@@ -1847,7 +1847,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             HDFSConnection.release(dataset.hdfs_table.hdfs_connection)
         dataset.online = True
         db.session.commit()
-        DailyNumber.log_number_for_all_users('dataset')
+        DailyNumber.log_number('dataset', True, None)
 
 sqla.event.listen(Dataset, 'after_insert', set_perm)
 sqla.event.listen(Dataset, 'after_update', set_perm)
@@ -2068,7 +2068,7 @@ str_to_model = {
 
 class DailyNumber(Model):
     """ORM object used to log the daily number of objects.
-       object type string: slice'/dashboard/dataset/connection.
+       object type string: [slice, dashboard, dataset, connection].
        connection is the set of database and hdfsconnection
     """
     __tablename__ = 'daily_number'
@@ -2078,11 +2078,22 @@ class DailyNumber(Model):
     count = Column(Integer, nullable=False)
     dt = Column(Date, default=date.today())
 
+    type_convert = {
+        'dashboard': 'dashboard',
+        'slice': 'slice',
+        'dataset': 'dataset',
+        'table': 'dataset',
+        'sqlatable': 'dataset',
+        'connection': 'connection',
+        'databae': 'connection',
+        'hdfsconnection': 'connection'
+    }
+
     def __str__(self):
         return '{} {}s on {}'.format(self.count, self.type, self.dt)
 
     @classmethod
-    def log_number(cls, obj_type, user_id):
+    def do_log(cls, obj_type, user_id):
         today_count = cls.object_present_count(obj_type, int(user_id))
         today_record = (
             db.session.query(cls)
@@ -2133,7 +2144,11 @@ class DailyNumber(Model):
         return count
 
     @classmethod
-    def log_number_for_all_users(cls, obj_type):
-        users = db.session.query(User).all()
-        for user in users:
-            cls.log_number(obj_type, user.id)
+    def log_number(cls, obj_type, all_user, user_id=None):
+        obj_type = cls.type_convert.get(obj_type.lower())
+        if all_user is True:
+            users = db.session.query(User).all()
+            for user in users:
+                cls.do_log(obj_type, user.id)
+        else:
+            cls.do_log(obj_type, user_id)
