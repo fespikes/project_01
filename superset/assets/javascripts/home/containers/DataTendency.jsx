@@ -17,7 +17,7 @@ class DataTendency extends Component {
     render() {
         let counts = this.props.ChartCounts || {
             dashboard: "",
-            database: "",
+            connection: "",
             slice: "",
             dataset: ""
         };
@@ -35,7 +35,7 @@ class DataTendency extends Component {
             case "dashboard":
                 chartTitle = "仪表板"
                 break;
-            case "database":
+            case "connection":
                 chartTitle = "连接";
                 break;
             case "dataset":
@@ -58,7 +58,7 @@ class DataTendency extends Component {
                                     <i className="icon dashboard-icon"></i>
                                 </dt>
                                 <dd>
-                                    <div className="count">{counts.dashboard}</div>
+                                    <div className="count">{counts.dashboard ? counts.dashboard : 0}</div>
                                     <div className={catagory === 'dashboard' ? 'current name' : 'name'}>仪表盘</div>
                                 </dd>
                             </dl>
@@ -69,20 +69,20 @@ class DataTendency extends Component {
                                     <i className="icon slice-icon"></i>
                                 </dt>
                                 <dd>
-                                    <div className="count">{counts.slice}</div>
+                                    <div className="count">{counts.slice ? counts.slice : 0}</div>
                                     <div className={catagory === 'slice' ? 'current name' : 'name'}>工作表</div>
                                 </dd>
 
                             </dl>
                         </h2>
                         <h2>
-                            <dl onClick={ () => {onChangeCatagory('database')}}>
+                            <dl onClick={ () => {onChangeCatagory('connection')}}>
                                 <dt>
-                                    <i className="icon database-icon"></i>
+                                    <i className="icon connection-icon"></i>
                                 </dt>
                                 <dd>
-                                    <div className="count">{counts.database}</div>
-                                    <div className={catagory === 'database' ? 'current name' : 'name'}>连接</div>
+                                    <div className="count">{counts.connection ? counts.connection : 0}</div>
+                                    <div className={catagory === 'connection' ? 'current name' : 'name'}>连接</div>
                                 </dd>
                             </dl>
                         </h2>
@@ -92,7 +92,7 @@ class DataTendency extends Component {
                                     <i className="icon dataset-icon"></i>
                                 </dt>
                                 <dd>
-                                    <div className="count">{counts.dataset}</div>
+                                    <div className="count">{counts.dataset ? counts.dataset : 0}</div>
                                     <div className={catagory === 'dataset' ? 'current name' : 'name'}>数据集</div>
                                 </dd>
                             </dl>

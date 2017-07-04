@@ -10,7 +10,7 @@ function EventList(props) {
         key: 'user',
         className: "user-column",
         sorter: (a, b) => a.user.localeCompare(b.user),
-        render: (text, record) => (<Tooltip placement="topRight" title={text} arrowPointAtCenter><a className="user-td" href={record.link}><i className="icon user-icon"></i><span>{text}</span></a></Tooltip>)
+        render: (text, record) => (<a className="user-td" href={record.link}><i className="icon user-icon"></i><span>{text}</span></a>)
     }, {
         title: '操作',
         dataIndex: 'action',
@@ -21,7 +21,7 @@ function EventList(props) {
             const classes = "icon action-title-icon " + record.type + "-icon";
             return (
                 <div>
-                    <div className="action-text"><Tooltip placement="topRight" title={text} arrowPointAtCenter>{text}</Tooltip></div>
+                    <div className="action-text">{text}</div>
                     <div className="action-title"><i className={classes}></i><span>{record.title}</span></div>
                 </div>
             );
@@ -32,7 +32,7 @@ function EventList(props) {
         key: 'time',
         sorter: (a, b) => { return a.time > b.time　? 1 : -1;},
         className: "time-column",
-        render: (text) => (<Tooltip placement="top" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
+        render: (text) => (<span>{text}</span>)
     }];
 
     return (
