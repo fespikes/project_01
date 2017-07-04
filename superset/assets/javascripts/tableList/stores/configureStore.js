@@ -3,7 +3,7 @@ import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
 import rootReducer from '../reducers';
 import {persistStore, autoRehydrate} from 'redux-persist';
-import { asyncSessionStorage } from 'redux-persist/storages'
+import { asyncSessionStorage } from 'redux-persist/storages';
 
 export default function configureStore(initialState) {
   const store = createStore(

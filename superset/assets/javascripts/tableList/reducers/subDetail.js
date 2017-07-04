@@ -23,7 +23,11 @@ export default function subDetail(state = {
             return {...state, datasetId: action.datasetId};
             break;
         case REHYDRATE:
-            return {...state, datasetId: action.payload.subDetail.datasetId};
+            if(action.payload.subDetail) {
+                return {...state, datasetId: action.payload.subDetail.datasetId};
+            }else {
+                return {...state, datasetId: ''}
+            }
             break;
         default:
             return state;
