@@ -149,23 +149,20 @@ def check_ownership(obj, raise_if_false=True):
         if raise_if_false:
             raise security_exception
         return False
-    # roles = (r.name for r in get_user_roles())
-    # if 'Admin' in roles:
-    #     return True
+
     session = db.create_scoped_session()
     orig_obj = session.query(obj.__class__).filter_by(id=obj.id).first()
-    owner_names = (user.username for user in orig_obj.owners)
-    if (
-            hasattr(orig_obj, 'created_by') and
-            orig_obj.created_by and
-            orig_obj.created_by.username == g.user.username):
+
+    if (hasattr(orig_obj, 'created_by') and
+        orig_obj.created_by and
+        orig_obj.created_by.username == g.user.username):
         return True
-    if (
-            hasattr(orig_obj, 'owners') and
-            g.user and
+    if hasattr(orig_obj, 'owners'):
+        owner_names = (user.username for user in orig_obj.owners)
+        if (g.user and
             hasattr(g.user, 'username') and
             g.user.username in owner_names):
-        return True
+            return True
     if raise_if_false:
         raise security_exception
     else:
@@ -408,11 +405,13 @@ class SupersetModelView(ModelView, PageMixin):
     def muldelete(self):
         json_data = self.get_request_data()
         ids = json_data.get('selectedRowKeys')
-        query = db.session.query(self.model).filter(self.model.id.in_(ids))
-        if len(ids) != query.count():
+        objs = db.session.query(self.model).filter(self.model.id.in_(ids)).all()
+        if len(ids) != len(objs):
             raise Exception("Error parameter ids: {}, get {} "
-                            "object(s) in database".format(ids, query.count()))
-        self.datamodel.delete_all(query.all())
+                            "object(s) in database".format(ids, len(objs)))
+        for obj in objs:
+            check_ownership(obj)
+        self.datamodel.delete_all(objs)
         return build_response(200, True, DELETE_SUCCESS)
 
     def get_addable_choices(self):
@@ -982,22 +981,28 @@ class ConnectionView(BaseSupersetView, PageMixin):
         #
         db_ids = json_data.get('inceptor')
         if db_ids:
-            query = db.session.query(Database).filter(Database.id.in_(db_ids))
-            if len(db_ids) != query.count():
+            objs = db.session.query(Database)\
+                .filter(Database.id.in_(db_ids)).all()
+            if len(db_ids) != len(objs):
                 raise Exception("Error parameter ids: {}, get {} inceptor "
                                 "connection(s) in database"
-                                .format(db_ids, query.count()))
-            DatabaseView.datamodel.delete_all(query.all())
+                                .format(db_ids, len(objs)))
+            for obj in objs:
+                check_ownership(obj)
+                db.session.delete(obj)
         #
         hdfs_conn_ids = json_data.get('hdfs')
         if hdfs_conn_ids:
-            query = db.session.query(HDFSConnection)\
-                .filter(HDFSConnection.id.in_(hdfs_conn_ids))
-            if len(hdfs_conn_ids) != query.count():
+            objs = db.session.query(HDFSConnection)\
+                .filter(HDFSConnection.id.in_(hdfs_conn_ids)).all()
+            if len(hdfs_conn_ids) != len(objs):
                 raise Exception("Error parameter ids: {}, get {} hdfs "
                                 "connection(s) in database"
-                                .format(hdfs_conn_ids, query.count()))
-            HDFSConnectionModelView.datamodel.delete_all(query.all())
+                                .format(hdfs_conn_ids, len(objs)))
+            for obj in objs:
+                check_ownership(obj)
+                db.session.delete(obj)
+        db.session.commit()
         return build_response(200, True, DELETE_SUCCESS)
 
     def get_object_list_data(self, **kwargs):
