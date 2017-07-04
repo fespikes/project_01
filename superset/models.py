@@ -184,15 +184,6 @@ class AuditMixinNullable(AuditMixin):
         """.format(**locals())
 
 
-class Url(Model, AuditMixinNullable):
-
-    """Used for the short url feature"""
-
-    __tablename__ = 'url'
-    id = Column(Integer, primary_key=True)
-    url = Column(Text)
-
-
 slice_user = Table('slice_user', Model.metadata,
     Column('id', Integer, primary_key=True),
     Column('user_id', Integer, ForeignKey('ab_user.id')),
