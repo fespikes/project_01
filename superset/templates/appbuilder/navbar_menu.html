@@ -9,11 +9,12 @@
     {% if item1 | is_menu_visible %}
         {% if item1.childs %}
             <li class="dropdown nav-li">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)">
+            <a class="dropdown-toggle" href="javascript:void(0)">
             {% if item1.icon %}
                 <i class="icon"></i>
             {% endif %}
-            {{_(item1.label)}}</a>
+            {{_(item1.label)}}
+            <i class="icon-caret"></i></a>
             <ul class="dropdown-menu">
             {% set divider = False %}
             {% for item2 in item1.childs %}
