@@ -65,7 +65,6 @@ class Operate extends React.Component {
 
     onAdd (typeObj) {
         const dispatch = this.dispatch;
-
         let popupParam = {
             popupTitle: `新建 ${typeObj.label} 连接`,
             datasetType: typeObj.label,

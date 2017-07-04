@@ -2,7 +2,7 @@ import {actionTypes} from './';
 
 
 const baseURL = window.location.origin + '/database/';
-const errorHandler = error => alert(error);
+const errorHandler = error => console.log(error);
 
 export function setPopupTitle (title) {
     return {

@@ -114,13 +114,12 @@ export function applyAdd (callback) {
             datasetType,
             databaseName,
             sqlalchemyUri,
-            connectionName,
+
             description,
+
+            connectionName,
             databaseId,
-            verfifyType,
-            configFile,
-            principal,
-            keytabFile
+            httpfs,
         } = getState().popupParam;
 
         let paramObj = {credentials: 'include', method: 'post',};
@@ -141,13 +140,12 @@ export function applyAdd (callback) {
                 body: JSON.stringify({
                     'connection_name': connectionName,
                     'database_id':databaseId,
-                    'config_file': configFile,
-                    'principal':principal,
-                    'keytab_file':keytabFile
+                    'httpfs':httpfs,
+                    'description':description
                 })
             };
         }
-        return fetch(URL, paramObj)
+        return fetch(URL+'/add', paramObj)
         .then(
             response => response.ok?
                 response.json() : ((response)=>errorHandler(response))(response),
@@ -155,6 +153,7 @@ export function applyAdd (callback) {
         )
         .then(json => {
             if (json.success) {
+                dispatch(fetchIfNeeded());
                 callback(true, json);
             } else {
                 callback(false, json);
