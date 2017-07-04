@@ -412,7 +412,7 @@ class SupersetModelView(ModelView, PageMixin):
         query = db.session.query(self.model).filter(self.model.id.in_(ids))
         if len(ids) != query.count():
             raise Exception("Error parameter ids: {}, get {} "
-                            "object(s) in database".format(ids, query.count))
+                            "object(s) in database".format(ids, query.count()))
         self.datamodel.delete_all(query.all())
         return build_response(200, True, DELETE_SUCCESS)
 
@@ -987,7 +987,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
             if len(db_ids) != query.count():
                 raise Exception("Error parameter ids: {}, get {} inceptor "
                                 "connection(s) in database"
-                                .format(db_ids, query.count))
+                                .format(db_ids, query.count()))
             DatabaseView.datamodel.delete_all(query.all())
         #
         hdfs_conn_ids = json_data.get('hdfs')
@@ -997,7 +997,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
             if len(hdfs_conn_ids) != query.count():
                 raise Exception("Error parameter ids: {}, get {} hdfs "
                                 "connection(s) in database"
-                                .format(hdfs_conn_ids, query.count))
+                                .format(hdfs_conn_ids, query.count()))
             HDFSConnectionModelView.datamodel.delete_all(query.all())
         return build_response(200, True, DELETE_SUCCESS)
 
