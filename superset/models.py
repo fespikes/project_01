@@ -1017,10 +1017,15 @@ class DatabaseAccount(Model):
     type = "table"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('ab_user.id'))
+    user_id = Column(Integer, ForeignKey('ab_user.id'), nullable=True)
     database_id = Column(Integer, ForeignKey('dbs.id'))
     username = Column(String(255))
     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
+    database = relationship(
+        'Database',
+        backref=backref('database_account', cascade='all, delete-orphan'),
+        foreign_keys=[database_id]
+    )
 
     @classmethod
     def insert_or_update_account(cls, user_id, db_id, username, password):
