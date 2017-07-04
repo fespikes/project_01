@@ -1924,47 +1924,6 @@ class Log(Model):
     record_action_types = ['online', 'offline']
 
     @classmethod
-    def log_this(cls, action_str, obj=None, obj_id=None):
-        """Decorator to log user actions"""
-        def _log_this(f):
-            @functools.wraps(f)
-            def wrapper(*args, **kwargs):
-                start_dttm = datetime.now()
-                user_id = None
-                if g.user:
-                    user_id = g.user.get_id()
-                d = request.args.to_dict()
-                post_data = request.form or {}
-                d.update(post_data)
-                d.update(kwargs)
-                slice_id = d.get('slice_id', None)
-                try:
-                    slice_id = int(slice_id) if slice_id else None
-                except ValueError:
-                    slice_id = None
-                params = ""
-                try:
-                    params = json.dumps(d)
-                except:
-                    pass
-                value = f(*args, **kwargs)
-
-                sesh = db.session()
-                log = cls(
-                    action=action_str or f.__name__,
-                    json=params,
-                    dashboard_id=d.get('dashboard_id') or None,
-                    slice_id=slice_id,
-                    duration_ms=(datetime.now() - start_dttm).total_seconds() * 1000,
-                    referrer=request.referrer[:1000] if request.referrer else None,
-                    user_id=user_id)
-                sesh.add(log)
-                sesh.commit()
-                return value
-            return wrapper
-        return _log_this
-
-    @classmethod
     def log_action(cls, action_type, action, obj_type, obj_id):
         if action_type not in cls.record_action_types:
             return

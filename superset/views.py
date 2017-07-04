@@ -52,7 +52,6 @@ from superset.hdfsmodule.views import HDFSFileBrowserRes
 
 
 config = app.config
-log_this = models.Log.log_this
 log_action = models.Log.log_action
 log_number = models.DailyNumber.log_number
 log_number_for_all_users = models.DailyNumber.log_number_for_all_users
