@@ -384,6 +384,14 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         session.flush()
         return slc_to_import.id
 
+    @classmethod
+    def release(cls, slice):
+        if slice.datasource:  # datasource may be deleted
+            Dataset.release(slice.datasource)
+        slice.online = True
+        db.session.commit()
+        DailyNumber.log_number_for_all_users('slice')
+
 
 sqla.event.listen(Slice, 'before_insert', set_related_perm)
 sqla.event.listen(Slice, 'before_update', set_related_perm)
@@ -623,6 +631,14 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             'dashboards': copied_dashboards,
             'datasources': eager_datasources,
         })
+
+    @classmethod
+    def release(cls, dash):
+        for slc in dash.slices:
+            Slice.release(slc)
+        dash.online = True
+        db.session.commit()
+        DailyNumber.log_number_for_all_users('dashboard')
 
 
 class Queryable(object):
@@ -949,6 +965,12 @@ class Database(Model, AuditMixinNullable):
         return (
             "[{obj.database_name}].(id:{obj.id})").format(obj=self)
 
+    @classmethod
+    def release(cls, database):
+        database.online = True
+        db.session.commit()
+        DailyNumber.log_number_for_all_users('connection')
+
 sqla.event.listen(Database, 'after_insert', set_perm)
 sqla.event.listen(Database, 'after_update', set_perm)
 
@@ -976,6 +998,12 @@ class HDFSConnection(Model, AuditMixinNullable):
 
     def __repr__(self):
         return self.connection_name
+
+    @classmethod
+    def release(cls, conn):
+        conn.online = True
+        db.session.commit()
+        DailyNumber.log_number_for_all_users('connection')
 
 
 class Connection(object):
@@ -1803,6 +1831,17 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             db.session, i_datasource, lookup_database, lookup_dataset,
             import_time)
 
+    @classmethod
+    def release(cls, dataset):
+        if dataset.dataset_type.lower() == 'inceptor' and dataset.database:
+            Database.release(dataset.database)
+        elif dataset.dataset_type.lower() == 'hdfs' \
+                and dataset.hdfs_table.hdfs_connection:
+            HDFSConnection.release(dataset.hdfs_table.hdfs_connection)
+        dataset.online = True
+        db.session.commit()
+        DailyNumber.log_number_for_all_users('dataset')
+
 sqla.event.listen(Dataset, 'after_insert', set_perm)
 sqla.event.listen(Dataset, 'after_update', set_perm)
 
@@ -1846,9 +1885,11 @@ class HDFSTable(Model, AuditMixinNullable):
 
 
 class Log(Model):
-
-    """ORM object used to log Superset actions to the database"""
-
+    """ORM object used to log Superset actions to the database
+       Object type: ['slice', 'dashboard', 'dataset', database', 'hdfsconnection']
+       Action type: ['add', 'edit', 'delete', 'online', 'offline', 'import',
+                      'export', 'like', 'dislike']
+    """
     __tablename__ = 'logs'
 
     id = Column(Integer, primary_key=True)
@@ -1863,6 +1904,8 @@ class Log(Model):
     dt = Column(Date, default=date.today())
     duration_ms = Column(Integer)
     referrer = Column(String(1024))
+
+    record_action_types = ['online', 'offline']
 
     @classmethod
     def log_this(cls, action_str, obj=None, obj_id=None):
@@ -1907,6 +1950,8 @@ class Log(Model):
 
     @classmethod
     def log_action(cls, action_type, action, obj_type, obj_id):
+        if action_type not in cls.record_action_types:
+            return
         d = request.args.to_dict()
         post_data = request.form or {}
         d.update(post_data)
@@ -2047,8 +2092,9 @@ str_to_model = {
 
 
 class DailyNumber(Model):
-    """ORM object used to log the daily number of Superset objects
-    'user_id = -1' means all user's number
+    """ORM object used to log the daily number of objects.
+       object type string: slice'/dashboard/dataset/connection.
+       connection is the set of database and hdfsconnection
     """
     __tablename__ = 'daily_number'
     id = Column(Integer, primary_key=True)
@@ -2057,55 +2103,18 @@ class DailyNumber(Model):
     count = Column(Integer, nullable=False)
     dt = Column(Date, default=date.today())
 
-    all_obj_type = ['slice', 'dashboard', 'table', 'database']
-
     def __str__(self):
         return '{} {}s on {}'.format(self.count, self.type, self.dt)
 
     @classmethod
     def log_number(cls, obj_type, user_id):
-        try:
-            obj_model = str_to_model[obj_type.lower()]
-        except KeyError as e:
-            logging.error("Unrecognized object type in {}".format(obj_type.lower()))
-            logging.exception(e)
-            return 0
-
-        user_id = int(user_id)
-        today_count = 0
-        if user_id > 0:
-            # object number of present user or is_online
-            if hasattr(obj_model, 'online'):
-                today_count = (
-                    db.session.query(obj_model)
-                    .filter(
-                        or_(
-                            obj_model.created_by_fk == user_id,
-                            obj_model.online == 1
-                        )
-                    )
-                    .count())
-            else:
-                today_count = (
-                    db.session.query(obj_model)
-                    .filter(obj_model.created_by_fk == user_id)
-                    .count()
-                )
-        elif user_id == 0:
-            today_count = db.session.query(obj_model).count()
-        else:
-            logging.error("Error user_id value: {} passed to {}"
-                          .format(obj_type.lower(), 'log_number()'))
-            return 0
-
+        today_count = cls.object_present_count(obj_type, int(user_id))
         today_record = (
             db.session.query(cls)
-            .filter(
-                and_(
+            .filter(and_(
                     cls.obj_type.ilike(obj_type),
                     cls.dt == date.today(),
-                    cls.user_id == user_id
-                )
+                    cls.user_id == user_id)
             )
             .first()
         )
@@ -2120,3 +2129,36 @@ class DailyNumber(Model):
             )
             db.session.add(new_record)
         db.session.commit()
+
+    @classmethod
+    def object_present_count(cls, obj_type, user_id):
+        if obj_type == 'connection':
+            model_db = str_to_model['database']
+            model_hdfs = str_to_model['hdfsconnection']
+            return cls.query_count(model_db, user_id) + \
+                   cls.query_count(model_hdfs, user_id)
+        else:
+            model = str_to_model[obj_type.lower()]
+            return cls.query_count(model, user_id)
+
+    @staticmethod
+    def query_count(model, user_id):
+        if hasattr(model, 'online'):
+            count = (
+                db.session.query(model).filter(or_(
+                    model.created_by_fk == user_id,
+                    model.online == 1))
+                    .count())
+        else:
+            count = (
+                db.session.query(model).filter(
+                    model.created_by_fk == user_id)
+                    .count()
+            )
+        return count
+
+    @classmethod
+    def log_number_for_all_users(cls, obj_type):
+        users = db.session.query(User).all()
+        for user in users:
+            cls.log_number(obj_type, user.id)
