@@ -8,8 +8,8 @@ import { Link, withRouter } from 'react-router-dom';
 import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import * as actionCreators from '../actions';
 import { extractUrlType } from '../utils';
-import { Confirm } from '../popup';
-import { constructInceptorDataset, constructFileBrowserData, appendTreeChildren } from '../module';
+import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../popup';
+import { constructInceptorDataset, constructFileBrowserData, appendTreeChildren, initDatasetData } from '../module';
 import { appendTreeData, constructTreeData } from '../../../utils/common2';
 
 const fileBrowserData = {"path": "/user/hive/employee", "descending": null, "sortby": null, "files": [{"path": "/user/hive", "mtime": "May 13, 2017 12:00 AM", "name": "..", "size": 0, "mode": 16832, "stats": {"path": "/user/hive/employee/..", "mtime": 1494663357.534, "atime": 0.0, "size": 0, "mode": 16832, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwx------", "url": "http://localhost:8086/view/user/hive", "type": "dir"}, {"path": "/user/hive/employee", "mtime": "May 27, 2017 12:00 AM", "name": ".", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee", "mtime": 1495874611.498, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee", "type": "dir"}, {"path": "/user/hive/employee/employee5.txt", "mtime": "May 26, 2017 12:00 AM", "name": "employee5.txt", "size": 27, "mode": 33188, "stats": {"path": "/user/hive/employee/employee5.txt", "mtime": 1495784089.918, "atime": 1495784089.356, "size": 27, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/employee5.txt", "type": "file"}, {"path": "/user/hive/employee/subdir", "mtime": "May 27, 2017 12:00 AM", "name": "subdir", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee/subdir", "mtime": 1495874578.136, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee/subdir", "type": "dir"}, {"path": "/user/hive/employee/test_upload2.txt", "mtime": "May 27, 2017 12:00 AM", "name": "test_upload2.txt", "size": 14, "mode": 33188, "stats": {"path": "/user/hive/employee/test_upload2.txt", "mtime": 1495874611.693, "atime": 1495874611.498, "size": 14, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/test_upload2.txt", "type": "file"}], "pagesize": 4, "page": {"number": 2, "end_index": 7, "next_page_number": 2, "previous_page_number": 1, "num_pages": 2, "total_count": 7, "start_index": 5}};
@@ -43,12 +43,16 @@ class SubDetail extends Component {
                 table_name: '',
                 schema: '',
                 database_id: '',
+                db_name: '',
                 sql: '',
                 description: '',
                 databases: [],
                 treeData: []
             },
             dsHDFS: {
+                dataset_type: props.match.params.type,
+                dataset_name: '',
+                description: '',
                 hdfsConnections: [],
                 inceptorConnections: [],
                 hdfsConnectId: '',
@@ -72,6 +76,9 @@ class SubDetail extends Component {
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
         this.handleFile = this.handleFile.bind(this);
         this.uploadFile = this.uploadFile.bind(this);
+        this.createHDFSConnect = this.createHDFSConnect.bind(this);
+        this.createInceptorConnect = this.createInceptorConnect.bind(this);
+        this.callbackRefresh = this.callbackRefresh.bind(this);
     }
 
     handleDatasetChange(e) {
@@ -107,6 +114,33 @@ class SubDetail extends Component {
         this.setState({
             dsInceptor: this.state.dsInceptor
         });
+    }
+
+    createHDFSConnect() {
+        const { dispatch } = this.props;
+        let createHDFSConnectPopup = render(
+            <CreateHDFSConnect
+                dispatch={dispatch}
+                />,
+            document.getElementById('popup_root')
+        );
+        if(createHDFSConnectPopup) {
+            createHDFSConnectPopup.showDialog();
+        }
+    }
+
+    createInceptorConnect() {
+        const { dispatch } = this.props;
+        let createInceptorConnectPopup = render(
+            <CreateInceptorConnect
+                dispatch={dispatch}
+                callbackRefresh={this.callbackRefresh}
+            />,
+            document.getElementById('popup_root')
+        );
+        if(createInceptorConnectPopup) {
+            createInceptorConnectPopup.showDialog();
+        }
     }
 
     onConnectChange(dbId) {
@@ -239,69 +273,126 @@ class SubDetail extends Component {
     onSave() {
         const me = this;
         const { createDataset, saveDatasetId } = this.props;
-        const dsInceptor = constructInceptorDataset(me.state.dsInceptor);
-        createDataset(dsInceptor, callback);
-        function callback(success, data) {
-            let response = {};
-            if(success) {
-                response.type = 'success';
-                response.message = '创建成功';
-                saveDatasetId(data.object_id);
-            }else {
-                response.type = 'error';
-                response.message = data;
+        if(window.location.hash.indexOf('/edit') > 0) {
+            let url = '/add/preview/' + me.state.dataset_type;
+            me.props.history.push(url);
+        }else {
+            const dsInceptor = constructInceptorDataset(me.state.dsInceptor);
+            createDataset(dsInceptor, callback);
+            function callback(success, data) {
+                let response = {};
+                if(success) {
+                    response.type = 'success';
+                    response.message = '创建成功';
+                    saveDatasetId(data.object_id);
+                    let url = '/add/preview/' + me.state.dataset_type;
+                    me.props.history.push(url);
+                }else {
+                    response.type = 'error';
+                    response.message = data;
+                }
+                showAlert(response);
             }
-            showAlert(response);
+        }
+    }
+
+    callbackRefresh(type) {
+        if(type === 'inceptor') {
+            this.doFetchDatabaseList();
+        }else if(type === 'hdfs') {
+            this.doFetchInceptorList();
+            this.doFetchHDFSList();
+        }
+    }
+
+    doFetchDatabaseList() {
+        const { fetchDatabaseList } = this.props;
+        const me = this;
+        fetchDatabaseList(callback);
+        function callback(success, data) {
+            if(success) {
+                me.state.dsInceptor.databases = data;
+                me.setState({
+                    dsInceptor: me.state.dsInceptor
+                });
+            }
+        }
+    }
+
+    doFetchInceptorList() {
+        const { fetchInceptorConnectList } = this.props;
+        const me = this;
+        fetchInceptorConnectList(inceptorCallback);
+        function inceptorCallback(success, data) {
+            if(success) {
+                me.state.dsHDFS.inceptorConnections = data;
+                me.setState({
+                    dsHDFS: me.state.dsHDFS
+                });
+            }
+        }
+    }
+
+    doFetchHDFSList() {
+        const { fetchHDFSConnectList, switchHDFSConnected } = this.props;
+        const me = this;
+        fetchHDFSConnectList(hdfsCallback);
+        function hdfsCallback(success, data) {
+            if(success) {
+                me.state.dsHDFS.hdfsConnections = data;
+                me.setState({
+                    dsHDFS: me.state.dsHDFS
+                });
+                if(data.length > 0) {
+                    switchHDFSConnected(true);
+                }else {
+                    switchHDFSConnected(false);
+                }
+            }
         }
     }
 
     componentDidMount() {
         const me = this;
-        const {
-            fetchDatabaseList,
-            fetchHDFSConnectList,
-            fetchInceptorConnectList,
-            fetchHDFSFileBrowser
-        } = me.props;
+        const {fetchHDFSFileBrowser, fetchDatasetDetail, fetchDBDetail} = me.props;
         if(this.state.dataset_type === 'INCEPTOR') {
-            fetchDatabaseList(callback);
-            function callback(success, data) {
-                if(success) {
-                    me.state.dsInceptor.databases = data;
-                    me.setState({
-                        dsInceptor: me.state.dsInceptor
-                    });
-                }else {
-
-                }
-            }
+            this.doFetchDatabaseList();
         }else if(this.state.dataset_type === 'HDFS' || this.state.dataset_type === 'UPLOAD') {
-            fetchHDFSConnectList(hdfsCallback);
-            fetchInceptorConnectList(inceptorCallback);
+            this.doFetchInceptorList();
+            this.doFetchHDFSList();
             //fetchHDFSFileBrowser(fileCallback);
             fileCallback(true, fileBrowserData);
-            function hdfsCallback(success, data) {
-                if(success) {
-                    me.state.dsHDFS.hdfsConnections = data;
-                    me.setState({
-                        dsHDFS: me.state.dsHDFS
-                    });
-                }
-            }
-            function inceptorCallback(success, data) {
-                if(success) {
-                    me.state.dsHDFS.inceptorConnections = data;
-                    me.setState({
-                        dsHDFS: me.state.dsHDFS
-                    });
-                }
-            }
             function fileCallback(success, fileBrowserData) {
                 if(success) {
                     me.state.dsHDFS.fileBrowserData = constructFileBrowserData(fileBrowserData);
                     me.setState({
                         dsHDFS: me.state.dsHDFS
                     });
+                }
+            }
+        }
+        if(window.location.hash.indexOf('/edit') > 0) {
+            let pathArray = window.location.hash.split('/');
+            let datasetId = pathArray[pathArray.length - 1];
+            let datasetType = pathArray[pathArray.length -2];
+            fetchDatasetDetail(datasetId, callback);
+            function callback(success, data) {
+                if(success) {
+                    if(datasetType === 'INCEPTOR') {
+                        fetchDBDetail(data.database_id, callback);
+                        function callback(success, db) {
+                            if(success) {
+                                me.state.dsInceptor.db_name = db.database_name;
+                                me.setState({
+                                    dsInceptor: initDatasetData('INCEPTOR', data, me.state.dsInceptor)
+                                });
+                            }
+                        }
+                    }else if(datasetType === 'HDFS') {
+                        //TODO
+                    }else if(datasetType === 'UPLOAD') {
+                        //TODO
+                    }
                 }
             }
         }
@@ -334,11 +425,13 @@ class SubDetail extends Component {
                     <div>
                         <label className="data-detail-item">
                             <span>数据集名称：</span>
-                            <input type="text" onChange={this.handleDatasetChange} />
+                            <input type="text" onChange={this.handleDatasetChange}
+                                   value={this.state.dsInceptor.dataset_name || this.state.dsHDFS.dataset_name}/>
                         </label>
                         <label className="data-detail-item">
                             <span>描述：</span>
-                            <textarea onChange={this.handleDescriptionChange}/>
+                            <textarea value={this.state.dsInceptor.description || this.state.dsHDFS.description}
+                                onChange={this.handleDescriptionChange}/>
                         </label>
                     </div>
 
@@ -348,12 +441,13 @@ class SubDetail extends Component {
                             <span>选择连接：</span>
                             <Select
                                 style={{ width: 230 }}
+                                value={this.state.dsInceptor.db_name}
                                 onChange={this.onConnectChange}
                             >
                                 {dbOptions}
                             </Select>
                             <div className="connect-success">
-                                &nbsp;<button>新建连接</button>
+                                &nbsp;<button onClick={this.createInceptorConnect}>新建连接</button>
                             </div>
                         </label>
                         <div className={operationType==='table'?'':'none'}>
@@ -378,7 +472,8 @@ class SubDetail extends Component {
                         <div>
                             <label className="data-detail-item">
                                 <span>SQL：</span>
-                                <textarea name="" id="" cols="30" rows="10" onChange={this.handleSQLChange}/>
+                                <textarea name="" id="" cols="30" rows="10" value={this.state.dsInceptor.sql}
+                                          onChange={this.handleSQLChange}/>
                                 <a href={ window.location.origin + '/pilot/sqllab' } target="_blank">
                                     切换至SQL LAB编辑
                                 </a>
@@ -409,12 +504,12 @@ class SubDetail extends Component {
                                 </div>
                             </label>
                         </div>
-                        <div className={HDFSConnected===false?'none':''}>
+                        <div className={HDFSConnected===false?'':'none'}>
                             <label className="data-detail-item">
                                 <span></span>
                                 <div className="data-connect-status">
                                     <span>尚未建立HDFS连接</span>
-                                    <button>建立HDFS连接</button>
+                                    <button onClick={this.createHDFSConnect}>建立HDFS连接</button>
                                 </div>
                             </label>
                             <label className="data-detail-item">
@@ -422,7 +517,7 @@ class SubDetail extends Component {
                                 <textarea name="" id="" cols="30" rows="10"/>
                             </label>
                         </div>
-                        <div className={HDFSConnected===true?'none':''}>
+                        <div className={HDFSConnected===true?'':'none'}>
                             <label className="data-detail-item">
                                 <span>选择连接：</span>
                                 <Select
@@ -489,7 +584,11 @@ function mapDispatchToProps (dispatch) {
         fetchHDFSConnectList,
         fetchInceptorConnectList,
         fetchHDFSFileBrowser,
-        fetchUploadFile
+        fetchUploadFile,
+        fetchDatasetDetail,
+        fetchDBDetail,
+        fetchHDFSDetail,
+        switchHDFSConnected
     } = bindActionCreators(actionCreators, dispatch);
 
     return {
@@ -501,7 +600,12 @@ function mapDispatchToProps (dispatch) {
         fetchHDFSConnectList,
         fetchInceptorConnectList,
         fetchHDFSFileBrowser,
-        fetchUploadFile
+        fetchUploadFile,
+        fetchDatasetDetail,
+        fetchDBDetail,
+        fetchHDFSDetail,
+        switchHDFSConnected,
+        dispatch
     };
 }
-export default connect (mapStateToProps, mapDispatchToProps ) (SubDetail);
+export default connect (mapStateToProps, mapDispatchToProps ) (withRouter(SubDetail));

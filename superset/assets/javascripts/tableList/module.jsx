@@ -111,11 +111,11 @@ export function constructInceptorDataset(dataset) {
 }
 
 export function constructHDFSDataset() {
-
+    //TODO
 }
 
 export function constructUploadDataset() {
-
+    //TODO
 }
 
 export function constructFileBrowserData(data) {
@@ -143,5 +143,78 @@ export function appendTreeChildren(folderName, children, fbData) {
         }
     });
     return fbData;
+}
+
+export function getDatasetTitle(opeType, datasetType) {
+    let opeName = '';
+    if(opeType === 'add') {
+        opeName = "添加";
+    }else if(opeType === 'edit') {
+        opeName = "编辑";
+    }
+    return opeName + datasetType + '数据集';
+}
+
+export function getDatasetTab2Name(datasetType) {
+    let tab2Name = "配置";
+    if(datasetType === 'INCEPTOR') {
+        tab2Name = '预览';
+    }
+    return tab2Name;
+}
+
+export function extractDatasetType(opeType, url) {
+    const pathArray = url.split('/');
+    let type = pathArray[pathArray.length - 2];
+    return type;
+}
+
+export function getDatasetId(opeType, pathname) {
+    let id = '';
+    const pathArray = pathname.split('/');
+    if(opeType === 'edit') {
+        id = pathArray[pathArray.length - 1];
+    }
+    return id;
+}
+
+export function initDatasetData(type, newData, oldData) {
+    let data = {};
+    switch(type) {
+        case 'INCEPTOR':
+            data = initInceptorData(newData, oldData);
+            break;
+        case 'HDFS':
+            break;
+        case 'UPLOAD':
+            break;
+        default:
+            break;
+    }
+    return data;
+}
+
+function initInceptorData(newData, oldData) {
+    let inceptorData = {
+        dataset_type: oldData.dataset_type,
+        dataset_name: newData.dataset_name,
+        table_name: newData.table_name,
+        schema: newData.schema,
+        database_id: newData.database_id,
+        db_name: oldData.db_name,
+        sql: newData.sql,
+        description: newData.description,
+        databases: oldData.databases,
+        treeData: oldData.treeData
+    };
+    return inceptorData;
+}
+
+function initHDFSData() {
+    //TODO
+}
+
+function initUploadData() {
+    //TODO
 }
 

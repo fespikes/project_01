@@ -532,6 +532,87 @@ export function fetchInceptorConnectList(callback) {
     }
 }
 
+export function fetchCreateHDFSConnect(data, callback) {
+    return () => {
+        const url = window.location.origin + '/hdfsconnection/add';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(data)
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchDatasetDetail(id, callback) {
+    return () => {
+        const url = baseURL + 'show/' + id;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchDBDetail(id, callback) {
+    return () => {
+        const url = window.location.origin + '/database/show/' + id;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchHDFSDetail(id, callback) {
+    return () => {
+        const url = window.location.origin + '/hdfsconnection/show/' + id;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
 function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));

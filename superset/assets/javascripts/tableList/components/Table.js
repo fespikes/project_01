@@ -108,7 +108,7 @@ class SliceTable extends React.Component {
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <Link onClick={() => editTable(record)} to={`/edit/${record.dataset_type}`}>
+                            <Link onClick={() => editTable(record)} to={`/edit/detail/${record.dataset_type}/${record.id}`}>
                                 <i className="icon icon-edit"/>
                             </Link>
                             <i
