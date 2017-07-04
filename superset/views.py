@@ -672,6 +672,12 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         data['available_dataset'] = self.get_available_tables()
         return data
 
+    def pre_update(self, column):
+        check_ownership(column)
+
+    def pre_delete(self, column):
+        check_ownership(column)
+
 
 class SqlMetricInlineView(SupersetModelView):  # noqa
     model = models.SqlMetric
@@ -731,6 +737,12 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
                     line[col] = getattr(row, col, None)
             data.append(line)
         return {'data': data}
+
+    def pre_update(self, metric):
+        check_ownership(metric)
+
+    def pre_delete(self, metric):
+        check_ownership(metric)
 
 
 class DatabaseView(SupersetModelView):  # noqa
@@ -794,6 +806,7 @@ class DatabaseView(SupersetModelView):  # noqa
         log_number('connection', get_user_id())
 
     def pre_update(self, obj):
+        check_ownership(obj)
         self.pre_add(obj)
 
     def post_update(self, obj):
@@ -803,6 +816,7 @@ class DatabaseView(SupersetModelView):  # noqa
         log_action('edit', action_str, 'database', obj.id)
 
     def pre_delete(self, obj):
+        check_ownership(obj)
         db.session.query(models.DatabaseAccount) \
             .filter(models.DatabaseAccount.database_id == obj.id) \
             .delete(synchronize_session=False)
@@ -947,6 +961,12 @@ class HDFSConnectionModelView(SupersetModelView):
         action_str = 'Add hdfsconnection: [{}]'.format(repr(conn))
         log_action('add', action_str, 'hdfsconnection', conn.id)
         log_number('connection', get_user_id())
+
+    def pre_update(self, conn):
+        check_ownership(conn)
+
+    def pre_delete(self, conn):
+        check_ownership(conn)
 
     def post_delete(self, conn):
         action_str = 'Delete hdfsconnection: [{}]'.format(repr(conn))
@@ -1373,11 +1393,17 @@ class DatasetModelView(SupersetModelView):  # noqa
         db.session.delete(table.ref_metrics)
         table.fetch_metadata()
 
+    def pre_update(self, table):
+        check_ownership(table)
+
     def post_update(self, table):
         DatasetModelView.merge_perm(table)
         # log user action
         action_str = 'Edit dataset: [{}]'.format(repr(table))
         log_action('edit', action_str, 'dataset', table.id)
+
+    def pre_delete(self, table):
+        check_ownership(table)
 
     def post_delete(self, table):
         # log user action
