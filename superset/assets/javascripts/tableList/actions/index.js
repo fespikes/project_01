@@ -21,6 +21,7 @@ export const actionTypes = {
 
     saveDatasetId: 'SAVE_DATASET_ID',
     saveHDFSDataset: 'SAVE_HDFS_DATASET',
+    saveInceptorDataset: 'SAVE_INCEPTOR_DATASET',
 
     getTableColumn: 'GET_TABLE_COLUMNS',
     getSQLMetric: 'GET_SQL_METRICS'
@@ -109,6 +110,13 @@ export function saveHDFSDataset(json) {
     return {
         type: actionTypes.saveHDFSDataset,
         dsHDFS: json
+    }
+}
+
+export function saveInceptorDataset(json) {
+    return {
+        type: actionTypes.saveInceptorDataset,
+        dsInceptor: json
     }
 }
 

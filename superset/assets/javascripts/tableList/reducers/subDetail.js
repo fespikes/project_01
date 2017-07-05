@@ -7,7 +7,8 @@ export default function subDetail(state = {
     datasetType: '',     //uploadFile HDFS inceptor
     HDFSConnected: true,
     datasetId: '',
-    dsHDFS: {}
+    dsHDFS: {},
+    dsInceptor: {}
 }, action) {
     switch (action.type) {
         case actionTypes.switchDatasetType:

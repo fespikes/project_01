@@ -38,18 +38,7 @@ class SubDetail extends Component {
         super(props);
         this.state = {
             dataset_type: props.match.params.type,
-            dsInceptor: {
-                dataset_type: props.match.params.type,
-                dataset_name: '',
-                table_name: '',
-                schema: '',
-                database_id: '',
-                db_name: '',
-                sql: '',
-                description: '',
-                databases: [],
-                treeData: []
-            },
+            dsInceptor: props.dsInceptor,
             dsHDFS: props.dsHDFS
         };
         //bindings
@@ -72,7 +61,7 @@ class SubDetail extends Component {
         this.callbackRefresh = this.callbackRefresh.bind(this);
     }
 
-    /* common field (dataset_name, description) start */
+    /* inceptor field operation start */
     handleDatasetChange(e) {
         if(this.state.dataset_type === 'INCEPTOR') {
             this.state.dsInceptor.dataset_name = e.currentTarget.value;
@@ -100,10 +89,7 @@ class SubDetail extends Component {
             });
         }
     }
-    /* common field operation (dataset_name, description) end */
 
-
-    /* inceptor field operation start */
     handleSQLChange(e) {
         this.state.dsInceptor.sql = e.currentTarget.value;
         this.setState({
@@ -165,13 +151,27 @@ class SubDetail extends Component {
 
     onSave() {
         const me = this;
-        const { createDataset, saveDatasetId } = this.props;
+        const { createDataset, saveDatasetId, editDataset, saveInceptorDataset } = this.props;
         const opeType = extractOpeType(window.location.hash);
+        const dsInceptor = constructInceptorDataset(me.state.dsInceptor);
+        saveInceptorDataset(me.state.dsInceptor);
         if(window.location.hash.indexOf('/edit') > 0) {
-            let url = '/' + opeType + '/preview/' + me.state.dataset_type + '/';
-            me.props.history.push(url);
+            let datasetId = getDatasetId(opeType, window.location.hash);
+            editDataset(dsInceptor, datasetId, callback);
+            function callback(success, data) {
+                let response = {};
+                if(success) {
+                    response.type = 'success';
+                    response.message = '编辑成功';
+                    let url = '/' + opeType + '/preview/' + me.state.dataset_type + '/';
+                    me.props.history.push(url);
+                }else {
+                    response.type = 'error';
+                    response.message = data;
+                }
+                showAlert(response);
+            }
         }else {
-            const dsInceptor = constructInceptorDataset(me.state.dsInceptor);
             createDataset(dsInceptor, callback);
             function callback(success, data) {
                 let response = {};
@@ -468,24 +468,22 @@ class SubDetail extends Component {
                 });
             }
         }
+        console.log('this.state.dsInceptor=', this.state.dsInceptor);
         return (
             <div className="data-detail-centent shallow">
                 <div className="data-detail-border">
-                    <div>
+                    {/* inceptor corresponding dom*/}
+                    <div className={datasetType==='INCEPTOR'?'':'none'}>
                         <label className="data-detail-item">
                             <span>数据集名称：</span>
                             <input type="text" onChange={this.handleDatasetChange}
-                                   value={this.state.dsInceptor.dataset_name || this.state.dsHDFS.dataset_name}/>
+                                   value={this.state.dsInceptor.dataset_name}/>
                         </label>
                         <label className="data-detail-item">
                             <span>描述：</span>
-                            <textarea value={this.state.dsInceptor.description || this.state.dsHDFS.description}
-                                onChange={this.handleDescriptionChange}/>
+                        <textarea value={this.state.dsInceptor.description}
+                                  defaultValue="" onChange={this.handleDescriptionChange}/>
                         </label>
-                    </div>
-
-                    {/* inceptor corresponding dom*/}
-                    <div className={datasetType==='INCEPTOR'?'':'none'}>
                         <label className="data-detail-item">
                             <span>选择连接：</span>
                             <Select
@@ -519,7 +517,7 @@ class SubDetail extends Component {
                         <div>
                             <label className="data-detail-item">
                                 <span>SQL：</span>
-                                <textarea cols="30" rows="10" value={this.state.dsInceptor.sql}
+                                <textarea cols="30" rows="10" value={this.state.dsInceptor.sql || ''}
                                           onChange={this.handleSQLChange}/>
                                 <a href={ window.location.origin + '/pilot/sqllab' } target="_blank">
                                     切换至SQL LAB编辑
@@ -533,6 +531,16 @@ class SubDetail extends Component {
 
                     {/* HDFS corresponding dom*/}
                     <div className={(datasetType==='HDFS' || datasetType==='UPLOAD')?'':'none'}>
+                        <label className="data-detail-item">
+                            <span>数据集名称：</span>
+                            <input type="text" onChange={this.handleDatasetChange}
+                                   value={this.state.dsHDFS.dataset_name}/>
+                        </label>
+                        <label className="data-detail-item">
+                            <span>描述：</span>
+                        <textarea value={this.state.dsHDFS.description}
+                                  defaultValue="" onChange={this.handleDescriptionChange}/>
+                        </label>
                         <div className={datasetType==='UPLOAD'?'':'none'}>
                             <label className="data-detail-item">
                                 <span></span>
@@ -629,8 +637,10 @@ function mapDispatchToProps (dispatch) {
         fetchTableList,
         fetchSchemaList,
         createDataset,
+        editDataset,
         saveDatasetId,
         saveHDFSDataset,
+        saveInceptorDataset,
         fetchHDFSConnectList,
         fetchInceptorConnectList,
         fetchHDFSFileBrowser,
@@ -646,8 +656,10 @@ function mapDispatchToProps (dispatch) {
         fetchTableList,
         fetchSchemaList,
         createDataset,
+        editDataset,
         saveDatasetId,
         saveHDFSDataset,
+        saveInceptorDataset,
         fetchHDFSConnectList,
         fetchInceptorConnectList,
         fetchHDFSFileBrowser,

@@ -99,12 +99,12 @@ export function getTbType(data, widthPercent) {
 
 export function constructInceptorDataset(dataset) {
     let inceptorDataset = {};
+    inceptorDataset.dataset_type = "INCEPTOR";
     inceptorDataset.dataset_name = dataset.dataset_name;
-    inceptorDataset.dataset_type = dataset.dataset_type;
     inceptorDataset.table_name = dataset.table_name;
     inceptorDataset.schema = dataset.schema;
     inceptorDataset.database_id = dataset.database_id;
-    inceptorDataset.sql = dataset.sql;
+    inceptorDataset.sql = dataset.sql || '';
     inceptorDataset.description = dataset.description;
 
     return inceptorDataset;
@@ -118,7 +118,10 @@ export function constructHDFSDataset(dataset) {
     hdfsDataset.description = dataset.description;
     hdfsDataset.hdfs_path = "/tmp/jiajie/hdfs_table";//mock data
     hdfsDataset.separator = dataset.separator;
-    hdfsDataset.column_desc = "{\"birthday\": \"date\", \"gender\": \"varchar(30)\", \"name\": \"varchar(120)\"}";//mock data
+    hdfsDataset.columns = {
+        names: ["birthday", "gender", "name"],
+        types: ["date", "varchar(30)", "varchar(120)"]
+    };//mock data
     hdfsDataset.hdfs_connection_id = dataset.hdfsConnectId;
     hdfsDataset.file_type = dataset.file_type;
     hdfsDataset.quote = dataset.quote;
@@ -217,7 +220,7 @@ export function initDatasetData(type, newData, oldData) {
 
 function initInceptorData(newData, oldData) {
     let inceptorData = {
-        dataset_type: oldData.dataset_type,
+        dataset_type: 'INCEPTOR',
         dataset_name: newData.dataset_name,
         table_name: newData.table_name,
         schema: newData.schema,
@@ -233,7 +236,7 @@ function initInceptorData(newData, oldData) {
 
 function initHDFSData(newData, oldData) {
     let hdfsData = {
-        dataset_type: oldData.dataset_type,
+        dataset_type: 'HDFS',
         dataset_name: newData.dataset_name,
         description: newData.description,
         hdfsConnections: oldData.hdfsConnections,
