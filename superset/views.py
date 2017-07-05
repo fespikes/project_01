@@ -1213,7 +1213,7 @@ class DatasetModelView(SupersetModelView):  # noqa
                 .first()
             hdfs_table.create_external_table(
                 database, args.get('dataset_name'),
-                args.get('column_desc'), args.get('hdfs_path'), args.get('separator'))
+                args.get('columns'), args.get('hdfs_path'), args.get('separator'))
 
             # create dataset
             dataset = self.model(
@@ -1264,7 +1264,7 @@ class DatasetModelView(SupersetModelView):  # noqa
                 .first()
             dataset.hdfs_table.create_external_table(
                 database, args.get('dataset_name'),
-                args.get('column_desc'), hdfs_table.hdfs_path, hdfs_table.separator)
+                args.get('columns'), hdfs_table.hdfs_path, hdfs_table.separator)
             HDFSTableModelView()._edit(hdfs_table)
 
             # edit dataset

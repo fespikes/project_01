@@ -1884,13 +1884,14 @@ class HDFSTable(Model, AuditMixinNullable):
         return self.hdfs_path
 
     @staticmethod
-    def create_external_table(database, table_name, column_desc, hdfs_path,
+    def create_external_table(database, table_name, columns, hdfs_path,
                               separator=',', schema='default'):
         table_name = '{}.{}'.format(schema, table_name)
         sql = 'create external table {}('.format(table_name)
-        columns = json.loads(column_desc, object_pairs_hook=OrderedDict)
-        for c_name, c_type in columns.items():
-            sql = sql + c_name + " " + c_type + ","
+        names = columns.get('names')
+        types = columns.get('types')
+        for index, v in enumerate(names):
+            sql = sql + names[index] + " " + types[index] + ","
         sql = sql[:-1] \
               + ") row format delimited fields terminated by '" + separator \
               + "' location '" + hdfs_path + "'"
