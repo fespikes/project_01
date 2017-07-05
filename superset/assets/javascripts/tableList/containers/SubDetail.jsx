@@ -9,7 +9,8 @@ import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import * as actionCreators from '../actions';
 import { extractUrlType } from '../utils';
 import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../popup';
-import { constructInceptorDataset, constructFileBrowserData, appendTreeChildren, initDatasetData } from '../module';
+import { constructInceptorDataset, constructFileBrowserData, appendTreeChildren,
+    initDatasetData, extractOpeType, getDatasetId } from '../module';
 import { appendTreeData, constructTreeData } from '../../../utils/common2';
 
 const fileBrowserData = {"path": "/user/hive/employee", "descending": null, "sortby": null, "files": [{"path": "/user/hive", "mtime": "May 13, 2017 12:00 AM", "name": "..", "size": 0, "mode": 16832, "stats": {"path": "/user/hive/employee/..", "mtime": 1494663357.534, "atime": 0.0, "size": 0, "mode": 16832, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwx------", "url": "http://localhost:8086/view/user/hive", "type": "dir"}, {"path": "/user/hive/employee", "mtime": "May 27, 2017 12:00 AM", "name": ".", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee", "mtime": 1495874611.498, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee", "type": "dir"}, {"path": "/user/hive/employee/employee5.txt", "mtime": "May 26, 2017 12:00 AM", "name": "employee5.txt", "size": 27, "mode": 33188, "stats": {"path": "/user/hive/employee/employee5.txt", "mtime": 1495784089.918, "atime": 1495784089.356, "size": 27, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/employee5.txt", "type": "file"}, {"path": "/user/hive/employee/subdir", "mtime": "May 27, 2017 12:00 AM", "name": "subdir", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee/subdir", "mtime": 1495874578.136, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee/subdir", "type": "dir"}, {"path": "/user/hive/employee/test_upload2.txt", "mtime": "May 27, 2017 12:00 AM", "name": "test_upload2.txt", "size": 14, "mode": 33188, "stats": {"path": "/user/hive/employee/test_upload2.txt", "mtime": 1495874611.693, "atime": 1495874611.498, "size": 14, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/test_upload2.txt", "type": "file"}], "pagesize": 4, "page": {"number": 2, "end_index": 7, "next_page_number": 2, "previous_page_number": 1, "num_pages": 2, "total_count": 7, "start_index": 5}};
@@ -49,23 +50,13 @@ class SubDetail extends Component {
                 databases: [],
                 treeData: []
             },
-            dsHDFS: {
-                dataset_type: props.match.params.type,
-                dataset_name: '',
-                description: '',
-                hdfsConnections: [],
-                inceptorConnections: [],
-                hdfsConnectId: '',
-                inceptorConnectId: '',
-                fileBrowserData: [],
-                hdfsPath: '',
-                uploadFileName: ''
-            }
+            dsHDFS: props.dsHDFS
         };
-
+        //bindings
         this.onSave = this.onSave.bind(this);
-        this.onSelect = this.onSelect.bind(this);
-        this.onLoadData = this.onLoadData.bind(this);
+        this.onConfig = this.onConfig.bind(this);
+        this.onSelectTable = this.onSelectTable.bind(this);
+        this.onLoadDataInceptor = this.onLoadDataInceptor.bind(this);
         this.onSelectHDFS = this.onSelectHDFS.bind(this);
         this.onLoadDataHDFS = this.onLoadDataHDFS.bind(this);
         this.onConnectChange = this.onConnectChange.bind(this);
@@ -81,6 +72,7 @@ class SubDetail extends Component {
         this.callbackRefresh = this.callbackRefresh.bind(this);
     }
 
+    /* common field (dataset_name, description) start */
     handleDatasetChange(e) {
         if(this.state.dataset_type === 'INCEPTOR') {
             this.state.dsInceptor.dataset_name = e.currentTarget.value;
@@ -108,7 +100,10 @@ class SubDetail extends Component {
             });
         }
     }
+    /* common field operation (dataset_name, description) end */
 
+
+    /* inceptor field operation start */
     handleSQLChange(e) {
         this.state.dsInceptor.sql = e.currentTarget.value;
         this.setState({
@@ -116,6 +111,88 @@ class SubDetail extends Component {
         });
     }
 
+    onConnectChange(dbId, node) {
+        const me = this;
+        const { fetchSchemaList } = me.props;
+        fetchSchemaList(dbId, callback);
+        function callback(success, data) {
+            if(success) {
+                let treeData = constructTreeData(data, false, 'folder');
+                me.state.dsInceptor.database_id = dbId;
+                me.state.dsInceptor.db_name = node.props.children;
+                me.state.dsInceptor.treeData = treeData;
+                me.setState({
+                    dsInceptor: me.state.dsInceptor
+                });
+            }else {
+
+            }
+        }
+    }
+
+    onSelectTable(value, node) {
+        if(node.props.category === 'file') {
+            this.state.dsInceptor.table_name = value;
+            this.setState({
+                dsInceptor: this.state.dsInceptor
+            });
+        }
+    }
+
+    onLoadDataInceptor(node) {
+        const me = this;
+        const schema = node.props.value;
+        const { fetchTableList } = me.props;
+        return fetchTableList(me.state.dsInceptor.database_id, schema, callback);
+
+        function callback(success, data) {
+            if(success) {
+                let treeData = appendTreeData(
+                    schema,
+                    data,
+                    JSON.parse(JSON.stringify(me.state.dsInceptor.treeData))
+                );
+                me.state.dsInceptor.schema = schema;
+                me.state.dsInceptor.treeData = treeData;
+                me.setState({
+                    dsInceptor: me.state.dsInceptor
+                });
+            }else {
+
+            }
+        }
+    }
+
+    onSave() {
+        const me = this;
+        const { createDataset, saveDatasetId } = this.props;
+        const opeType = extractOpeType(window.location.hash);
+        if(window.location.hash.indexOf('/edit') > 0) {
+            let url = '/' + opeType + '/preview/' + me.state.dataset_type + '/';
+            me.props.history.push(url);
+        }else {
+            const dsInceptor = constructInceptorDataset(me.state.dsInceptor);
+            createDataset(dsInceptor, callback);
+            function callback(success, data) {
+                let response = {};
+                if(success) {
+                    response.type = 'success';
+                    response.message = '创建成功';
+                    saveDatasetId(data.object_id);
+                    let url = '/' + opeType + '/preview/' + me.state.dataset_type + '/';
+                    me.props.history.push(url);
+                }else {
+                    response.type = 'error';
+                    response.message = data;
+                }
+                showAlert(response);
+            }
+        }
+    }
+    /* inceptor field operation end */
+
+
+    /* hdfs field operation start */
     createHDFSConnect() {
         const { dispatch } = this.props;
         let createHDFSConnectPopup = render(
@@ -143,69 +220,20 @@ class SubDetail extends Component {
         }
     }
 
-    onConnectChange(dbId) {
-        const me = this;
-        const { fetchSchemaList } = me.props;
-        fetchSchemaList(dbId, callback);
-        function callback(success, data) {
-            if(success) {
-                let treeData = constructTreeData(data, false, 'folder');
-                me.state.dsInceptor.database_id = dbId;
-                me.state.dsInceptor.treeData = treeData;
-                me.setState({
-                    dsInceptor: me.state.dsInceptor
-                });
-            }else {
-
-            }
-        }
-    }
-
-    onHDFSConnectChange(value) {
+    onHDFSConnectChange(value, node) {
         this.state.dsHDFS.hdfsConnectId = value;
+        this.state.dsHDFS.hdfsConnectName = node.props.children;
         this.setState({
             dsHDFS: this.state.dsHDFS
         });
     }
 
-    onInceptorConnectChange(value) {
+    onInceptorConnectChange(value, node) {
         this.state.dsHDFS.inceptorConnectId = value;
+        this.state.dsHDFS.inceptorConnectName = node.props.children;
         this.setState({
             dsHDFS: this.state.dsHDFS
         });
-    }
-
-    onSelect(value, node) {
-        if(node.props.category === 'file') {
-            this.state.dsInceptor.table_name = value;
-            this.setState({
-                dsInceptor: this.state.dsInceptor
-            });
-        }
-    }
-
-    onLoadData(node) {
-        const me = this;
-        const schema = node.props.value;
-        const { fetchTableList } = me.props;
-        return fetchTableList(me.state.dsInceptor.database_id, schema, callback);
-
-        function callback(success, data) {
-            if(success) {
-                let treeData = appendTreeData(
-                    schema,
-                    data,
-                    JSON.parse(JSON.stringify(me.state.dsInceptor.treeData))
-                );
-                me.state.dsInceptor.schema = schema;
-                me.state.dsInceptor.treeData = treeData;
-                me.setState({
-                    dsInceptor: me.state.dsInceptor
-                });
-            }else {
-
-            }
-        }
     }
 
     onSelectHDFS(value, node) {
@@ -232,6 +260,14 @@ class SubDetail extends Component {
         }
     }
 
+    onConfig() {
+        const { saveHDFSDataset } = this.props;
+        saveHDFSDataset(this.state.dsHDFS);
+    }
+    /* hdfs field operation end */
+
+
+    /* file field operation start */
     handleFile() {
         this.refs.fileName.innerText = this.refs.fileSelect.files[0].name;
         this.state.dsHDFS.uploadFileName = this.refs.fileSelect.files[0].name;
@@ -269,32 +305,7 @@ class SubDetail extends Component {
             showAlert(response);
         }
     }
-
-    onSave() {
-        const me = this;
-        const { createDataset, saveDatasetId } = this.props;
-        if(window.location.hash.indexOf('/edit') > 0) {
-            let url = '/add/preview/' + me.state.dataset_type;
-            me.props.history.push(url);
-        }else {
-            const dsInceptor = constructInceptorDataset(me.state.dsInceptor);
-            createDataset(dsInceptor, callback);
-            function callback(success, data) {
-                let response = {};
-                if(success) {
-                    response.type = 'success';
-                    response.message = '创建成功';
-                    saveDatasetId(data.object_id);
-                    let url = '/add/preview/' + me.state.dataset_type;
-                    me.props.history.push(url);
-                }else {
-                    response.type = 'error';
-                    response.message = data;
-                }
-                showAlert(response);
-            }
-        }
-    }
+    /* file field operation end */
 
     callbackRefresh(type) {
         if(type === 'inceptor') {
@@ -354,7 +365,18 @@ class SubDetail extends Component {
 
     componentDidMount() {
         const me = this;
-        const {fetchHDFSFileBrowser, fetchDatasetDetail, fetchDBDetail} = me.props;
+        const {
+            fetchHDFSFileBrowser,
+            fetchDatasetDetail,
+            fetchDBDetail,
+            saveDatasetId,
+            fetchHDFSDetail} = me.props;
+        if(window.location.hash.indexOf('/edit') > 0) {
+            let datasetId = getDatasetId('edit', window.location.hash);
+            saveDatasetId(datasetId);
+        }else {
+            saveDatasetId('');//clear datasetId
+        }
         if(this.state.dataset_type === 'INCEPTOR') {
             this.doFetchDatabaseList();
         }else if(this.state.dataset_type === 'HDFS' || this.state.dataset_type === 'UPLOAD') {
@@ -389,7 +411,26 @@ class SubDetail extends Component {
                             }
                         }
                     }else if(datasetType === 'HDFS') {
-                        //TODO
+
+                        fetchDBDetail(data.database_id, dbCallback);
+                        fetchHDFSDetail(data.hdfs_connection_id, hdfsCallback);
+                        function dbCallback(success, dbData) {
+                            if(success) {
+                                me.state.dsHDFS.inceptorConnectName = dbData.database_name;
+                                me.setState({
+                                    dsHDFS: initDatasetData('HDFS', data, me.state.dsHDFS)
+                                });
+
+                            }
+                        }
+                        function hdfsCallback(success, hdfsData) {
+                            if(success) {
+                                me.state.dsHDFS.hdfsConnectName = hdfsData.connection_name;
+                                me.setState({
+                                    dsHDFS: initDatasetData('HDFS', data, me.state.dsHDFS)
+                                });
+                            }
+                        }
                     }else if(datasetType === 'UPLOAD') {
                         //TODO
                     }
@@ -400,24 +441,32 @@ class SubDetail extends Component {
 
     render () {
         const me = this;
-        const { operationType, HDFSConnected } = me.props;
+        const { HDFSConnected } = me.props;
         let datasetType = me.props.datasetType;
+        let opeType = extractOpeType(window.location.hash);
+        let datasetId = getDatasetId(opeType, window.location.hash);
         if(datasetType === '') { //for browser refresh
             datasetType = extractUrlType(window.location.hash);
         }
         const Option = Select.Option;
         let dbOptions=[], hdfsOptions=[], inceptorOptions=[];
         if(datasetType === 'INCEPTOR') {
-            dbOptions = me.state.dsInceptor.databases.map(database => {
-                return <Option key={database.id}>{database.database_name}</Option>
-            });
+            if(me.state.dsInceptor.databases) {
+                dbOptions = me.state.dsInceptor.databases.map(database => {
+                    return <Option key={database.id}>{database.database_name}</Option>
+                });
+            }
         }else if(datasetType === 'HDFS' || datasetType === 'UPLOAD') {
-            hdfsOptions = me.state.dsHDFS.hdfsConnections.map(hdfs => {
-                return <Option key={hdfs.id}>{hdfs.connection_name}</Option>
-            });
-            inceptorOptions = me.state.dsHDFS.inceptorConnections.map(inceptor => {
-                return <Option key={inceptor.id}>{inceptor.database_name}</Option>
-            });
+            if(me.state.dsHDFS.hdfsConnections) {
+                hdfsOptions = me.state.dsHDFS.hdfsConnections.map(hdfs => {
+                    return <Option key={hdfs.id}>{hdfs.connection_name}</Option>
+                });
+            }
+            if(me.state.dsHDFS.inceptorConnections) {
+                inceptorOptions = me.state.dsHDFS.inceptorConnections.map(inceptor => {
+                    return <Option key={inceptor.id}>{inceptor.database_name}</Option>
+                });
+            }
         }
         return (
             <div className="data-detail-centent shallow">
@@ -442,7 +491,7 @@ class SubDetail extends Component {
                             <Select
                                 style={{ width: 230 }}
                                 value={this.state.dsInceptor.db_name}
-                                onChange={this.onConnectChange}
+                                onSelect={this.onConnectChange}
                             >
                                 {dbOptions}
                             </Select>
@@ -450,29 +499,27 @@ class SubDetail extends Component {
                                 &nbsp;<button onClick={this.createInceptorConnect}>新建连接</button>
                             </div>
                         </label>
-                        <div className={operationType==='table'?'':'none'}>
-                            <label className="data-detail-item">
-                                <span>选择表：</span>
-                                <TreeSelect
-                                    showSearch
-                                    value={this.state.dsInceptor.table_name}
-                                    style={{ width: 782 }}
-                                    placeholder="Please select"
-                                    treeData={this.state.dsInceptor.treeData}
-                                    loadData={this.onLoadData}
-                                    onSelect={this.onSelect}
-                                    dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
-                                >
-                                </TreeSelect>
-                                <Tooltip title="选择表">
-                                    <i className="icon icon-info"/>
-                                </Tooltip>
-                            </label>
-                        </div>
+                        <label className="data-detail-item">
+                            <span>选择表：</span>
+                            <TreeSelect
+                                showSearch
+                                value={this.state.dsInceptor.table_name}
+                                style={{ width: 782 }}
+                                placeholder="Please select"
+                                treeData={this.state.dsInceptor.treeData}
+                                loadData={this.onLoadDataInceptor}
+                                onSelect={this.onSelectTable}
+                                dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+                            >
+                            </TreeSelect>
+                            <Tooltip title="选择表">
+                                <i className="icon icon-info"/>
+                            </Tooltip>
+                        </label>
                         <div>
                             <label className="data-detail-item">
                                 <span>SQL：</span>
-                                <textarea name="" id="" cols="30" rows="10" value={this.state.dsInceptor.sql}
+                                <textarea cols="30" rows="10" value={this.state.dsInceptor.sql}
                                           onChange={this.handleSQLChange}/>
                                 <a href={ window.location.origin + '/pilot/sqllab' } target="_blank">
                                     切换至SQL LAB编辑
@@ -522,7 +569,8 @@ class SubDetail extends Component {
                                 <span>选择连接：</span>
                                 <Select
                                     style={{ width: 300 }}
-                                    onChange={this.onHDFSConnectChange}
+                                    value={this.state.dsHDFS.hdfsConnectName}
+                                    onSelect={this.onHDFSConnectChange}
                                 >
                                     {hdfsOptions}
                                 </Select>
@@ -531,7 +579,8 @@ class SubDetail extends Component {
                                 <span>关联inceptor连接：</span>
                                 <Select
                                     style={{ width: 300 }}
-                                    onChange={this.onInceptorConnectChange}
+                                    value={this.state.dsHDFS.inceptorConnectName}
+                                    onSelect={this.onInceptorConnectChange}
                                 >
                                     {inceptorOptions}
                                 </Select>
@@ -556,7 +605,7 @@ class SubDetail extends Component {
                         <label className="sub-btn">
                             <input type="button" defaultValue="上传文件" className={this.state.dataset_type==='HDFS'?'none':''}
                                    onClick={this.uploadFile}/>
-                            <Link to={`/add/preview/${this.state.dataset_type}`}>
+                            <Link to={`/${opeType}/preview/${this.state.dataset_type}/${datasetId}`} onClick={this.onConfig}>
                                 配置
                             </Link>
                         </label>
@@ -581,6 +630,7 @@ function mapDispatchToProps (dispatch) {
         fetchSchemaList,
         createDataset,
         saveDatasetId,
+        saveHDFSDataset,
         fetchHDFSConnectList,
         fetchInceptorConnectList,
         fetchHDFSFileBrowser,
@@ -597,6 +647,7 @@ function mapDispatchToProps (dispatch) {
         fetchSchemaList,
         createDataset,
         saveDatasetId,
+        saveHDFSDataset,
         fetchHDFSConnectList,
         fetchInceptorConnectList,
         fetchHDFSFileBrowser,

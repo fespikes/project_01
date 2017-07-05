@@ -110,8 +110,23 @@ export function constructInceptorDataset(dataset) {
     return inceptorDataset;
 }
 
-export function constructHDFSDataset() {
-    //TODO
+export function constructHDFSDataset(dataset) {
+    let hdfsDataset = {};
+    hdfsDataset.dataset_name = dataset.dataset_name;
+    hdfsDataset.dataset_type = 'HDFS';
+    hdfsDataset.database_id = dataset.inceptorConnectId;
+    hdfsDataset.description = dataset.description;
+    hdfsDataset.hdfs_path = "/tmp/jiajie/hdfs_table";//mock data
+    hdfsDataset.separator = dataset.separator;
+    hdfsDataset.column_desc = "{\"birthday\": \"date\", \"gender\": \"varchar(30)\", \"name\": \"varchar(120)\"}";//mock data
+    hdfsDataset.hdfs_connection_id = dataset.hdfsConnectId;
+    hdfsDataset.file_type = dataset.file_type;
+    hdfsDataset.quote = dataset.quote;
+    hdfsDataset.skip_rows = parseInt(dataset.skip_rows);
+    hdfsDataset.next_as_header = dataset.next_as_header;
+    hdfsDataset.skip_more_rows = parseInt(dataset.skip_more_rows);
+    hdfsDataset.charset = dataset.charset;
+    return hdfsDataset;
 }
 
 export function constructUploadDataset() {
@@ -163,10 +178,15 @@ export function getDatasetTab2Name(datasetType) {
     return tab2Name;
 }
 
-export function extractDatasetType(opeType, url) {
+export function extractDatasetType(url) {
     const pathArray = url.split('/');
     let type = pathArray[pathArray.length - 2];
     return type;
+}
+
+export function extractOpeType(url) {
+    const pathArray = url.split('/');
+    return pathArray[1];
 }
 
 export function getDatasetId(opeType, pathname) {
@@ -185,6 +205,7 @@ export function initDatasetData(type, newData, oldData) {
             data = initInceptorData(newData, oldData);
             break;
         case 'HDFS':
+            data = initHDFSData(newData, oldData);
             break;
         case 'UPLOAD':
             break;
@@ -210,8 +231,28 @@ function initInceptorData(newData, oldData) {
     return inceptorData;
 }
 
-function initHDFSData() {
-    //TODO
+function initHDFSData(newData, oldData) {
+    let hdfsData = {
+        dataset_type: oldData.dataset_type,
+        dataset_name: newData.dataset_name,
+        description: newData.description,
+        hdfsConnections: oldData.hdfsConnections,
+        inceptorConnections: oldData.inceptorConnections,
+        hdfsConnectId: oldData.hdfsConnectId,
+        inceptorConnectId: oldData.inceptorConnectId,
+        hdfsConnectName: oldData.hdfsConnectName,
+        inceptorConnectName: oldData.inceptorConnectName,
+        fileBrowserData: oldData.fileBrowserData,
+        hdfsPath: newData.hdfs_path,
+        charset: newData.charset,
+        file_type: newData.file_type,
+        next_as_header: newData.next_as_header,
+        quote: newData.quote,
+        separator: newData.separator,
+        skip_more_rows: newData.skip_more_rows,
+        skip_rows: newData.skip_rows
+    };
+    return hdfsData;
 }
 
 function initUploadData() {

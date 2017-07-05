@@ -20,6 +20,7 @@ export const actionTypes = {
     switchOperationType: 'SWITCH_OPERATION_TYPE',
 
     saveDatasetId: 'SAVE_DATASET_ID',
+    saveHDFSDataset: 'SAVE_HDFS_DATASET',
 
     getTableColumn: 'GET_TABLE_COLUMNS',
     getSQLMetric: 'GET_SQL_METRICS'
@@ -102,6 +103,13 @@ function receiveSQLMetric(json) {
         type: actionTypes.getSQLMetric,
         sqlMetric: json
     };
+}
+
+export function saveHDFSDataset(json) {
+    return {
+        type: actionTypes.saveHDFSDataset,
+        dsHDFS: json
+    }
 }
 
 export function getTableColumn(dataset_id) {
@@ -421,6 +429,31 @@ export function fetchUploadFile(data, id, path, callback) {
 export function createDataset(dataset, callback) {
     return () => {
         const url = baseURL + 'add';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(dataset)
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        if(response.success) {
+                            callback(true, response.data);
+                        }else {
+                            callback(false, response.message);
+                        }
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function editDataset(dataset, id, callback) {
+    return () => {
+        const url = baseURL + 'edit/' + id;
         return fetch(url, {
             credentials: 'include',
             method: 'POST',

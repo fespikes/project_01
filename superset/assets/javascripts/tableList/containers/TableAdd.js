@@ -11,13 +11,17 @@ import {
 import '../style/tableAdd.css';
 
 const TableAdd = ({ match, location }) => {
-    const type = extractDatasetType(match.path.substring(1), location.pathname);
+    const type = extractDatasetType(location.pathname);
     const tab2Name = getDatasetTab2Name(type);
     const title = getDatasetTitle(match.path.substring(1), type);
     const id = getDatasetId(match.path.substring(1), location.pathname);
-    const isActive = (match, location) => {
+    const isDetailActive = (match, location) => {
         return location.pathname==='/add/detail/INCEPTOR/' || location.pathname==='/add/detail/HDFS/' || location.pathname==='/add/detail/UPLOAD/'
             || location.pathname.indexOf('/edit/detail/INCEPTOR') > -1 || location.pathname.indexOf('/edit/detail/HDFS') > -1 || location.pathname.indexOf('/edit/detail/UPLOAD') > -1;
+    };
+    const isPreviewActive = (match, location) => {
+        return location.pathname==='/add/preview/INCEPTOR/' || location.pathname==='/add/preview/HDFS/' || location.pathname==='/add/preview/UPLOAD/'
+            || location.pathname.indexOf('/edit/preview/INCEPTOR') > -1 || location.pathname.indexOf('/edit/preview/HDFS') > -1 || location.pathname.indexOf('/edit/preview/UPLOAD') > -1;
     };
     return (
         <div className="data-detail">
@@ -29,12 +33,12 @@ const TableAdd = ({ match, location }) => {
                    <nav className="detail-nav">
                        <ul>
                            <li>
-                               <NavLink to={`${match.url}/detail/${type}/${id}`} activeClassName="active" isActive={isActive}>
+                               <NavLink to={`${match.url}/detail/${type}/${id}`} activeClassName="active" isActive={isDetailActive}>
                                    Detail
                                </NavLink>
                            </li>
                            <li>
-                               <NavLink to={`${match.url}/preview/${type}/${id}`} activeClassName="active">
+                               <NavLink to={`${match.url}/preview/${type}/${id}`} activeClassName="active" isActive={isPreviewActive}>
                                    { tab2Name }
                                </NavLink>
                            </li>
