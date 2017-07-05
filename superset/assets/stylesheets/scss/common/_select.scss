@@ -1,7 +1,7 @@
 /** refine select component css style **/
 .ant-select {
     .ant-select-selection {
-        height: 28px;
+        min-height: 28px; // min-height 为了适应多选框
         border-radius: 2px;
     }
     .ant-select-selection .ant-select-selection__rendered {

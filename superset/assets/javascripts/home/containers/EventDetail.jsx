@@ -48,7 +48,7 @@ class EventDetail extends Component {
             width: '33%',
             sorter: true,
             className: 'user-column',
-            render: (text, record) => (<a className="user-td" href={record.link}><i className="icon user-icon"></i><Tooltip placement="topLeft" title={text} arrowPointAtCenter><span>{text}</span></Tooltip></a>)
+            render: (text, record) => (<a className="user-td" href={record.link}><i className="icon user-icon"></i><span>{text}</span></a>)
         }, {
             title: '操作',
             dataIndex: 'action',
@@ -59,7 +59,7 @@ class EventDetail extends Component {
                         const classes = "icon action-title-icon " + record.type + "-icon";
                         return (
                             <div>
-                                <div className="action-text"><Tooltip placement="top" title={text} arrowPointAtCenter>{text}</Tooltip></div>
+                                <div className="action-text">{text}</div>
                                 <div className="action-title"><i className={classes}></i>{record.title}</div>
                             </div>
                         );
@@ -71,7 +71,7 @@ class EventDetail extends Component {
             sorter: true,
             width: '30%',
             className: 'time-col',
-            render: (text) => (<Tooltip placement="top" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
+            render: (text) => (<span>{text}</span>)
         }];
 
         const pagination = this.props.pagination;

@@ -20,7 +20,7 @@ class SliceAdder extends React.Component {
 
         this.options = {
             defaultSortOrder: 'desc',
-            defaultSortName: 'modified',
+            defaultSortName: 'sliceName',
             sizePerPage: 10,
         };
 
@@ -45,7 +45,6 @@ class SliceAdder extends React.Component {
                     id: slice.id,
                     sliceName: slice.slice_name,
                     vizType: slice.viz_type,
-                    modified: slice.modified,
                 }));
 
                 this.setState({
@@ -137,15 +136,6 @@ class SliceAdder extends React.Component {
                             dataSort
                         >
                             Viz
-                        </TableHeaderColumn>
-                        <TableHeaderColumn
-                            dataField="modified"
-                            dataSort
-                            sortFunc={this.modifiedDateComparator}
-                            // Will cause react-bootstrap-table to interpret the HTML returned
-                            dataFormat={modified => modified}
-                        >
-                            Modified
                         </TableHeaderColumn>
                     </BootstrapTable>
                     <button

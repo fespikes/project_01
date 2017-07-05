@@ -55,14 +55,14 @@ class EditDetail extends Component {
             key: 'name',
             className: "name-column",
             sorter: true,
-            render: (text, record) => (<Tooltip placement="topRight" title={text} arrowPointAtCenter><a href={record.link}>{text}</a></Tooltip>)
+            render: (text, record) => (<a href={record.link}>{text}</a>)
         }, {
             title: '操作',
             dataIndex: 'action',
             key: 'action',
             className: "action-column",
             width: '33%',
-            render: (text) => (<Tooltip placement="topRight" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
+            render: (text) => (<span>{text}</span>)
 
         }, {
             title: '编辑时间',
@@ -71,7 +71,7 @@ class EditDetail extends Component {
             className: "time-column",
             sorter: true,
             width: '30%',
-            render: (text) => (<Tooltip placement="top" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
+            render: (text) => (<span>{text}</span>)
         }];
 
         return (
