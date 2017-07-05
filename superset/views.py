@@ -48,7 +48,6 @@ from superset.models import Database, Dataset, Slice, Dashboard, \
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset.message import *
-from superset.hdfsmodule.views import HDFSFileBrowserRes
 
 
 config = app.config
@@ -1974,23 +1973,27 @@ class Superset(BaseSupersetView):
         """render the parameters of slice"""
         viz_type = request.args.get("viz_type")
         slice_id = request.args.get('slice_id')
+        database_id = request.args.get('database_id')
+        full_tb_name = request.args.get('full_tb_name')
+        error_redirect = '/slice/list/'
+        user_id = get_user_id()
 
         slc = None
-        user_id = g.user.get_id() if g.user else None
-
         if slice_id:
             slc = db.session.query(models.Slice).filter_by(id=slice_id).first()
 
-        error_redirect = '/slice/list/'
-        datasource_class = SourceRegistry.sources[datasource_type]
-        datasources = db.session.query(datasource_class).all()
+        datasources = db.session.query(Dataset)\
+            .filter(
+                or_(Dataset.created_by_fk == user_id,
+                    Dataset.online == 1)
+            ).all()
         datasources = sorted(datasources, key=lambda ds: ds.full_name)
-        databases = db.session.query(models.Database)\
-            .filter_by(expose_in_sqllab=1).all()
+        databases = db.session.query(Database) \
+            .filter(
+                or_(Database.created_by_fk == user_id,
+                    Database.online == 1)
+            ).all()
         databases = sorted(databases, key=lambda d: d.name)
-
-        database_id = request.args.get('database_id')
-        full_tb_name = request.args.get('full_tb_name')
         try:
             viz_obj = self.get_viz(
                 datasource_type=datasource_type,
@@ -2001,20 +2004,6 @@ class Superset(BaseSupersetView):
         except Exception as e:
             flash('{}'.format(e), "alert")
             return redirect(error_redirect)
-
-        # if not viz_obj.datasource:
-        #     flash(DATASOURCE_MISSING_ERR, "alert")
-        #     return redirect(error_redirect)
-        #
-        # if not self.datasource_access(viz_obj.datasource):
-        #     flash(
-        #         __(get_datasource_access_error_msg(viz_obj.datasource.name)),
-        #         "danger")
-        #     return redirect(
-        #         'superset/request_access/?'
-        #         'datasource_type={datasource_type}&'
-        #         'datasource_id={datasource_id}&'
-        #         ''.format(**locals()))
 
         if not viz_type and viz_obj.datasource.default_endpoint:
             return redirect(viz_obj.datasource.default_endpoint)
@@ -2080,7 +2069,7 @@ class Superset(BaseSupersetView):
                 can_add=slice_add_perm,
                 can_edit=slice_edit_perm,
                 can_download=slice_download_perm,
-                userid=g.user.get_id() if g.user else ''
+                userid=user_id
             )
 
     @catch_exception
