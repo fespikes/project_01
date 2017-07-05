@@ -306,7 +306,7 @@ function initExploreView() {
 
     function prepSaveDialog() {
         const setButtonsState = function () {
-            const addToDash = $('input[name=addToDash]:checked').val();
+            const addToDash = $('input[name=add_to_dash]:checked').val();
             if (addToDash === 'existing' || addToDash === 'new') {
                 $('.gotodash').removeAttr('disabled');
             } else {
@@ -324,12 +324,12 @@ function initExploreView() {
                 data: choices,
                 dropdownAutoWidth: true,
             }).on('select2-selecting', function () {
-                $('#addToDash_existing').prop('checked', true);
+                $('#add_to_dash_existing').prop('checked', true);
                 setButtonsState();
             });
         });
 
-        $('input[name=addToDash]').change(setButtonsState);
+        $('input[name=add_to_dash]').change(setButtonsState);
         $("input[name='new_dashboard_name']").on('focus', function () {
             $('#add_to_new_dash').prop('checked', true);
             setButtonsState();
