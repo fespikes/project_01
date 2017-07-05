@@ -241,7 +241,7 @@ function getStateChangeUrl(record, type) {
         }
         return url_favorite;
     }else if(type === "publish") {
-        let url_publish = baseURL + "release/";
+        let url_publish = window.location.origin + "/pilot/release/slice/";
         if(record.online) {
             url_publish += "offline/" + record.id;
         }else {

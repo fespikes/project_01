@@ -111,7 +111,7 @@ class SliceTable extends React.Component {
                     return a.slice_name.substring(0, 1).charCodeAt() - b.slice_name.substring(0, 1).charCodeAt();
                 }
             }, {
-                title: '图标类型',
+                title: '图表类型',
                 dataIndex: 'viz_type',
                 key: 'viz_type',
                 width: '10%',
