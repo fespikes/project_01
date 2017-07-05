@@ -119,8 +119,8 @@ export function constructHDFSDataset(dataset) {
     hdfsDataset.hdfs_path = "/tmp/jiajie/hdfs_table";//mock data
     hdfsDataset.separator = dataset.separator;
     hdfsDataset.columns = {
-        names: ["birthday", "gender", "name"],
-        types: ["date", "varchar(30)", "varchar(120)"]
+        "names": ["birthday", "gender", "name"],
+        "types": ["date", "varchar(30)", "varchar(120)"]
     };//mock data
     hdfsDataset.hdfs_connection_id = dataset.hdfsConnectId;
     hdfsDataset.file_type = dataset.file_type;

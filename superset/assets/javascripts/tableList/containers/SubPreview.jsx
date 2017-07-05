@@ -3,11 +3,28 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { render } from 'react-dom';
 import {bindActionCreators} from 'redux';
+import { Link, withRouter } from 'react-router-dom';
 import * as actionCreators from '../actions';
 import { extractUrlType } from '../utils';
-import { Table, Input, Button, Icon, Select } from 'antd';
+import { Table, Input, Button, Icon, Select, Alert } from 'antd';
 import { getWidthPercent, getTbTitle, getTbContent, getTbType, getTbTitleHDFS,
     getTbTitleInceptor, extractOpeType, constructHDFSDataset, getDatasetId } from '../module';
+
+function showAlert(response) {
+    render(
+        <Alert
+            style={{ width: 400 }}
+            type={response.type}
+            message={response.message}
+            closable={true}
+            showIcon
+        />,
+        document.getElementById('showAlert')
+    );
+    setTimeout(function() {
+        ReactDOM.unmountComponentAtNode(document.getElementById('showAlert'));
+    }, 5000);
+}
 
 class SubPreview extends Component {
 
@@ -57,6 +74,7 @@ class SubPreview extends Component {
     }
 
     saveHDFSDataset() {
+        const me = this;
         const { createDataset, editDataset } = this.props;
         this.saveHDFSFilterParam();
         const dsHDFS = constructHDFSDataset(this.state.dsHDFS);
@@ -64,20 +82,30 @@ class SubPreview extends Component {
         if(opeType === 'add') {
             createDataset(dsHDFS, callback);
             function callback(success, data) {
-                console.log('success=', success);
-                console.log('data=', data);
-                if(success) {
-
+                let response = {};
+                if(true) {
+                    response.type = 'success';
+                    response.message = '创建成功';
+                    let url = '/' + opeType + '/columns/HDFS';
+                    me.props.history.push(url);
+                }else {
+                    response.type = 'error';
+                    response.message = data;
                 }
             }
         }else if(opeType === 'edit') {
             let hdfsId = getDatasetId(opeType, window.location.hash);
             editDataset(dsHDFS, hdfsId, callback);
             function callback(success, data) {
-                console.log('success=', success);
-                console.log('data=', data);
-                if(success) {
-
+                let response = {};
+                if(true) {
+                    response.type = 'success';
+                    response.message = '编辑成功';
+                    let url = '/' + opeType + '/columns/HDFS';
+                    me.props.history.push(url);
+                }else {
+                    response.type = 'error';
+                    response.message = data;
                 }
             }
         }
@@ -187,6 +215,7 @@ class SubPreview extends Component {
                         <input type="button" defaultValue="保存" onClick={this.saveHDFSDataset}/>
                     </label>
                 </div>
+                <div id="showAlert" className="alert-tip"></div>
             </div>
         );
     }
@@ -212,4 +241,4 @@ function mapDispatchToProps (dispatch) {
     };
 }
 
-export default connect (mapStateToProps, mapDispatchToProps)(SubPreview);
+export default connect (mapStateToProps, mapDispatchToProps)(withRouter(SubPreview));
