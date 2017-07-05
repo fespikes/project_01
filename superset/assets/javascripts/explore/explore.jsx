@@ -313,11 +313,12 @@ function initExploreView() {
                 $('.gotodash').prop('disabled', true);
             }
         };
-        const url = '/dashboardmodelviewasync/api/read?_flt_0_owners=' + $('#userid').val();
+        const url = '/dashboard/listdata?page_size=1000';
         $.get(url, function (data) {
             const choices = [];
-            for (let i = 0; i < data.pks.length; i++) {
-                choices.push({ id: data.pks[i], text: data.result[i].dashboard_title });
+            data = JSON.parse(data);
+            for (let i = 0; i < data.data.length; i++) {
+                choices.push({ id: data.data[i].id, text: data.data[i].dashboard_title });
             }
             $('#save_to_dashboard_id').select2({
                 data: choices,
@@ -359,13 +360,14 @@ function renderOriginalTable() {
     );
 }
 
-function renderExploreActions() {
+function renderExploreActions(queryString) {
     const exploreActionsEl = document.getElementById('js-explore-actions');
     ReactDOM.render(
         <ExploreActionButtons
             canDownload={exploreActionsEl.getAttribute('data-can-download')}
             slice={slice}
             sliceId={exploreActionsEl.getAttribute('sliceId')}
+            query={queryString}
         />,
         exploreActionsEl
     );
@@ -454,7 +456,7 @@ let exploreController = {
     type: 'slice',
     done: (sliceObj) => {
         slice = sliceObj;
-        renderExploreActions();
+        renderExploreActions(slice.viewSqlQuery);
         const cachedSelector = $('#is_cached');
         if (slice.data !== undefined && slice.data.is_cached) {
             cachedSelector
@@ -469,7 +471,7 @@ let exploreController = {
     },
     error: (sliceObj) => {
         slice = sliceObj;
-        renderExploreActions();
+        renderExploreActions(slice.viewSqlQuery);
     },
 };
 exploreController = Object.assign({}, utils.controllerInterface, exploreController);
