@@ -64,36 +64,41 @@ class SubDetail extends Component {
     /* inceptor field operation start */
     handleDatasetChange(e) {
         if(this.state.dataset_type === 'INCEPTOR') {
-            this.state.dsInceptor.dataset_name = e.currentTarget.value;
+            let objInceptor = this.state.dsInceptor;
+            objInceptor.dataset_name = e.currentTarget.value;
             this.setState({
-                dsInceptor: this.state.dsInceptor
+                dsInceptor: objInceptor
             });
         }else if(this.state.dataset_type === 'HDFS' || this.state.dataset_type === 'UPLOAD') {
-            this.state.dsHDFS.dataset_name = e.currentTarget.value;
+            let objHDFS = this.state.dsHDFS;
+            objHDFS.dataset_name = e.currentTarget.value
             this.setState({
-                dsHDFS: this.state.dsHDFS
+                dsHDFS: objHDFS
             });
         }
     }
 
     handleDescriptionChange(e) {
         if(this.state.dataset_type === 'INCEPTOR') {
-            this.state.dsInceptor.description = e.currentTarget.value;
+            let objInceptor = this.state.dsInceptor;
+            objInceptor.description = e.currentTarget.value;
             this.setState({
-                dsInceptor: this.state.dsInceptor
+                dsInceptor: objInceptor
             });
         }else if(this.state.dataset_type === 'HDFS' || this.state.dataset_type === 'UPLOAD') {
-            this.state.dsHDFS.description = e.currentTarget.value;
+            let objHDFS = this.state.dsHDFS;
+            objHDFS.description = e.currentTarget.value;
             this.setState({
-                dsHDFS: this.state.dsHDFS
+                dsHDFS: objHDFS
             });
         }
     }
 
     handleSQLChange(e) {
-        this.state.dsInceptor.sql = e.currentTarget.value;
+        let objInceptor = this.state.dsInceptor;
+        objInceptor.sql = e.currentTarget.value;
         this.setState({
-            dsInceptor: this.state.dsInceptor
+            dsInceptor: objInceptor
         });
     }
 
@@ -104,23 +109,25 @@ class SubDetail extends Component {
         function callback(success, data) {
             if(success) {
                 let treeData = constructTreeData(data, false, 'folder');
-                me.state.dsInceptor.database_id = dbId;
-                me.state.dsInceptor.db_name = node.props.children;
-                me.state.dsInceptor.treeData = treeData;
+                let objInceptor = me.state.dsInceptor;
+                objInceptor.database_id = dbId;
+                objInceptor.db_name = node.props.children;
+                objInceptor.treeData = treeData;
                 me.setState({
-                    dsInceptor: me.state.dsInceptor
+                    dsInceptor: objInceptor
                 });
             }else {
-
+                console.log("error...");
             }
         }
     }
 
     onSelectTable(value, node) {
         if(node.props.category === 'file') {
-            this.state.dsInceptor.table_name = value;
+            let dsInceptor = this.state.dsInceptor;
+            dsInceptor.table_name = value;
             this.setState({
-                dsInceptor: this.state.dsInceptor
+                dsInceptor: dsInceptor
             });
         }
     }
@@ -138,13 +145,14 @@ class SubDetail extends Component {
                     data,
                     JSON.parse(JSON.stringify(me.state.dsInceptor.treeData))
                 );
-                me.state.dsInceptor.schema = schema;
-                me.state.dsInceptor.treeData = treeData;
+                let dsInceptor = me.state.dsInceptor;
+                dsInceptor.schema = schema;
+                dsInceptor.treeData = treeData;
                 me.setState({
-                    dsInceptor: me.state.dsInceptor
+                    dsInceptor: dsInceptor
                 });
             }else {
-
+                console.log("error...");
             }
         }
     }
@@ -163,7 +171,7 @@ class SubDetail extends Component {
                 if(success) {
                     response.type = 'success';
                     response.message = '编辑成功';
-                    let url = '/' + opeType + '/preview/' + me.state.dataset_type + '/';
+                    let url = '/' + opeType + '/preview/' + me.state.dataset_type + '/' + datasetId;
                     me.props.history.push(url);
                 }else {
                     response.type = 'error';
@@ -221,25 +229,28 @@ class SubDetail extends Component {
     }
 
     onHDFSConnectChange(value, node) {
-        this.state.dsHDFS.hdfsConnectId = value;
-        this.state.dsHDFS.hdfsConnectName = node.props.children;
+        let objHDFS = this.state.dsHDFS;
+        objHDFS.hdfsConnectId = value;
+        objHDFS.hdfsConnectName = node.props.children;
         this.setState({
-            dsHDFS: this.state.dsHDFS
+            dsHDFS: objHDFS
         });
     }
 
     onInceptorConnectChange(value, node) {
-        this.state.dsHDFS.inceptorConnectId = value;
-        this.state.dsHDFS.inceptorConnectName = node.props.children;
+        let objHDFS = this.state.dsHDFS;
+        objHDFS.inceptorConnectId = value;
+        objHDFS.inceptorConnectName = node.props.children;
         this.setState({
-            dsHDFS: this.state.dsHDFS
+            dsHDFS: objHDFS
         });
     }
 
     onSelectHDFS(value, node) {
-        this.state.dsHDFS.hdfsPath = node.props.hdfs_path;
+        let objHDFS = this.state.dsHDFS;
+        objHDFS.hdfsPath = node.props.hdfs_path;
         this.setState({
-            dsHDFS: this.state.dsHDFS
+            dsHDFS: objHDFS
         });
     }
 
@@ -251,10 +262,15 @@ class SubDetail extends Component {
         callback(true, fileBrowserData2);
         function callback(success, data) {
             if(success) {
-                let treeData = appendTreeChildren(folderName, data, JSON.parse(JSON.stringify(me.state.dsHDFS.fileBrowserData)));
-                me.state.dsHDFS.fileBrowserData = treeData;
+                let treeData = appendTreeChildren(
+                    folderName,
+                    data,
+                    JSON.parse(JSON.stringify(me.state.dsHDFS.fileBrowserData))
+                );
+                let objHDFS = me.state.dsHDFS;
+                objHDFS.fileBrowserData = treeData;
                 me.setState({
-                    dsHDFS: me.state.dsHDFS
+                    dsHDFS: objHDFS
                 });
             }
         }
@@ -270,9 +286,10 @@ class SubDetail extends Component {
     /* file field operation start */
     handleFile() {
         this.refs.fileName.innerText = this.refs.fileSelect.files[0].name;
-        this.state.dsHDFS.uploadFileName = this.refs.fileSelect.files[0].name;
+        let objHDFS = this.state.dsHDFS;
+        objHDFS.uploadFileName = this.refs.fileSelect.files[0].name;
         this.setState({
-            dsHDFS: this.state.dsHDFS
+            dsHDFS: objHDFS
         });
     }
 
@@ -322,9 +339,10 @@ class SubDetail extends Component {
         fetchDatabaseList(callback);
         function callback(success, data) {
             if(success) {
-                me.state.dsInceptor.databases = data;
+                let objInceptor = me.state.dsInceptor;
+                objInceptor.databases = data;
                 me.setState({
-                    dsInceptor: me.state.dsInceptor
+                    dsInceptor: objInceptor
                 });
             }
         }
@@ -336,9 +354,10 @@ class SubDetail extends Component {
         fetchInceptorConnectList(inceptorCallback);
         function inceptorCallback(success, data) {
             if(success) {
-                me.state.dsHDFS.inceptorConnections = data;
+                let objInceptor = me.state.dsHDFS;
+                objInceptor.inceptorConnections = data;
                 me.setState({
-                    dsHDFS: me.state.dsHDFS
+                    dsHDFS: objInceptor
                 });
             }
         }
@@ -350,9 +369,10 @@ class SubDetail extends Component {
         fetchHDFSConnectList(hdfsCallback);
         function hdfsCallback(success, data) {
             if(success) {
-                me.state.dsHDFS.hdfsConnections = data;
+                let objHDFS = me.state.dsHDFS;
+                objHDFS.hdfsConnections = data;
                 me.setState({
-                    dsHDFS: me.state.dsHDFS
+                    dsHDFS: objHDFS
                 });
                 if(data.length > 0) {
                     switchHDFSConnected(true);
@@ -387,9 +407,10 @@ class SubDetail extends Component {
             fileCallback(true, fileBrowserData);
             function fileCallback(success, fileBrowserData) {
                 if(success) {
-                    me.state.dsHDFS.fileBrowserData = constructFileBrowserData(fileBrowserData);
+                    let objHDFS = me.state.dsHDFS;
+                    objHDFS.fileBrowserData = constructFileBrowserData(fileBrowserData);
                     me.setState({
-                        dsHDFS: me.state.dsHDFS
+                        dsHDFS: objHDFS
                     });
                 }
             }
@@ -406,18 +427,20 @@ class SubDetail extends Component {
                         fetchSchemaList(data.database_id, callbackSchemaList);
                         function callbackDBName(success, db) {
                             if(success) {
-                                me.state.dsInceptor.db_name = db.database_name;
+                                let objIncpetor = me.state.dsInceptor;
+                                objIncpetor.db_name = db.database_name;
                                 me.setState({
-                                    dsInceptor: initDatasetData('INCEPTOR', data, me.state.dsInceptor)
+                                    dsInceptor: initDatasetData('INCEPTOR', data, objIncpetor)
                                 });
                             }
                         }
                         function callbackSchemaList(success, data) {
                             if(success) {
                                 let treeData = constructTreeData(data, false, 'folder');
-                                me.state.dsInceptor.treeData = treeData;
+                                let objIncpetor = me.state.dsInceptor;
+                                objIncpetor.treeData = treeData;
                                 me.setState({
-                                    dsInceptor: me.state.dsInceptor
+                                    dsInceptor: objIncpetor
                                 });
                             }
                         }
@@ -427,18 +450,20 @@ class SubDetail extends Component {
                         fetchHDFSDetail(data.hdfs_connection_id, hdfsCallback);
                         function dbCallback(success, dbData) {
                             if(success) {
-                                me.state.dsHDFS.inceptorConnectName = dbData.database_name;
+                                let objHDFS = me.state.dsHDFS;
+                                objHDFS.inceptorConnectName = dbData.database_name;
                                 me.setState({
-                                    dsHDFS: initDatasetData('HDFS', data, me.state.dsHDFS)
+                                    dsHDFS: initDatasetData('HDFS', data, objHDFS)
                                 });
 
                             }
                         }
                         function hdfsCallback(success, hdfsData) {
                             if(success) {
-                                me.state.dsHDFS.hdfsConnectName = hdfsData.connection_name;
+                                let objHDFS = me.state.dsHDFS;
+                                objHDFS.hdfsConnectName = hdfsData.connection_name;
                                 me.setState({
-                                    dsHDFS: initDatasetData('HDFS', data, me.state.dsHDFS)
+                                    dsHDFS: initDatasetData('HDFS', data, objHDFS)
                                 });
                             }
                         }
@@ -479,23 +504,22 @@ class SubDetail extends Component {
                 });
             }
         }
-        console.log('this.state.dsInceptor=', this.state.dsInceptor);
         return (
             <div className="data-detail-centent shallow">
                 <div className="data-detail-border">
                     {/* inceptor corresponding dom*/}
                     <div className={datasetType==='INCEPTOR'?'':'none'}>
-                        <label className="data-detail-item">
+                        <div className="data-detail-item">
                             <span>数据集名称：</span>
                             <input type="text" onChange={this.handleDatasetChange}
                                    value={this.state.dsInceptor.dataset_name}/>
-                        </label>
-                        <label className="data-detail-item">
+                        </div>
+                        <div className="data-detail-item">
                             <span>描述：</span>
                         <textarea value={this.state.dsInceptor.description}
                                   defaultValue="" onChange={this.handleDescriptionChange}/>
-                        </label>
-                        <label className="data-detail-item">
+                        </div>
+                        <div className="data-detail-item">
                             <span>选择连接：</span>
                             <Select
                                 style={{ width: 230 }}
@@ -507,8 +531,8 @@ class SubDetail extends Component {
                             <div className="connect-success">
                                 &nbsp;<button onClick={this.createInceptorConnect}>新建连接</button>
                             </div>
-                        </label>
-                        <label className="data-detail-item">
+                        </div>
+                        <div className="data-detail-item">
                             <span>选择表：</span>
                             <TreeSelect
                                 showSearch
@@ -524,36 +548,34 @@ class SubDetail extends Component {
                             <Tooltip title="选择表">
                                 <i className="icon icon-info"/>
                             </Tooltip>
-                        </label>
-                        <div>
-                            <label className="data-detail-item">
-                                <span>SQL：</span>
-                                <textarea cols="30" rows="10" value={this.state.dsInceptor.sql || ''}
-                                          onChange={this.handleSQLChange}/>
-                                <a href={ window.location.origin + '/pilot/sqllab' } target="_blank">
-                                    切换至SQL LAB编辑
-                                </a>
-                            </label>
                         </div>
-                        <label className="sub-btn">
+                        <div className="data-detail-item">
+                            <span>SQL：</span>
+                            <textarea cols="30" rows="10" value={this.state.dsInceptor.sql || ''}
+                                      onChange={this.handleSQLChange}/>
+                            <a href={ window.location.origin + '/pilot/sqllab' } target="_blank">
+                                切换至SQL LAB编辑
+                            </a>
+                        </div>
+                        <div className="sub-btn">
                             <input type="button" defaultValue="保存" onClick={this.onSave}/>
-                        </label>
+                        </div>
                     </div>
 
                     {/* HDFS corresponding dom*/}
                     <div className={(datasetType==='HDFS' || datasetType==='UPLOAD')?'':'none'}>
-                        <label className="data-detail-item">
+                        <div className="data-detail-item">
                             <span>数据集名称：</span>
                             <input type="text" onChange={this.handleDatasetChange}
                                    value={this.state.dsHDFS.dataset_name}/>
-                        </label>
-                        <label className="data-detail-item">
+                        </div>
+                        <div className="data-detail-item">
                             <span>描述：</span>
                         <textarea value={this.state.dsHDFS.description}
                                   defaultValue="" onChange={this.handleDescriptionChange}/>
-                        </label>
+                        </div>
                         <div className={datasetType==='UPLOAD'?'':'none'}>
-                            <label className="data-detail-item">
+                            <div className="data-detail-item">
                                 <span></span>
                                 <div>
                                     <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
@@ -568,23 +590,23 @@ class SubDetail extends Component {
                                                ref="fileSelect"/>
                                     </div>
                                 </div>
-                            </label>
+                            </div>
                         </div>
                         <div className={HDFSConnected===false?'':'none'}>
-                            <label className="data-detail-item">
+                            <div className="data-detail-item">
                                 <span></span>
                                 <div className="data-connect-status">
                                     <span>尚未建立HDFS连接</span>
                                     <button onClick={this.createHDFSConnect}>建立HDFS连接</button>
                                 </div>
-                            </label>
-                            <label className="data-detail-item">
+                            </div>
+                            <div className="data-detail-item">
                                 <span>描述：</span>
                                 <textarea name="" id="" cols="30" rows="10"/>
-                            </label>
+                            </div>
                         </div>
                         <div className={HDFSConnected===true?'':'none'}>
-                            <label className="data-detail-item">
+                            <div className="data-detail-item">
                                 <span>选择连接：</span>
                                 <Select
                                     style={{ width: 300 }}
@@ -593,8 +615,8 @@ class SubDetail extends Component {
                                 >
                                     {hdfsOptions}
                                 </Select>
-                            </label>
-                            <label className="data-detail-item">
+                            </div>
+                            <div className="data-detail-item">
                                 <span>关联inceptor连接：</span>
                                 <Select
                                     style={{ width: 300 }}
@@ -603,31 +625,29 @@ class SubDetail extends Component {
                                 >
                                     {inceptorOptions}
                                 </Select>
-                            </label>
+                            </div>
                         </div>
-                        <div>
-                            <label className="data-detail-item">
-                                <span>选择数据目录：</span>
-                                <TreeSelect
-                                    showSearch
-                                    style={{ width: 300 }}
-                                    placeholder="please select"
-                                    treeCheckable={false}
-                                    treeData={this.state.dsHDFS.fileBrowserData}
-                                    onSelect={this.onSelectHDFS}
-                                    loadData={this.onLoadDataHDFS}
-                                    dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
-                                    >
-                                </TreeSelect>
-                            </label>
+                        <div className="data-detail-item">
+                            <span>选择数据目录：</span>
+                            <TreeSelect
+                                showSearch
+                                style={{ width: 300 }}
+                                placeholder="please select"
+                                treeCheckable={false}
+                                treeData={this.state.dsHDFS.fileBrowserData}
+                                onSelect={this.onSelectHDFS}
+                                loadData={this.onLoadDataHDFS}
+                                dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+                                >
+                            </TreeSelect>
                         </div>
-                        <label className="sub-btn">
+                        <div className="sub-btn">
                             <input type="button" defaultValue="上传文件" className={this.state.dataset_type==='HDFS'?'none':''}
                                    onClick={this.uploadFile}/>
                             <Link to={`/${opeType}/preview/${this.state.dataset_type}/${datasetId}`} onClick={this.onConfig}>
                                 配置
                             </Link>
-                        </label>
+                        </div>
                     </div>
                     <div id="showAlert" className="alert-tip"></div>
                 </div>

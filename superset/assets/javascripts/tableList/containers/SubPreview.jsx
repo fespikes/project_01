@@ -49,27 +49,29 @@ class SubPreview extends Component {
                     data: data
                 });
             }else {
-
+                console.log("error...");
             }
         }
     }
 
     charsetChange(value, node) {
-        this.state.dsHDFS.charset = node.props.children;
+        let objHDFS = this.state.dsHDFS;
+        objHDFS.charset = node.props.children;
         this.setState({
-            dsHDFS: this.state.dsHDFS
+            dsHDFS: objHDFS
         });
     }
 
     saveHDFSFilterParam() {
-        this.state.dsHDFS.file_type = this.refs.fileType.value;
-        this.state.dsHDFS.separator = this.refs.separator.value;
-        this.state.dsHDFS.quote = this.refs.quote.value;
-        this.state.dsHDFS.skip_rows = this.refs.skipRows.value;
-        this.state.dsHDFS.next_as_header = this.refs.nextAsHeader.checked;
-        this.state.dsHDFS.skip_more_rows = this.refs.skipMoreRows.value;
+        let objHDFS = this.state.dsHDFS;
+        objHDFS.file_type = this.refs.fileType.value;
+        objHDFS.separator = this.refs.separator.value;
+        objHDFS.quote = this.refs.quote.value;
+        objHDFS.skip_rows = this.refs.skipRows.value;
+        objHDFS.next_as_header = this.refs.nextAsHeader.checked;
+        objHDFS.skip_more_rows = this.refs.skipMoreRows.value;
         this.setState({
-            dsHDFS: this.state.dsHDFS
+            dsHDFS: objHDFS
         });
     }
 
@@ -168,36 +170,36 @@ class SubPreview extends Component {
                 </div>
                 <div className={datasetType==='INCEPTOR'?'none':'data-detail-preview'}>
                     <div className="data-detail-border">
-                        <label className="data-detail-item">
+                        <div className="data-detail-item">
                             <span>文件类型：</span>
                             <input type="text" defaultValue={dsHDFS.file_type} ref="fileType"/>
-                        </label>
-                        <label className="data-detail-item">
+                        </div>
+                        <div className="data-detail-item">
                             <span>分隔符：</span>
                             <input type="text" defaultValue={dsHDFS.separator} ref="separator"/>
                             <i className="icon infor-icon" />
-                        </label>
-                        <label className="data-detail-item">
+                        </div>
+                        <div className="data-detail-item">
                             <span>引号符：</span>
                             <input type="text" defaultValue={dsHDFS.quote} ref="quote"/>
                             <i className="icon infor-icon" />
-                        </label>
-                        <label className="data-detail-item">
+                        </div>
+                        <div className="data-detail-item">
                             <span>忽略行数：</span>
                             <input type="text" defaultValue={dsHDFS.skip_rows} ref="skipRows"/>
-                        </label>
-                        <label className="data-detail-item">
+                        </div>
+                        <div className="data-detail-item">
                             <span></span>
                             <div className="data-detail-checkbox">
                                 <input type="checkbox" ref="nextAsHeader"/>
                                 <p>下一行为列名</p>
                             </div>
-                        </label>
-                        <label className="data-detail-item">
+                        </div>
+                        <div className="data-detail-item">
                             <span>再忽略行数：</span>
                             <input type="text" defaultValue={dsHDFS.skip_more_rows} ref="skipMoreRows"/>
-                        </label>
-                        <label className="data-detail-item">
+                        </div>
+                        <div className="data-detail-item">
                             <span>字符集：</span>
                             <Select
                                 style={{width: 312}}
@@ -208,12 +210,12 @@ class SubPreview extends Component {
                                 <Option value="gbk">gbk</Option>
                                 <Option value="iso-8859-15">iso-8859-15</Option>
                             </Select>
-                        </label>
+                        </div>
                     </div>
-                    <label className="sub-btn">
+                    <div className="sub-btn">
                         <input type="button" defaultValue="预览" onClick={this.previewHDFSDataset} style={{marginRight: 20}}/>
                         <input type="button" defaultValue="保存" onClick={this.saveHDFSDataset}/>
-                    </label>
+                    </div>
                 </div>
                 <div id="showAlert" className="alert-tip"></div>
             </div>
