@@ -787,11 +787,6 @@ class DatabaseView(SupersetModelView):  # noqa
 
     def post_add(self, obj):
         self.add_or_edit_database_account(obj)
-        # security.merge_perm(sm, 'database_access', obj.perm)
-        # for schema in obj.all_schema_names():
-        #     security.merge_perm(
-        #         sm, 'schema_access', utils.get_schema_perm(obj, schema))
-        # log user aciton
         action_str = 'Add connection: [{}]'.format(repr(obj))
         log_action('add', action_str, 'database', obj.id)
         log_number('connection', obj.online, get_user_id())
@@ -802,7 +797,6 @@ class DatabaseView(SupersetModelView):  # noqa
 
     def post_update(self, obj):
         self.add_or_edit_database_account(obj)
-        # log user action
         action_str = 'Edit connection: [{}]'.format(repr(obj))
         log_action('edit', action_str, 'database', obj.id)
 
@@ -1065,6 +1059,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
                     query = query.order_by(column)
             except KeyError:
                 msg = 'Error order column name: \'{}\''.format(order_column)
+                raise KeyError(msg)
 
         if page is not None and page >= 0 and page_size and page_size > 0:
             query = query.limit(page_size).offset(page * page_size)
@@ -1366,7 +1361,7 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def post_add(self, table):
         table.fetch_metadata()
-        DatasetModelView.merge_perm(table)
+        # DatasetModelView.merge_perm(table)
         action_str = 'Add dataset: [{}]'.format(repr(table))
         log_action('add', action_str, 'dataset', table.id)
         log_number('dataset', table.online, get_user_id())
@@ -1384,8 +1379,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         check_ownership(table)
 
     def post_update(self, table):
-        DatasetModelView.merge_perm(table)
-        # log user action
+        # DatasetModelView.merge_perm(table)
         action_str = 'Edit dataset: [{}]'.format(repr(table))
         log_action('edit', action_str, 'dataset', table.id)
 
@@ -1784,12 +1778,10 @@ class DashboardModelView(SupersetModelView):  # noqa
             for dashboard in data['dashboards']:
                 models.Dashboard.import_obj(
                     dashboard, import_time=current_tt)
-                # log user action
                 action_str = 'Import dashboard: [{}]'.format(dashboard.dashboard_title)
                 log_action('import', action_str, 'dashboard', dashboard.id)
             db.session.commit()
             # TODO log_number
-            # TODO log_action
         return redirect('/dashboard/list/')
 
     @catch_exception
@@ -2179,7 +2171,6 @@ class Superset(BaseSupersetView):
         if dash and slc not in dash.slices:
             dash.slices.append(slc)
             db.session.commit()
-            # log user aciton
             action_str = 'Add dashboard: [{}]'.format(dash.dashboard_title)
             log_action('add', action_str, 'dashboard', dash.id)
 
@@ -2212,7 +2203,6 @@ class Superset(BaseSupersetView):
             session.commit()
             msg = "Slice [{}] has been overwritten".format(slc.slice_name)
             flash(msg, "info")
-            # log user action
             action_str = 'Edit slice: [{}]'.format(slc.slice_name)
             log_action('edit', action_str, 'slice', slc.id)
 
@@ -2288,7 +2278,6 @@ class Superset(BaseSupersetView):
         session.add(dash)
         session.commit()
         dash_json = dash.json_data
-        # log user action
         action_str = 'Add dashboard: [{}]'.format(dash.dashboard_title)
         log_action('add', action_str, 'dashboard', dash.id)
         return Response(
@@ -2305,7 +2294,6 @@ class Superset(BaseSupersetView):
         self._set_dash_metadata(dash, data)
         session.merge(dash)
         session.commit()
-        # log user aciton
         action_str = 'Edit dashboard: [{}]'.format(repr(dash))
         log_action('edit', action_str, 'dashboard', dashboard_id)
         return "SUCCESS"
@@ -2599,13 +2587,11 @@ class Superset(BaseSupersetView):
                     )
                 )
             count = 1
-            # log user aciton
             action_str = 'Like {}: [{}]'.format(class_name.lower(), repr(obj))
             log_action('like', action_str, class_name.lower(), obj_id)
         elif action == 'unselect':
             for fav in favs:
                 session.delete(fav)
-            # log user aciton
             action_str = 'Dislike {}: [{}]'.format(class_name.lower(), repr(obj))
             log_action('dislike', action_str, class_name.lower(), obj_id)
         else:
@@ -2691,7 +2677,6 @@ class Superset(BaseSupersetView):
         table.sql = q.stripped()
         db.session.add(table)
         db.session.commit()
-        # log user action
         action_str = 'Add dataset: [{}]'.format(table_name)
         log_action('add', action_str, 'dataset', table.id)
 
