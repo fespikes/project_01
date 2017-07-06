@@ -370,6 +370,7 @@ class SubDetail extends Component {
             fetchDatasetDetail,
             fetchDBDetail,
             saveDatasetId,
+            fetchSchemaList,
             fetchHDFSDetail} = me.props;
         if(window.location.hash.indexOf('/edit') > 0) {
             let datasetId = getDatasetId('edit', window.location.hash);
@@ -401,12 +402,22 @@ class SubDetail extends Component {
             function callback(success, data) {
                 if(success) {
                     if(datasetType === 'INCEPTOR') {
-                        fetchDBDetail(data.database_id, callback);
-                        function callback(success, db) {
+                        fetchDBDetail(data.database_id, callbackDBName);
+                        fetchSchemaList(data.database_id, callbackSchemaList);
+                        function callbackDBName(success, db) {
                             if(success) {
                                 me.state.dsInceptor.db_name = db.database_name;
                                 me.setState({
                                     dsInceptor: initDatasetData('INCEPTOR', data, me.state.dsInceptor)
+                                });
+                            }
+                        }
+                        function callbackSchemaList(success, data) {
+                            if(success) {
+                                let treeData = constructTreeData(data, false, 'folder');
+                                me.state.dsInceptor.treeData = treeData;
+                                me.setState({
+                                    dsInceptor: me.state.dsInceptor
                                 });
                             }
                         }
