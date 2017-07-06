@@ -8,6 +8,7 @@ import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
 
+from sqlalchemy_utils.functions import database_exists, create_database
 from flask import Flask, redirect
 from flask_appbuilder import SQLA, AppBuilder, IndexView
 from flask_appbuilder.baseviews import expose
@@ -31,6 +32,11 @@ if app.debug:
     # In production mode, add log handler to sys.stderr.
     app.logger.addHandler(logging.StreamHandler())
     app.logger.setLevel(logging.INFO)
+
+
+if not database_exists(conf.get("SQLALCHEMY_DATABASE_URI")):
+    print("Create database ...")
+    create_database(conf.get("SQLALCHEMY_DATABASE_URI"), "utf8")
 
 db = SQLA(app)
 
