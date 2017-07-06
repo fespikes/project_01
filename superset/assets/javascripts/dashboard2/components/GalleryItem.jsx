@@ -71,19 +71,21 @@ class GalleryItem extends React.Component {
         return (
             <div className="items">
                 <div className="item">
-                    <div className="item-img" >
-                        <a href={dashboard.url}></a>
+                    <div className='item-img-wrapper'>
+                        <div className={'item-img dashboard-thumbnail-' + (dashboard.id%5 + 1)}>
+                            <a href={dashboard.url}><i className="fa fa-search" aria-hidden="true"></i></a>
+                        </div>
                     </div>
                     <div className="item-operation">
                         <div className={this.state.selected ? 'selected' : 'name'}>
                             <Checkbox onChange={onChange}>
-                                {dashboard.dashboard_title}
+                                <span className="item-title">{dashboard.dashboard_title}</span>
                             </Checkbox>
                         </div>
                         <div className="icon-group">
-                            <i className="icon" onClick={this.editDashboard}></i>&nbsp;
-                            <i className={dashboard.online ? 'icon online' : 'icon offline'} onClick={this.publishDashboard}></i>&nbsp;
-                            <i className="icon" onClick={this.deleteDashboard}></i>
+                            <i className="icon icon-edit" onClick={this.editDashboard}></i>&nbsp;
+                            <i className={dashboard.online ? 'icon icon-online' : 'icon icon-offline'} onClick={this.publishDashboard}></i>&nbsp;
+                            <i className="icon icon-delete" onClick={this.deleteDashboard}></i>
                         </div>
                     </div>
                     <hr className="divider"/>

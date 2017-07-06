@@ -36,6 +36,13 @@ body{
             background-color: #279cf2 !important;
         }
     }
+    
+    .nav {
+        .dropdown:hover .dropdown-menu {
+            display: block;
+            margin-top: 0; // remove the gap so it doesn't close
+        }
+    }
 
     .active {
         background-color: #279cf2 !important;

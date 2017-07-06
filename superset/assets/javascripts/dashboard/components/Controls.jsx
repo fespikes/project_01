@@ -30,7 +30,7 @@ class Controls extends React.PureComponent {
     publish() {
         const self = this;
         const { dashboard } = self.props;
-        let url = '/dashboard/release/';
+        let url = '/pilot/release/dashboard/';
         if(this.state.published) {
             url += 'offline/' + dashboard.id;
         }else {

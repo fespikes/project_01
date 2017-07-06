@@ -306,29 +306,30 @@ function initExploreView() {
 
     function prepSaveDialog() {
         const setButtonsState = function () {
-            const addToDash = $('input[name=addToDash]:checked').val();
+            const addToDash = $('input[name=add_to_dash]:checked').val();
             if (addToDash === 'existing' || addToDash === 'new') {
                 $('.gotodash').removeAttr('disabled');
             } else {
                 $('.gotodash').prop('disabled', true);
             }
         };
-        const url = '/dashboardmodelviewasync/api/read?_flt_0_owners=' + $('#userid').val();
+        const url = '/dashboard/listdata?page_size=1000';
         $.get(url, function (data) {
             const choices = [];
-            for (let i = 0; i < data.pks.length; i++) {
-                choices.push({ id: data.pks[i], text: data.result[i].dashboard_title });
+            data = JSON.parse(data);
+            for (let i = 0; i < data.data.length; i++) {
+                choices.push({ id: data.data[i].id, text: data.data[i].dashboard_title });
             }
             $('#save_to_dashboard_id').select2({
                 data: choices,
                 dropdownAutoWidth: true,
             }).on('select2-selecting', function () {
-                $('#addToDash_existing').prop('checked', true);
+                $('#add_to_dash_existing').prop('checked', true);
                 setButtonsState();
             });
         });
 
-        $('input[name=addToDash]').change(setButtonsState);
+        $('input[name=add_to_dash]').change(setButtonsState);
         $("input[name='new_dashboard_name']").on('focus', function () {
             $('#add_to_new_dash').prop('checked', true);
             setButtonsState();
@@ -359,13 +360,14 @@ function renderOriginalTable() {
     );
 }
 
-function renderExploreActions() {
+function renderExploreActions(queryString) {
     const exploreActionsEl = document.getElementById('js-explore-actions');
     ReactDOM.render(
         <ExploreActionButtons
             canDownload={exploreActionsEl.getAttribute('data-can-download')}
             slice={slice}
             sliceId={exploreActionsEl.getAttribute('sliceId')}
+            query={queryString}
         />,
         exploreActionsEl
     );
@@ -454,7 +456,7 @@ let exploreController = {
     type: 'slice',
     done: (sliceObj) => {
         slice = sliceObj;
-        renderExploreActions();
+        renderExploreActions(slice.viewSqlQuery);
         const cachedSelector = $('#is_cached');
         if (slice.data !== undefined && slice.data.is_cached) {
             cachedSelector
@@ -469,7 +471,7 @@ let exploreController = {
     },
     error: (sliceObj) => {
         slice = sliceObj;
-        renderExploreActions();
+        renderExploreActions(slice.viewSqlQuery);
     },
 };
 exploreController = Object.assign({}, utils.controllerInterface, exploreController);

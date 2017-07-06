@@ -88,7 +88,7 @@ class SliceOperate extends React.Component {
         const Option = Select.Option;
         const addOptions = this.state.datasetTypes.map(dataset => {
             return <Option key={dataset} value={dataset}>
-                <Link to={`/add/${dataset}`}>{dataset}</Link>
+                <Link to={`/add/detail/${dataset}/`}>{dataset}</Link>
             </Option>
         });
         let datasetTypes = JSON.parse(JSON.stringify(this.state.datasetTypes));

@@ -20,6 +20,8 @@ export const actionTypes = {
     switchOperationType: 'SWITCH_OPERATION_TYPE',
 
     saveDatasetId: 'SAVE_DATASET_ID',
+    saveHDFSDataset: 'SAVE_HDFS_DATASET',
+    saveInceptorDataset: 'SAVE_INCEPTOR_DATASET',
 
     getTableColumn: 'GET_TABLE_COLUMNS',
     getSQLMetric: 'GET_SQL_METRICS'
@@ -102,6 +104,20 @@ function receiveSQLMetric(json) {
         type: actionTypes.getSQLMetric,
         sqlMetric: json
     };
+}
+
+export function saveHDFSDataset(json) {
+    return {
+        type: actionTypes.saveHDFSDataset,
+        dsHDFS: json
+    }
+}
+
+export function saveInceptorDataset(json) {
+    return {
+        type: actionTypes.saveInceptorDataset,
+        dsInceptor: json
+    }
 }
 
 export function getTableColumn(dataset_id) {
@@ -443,6 +459,31 @@ export function createDataset(dataset, callback) {
     }
 }
 
+export function editDataset(dataset, id, callback) {
+    return () => {
+        const url = baseURL + 'edit/' + id;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(dataset)
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        if(response.success) {
+                            callback(true, response.data);
+                        }else {
+                            callback(false, response.message);
+                        }
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
 export function saveDatasetId(datasetId) {
     return {
         type: actionTypes.saveDatasetId,
@@ -523,6 +564,87 @@ export function fetchInceptorConnectList(callback) {
                 if(response.ok) {
                     response.json().then(response => {
                         callback(true, response.data);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchCreateHDFSConnect(data, callback) {
+    return () => {
+        const url = window.location.origin + '/hdfsconnection/add';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(data)
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchDatasetDetail(id, callback) {
+    return () => {
+        const url = baseURL + 'show/' + id;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchDBDetail(id, callback) {
+    return () => {
+        const url = window.location.origin + '/database/show/' + id;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchHDFSDetail(id, callback) {
+    return () => {
+        const url = window.location.origin + '/hdfsconnection/show/' + id;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
                     });
                 }else {
                     callback(false);

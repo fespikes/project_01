@@ -2,13 +2,15 @@
     .gallery {
         white-space: normal;
         width: 100%;
+        text-align: center;
+
         .items {
-            width: 25%;
+            width: 300px;
             height: 300px;
             padding: 10px;
             display: inline-block;
             white-space: normal;
-            float: left;
+
             .item {
                 width: 100%;
                 height: 100%;
@@ -17,15 +19,79 @@
                 background-color: #fff;
                 border: solid 1px #e6eaee;
             }
-            .item-img {
+            .item-img-wrapper {
                 height: 200px;
                 border: solid 2px #e6eaee;
-                background-image: url('/static/assets/images/viz_thumbnails/bar.png');
-                > a {
-                    display: block;
+                overflow: hidden;
+                border-radius: 4px;
+                
+                .item-img {
+                    background-position: center center;
+                    background-size: cover;
+                    background-repeat: no-repeat;
                     width: 100%;
                     height: 100%;
+                    transition: all .5s ease;
+                    text-align: center;
+
+                    &:before {
+                        content: "";
+                        display: none;
+                        height: 100%;
+                        width: 100%;
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        background-color: rgba(0, 0, 0, 0.4);
+                    }
+
+                    a {
+                        display: none;
+                        width: 100%;
+                        height: 100%;
+                        font-size: 36px;
+                        justify-content: center;
+                        align-items: center;
+                        cursor: pointer;
+                        z-index: 1000;
+                    }
                 }
+
+                &:hover {
+                    border-color: #6699FF;
+                    
+                    .item-img {
+                        transform: scale(1.2);
+
+                        a {
+                            display: flex;
+                        }
+
+                        &:before {
+                            display: block;
+                        }
+                    }
+                }
+            }
+
+            .dashboard-thumbnail-1 {
+                background-image: url(/static/assets/images/dashboard-gallery-1.png);
+            }
+
+            .dashboard-thumbnail-2 {
+                background-image: url(/static/assets/images/dashboard-gallery-2.png);
+            }
+
+            .dashboard-thumbnail-3 {
+                background-image: url(/static/assets/images/dashboard-gallery-3.png);
+            }
+
+            .dashboard-thumbnail-4 {
+                background-image: url(/static/assets/images/dashboard-gallery-4.png);
+            }
+
+            .dashboard-thumbnail-5 {
+                background-image: url(/static/assets/images/dashboard-gallery-5.png);
             }
 
             .item-operation {
@@ -40,13 +106,36 @@
                 .selected {
                     color: #108ee9;
                 }
+
+                .icon {
+                    margin-left: 6px;
+                    margin-right: 0px;
+                }
+
+                .ant-checkbox-wrapper {
+                    display: flex;
+                    align-items: center;
+
+                    .item-title {
+                        text-align: left;
+                        display: block;
+                        width: 136px;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                        white-space: nowrap;
+                    }
+                }
             }
             .item-description {
                 height: 30px;
-                display: flex;
-                align-items: center;
-                padding: 0 10px;
+                display: block;
+                padding: 4px 10px;
                 color: #7f8fa4;
+                width: 220px;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+                text-align: left;
             }
             .divider {
                 width: 100%;
@@ -92,5 +181,11 @@
                 border-bottom-right-radius: 4px;
             }
         }
+    }
+}
+
+.react-bs-table {
+    .caret {
+        vertical-align: baseline;
     }
 }

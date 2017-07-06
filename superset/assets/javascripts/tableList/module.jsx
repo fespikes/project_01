@@ -99,23 +99,41 @@ export function getTbType(data, widthPercent) {
 
 export function constructInceptorDataset(dataset) {
     let inceptorDataset = {};
+    inceptorDataset.dataset_type = "INCEPTOR";
     inceptorDataset.dataset_name = dataset.dataset_name;
-    inceptorDataset.dataset_type = dataset.dataset_type;
     inceptorDataset.table_name = dataset.table_name;
     inceptorDataset.schema = dataset.schema;
     inceptorDataset.database_id = dataset.database_id;
-    inceptorDataset.sql = dataset.sql;
+    inceptorDataset.sql = dataset.sql || '';
     inceptorDataset.description = dataset.description;
 
     return inceptorDataset;
 }
 
-export function constructHDFSDataset() {
-
+export function constructHDFSDataset(dataset) {
+    let hdfsDataset = {};
+    hdfsDataset.dataset_name = dataset.dataset_name;
+    hdfsDataset.dataset_type = 'HDFS';
+    hdfsDataset.database_id = dataset.inceptorConnectId;
+    hdfsDataset.description = dataset.description;
+    hdfsDataset.hdfs_path = "/tmp/jiajie/hdfs_table";//mock data
+    hdfsDataset.separator = dataset.separator;
+    hdfsDataset.columns = {
+        "names": ["birthday", "gender", "name"],
+        "types": ["date", "varchar(30)", "varchar(120)"]
+    };//mock data
+    hdfsDataset.hdfs_connection_id = dataset.hdfsConnectId;
+    hdfsDataset.file_type = dataset.file_type;
+    hdfsDataset.quote = dataset.quote;
+    hdfsDataset.skip_rows = parseInt(dataset.skip_rows);
+    hdfsDataset.next_as_header = dataset.next_as_header;
+    hdfsDataset.skip_more_rows = parseInt(dataset.skip_more_rows);
+    hdfsDataset.charset = dataset.charset;
+    return hdfsDataset;
 }
 
 export function constructUploadDataset() {
-
+    //TODO
 }
 
 export function constructFileBrowserData(data) {
@@ -143,5 +161,104 @@ export function appendTreeChildren(folderName, children, fbData) {
         }
     });
     return fbData;
+}
+
+export function getDatasetTitle(opeType, datasetType) {
+    let opeName = '';
+    if(opeType === 'add') {
+        opeName = "添加";
+    }else if(opeType === 'edit') {
+        opeName = "编辑";
+    }
+    return opeName + datasetType + '数据集';
+}
+
+export function getDatasetTab2Name(datasetType) {
+    let tab2Name = "配置";
+    if(datasetType === 'INCEPTOR') {
+        tab2Name = '预览';
+    }
+    return tab2Name;
+}
+
+export function extractDatasetType(url) {
+    const pathArray = url.split('/');
+    let type = pathArray[pathArray.length - 2];
+    return type;
+}
+
+export function extractOpeType(url) {
+    const pathArray = url.split('/');
+    return pathArray[1];
+}
+
+export function getDatasetId(opeType, pathname) {
+    let id = '';
+    const pathArray = pathname.split('/');
+    if(opeType === 'edit') {
+        id = pathArray[pathArray.length - 1];
+    }
+    return id;
+}
+
+export function initDatasetData(type, newData, oldData) {
+    let data = {};
+    switch(type) {
+        case 'INCEPTOR':
+            data = initInceptorData(newData, oldData);
+            break;
+        case 'HDFS':
+            data = initHDFSData(newData, oldData);
+            break;
+        case 'UPLOAD':
+            break;
+        default:
+            break;
+    }
+    return data;
+}
+
+function initInceptorData(newData, oldData) {
+    let inceptorData = {
+        dataset_type: 'INCEPTOR',
+        dataset_name: newData.dataset_name,
+        table_name: newData.table_name,
+        schema: newData.schema,
+        database_id: newData.database_id,
+        db_name: oldData.db_name,
+        sql: newData.sql,
+        description: newData.description,
+        databases: oldData.databases,
+        treeData: oldData.treeData
+    };
+    return inceptorData;
+}
+
+function initHDFSData(newData, oldData) {
+    let hdfsData = {
+        dataset_type: 'HDFS',
+        dataset_name: newData.dataset_name,
+        description: newData.description,
+        hdfsConnections: oldData.hdfsConnections,
+        inceptorConnections: oldData.inceptorConnections,
+        hdfsConnectId: oldData.hdfsConnectId,
+        inceptorConnectId: oldData.inceptorConnectId,
+        hdfsConnectName: oldData.hdfsConnectName,
+        inceptorConnectName: oldData.inceptorConnectName,
+        fileBrowserData: oldData.fileBrowserData,
+        hdfsPath: newData.hdfs_path,
+        charset: newData.charset,
+        file_type: newData.file_type,
+        next_as_header: newData.next_as_header,
+        quote: newData.quote,
+        separator: newData.separator,
+        skip_more_rows: newData.skip_more_rows,
+        skip_rows: newData.skip_rows
+    };
+    return hdfsData;
+}
+
+function initUploadData() {
+    //TODO
 }
 

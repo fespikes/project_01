@@ -29,21 +29,21 @@ export default class EditList extends Component {
             key: 'name',
             className: "name-column",
             sorter: (a, b) => a.name.localeCompare(b.name),
-            render: (text, record) => (<Tooltip placement="topRight" title={text} arrowPointAtCenter><a href={record.link}>{text}</a></Tooltip>)
+            render: (text, record) => (<a href={record.link}>{text}</a>)
         }, {
             title: '操作',
             dataIndex: 'action',
             key: 'action',
             className: "action-column",
             sorter: (a, b) => a.action.localeCompare(b.action),
-            render: (text) => (<Tooltip placement="topRight" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
+            render: (text) => (<span>{text}</span>)
         }, {
             title: '编辑时间',
             dataIndex: 'time',
             key: 'time',
             className: "time-column",
             sorter: (a, b) => { return a.time > b.time　? 1 : -1;},
-            render: (text) => (<Tooltip placement="top" title={text} arrowPointAtCenter><span>{text}</span></Tooltip>)
+            render: (text) => (<span>{text}</span>)
         }];
 
         return (

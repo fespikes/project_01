@@ -5,9 +5,10 @@ import {REHYDRATE} from 'redux-persist/constants';
 export default function subDetail(state = {
     //all below are radios
     datasetType: '',     //uploadFile HDFS inceptor
-    HDFSConnected: false,
-    operationType: 'table',    //table or SQL in inceptor
-    datasetId: ''
+    HDFSConnected: true,
+    datasetId: '',
+    dsHDFS: {},
+    dsInceptor: {}
 }, action) {
     switch (action.type) {
         case actionTypes.switchDatasetType:
@@ -16,14 +17,18 @@ export default function subDetail(state = {
         case actionTypes.switchHDFSConnected:
             return {...state, HDFSConnected: action.HDFSConnected};
             break;
-        case actionTypes.switchOperationType:
-            return {...state, operationType: action.operationType};
-            break;
         case actionTypes.saveDatasetId:
             return {...state, datasetId: action.datasetId};
             break;
+        case actionTypes.saveHDFSDataset:
+            return {...state, dsHDFS: action.dsHDFS};
+            break;
         case REHYDRATE:
-            return {...state, datasetId: action.payload.subDetail.datasetId};
+            if(action.payload.subDetail) {
+                return {...state, datasetId: action.payload.subDetail.datasetId};
+            }else {
+                return {...state, datasetId: ''}
+            }
             break;
         default:
             return state;
