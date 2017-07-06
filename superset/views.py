@@ -352,7 +352,7 @@ class SupersetModelView(ModelView, PageMixin):
     @catch_exception
     @expose('/add', methods=['GET', 'POST'])
     def add(self):
-        user_id = self.get_user_id()
+        user_id = get_user_id()
         json_data = self.get_request_data()
         obj = self.populate_object(None, user_id, json_data)
         self._add(obj)
@@ -368,14 +368,14 @@ class SupersetModelView(ModelView, PageMixin):
     @expose('/show/<pk>/', methods=['GET'])
     def show(self, pk):
         obj = self.get_object(pk)
-        user_id = self.get_user_id()
+        user_id = get_user_id()
         attributes = self.get_show_attributes(obj, user_id=user_id)
         return json.dumps(attributes)
 
     @catch_exception
     @expose('/edit/<pk>', methods=['GET', 'POST'])
     def edit(self, pk):
-        user_id = self.get_user_id()
+        user_id = get_user_id()
         json_data = self.get_request_data()
         obj = self.populate_object(pk, user_id, json_data)
         self._edit(obj)
@@ -454,13 +454,11 @@ class SupersetModelView(ModelView, PageMixin):
         return attributes
 
     def get_column_readme(self):
+        readme = {}
         if hasattr(self, 'readme_columns'):
-            readme = {}
             for col in self.readme_columns:
                 readme[col] = self.description_columns.get(col)
-            return readme
-        else:
-            return {}
+        return readme
 
     def get_add_attributes(self, data, user_id):
         attributes = {}
@@ -581,13 +579,6 @@ class SupersetModelView(ModelView, PageMixin):
                    'viz_type': slice.viz_type}
             slices_list.append(row)
         return slices_list
-
-    def get_user_id(self):
-        try:
-            user_id = g.user.get_id()
-            return int(user_id)
-        except Exception:
-            self.handle_exception(500, Exception, NO_USER)
 
     def get_request_data(self):
         data = request.data
@@ -1153,13 +1144,13 @@ class DatasetModelView(SupersetModelView):  # noqa
     def get_addable_choices(self):
         data = super().get_addable_choices()
         data['available_databases'] = \
-            self.get_available_connections(self.get_user_id())
+            self.get_available_connections(get_user_id())
         return data
 
     @catch_exception
     @expose('/databases/', methods=['GET', ])
     def addable_databases(self):
-        return json.dumps(self.get_available_connections(self.get_user_id()))
+        return json.dumps(self.get_available_connections(get_user_id()))
 
     @catch_exception
     @expose('/schemas/<database_id>/', methods=['GET', ])
@@ -1463,7 +1454,7 @@ class SliceModelView(SupersetModelView):  # noqa
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        dashs = self.get_available_dashboards(self.get_user_id())
+        dashs = self.get_available_dashboards(get_user_id())
         data['available_dashboards'] = self.dashboards_to_dict(dashs)
         return data
 
@@ -1652,7 +1643,7 @@ class DashboardModelView(SupersetModelView):  # noqa
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        slices = self.get_available_slices(self.get_user_id())
+        slices = self.get_available_slices(get_user_id())
         data['available_slices'] = self.slices_to_dict(slices)
         return data
 
