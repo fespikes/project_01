@@ -11,13 +11,14 @@ import logging
 import pickle
 import re
 import textwrap
+import random
+import string
 from copy import deepcopy, copy
-from datetime import timedelta, datetime, date
+from datetime import datetime
 from itertools import groupby
 
 import humanize
 import pandas as pd
-import requests
 import sqlalchemy as sqla
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import subqueryload
@@ -36,7 +37,7 @@ from datetime import date
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, Text, Boolean,
     DateTime, Date, Table, Numeric, LargeBinary,
-    create_engine, MetaData, desc, asc, select, and_, or_, func, update
+    create_engine, MetaData, desc, asc, select, and_, or_
 )
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import declared_attr
@@ -56,8 +57,6 @@ from superset.viz import viz_types
 from superset.jinja_context import get_template_processor
 from superset.utils import wrap_clause_in_parens, DTTM_ALIAS, QueryStatus
 
-
-# from superset.utils import flasher, MetricPermException, DimSelector
 
 config = app.config
 
@@ -183,15 +182,6 @@ class AuditMixinNullable(AuditMixin):
             <i class="fa fa-database"></i>
         </a>
         """.format(**locals())
-
-
-class Url(Model, AuditMixinNullable):
-
-    """Used for the short url feature"""
-
-    __tablename__ = 'url'
-    id = Column(Integer, primary_key=True)
-    url = Column(Text)
 
 
 slice_user = Table('slice_user', Model.metadata,
@@ -390,7 +380,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
             Dataset.release(slice.datasource)
         slice.online = True
         db.session.commit()
-        DailyNumber.log_number_for_all_users('slice')
+        DailyNumber.log_number('slice', True, None)
 
 
 sqla.event.listen(Slice, 'before_insert', set_related_perm)
@@ -638,7 +628,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             Slice.release(slc)
         dash.online = True
         db.session.commit()
-        DailyNumber.log_number_for_all_users('dashboard')
+        DailyNumber.log_number('dashboard', True, None)
 
 
 class Queryable(object):
@@ -969,7 +959,7 @@ class Database(Model, AuditMixinNullable):
     def release(cls, database):
         database.online = True
         db.session.commit()
-        DailyNumber.log_number_for_all_users('connection')
+        DailyNumber.log_number('connection', True, None)
 
 sqla.event.listen(Database, 'after_insert', set_perm)
 sqla.event.listen(Database, 'after_update', set_perm)
@@ -1003,7 +993,7 @@ class HDFSConnection(Model, AuditMixinNullable):
     def release(cls, conn):
         conn.online = True
         db.session.commit()
-        DailyNumber.log_number_for_all_users('connection')
+        DailyNumber.log_number('connection', True, None)
 
 
 class Connection(object):
@@ -1018,10 +1008,15 @@ class DatabaseAccount(Model):
     type = "table"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('ab_user.id'))
+    user_id = Column(Integer, ForeignKey('ab_user.id'), nullable=True)
     database_id = Column(Integer, ForeignKey('dbs.id'))
     username = Column(String(255))
     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
+    database = relationship(
+        'Database',
+        backref=backref('database_account', cascade='all, delete-orphan'),
+        foreign_keys=[database_id]
+    )
 
     @classmethod
     def insert_or_update_account(cls, user_id, db_id, username, password):
@@ -1226,12 +1221,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     table_name = Column(String(250))
     schema = Column(String(255))
     sql = Column(Text)
-
-    hdfs_table_id = Column(Integer, ForeignKey('hdfs_table.id'), nullable=True)
-    hdfs_table = relationship(
-        'HDFSTable',
-        backref=backref('dataset', cascade='all, delete, delete-orphan'),
-        foreign_keys=[hdfs_table_id])
 
     database_id = Column(Integer, ForeignKey('dbs.id'), nullable=False)
     database = relationship(
@@ -1627,9 +1616,27 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             query=sql,
             error_message=error_message)
 
+    def drop_temp_view(self, engine, view_name):
+        drop_view = "DROP VIEW IF EXISTS {}".format(view_name)
+        engine.execute(drop_view)
+
+    def create_temp_view(self, engine, view_name, sql):
+        self.drop_temp_view(engine, view_name)
+        create_view = "CREATE VIEW {} AS {}".format(view_name, sql)
+        engine.execute(create_view)
+
     def get_sqla_table_object(self):
         try:
-            return self.database.get_table(self.table_name, schema=self.schema)
+            engine = self.database.get_sqla_engine()
+            if self.sql:
+                view_name = "pilot_view_{}"\
+                    .format(''.join(random.sample(string.ascii_lowercase, 10)))
+                self.create_temp_view(engine, view_name, self.sql)
+                table = self.database.get_table(view_name, schema=self.schema)
+                self.drop_temp_view(engine, view_name)
+                return table
+            else:
+                return self.database.get_table(self.table_name, schema=self.schema)
         except Exception:
             raise Exception("Couldn't fetch table: [{}]'s information "
                             "in the specified database: [{}]"
@@ -1840,7 +1847,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             HDFSConnection.release(dataset.hdfs_table.hdfs_connection)
         dataset.online = True
         db.session.commit()
-        DailyNumber.log_number_for_all_users('dataset')
+        DailyNumber.log_number('dataset', True, None)
 
 sqla.event.listen(Dataset, 'after_insert', set_perm)
 sqla.event.listen(Dataset, 'after_update', set_perm)
@@ -1866,15 +1873,25 @@ class HDFSTable(Model, AuditMixinNullable):
         backref=backref('ref_hdfs_connection', lazy='joined'),
         foreign_keys=[hdfs_connection_id]
     )
+    dataset_id = Column(Integer, ForeignKey('dataset.id'))
+    dataset = relationship(
+        'Dataset',
+        backref=backref('hdfs_table', uselist=False, cascade='all, delete-orphan'),
+        foreign_keys=[dataset_id]
+    )
+
+    def __repr__(self):
+        return self.hdfs_path
 
     @staticmethod
-    def create_external_table(database, table_name, column_desc, hdfs_path,
+    def create_external_table(database, table_name, columns, hdfs_path,
                               separator=',', schema='default'):
         table_name = '{}.{}'.format(schema, table_name)
         sql = 'create external table {}('.format(table_name)
-        columns = json.loads(column_desc, object_pairs_hook=OrderedDict)
-        for c_name, c_type in columns.items():
-            sql = sql + c_name + " " + c_type + ","
+        names = columns.get('names')
+        types = columns.get('types')
+        for index, v in enumerate(names):
+            sql = sql + names[index] + " " + types[index] + ","
         sql = sql[:-1] \
               + ") row format delimited fields terminated by '" + separator \
               + "' location '" + hdfs_path + "'"
@@ -1906,47 +1923,6 @@ class Log(Model):
     referrer = Column(String(1024))
 
     record_action_types = ['online', 'offline']
-
-    @classmethod
-    def log_this(cls, action_str, obj=None, obj_id=None):
-        """Decorator to log user actions"""
-        def _log_this(f):
-            @functools.wraps(f)
-            def wrapper(*args, **kwargs):
-                start_dttm = datetime.now()
-                user_id = None
-                if g.user:
-                    user_id = g.user.get_id()
-                d = request.args.to_dict()
-                post_data = request.form or {}
-                d.update(post_data)
-                d.update(kwargs)
-                slice_id = d.get('slice_id', None)
-                try:
-                    slice_id = int(slice_id) if slice_id else None
-                except ValueError:
-                    slice_id = None
-                params = ""
-                try:
-                    params = json.dumps(d)
-                except:
-                    pass
-                value = f(*args, **kwargs)
-
-                sesh = db.session()
-                log = cls(
-                    action=action_str or f.__name__,
-                    json=params,
-                    dashboard_id=d.get('dashboard_id') or None,
-                    slice_id=slice_id,
-                    duration_ms=(datetime.now() - start_dttm).total_seconds() * 1000,
-                    referrer=request.referrer[:1000] if request.referrer else None,
-                    user_id=user_id)
-                sesh.add(log)
-                sesh.commit()
-                return value
-            return wrapper
-        return _log_this
 
     @classmethod
     def log_action(cls, action_type, action, obj_type, obj_id):
@@ -2093,7 +2069,7 @@ str_to_model = {
 
 class DailyNumber(Model):
     """ORM object used to log the daily number of objects.
-       object type string: slice'/dashboard/dataset/connection.
+       object type string: [slice, dashboard, dataset, connection].
        connection is the set of database and hdfsconnection
     """
     __tablename__ = 'daily_number'
@@ -2103,11 +2079,22 @@ class DailyNumber(Model):
     count = Column(Integer, nullable=False)
     dt = Column(Date, default=date.today())
 
+    type_convert = {
+        'dashboard': 'dashboard',
+        'slice': 'slice',
+        'dataset': 'dataset',
+        'table': 'dataset',
+        'sqlatable': 'dataset',
+        'connection': 'connection',
+        'databae': 'connection',
+        'hdfsconnection': 'connection'
+    }
+
     def __str__(self):
         return '{} {}s on {}'.format(self.count, self.type, self.dt)
 
     @classmethod
-    def log_number(cls, obj_type, user_id):
+    def do_log(cls, obj_type, user_id):
         today_count = cls.object_present_count(obj_type, int(user_id))
         today_record = (
             db.session.query(cls)
@@ -2158,7 +2145,11 @@ class DailyNumber(Model):
         return count
 
     @classmethod
-    def log_number_for_all_users(cls, obj_type):
-        users = db.session.query(User).all()
-        for user in users:
-            cls.log_number(obj_type, user.id)
+    def log_number(cls, obj_type, all_user, user_id=None):
+        obj_type = cls.type_convert.get(obj_type.lower())
+        if all_user is True:
+            users = db.session.query(User).all()
+            for user in users:
+                cls.do_log(obj_type, user.id)
+        else:
+            cls.do_log(obj_type, user_id)

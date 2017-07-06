@@ -191,25 +191,6 @@ def upgrade():
         sa.ForeignKeyConstraint(['database_id'], ['dbs.id'], ),
         sa.PrimaryKeyConstraint('id')
         )
-    op.create_table('hdfs_table',
-        sa.Column('created_on', sa.DateTime(), nullable=True),
-        sa.Column('changed_on', sa.DateTime(), nullable=True),
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('hdfs_path', sa.String(length=256), nullable=False),
-        sa.Column('separator', sa.String(length=256), nullable=False),
-        sa.Column('file_type', sa.String(length=32), nullable=True),
-        sa.Column('quote', sa.String(length=8), nullable=True),
-        sa.Column('skip_rows', sa.Integer(), nullable=True),
-        sa.Column('next_as_header', sa.Boolean(), nullable=True),
-        sa.Column('skip_more_rows', sa.Integer(), nullable=True),
-        sa.Column('nrows', sa.Integer(), nullable=True),
-        sa.Column('charset', sa.String(length=32), nullable=True),
-        sa.Column('hdfs_connection_id', sa.Integer(), sa.ForeignKey("hdfs_connection.id"), nullable=True),
-        sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
-        sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
-        sa.ForeignKeyConstraint(['hdfs_connection_id'], ['hdfs_connection.id'], ),
-        sa.PrimaryKeyConstraint('id')
-        )
     op.create_table('dataset',
         sa.Column('created_on', sa.DateTime(), nullable=True),
         sa.Column('changed_on', sa.DateTime(), nullable=True),
@@ -221,7 +202,6 @@ def upgrade():
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('default_endpoint', sa.Text(), nullable=True),
         sa.Column('database_id', sa.Integer(), nullable=False),
-        sa.Column('hdfs_table_id', sa.Integer(), nullable=True),
         sa.Column('is_featured', sa.Boolean(), nullable=True),
         sa.Column('filter_select_enabled', sa.Boolean(), nullable=True, server_default="1"),
         sa.Column('user_id', sa.Integer(), nullable=True),
@@ -237,8 +217,27 @@ def upgrade():
         sa.ForeignKeyConstraint(['database_id'], ['dbs.id'], ),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('dataset_name')
-        # sa.UniqueConstraint('database_id', 'schema', 'table_name', name='_customer_location_uc')
     )
+    op.create_table('hdfs_table',
+        sa.Column('created_on', sa.DateTime(), nullable=True),
+        sa.Column('changed_on', sa.DateTime(), nullable=True),
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('hdfs_path', sa.String(length=256), nullable=False),
+        sa.Column('separator', sa.String(length=256), nullable=False),
+        sa.Column('file_type', sa.String(length=32), nullable=True),
+        sa.Column('quote', sa.String(length=8), nullable=True),
+        sa.Column('skip_rows', sa.Integer(), nullable=True),
+        sa.Column('next_as_header', sa.Boolean(), nullable=True),
+        sa.Column('skip_more_rows', sa.Integer(), nullable=True),
+        sa.Column('nrows', sa.Integer(), nullable=True),
+        sa.Column('charset', sa.String(length=32), nullable=True),
+        sa.Column('hdfs_connection_id', sa.Integer(), sa.ForeignKey("hdfs_connection.id"), nullable=True),
+        sa.Column('dataset_id', sa.Integer(), nullable=True),
+        sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
+        sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
+        sa.ForeignKeyConstraint(['hdfs_connection_id'], ['hdfs_connection.id'], ),
+        sa.PrimaryKeyConstraint('id')
+        )
     op.create_table('sql_metrics',
         sa.Column('created_on', sa.DateTime(), nullable=True),
         sa.Column('changed_on', sa.DateTime(), nullable=True),
