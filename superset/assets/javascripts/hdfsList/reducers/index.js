@@ -1,27 +1,93 @@
 import { combineReducers } from 'redux';
-import { actionTypes  } from '../actions';
+import { actionTypes, popupActions, popupNormalActions } from '../actions';
 
 function condition(state = {
-    page: 1,
-    pageSize: 10,
-    orderDirection: 'desc',//取值 ('desc' or 'asc'),
-    filter: '',//搜索字符串,
-    tableType: 'all',//选择数据集类型时需要('database','hdfs', 'upload');
+    page:0,
+    pageSize:10,
+    //order_column,：取值：'name','online','changed_on','connection_type', 'owner';默认：'changed_on'.
+    //order_direction: 取值：'desc' or 'asc', 默认：'desc'
+    filter: '',
+
     selectedRowKeys: [],
-    selectedRowNames: []
+    selectedRowNames: [],
+
+//    breadCrumbText: '',
+    connectionID: '',
+
+    manipulate: '',
+    upload: ''
 }, action) {
     switch (action.type) {
-        case actionTypes.navigateTo:
+        case actionTypes.fetchConnections:
             return {...state, page: action.pageNumber};
             break;
-        case actionTypes.changePageSize:
-            return {...state, pageSize: action.pageSize};           //TODO
+        case actionTypes.receiveData:
+            return {...state, connectionID: action.condition.connectionID};
             break;
         case actionTypes.search:
             return {...state, filter: action.filter};
             break;
-        case actionTypes.selectType:
-            return {...state, tableType: action.tableType};
+        case actionTypes.setSelectedRows:
+            return {
+                ...state,
+                selectedRowKeys: action.selectedRowKeys,
+                selectedRowNames: action.selectedRowNames
+            };
+            break;
+        default:
+            return state;
+    }
+}
+
+function popupParam (state={
+    //popup callbacks
+    submit: argu=>argu,
+    closeDialog: argu=>argu,
+
+    status: 'flex',//flex, none
+    response: [],
+    showAlert: false
+
+}, action) {
+    switch (action.type) {
+        case popupActions.popupChangeStatus:
+            return {...state, status:action.status};
+        case popupActions.setPopupParam:
+            return {...state, response:action.response, status: action.status};
+            break;
+        default:
+            return state;
+    }
+}
+
+//used only in operation bar
+function popupNormalParam (state={
+    //popup callbacks
+    submit: argu=>argu,
+    closeDialog: argu=>argu,
+
+    status: 'none',//flex, none
+    showAlert: false,
+    popupType: 'mkdir',
+
+    path: '',
+    dirName: '',
+    connectionID: ''
+
+}, action) {
+    switch (action.type) {
+        case popupNormalActions.popupChangeStatus:
+            return {...state, status:action.status};
+        case popupNormalActions.setPopupParam:
+            return {
+                ...state,
+                path: action.path,
+                dirName: action.dirName,
+                connectionID: action.connectionID,
+                popupType: action.popupType,
+                submit:action.submit,
+                status: action.status
+            };
             break;
         default:
             return state;
@@ -36,39 +102,18 @@ function emitFetch(state = {
     switch (action.type) {
         case actionTypes.invalidateCondition:
             return {...state, didInvalidate: true};
-        case actionTypes.sendRequest:
-            return Object.assign({}, state, {
-                isFetching: true,
-                didInvalidate: false,
-            });
         case actionTypes.receiveData:
-            return Object.assign({}, state, {
-                isFetching: false,
-                didInvalidate: false,
-                response: action.response
-            });
+            return {...state, response: action.response};
         default:
         return state;
     }
 }
 
-function requestByCondition (state = {}, action) {
-    switch (action.type) {
-        case actionTypes.invalidateCondition:
-        case actionTypes.sendRequest:
-        case actionTypes.receiveData:
-            return Object.assign({}, state, {
-                [action.condition.tableType]: emitFetch(state[action.condition.tableType], action),
-            });
-
-        default:
-            return state;
-    }
-}
-
 const rootReducer = combineReducers({
     condition,
-    requestByCondition
+    popupParam,
+    popupNormalParam,
+    emitFetch
 });
 
 export default rootReducer;
