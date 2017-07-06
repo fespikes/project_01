@@ -64,13 +64,13 @@ class SubDetail extends Component {
     /* inceptor field operation start */
     handleDatasetChange(e) {
         if(this.state.dataset_type === 'INCEPTOR') {
-            let objInceptor = this.state.dsInceptor;
+            let objInceptor = {...this.state.dsInceptor};
             objInceptor.dataset_name = e.currentTarget.value;
             this.setState({
                 dsInceptor: objInceptor
             });
         }else if(this.state.dataset_type === 'HDFS' || this.state.dataset_type === 'UPLOAD') {
-            let objHDFS = this.state.dsHDFS;
+            let objHDFS = {...this.state.dsHDFS};
             objHDFS.dataset_name = e.currentTarget.value
             this.setState({
                 dsHDFS: objHDFS
@@ -80,13 +80,13 @@ class SubDetail extends Component {
 
     handleDescriptionChange(e) {
         if(this.state.dataset_type === 'INCEPTOR') {
-            let objInceptor = this.state.dsInceptor;
+            let objInceptor = {...this.state.dsInceptor};
             objInceptor.description = e.currentTarget.value;
             this.setState({
                 dsInceptor: objInceptor
             });
         }else if(this.state.dataset_type === 'HDFS' || this.state.dataset_type === 'UPLOAD') {
-            let objHDFS = this.state.dsHDFS;
+            let objHDFS = {...this.state.dsHDFS};
             objHDFS.description = e.currentTarget.value;
             this.setState({
                 dsHDFS: objHDFS
@@ -95,7 +95,7 @@ class SubDetail extends Component {
     }
 
     handleSQLChange(e) {
-        let objInceptor = this.state.dsInceptor;
+        let objInceptor = {...this.state.dsInceptor};
         objInceptor.sql = e.currentTarget.value;
         this.setState({
             dsInceptor: objInceptor
@@ -109,7 +109,7 @@ class SubDetail extends Component {
         function callback(success, data) {
             if(success) {
                 let treeData = constructTreeData(data, false, 'folder');
-                let objInceptor = me.state.dsInceptor;
+                let objInceptor = {...me.state.dsInceptor};
                 objInceptor.database_id = dbId;
                 objInceptor.db_name = node.props.children;
                 objInceptor.treeData = treeData;
@@ -124,7 +124,7 @@ class SubDetail extends Component {
 
     onSelectTable(value, node) {
         if(node.props.category === 'file') {
-            let dsInceptor = this.state.dsInceptor;
+            let dsInceptor = {...this.state.dsInceptor};
             dsInceptor.table_name = value;
             this.setState({
                 dsInceptor: dsInceptor
@@ -145,7 +145,7 @@ class SubDetail extends Component {
                     data,
                     JSON.parse(JSON.stringify(me.state.dsInceptor.treeData))
                 );
-                let dsInceptor = me.state.dsInceptor;
+                let dsInceptor = {...me.state.dsInceptor};
                 dsInceptor.schema = schema;
                 dsInceptor.treeData = treeData;
                 me.setState({
@@ -229,7 +229,7 @@ class SubDetail extends Component {
     }
 
     onHDFSConnectChange(value, node) {
-        let objHDFS = this.state.dsHDFS;
+        let objHDFS = {...this.state.dsHDFS};
         objHDFS.hdfsConnectId = value;
         objHDFS.hdfsConnectName = node.props.children;
         this.setState({
@@ -238,7 +238,7 @@ class SubDetail extends Component {
     }
 
     onInceptorConnectChange(value, node) {
-        let objHDFS = this.state.dsHDFS;
+        let objHDFS = {...this.state.dsHDFS};
         objHDFS.inceptorConnectId = value;
         objHDFS.inceptorConnectName = node.props.children;
         this.setState({
@@ -247,7 +247,7 @@ class SubDetail extends Component {
     }
 
     onSelectHDFS(value, node) {
-        let objHDFS = this.state.dsHDFS;
+        let objHDFS = {...this.state.dsHDFS};
         objHDFS.hdfsPath = node.props.hdfs_path;
         this.setState({
             dsHDFS: objHDFS
@@ -267,7 +267,7 @@ class SubDetail extends Component {
                     data,
                     JSON.parse(JSON.stringify(me.state.dsHDFS.fileBrowserData))
                 );
-                let objHDFS = me.state.dsHDFS;
+                let objHDFS = {...me.state.dsHDFS};
                 objHDFS.fileBrowserData = treeData;
                 me.setState({
                     dsHDFS: objHDFS
@@ -286,7 +286,7 @@ class SubDetail extends Component {
     /* file field operation start */
     handleFile() {
         this.refs.fileName.innerText = this.refs.fileSelect.files[0].name;
-        let objHDFS = this.state.dsHDFS;
+        let objHDFS = {...this.state.dsHDFS};
         objHDFS.uploadFileName = this.refs.fileSelect.files[0].name;
         this.setState({
             dsHDFS: objHDFS
@@ -339,7 +339,7 @@ class SubDetail extends Component {
         fetchDatabaseList(callback);
         function callback(success, data) {
             if(success) {
-                let objInceptor = me.state.dsInceptor;
+                let objInceptor = {...me.state.dsInceptor};
                 objInceptor.databases = data;
                 me.setState({
                     dsInceptor: objInceptor
@@ -354,7 +354,7 @@ class SubDetail extends Component {
         fetchInceptorConnectList(inceptorCallback);
         function inceptorCallback(success, data) {
             if(success) {
-                let objInceptor = me.state.dsHDFS;
+                let objInceptor = {...me.state.dsHDFS};
                 objInceptor.inceptorConnections = data;
                 me.setState({
                     dsHDFS: objInceptor
@@ -369,7 +369,7 @@ class SubDetail extends Component {
         fetchHDFSConnectList(hdfsCallback);
         function hdfsCallback(success, data) {
             if(success) {
-                let objHDFS = me.state.dsHDFS;
+                let objHDFS = {...me.state.dsHDFS};
                 objHDFS.hdfsConnections = data;
                 me.setState({
                     dsHDFS: objHDFS
@@ -407,7 +407,7 @@ class SubDetail extends Component {
             fileCallback(true, fileBrowserData);
             function fileCallback(success, fileBrowserData) {
                 if(success) {
-                    let objHDFS = me.state.dsHDFS;
+                    let objHDFS = {...me.state.dsHDFS};
                     objHDFS.fileBrowserData = constructFileBrowserData(fileBrowserData);
                     me.setState({
                         dsHDFS: objHDFS
@@ -427,7 +427,7 @@ class SubDetail extends Component {
                         fetchSchemaList(data.database_id, callbackSchemaList);
                         function callbackDBName(success, db) {
                             if(success) {
-                                let objIncpetor = me.state.dsInceptor;
+                                let objIncpetor = {...me.state.dsInceptor};
                                 objIncpetor.db_name = db.database_name;
                                 me.setState({
                                     dsInceptor: initDatasetData('INCEPTOR', data, objIncpetor)
@@ -437,7 +437,7 @@ class SubDetail extends Component {
                         function callbackSchemaList(success, data) {
                             if(success) {
                                 let treeData = constructTreeData(data, false, 'folder');
-                                let objIncpetor = me.state.dsInceptor;
+                                let objIncpetor = {...me.state.dsInceptor};
                                 objIncpetor.treeData = treeData;
                                 me.setState({
                                     dsInceptor: objIncpetor
@@ -450,7 +450,7 @@ class SubDetail extends Component {
                         fetchHDFSDetail(data.hdfs_connection_id, hdfsCallback);
                         function dbCallback(success, dbData) {
                             if(success) {
-                                let objHDFS = me.state.dsHDFS;
+                                let objHDFS = {...me.state.dsHDFS};
                                 objHDFS.inceptorConnectName = dbData.database_name;
                                 me.setState({
                                     dsHDFS: initDatasetData('HDFS', data, objHDFS)
@@ -460,7 +460,7 @@ class SubDetail extends Component {
                         }
                         function hdfsCallback(success, hdfsData) {
                             if(success) {
-                                let objHDFS = me.state.dsHDFS;
+                                let objHDFS = {...me.state.dsHDFS};
                                 objHDFS.hdfsConnectName = hdfsData.connection_name;
                                 me.setState({
                                     dsHDFS: initDatasetData('HDFS', data, objHDFS)

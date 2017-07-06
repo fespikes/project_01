@@ -55,7 +55,7 @@ class SubPreview extends Component {
     }
 
     charsetChange(value, node) {
-        let objHDFS = this.state.dsHDFS;
+        let objHDFS = {...this.state.dsHDFS};
         objHDFS.charset = node.props.children;
         this.setState({
             dsHDFS: objHDFS
@@ -63,7 +63,7 @@ class SubPreview extends Component {
     }
 
     saveHDFSFilterParam() {
-        let objHDFS = this.state.dsHDFS;
+        let objHDFS = {...this.state.dsHDFS};
         objHDFS.file_type = this.refs.fileType.value;
         objHDFS.separator = this.refs.separator.value;
         objHDFS.quote = this.refs.quote.value;
