@@ -1,13 +1,25 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { fetchIfNeeded } from '../actions';
-import { Pagination, Table, Operate } from '../components';
+import * as actions from '../actions';
+import { Pagination, Table, Operate, PopupConnections } from '../components';
 import PropTypes from 'prop-types';
+
 import '../style/hdfs.scss';
 
 class Main extends Component {
-    constructor(props) {
+
+    getChildContext () {
+        const { dispatch, condition } = this.props;
+        this.dispatch = dispatch;
+        return {
+            dispatch: dispatch,
+            connectionID: condition.connectionID
+        }
+
+    }
+
+    constructor(props, context) {
         super(props);
         this.state = {
             breadCrumbEditable: false
@@ -15,18 +27,22 @@ class Main extends Component {
     }
 
     componentDidMount() {
-        const { dispatch, condition } = this.props;
-        dispatch(fetchIfNeeded(condition));
+        const {condition, fetchConnections } = this.props;
+        const callback = argu => {
+            console.log(argu, 'in fetchConnections-callback');
+        }
+        fetchConnections(condition, callback);
     }
 
-    componentWillReceiveProps(nextProps) {
-        const { dispatch, condition } = nextProps;
+    componentWillReceiveProps (nextProps) {
+        const { condition } = nextProps;
 
-        if (nextProps.condition.filter !== this.props.condition.filter ||
-            nextProps.condition.onlyFavorite !== this.props.condition.onlyFavorite ||
-            nextProps.condition.tableType !== this.props.condition.tableType
+        if (condition.filter !== this.props.condition.filter ||
+            condition.onlyFavorite !== this.props.condition.onlyFavorite ||
+            condition.tableType !== this.props.condition.tableType ||
+            nextProps.popupNormalParam.status==='none' && this.props.popupNormalParam.status==='flex'
         ) {
-            dispatch(fetchIfNeeded(condition));
+            this.props.fetchIfNeeded(condition);
         }
     }
 
@@ -36,30 +52,66 @@ class Main extends Component {
         })
     }
 
-    render() {
-        const {dispatch, response, condition} = this.props;
-        const count = response.count;
-        const breadCrumbText = 'Home/Application Center/An Application/';
+    render () {
+
+        const {
+            popupActions,
+
+            popupParam,
+
+            condition,
+            emitFetch,
+
+            fetchIfNeeded,
+            popupChangeStatus,
+
+            setSelectedRows
+        } = this.props;
 
         const editable = this.state.breadCrumbEditable;
+        //TODO: what does edit folder path mean here???
+
+
+        const connectionResponse= popupParam.response;
+
+        const response = emitFetch.response;
+
+        let username = "TODO: user name";
+
+        let count=0, breadCrumbText = `user/${username}`;
+        if (response.length >0) {
+            count = response.page.total_count;
+            breadCrumbText = response.path;
+        }
 
         return (
             <div className="hdfs-panel">
+                <div className="popupContainer">
+                    <PopupConnections
+                        response={connectionResponse}
+                        {...popupParam}
+                        {...popupActions}
+                        submit={fetchIfNeeded}
+                        popupChangeStatus={popupChangeStatus}
+                    />
+                </div>
                 <div className="panel-top">
                     <div className="left">
                         <span className="f14">路径</span>
-                        <span contentEditable={editable} className="bread-crumb-span">
-                            <small className="text">Home</small>
-                            <small className="slash">/</small>
-                            <small className="text">Application Center</small>
-                            <small className="slash">/</small>
-                            <small>An Application</small>
-                            <small className="crumb">/</small>
-                        </span>
+{/*
+<span contentEditable={editable} className="bread-crumb-span">
 
-                        {/*<textarea contentEditable="true">
-                        {breadCrumbText}
-                        </textarea>*/}
+    <small className="text">Home</small>
+    <small className="slash">/</small>
+    <small className="text">Application Center</small>
+    <small className="slash">/</small>
+    <small>An Application</small>
+    <small className="crumb">/</small>
+</span>*/}
+
+                        <span contentEditable={editable}>
+                            &nbsp;&nbsp;<small className="text">{breadCrumbText}</small>&nbsp;&nbsp;
+                        </span>
                         <i
                             className="icon icon-edit"
                             onClick={() => this.breadCrumbEditable()}
@@ -72,7 +124,6 @@ class Main extends Component {
                     </div>
                     <div className="right">
                         <Operate
-                            dispatch={dispatch}
                             tableType={condition.tableType}
                             selectedRowKeys={condition.selectedRowKeys}
                             selectedRowNames={condition.selectedRowNames}
@@ -81,13 +132,12 @@ class Main extends Component {
                 </div>
                 <div className="panel-middle">
                     <Table
-                        dispatch={dispatch}
                         {...response}
+                        setSelectedRows={setSelectedRows}
                     />
                 </div>
                 <div className="panel-bottom">
                     <Pagination
-                        dispatch={dispatch}
                         count={count}
                         pageSize={condition.pageSize}
                         pageNumber={condition.page}
@@ -100,30 +150,46 @@ class Main extends Component {
 
 Main.propTypes = {};
 
-function mapStateToProps(state) {
-    const { condition, requestByCondition } = state;
+function mapStateToProps (state, pros) {
+    const { condition, popupParam, emitFetch, popupNormalParam } = state;
 
-    const {
-        isFetching,
-        response        ///
-    } = requestByCondition[condition.tableType]||{
-        isFetching: true,
-        response: {}
-    }
     return {
         condition,
-        response,
-        isFetching
+        emitFetch,
+        popupParam,
+
+        popupNormalParam
     };
 }
 
-function mapDispatchToProps(dispatch) {
-  return {
-    actions: bindActionCreators(actions, dispatch),
-  };
+function mapDispatchToProps (dispatch) {
+    const {
+        fetchConnections,
+        setPopupParam,
+        fetchIfNeeded,
+        popupChangeStatus,
+
+        setSelectedRows
+    } = bindActionCreators(actions, dispatch);
+
+    return {
+        fetchConnections,
+        setPopupParam,
+        popupActions:actions.popupActions,
+        fetchIfNeeded,
+        popupChangeStatus,
+        setSelectedRows,
+        dispatch
+    };
+}
+
+Main.childContextTypes = {
+    connectionID: PropTypes.string.isRequired,
+    dispatch: PropTypes.func.isRequired
 }
 
 export default connect(
-    mapStateToProps
+    mapStateToProps,
+    mapDispatchToProps
 )(Main);
 

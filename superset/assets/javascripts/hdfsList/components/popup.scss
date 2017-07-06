@@ -1,0 +1,61 @@
+
+.popup {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    left: 0;
+    top: 0;
+}
+.none{
+    display:none;
+}
+
+
+.popup .popup-body {
+    width: 100%;
+    min-height: 200px;
+    padding: 10px 0;
+}
+
+.popup-body-common {
+    padding: 20px 40px;
+}
+
+
+
+.data-detail-item{
+    margin-top:20px;
+    align-items: center;
+    display:flex;
+}
+.data-detail-item>span{
+    color:#7c8ca5;
+    font-size:12px;
+    display:block;
+    width:120px;
+    text-align:right;
+    margin-right:10px;
+}
+.data-detail-item>input{
+    width:420px;
+    height:34px;
+    border-radius: 4px;
+    border:1px solid #dfe3e9;
+    padding-left:10px;
+    box-sizing: border-box;
+}
+
+.data-detail-border{
+    border-bottom:1px solid #dfe3e9;
+    padding-bottom:25px;
+}
+.data-detail-item
+.ant-select-selection.ant-select-selection--single{
+    border:1px #ddd solid;
+}
