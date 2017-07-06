@@ -40,17 +40,16 @@ class DisplayOriginalTable extends React.Component {
             url: url,
             type: 'GET',
             success: response => {
-
-                if (response.status===200) {
-                    response = JSON.parse(response);
-                    let treeData = appendTreeData(schema, response, JSON.parse(JSON.stringify(self.state.treeData)));
-                    self.setState({
-                        treeData: treeData,
-                        currentSchema: schema
-                    });
-                } else {
-                    console.log(response.message);
-                }
+                response = JSON.parse(response);
+                let treeData = appendTreeData(
+                    schema,
+                    response,
+                    JSON.parse(JSON.stringify(self.state.treeData))
+                );
+                self.setState({
+                    treeData: treeData,
+                    currentSchema: schema
+                });
             },
             error: error => {
                 console.log(error);
@@ -65,7 +64,6 @@ class DisplayOriginalTable extends React.Component {
             currentDbId: databaseId
         });
         let url = window.location.origin + '/table/schemas/' + databaseId;
-        console.log("url=", url);
         $.ajax({
             url: url,
             type: 'GET',

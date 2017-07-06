@@ -516,7 +516,7 @@ class SubDetail extends Component {
                         </div>
                         <div className="data-detail-item">
                             <span>描述：</span>
-                        <textarea value={this.state.dsInceptor.description}
+                            <textarea value={this.state.dsInceptor.description}
                                   defaultValue="" onChange={this.handleDescriptionChange}/>
                         </div>
                         <div className="data-detail-item">
