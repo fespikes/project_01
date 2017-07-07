@@ -112,6 +112,7 @@ class SliceTable extends React.Component {
                                 <i className="icon icon-edit"/>
                             </Link>
                             <i
+                                style={{marginLeft: 20}}
                                 className="icon icon-delete"
                                 onClick={() => deleteTable(record)}
                             />
