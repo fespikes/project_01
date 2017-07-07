@@ -115,36 +115,6 @@ def load_examples(load_test_data):
         data.load_unicode_test_data()
 
 
-@manager.option(
-    '-d', '--datasource',
-    help=(
-        "Specify which datasource name to load, if omitted, all "
-        "datasources will be refreshed"))
-@manager.option(
-    '-m', '--merge',
-    help=(
-        "Specify using 'merge' property during operation. "
-        "Default value is False "))
-def refresh_druid(datasource, merge):
-    """Refresh druid datasources"""
-    session = db.session()
-    from superset import models
-    for cluster in session.query(models.DruidCluster).all():
-        try:
-            cluster.refresh_datasources(datasource_name=datasource,
-                                        merge_flag=merge)
-        except Exception as e:
-            print(
-                "Error while processing cluster '{}'\n{}".format(
-                    cluster, str(e)))
-            logging.exception(e)
-        cluster.metadata_last_refreshed = datetime.now()
-        print(
-            "Refreshed metadata from cluster "
-            "[" + cluster.cluster_name + "]")
-    session.commit()
-
-
 @manager.command
 def worker():
     """Starts a worker for async SQL query execution."""
