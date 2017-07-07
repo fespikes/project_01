@@ -1600,6 +1600,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 engine, compile_kwargs={"literal_binds": True},),
         )
         sql = sqlparse.format(sql, reindent=True)
+        logging.info(sql)
         status = QueryStatus.SUCCESS
         error_message = None
         df = None
