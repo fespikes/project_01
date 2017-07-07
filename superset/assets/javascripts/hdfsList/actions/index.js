@@ -33,19 +33,18 @@ const ORIGIN = window.location.origin;
 const connectionListUrl = `${ORIGIN}/connection/listdata`;
 const baseURL = `${ORIGIN}/hdfsfilebrowser?`;
 
+const errorHandler = error => alert(error);
+
 /**
 @description: S-mock
 */
 const connectionsMock = require('../mock/connections.json');
-
-
 
 //@description: E-mock
 
 export function fetchConnections (condition, callback) {
     callback = callback || (argu=> argu);
     return (dispatch, getState) => {
-        const errorHandler = error => alert(error);
 
         return fetch(connectionListUrl, {
             credentials: 'include',
@@ -105,6 +104,9 @@ export function fetchOperation () {
             case CONSTANT.auth:
                 submit = fetchAuth;
                 break;
+            case CONSTANT.upload:
+                submit = fetchUpload;
+                break;
             default:
             break;
         }
@@ -117,7 +119,7 @@ function fetchMove () {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL+`action=mkdir&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL+`action=move&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
 //TODO:get the path and dest_path
 //TODO:set the params befor commit
@@ -145,7 +147,7 @@ function fetchCopy () {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL+`action=mkdir&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL+`action=copy&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
         return fetch(URL, {
             credentials: 'include',
@@ -161,12 +163,14 @@ function fetchCopy () {
         });
     }
 }
+
+//no api but have the function
 function fetchAuth () {
     return (dispatch, getState) => {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL+`action=mkdir&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL+`action=&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
         return fetch(URL, {
             credentials: 'include',
@@ -188,7 +192,7 @@ function fetchUpload () {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL+`action=mkdir&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL+`action=upload&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
         return fetch(URL, {
             credentials: 'include',
@@ -210,7 +214,7 @@ function fetchRemove () {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL+`action=mkdir&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL+`action=remove&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
         return fetch(URL, {
             credentials: 'include',
