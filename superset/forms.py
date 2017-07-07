@@ -493,7 +493,7 @@ class FormFactory(object):
             }),
             'since': (FreeFormSelectField, {
                 "label": _("Since"),
-                "default": "7 days ago",
+                "default": "100 years ago",
                 "choices": (
                     ('1 hour ago', _('1 hour ago')),
                     ('12 hours ago', _('12 hours ago')),
