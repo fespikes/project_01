@@ -412,7 +412,7 @@ class SupersetModelView(ModelView, PageMixin):
             all_user = True if obj.online else all_user
             check_ownership(obj)
         self.datamodel.delete_all(objs)
-        log_number(self.model.__class__.__name__, all_user, get_user_id())
+        log_number(self.model.__name__, all_user, get_user_id())
         return build_response(200, True, DELETE_SUCCESS)
 
     def get_addable_choices(self):
