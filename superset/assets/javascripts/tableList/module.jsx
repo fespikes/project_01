@@ -43,7 +43,7 @@ export function getTbTitleInceptor(commonTitle) {
     tbTitle.map(column => {
         column.render = (text) => {
             return (
-                <input className='column-type' value={text}/>
+                <span className="column-type">{text}</span>
             )
         }
     });
