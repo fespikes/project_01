@@ -1,19 +1,37 @@
 import React from 'react';
 import { Select } from 'antd';
 
-export function getWidthPercent(number) {
-    let percent = Math.floor(100/number) + '%';
-    return percent;
+const MIN_WIDTH = 120;
+const MAX_COLUMNS = 10;
+const SCREEN_WIDTH = document.body.clientWidth - 100;
+export function getTableWidth(number) {
+    let width = '100%';
+    if(number <= MAX_COLUMNS || Math.floor(SCREEN_WIDTH/number) >= MIN_WIDTH) {
+        width = '100%';
+    }else {
+        width = MIN_WIDTH * number;
+    }
+    return width;
 }
 
-export function getTbTitle(data, widthPercent) {
+export function getColumnWidth(number) {
+    let width = MIN_WIDTH;
+    if(number <= MAX_COLUMNS || Math.floor(SCREEN_WIDTH/number) >= MIN_WIDTH) {
+        width = Math.floor(100/number) + '%';
+    }else {
+        width = MIN_WIDTH;
+    }
+    return width;
+}
+
+export function getTbTitle(data, width) {
     let tbTitle = [];
     data.columns.map((column) => {
         let objTitle = {
             title: column,
             dataIndex: column,
             key: column,
-            width: widthPercent
+            width: width
         };
         tbTitle.push(objTitle);
     });
@@ -65,7 +83,7 @@ export function getTbTitleHDFS(commonTitle) {
     return tbTitle;
 }
 
-export function getTbContent(data, widthPercent) {
+export function getTbContent(data) {
     let tbContent = [];
     data.columns.map((column) => {
         let values = data.data[column];
@@ -74,7 +92,6 @@ export function getTbContent(data, widthPercent) {
                 let objContent = {};
                 objContent[column] = values[index];
                 objContent.key = index;
-                objContent.width = widthPercent;
                 tbContent.push(objContent);
             }else {
                 tbContent[index][column] = values[index];
@@ -84,7 +101,7 @@ export function getTbContent(data, widthPercent) {
     return tbContent;
 }
 
-export function getTbType(data, widthPercent) {
+export function getTbType(data) {
     let types = data.types;
     let objType = {};
     let tbType = [];
@@ -92,7 +109,6 @@ export function getTbType(data, widthPercent) {
         objType[column] = types[index];
     });
     objType.key = 'type';
-    objType.width = widthPercent;
     tbType.push(objType);
     return tbType;
 }
