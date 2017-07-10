@@ -161,6 +161,10 @@
                     padding-left: 20px;
                 }
 
+                .time-column, .action-column {
+                    padding: 16px 8px;
+                }
+
                 th {
                     span {
                         font-weight: 500;
@@ -182,19 +186,27 @@
                     }
 
                     .name-column {
-                        width: 160px;
+                        width: 200px;
                         text-overflow: ellipsis;
                         overflow: hidden;
                         white-space: nowrap;
                         padding-left: 20px;
                         font-weight: bold;
+
+                        a {
+                            width: 180px;
+                        }
                     }
 
                     .action-column {
-                        width: 300px;
+                        width: 260px;
                         text-overflow: ellipsis;
                         overflow: hidden;
                         white-space: nowrap;
+
+                        span {
+                            width: 260px;
+                        }
                     }
 
                     td {
@@ -207,6 +219,10 @@
 
                         span {
                             font-weight: 500;
+                            text-overflow: ellipsis;
+                            overflow: hidden;
+                            white-space: nowrap;
+                            display: block;
                         }
 
                         a {
@@ -273,6 +289,14 @@
                         width: 160px;
                         padding: 8px;
                         padding-left: 20px;
+
+                        span {
+                            width: 120px;
+                            display: block;
+                            text-overflow: ellipsis;
+                            overflow: hidden;
+                            white-space: nowrap;
+                        }
                     }
 
                     .action-column {
