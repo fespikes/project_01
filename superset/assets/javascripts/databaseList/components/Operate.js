@@ -28,6 +28,7 @@ class Operate extends React.Component {
         };
 
         this.onChange = this.onChange.bind(this);
+        this.onEnterSearch = this.onEnterSearch.bind(this);
         this.onDelete = this.onDelete.bind(this);
         this.onAdd = this.onAdd.bind(this);
         this.onSearch = this.onSearch.bind(this);
@@ -105,6 +106,12 @@ class Operate extends React.Component {
         this.dispatch(search(filter));
     }
 
+    onEnterSearch(event) {
+        if(event.keyCode === 13) {
+            this.onSearch();
+        }
+    }
+
     render () {
         const DBTypes = this.state.DBTypes;
 
@@ -127,8 +134,8 @@ class Operate extends React.Component {
                     </li>
                 </ul>
                 <div className="search-input">
-                    <input onChange={this.onChange} ref="searchField" placeholder="search..." />
-                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"></i>
+                    <input  onKeyUp={this.onEnterSearch} onChange={this.onChange} ref="searchField" placeholder="search..." />
+                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"/>
 
                 </div>
             </div>
