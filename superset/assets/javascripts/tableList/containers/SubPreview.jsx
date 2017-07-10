@@ -7,7 +7,7 @@ import { Link, withRouter } from 'react-router-dom';
 import * as actionCreators from '../actions';
 import { extractUrlType } from '../utils';
 import { Table, Input, Button, Icon, Select, Alert } from 'antd';
-import { getWidthPercent, getTbTitle, getTbContent, getTbType, getTbTitleHDFS,
+import { getTableWidth, getColumnWidth, getTbTitle, getTbContent, getTbType, getTbTitleHDFS,
     getTbTitleInceptor, extractOpeType, constructHDFSDataset, getDatasetId } from '../module';
 
 function showAlert(response) {
@@ -31,6 +31,7 @@ class SubPreview extends Component {
     constructor (props) {
         super(props);
         this.state = {
+            tableWidth: '100%',
             dsHDFS: props.dsHDFS
         };
         //bindings
@@ -45,7 +46,9 @@ class SubPreview extends Component {
         fetchDatasetPreviewData(datasetId, callback);
         function callback(success, data) {
             if(success) {
+                let width = getTableWidth(data.columns.length);
                 me.setState({
+                    tableWidth: width,
                     data: data
                 });
             }else {
@@ -119,17 +122,18 @@ class SubPreview extends Component {
 
     render() {
         const { dsHDFS } = this.props;
+        const tableWidth = this.state.tableWidth;
         const me = this;
         let datasetType = me.props.datasetType;
         if(datasetType === '') { //for browser refresh
             datasetType = extractUrlType(window.location.hash);
         }
-        let tbTitle=[], tbTitleOnly=[], tbContent=[], tbType=[], tbContentHDFS=[], tbContentInceptor=[];
+        let tbTitle=[], tbTitleOnly=[], tbContent=[], tbType=[], tbContentHDFS=[];
         if(me.state.data) {
-            let widthPercent = getWidthPercent(me.state.data.columns.length);
-            tbTitleOnly = getTbTitle(me.state.data, widthPercent);
-            tbType = getTbType(me.state.data, widthPercent);
-            tbContent = getTbContent(me.state.data, widthPercent);
+            let width = getColumnWidth(me.state.data.columns.length);
+            tbTitleOnly = getTbTitle(me.state.data, width);
+            tbType = getTbType(me.state.data);
+            tbContent = getTbContent(me.state.data);
             if(datasetType === 'INCEPTOR') {
                 tbTitle = getTbTitleInceptor(JSON.parse(JSON.stringify(tbTitleOnly)));
             }else if(datasetType === 'HDFS') {
@@ -143,30 +147,32 @@ class SubPreview extends Component {
         return (
             <div>
                 <div style={{width:'100%', height:'30px', background:'#fff', marginTop:'-2px'}}> </div>
-                <div className={datasetType==='INCEPTOR'?'table-header':'none'}>
-                    <Table
-                        columns={tbTitle}
-                        dataSource={tbType}
-                        size='small'
-                        pagination={false}
-                    />
-                </div>
-                <div className={datasetType==='HDFS'?'table-header':'none'}>
-                    <Table
-                        columns={tbTitle}
-                        dataSource={tbContentHDFS}
-                        size='small'
-                        pagination={false}
-                    />
-                </div>
-                <div className="table-content">
-                    <Table
-                        columns={tbTitleOnly}
-                        dataSource={tbContent}
-                        size='small'
-                        pagination={false}
-                        scroll={{ y: 350 }}
-                    />
+                <div className="preview-table">
+                    <div className={datasetType==='INCEPTOR'?'table-header':'none'} style={{width: tableWidth}}>
+                        <Table
+                            columns={tbTitle}
+                            dataSource={tbType}
+                            size='small'
+                            pagination={false}
+                        />
+                    </div>
+                    <div className={datasetType==='HDFS'?'table-header':'none'} style={{width: tableWidth}}>
+                        <Table
+                            columns={tbTitle}
+                            dataSource={tbContentHDFS}
+                            size='small'
+                            pagination={false}
+                        />
+                    </div>
+                    <div className="table-content" style={{width: tableWidth}}>
+                        <Table
+                            columns={tbTitleOnly}
+                            dataSource={tbContent}
+                            size='small'
+                            pagination={false}
+                            scroll={{y: 350}}
+                        />
+                    </div>
                 </div>
                 <div className={datasetType==='INCEPTOR'?'none':'data-detail-preview'}>
                     <div className="data-detail-border">

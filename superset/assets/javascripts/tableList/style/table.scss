@@ -28,14 +28,6 @@
     }
 }
 
-.table-content .ant-table-placeholder {
-    display: none;
-}
-
-.table-content .ant-table-header{
-    display: none;
-}
-
 ul > li .ant-select-selection {
     border: none;
     height: 26px;
@@ -70,5 +62,25 @@ ul > li .ant-select-selection {
         position: absolute;
         clip: rect(0 0 0 0);
     }
+}
+
+.table-content .ant-table-placeholder {
+    display: none;
+}
+
+.table-content .ant-table-header{
+    display: none;
+}
+
+.preview-table {
+    overflow-x: auto;
+}
+
+.ant-table-thead > tr > th {
+    word-break: normal;
+}
+
+.ant-table-tbody > tr > td {
+    word-break: normal;
 }
 

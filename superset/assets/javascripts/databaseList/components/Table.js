@@ -90,7 +90,7 @@ class SliceTable extends React.Component {
                 key: 'connection_type',
                 width: '15%',
                 sorter(a, b) {
-                    return a.backend.substring(0, 1).charCodeAt() - b.backend.substring(0, 1).charCodeAt();
+                    return a.connection_type.substring(0, 1).charCodeAt() - b.connection_type.substring(0, 1).charCodeAt();
                 }
             }, {
                 title: '所有者',
@@ -98,7 +98,7 @@ class SliceTable extends React.Component {
                 key: 'owner',
                 width: '20%',
                 sorter(a, b) {
-                 return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
+                    return a.owner.substring(0, 1).charCodeAt() - b.owner.substring(0, 1).charCodeAt();
                 }
             }, {
                 title: '更新时间',
