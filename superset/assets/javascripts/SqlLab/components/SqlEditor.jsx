@@ -154,7 +154,7 @@ class SqlEditor extends React.PureComponent {
         <div className="operation-button">
           <Form inline>
             <RunQueryActionButton
-              allowAsync={this.props.database && this.props.database.allow_run_async}
+              allowAsync={true}
               dbId={this.props.queryEditor.dbId}
               queryState={this.props.latestQuery && this.props.latestQuery.state}
               runQuery={this.runQuery.bind(this)}
