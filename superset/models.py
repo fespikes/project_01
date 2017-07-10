@@ -378,7 +378,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     def release(cls, slice):
         if slice.datasource:  # datasource may be deleted
             Dataset.release(slice.datasource)
-        if slice.created_by_fk == g.user.get_id():
+        if str(slice.created_by_fk) == str(g.user.get_id()):
             slice.online = True
             db.session.commit()
             DailyNumber.log_number('slice', True, None)
@@ -627,7 +627,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     def release(cls, dash):
         for slc in dash.slices:
             Slice.release(slc)
-        if dash.created_by_fk == g.user.get_id():
+        if str(dash.created_by_fk) == str(g.user.get_id()):
             dash.online = True
             db.session.commit()
             DailyNumber.log_number('dashboard', True, None)
@@ -959,7 +959,7 @@ class Database(Model, AuditMixinNullable):
 
     @classmethod
     def release(cls, database):
-        if database.created_by_fk == g.user.get_id():
+        if str(database.created_by_fk) == str(g.user.get_id()):
             database.online = True
             db.session.commit()
             DailyNumber.log_number('connection', True, None)
@@ -994,7 +994,7 @@ class HDFSConnection(Model, AuditMixinNullable):
 
     @classmethod
     def release(cls, conn):
-        if conn.created_by_fk == g.user.get_id():
+        if str(conn.created_by_fk) == str(g.user.get_id()):
             conn.online = True
             db.session.commit()
             DailyNumber.log_number('connection', True, None)
@@ -1850,7 +1850,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         elif dataset.dataset_type.lower() == 'hdfs' \
                 and dataset.hdfs_table.hdfs_connection:
             HDFSConnection.release(dataset.hdfs_table.hdfs_connection)
-        if dataset.created_by_fk == g.user.get_id():
+        if str(dataset.created_by_fk) == str(g.user.get_id()):
             dataset.online = True
             db.session.commit()
             DailyNumber.log_number('dataset', True, None)
