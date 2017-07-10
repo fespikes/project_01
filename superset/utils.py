@@ -17,7 +17,9 @@ import smtplib
 import sqlalchemy as sa
 import signal
 import uuid
+import pandas
 
+from io import StringIO
 from builtins import object
 from datetime import date, datetime, time
 from dateutil.parser import parse
@@ -38,6 +40,7 @@ EPOCH = datetime(1970, 1, 1)
 DTTM_ALIAS = 'timestamp__'
 ALLOWED_KEYTAB_SUFFIX = set(['KEYTAB', 'keytab'])
 fs_cache = {}
+
 
 class SupersetException(Exception):
     pass
@@ -323,6 +326,26 @@ def readfile(filepath):
     with open(filepath) as f:
         content = f.read()
     return content
+
+
+def parse_file(file_content, **kwargs):
+    separator = kwargs.get('separator', ',')
+    quote = kwargs.get('quote')
+    skip_rows = kwargs.get('skip_rows', 0)
+    next_as_header = kwargs.get('next_as_header', False)
+    skip_more_rows = kwargs.get('skip_more_rows', 0)
+    charset = kwargs.get('charset', 'utf-8')
+    nrows = kwargs.get('nrows', 100)
+    names = kwargs.get('names')
+
+    header = skip_rows + 1 if next_as_header else None
+    names = None if header else names
+    skiprows = int(skip_rows) + int(skip_more_rows)
+    skiprows += 1 if next_as_header else skiprows
+
+    return pandas.read_csv(StringIO(file_content), sep=separator,
+                         skiprows=skiprows, header=None, names=names,
+                         prefix='C', nrows=nrows, encoding=charset)
 
 
 def generic_find_constraint_name(table, columns, referenced, db):

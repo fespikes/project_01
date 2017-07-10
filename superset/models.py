@@ -378,9 +378,10 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     def release(cls, slice):
         if slice.datasource:  # datasource may be deleted
             Dataset.release(slice.datasource)
-        slice.online = True
-        db.session.commit()
-        DailyNumber.log_number('slice', True, None)
+        if str(slice.created_by_fk) == str(g.user.get_id()):
+            slice.online = True
+            db.session.commit()
+            DailyNumber.log_number('slice', True, None)
 
 
 sqla.event.listen(Slice, 'before_insert', set_related_perm)
@@ -626,9 +627,10 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     def release(cls, dash):
         for slc in dash.slices:
             Slice.release(slc)
-        dash.online = True
-        db.session.commit()
-        DailyNumber.log_number('dashboard', True, None)
+        if str(dash.created_by_fk) == str(g.user.get_id()):
+            dash.online = True
+            db.session.commit()
+            DailyNumber.log_number('dashboard', True, None)
 
 
 class Queryable(object):
@@ -957,9 +959,10 @@ class Database(Model, AuditMixinNullable):
 
     @classmethod
     def release(cls, database):
-        database.online = True
-        db.session.commit()
-        DailyNumber.log_number('connection', True, None)
+        if str(database.created_by_fk) == str(g.user.get_id()):
+            database.online = True
+            db.session.commit()
+            DailyNumber.log_number('connection', True, None)
 
 sqla.event.listen(Database, 'after_insert', set_perm)
 sqla.event.listen(Database, 'after_update', set_perm)
@@ -991,9 +994,10 @@ class HDFSConnection(Model, AuditMixinNullable):
 
     @classmethod
     def release(cls, conn):
-        conn.online = True
-        db.session.commit()
-        DailyNumber.log_number('connection', True, None)
+        if str(conn.created_by_fk) == str(g.user.get_id()):
+            conn.online = True
+            db.session.commit()
+            DailyNumber.log_number('connection', True, None)
 
 
 class Connection(object):
@@ -1846,9 +1850,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         elif dataset.dataset_type.lower() == 'hdfs' \
                 and dataset.hdfs_table.hdfs_connection:
             HDFSConnection.release(dataset.hdfs_table.hdfs_connection)
-        dataset.online = True
-        db.session.commit()
-        DailyNumber.log_number('dataset', True, None)
+        if str(dataset.created_by_fk) == str(g.user.get_id()):
+            dataset.online = True
+            db.session.commit()
+            DailyNumber.log_number('dataset', True, None)
 
 sqla.event.listen(Dataset, 'after_insert', set_perm)
 sqla.event.listen(Dataset, 'after_update', set_perm)
