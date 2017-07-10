@@ -335,17 +335,17 @@ def parse_file(file_content, **kwargs):
     next_as_header = kwargs.get('next_as_header', False)
     skip_more_rows = kwargs.get('skip_more_rows', 0)
     charset = kwargs.get('charset', 'utf-8')
+    nrows = kwargs.get('nrows', 100)
     names = kwargs.get('names')
 
     header = skip_rows + 1 if next_as_header else None
     names = None if header else names
     skiprows = int(skip_rows) + int(skip_more_rows)
     skiprows += 1 if next_as_header else skiprows
-    
-    df = pandas.read_csv(StringIO(file_content), sep=separator,
+
+    return pandas.read_csv(StringIO(file_content), sep=separator,
                          skiprows=skiprows, header=None, names=names,
-                         prefix='C', encoding=charset)
-    return df
+                         prefix='C', nrows=nrows, encoding=charset)
 
 
 def generic_find_constraint_name(table, columns, referenced, db):

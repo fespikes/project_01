@@ -12,6 +12,7 @@ import time
 import traceback
 import zlib
 import re
+import requests
 from distutils.util import strtobool
 
 import functools
@@ -31,7 +32,6 @@ from flask_babel import lazy_gettext as _
 from sqlalchemy import create_engine, case, select, literal, cast
 from wtforms.validators import ValidationError
 
-
 from superset import (
     app, appbuilder, cache, db, models, sm, sql_lab, sql_parse,
     results_backend, security, viz, utils
@@ -44,7 +44,7 @@ from superset.utils import (get_database_access_error_msg,
                             json_error_response)
 
 from superset.models import Database, Dataset, Slice, Dashboard, \
-    FavStar, Log, DailyNumber, HDFSTable, HDFSConnection, str_to_model
+    FavStar, Log, DailyNumber, HDFSConnection, str_to_model
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset.message import *
@@ -1177,8 +1177,18 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     @catch_exception
     @expose('/preview_data/<id>/', methods=['GET', ])
-    def get_preview_data(self, id):
+    def preview_table(self, id):
         return self.get_object(id).preview_data()
+
+    @catch_exception
+    @expose('/preview_file/', methods=['GET', ])
+    def preview_file(self):
+        # TODO send requests to fileRobot and structure the url
+        file = requests.get("http:/address:port/hdfsfilebrowser?"
+                            "action=preview&path=/user/hive/employee/employee.csv&"
+                            "rows=100&limitSize=1000")
+        df = utils.parse_file(file, **request.args)
+        return json.dumps(json.loads(df.to_json()))
 
     @catch_exception
     @expose('/add', methods=['POST', ])
@@ -1349,7 +1359,7 @@ class DatasetModelView(SupersetModelView):  # noqa
                     "database connection, schema, and table name".format(table.name))
 
     @staticmethod
-    def merge_perm(table):
+    def merge_perm(table):  # Deprecated
         security.merge_perm(sm, 'datasource_access', table.get_perm())
         if table.schema:
             security.merge_perm(sm, 'schema_access', table.schema_perm)
