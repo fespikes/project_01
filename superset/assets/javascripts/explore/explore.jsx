@@ -408,7 +408,7 @@ function generateTableView(previewData) {
         columnIndex = columnIndex + 1;
     });
 
-    return <Table bordered columns={columns} dataSource={dataSource} />;
+    return <Table columns={columns} dataSource={dataSource} />;
 }
 
 
