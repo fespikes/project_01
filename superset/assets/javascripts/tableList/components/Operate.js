@@ -21,6 +21,7 @@ class SliceOperate extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onDelete = this.onDelete.bind(this);
         this.onSearch = this.onSearch.bind(this);
+        this.onEnterSearch = this.onEnterSearch.bind(this);
         this.selectChange = this.selectChange.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
     }
@@ -31,6 +32,9 @@ class SliceOperate extends React.Component {
             this.refs.searchIcon.removeAttribute('disabled');
         } else {
             this.refs.searchIcon.setAttribute('disabled', 'disabled');
+        }
+        if(this.refs.searchField.value === "") {
+            this.onSearch();
         }
     }
 
@@ -66,6 +70,12 @@ class SliceOperate extends React.Component {
         const filter = this.refs.searchField.value;
         this.props.dispatch(search(filter));
         //TODO: not sure that componentWillReceiveProps be triggered
+    }
+
+    onEnterSearch(event) {
+        if(event.keyCode === 13) {
+            this.onSearch();
+        }
     }
 
     componentDidMount() {
@@ -125,7 +135,7 @@ class SliceOperate extends React.Component {
                     </Select>
                 </div>
                 <div className="search-input">
-                    <input onChange={this.onChange} ref="searchField" placeholder="search..." />
+                    <input onKeyUp={this.onEnterSearch} onChange={this.onChange} ref="searchField" placeholder="search..." />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon" />
 
                 </div>
