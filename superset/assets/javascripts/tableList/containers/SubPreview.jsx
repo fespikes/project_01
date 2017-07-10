@@ -5,10 +5,9 @@ import { render } from 'react-dom';
 import {bindActionCreators} from 'redux';
 import { Link, withRouter } from 'react-router-dom';
 import * as actionCreators from '../actions';
-import { extractUrlType } from '../utils';
 import { Table, Input, Button, Icon, Select, Alert } from 'antd';
 import { getTableWidth, getColumnWidth, getTbTitle, getTbContent, getTbType, getTbTitleHDFS,
-    getTbTitleInceptor, extractOpeType, constructHDFSDataset, getDatasetId } from '../module';
+    getTbTitleInceptor, extractOpeType, extractDatasetType, constructHDFSDataset, getDatasetId } from '../module';
 
 function showAlert(response) {
     render(
@@ -32,7 +31,7 @@ class SubPreview extends Component {
         super(props);
         this.state = {
             tableWidth: '100%',
-            dsHDFS: props.dsHDFS
+            dsHDFS: {}
         };
         //bindings
         this.charsetChange = this.charsetChange.bind(this);
@@ -41,18 +40,39 @@ class SubPreview extends Component {
     }
 
     componentDidMount() {
+        const { datasetId, fetchDatasetPreviewData } = this.props;
         const me = this;
-        const { datasetId, fetchDatasetPreviewData } = me.props;
-        fetchDatasetPreviewData(datasetId, callback);
-        function callback(success, data) {
-            if(success) {
-                let width = getTableWidth(data.columns.length);
-                me.setState({
-                    tableWidth: width,
-                    data: data
-                });
-            }else {
-                console.log("error...");
+        if(datasetId) {
+            fetchDatasetPreviewData(datasetId, callback);
+            function callback(success, data) {
+                if(success) {
+                    let width = getTableWidth(data.columns.length);
+                    me.setState({
+                        tableWidth: width,
+                        data: data
+                    });
+                }else {
+                    console.log("error...");
+                }
+            }
+        }
+    }
+
+    componentWillReceiveProps(nextProps) {
+        const { datasetId, fetchDatasetPreviewData } = this.props;
+        const me = this;
+        if(nextProps.datasetId !== datasetId && nextProps.datasetId) {
+            fetchDatasetPreviewData(nextProps.datasetId, callback);
+            function callback(success, data) {
+                if(success) {
+                    let width = getTableWidth(data.columns.length);
+                    me.setState({
+                        tableWidth: width,
+                        data: data
+                    });
+                }else {
+                    console.log("error...");
+                }
             }
         }
     }
@@ -123,17 +143,13 @@ class SubPreview extends Component {
     render() {
         const { dsHDFS } = this.props;
         const tableWidth = this.state.tableWidth;
-        const me = this;
-        let datasetType = me.props.datasetType;
-        if(datasetType === '') { //for browser refresh
-            datasetType = extractUrlType(window.location.hash);
-        }
+        let datasetType = extractDatasetType(window.location.hash);
         let tbTitle=[], tbTitleOnly=[], tbContent=[], tbType=[], tbContentHDFS=[];
-        if(me.state.data) {
-            let width = getColumnWidth(me.state.data.columns.length);
-            tbTitleOnly = getTbTitle(me.state.data, width);
-            tbType = getTbType(me.state.data);
-            tbContent = getTbContent(me.state.data);
+        if(this.state.data) {
+            let width = getColumnWidth(this.state.data.columns.length);
+            tbTitleOnly = getTbTitle(this.state.data, width);
+            tbType = getTbType(this.state.data);
+            tbContent = getTbContent(this.state.data);
             if(datasetType === 'INCEPTOR') {
                 tbTitle = getTbTitleInceptor(JSON.parse(JSON.stringify(tbTitleOnly)));
             }else if(datasetType === 'HDFS') {
@@ -230,7 +246,12 @@ class SubPreview extends Component {
 }
 
 function mapStateToProps (state) {
-    return state.subDetail;
+    const { subDetail } = state;
+    return {
+        datasetId: subDetail.datasetId,
+        dsHDFS: subDetail.dsHDFS
+
+    };
 }
 
 function mapDispatchToProps (dispatch) {

@@ -24,11 +24,7 @@ export default function subDetail(state = {
             return {...state, dsHDFS: action.dsHDFS};
             break;
         case REHYDRATE:
-            if(action.payload.subDetail) {
-                return {...state, datasetId: action.payload.subDetail.datasetId};
-            }else {
-                return {...state, datasetId: ''}
-            }
+            return {...state, ...action.payload.subDetail};
             break;
         default:
             return state;
