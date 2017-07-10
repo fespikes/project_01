@@ -1119,7 +1119,8 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/preview_data/<id>/', methods=['GET', ])
     def preview_table(self, id):
-        return self.get_object(id).preview_data()
+        rows = request.args.get('rows', 100)
+        return self.get_object(id).preview_data(limit=rows)
 
     @catch_exception
     @expose('/preview_file/', methods=['GET', ])
