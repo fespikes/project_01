@@ -1386,14 +1386,14 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
         df = pd.read_sql(sql, con=engine)
         columns = list(df.keys().values)
-        data = json.loads(df.to_json(orient='columns', date_format='iso'))
+        records = json.loads(df.to_json(orient='records', date_format='iso'))
 
         types = []
         if self.table_name:
             tb = self.get_sqla_table_object()
             col_types = {col.name: str(col.type) for col in tb.columns}
             types = [col_types.get(c) for c in columns]
-        return json.dumps({'columns': columns, 'types': types, 'data': data})
+        return json.dumps({'columns': columns, 'types': types, 'records': records})
 
     def values_for_column(self, column_name, from_dttm, to_dttm, limit=500):
         """Runs query against sqla to retrieve some

@@ -1117,10 +1117,18 @@ class DatasetModelView(SupersetModelView):  # noqa
         return json.dumps(list(set(self.model.dataset_type_dict.values())))
 
     @catch_exception
-    @expose('/preview_data/<id>/', methods=['GET', ])
-    def preview_table(self, id):
+    @expose('/preview_data/', methods=['GET', ])
+    def preview_table(self):
+        dataset_id = request.args.get('dataset_id')
+        database_id = request.args.get('database_id')
+        full_tb_name = request.args.get('full_tb_name')
         rows = request.args.get('rows', 100)
-        return self.get_object(id).preview_data(limit=rows)
+        if dataset_id:
+            return self.get_object(dataset_id).preview_data(limit=rows)
+        else:
+            dataset = Superset.temp_table(database_id, full_tb_name,
+                                          need_columns=False)
+            return dataset.preview_data(limit=rows)
 
     @catch_exception
     @expose('/preview_file/', methods=['GET', ])
@@ -1755,7 +1763,8 @@ def ping():
 class Superset(BaseSupersetView):
     route_base = '/pilot'
 
-    def temp_table(self, database_id, full_tb_name):
+    @staticmethod
+    def temp_table(database_id, full_tb_name, need_columns=True):
         """A temp table for slice"""
         table = Dataset()
         table.id = 0
@@ -1767,7 +1776,8 @@ class Superset(BaseSupersetView):
         table.database = db.session.query(models.Database) \
             .filter_by(id=database_id).first()
         table.filter_select_enabled = True
-        table.set_temp_columns_and_metrics()
+        if need_columns:
+            table.set_temp_columns_and_metrics()
         return table
 
     def get_viz(self, slice_id=None, args=None,
