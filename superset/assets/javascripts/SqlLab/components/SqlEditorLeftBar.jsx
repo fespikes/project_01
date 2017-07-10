@@ -45,9 +45,10 @@ class SqlEditorLeftBar extends React.PureComponent {
     }
   }
   dbMutator(data) {
-    const options = data.result.map((db) => ({ value: db.id, label: db.database_name }));
-    this.props.actions.setDatabases(data.result);
-    if (data.result.length === 0) {
+    data = JSON.parse(data);
+    const options = data.map((db) => ({ value: db.id, label: db.database_name }));
+    this.props.actions.setDatabases(data);
+    if (data.length === 0) {
       this.props.actions.addAlert({
         bsStyle: 'danger',
         msg: "It seems you don't have access to any database",
@@ -64,10 +65,11 @@ class SqlEditorLeftBar extends React.PureComponent {
       const actualSchema = schema || this.props.queryEditor.schema;
       this.setState({ tableLoading: true });
       this.setState({ tableOptions: [] });
-      const url = `/pilot/tables/${actualDbId}/${actualSchema}`;
+      const url = `/table/tables/${actualDbId}/${actualSchema}`;
       $.get(url, (data) => {
-        let tableOptions = data.tables.map((s) => ({ value: s, label: s }));
-        const views = data.views.map((s) => ({ value: s, label: '[view] ' + s }));
+        data = JSON.parse(data);
+        let tableOptions = data.map((s) => ({ value: s, label: s }));
+        const views = data.map((s) => ({ value: s, label: '[view] ' + s }));
         tableOptions = [...tableOptions, ...views];
         this.setState({ tableOptions });
         this.setState({ tableLoading: false });
@@ -83,9 +85,9 @@ class SqlEditorLeftBar extends React.PureComponent {
     const actualDbId = dbId || this.props.queryEditor.dbId;
     if (actualDbId) {
       this.setState({ schemaLoading: true });
-      const url = `/databasetablesasync/api/read?_flt_0_id=${actualDbId}`;
+      const url = `/table/schemas/${actualDbId}`;
       $.get(url, (data) => {
-        const schemas = data.result[0].all_schema_names;
+        const schemas = JSON.parse(data);
         const schemaOptions = schemas.map((s) => ({ value: s, label: s }));
         this.setState({ schemaOptions });
         this.setState({ schemaLoading: false });
@@ -116,7 +118,7 @@ class SqlEditorLeftBar extends React.PureComponent {
           <div>
             <div className="select-title">Database</div>
             <AsyncSelect
-              dataEndpoint="/databaseasync/api/read?_flt_0_expose_in_sqllab=1"
+              dataEndpoint="/table/databases"
               onChange={this.onChange.bind(this)}
               value={this.props.queryEditor.dbId}
               valueRenderer={(o) => (
