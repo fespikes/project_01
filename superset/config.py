@@ -264,6 +264,13 @@ JINJA_CONTEXT_ADDONS = {}
 ROBOT_PERMISSION_ROLES = ['Public', 'Gamma', 'Alpha', 'Admin', 'sql_lab']
 
 
+# keytab defaull temp folder
+KETTAB_TMP_DIR = '/tmp/kerberos/keytab/'
+
+# The config for hdfs_file microservices
+HDFS_MICROSERVICES_SERVER = 'localhost:8087'
+
+
 CONFIG_PATH_ENV_VAR = 'PILOT_CONFIG_PATH'
 
 try:
