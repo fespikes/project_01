@@ -264,20 +264,6 @@ JINJA_CONTEXT_ADDONS = {}
 ROBOT_PERMISSION_ROLES = ['Public', 'Gamma', 'Alpha', 'Admin', 'sql_lab']
 
 
-# ---------------------------------------------------
-# kerberos settings
-# ---------------------------------------------------
-KEYTABS_TMP_DIR = '/tmp/kerberos/keytabs'
-KINIT_PATH = 'kinit'
-CCACHE_BASE_DIR = '/tmp/kerberos/ccache'
-
-# ---------------------------------------------------
-# filebrowser settings
-# ---------------------------------------------------
-UPLOAD_CHUNK_SIZE = 1024 * 1024 * 64
-ARCHIVE_UPLOAD_TEMPDIR = None
-
-
 CONFIG_PATH_ENV_VAR = 'PILOT_CONFIG_PATH'
 
 try:

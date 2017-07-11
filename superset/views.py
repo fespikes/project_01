@@ -616,26 +616,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     show_columns = edit_columns + ['id', 'dataset']
     add_columns = edit_columns
     readme_columns = ['is_dttm', 'expression']
-    description_columns = {
-        'is_dttm': "是否将此列作为[时间粒度]选项, 列中的数据类型必须是DATETIME",
-        'expression': "a valid SQL expression as supported by the "
-                      "underlying backend. Example: `substr(name, 1, 1)`",
-        'python_date_format':
-            "The pattern of timestamp format, use python datetime string "
-            "pattern expression. If time is stored in epoch "
-            "format, put `epoch_s` or `epoch_ms`. Leave `Database Expression` "
-            "below empty if timestamp is stored in "
-            "String or Integer(epoch) type",
-        'database_expression':
-            "The database expression to cast internal datetime "
-            "constants to database date/timestamp type according to the DBAPI. "
-            "The expression should follow the pattern of "
-            "%Y-%m-%d %H:%M:%S, based on different DBAPI. "
-            "The string should be a python string formatter "
-            "`Ex: TO_DATE('{}', 'YYYY-MM-DD HH24:MI:SS')` for Oracle"
-            "Superset uses default expression based on DB URI if this "
-            "field is blank.",
-    }
+    description_columns = {}
 
     bool_columns = ['is_dttm', 'is_active', 'groupby', 'count_distinct',
                     'sum', 'avg', 'max', 'min', 'filterable']
@@ -684,21 +665,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
                     'expression', 'dataset_id']
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
-    description_columns = {
-        'expression':
-            "a valid SQL expression as supported by the underlying backend. "
-            "Example: `count(DISTINCT userid)`",
-        'is_restricted':
-            "Whether the access to this metric is restricted to certain roles. "
-            "Only roles with the permission 'metric access on XXX (the name of "
-            "this metric)' are allowed to access this metric",
-        'd3format':
-            "d3 formatting string as defined [here]"
-            "(https://github.com/d3/d3-format/blob/master/README.md#format). "
-            "For instance, this default formatting applies in the Table "
-            "visualization and allow for different metric to use different "
-            "formats"
-    }
+    description_columns = {}
 
     bool_columns = ['is_restricted', ]
     str_columns = ['dataset', ]
@@ -751,21 +718,7 @@ class DatabaseView(SupersetModelView):  # noqa
     add_template = "superset/models/database/add.html"
     edit_template = "superset/models/database/edit.html"
     base_order = ('changed_on', 'desc')
-    description_columns = {
-        'sqlalchemy_uri':
-            "Refer to the [SqlAlchemy docs]"
-            "(http://docs.sqlalchemy.org/en/rel_1_0/core/engines.html#database-urls) "
-            "for more information on how to structure your URI.",
-        'extra':
-            "JSON string containing extra configuration elements. "
-            "The ``engine_params`` object gets unpacked into the "
-            "[sqlalchemy.create_engine]"
-            "(http://docs.sqlalchemy.org/en/latest/core/engines.html#"
-            "sqlalchemy.create_engine) call, while the ``metadata_params`` "
-            "gets unpacked into the [sqlalchemy.MetaData]"
-            "(http://docs.sqlalchemy.org/en/rel_1_0/core/metadata.html"
-            "#sqlalchemy.schema.MetaData) call. ",
-    }
+    description_columns = {}
 
     str_to_column = {
         'title': Database.database_name,
@@ -1108,19 +1061,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     show_columns = add_columns + ['id']
     edit_columns = ['dataset_name', 'database_id', 'description', 'schema',
                     'table_name', 'sql']
-    description_columns = {
-        'offset': "Timezone offset (in hours) for this datasource",
-        'table_name': "Name of the table that exists in the source database",
-        'schema':
-            "Schema, as used only in some databases like Postgres, Redshift "
-            "and DB2",
-        'description':
-            "Supports <a href='https://daringfireball.net/projects/markdown/' target='_blank'>"
-            "markdown</a>",
-        'sql':
-            "This fields acts a Superset view, meaning that Superset will "
-            "run a query against this string as a subquery."
-    }
+    description_columns = {}
     base_filters = [['id', DatasourceFilter, lambda: []]]
 
     str_to_column = {
@@ -1176,9 +1117,18 @@ class DatasetModelView(SupersetModelView):  # noqa
         return json.dumps(list(set(self.model.dataset_type_dict.values())))
 
     @catch_exception
-    @expose('/preview_data/<id>/', methods=['GET', ])
-    def preview_table(self, id):
-        return self.get_object(id).preview_data()
+    @expose('/preview_data/', methods=['GET', ])
+    def preview_table(self):
+        dataset_id = request.args.get('dataset_id')
+        database_id = request.args.get('database_id')
+        full_tb_name = request.args.get('full_tb_name')
+        rows = request.args.get('rows', 100)
+        if dataset_id:
+            return self.get_object(dataset_id).preview_data(limit=rows)
+        else:
+            dataset = Superset.temp_table(database_id, full_tb_name,
+                                          need_columns=False)
+            return dataset.preview_data(limit=rows)
 
     @catch_exception
     @expose('/preview_file/', methods=['GET', ])
@@ -1423,21 +1373,7 @@ class SliceModelView(SupersetModelView):  # noqa
     edit_columns = ['slice_name', 'description']
     show_columns = ['id', 'slice_name', 'description', 'created_on', 'changed_on']
     base_order = ('changed_on', 'desc')
-    description_columns = {
-        'description':
-            "The content here can be displayed as widget headers in the "
-            "dashboard view. Supports "
-            "<a href='https://daringfireball.net/projects/markdown/' target='_blank'>"
-            "markdown</a>",
-        'params':
-            "These parameters are generated dynamically when clicking "
-            "the save or overwrite button in the explore view. This JSON "
-            "object is exposed here for reference and for power users who may "
-            "want to alter specific parameters.",
-        'cache_timeout':
-            "Duration (in seconds) of the caching timeout for this slice."
-        ,
-    }
+    description_columns = {}
     base_filters = [['id', SliceFilter, lambda: []]]
 
     list_template = "superset/list.html"
@@ -1610,24 +1546,7 @@ class DashboardModelView(SupersetModelView):  # noqa
     show_columns = ['id', 'dashboard_title', 'description', 'table_names']
     add_columns = edit_columns
     base_order = ('changed_on', 'desc')
-    description_columns = {
-        'position_json':
-            "This json object describes the positioning of the widgets in "
-            "the dashboard. It is dynamically generated when adjusting "
-            "the widgets size and positions by using drag & drop in "
-            "the dashboard view",
-        'css':
-            "The css for individual dashboards can be altered here, or "
-            "in the dashboard view where changes are immediately "
-            "visible",
-        'slug': "To get a readable URL for your dashboard",
-        'json_metadata':
-            "This JSON object is generated dynamically when clicking "
-            "the save or overwrite button in the dashboard view. It "
-            "is exposed here for reference and for power users who may "
-            "want to alter specific parameters.",
-        'owners': "Owners is a list of users who can alter the dashboard.",
-    }
+    description_columns = {}
     base_filters = [['slice', DashboardFilter, lambda: []]]
     add_form_query_rel_fields = {
         'slices': [['slices', SliceFilter, None]],
@@ -1844,7 +1763,8 @@ def ping():
 class Superset(BaseSupersetView):
     route_base = '/pilot'
 
-    def temp_table(self, database_id, full_tb_name):
+    @staticmethod
+    def temp_table(database_id, full_tb_name, need_columns=True):
         """A temp table for slice"""
         table = Dataset()
         table.id = 0
@@ -1856,7 +1776,8 @@ class Superset(BaseSupersetView):
         table.database = db.session.query(models.Database) \
             .filter_by(id=database_id).first()
         table.filter_select_enabled = True
-        table.set_temp_columns_and_metrics()
+        if need_columns:
+            table.set_temp_columns_and_metrics()
         return table
 
     def get_viz(self, slice_id=None, args=None,
@@ -2053,14 +1974,12 @@ class Superset(BaseSupersetView):
                 slice=slc,
                 table_name=table_name)
         else:
-            preview_data = viz_obj.datasource.preview_data()
             return self.render_template(
                 "superset/explore.html",
                 viz=viz_obj,
                 slice=slc,
                 datasources=datasources,
                 databases=databases,
-                preview_data=preview_data,
                 can_add=slice_add_perm,
                 can_edit=slice_edit_perm,
                 can_download=slice_download_perm,

@@ -1384,22 +1384,16 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         engine = self.database.get_sqla_engine()
         sql = str(qry.compile(engine, compile_kwargs={"literal_binds": True},))
 
-        df = None
-        try:
-            df = pd.read_sql(sql, con=engine)
-        except Exception as e:
-            raise e
+        df = pd.read_sql(sql, con=engine)
         columns = list(df.keys().values)
-        data = json.loads(df.to_json())
+        records = json.loads(df.to_json(orient='records', date_format='iso'))
 
         types = []
-        # rs = engine.execute(sql)
-        # rs.cursor.description  # could not obtain sql types
         if self.table_name:
             tb = self.get_sqla_table_object()
             col_types = {col.name: str(col.type) for col in tb.columns}
             types = [col_types.get(c) for c in columns]
-        return json.dumps({'columns': columns, 'types': types, 'data': data})
+        return json.dumps({'columns': columns, 'types': types, 'records': records})
 
     def values_for_column(self, column_name, from_dttm, to_dttm, limit=500):
         """Runs query against sqla to retrieve some
