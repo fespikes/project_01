@@ -3633,9 +3633,16 @@ class Home(BaseSupersetView):
 class HDFSBrowser(BaseSupersetView):
     route_base = '/hdfs'
 
+    server = app.config.get('HDFS_MICROSERVICES_SERVER')
+    url_base = 'hdfsfilebrowser'
+
     @expose('/list')
     def list(self):
         return self.render_template('superset/hdfsList.html')
+
+    @expose('/url_prefix/')
+    def url_prefix(self, **kwargs):
+        return 'http://{self.server}/{self.url_base}'.format(**locals())
 
 
 appbuilder.add_view_no_menu(DatabaseAsync)
