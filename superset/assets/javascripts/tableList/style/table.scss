@@ -19,6 +19,7 @@
 }
 
 .list-table-column {
+    background-color: #fff;
     input[type="checkbox"][readonly] {
         pointer-events: none;
     }
@@ -26,6 +27,9 @@
     input[type="checkbox"] {
         float: none;
     }
+}
+.sql-metric {
+    background-color: #fff;
 }
 
 ul > li .ant-select-selection {
@@ -82,5 +86,10 @@ ul > li .ant-select-selection {
 
 .ant-table-tbody > tr > td {
     word-break: normal;
+}
+
+.link-disabled {
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
