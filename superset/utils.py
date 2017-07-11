@@ -38,8 +38,6 @@ logging.getLogger('MARKDOWN').setLevel(logging.INFO)
 
 EPOCH = datetime(1970, 1, 1)
 DTTM_ALIAS = 'timestamp__'
-ALLOWED_KEYTAB_SUFFIX = set(['KEYTAB', 'keytab'])
-fs_cache = {}
 
 
 class SupersetException(Exception):
@@ -537,8 +535,6 @@ def get_email_address_list(address_string):
             address_string = [address_string]
     return address_string
 
-def allowed_keytab(filename):
-  return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_KEYTAB_SUFFIX
 
 def coerce_bool(value):
   if isinstance(value, bool):
@@ -553,6 +549,7 @@ def coerce_bool(value):
   if upper in ("TRUE", "1", "YES", "ON", "YEA"):
     return True
   raise Exception("Could not coerce %r to boolean value" % (value,))
+
 
 def get_database_access_error_msg(database_name):
     return __("This view requires the database %(name)s or "
@@ -574,16 +571,10 @@ def json_error_response(msg, status=None):
   return Response(
     json.dumps(data), status=status, mimetype="application/json")
 
+
 def json_success_response(msg, status=None):
   data = {'message': msg}
   status = status if status else 200
   return Response(
     json.dumps(data), status=status, mimetype="application/json"
   )
-
-def get_hdfs_user_from_principal(principal):
-    split_list = principal.split('/', 1)
-    if len(split_list) > 1:
-        return split_list[0]
-    else:
-        return None
