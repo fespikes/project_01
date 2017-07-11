@@ -377,11 +377,11 @@ function generateTableView(previewData) {
     if (!previewData) {
         return <span>暂无数据</span>;
     }
-
-    previewData = JSON.parse(previewData);
+    if(typeof(previewData) === "string") {
+        previewData = JSON.parse(previewData);
+    }
     let columns = [], dataSource = [];
-    
-    let columnItem = {}, dataItem = {}, columnIndex = 1;
+    let columnItem = {}, dataItem = {};
 
     _.forEach(previewData.columns, (column, key) => {
         columnItem = {
@@ -390,22 +390,14 @@ function generateTableView(previewData) {
             key: column
         };
         columns.push(columnItem);
-        
-        if (columnIndex > 1) {
-            _.forEach(previewData.data[column], (value, index) => {
-                dataSource[index][column] = value;
-            });
+    });
+    _.forEach(previewData.records, (record, key) => {
+        dataItem = {};
+        for(var item in record) {
+            dataItem[item] = record[item];
         }
-        else {
-            _.forEach(previewData.data[column], (value, index) => {
-                dataItem = {};
-                dataItem[column] = value;
-                dataItem['key'] = index + 1;
-                dataSource.push(dataItem);
-            });
-        }
-
-        columnIndex = columnIndex + 1;
+        dataItem.key = key + 1;
+        dataSource.push(dataItem);
     });
 
     return <Table columns={columns} dataSource={dataSource} />;
@@ -421,11 +413,18 @@ function renderViewTab() {
             $('.graph-view').css('display', 'block');
             $('.table-view').css('display', 'none');
         }else if(event.target.value === "table") {
-            
-            let table = generateTableView($('.table-view').attr('preview-data'));
-            $('.graph-view').css('display', 'none');
-            $('.table-view').css('display', 'block');
-            ReactDOM.render(table, document.getElementById('table-view-preview'));
+            let datasourceId = viewTabEl.getAttribute('datasourceId');
+            let url = window.location.origin + "/table/preview_data?dataset_id=" + datasourceId;
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: response => {
+                    renderPreviewData(response);
+                },
+                error: error => {
+                    console.log(error);
+                }
+            });
         }
     }
     ReactDOM.render(
@@ -436,6 +435,19 @@ function renderViewTab() {
             </RadioGroup>
         </div>, viewTabEl
     );
+}
+
+function refreshPreviewData(slice) {
+    if(slice.data && slice.data.dataframe) {
+        renderPreviewData(slice.data.dataframe);
+    }
+}
+
+function renderPreviewData(data) {
+    let table = generateTableView(data);
+    $('.graph-view').css('display', 'none');
+    $('.table-view').css('display', 'block');
+    ReactDOM.render(table, document.getElementById('table-view-preview'));
 }
 
 function initComponents() {
@@ -456,6 +468,7 @@ let exploreController = {
     type: 'slice',
     done: (sliceObj) => {
         slice = sliceObj;
+        refreshPreviewData(slice);
         renderExploreActions(slice.viewSqlQuery);
         const cachedSelector = $('#is_cached');
         if (slice.data !== undefined && slice.data.is_cached) {
