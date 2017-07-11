@@ -7,10 +7,10 @@ import {bindActionCreators} from 'redux';
 import { Link, withRouter } from 'react-router-dom';
 import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import * as actionCreators from '../actions';
-import { extractUrlType } from '../utils';
+import configureStore from '../stores/configureStore';
 import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../popup';
 import { constructInceptorDataset, constructFileBrowserData, appendTreeChildren,
-    initDatasetData, extractOpeType, getDatasetId } from '../module';
+    initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../module';
 import { appendTreeData, constructTreeData } from '../../../utils/common2';
 
 const fileBrowserData = {"path": "/user/hive/employee", "descending": null, "sortby": null, "files": [{"path": "/user/hive", "mtime": "May 13, 2017 12:00 AM", "name": "..", "size": 0, "mode": 16832, "stats": {"path": "/user/hive/employee/..", "mtime": 1494663357.534, "atime": 0.0, "size": 0, "mode": 16832, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwx------", "url": "http://localhost:8086/view/user/hive", "type": "dir"}, {"path": "/user/hive/employee", "mtime": "May 27, 2017 12:00 AM", "name": ".", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee", "mtime": 1495874611.498, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee", "type": "dir"}, {"path": "/user/hive/employee/employee5.txt", "mtime": "May 26, 2017 12:00 AM", "name": "employee5.txt", "size": 27, "mode": 33188, "stats": {"path": "/user/hive/employee/employee5.txt", "mtime": 1495784089.918, "atime": 1495784089.356, "size": 27, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/employee5.txt", "type": "file"}, {"path": "/user/hive/employee/subdir", "mtime": "May 27, 2017 12:00 AM", "name": "subdir", "size": 0, "mode": 16877, "stats": {"path": "/user/hive/employee/subdir", "mtime": 1495874578.136, "atime": 0.0, "size": 0, "mode": 16877, "user": "hive", "group": "hive", "replication": 0, "blockSize": 0}, "rwx": "drwxr-xr-x", "url": "http://localhost:8086/view/user/hive/employee/subdir", "type": "dir"}, {"path": "/user/hive/employee/test_upload2.txt", "mtime": "May 27, 2017 12:00 AM", "name": "test_upload2.txt", "size": 14, "mode": 33188, "stats": {"path": "/user/hive/employee/test_upload2.txt", "mtime": 1495874611.693, "atime": 1495874611.498, "size": 14, "mode": 33188, "user": "hive", "group": "hive", "replication": 3, "blockSize": 134217728}, "rwx": "-rw-r--r--", "url": "http://localhost:8086/view/user/hive/employee/test_upload2.txt", "type": "file"}], "pagesize": 4, "page": {"number": 2, "end_index": 7, "next_page_number": 2, "previous_page_number": 1, "num_pages": 2, "total_count": 7, "start_index": 5}};
@@ -385,19 +385,7 @@ class SubDetail extends Component {
 
     componentDidMount() {
         const me = this;
-        const {
-            fetchHDFSFileBrowser,
-            fetchDatasetDetail,
-            fetchDBDetail,
-            saveDatasetId,
-            fetchSchemaList,
-            fetchHDFSDetail} = me.props;
-        if(window.location.hash.indexOf('/edit') > 0) {
-            let datasetId = getDatasetId('edit', window.location.hash);
-            saveDatasetId(datasetId);
-        }else {
-            saveDatasetId('');//clear datasetId
-        }
+        const {saveDatasetId, switchDatasetType} = me.props;
         if(this.state.dataset_type === 'INCEPTOR') {
             this.doFetchDatabaseList();
         }else if(this.state.dataset_type === 'HDFS' || this.state.dataset_type === 'UPLOAD') {
@@ -416,60 +404,78 @@ class SubDetail extends Component {
             }
         }
         if(window.location.hash.indexOf('/edit') > 0) {
-            let pathArray = window.location.hash.split('/');
-            let datasetId = pathArray[pathArray.length - 1];
-            let datasetType = pathArray[pathArray.length -2];
-            fetchDatasetDetail(datasetId, callback);
-            function callback(success, data) {
-                if(success) {
-                    if(datasetType === 'INCEPTOR') {
-                        fetchDBDetail(data.database_id, callbackDBName);
-                        fetchSchemaList(data.database_id, callbackSchemaList);
-                        function callbackDBName(success, db) {
-                            if(success) {
-                                let objIncpetor = {...me.state.dsInceptor};
-                                objIncpetor.db_name = db.database_name;
-                                me.setState({
-                                    dsInceptor: initDatasetData('INCEPTOR', data, objIncpetor)
-                                });
-                            }
-                        }
-                        function callbackSchemaList(success, data) {
-                            if(success) {
-                                let treeData = constructTreeData(data, false, 'folder');
-                                let objIncpetor = {...me.state.dsInceptor};
-                                objIncpetor.treeData = treeData;
-                                me.setState({
-                                    dsInceptor: objIncpetor
-                                });
-                            }
-                        }
-                    }else if(datasetType === 'HDFS') {
+            this.doDatasetEdit();
+        }else {
+            saveDatasetId('');//clear datasetId
+            let datasetType = extractDatasetType(window.location.hash);
+            switchDatasetType(datasetType);
+        }
+    }
 
-                        fetchDBDetail(data.database_id, dbCallback);
-                        fetchHDFSDetail(data.hdfs_connection_id, hdfsCallback);
-                        function dbCallback(success, dbData) {
-                            if(success) {
-                                let objHDFS = {...me.state.dsHDFS};
-                                objHDFS.inceptorConnectName = dbData.database_name;
-                                me.setState({
-                                    dsHDFS: initDatasetData('HDFS', data, objHDFS)
-                                });
-
-                            }
+    doDatasetEdit() {
+        const me = this;
+        const {
+            fetchHDFSFileBrowser,
+            fetchDatasetDetail,
+            fetchDBDetail,
+            saveDatasetId,
+            fetchSchemaList,
+            fetchHDFSDetail,
+            switchDatasetType} = me.props;
+        let datasetId = getDatasetId('edit', window.location.hash);
+        let datasetType = extractDatasetType(window.location.hash);
+        saveDatasetId(datasetId);
+        switchDatasetType(datasetType);
+        fetchDatasetDetail(datasetId, callback);
+        function callback(success, data) {
+            if(success) {
+                if(datasetType === 'INCEPTOR') {
+                    fetchDBDetail(data.database_id, callbackDBName);
+                    fetchSchemaList(data.database_id, callbackSchemaList);
+                    function callbackDBName(success, db) {
+                        if(success) {
+                            let objIncpetor = {...me.state.dsInceptor};
+                            objIncpetor.db_name = db.database_name;
+                            me.setState({
+                                dsInceptor: initDatasetData('INCEPTOR', data, objIncpetor)
+                            });
                         }
-                        function hdfsCallback(success, hdfsData) {
-                            if(success) {
-                                let objHDFS = {...me.state.dsHDFS};
-                                objHDFS.hdfsConnectName = hdfsData.connection_name;
-                                me.setState({
-                                    dsHDFS: initDatasetData('HDFS', data, objHDFS)
-                                });
-                            }
-                        }
-                    }else if(datasetType === 'UPLOAD') {
-                        //TODO
                     }
+                    function callbackSchemaList(success, data) {
+                        if(success) {
+                            let treeData = constructTreeData(data, false, 'folder');
+                            let objIncpetor = {...me.state.dsInceptor};
+                            objIncpetor.treeData = treeData;
+                            me.setState({
+                                dsInceptor: objIncpetor
+                            });
+                        }
+                    }
+                }else if(datasetType === 'HDFS') {
+
+                    fetchDBDetail(data.database_id, dbCallback);
+                    fetchHDFSDetail(data.hdfs_connection_id, hdfsCallback);
+                    function dbCallback(success, dbData) {
+                        if(success) {
+                            let objHDFS = {...me.state.dsHDFS};
+                            objHDFS.inceptorConnectName = dbData.database_name;
+                            me.setState({
+                                dsHDFS: initDatasetData('HDFS', data, objHDFS)
+                            });
+
+                        }
+                    }
+                    function hdfsCallback(success, hdfsData) {
+                        if(success) {
+                            let objHDFS = {...me.state.dsHDFS};
+                            objHDFS.hdfsConnectName = hdfsData.connection_name;
+                            me.setState({
+                                dsHDFS: initDatasetData('HDFS', data, objHDFS)
+                            });
+                        }
+                    }
+                }else if(datasetType === 'UPLOAD') {
+                    //TODO
                 }
             }
         }
@@ -478,12 +484,9 @@ class SubDetail extends Component {
     render () {
         const me = this;
         const { HDFSConnected } = me.props;
+        let datasetId = me.props.datasetId;
         let datasetType = me.props.datasetType;
         let opeType = extractOpeType(window.location.hash);
-        let datasetId = getDatasetId(opeType, window.location.hash);
-        if(datasetType === '') { //for browser refresh
-            datasetType = extractUrlType(window.location.hash);
-        }
         const Option = Select.Option;
         let dbOptions=[], hdfsOptions=[], inceptorOptions=[];
         if(datasetType === 'INCEPTOR') {
@@ -679,6 +682,7 @@ function mapDispatchToProps (dispatch) {
         fetchDatasetDetail,
         fetchDBDetail,
         fetchHDFSDetail,
+        switchDatasetType,
         switchHDFSConnected
     } = bindActionCreators(actionCreators, dispatch);
 
@@ -698,6 +702,7 @@ function mapDispatchToProps (dispatch) {
         fetchDatasetDetail,
         fetchDBDetail,
         fetchHDFSDetail,
+        switchDatasetType,
         switchHDFSConnected,
         dispatch
     };
