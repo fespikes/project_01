@@ -60,7 +60,7 @@ a{text-decoration:none;}
 }
 .data-detail-centent{
     padding:0 0 24px 24px;
-
+    background-color: #fff;
 }
 .data-detail-item{
     margin-top:20px;
@@ -312,6 +312,7 @@ a{text-decoration:none;}
 }
 .data-detail-centent,.new-data-gather,.ununited-data,.data-detail-preview{
     padding:20px 0;
+    background-color: #fff;
 }
 .data-detail-item-time>input{
     width:200px;

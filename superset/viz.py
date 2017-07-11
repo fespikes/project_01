@@ -223,7 +223,7 @@ class BaseViz(object):
                     df[DTTM_ALIAS] += timedelta(hours=self.datasource.offset)
             df.replace([np.inf, -np.inf], np.nan)
             df = df.fillna(0)
-        return df
+        return df, self.df_dict(df)
 
     @property
     def form(self):
@@ -357,13 +357,14 @@ class BaseViz(object):
         if not payload:
             is_cached = False
             cache_timeout = self.cache_timeout
-            data = self.get_data()
+            data, df_dict = self.get_data()
 
             payload = {
                 'cache_key': cache_key,
                 'cache_timeout': cache_timeout,
                 'column_formats': self.data['column_formats'],
                 'csv_endpoint': self.csv_endpoint,
+                'dataframe': df_dict,
                 'data': data,
                 'error': self.error_message,
                 'filter_endpoint': self.filter_endpoint,
@@ -417,7 +418,7 @@ class BaseViz(object):
         return content
 
     def get_csv(self):
-        df = self.get_df()
+        df, _ = self.get_df()
         include_index = not isinstance(df.index, pd.RangeIndex)
         return df.to_csv(index=include_index, encoding="utf-8")
 
@@ -450,7 +451,8 @@ class BaseViz(object):
         return df[column].to_json()
 
     def get_data(self):
-        return []
+        """return the data needed by D3 and dataframe for preview"""
+        return [], {}
 
     @property
     def json_endpoint(self):
@@ -476,6 +478,13 @@ class BaseViz(object):
     @property
     def json_data(self):
         return json.dumps(self.data)
+
+    @classmethod
+    def df_dict(cls, df):
+        return dict(
+            records=df.to_dict(orient="records"),
+            columns=list(df.columns),
+        )
 
 
 class TableViz(BaseViz):
@@ -524,7 +533,7 @@ class TableViz(BaseViz):
         return d
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         if (
                 self.form_data.get("granularity") == "all" and
                 DTTM_ALIAS in df):
@@ -533,7 +542,7 @@ class TableViz(BaseViz):
         return dict(
             records=df.to_dict(orient="records"),
             columns=list(df.columns),
-        )
+        ), df_dict
 
     def json_dumps(self, obj):
         return json.dumps(obj, default=utils.json_iso_dttm_ser)
@@ -579,7 +588,7 @@ class PivotTableViz(BaseViz):
         return d
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         if (
                 self.form_data.get("granularity") == "all" and
                 DTTM_ALIAS in df):
@@ -591,11 +600,9 @@ class PivotTableViz(BaseViz):
             aggfunc=self.form_data.get('pandas_aggfunc'),
             margins=True,
         )
-        return df.to_html(
-            na_rep='',
-            classes=(
-                "dataframe table table-striped table-bordered "
-                "table-condensed table-hover").split(" "))
+        return df.to_html(na_rep='',
+            classes=("dataframe table table-striped table-bordered "
+                     "table-condensed table-hover").split(" ")), df_dict
 
 
 class MarkupViz(BaseViz):
@@ -615,7 +622,7 @@ class MarkupViz(BaseViz):
         code = self.form_data.get("code", '')
         if markup_type == "markdown":
             code = markdown(code)
-        return dict(html=code)
+        return dict(html=code), {}
 
 
 class SeparatorViz(MarkupViz):
@@ -665,12 +672,12 @@ class WordCloudViz(BaseViz):
         return d
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         # Ordering the columns
         df = df[[self.form_data.get('series'), self.form_data.get('metric')]]
         # Labeling the columns for uniform json schema
         df.columns = ['text', 'size']
-        return df.to_dict(orient="records")
+        return df.to_dict(orient="records"), df_dict
 
 
 class TreemapViz(BaseViz):
@@ -706,11 +713,11 @@ class TreemapViz(BaseViz):
         return result
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         df = df.set_index(self.form_data.get("groupby"))
         chart_data = [{"name": metric, "children": self._nest(metric, df)}
                       for metric in df.columns]
-        return chart_data
+        return chart_data, df_dict
 
 
 class CalHeatmapViz(BaseViz):
@@ -732,7 +739,7 @@ class CalHeatmapViz(BaseViz):
     },)
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         form_data = self.form_data
 
         df.columns = ["timestamp", "metric"]
@@ -762,7 +769,7 @@ class CalHeatmapViz(BaseViz):
             "domain": domain,
             "subdomain": form_data.get("subdomain_granularity"),
             "range": range_,
-        }
+        }, df_dict
 
     def query_obj(self):
         qry = super(CalHeatmapViz, self).query_obj()
@@ -856,7 +863,7 @@ class BoxPlotViz(NVD3Viz):
 
         aggregate = [Q1, np.median, Q3, whisker_high, whisker_low, outliers]
         df = df.groupby(form_data.get('groupby')).agg(aggregate)
-        return df
+        return df, self.df_dict(df)
 
     def to_series(self, df, classed='', title_suffix=''):
         label_sep = " - "
@@ -882,9 +889,9 @@ class BoxPlotViz(NVD3Viz):
         return chart_data
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         chart_data = self.to_series(df)
-        return chart_data
+        return chart_data, df_dict
 
 
 class BubbleViz(NVD3Viz):
@@ -941,10 +948,10 @@ class BubbleViz(NVD3Viz):
         df['size'] = df[[self.z_metric]]
         df['shape'] = 'circle'
         df['group'] = df[[self.series]]
-        return df
+        return df, self.df_dict(df)
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         series = defaultdict(list)
         for row in df.to_dict(orient='records'):
             series[row['group']].append(row)
@@ -953,7 +960,7 @@ class BubbleViz(NVD3Viz):
             chart_data.append({
                 'key': k,
                 'values': v})
-        return chart_data
+        return chart_data, df_dict
 
 
 class BulletViz(NVD3Viz):
@@ -1003,10 +1010,10 @@ class BulletViz(NVD3Viz):
         df = super(BulletViz, self).get_df(query_obj)
         df = df.fillna(0)
         df['metric'] = df[[self.metric]]
-        return df
+        return df, self.df_dict(df)
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         values = df['metric'].values
         return {
             'measures': values.tolist(),
@@ -1016,7 +1023,7 @@ class BulletViz(NVD3Viz):
             'markerLabels': self.marker_labels or None,
             'markerLines': self.marker_lines or None,
             'markerLineLabels': self.marker_line_labels or None,
-        }
+        }, df_dict
 
 
 class BigNumberViz(BaseViz):
@@ -1058,7 +1065,7 @@ class BigNumberViz(BaseViz):
 
     def get_data(self):
         form_data = self.form_data
-        df = self.get_df()
+        df, df_dict = self.get_df()
         df.sort_values(by=df.columns[0], inplace=True)
         compare_lag = form_data.get("compare_lag", "")
         compare_lag = int(compare_lag) if compare_lag and compare_lag.isdigit() else 0
@@ -1066,7 +1073,7 @@ class BigNumberViz(BaseViz):
             'data': df.values.tolist(),
             'compare_lag': compare_lag,
             'compare_suffix': form_data.get('compare_suffix', ''),
-        }
+        }, df_dict
 
 
 class BigNumberTotalViz(BaseViz):
@@ -1107,12 +1114,12 @@ class BigNumberTotalViz(BaseViz):
 
     def get_data(self):
         form_data = self.form_data
-        df = self.get_df()
+        df, df_dict = self.get_df()
         df.sort_values(by=df.columns[0], inplace=True)
         return {
             'data': df.values.tolist(),
             'subheader': form_data.get('subheader', ''),
-        }
+        }, df_dict
 
 
 class NVD3TimeSeriesViz(NVD3Viz):
@@ -1212,7 +1219,7 @@ class NVD3TimeSeriesViz(NVD3Viz):
                 df = df / df.shift(num_period_compare)
 
             df = df[num_period_compare:]
-        return df
+        return df, self.df_dict(df)
 
     def to_series(self, df, classed='', title_suffix=''):
         cols = []
@@ -1255,7 +1262,7 @@ class NVD3TimeSeriesViz(NVD3Viz):
         return chart_data
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         chart_data = self.to_series(df)
 
         time_compare = self.form_data.get('time_compare')
@@ -1272,7 +1279,7 @@ class NVD3TimeSeriesViz(NVD3Viz):
             chart_data += self.to_series(
                 df2, classed='superset', title_suffix="---")
             chart_data = sorted(chart_data, key=lambda x: x['key'])
-        return chart_data
+        return chart_data, df_dict
 
 
 class NVD3DualLineViz(NVD3Viz):
@@ -1326,7 +1333,7 @@ class NVD3DualLineViz(NVD3Viz):
             index=DTTM_ALIAS,
             values=metrics)
 
-        return df
+        return df, self.df_dict(df)
 
     def query_obj(self):
         d = super(NVD3DualLineViz, self).query_obj()
@@ -1382,9 +1389,9 @@ class NVD3DualLineViz(NVD3Viz):
         if not metric_2:
             raise Exception("Pick a metric for right axis!")
 
-        df = self.get_df()
+        df, df_dict = self.get_df()
         chart_data = self.to_series(df)
-        return chart_data
+        return chart_data, df_dict
 
 
 class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
@@ -1464,13 +1471,13 @@ class DistributionPieViz(NVD3Viz):
             index=self.groupby,
             values=[self.metrics[0]])
         df.sort_values(by=self.metrics[0], ascending=False, inplace=True)
-        return df
+        return df, self.df_dict(df)
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         df = df.reset_index()
         df.columns = ['x', 'y']
-        return df.to_dict(orient="records")
+        return df.to_dict(orient="records"), df_dict
 
 
 class HistogramViz(BaseViz):
@@ -1517,9 +1524,9 @@ class HistogramViz(BaseViz):
 
     def get_data(self):
         """Returns the chart data"""
-        df = self.get_df()
+        df, df_dict = self.get_df()
         chart_data = df[df.columns[0]].values.tolist()
-        return chart_data
+        return chart_data, df_dict
 
 
 class DistributionBarViz(DistributionPieViz):
@@ -1584,10 +1591,10 @@ class DistributionBarViz(DistributionPieViz):
             pt = pt.T
             pt = (pt / pt.sum()).T
         pt = pt.reindex(row.index)
-        return pt
+        return pt, self.df_dict(df)
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         chart_data = []
         for name, ys in df.iteritems():
             if df[name].dtype.kind not in "biufc":
@@ -1606,7 +1613,7 @@ class DistributionBarViz(DistributionPieViz):
                     for i, v in ys.iteritems()]
             }
             chart_data.append(d)
-        return chart_data
+        return chart_data, df_dict
 
 
 class SunburstViz(BaseViz):
@@ -1648,7 +1655,7 @@ class SunburstViz(BaseViz):
     }
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
 
         # if m1 == m2 duplicate the metric column
         cols = self.form_data.get('groupby')
@@ -1661,7 +1668,8 @@ class SunburstViz(BaseViz):
             cols += [
                 self.form_data['metric'], self.form_data['secondary_metric']]
             ndf = df[cols]
-        return json.loads(ndf.to_json(orient="values"))  # TODO fix this nonsense
+        # TODO fix this nonsense
+        return json.loads(ndf.to_json(orient="values")), df_dict
 
     def query_obj(self):
         qry = super(SunburstViz, self).query_obj()
@@ -1702,7 +1710,7 @@ class SankeyViz(BaseViz):
         return qry
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         df.columns = ['source', 'target', 'value']
         recs = df.to_dict(orient='records')
 
@@ -1731,7 +1739,7 @@ class SankeyViz(BaseViz):
             raise Exception(
                 "There's a loop in your Sankey, please provide a tree. "
                 "Here's a faulty link: {}".format(cycle))
-        return recs
+        return recs, df_dict
 
 
 class DirectedForceViz(BaseViz):
@@ -1771,9 +1779,9 @@ class DirectedForceViz(BaseViz):
         return qry
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         df.columns = ['source', 'target', 'value']
-        return df.to_dict(orient='records')
+        return df.to_dict(orient='records'), df_dict
 
 
 class WorldMapViz(BaseViz):
@@ -1823,7 +1831,7 @@ class WorldMapViz(BaseViz):
 
     def get_data(self):
         from superset.data import countries
-        df = self.get_df()
+        df, df_dict = self.get_df()
         cols = [self.form_data.get('entity')]
         metric = self.form_data.get('metric')
         secondary_metric = self.form_data.get('secondary_metric')
@@ -1852,7 +1860,7 @@ class WorldMapViz(BaseViz):
                 row['name'] = country['name']
             else:
                 row['country'] = "XXX"
-        return d
+        return d, df_dict
 
 
 class FilterBoxViz(BaseViz):
@@ -1902,7 +1910,7 @@ class FilterBoxViz(BaseViz):
                 'metric': row[1]}
                 for row in df.itertuples(index=False)
             ]
-        return d
+        return d, {}
 
 
 class IFrameViz(BaseViz):
@@ -1955,8 +1963,8 @@ class ParallelCoordinatesViz(BaseViz):
         return d
 
     def get_data(self):
-        df = self.get_df()
-        return df.to_dict(orient="records")
+        df, df_dict = self.get_df()
+        return df.to_dict(orient="records"), df_dict
 
 
 class HeatmapViz(BaseViz):
@@ -1994,7 +2002,7 @@ class HeatmapViz(BaseViz):
         return d
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         fd = self.form_data
         x = fd.get('all_columns_x')
         y = fd.get('all_columns_y')
@@ -2021,7 +2029,7 @@ class HeatmapViz(BaseViz):
             v = df.v
             min_ = v.min()
             df['perc'] = (v - min_) / (v.max() - min_)
-        return df.to_dict(orient="records")
+        return df.to_dict(orient="records"), df_dict
 
 
 class HorizonViz(NVD3TimeSeriesViz):
@@ -2155,7 +2163,7 @@ class MapboxViz(BaseViz):
         return d
 
     def get_data(self):
-        df = self.get_df()
+        df, df_dict = self.get_df()
         fd = self.form_data
         label_col = fd.get('mapbox_label')
         custom_metric = label_col and len(label_col) >= 1
@@ -2210,7 +2218,7 @@ class MapboxViz(BaseViz):
             "renderWhileDragging": fd.get("render_while_dragging"),
             "tooltip": fd.get("rich_tooltip"),
             "color": fd.get("mapbox_color"),
-        }
+        }, df_dict
 
 
 viz_types_list = [

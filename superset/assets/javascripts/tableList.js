@@ -7,10 +7,6 @@ import App from './tableList/containers/';
 import {
     Main,
     TableAdd,
-//    SubDetail,
-//    SubPreview,
-//    SubColumns,
-//    SubSqlMetric
 } from './tableList/containers';
 import configureStore from './tableList/stores/configureStore';
 import {
