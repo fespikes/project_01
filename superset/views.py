@@ -1974,14 +1974,12 @@ class Superset(BaseSupersetView):
                 slice=slc,
                 table_name=table_name)
         else:
-            preview_data = viz_obj.datasource.preview_data()
             return self.render_template(
                 "superset/explore.html",
                 viz=viz_obj,
                 slice=slc,
                 datasources=datasources,
                 databases=databases,
-                preview_data=preview_data,
                 can_add=slice_add_perm,
                 can_edit=slice_edit_perm,
                 can_download=slice_download_perm,
