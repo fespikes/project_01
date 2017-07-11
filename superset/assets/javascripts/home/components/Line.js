@@ -69,10 +69,20 @@ function Line(props) {
                 var result = '<div class="line-tooltip">';
                 result += '<div class="tooltip-header" style="text-align:center">' + this.key + '</div>';
                 result += '<div class="tooltip-body">'
-                if (this.point.index > 0) {
-                    result += '<div class="yesterday"><span class="key">昨日变动</span><span class="value">' + this.series.data[this.point.index - 1].y + "</span></div>";
+                if (this.point.index > 1) {
+                    result += '<div class="yesterday"><span class="key">昨日变动</span><span class="value">' + (this.series.data[this.point.index - 2].y - this.series.data[this.point.index - 1].y) + "</span></div>";
                 }
-                result += '<div class="today"><span class="key">今日变动</span><span class="value">' + this.series.data[this.point.index].y + "</span></div>";
+                else {
+                    result += '<div class="yesterday"><span class="key">昨日变动</span><span class="value">' + 0 + "</span></div>";
+                }
+
+                if (this.point.index > 0) {
+                    result += '<div class="today"><span class="key">今日变动</span><span class="value">' + (this.series.data[this.point.index].y - this.series.data[this.point.index - 1].y) + "</span></div>";
+                }
+                else {
+                    result += '<div class="today"><span class="key">今日变动</span><span class="value">' + 0 + "</span></div>";
+                }
+                
                 result += '</div>';
                 return result;
             }
