@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchDBDetail, selectRows } from '../actions';
+import { fetchDBDetail, selectRows, fetchUpdateConnection } from '../actions';
 import { ConnectionDelete, ConnectionEdit } from '../popup';
 import style from '../style/database.scss'
 
@@ -34,16 +34,18 @@ class SliceTable extends React.Component {
     editConnection(record) {
         const dispatch = this.dispatch;
         dispatch(fetchDBDetail(record, callback));
+
+        let connectionType = record.connection_type;
+
         function callback(success, data) {
             if(success) {
                 let editConnectionPopup = render(
                     <ConnectionEdit
                         dispatch={dispatch}
+                        connectionType={record.connection_type}
+                        connectionId={record.id}
                         database={data} />,
                     document.getElementById('popup_root'));
-                if(editConnectionPopup) {
-                    editConnectionPopup.showDialog();
-                }
             }
         }
     }

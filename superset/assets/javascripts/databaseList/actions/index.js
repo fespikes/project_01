@@ -1,5 +1,4 @@
 import fetch from 'isomorphic-fetch';
-import { getEditConData } from '../utils'
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -22,6 +21,11 @@ export const actionTypes = {
     receiveConnectionNames: 'RECEIVE_CONNECTION_NAMES'
 }
 
+export const connectionTypes = {
+    inceptor: 'INCEPTOR',
+    HDFS: 'HDFS'
+}
+
 const origin = window.location.origin;
 const baseURL = origin + '/database/';
 const connBaseURL = origin + '/connection/';
@@ -30,6 +34,25 @@ const HDFSConnectionBaseURL = origin + '/hdfsconnection/';
 
 const errorHandler = (error) => {
     return error;
+}
+
+const getParamDB = (database) => {
+    let db = {};
+    let connectionType = (database.connectionType||database.backend);
+    if (connectionType ===connectionTypes.inceptor) {
+        db.database_name = database.database_name;
+        db.sqlalchemy_uri = database.sqlalchemy_uri;
+        db.description = database.description;
+    } else {
+        db = {
+            connection_name: database.connection_name,
+            description: database.description,
+            httpfs: database.httpfs,
+            database_id: database.database_id
+        }
+    }
+
+    return db;
 }
 
 /**
@@ -81,7 +104,7 @@ export function clearRows () {
 export function testConnectionInEditConnectPopup(database, callback) {
     return (dispatch, getState) => {
         const URL = origin + '/pilot/testconn';
-        const db = getEditConData(database);
+        const db = getParamDB(database);
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',
@@ -252,8 +275,8 @@ export function fetchDBDetail(record, callback) {
 export function fetchUpdateConnection(database, callback) {
 
     return (dispatch, getState) => {
-        const URL = getURLBase(database.backend, 'edit/') + database.id;
-        const db = getEditConData(database);
+        const URL = getURLBase(database.connectionType, 'edit/') + database.id;
+        const db = getParamDB(database);
 
         return fetch(URL, {
             credentials: 'include',
