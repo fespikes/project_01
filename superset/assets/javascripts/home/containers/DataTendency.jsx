@@ -54,7 +54,7 @@ class DataTendency extends Component {
                     <hgroup className="data-title">
                         <h2>
                             <dl onClick={ () => {onChangeCatagory('dashboard')}}>
-                                <dt>
+                                <dt className="margin-left-20px">
                                     <i className="icon dashboard-icon"></i>
                                 </dt>
                                 <dd>

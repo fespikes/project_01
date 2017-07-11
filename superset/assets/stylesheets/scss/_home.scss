@@ -23,6 +23,9 @@
     background-position: -130px -90px;
 }
 
+.margin-left-20px {
+    margin-left:-20px;
+}
 
 .data-tendency{
     border-radius: 4px;
@@ -65,7 +68,7 @@
     .data-title{
         display:flex;
         justify-content:center;
-        padding:25px 0;
+        padding:20px 0;
         h2{
             border-right:1px solid #edf1f5;
             padding:0 45px;
@@ -98,6 +101,7 @@
 
                 .current {
                     color: #0083f8;
+                    font-weight:600;
                 }
             }
         }

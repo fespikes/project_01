@@ -18,6 +18,7 @@ function Line(props) {
 
     const config = {
         chart: {
+            backgroundColor: 'rgba(46, 161, 248, 0.1)',
             type: 'area',
             height: '240'
         },
@@ -28,7 +29,7 @@ function Line(props) {
             enabled: false
         },
         title: {
-            text: title + '数量变化趋势',
+            text: '',
             align: "left"
         },
         noData: {
