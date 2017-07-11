@@ -296,6 +296,7 @@ export function fetchTableDelete(tableId, callback) {
             method: 'GET'
         }).then(function(response) {
             if(response.ok) {
+                dispatch(selectRows([], []));
                 dispatch(applyFetch(getState().condition));
                 if(typeof callback === "function") {
                     callback(true);

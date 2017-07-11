@@ -58,6 +58,7 @@ class App extends Component {
                     <Table
                         dispatch={dispatch}
                         {...response}
+                        selectedRowKeys={condition.selectedRowKeys}
                     />
                 </div>
                 <div className="panel-bottom">
