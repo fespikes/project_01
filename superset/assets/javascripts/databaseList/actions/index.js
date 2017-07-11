@@ -131,8 +131,8 @@ export function fetchInceptorConnectAdd(connect, callback) {
 */
 export function applyAdd (callback) {
     return (dispatch, getState) => {
-        const inceptorAddURL = baseURL + 'add';
-        const HDFSAddURL = origin + '/hdfsconnection';
+        const inceptorAddURL = baseURL;
+        const HDFSAddURL = origin + '/hdfsconnection/';
         let URL;
         //{"database_name":"1.198_copy", "sqlalchemy_uri":"inceptor://hive:123"}
         const {
@@ -170,7 +170,7 @@ export function applyAdd (callback) {
                 })
             };
         }
-        return fetch(URL+'/add', paramObj)
+        return fetch(URL+'add', paramObj)
         .then(
             response => response.ok?
                 response.json() : ((response)=>errorHandler(response))(response),

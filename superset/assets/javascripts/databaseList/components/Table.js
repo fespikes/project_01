@@ -29,7 +29,6 @@ class SliceTable extends React.Component {
             selectedRowNames.push(row.name);
         });
         this.dispatch(selectRows(selectedRowKeys, connToBeDeleted, selectedRowNames));
-
     };
 
     editConnection(record) {
@@ -53,6 +52,10 @@ class SliceTable extends React.Component {
     deleteConnection(record) {
         const dispatch = this.dispatch;
         let deleteTips = "确定删除: " + record.name + "?";      //i18n
+        let connToBeDeleted = {};
+        connToBeDeleted[record.connection_type] = [record.id];
+        this.dispatch(selectRows([record.elementId], connToBeDeleted, [record.name]));
+
         let deleteConnectionPopup = render(
             <ConnectionDelete
                 dispatch={dispatch}
