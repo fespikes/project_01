@@ -38,19 +38,21 @@ export default function ExploreActionButtons({ canDownload, slice, sliceId, quer
   }
   return (
     <div className="btn-group results" role="group">
-        <a className="btn btn-default btn-sm" onClick={() => editSlice()}>
-            <i className="fa fa-edit"></i>
-        </a>
-        <URLShortLinkButton slice={slice} />
-        <EmbedCodeButton slice={slice} />
-        <a
-            href={slice.data.json_endpoint}
-            className="btn btn-default btn-sm"
-            title="Export to .json"
-            target="_blank"
-        >
-            <i className="fa fa-file-code-o"></i>.json
-        </a>
+{/*
+<a className="btn btn-default btn-sm" onClick={() => editSlice()}>
+    <i className="fa fa-edit"></i>
+</a>
+<URLShortLinkButton slice={slice} />
+<EmbedCodeButton slice={slice} />
+<a
+    href={slice.data.json_endpoint}
+    className="btn btn-default btn-sm"
+    title="Export to .json"
+    target="_blank"
+>
+    <i className="fa fa-file-code-o"></i>.json
+</a>
+*/}
         <a
             href={slice.data.csv_endpoint}
             className={exportToCSVClasses}
