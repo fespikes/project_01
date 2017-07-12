@@ -8,7 +8,8 @@ export default function subDetail(state = {
     HDFSConnected: true,
     datasetId: '',
     dsHDFS: {},
-    dsInceptor: {}
+    dsInceptor: {},
+    isFetching: false
 }, action) {
     switch (action.type) {
         case actionTypes.switchDatasetType:
@@ -22,6 +23,9 @@ export default function subDetail(state = {
             break;
         case actionTypes.saveHDFSDataset:
             return {...state, dsHDFS: action.dsHDFS};
+            break;
+        case actionTypes.switchFetchingState:
+            return {...state, isFetching: action.isFetching};
             break;
         case REHYDRATE:
             return {...state, ...action.payload.subDetail};
