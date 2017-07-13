@@ -5,6 +5,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import OrderedDict
+import os
 import functools
 import json
 import logging
@@ -48,6 +49,9 @@ from sqlalchemy.sql.expression import ColumnClause, TextAsFrom
 from sqlalchemy_utils import EncryptedType
 
 from werkzeug.datastructures import ImmutableMultiDict
+from guardian_client_python.GuardianClientFactory import guardianClientFactory
+from guardian_common_python.conf.GuardianConfiguration import GuardianConfiguration
+from guardian_common_python.conf.GuardianVars import GuardianVars
 
 from superset import (
     app, db, db_engine_specs, get_session, utils, sm, import_util
@@ -718,10 +722,12 @@ class Database(Model, AuditMixinNullable):
     allow_ctas = Column(Boolean, default=False)
     allow_dml = Column(Boolean, default=True)
     force_ctas_schema = Column(String(250))
-    extra = Column(Text, default=textwrap.dedent("""\
+    args = Column(Text, default=textwrap.dedent("""\
     {
-        "metadata_params": {},
-        "engine_params": {}
+        "connect_args": 
+            {"framed": 0,
+            "hive": "Hive Server 2",
+            "mech": "LADP"}
     }
     """))
     perm = Column(String(1000))
@@ -739,6 +745,9 @@ class Database(Model, AuditMixinNullable):
         return url.get_backend_name()
 
     def set_sqlalchemy_uri(self, uri):
+        if 'mech=kerberos' in uri.lower():
+            self.sqlalchemy_uri = uri
+            return
         password_mask = "X" * 10
         conn = sqla.engine.url.make_url(uri)
         if conn.password != password_mask:
@@ -796,8 +805,7 @@ class Database(Model, AuditMixinNullable):
         # else:
         #     url = make_url(self.fill_sqlalchemy_uri())
         url = make_url(self.sqlalchemy_uri_decrypted)
-        extra = self.get_extra()
-        params = extra.get('engine_params', {})
+        connect_args = self.args_append_keytab(self.get_args().get('connect_args', {}))
         if self.backend == 'presto' and schema:
             if '/' in url.database:
                 url.database = url.database.split('/')[0] + '/' + schema
@@ -805,7 +813,7 @@ class Database(Model, AuditMixinNullable):
                 url.database += '/' + schema
         elif schema:
             url.database = schema
-        return create_engine(url, **params)
+        return create_engine(url, connect_args=connect_args)
 
     def get_reserved_words(self):
         return self.get_sqla_engine().dialect.preparer.reserved_words
@@ -913,18 +921,18 @@ class Database(Model, AuditMixinNullable):
     def grains_dict(self):
         return {grain.name: grain for grain in self.grains()}
 
-    def get_extra(self):
-        extra = {}
-        if self.extra:
+    def get_args(self):
+        args = {}
+        if self.args:
             try:
-                extra = json.loads(self.extra)
+                args = json.loads(self.args)
             except Exception as e:
                 logging.error(e)
-        return extra
+        return args
 
     def get_table(self, table_name, schema=None):
-        extra = self.get_extra()
-        meta = MetaData(**extra.get('metadata_params', {}))
+        args = self.get_args()
+        meta = MetaData(**args.get('metadata_params', {}))
         return Table(
             table_name, meta,
             schema=schema or None,
@@ -963,6 +971,33 @@ class Database(Model, AuditMixinNullable):
             database.online = True
             db.session.commit()
             DailyNumber.log_number('connection', True, None)
+
+    @classmethod
+    def args_append_keytab(cls, connect_args):
+        if connect_args.get('mech', '').lower() == 'kerberos':
+            dir = config.get('KETTAB_TMP_DIR', '/tmp/keytab')
+            server = config.get('GUARDIAN_SERVER')
+            from flask_appbuilder.security.views import AuthDBView
+            connect_args['keytab'] = cls.get_keytab(g.user.username,
+                                                    AuthDBView.password, server, dir)
+        return connect_args
+
+    @classmethod
+    def get_keytab(cls, user, passwd, guardian_server, dir):
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        path = os.path.join(dir, 'tmp.keytab')
+        conf = GuardianConfiguration()
+        conf.set(GuardianVars.GUARDIAN_SERVER_ADDRESS.varname, guardian_server)
+        client = guardianClientFactory.getInstance(conf)
+        client.login(user, passwd)
+        keytab = client.getKeytab(user)
+
+        file = open(path, "wb")
+        file.write(keytab)
+        file.close()
+        return path
+
 
 sqla.event.listen(Database, 'after_insert', set_perm)
 sqla.event.listen(Database, 'after_update', set_perm)

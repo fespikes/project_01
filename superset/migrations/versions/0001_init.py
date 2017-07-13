@@ -60,7 +60,7 @@ def upgrade():
         sa.Column('allow_ctas', sa.Boolean(), nullable=True, server_default="0"),
         sa.Column('allow_dml', sa.Boolean(), nullable=True, server_default="1"),
         sa.Column('force_ctas_schema', sa.String(length=250), server_default="0"),
-        sa.Column('extra', sa.Text(), nullable=True),
+        sa.Column('args', sa.Text(), nullable=True),
         sa.Column('perm', sa.String(length=1000), nullable=True),
         sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),

@@ -6,10 +6,6 @@ from __future__ import unicode_literals
 import logging
 from flask_appbuilder.security.sqla import models as ab_models
 
-from guardian_client_python.GuardianClientFactory import guardianClientFactory
-from guardian_common_python.conf.GuardianConfiguration import GuardianConfiguration
-from guardian_common_python.conf.GuardianVars import GuardianVars
-
 from superset import conf, db, models, sm, source_registry
 
 
@@ -54,23 +50,6 @@ OBJECT_SPEC_PERMISSIONS = set([
     'datasource_access',
     'metric_access',
 ])
-
-
-def get_keytab_path(user, passwd, guardian_server, dir):
-    path = '{}{}'.format(dir, 'tmp.keytab')
-    keytab = download_keytab(user, passwd, guardian_server)
-    file = open(path, "wb")
-    file.write(keytab)
-    file.close()
-    return path
-
-
-def download_keytab(user, passwd, guardian_server):
-    conf = GuardianConfiguration()
-    conf.set(GuardianVars.GUARDIAN_SERVER_ADDRESS.varname, guardian_server)
-    client = guardianClientFactory.getInstance(conf)
-    client.login(user, passwd)
-    return client.getKeytab(user)
 
 
 def merge_perm(sm, permission_name, view_menu_name):

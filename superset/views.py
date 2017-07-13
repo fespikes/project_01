@@ -711,8 +711,8 @@ class DatabaseView(SupersetModelView):  # noqa
     list_columns = ['id', 'database_name', 'description', 'backend', 'changed_on']
     _list_columns = list_columns
     show_columns = ['id', 'database_name', 'description', 'sqlalchemy_uri',
-                    'backend',  'created_on', 'changed_on']
-    add_columns = ['database_name', 'description', 'sqlalchemy_uri']
+                    'args', 'backend',  'created_on', 'changed_on']
+    add_columns = ['database_name', 'description', 'sqlalchemy_uri', 'args']
     edit_columns = add_columns
     readme_columns = ['sqlalchemy_uri']
     add_template = "superset/models/database/add.html"
@@ -735,8 +735,8 @@ class DatabaseView(SupersetModelView):  # noqa
 
     def pre_add(self, obj):
         obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
-        if not obj.test_uri(obj.sqlalchemy_uri_decrypted):
-             raise Exception("Not a valid connection")
+        # if not obj.test_uri(obj.sqlalchemy_uri_decrypted):
+        #      raise Exception("Not a valid connection")
 
     def post_add(self, obj):
         self.add_or_edit_database_account(obj)
@@ -2271,6 +2271,7 @@ class Superset(BaseSupersetView):
             args = json.loads(str(request.data, encoding='utf-8'))
             uri = args.get('sqlalchemy_uri')
             db_name = args.get('database_name')
+            # uri, kerberos = Database.uri_append_keytab(uri)
             if db_name:
                 database = (
                     db.session.query(models.Database)
@@ -2282,9 +2283,7 @@ class Superset(BaseSupersetView):
                     # use the URI associated with this database
                     uri = database.sqlalchemy_uri_decrypted
             connect_args = (
-                args.get('extras', {})
-                    .get('engine_params', {})
-                    .get('connect_args', {}))
+                args.get('args', {}).get('connect_args', {}))
             engine = create_engine(uri, connect_args=connect_args)
             engine.connect()
             return json.dumps(engine.table_names(), indent=4)
