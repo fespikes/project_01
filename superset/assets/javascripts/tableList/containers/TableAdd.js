@@ -53,7 +53,7 @@ class TableAdd extends Component {
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink to={`/${opeType}/columns/${datasetType}/${id}`} activeClassName="active" className={enableClick?'':'link-disabled'} classNameisActive={isColumnsActive}>
+                                    <NavLink to={`/${opeType}/columns/${datasetType}/${id}`} activeClassName="active" className={enableClick?'':'link-disabled'} isActive={isColumnsActive}>
                                         List Table Column
                                     </NavLink>
                                 </li>
