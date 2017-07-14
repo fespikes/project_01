@@ -9,6 +9,7 @@ export default function subDetail(state = {
     datasetId: '',
     dsHDFS: {},
     dsInceptor: {},
+    dsUpload: {},
     isFetching: false
 }, action) {
     switch (action.type) {
@@ -29,6 +30,14 @@ export default function subDetail(state = {
             break;
         case REHYDRATE:
             return {...state, ...action.payload.subDetail};
+            break;
+        case actionTypes.clearDatasetData:
+            return {
+                ...state,
+                dsHDFS: {},
+                dsInceptor: {},
+                dsUpload: {}
+            };
             break;
         default:
             return state;
