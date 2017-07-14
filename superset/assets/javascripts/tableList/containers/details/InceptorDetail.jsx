@@ -25,6 +25,8 @@ class InceptorDetail extends Component {
         this.onLoadData = this.onLoadData.bind(this);
         this.onConnectChange = this.onConnectChange.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.callbackRefresh = this.callbackRefresh.bind(this);
+        this.createInceptorConnect = this.createInceptorConnect.bind(this);
     }
 
     handleChange(e) {
@@ -70,6 +72,24 @@ class InceptorDetail extends Component {
                 dsInceptor: dsInceptor
             });
         }
+    }
+
+    createInceptorConnect() {
+        const { dispatch } = this.props;
+        let createInceptorConnectPopup = render(
+            <CreateInceptorConnect
+                dispatch={dispatch}
+                callbackRefresh={this.callbackRefresh}
+            />,
+            document.getElementById('popup_root')
+        );
+        if(createInceptorConnectPopup) {
+            createInceptorConnectPopup.showDialog();
+        }
+    }
+
+    callbackRefresh() {
+        this.doFetchDatabaseList();
     }
 
     onLoadData(node) {
@@ -156,8 +176,10 @@ class InceptorDetail extends Component {
         fetchDatabaseList(callback);
         function callback(success, data) {
             if(success) {
-                let objInceptor = {...me.state.dsInceptor};
-                objInceptor.databases = data;
+                let objInceptor = {
+                    ...me.state.dsInceptor,
+                    databases: data
+                };
                 me.setState({
                     dsInceptor: objInceptor
                 });

@@ -26,7 +26,6 @@ class HDFSDetail extends Component {
         this.onConfig = this.onConfig.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.createHDFSConnect = this.createHDFSConnect.bind(this);
-        this.createInceptorConnect = this.createInceptorConnect.bind(this);
         this.onHDFSConnectChange = this.onHDFSConnectChange.bind(this);
         this.onInceptorConnectChange = this.onInceptorConnectChange.bind(this);
         this.onSelect = this.onSelect.bind(this);
@@ -56,20 +55,6 @@ class HDFSDetail extends Component {
         );
         if(createHDFSConnectPopup) {
             createHDFSConnectPopup.showDialog();
-        }
-    }
-
-    createInceptorConnect() {
-        const { dispatch } = this.props;
-        let createInceptorConnectPopup = render(
-            <CreateInceptorConnect
-                dispatch={dispatch}
-                callbackRefresh={this.callbackRefresh}
-            />,
-            document.getElementById('popup_root')
-        );
-        if(createInceptorConnectPopup) {
-            createInceptorConnectPopup.showDialog();
         }
     }
 

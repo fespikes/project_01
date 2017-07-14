@@ -9,6 +9,7 @@ export default function subDetail(state = {
     datasetId: '',
     dsHDFS: {},
     dsInceptor: {},
+    dsUpload: {},
     isFetching: false
 }, action) {
     switch (action.type) {

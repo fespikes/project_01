@@ -34,6 +34,7 @@ class SubDetail extends Component {
                 HDFSConnected: true,
                 dsHDFS: {},
                 dsInceptor: {},
+                dsUpload: {},
                 isFetching: false
             });
         }
@@ -64,7 +65,8 @@ class SubDetail extends Component {
             fetchDatasetDetail,
             fetchHDFSConnectList,
             fetchHDFSDetail,
-            fetchInceptorConnectList
+            fetchInceptorConnectList,
+            fetchUploadFile
         } = this.props;
         const opeType = extractOpeType(window.location.hash);
         const datasetId = getDatasetId(opeType, window.location.hash);
@@ -109,7 +111,9 @@ class SubDetail extends Component {
                         />
                     </div>
                     <div className={datasetType==='UPLOAD'?'':'none'}>
-
+                        <UploadDetail
+                            fetchUploadFile={fetchUploadFile}
+                        />
                     </div>
                     <div id="showAlert" className="alert-tip"></div>
                 </div>
@@ -141,7 +145,7 @@ function mapDispatchToProps (dispatch) {
         fetchHDFSDetail,
         clearDataButId,
         switchDatasetType,
-        switchHDFSConnected
+        switchHDFSConnected,
         } = bindActionCreators(actionCreators, dispatch);
     return {
         fetchDatabaseList,
