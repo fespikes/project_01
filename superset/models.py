@@ -5,6 +5,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import OrderedDict
+import os
 import functools
 import json
 import logging
@@ -17,14 +18,14 @@ from copy import deepcopy, copy
 from datetime import datetime
 from itertools import groupby
 
+import requests
+from io import StringIO
 import humanize
 import pandas as pd
 import sqlalchemy as sqla
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import subqueryload
-
 import sqlparse
-from dateutil.parser import parse
 
 from flask import escape, g, Markup, request
 from flask_appbuilder import Model
@@ -48,6 +49,9 @@ from sqlalchemy.sql.expression import ColumnClause, TextAsFrom
 from sqlalchemy_utils import EncryptedType
 
 from werkzeug.datastructures import ImmutableMultiDict
+from guardian_client_python.GuardianClientFactory import guardianClientFactory
+from guardian_common_python.conf.GuardianConfiguration import GuardianConfiguration
+from guardian_common_python.conf.GuardianVars import GuardianVars
 
 from superset import (
     app, db, db_engine_specs, get_session, utils, sm, import_util
@@ -718,10 +722,12 @@ class Database(Model, AuditMixinNullable):
     allow_ctas = Column(Boolean, default=False)
     allow_dml = Column(Boolean, default=True)
     force_ctas_schema = Column(String(250))
-    extra = Column(Text, default=textwrap.dedent("""\
+    args = Column(Text, default=textwrap.dedent("""\
     {
-        "metadata_params": {},
-        "engine_params": {}
+        "connect_args": 
+            {"framed": 0,
+            "hive": "Hive Server 2",
+            "mech": "LADP"}
     }
     """))
     perm = Column(String(1000))
@@ -739,6 +745,9 @@ class Database(Model, AuditMixinNullable):
         return url.get_backend_name()
 
     def set_sqlalchemy_uri(self, uri):
+        if 'mech=kerberos' in uri.lower():
+            self.sqlalchemy_uri = uri
+            return
         password_mask = "X" * 10
         conn = sqla.engine.url.make_url(uri)
         if conn.password != password_mask:
@@ -796,8 +805,7 @@ class Database(Model, AuditMixinNullable):
         # else:
         #     url = make_url(self.fill_sqlalchemy_uri())
         url = make_url(self.sqlalchemy_uri_decrypted)
-        extra = self.get_extra()
-        params = extra.get('engine_params', {})
+        connect_args = self.args_append_keytab(self.get_args().get('connect_args', {}))
         if self.backend == 'presto' and schema:
             if '/' in url.database:
                 url.database = url.database.split('/')[0] + '/' + schema
@@ -805,7 +813,7 @@ class Database(Model, AuditMixinNullable):
                 url.database += '/' + schema
         elif schema:
             url.database = schema
-        return create_engine(url, **params)
+        return create_engine(url, connect_args=connect_args)
 
     def get_reserved_words(self):
         return self.get_sqla_engine().dialect.preparer.reserved_words
@@ -913,18 +921,18 @@ class Database(Model, AuditMixinNullable):
     def grains_dict(self):
         return {grain.name: grain for grain in self.grains()}
 
-    def get_extra(self):
-        extra = {}
-        if self.extra:
+    def get_args(self):
+        args = {}
+        if self.args:
             try:
-                extra = json.loads(self.extra)
+                args = json.loads(self.args)
             except Exception as e:
                 logging.error(e)
-        return extra
+        return args
 
     def get_table(self, table_name, schema=None):
-        extra = self.get_extra()
-        meta = MetaData(**extra.get('metadata_params', {}))
+        args = self.get_args()
+        meta = MetaData(**args.get('metadata_params', {}))
         return Table(
             table_name, meta,
             schema=schema or None,
@@ -963,6 +971,32 @@ class Database(Model, AuditMixinNullable):
             database.online = True
             db.session.commit()
             DailyNumber.log_number('connection', True, None)
+
+    @classmethod
+    def args_append_keytab(cls, connect_args):
+        if connect_args.get('mech', '').lower() == 'kerberos':
+            dir = config.get('KETTAB_TMP_DIR', '/tmp/keytab')
+            server = config.get('GUARDIAN_SERVER')
+            connect_args['keytab'] = cls.get_keytab(g.user.username,
+                                                    AuthDBView.password, server, dir)
+        return connect_args
+
+    @classmethod
+    def get_keytab(cls, user, passwd, guardian_server, dir):
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        path = os.path.join(dir, 'tmp.keytab')
+        conf = GuardianConfiguration()
+        conf.set(GuardianVars.GUARDIAN_SERVER_ADDRESS.varname, guardian_server)
+        client = guardianClientFactory.getInstance(conf)
+        client.login(user, passwd)
+        keytab = client.getKeytab(user)
+
+        file = open(path, "wb")
+        file.write(keytab)
+        file.close()
+        return path
+
 
 sqla.event.listen(Database, 'after_insert', set_perm)
 sqla.event.listen(Database, 'after_update', set_perm)
@@ -1881,6 +1915,8 @@ class HDFSTable(Model, AuditMixinNullable):
         foreign_keys=[dataset_id]
     )
 
+    cached_file = {}
+
     def __repr__(self):
         return self.hdfs_path
 
@@ -1900,6 +1936,53 @@ class HDFSTable(Model, AuditMixinNullable):
         engine = database.get_sqla_engine()
         engine.execute("drop table if exists " + table_name)
         engine.execute(sql)
+
+    @classmethod
+    def parse_hdfs_file(cls, **kwargs):
+        file = cls.cached_file.get(kwargs.get('path'))
+        if not file:
+            file = cls.get_file(**kwargs)
+            cls.cached_file[kwargs.get('path')] = file
+        return cls.parse_file(file, **kwargs)
+
+    @classmethod
+    def get_file(cls, **kwargs):
+        session = requests.Session()
+        server = kwargs.get('server')
+        cls.login_micro_service(session, server, kwargs.get('username'),
+                                kwargs.get('password'), kwargs.get('httpfs'))
+        resp = session.get("http://{}/filebrowser?action=preview&path={}"\
+                           .format(server, kwargs.get('path')))
+        if resp.status_code != requests.codes.ok:
+            resp.raise_for_status()
+        text = resp.text[1:-1]
+        return "\n".join(text.split("\\n"))
+
+    @classmethod
+    def login_micro_service(cls, session, server, username, password, httpfs):
+        data = {"username": username,
+                "password": password,
+                "httpfshost": httpfs}
+        session.post('http://{}/login'.format(server), data=data)
+
+    @classmethod
+    def parse_file(cls, file_content, **kwargs):
+        separator = kwargs.get('separator', ',')
+        quote = kwargs.get('quote')
+        skip_rows = kwargs.get('skip_rows', 0)
+        next_as_header = kwargs.get('next_as_header', False)
+        skip_more_rows = kwargs.get('skip_more_rows', 0)
+        charset = kwargs.get('charset', 'utf-8')
+        nrows = kwargs.get('nrows', 100)
+        names = kwargs.get('names')
+
+        header = skip_rows + 1 if next_as_header else None
+        names = None if header else names
+        skiprows = int(skip_rows) + int(skip_more_rows)
+        skiprows += 1 if next_as_header else skiprows
+        return pd.read_csv(StringIO(file_content), sep=separator,
+                               skiprows=skiprows, header=None, names=names,
+                               prefix='C', nrows=nrows, encoding=charset)
 
 
 class Log(Model):
