@@ -32,7 +32,6 @@ from flask_appbuilder import Model
 from flask_appbuilder.models.mixins import AuditMixin
 from flask_appbuilder.models.decorators import renders
 from flask_appbuilder.security.sqla.models import User
-from flask_appbuilder.security.views import AuthDBView
 from flask_babel import lazy_gettext as _
 
 from datetime import date
@@ -1949,17 +1948,22 @@ class HDFSTable(Model, AuditMixinNullable):
     @classmethod
     def get_file(cls, **kwargs):
         session = requests.Session()
-        data = {"username": g.user.username,
-                "password": AuthDBView.password,
-                "httpfshost": kwargs.get('httpfs')}
-        server = config.get('HDFS_MICROSERVICES_SERVER')
-        session.post('http://{}/login'.format(server), data=data)
+        server = kwargs.get('server')
+        cls.login_micro_service(session, server, kwargs.get('username'),
+                                kwargs.get('password'), kwargs.get('httpfs'))
         resp = session.get("http://{}/filebrowser?action=preview&path={}"\
                            .format(server, kwargs.get('path')))
         if resp.status_code != requests.codes.ok:
             resp.raise_for_status()
         text = resp.text[1:-1]
         return "\n".join(text.split("\\n"))
+
+    @classmethod
+    def login_micro_service(cls, session, server, username, password, httpfs):
+        data = {"username": username,
+                "password": password,
+                "httpfshost": httpfs}
+        session.post('http://{}/login'.format(server), data=data)
 
     @classmethod
     def parse_file(cls, file_content, **kwargs):

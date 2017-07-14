@@ -24,6 +24,7 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.decorators import has_access
 from flask_appbuilder.models.sqla.filters import BaseFilter
 from flask_appbuilder.security.sqla import models as ab_models
+from flask_appbuilder.security.views import AuthDBView
 
 from flask_babel import gettext as __
 from flask_babel import lazy_gettext as _
@@ -1143,6 +1144,9 @@ class DatasetModelView(SupersetModelView):  # noqa
         args['charset'] = request.args.get('charset', 'utf-8')
         args['nrows'] = int(request.args.get('nrows', 100))
         args['names'] = request.args.get('names')
+        args['username'] = g.user.username
+        args['password'] = AuthDBView.password
+        args['server'] = config.get('HDFS_MICROSERVICES_SERVER')
 
         conn_id = args.get('hdfs_connection_id')
         conn = db.session.query(HDFSConnection).filter_by(id=conn_id).first()
