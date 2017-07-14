@@ -12,7 +12,6 @@ import time
 import traceback
 import zlib
 import re
-import requests
 from distutils.util import strtobool
 
 import functools
@@ -44,7 +43,7 @@ from superset.utils import (get_database_access_error_msg,
                             json_error_response)
 
 from superset.models import Database, Dataset, Slice, Dashboard, \
-    FavStar, Log, DailyNumber, HDFSConnection, str_to_model
+    FavStar, Log, DailyNumber, HDFSTable, HDFSConnection, str_to_model
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset.message import *
@@ -1133,12 +1132,28 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/preview_file/', methods=['GET', ])
     def preview_file(self):
-        # TODO send requests to fileRobot and structure the url
-        file = requests.get("http:/address:port/hdfsfilebrowser?"
-                            "action=preview&path=/user/hive/employee/employee.csv&"
-                            "rows=100&limitSize=1000")
-        df = utils.parse_file(file, **request.args)
-        return json.dumps(json.loads(df.to_json()))
+        args = {}
+        args['path'] = request.args.get('path')
+        args['hdfs_connection_id'] = request.args.get('hdfs_connection_id')
+        args['separator'] = request.args.get('separator', ',')
+        args['quote'] = request.args.get('quote', '"')
+        args['skip_rows'] = int(request.args.get('skip_rows', 0))
+        args['next_as_header'] = request.args.get('next_as_header', False)
+        args['skip_more_rows'] = int(request.args.get('skip_more_rows', 0))
+        args['charset'] = request.args.get('charset', 'utf-8')
+        args['nrows'] = int(request.args.get('nrows', 100))
+        args['names'] = request.args.get('names')
+
+        conn_id = args.get('hdfs_connection_id')
+        conn = db.session.query(HDFSConnection).filter_by(id=conn_id).first()
+        if not conn:
+            raise Exception("Not found HDFS connection by id: [{}]".format(conn_id))
+        args['httpfs'] = conn.httpfs
+        df = HDFSTable.parse_hdfs_file(**args)
+        return json.dumps(dict(
+            records=df.to_dict(orient="records"),
+            columns=list(df.columns),)
+        )
 
     @catch_exception
     @expose('/add', methods=['POST', ])
@@ -1151,6 +1166,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             return build_response(
                 200, True, ADD_SUCCESS, {'object_id': dataset.id})
         elif dataset_type == 'hdfs':
+            HDFSTable.cached_file.clear()
             # create hdfs_table
             hdfs_table_view = HDFSTableModelView()
             hdfs_table = hdfs_table_view.populate_object(None, get_user_id(), args)
@@ -1201,6 +1217,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             self._edit(dataset)
             return build_response(200, True, UPDATE_SUCCESS)
         elif dataset_type == 'hdfs':
+            HDFSTable.cached_file.clear()
             # edit hdfs_table
             hdfs_table = dataset.hdfs_table
             hdfs_table.separator = args.get('separator')

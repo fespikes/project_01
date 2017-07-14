@@ -18,20 +18,21 @@ from copy import deepcopy, copy
 from datetime import datetime
 from itertools import groupby
 
+import requests
+from io import StringIO
 import humanize
 import pandas as pd
 import sqlalchemy as sqla
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import subqueryload
-
 import sqlparse
-from dateutil.parser import parse
 
 from flask import escape, g, Markup, request
 from flask_appbuilder import Model
 from flask_appbuilder.models.mixins import AuditMixin
 from flask_appbuilder.models.decorators import renders
 from flask_appbuilder.security.sqla.models import User
+from flask_appbuilder.security.views import AuthDBView
 from flask_babel import lazy_gettext as _
 
 from datetime import date
@@ -977,7 +978,6 @@ class Database(Model, AuditMixinNullable):
         if connect_args.get('mech', '').lower() == 'kerberos':
             dir = config.get('KETTAB_TMP_DIR', '/tmp/keytab')
             server = config.get('GUARDIAN_SERVER')
-            from flask_appbuilder.security.views import AuthDBView
             connect_args['keytab'] = cls.get_keytab(g.user.username,
                                                     AuthDBView.password, server, dir)
         return connect_args
@@ -1916,6 +1916,8 @@ class HDFSTable(Model, AuditMixinNullable):
         foreign_keys=[dataset_id]
     )
 
+    cached_file = {}
+
     def __repr__(self):
         return self.hdfs_path
 
@@ -1935,6 +1937,48 @@ class HDFSTable(Model, AuditMixinNullable):
         engine = database.get_sqla_engine()
         engine.execute("drop table if exists " + table_name)
         engine.execute(sql)
+
+    @classmethod
+    def parse_hdfs_file(cls, **kwargs):
+        file = cls.cached_file.get(kwargs.get('path'))
+        if not file:
+            file = cls.get_file(**kwargs)
+            cls.cached_file[kwargs.get('path')] = file
+        return cls.parse_file(file, **kwargs)
+
+    @classmethod
+    def get_file(cls, **kwargs):
+        session = requests.Session()
+        data = {"username": g.user.username,
+                "password": AuthDBView.password,
+                "httpfshost": kwargs.get('httpfs')}
+        server = config.get('HDFS_MICROSERVICES_SERVER')
+        session.post('http://{}/login'.format(server), data=data)
+        resp = session.get("http://{}/filebrowser?action=preview&path={}"\
+                           .format(server, kwargs.get('path')))
+        if resp.status_code != requests.codes.ok:
+            resp.raise_for_status()
+        text = resp.text[1:-1]
+        return "\n".join(text.split("\\n"))
+
+    @classmethod
+    def parse_file(cls, file_content, **kwargs):
+        separator = kwargs.get('separator', ',')
+        quote = kwargs.get('quote')
+        skip_rows = kwargs.get('skip_rows', 0)
+        next_as_header = kwargs.get('next_as_header', False)
+        skip_more_rows = kwargs.get('skip_more_rows', 0)
+        charset = kwargs.get('charset', 'utf-8')
+        nrows = kwargs.get('nrows', 100)
+        names = kwargs.get('names')
+
+        header = skip_rows + 1 if next_as_header else None
+        names = None if header else names
+        skiprows = int(skip_rows) + int(skip_more_rows)
+        skiprows += 1 if next_as_header else skiprows
+        return pd.read_csv(StringIO(file_content), sep=separator,
+                               skiprows=skiprows, header=None, names=names,
+                               prefix='C', nrows=nrows, encoding=charset)
 
 
 class Log(Model):
