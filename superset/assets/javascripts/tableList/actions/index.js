@@ -27,7 +27,7 @@ export const actionTypes = {
     getTableColumn: 'GET_TABLE_COLUMNS',
     getSQLMetric: 'GET_SQL_METRICS',
 
-    clearDataButId: 'CLEAR_DATA_BUT_ID'
+    clearDatasetData: 'CLEAR_DATASET_DATA'
 };
 
 
@@ -498,10 +498,9 @@ export function saveDatasetId(datasetId) {
     }
 }
 
-export function clearDataButId(dataset) {
+export function clearDatasetData() {
     return {
-        type: actionTypes.clearDataButId,
-        dataset: dataset
+        type: actionTypes.clearDatasetData
     }
 }
 

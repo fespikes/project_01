@@ -47,15 +47,12 @@ class HDFSDetail extends Component {
 
     createHDFSConnect() {
         const { dispatch } = this.props;
-        let createHDFSConnectPopup = render(
+        render(
             <CreateHDFSConnect
                 dispatch={dispatch}
             />,
             document.getElementById('popup_root')
         );
-        if(createHDFSConnectPopup) {
-            createHDFSConnectPopup.showDialog();
-        }
     }
 
     onHDFSConnectChange(value, node) {

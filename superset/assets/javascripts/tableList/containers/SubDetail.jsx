@@ -20,7 +20,7 @@ class SubDetail extends Component {
     }
 
     initDatasetCache(props) {
-        const {clearDataButId, saveDatasetId} = props;
+        const {clearDatasetData, saveDatasetId} = props;
         const opeType = extractOpeType(window.location.hash);
         const datasetType = extractDatasetType(window.location.hash);
         let datasetId = '';
@@ -28,15 +28,7 @@ class SubDetail extends Component {
             datasetId = getDatasetId("edit", window.location.hash);
             saveDatasetId(datasetId);
         }else if(opeType === 'add') {
-            clearDataButId({
-                datasetId: datasetId,
-                datasetType: datasetType,
-                HDFSConnected: true,
-                dsHDFS: {},
-                dsInceptor: {},
-                dsUpload: {},
-                isFetching: false
-            });
+            clearDatasetData();
         }
     }
 
@@ -143,7 +135,7 @@ function mapDispatchToProps (dispatch) {
         fetchDatasetDetail,
         fetchDBDetail,
         fetchHDFSDetail,
-        clearDataButId,
+        clearDatasetData,
         switchDatasetType,
         switchHDFSConnected,
         } = bindActionCreators(actionCreators, dispatch);
@@ -163,7 +155,7 @@ function mapDispatchToProps (dispatch) {
         fetchDatasetDetail,
         fetchDBDetail,
         fetchHDFSDetail,
-        clearDataButId,
+        clearDatasetData,
         switchDatasetType,
         switchHDFSConnected,
         dispatch

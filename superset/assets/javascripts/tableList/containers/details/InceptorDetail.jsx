@@ -76,16 +76,13 @@ class InceptorDetail extends Component {
 
     createInceptorConnect() {
         const { dispatch } = this.props;
-        let createInceptorConnectPopup = render(
+        render(
             <CreateInceptorConnect
                 dispatch={dispatch}
                 callbackRefresh={this.callbackRefresh}
             />,
             document.getElementById('popup_root')
         );
-        if(createInceptorConnectPopup) {
-            createInceptorConnectPopup.showDialog();
-        }
     }
 
     callbackRefresh() {

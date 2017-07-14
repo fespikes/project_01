@@ -103,7 +103,7 @@ class CreateInceptorConnect extends React.Component {
     render() {
 
         return (
-            <div className="popup" ref="popupInceptorConnectAdd" style={{display:'none'}}>
+            <div className="popup" ref="popupInceptorConnectAdd">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">

@@ -31,8 +31,13 @@ export default function subDetail(state = {
         case REHYDRATE:
             return {...state, ...action.payload.subDetail};
             break;
-        case actionTypes.clearDataButId:
-            return {...state, ...action.dataset};
+        case actionTypes.clearDatasetData:
+            return {
+                ...state,
+                dsHDFS: {},
+                dsInceptor: {},
+                dsUpload: {}
+            };
             break;
         default:
             return state;
