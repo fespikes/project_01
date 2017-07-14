@@ -71,7 +71,7 @@ class CreateHDFSConnect extends React.Component {
             return <Option key={connection.id}>{connection.database_name}</Option>
         });
         return (
-            <div className="popup" ref="popupCreateHDFSConnect" style={{display: 'none'}}>
+            <div className="popup" ref="popupCreateHDFSConnect">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">

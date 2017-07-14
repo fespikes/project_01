@@ -18,13 +18,16 @@ export const actionTypes = {
     switchDatasetType: 'SWITCH_DATASET_TYPE',
     switchHDFSConnected: 'SWITCH_HDFS_CONNECTED',
     switchOperationType: 'SWITCH_OPERATION_TYPE',
+    switchFetchingState: 'SWITCH_FETCHING_STATE',
 
     saveDatasetId: 'SAVE_DATASET_ID',
     saveHDFSDataset: 'SAVE_HDFS_DATASET',
     saveInceptorDataset: 'SAVE_INCEPTOR_DATASET',
 
     getTableColumn: 'GET_TABLE_COLUMNS',
-    getSQLMetric: 'GET_SQL_METRICS'
+    getSQLMetric: 'GET_SQL_METRICS',
+
+    clearDatasetData: 'CLEAR_DATASET_DATA'
 };
 
 
@@ -296,6 +299,7 @@ export function fetchTableDelete(tableId, callback) {
             method: 'GET'
         }).then(function(response) {
             if(response.ok) {
+                dispatch(selectRows([], []));
                 dispatch(applyFetch(getState().condition));
                 if(typeof callback === "function") {
                     callback(true);
@@ -334,7 +338,8 @@ export function fetchTableDeleteMul(callback) {
 }
 
 export function fetchDatabaseList(callback) {
-    return () => {
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
         const url = baseURL + 'databases';
         return fetch(url, {
             credentials: 'include',
@@ -343,9 +348,11 @@ export function fetchDatabaseList(callback) {
             response => {
                 if(response.ok) {
                     response.json().then(response => {
+                        dispatch(switchFetchingState(false));
                         callback(true, response);
                     });
                 }else {
+                    dispatch(switchFetchingState(false));
                     callback(false);
                 }
             }
@@ -491,6 +498,12 @@ export function saveDatasetId(datasetId) {
     }
 }
 
+export function clearDatasetData() {
+    return {
+        type: actionTypes.clearDatasetData
+    }
+}
+
 export function fetchTypeList(callback) {
     return () => {
         const url = baseURL + 'dataset_types';
@@ -513,7 +526,7 @@ export function fetchTypeList(callback) {
 
 export function fetchDatasetPreviewData(id, callback) {
     return () => {
-        const url = baseURL + 'preview_data/' + id;
+        const url = baseURL + 'preview_data?dataset_id=' + id;
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
@@ -532,7 +545,8 @@ export function fetchDatasetPreviewData(id, callback) {
 }
 
 export function fetchHDFSConnectList(callback) {
-    return () => {
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
         const MAX_PAGE_SIZE = 1000;
         const url = window.location.origin + '/hdfsconnection/listdata?page_size=' + MAX_PAGE_SIZE;
         return fetch(url, {
@@ -542,9 +556,11 @@ export function fetchHDFSConnectList(callback) {
             response => {
                 if(response.ok) {
                     response.json().then(response => {
+                        dispatch(switchFetchingState(false));
                         callback(true, response.data);
                     });
                 }else {
+                    dispatch(switchFetchingState(false));
                     callback(false);
                 }
             }
@@ -553,7 +569,8 @@ export function fetchHDFSConnectList(callback) {
 }
 
 export function fetchInceptorConnectList(callback) {
-    return () => {
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
         const MAX_PAGE_SIZE = 1000;
         const url = window.location.origin + '/database/listdata?page_size=' + MAX_PAGE_SIZE;
         return fetch(url, {
@@ -563,9 +580,11 @@ export function fetchInceptorConnectList(callback) {
             response => {
                 if(response.ok) {
                     response.json().then(response => {
+                        dispatch(switchFetchingState(false));
                         callback(true, response.data);
                     });
                 }else {
+                    dispatch(switchFetchingState(false));
                     callback(false);
                 }
             }
@@ -751,4 +770,11 @@ export function switchOperationType (operationType) {
         type: actionTypes.switchOperationType,
         operationType
     };
+}
+
+export function switchFetchingState(isFetching) {
+    return {
+        type: actionTypes.switchFetchingState,
+        isFetching: isFetching
+    }
 }

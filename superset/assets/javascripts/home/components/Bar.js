@@ -28,7 +28,7 @@ function Bar(props) {
         }
     };
 
-    let height = 40 * catagories.length + 30;
+    let height = 30 * catagories.length + 30;
 
     let maxs = [];
     maxs.push(Math.max.apply(null, series.data));
@@ -62,8 +62,12 @@ function Bar(props) {
                     fontSize: 14,
                     fontWeight: 'bold',
                     whiteSpace: 'nowrap',
-                    textOverflow: 'none'
-                }
+                    overflow: "hidden",
+                    textOverflow: 'ellipsis',
+                    maxWidth: "120px",
+                    fontFamily: "'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB', 'Heiti SC', 'WenQuanYi Micro Hei', sans-serif",
+                },
+                useHTML: true
             }
         },
         yAxis: {
@@ -83,10 +87,11 @@ function Bar(props) {
                     color: '#FFFFFF',
                     x: -10
                 },
+                pointPadding: 0,
                 groupPadding: 0,
                 stacking:'normal',
                 borderRadius: 4,
-                pointWidth: 26
+                pointWidth: 24
             }
         },
         tooltip: {
@@ -114,7 +119,7 @@ function Bar(props) {
                 name: 'Fill Series',
                 color: '#f5f8fa',
                 data: dummyData,
-                pointWidth: 26,
+                pointWidth: 24,
                 dataLabels: {
                      enabled: false
                 }
@@ -123,7 +128,7 @@ function Bar(props) {
                 stack:'a',
                 name: series.name,
                 data: series.data,
-                pointWidth: 26,
+                pointWidth: 24,
                 color: '#2ea1f8'
             }
         ]

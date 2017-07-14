@@ -124,7 +124,7 @@ class SubSqlMetric extends Component {
         }];
 
         return (
-            <div style={{padding: '10px'}}>
+            <div className="sql-metric" style={{padding: '10px'}}>
                 <div style={{width:'100%', height:'50px', textAlign:'right'}}>
                     <button
                         className='btn-blue tab-btn-ps'

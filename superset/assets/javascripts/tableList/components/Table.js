@@ -26,12 +26,11 @@ class SliceTable extends React.Component {
 
     render() {
 
-        const { dispatch, data } = this.props;
+        const { dispatch, data, selectedRowKeys } = this.props;
 
         function editTable(record) {
             dispatch(switchDatasetType(record.dataset_type));
             dispatch(saveDatasetId(record.id));
-            console.log(record);
         }
 
         function deleteTable(record) {
@@ -54,6 +53,7 @@ class SliceTable extends React.Component {
         }
 
         const rowSelection = {
+            selectedRowKeys,
             onChange: this.onSelectChange
         };
 

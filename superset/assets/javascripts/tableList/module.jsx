@@ -208,6 +208,11 @@ export function extractOpeType(url) {
     return pathArray[1];
 }
 
+export function extractOpeName(url) {
+    const pathArray = url.split('/');
+    return pathArray[2];
+}
+
 export function getDatasetId(opeType, pathname) {
     let id = '';
     const pathArray = pathname.split('/');
@@ -215,6 +220,20 @@ export function getDatasetId(opeType, pathname) {
         id = pathArray[pathArray.length - 1];
     }
     return id;
+}
+
+export function judgeEnableClick(opeName, opeType, datasetType, datasetId) {
+    if(opeType === 'edit') {
+        return true;
+    }
+    if(datasetId && datasetId !== '') {
+        return true;
+    }
+    if(opeName === 'detail' && (datasetType === 'HDFS' || datasetType === 'UPLOAD')) {
+        return true;
+    }
+
+    return false;
 }
 
 export function initDatasetData(type, newData, oldData) {
