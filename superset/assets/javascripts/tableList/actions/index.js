@@ -25,7 +25,9 @@ export const actionTypes = {
     saveInceptorDataset: 'SAVE_INCEPTOR_DATASET',
 
     getTableColumn: 'GET_TABLE_COLUMNS',
-    getSQLMetric: 'GET_SQL_METRICS'
+    getSQLMetric: 'GET_SQL_METRICS',
+
+    clearDataButId: 'CLEAR_DATA_BUT_ID'
 };
 
 
@@ -493,6 +495,13 @@ export function saveDatasetId(datasetId) {
     return {
         type: actionTypes.saveDatasetId,
         datasetId: datasetId
+    }
+}
+
+export function clearDataButId(dataset) {
+    return {
+        type: actionTypes.clearDataButId,
+        dataset: dataset
     }
 }
 

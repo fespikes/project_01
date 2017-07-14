@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
 import * as actionCreators from '../actions';
 import {InceptorDetail, HDFSDetail, UploadDetail} from './details';
-import {extractOpeType, getDatasetId} from '../module';
+import {extractOpeType, getDatasetId, extractDatasetType} from '../module';
 
 class SubDetail extends Component {
 
@@ -15,14 +15,27 @@ class SubDetail extends Component {
         this.state = {
             datasetType: props.match.params.type
         };
+
+        this.initDatasetCache(props);
     }
 
-    componentDidMount() {
-        const { saveDatasetId } = this.props;
+    initDatasetCache(props) {
+        const {clearDataButId, saveDatasetId} = props;
         const opeType = extractOpeType(window.location.hash);
-        if(opeType === "edit") {
-            const datasetId = getDatasetId("edit", window.location.hash);
+        const datasetType = extractDatasetType(window.location.hash);
+        let datasetId = '';
+        if(opeType === 'edit') {
+            datasetId = getDatasetId("edit", window.location.hash);
             saveDatasetId(datasetId);
+        }else if(opeType === 'add') {
+            clearDataButId({
+                datasetId: datasetId,
+                datasetType: datasetType,
+                HDFSConnected: true,
+                dsHDFS: {},
+                dsInceptor: {},
+                isFetching: false
+            });
         }
     }
 
@@ -30,10 +43,10 @@ class SubDetail extends Component {
         const {
             dispatch,
             history,
-            datasetId,
             datasetType,
             dsInceptor,
             dsHDFS,
+            HDFSConnected,
             isFetching
         } = this.props;
         const {
@@ -44,9 +57,17 @@ class SubDetail extends Component {
             fetchTableList,
             saveInceptorDataset,
             createDataset,
+            editDataset,
+            saveHDFSDataset,
             fetchDBDetail,
-            fetchDatasetDetail
+            switchHDFSConnected,
+            fetchDatasetDetail,
+            fetchHDFSConnectList,
+            fetchHDFSDetail,
+            fetchInceptorConnectList
         } = this.props;
+        const opeType = extractOpeType(window.location.hash);
+        const datasetId = getDatasetId(opeType, window.location.hash);
         return (
             <div className="data-detail-centent shallow">
                 <div className="data-detail-border">
@@ -67,15 +88,25 @@ class SubDetail extends Component {
                             saveInceptorDataset={saveInceptorDataset}
                             switchDatasetType={switchDatasetType}
                             createDataset={createDataset}
+                            editDataset={editDataset}
                         />
                     </div>
                     <div className={datasetType==='HDFS'?'':'none'}>
-                        {/*<HDFSDetail
+                        <HDFSDetail
                             dispatch={dispatch}
                             datasetId={datasetId}
+                            datasetType={datasetType}
                             dsHDFS={dsHDFS}
+                            HDFSConnected={HDFSConnected}
                             isFetching={isFetching}
-                        />*/}
+                            saveHDFSDataset={saveHDFSDataset}
+                            fetchDBDetail={fetchDBDetail}
+                            fetchHDFSDetail={fetchHDFSDetail}
+                            switchHDFSConnected={switchHDFSConnected}
+                            fetchDatasetDetail={fetchDatasetDetail}
+                            fetchHDFSConnectList={fetchHDFSConnectList}
+                            fetchInceptorConnectList={fetchInceptorConnectList}
+                        />
                     </div>
                     <div className={datasetType==='UPLOAD'?'':'none'}>
 
@@ -108,6 +139,7 @@ function mapDispatchToProps (dispatch) {
         fetchDatasetDetail,
         fetchDBDetail,
         fetchHDFSDetail,
+        clearDataButId,
         switchDatasetType,
         switchHDFSConnected
         } = bindActionCreators(actionCreators, dispatch);
@@ -127,6 +159,7 @@ function mapDispatchToProps (dispatch) {
         fetchDatasetDetail,
         fetchDBDetail,
         fetchHDFSDetail,
+        clearDataButId,
         switchDatasetType,
         switchHDFSConnected,
         dispatch

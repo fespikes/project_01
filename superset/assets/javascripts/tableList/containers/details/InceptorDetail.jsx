@@ -12,7 +12,6 @@ import { constructInceptorDataset, appendTreeChildren, initDatasetData, extractO
 import { appendTreeData, constructTreeData } from '../../../../utils/common2';
 import { renderLoadingModal, renderAlertTip } from '../../../../utils/utils';
 
-
 class InceptorDetail extends Component {
 
     constructor (props) {
@@ -101,7 +100,6 @@ class InceptorDetail extends Component {
     onSave() {
         const {
             history,
-            datasetId,
             datasetType,
             createDataset,
             saveDatasetId,
@@ -109,6 +107,7 @@ class InceptorDetail extends Component {
             saveInceptorDataset
         } = this.props;
         const opeType = extractOpeType(window.location.hash);
+        const datasetId = getDatasetId(opeType, window.location.hash);
         const dsInceptor = constructInceptorDataset(this.state.dsInceptor);
         saveInceptorDataset(this.state.dsInceptor);
         if(window.location.hash.indexOf('/edit') > 0) {
@@ -129,24 +128,25 @@ class InceptorDetail extends Component {
             function callback(success, data) {
                 let response = {};
                 if(success) {
-                    response.type = 'success';
-                    response.message = '创建成功';
                     saveDatasetId(data.object_id);
                     const url = '/' + opeType + '/preview/' + datasetType + '/';
                     history.push(url);
                 }else {
                     response.type = 'error';
                     response.message = data;
+                    renderAlertTip(response, 'showAlert');
                 }
-                renderAlertTip(response, 'showAlert');
             }
         }
     }
 
     componentDidMount() {
-        this.doFetchDatabaseList();
-        if(window.location.hash.indexOf('/edit') > 0) {
-            this.doDatasetEdit();
+        const datasetType = extractDatasetType(window.location.hash);
+        if(datasetType === "INCEPTOR") {
+            this.doFetchDatabaseList();
+            if(window.location.hash.indexOf('/edit') > 0) {
+                this.doDatasetEdit();
+            }
         }
     }
 
