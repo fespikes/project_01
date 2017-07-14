@@ -265,7 +265,7 @@ ROBOT_PERMISSION_ROLES = ['Public', 'Gamma', 'Alpha', 'Admin', 'sql_lab']
 
 
 # keytab defaull temp folder
-KETTAB_TMP_DIR = '/tmp/kerberos/keytab/'
+KETTAB_TMP_DIR = '/tmp/keytab/'
 
 # The config for hdfs_file microservices
 HDFS_MICROSERVICES_SERVER = 'localhost:8087'

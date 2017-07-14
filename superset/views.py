@@ -12,7 +12,6 @@ import time
 import traceback
 import zlib
 import re
-import requests
 from distutils.util import strtobool
 
 import functools
@@ -25,6 +24,7 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.decorators import has_access
 from flask_appbuilder.models.sqla.filters import BaseFilter
 from flask_appbuilder.security.sqla import models as ab_models
+from flask_appbuilder.security.views import AuthDBView
 
 from flask_babel import gettext as __
 from flask_babel import lazy_gettext as _
@@ -44,7 +44,7 @@ from superset.utils import (get_database_access_error_msg,
                             json_error_response)
 
 from superset.models import Database, Dataset, Slice, Dashboard, \
-    FavStar, Log, DailyNumber, HDFSConnection, str_to_model
+    FavStar, Log, DailyNumber, HDFSTable, HDFSConnection, str_to_model
 from sqlalchemy import func, and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset.message import *
@@ -711,8 +711,8 @@ class DatabaseView(SupersetModelView):  # noqa
     list_columns = ['id', 'database_name', 'description', 'backend', 'changed_on']
     _list_columns = list_columns
     show_columns = ['id', 'database_name', 'description', 'sqlalchemy_uri',
-                    'backend',  'created_on', 'changed_on']
-    add_columns = ['database_name', 'description', 'sqlalchemy_uri']
+                    'args', 'backend',  'created_on', 'changed_on']
+    add_columns = ['database_name', 'description', 'sqlalchemy_uri', 'args']
     edit_columns = add_columns
     readme_columns = ['sqlalchemy_uri']
     add_template = "superset/models/database/add.html"
@@ -735,8 +735,8 @@ class DatabaseView(SupersetModelView):  # noqa
 
     def pre_add(self, obj):
         obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
-        if not obj.test_uri(obj.sqlalchemy_uri_decrypted):
-             raise Exception("Not a valid connection")
+        # if not obj.test_uri(obj.sqlalchemy_uri_decrypted):
+        #      raise Exception("Not a valid connection")
 
     def post_add(self, obj):
         self.add_or_edit_database_account(obj)
@@ -1133,12 +1133,31 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/preview_file/', methods=['GET', ])
     def preview_file(self):
-        # TODO send requests to fileRobot and structure the url
-        file = requests.get("http:/address:port/hdfsfilebrowser?"
-                            "action=preview&path=/user/hive/employee/employee.csv&"
-                            "rows=100&limitSize=1000")
-        df = utils.parse_file(file, **request.args)
-        return json.dumps(json.loads(df.to_json()))
+        args = {}
+        args['path'] = request.args.get('path')
+        args['hdfs_connection_id'] = request.args.get('hdfs_connection_id')
+        args['separator'] = request.args.get('separator', ',')
+        args['quote'] = request.args.get('quote', '"')
+        args['skip_rows'] = int(request.args.get('skip_rows', 0))
+        args['next_as_header'] = request.args.get('next_as_header', False)
+        args['skip_more_rows'] = int(request.args.get('skip_more_rows', 0))
+        args['charset'] = request.args.get('charset', 'utf-8')
+        args['nrows'] = int(request.args.get('nrows', 100))
+        args['names'] = request.args.get('names')
+        args['username'] = g.user.username
+        args['password'] = AuthDBView.password
+        args['server'] = config.get('HDFS_MICROSERVICES_SERVER')
+
+        conn_id = args.get('hdfs_connection_id')
+        conn = db.session.query(HDFSConnection).filter_by(id=conn_id).first()
+        if not conn:
+            raise Exception("Not found HDFS connection by id: [{}]".format(conn_id))
+        args['httpfs'] = conn.httpfs
+        df = HDFSTable.parse_hdfs_file(**args)
+        return json.dumps(dict(
+            records=df.to_dict(orient="records"),
+            columns=list(df.columns),)
+        )
 
     @catch_exception
     @expose('/add', methods=['POST', ])
@@ -1151,6 +1170,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             return build_response(
                 200, True, ADD_SUCCESS, {'object_id': dataset.id})
         elif dataset_type == 'hdfs':
+            HDFSTable.cached_file.clear()
             # create hdfs_table
             hdfs_table_view = HDFSTableModelView()
             hdfs_table = hdfs_table_view.populate_object(None, get_user_id(), args)
@@ -1201,6 +1221,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             self._edit(dataset)
             return build_response(200, True, UPDATE_SUCCESS)
         elif dataset_type == 'hdfs':
+            HDFSTable.cached_file.clear()
             # edit hdfs_table
             hdfs_table = dataset.hdfs_table
             hdfs_table.separator = args.get('separator')
@@ -2271,6 +2292,7 @@ class Superset(BaseSupersetView):
             args = json.loads(str(request.data, encoding='utf-8'))
             uri = args.get('sqlalchemy_uri')
             db_name = args.get('database_name')
+            # uri, kerberos = Database.uri_append_keytab(uri)
             if db_name:
                 database = (
                     db.session.query(models.Database)
@@ -2282,9 +2304,7 @@ class Superset(BaseSupersetView):
                     # use the URI associated with this database
                     uri = database.sqlalchemy_uri_decrypted
             connect_args = (
-                args.get('extras', {})
-                    .get('engine_params', {})
-                    .get('connect_args', {}))
+                args.get('args', {}).get('connect_args', {}))
             engine = create_engine(uri, connect_args=connect_args)
             engine.connect()
             return json.dumps(engine.table_names(), indent=4)
