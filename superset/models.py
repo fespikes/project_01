@@ -1963,7 +1963,9 @@ class HDFSTable(Model, AuditMixinNullable):
         data = {"username": username,
                 "password": password,
                 "httpfshost": httpfs}
-        session.post('http://{}/login'.format(server), data=data)
+        resp = session.post('http://{}/login'.format(server), data=data)
+        if resp.status_code != requests.codes.ok:
+            resp.raise_for_status()
 
     @classmethod
     def parse_file(cls, file_content, **kwargs):
