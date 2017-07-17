@@ -32,6 +32,7 @@ from flask_appbuilder import Model
 from flask_appbuilder.models.mixins import AuditMixin
 from flask_appbuilder.models.decorators import renders
 from flask_appbuilder.security.sqla.models import User
+from flask_appbuilder.security.views import AuthDBView
 from flask_babel import lazy_gettext as _
 
 from datetime import date
@@ -977,8 +978,10 @@ class Database(Model, AuditMixinNullable):
         if connect_args.get('mech', '').lower() == 'kerberos':
             dir = config.get('KETTAB_TMP_DIR', '/tmp/keytab')
             server = config.get('GUARDIAN_SERVER')
-            connect_args['keytab'] = cls.get_keytab(g.user.username,
-                                                    AuthDBView.password, server, dir)
+            connect_args['keytab'] = \
+                cls.get_keytab(g.user.username,
+                                AuthDBView.mock_user.get(g.user.username),
+                                server, dir)
         return connect_args
 
     @classmethod
@@ -1963,7 +1966,9 @@ class HDFSTable(Model, AuditMixinNullable):
         data = {"username": username,
                 "password": password,
                 "httpfshost": httpfs}
-        session.post('http://{}/login'.format(server), data=data)
+        resp = session.post('http://{}/login'.format(server), data=data)
+        if resp.status_code != requests.codes.ok:
+            resp.raise_for_status()
 
     @classmethod
     def parse_file(cls, file_content, **kwargs):

@@ -13,7 +13,7 @@ import traceback
 import zlib
 import re
 from distutils.util import strtobool
-
+import requests
 import functools
 import sqlalchemy as sqla
 
@@ -361,7 +361,8 @@ class SupersetModelView(ModelView, PageMixin):
 
     def _add(self, obj):
         self.pre_add(obj)
-        self.datamodel.add(obj)
+        if not self.datamodel.add(obj):
+            raise Exception(ADD_FAILED)
         self.post_add(obj)
 
     @catch_exception
@@ -383,7 +384,8 @@ class SupersetModelView(ModelView, PageMixin):
 
     def _edit(self, obj):
         self.pre_update(obj)
-        self.datamodel.edit(obj)
+        if not self.datamodel.edit(obj):
+            raise Exception(UPDATE_FAILED)
         self.post_update(obj)
 
     @catch_exception
@@ -395,7 +397,8 @@ class SupersetModelView(ModelView, PageMixin):
 
     def _delete(self, obj):
         self.pre_delete(obj)
-        self.datamodel.delete(obj)
+        if not self.datamodel.delete(obj):
+            raise Exception(DELETE_FAILED)
         self.post_delete(obj)
 
     @catch_exception
@@ -1145,7 +1148,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         args['nrows'] = int(request.args.get('nrows', 100))
         args['names'] = request.args.get('names')
         args['username'] = g.user.username
-        args['password'] = AuthDBView.password
+        args['password'] = AuthDBView.mock_user.get(g.user.username)
         args['server'] = config.get('HDFS_MICROSERVICES_SERVER')
 
         conn_id = args.get('hdfs_connection_id')
@@ -3653,16 +3656,25 @@ class Home(BaseSupersetView):
 class HDFSBrowser(BaseSupersetView):
     route_base = '/hdfs'
 
-    server = app.config.get('HDFS_MICROSERVICES_SERVER')
-    url_base = 'hdfsfilebrowser'
-
+    @catch_exception
     @expose('/list')
     def list(self):
+        # TODO at present use the first HDFSConnection as default
+        conn = db.session.query(HDFSConnection).order_by(HDFSConnection.id).first()
+        if not conn:
+            raise Exception("No HDFS connections")
+        server = app.config.get('HDFS_MICROSERVICES_SERVER')
+        HDFSTable.login_micro_service(requests, server, g.user.username,
+                                      AuthDBView.mock_user.get(g.user.username), conn.httpfs)
         return self.render_template('superset/hdfsList.html')
 
-    @expose('/url_prefix/')
-    def url_prefix(self, **kwargs):
-        return 'http://{self.server}/{self.url_base}'.format(**locals())
+    @catch_exception
+    @expose('/info/')
+    def micro_service_info(self):
+        return json.dumps(
+            {'server': app.config.get('HDFS_MICROSERVICES_SERVER'),
+            'username': g.user.username,
+            'password': AuthDBView.mock_user.get(g.user.username)})
 
 
 appbuilder.add_view_no_menu(DatabaseAsync)
