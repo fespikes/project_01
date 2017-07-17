@@ -66,9 +66,10 @@ class Popup extends React.Component {
 
         const databaseName = this.refs.databaseName.value;
         const sqlalchemyUri = this.refs.sqlalchemyUri.value;
-        const connectionParams = this.refs.args.value;
+        const args = this.refs.args.value;
+        const descriptionInceptor = this.refs.descriptionInceptor.value;
 
-        const description = this.refs.description.value;
+        const descriptionHDFS = this.refs.descriptionHDFS.value;
 
         const connectionName = this.refs.connectionName.value;
         const httpfs = this.refs.httpfs.value;
@@ -79,8 +80,8 @@ class Popup extends React.Component {
                     datasetType,
                     databaseName,
                     sqlalchemyUri,
-                    description,
-                    connectionParams
+                    descriptionInceptor,
+                    args
                 }
             ));
         } else if (datasetType==='HDFS') {
@@ -90,7 +91,7 @@ class Popup extends React.Component {
                     connectionName,
                     databaseId,
                     httpfs,
-                    description
+                    descriptionHDFS
                 }
             ));
         }
@@ -281,7 +282,7 @@ class Popup extends React.Component {
                                             <input
                                                 type="text"
                                                 defaultValue=""
-                                                ref="description"
+                                                ref="descriptionInceptor"
                                                 name="description"
                                             />
                                         </label>
@@ -340,7 +341,7 @@ class Popup extends React.Component {
                                                 rows="5"
                                                 style={{width:'420px'}}
                                                 required="required"
-                                                ref="description"
+                                                ref="descriptionHDFS"
                                             />
                                         </label>
                                         <label className="data-detail-item">

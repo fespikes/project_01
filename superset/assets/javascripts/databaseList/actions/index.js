@@ -164,10 +164,11 @@ export function applyAdd (callback) {
             databaseName,
             sqlalchemyUri,
 
-            description,
+            descriptionHDFS,
+            descriptionInceptor,
 
             connectionName,
-            connectionParams,
+            args,
             databaseId,
             httpfs,
         } = getState().popupParam;
@@ -180,8 +181,8 @@ export function applyAdd (callback) {
                 body: JSON.stringify({
                     'database_name': databaseName,
                     'sqlalchemy_uri': sqlalchemyUri,
-                    'description': description,
-                    'args': connectionParams
+                    'description': descriptionInceptor,
+                    'args': args
                 })
             };
         } else {
@@ -192,7 +193,7 @@ export function applyAdd (callback) {
                     'connection_name': connectionName,
                     'database_id':databaseId,
                     'httpfs':httpfs,
-                    'description':description
+                    'description':descriptionHDFS
                 })
             };
         }

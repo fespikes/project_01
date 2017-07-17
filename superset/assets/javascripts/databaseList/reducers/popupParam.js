@@ -15,9 +15,10 @@ export default function popupParam(state = {
     datasetType: 'inceptor',     //uploadFile HDFS inceptor
     databaseName: '',
     sqlalchemyUri: '',
-    connectionParams: '',
+    args: '',
 
-    description:'',
+    descriptionInceptor: '',
+    descriptionHDFS: '',
 
     //2.datasetType: 'HDFS'
     connectionName:'',      //连接名  /database/listdata   param-》 page_size:1000
