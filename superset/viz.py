@@ -810,7 +810,7 @@ class BoxPlotViz(NVD3Viz):
 
     def get_df(self, query_obj=None):
         form_data = self.form_data
-        df = super(BoxPlotViz, self).get_df(query_obj)
+        df, df_dict = super(BoxPlotViz, self).get_df(query_obj)
 
         df = df.fillna(0)
 
@@ -863,7 +863,7 @@ class BoxPlotViz(NVD3Viz):
 
         aggregate = [Q1, np.median, Q3, whisker_high, whisker_low, outliers]
         df = df.groupby(form_data.get('groupby')).agg(aggregate)
-        return df, self.df_dict(df)
+        return df, df_dict
 
     def to_series(self, df, classed='', title_suffix=''):
         label_sep = " - "
@@ -941,14 +941,14 @@ class BubbleViz(NVD3Viz):
         return d
 
     def get_df(self, query_obj=None):
-        df = super(BubbleViz, self).get_df(query_obj)
+        df, df_dict = super(BubbleViz, self).get_df(query_obj)
         df = df.fillna(0)
         df['x'] = df[[self.x_metric]]
         df['y'] = df[[self.y_metric]]
         df['size'] = df[[self.z_metric]]
         df['shape'] = 'circle'
         df['group'] = df[[self.series]]
-        return df, self.df_dict(df)
+        return df, df_dict
 
     def get_data(self):
         df, df_dict = self.get_df()
@@ -1007,10 +1007,10 @@ class BulletViz(NVD3Viz):
         return d
 
     def get_df(self, query_obj=None):
-        df = super(BulletViz, self).get_df(query_obj)
+        df, df_dict = super(BulletViz, self).get_df(query_obj)
         df = df.fillna(0)
         df['metric'] = df[[self.metric]]
-        return df, self.df_dict(df)
+        return df, df_dict
 
     def get_data(self):
         df, df_dict = self.get_df()
@@ -1165,7 +1165,7 @@ class NVD3TimeSeriesViz(NVD3Viz):
 
     def get_df(self, query_obj=None):
         form_data = self.form_data
-        df = super(NVD3TimeSeriesViz, self).get_df(query_obj)
+        df, df_dict = super(NVD3TimeSeriesViz, self).get_df(query_obj)
         df = df.fillna(0)
         if form_data.get("granularity") == "all":
             raise Exception("Pick a time granularity for your time series")
@@ -1219,7 +1219,7 @@ class NVD3TimeSeriesViz(NVD3Viz):
                 df = df / df.shift(num_period_compare)
 
             df = df[num_period_compare:]
-        return df, self.df_dict(df)
+        return df, df_dict
 
     def to_series(self, df, classed='', title_suffix=''):
         cols = []
@@ -1274,7 +1274,7 @@ class NVD3TimeSeriesViz(NVD3Viz):
             query_object['from_dttm'] -= delta
             query_object['to_dttm'] -= delta
 
-            df2 = self.get_df(query_object)
+            df2, _ = self.get_df(query_object)
             df2.index += delta
             chart_data += self.to_series(
                 df2, classed='superset', title_suffix="---")
@@ -1324,7 +1324,7 @@ class NVD3DualLineViz(NVD3Viz):
             self.form_data.get('metric_2')
         ]
         query_obj['metrics'] = metrics
-        df = super(NVD3DualLineViz, self).get_df(query_obj)
+        df, df_dict = super(NVD3DualLineViz, self).get_df(query_obj)
         df = df.fillna(0)
         if self.form_data.get("granularity") == "all":
             raise Exception("Pick a time granularity for your time series")
@@ -1333,7 +1333,7 @@ class NVD3DualLineViz(NVD3Viz):
             index=DTTM_ALIAS,
             values=metrics)
 
-        return df, self.df_dict(df)
+        return df, df_dict
 
     def query_obj(self):
         d = super(NVD3DualLineViz, self).query_obj()
@@ -1466,12 +1466,12 @@ class DistributionPieViz(NVD3Viz):
         return d
 
     def get_df(self, query_obj=None):
-        df = super(DistributionPieViz, self).get_df(query_obj)
+        df, df_dict = super(DistributionPieViz, self).get_df(query_obj)
         df = df.pivot_table(
             index=self.groupby,
             values=[self.metrics[0]])
         df.sort_values(by=self.metrics[0], ascending=False, inplace=True)
-        return df, self.df_dict(df)
+        return df, df_dict
 
     def get_data(self):
         df, df_dict = self.get_df()
@@ -1576,7 +1576,7 @@ class DistributionBarViz(DistributionPieViz):
         return d
 
     def get_df(self, query_obj=None):
-        df = super(DistributionPieViz, self).get_df(query_obj)  # noqa
+        df, df_dict = super(DistributionPieViz, self).get_df(query_obj)  # noqa
         fd = self.form_data
 
         row = df.groupby(self.groupby).sum()[self.metrics[0]].copy()
@@ -1591,7 +1591,7 @@ class DistributionBarViz(DistributionPieViz):
             pt = pt.T
             pt = (pt / pt.sum()).T
         pt = pt.reindex(row.index)
-        return pt, self.df_dict(df)
+        return pt, df_dict
 
     def get_data(self):
         df, df_dict = self.get_df()
@@ -1902,7 +1902,7 @@ class FilterBoxViz(BaseViz):
         d = {}
         for flt in filters:
             qry['groupby'] = [flt]
-            df = super(FilterBoxViz, self).get_df(qry)
+            df, df_dict = super(FilterBoxViz, self).get_df(qry)
             d[flt] = [{
                 'id': row[0],
                 'text': row[0],
@@ -1910,7 +1910,7 @@ class FilterBoxViz(BaseViz):
                 'metric': row[1]}
                 for row in df.itertuples(index=False)
             ]
-        return d, {}
+        return d, df_dict
 
 
 class IFrameViz(BaseViz):
