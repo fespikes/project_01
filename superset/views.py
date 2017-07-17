@@ -361,7 +361,8 @@ class SupersetModelView(ModelView, PageMixin):
 
     def _add(self, obj):
         self.pre_add(obj)
-        self.datamodel.add(obj)
+        if not self.datamodel.add(obj):
+            raise Exception(ADD_FAILED)
         self.post_add(obj)
 
     @catch_exception
@@ -383,7 +384,8 @@ class SupersetModelView(ModelView, PageMixin):
 
     def _edit(self, obj):
         self.pre_update(obj)
-        self.datamodel.edit(obj)
+        if not self.datamodel.edit(obj):
+            raise Exception(UPDATE_FAILED)
         self.post_update(obj)
 
     @catch_exception
@@ -395,7 +397,8 @@ class SupersetModelView(ModelView, PageMixin):
 
     def _delete(self, obj):
         self.pre_delete(obj)
-        self.datamodel.delete(obj)
+        if not self.datamodel.delete(obj):
+            raise Exception(DELETE_FAILED)
         self.post_delete(obj)
 
     @catch_exception
