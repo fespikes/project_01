@@ -43,6 +43,7 @@ const getParamDB = (database) => {
         db.database_name = database.database_name;
         db.sqlalchemy_uri = database.sqlalchemy_uri;
         db.description = database.description;
+        db.args = database.args;
     } else {
         db = {
             connection_name: database.connection_name,
@@ -166,6 +167,7 @@ export function applyAdd (callback) {
             description,
 
             connectionName,
+            connectionParams,
             databaseId,
             httpfs,
         } = getState().popupParam;
@@ -177,8 +179,9 @@ export function applyAdd (callback) {
                 ...paramObj,
                 body: JSON.stringify({
                     'database_name': databaseName,
-                    'sqlalchemy_uri':sqlalchemyUri,
-                    'description':description
+                    'sqlalchemy_uri': sqlalchemyUri,
+                    'description': description,
+                    'args': connectionParams
                 })
             };
         } else {
