@@ -245,7 +245,7 @@ class InceptorDetail extends Component {
             <div>
                 <div className="data-detail-item">
                     <span>数据集名称：</span>
-                    <input type="text" name="dataset_name" value={dsInceptor.dataset_name}
+                    <input type="text" name="dataset_name" value={dsInceptor.dataset_name} defaultValue=""
                         onChange={this.handleChange}/>
                 </div>
                 <div className="data-detail-item">
