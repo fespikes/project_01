@@ -8,7 +8,7 @@ import { Link, withRouter } from 'react-router-dom';
 import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
 import { fetchSchemaList } from '../../actions';
-import { constructInceptorDataset, appendTreeChildren, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
+import { constructInceptorDataset, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
 import { appendTreeData, constructTreeData } from '../../../../utils/common2';
 import { renderLoadingModal, renderAlertTip } from '../../../../utils/utils';
 
