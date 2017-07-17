@@ -39,13 +39,14 @@ class SliceTable extends React.Component {
 
         function callback(success, data) {
             if(success) {
-                let editConnectionPopup = render(
+                render(
                     <ConnectionEdit
                         dispatch={dispatch}
                         connectionType={record.connection_type}
                         connectionId={record.id}
                         database={data} />,
-                    document.getElementById('popup_root'));
+                    document.getElementById('popup_root')
+                );
             }
         }
     }
