@@ -3499,7 +3499,6 @@ class Home(BaseSupersetView):
         """default page"""
         if not g.user or not g.user.get_id():
             return redirect(appbuilder.get_url_for_login)
-        HDFSBrowser.login_micro_service()
         return self.render_template('superset/home.html')
 
     @catch_exception
@@ -3562,15 +3561,9 @@ class HDFSBrowser(BaseSupersetView):
         return self.render_template('superset/hdfsList.html')
 
     @catch_exception
-    @expose('/info/')
-    def micro_service_info(self):
-        return json.dumps(
-            {'server': app.config.get('HDFS_MICROSERVICES_SERVER'),
-            'username': g.user.username,
-            'password': AuthDBView.mock_user.get(g.user.username)})
-
-    @classmethod
-    def login_micro_service(cls, hdfs_conn_id=None):
+    @expose('/login/', methods=['GET'])
+    def login_micro_service(self):
+        hdfs_conn_id = request.args.get('hdfs_conn_id')
         try:
             if hdfs_conn_id:
                 conn = db.session.query(HDFSConnection)\
@@ -3581,9 +3574,10 @@ class HDFSBrowser(BaseSupersetView):
             if not conn:
                 logging.error("No hdfs connections, login hdfs-micro-service failed.")
             server = app.config.get('HDFS_MICROSERVICES_SERVER')
-            cls.login_action(requests.Session(), server, g.user.username,
+            cookie = self.login_action(requests.Session(), server, g.user.username,
                              AuthDBView.mock_user.get(g.user.username), conn.httpfs)
             logging.info('Login hdfs-micro-service succeed.')
+            return json.dumps({'cookie': cookie})
         except Exception as e:
             logging.error(e)
             flash('Login hdfs-micro-service failed.')
@@ -3596,9 +3590,7 @@ class HDFSBrowser(BaseSupersetView):
         resp = req.post('http://{}/login'.format(server), data=data)
         if resp.status_code != requests.codes.ok:
             resp.raise_for_status()
-        flask_session['hdfs_micro_service_cookie'] = \
-            requests.utils.dict_from_cookiejar(resp.cookies)
-        return resp
+        return requests.utils.dict_from_cookiejar(resp.cookies)
 
 
 appbuilder.add_view_no_menu(DatabaseAsync)
