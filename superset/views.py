@@ -17,19 +17,17 @@ import requests
 import functools
 import sqlalchemy as sqla
 
-from flask import (g, request, redirect, flash,
-                   Response, render_template, Markup, abort)
+from flask import (g, request, redirect, flash, Response, render_template)
 from flask_appbuilder import ModelView, BaseView, expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.decorators import has_access
-from flask_appbuilder.models.sqla.filters import BaseFilter
 from flask_appbuilder.security.sqla import models as ab_models
 from flask_appbuilder.security.views import AuthDBView
 
 from flask_babel import gettext as __
 from flask_babel import lazy_gettext as _
 
-from sqlalchemy import create_engine, case, select, literal, cast
+from sqlalchemy import create_engine, select, literal, cast
 from wtforms.validators import ValidationError
 
 from superset import (
@@ -186,97 +184,6 @@ def get_user_roles():
         public_role = config.get('AUTH_ROLE_PUBLIC')
         return [appbuilder.sm.find_role(public_role)] if public_role else []
     return g.user.roles
-
-
-class SupersetFilter(BaseFilter):
-
-    """Add utility function to make BaseFilter easy and fast
-
-    These utility function exist in the SecurityManager, but would do
-    a database round trip at every check. Here we cache the role objects
-    to be able to make multiple checks but query the db only once
-    """
-
-    def get_user_roles(self):
-        return get_user_roles()
-
-    def get_all_permissions(self):
-        """Returns a set of tuples with the perm name and view menu name"""
-        perms = set()
-        for role in get_user_roles():
-            for perm_view in role.permissions:
-                t = (perm_view.permission.name, perm_view.view_menu.name)
-                perms.add(t)
-        return perms
-
-    def has_role(self, role_name_or_list):
-        """Whether the user has this role name"""
-        if not isinstance(role_name_or_list, list):
-            role_name_or_list = [role_name_or_list]
-        return any(
-            [r.name in role_name_or_list for r in self.get_user_roles()])
-
-    def has_perm(self, permission_name, view_menu_name):
-        """Whether the user has this perm"""
-        return (permission_name, view_menu_name) in self.get_all_permissions()
-
-    def get_view_menus(self, permission_name):
-        """Returns the details of view_menus for a perm name"""
-        vm = set()
-        for perm_name, vm_name in self.get_all_permissions():
-            if perm_name == permission_name:
-                vm.add(vm_name)
-        return vm
-
-    def has_all_datasource_access(self):
-        return (
-            self.has_role(['Admin', 'Alpha']) or
-            self.has_perm('all_datasource_access', 'all_datasource_access'))
-
-
-class DatasourceFilter(SupersetFilter):
-    def apply(self, query, func):  # noqa
-        if self.has_all_datasource_access():
-            return query
-        perms = self.get_view_menus('datasource_access')
-        # TODO(bogdan): add `schema_access` support here
-        return query.filter(self.model.perm.in_(perms))
-
-
-class SliceFilter(SupersetFilter):
-    def apply(self, query, func):  # noqa
-        if self.has_all_datasource_access():
-            return query
-        perms = self.get_view_menus('datasource_access')
-        # TODO(bogdan): add `schema_access` support here
-        return query.filter(self.model.perm.in_(perms))
-
-
-class DashboardFilter(SupersetFilter):
-
-    """List dashboards for which users have access to at least one slice"""
-
-    def apply(self, query, func):  # noqa
-        if self.has_all_datasource_access():
-            return query
-        Slice = models.Slice  # noqa
-        Dash = models.Dashboard  # noqa
-        # TODO(bogdan): add `schema_access` support here
-        datasource_perms = self.get_view_menus('datasource_access')
-        slice_ids_qry = (
-            db.session
-            .query(Slice.id)
-            .filter(Slice.perm.in_(datasource_perms))
-        )
-        query = query.filter(
-            Dash.id.in_(
-                db.session.query(Dash.id)
-                .distinct()
-                .join(Dash.slices)
-                .filter(Slice.id.in_(slice_ids_qry))
-            )
-        )
-        return query
 
 
 def validate_json(form, field):  # noqa
@@ -1065,8 +972,6 @@ class DatasetModelView(SupersetModelView):  # noqa
     edit_columns = ['dataset_name', 'database_id', 'description', 'schema',
                     'table_name', 'sql']
     description_columns = {}
-    base_filters = [['id', DatasourceFilter, lambda: []]]
-
     str_to_column = {
         'title': Dataset.dataset_name,
         'time': Dataset.changed_on,
@@ -1398,7 +1303,6 @@ class SliceModelView(SupersetModelView):  # noqa
     show_columns = ['id', 'slice_name', 'description', 'created_on', 'changed_on']
     base_order = ('changed_on', 'desc')
     description_columns = {}
-    base_filters = [['id', SliceFilter, lambda: []]]
 
     list_template = "superset/list.html"
 
@@ -1571,12 +1475,6 @@ class DashboardModelView(SupersetModelView):  # noqa
     add_columns = edit_columns
     base_order = ('changed_on', 'desc')
     description_columns = {}
-    base_filters = [['slice', DashboardFilter, lambda: []]]
-    add_form_query_rel_fields = {
-        'slices': [['slices', SliceFilter, None]],
-    }
-    edit_form_query_rel_fields = add_form_query_rel_fields
-
     list_template = "superset/partials/dashboard/dashboard.html"
 
     str_to_column = {
