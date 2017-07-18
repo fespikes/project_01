@@ -40,16 +40,14 @@ class SliceTable extends React.Component {
         function deleteTable(record) {
 
             let deleteTips = "确定删除" + record.dataset_name+ "?";
-            let deleteTablePopup = render(
+            render(
                 <TableDelete
                     dispatch={dispatch}
                     deleteType={'single'}
                     deleteTips={deleteTips}
                     table={record} />,
-                document.getElementById('popup_root'));
-            if(deleteTablePopup) {
-                deleteTablePopup.showDialog();
-            }
+                document.getElementById('popup_root')
+            );
         }
 
         const rowSelection = {
@@ -114,7 +112,8 @@ class SliceTable extends React.Component {
                             <i
                                 style={{marginLeft: 20}}
                                 className={record.online ? 'icon icon-online' : 'icon icon-offline'}
-                                onClick={() => publishTable(record)}/>
+                                onClick={() => publishTable(record)}
+                            />
                             <i
                                 className="icon icon-delete"
                                 onClick={() => deleteTable(record)}
