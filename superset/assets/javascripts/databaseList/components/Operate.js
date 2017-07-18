@@ -18,7 +18,8 @@ import {
     popupActions
 } from '../actions';
 
-import { Select }  from './';
+import { Select, ComponentSelect }  from './';
+import { transformObjectToArray } from '../utils';
 
 class Operate extends React.Component {
     constructor(props, context) {
@@ -64,11 +65,11 @@ class Operate extends React.Component {
         }
     }
 
-    onAdd (typeObj) {
+    onAdd (type) {
         const dispatch = this.dispatch;
         let popupParam = {
-            popupTitle: `新建 ${typeObj.label} 连接`,
-            datasetType: typeObj.label,
+            popupTitle: `新建 ${type} 连接`,
+            datasetType: type,
 
             submit: (callback) => {
                 dispatch(applyAdd(callback));
@@ -114,20 +115,19 @@ class Operate extends React.Component {
 
     render () {
         const DBTypes = this.state.DBTypes;
-
+        const typeArray = transformObjectToArray(DBTypes, 'label');
         return (
             <div className="operations">
                 <ul className="icon-list">
                     <li
                         style={{width:'130px', textAlign:'left'}}
                     >
-                        <i className="icon icon-plus"></i>
-                        <Select
-                            options={DBTypes}
-                            showText="database_name"
-                            handleSelect={(argus)=>this.onAdd(argus)}
-                            width={100}
-                        />
+                        <ComponentSelect
+                            opeType='addDataset'
+                            options={typeArray}
+                            selectChange={(argus)=>this.onAdd(argus)}
+                        >
+                        </ComponentSelect>
                     </li>
                     <li onClick={this.onDelete}>
                         <i className="icon icon-trash"/>
