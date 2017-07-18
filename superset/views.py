@@ -2363,54 +2363,6 @@ class Superset(BaseSupersetView):
             mimetype="application/json")
 
     @catch_exception
-    @expose("/warm_up_cache/", methods=['GET'])
-    def warm_up_cache(self):
-        """Warms up the cache for the slice or table."""
-        slices = None
-        session = db.session()
-        slice_id = request.args.get('slice_id')
-        table_name = request.args.get('table_name')
-        db_name = request.args.get('db_name')
-
-        if not slice_id and not (table_name and db_name):
-            return json_error_response(__(
-                "Malformed request. slice_id or table_name and db_name "
-                "arguments are expected"), status=400)
-        if slice_id:
-            slices = session.query(models.Slice).filter_by(id=slice_id).all()
-            if not slices:
-                return json_error_response(__(
-                    "Slice %(id)s not found", id=slice_id), status=404)
-        elif table_name and db_name:
-            table = (
-                session.query(models.Dataset)
-                .join(models.Database)
-                .filter(
-                    models.Database.database_name == db_name or
-                    models.Dataset.table_name == table_name)
-            ).first()
-            if not table:
-                return json_error_response(__(
-                    "Table %(t)s wasn't found in the database %(d)s",
-                    t=table_name, s=db_name), status=404)
-            slices = session.query(models.Slice).filter_by(
-                datasource_id=table.id,
-                datasource_type=table.type).all()
-
-        for slice in slices:
-            try:
-                obj = slice.get_viz()
-                obj.get_json(force=True)
-            except Exception as e:
-                return json_error_response(utils.error_msg_from_exception(e))
-        return Response(
-            json.dumps(
-                [{"slice_id": session.id, "slice_name": session.slice_name}
-                 for session in slices]),
-            status=200,
-            mimetype="application/json")
-
-    @catch_exception
     @expose("/favstar/<class_name>/<obj_id>/<action>/")
     def favstar(self, class_name, obj_id, action):
         """Toggle favorite stars on Slices and Dashboard"""
