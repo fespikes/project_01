@@ -22,9 +22,9 @@ NO_USER = __("Can't get user")
 NO_ONLINE_PERMISSION = __("No permission for 'online' and 'offline'")
 
 ADD_SUCCESS = __("Added success")
-ADD_FAILED = __("Added failed")
+ADD_FAILED = __("Added failed. May cased by unique restriction")
 UPDATE_SUCCESS = __("Updated success")
-UPDATE_FAILED = __("Updated failed")
+UPDATE_FAILED = __("Updated failed. May cased by unique restriction")
 DELETE_SUCCESS = __("Deleted success")
 DELETE_FAILED = __("Deleted failed")
 

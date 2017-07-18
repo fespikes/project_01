@@ -46,6 +46,7 @@ setup(
         'cryptography==1.5.3',
         'flask-appbuilder==1.8.1',
         'flask-cache==0.13.1',
+        'Flask-Cors>=2.0.0',
         'flask-migrate==1.5.1',
         'flask-restful==0.3.6',
         'flask-script==2.0.5',
@@ -63,7 +64,6 @@ setup(
         'pyodbc==4.0.11',
         'python-dateutil==2.5.3',
         'requests==2.10.0',
-        'requests-kerberos==0.11.0',
         'simplejson==3.8.2',
         'six==1.10.0',
         'sqlalchemy==1.1.5dev',
@@ -74,9 +74,6 @@ setup(
         'werkzeug==0.11.10',
         'xlrd==1.0.0'
     ],
-    extras_require={
-        'cors': ['Flask-Cors>=2.0.0'],
-    },
     tests_require=[
         'codeclimate-test-reporter',
         'coverage',
