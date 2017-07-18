@@ -1,4 +1,5 @@
 import fetch from 'isomorphic-fetch';
+import {getPublishConnectionUrl} from '../utils';
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -18,7 +19,8 @@ export const actionTypes = {
     setPopupParam: 'SET_POPUP_PARAM',
     changePopupStatus: 'CHNAGE_POPUP_STATUS',
 
-    receiveConnectionNames: 'RECEIVE_CONNECTION_NAMES'
+    receiveConnectionNames: 'RECEIVE_CONNECTION_NAMES',
+    switchFetchingState: 'SWITCH_FETCHING_STATE'
 }
 
 export const connectionTypes = {
@@ -146,6 +148,32 @@ export function fetchInceptorConnectAdd(connect, callback) {
                 callback(false, json);
             }
         });
+    }
+}
+
+export function fetchPublishConnection(record) {
+    const url = getPublishConnectionUrl(record);
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin"
+        }).then(function(response) {
+            if(response.ok) {
+                response.json().then(() => {
+                    dispatch(fetchIfNeeded());
+                    dispatch(switchFetchingState(false));
+                });
+            }else {
+                dispatch(switchFetchingState(false));
+            }
+        })
+    }
+}
+
+export function switchFetchingState(isFetching) {
+    return {
+        type: actionTypes.switchFetchingState,
+        isFetching: isFetching
     }
 }
 

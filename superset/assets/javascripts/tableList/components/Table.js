@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { selectRows, switchDatasetType, saveDatasetId } from '../actions';
+import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable } from '../actions';
 import { TableDelete } from '../popup';
 import style from '../style/table.scss'
 
@@ -33,23 +33,21 @@ class SliceTable extends React.Component {
             dispatch(saveDatasetId(record.id));
         }
 
+        function publishTable(record) {
+            dispatch(fetchPublishTable(record));
+        }
+
         function deleteTable(record) {
 
             let deleteTips = "确定删除" + record.dataset_name+ "?";
-            let deleteTablePopup = render(
+            render(
                 <TableDelete
                     dispatch={dispatch}
                     deleteType={'single'}
                     deleteTips={deleteTips}
                     table={record} />,
-                document.getElementById('popup_root'));
-            if(deleteTablePopup) {
-                deleteTablePopup.showDialog();
-            }
-        }
-
-        function favoriteSlice(record) {
-            dispatch(fetchStateChange(record, "favorite"));
+                document.getElementById('popup_root')
+            );
         }
 
         const rowSelection = {
@@ -113,6 +111,10 @@ class SliceTable extends React.Component {
                             </Link>
                             <i
                                 style={{marginLeft: 20}}
+                                className={record.online ? 'icon icon-online' : 'icon icon-offline'}
+                                onClick={() => publishTable(record)}
+                            />
+                            <i
                                 className="icon icon-delete"
                                 onClick={() => deleteTable(record)}
                             />

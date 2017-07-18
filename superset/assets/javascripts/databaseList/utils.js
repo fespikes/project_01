@@ -9,3 +9,18 @@ export function transformObjectToArray(objectArray, attr) {
     });
     return array;
 }
+
+export function getPublishConnectionUrl(record) {
+    let url = window.location.origin + "/pilot/release/";
+    if(record.connection_type === "INCEPTOR") {
+        url += 'database/';
+    }else if(record.connection_type === "HDFS") {
+        url += 'hdfsconnection/';
+    }
+    if(record.online) {
+        url += "offline/" + record.id;
+    }else {
+        url += "online/" + record.id;
+    }
+    return url;
+}

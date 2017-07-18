@@ -17,7 +17,8 @@ export const CONFIG_PARAMS = {
     SELECTED_ROWS: 'SELECTED_ROWS',
     CLEAR_ROWS: 'CLEAR_ROWS',
     VIEW_MODE: 'VIEW_MODE',
-    TABLE_LOADING: 'TABLE_LOADING'
+    TABLE_LOADING: 'TABLE_LOADING',
+    SWITCH_FETCHING_STATE: 'SWITCH_FETCHING_STATE'
 };
 
 export function requestPosts() {
@@ -117,6 +118,13 @@ export function setTableLoadingStatus(loading) {
     return {
         type: CONFIG_PARAMS.TABLE_LOADING,
         tableLoading: loading
+    }
+}
+
+export function switchFetchingState(isFetching) {
+    return {
+        type: CONFIG_PARAMS.SWITCH_FETCHING_STATE,
+        isFetching: isFetching
     }
 }
 

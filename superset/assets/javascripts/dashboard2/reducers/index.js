@@ -59,7 +59,7 @@ function configs(state = {
 }
 
 function posts(state = {
-    isFetching: true,
+    isFetching: false,
     params: {}
 }, action) {
     switch (action.type) {
@@ -71,6 +71,10 @@ function posts(state = {
             return Object.assign({}, state, {
                 isFetching: false,
                 params: action.posts
+            });
+        case "SWITCH_FETCHING_STATE":
+            return Object.assign({}, state, {
+                isFetching: action.isFetching
             });
         default:
             return state;

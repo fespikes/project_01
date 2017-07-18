@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchDBDetail, selectRows, fetchUpdateConnection } from '../actions';
+import { fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection } from '../actions';
 import { ConnectionDelete, ConnectionEdit } from '../popup';
 import style from '../style/database.scss'
 
@@ -13,6 +13,7 @@ class SliceTable extends React.Component {
         //bindings
         this.deleteConnection = this.deleteConnection.bind(this);
         this.editConnection = this.editConnection.bind(this);
+        this.publishConnection = this.publishConnection.bind(this);
 
         this.dispatch = context.dispatch;
     }
@@ -35,8 +36,6 @@ class SliceTable extends React.Component {
         const dispatch = this.dispatch;
         dispatch(fetchDBDetail(record, callback));
 
-        let connectionType = record.connection_type;
-
         function callback(success, data) {
             if(success) {
                 render(
@@ -51,6 +50,11 @@ class SliceTable extends React.Component {
         }
     }
 
+    publishConnection(record) {
+        const dispatch = this.dispatch;
+        dispatch(fetchPublishConnection(record));
+    }
+
     //delete one of them
     deleteConnection(record) {
         const dispatch = this.dispatch;
@@ -59,12 +63,13 @@ class SliceTable extends React.Component {
         connToBeDeleted[record.connection_type] = [record.id];
         this.dispatch(selectRows([record.elementId], connToBeDeleted, [record.name]));
 
-        let deleteConnectionPopup = render(
+        render(
             <ConnectionDelete
                 dispatch={dispatch}
                 deleteTips={deleteTips}
                 connection={record}/>,
-            document.getElementById('popup_root'));
+            document.getElementById('popup_root')
+        );
     }
 
     render() {
@@ -124,6 +129,11 @@ class SliceTable extends React.Component {
                             <i
                                 className="icon icon-edit"
                                 onClick={() => this.editConnection(record)}
+                            />
+                            <i
+                                style={{marginLeft: 20}}
+                                className={record.online ? 'icon icon-online' : 'icon icon-offline'}
+                                onClick={() => this.publishConnection(record)}
                             />
                             <i
                                 className="icon icon-delete"

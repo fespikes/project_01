@@ -1,4 +1,5 @@
 import fetch from 'isomorphic-fetch';
+import {getPublishTableUrl} from '../utils';
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -676,6 +677,25 @@ export function fetchHDFSDetail(id, callback) {
                 }
             }
         );
+    }
+}
+
+export function fetchPublishTable(record) {
+    const url = getPublishTableUrl(record);
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin"
+        }).then(function(response) {
+            if(response.ok) {
+                response.json().then(() => {
+                    dispatch(applyFetch(getState().condition));
+                    dispatch(switchFetchingState(false));
+                });
+            }else {
+                dispatch(switchFetchingState(false));
+            }
+        })
     }
 }
 
