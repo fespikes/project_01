@@ -29,9 +29,12 @@ export const CONSTANT = {
     remove: 'remove'
 }
 
-const ORIGIN = window.location.origin;
+//const ORIGIN = window.location.origin;
+const ORIGIN = `http://172.16.3.108:5000`;
+//const ORIGIN = `http://172.16.11.105:5000`;
+
 const connectionListUrl = `${ORIGIN}/connection/listdata`;
-const baseURL = `${ORIGIN}/hdfsfilebrowser?`;
+const baseURL = `${ORIGIN}/filebrowser?`;
 
 const errorHandler = error => alert(error);
 
@@ -298,8 +301,10 @@ function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
 
-        const URL = baseURL + 'action=list&'+
-            (condition.connectionId? 'connection_id=' + condition.connectionId : '');
+        const URL = baseURL + 'action=list&' + 'path='+condition.path;
+        var myHeaders = new Headers();
+        myHeaders.append('Cookie', '');
+        myHeaders.set('Cookie', 'ffffffff');
 
         const errorHandler = (error => alert(error));
         const dataMatch = json => {
@@ -310,9 +315,11 @@ function applyFetch(condition) {
             return json;
         }
 
-/*      return fetch(URL, {
+        return fetch(URL, {
+            headers: myHeaders,
             credentials: 'include',
-            method: 'GET'
+            method: 'GET',
+            mode: 'cors'
         })
         .then(
             response => response.ok?
@@ -322,11 +329,10 @@ function applyFetch(condition) {
         .then(json => {
             dispatch(receiveData(condition, dataMatch(json)));
         });
-*/
 
-        let mockFunc = function () {
+        /*let mockFunc = function () {
             dispatch(receiveData(condition, dataMatch(connectionsMock)));
-        }();
+        }();*/
     };
 }
 

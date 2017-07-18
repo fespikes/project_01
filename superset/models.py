@@ -1877,10 +1877,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     @classmethod
     def release(cls, dataset):
-        if dataset.dataset_type.lower() == 'inceptor' and dataset.database:
+        if dataset.dataset_type.lower() == 'inceptor' and dataset.database_id:
             Database.release(dataset.database)
         elif dataset.dataset_type.lower() == 'hdfs' \
-                and dataset.hdfs_table.hdfs_connection:
+                and dataset.hdfs_table.hdfs_connection_id:
             HDFSConnection.release(dataset.hdfs_table.hdfs_connection)
         if str(dataset.created_by_fk) == str(g.user.get_id()):
             dataset.online = True
