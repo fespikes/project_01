@@ -46,7 +46,7 @@ class SubPreview extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        const { datasetId, fetchDatasetPreviewData } = this.props;
+        const { datasetId, fetchDatasetPreviewData, isFetching } = this.props;
         const me = this;
         if(nextProps.datasetId !== datasetId && nextProps.datasetId) {
             fetchDatasetPreviewData(nextProps.datasetId, callback);
@@ -60,6 +60,14 @@ class SubPreview extends Component {
                 }else {
                     console.log("error...");
                 }
+            }
+        }
+        if(isFetching !== nextProps.isFetching) {
+            const loadingModal = renderLoadingModal();
+            if(nextProps.isFetching) {
+                loadingModal.show();
+            }else {
+                loadingModal.hide();
             }
         }
     }
@@ -236,8 +244,8 @@ function mapStateToProps (state) {
     const { subDetail } = state;
     return {
         datasetId: subDetail.datasetId,
-        dsHDFS: subDetail.dsHDFS
-
+        dsHDFS: subDetail.dsHDFS,
+        isFetching: subDetail.isFetching
     };
 }
 
