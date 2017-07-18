@@ -5,7 +5,8 @@ export const SHOW_FAVORITE = 'showFavorite';
 
 export const LISTS = {
     REQUEST_LISTS: 'REQUEST_LISTS',
-    RECEIVE_LISTS: 'RECEIVE_LISTS'
+    RECEIVE_LISTS: 'RECEIVE_LISTS',
+    SWITCH_FETCHING_STATE: 'SWITCH_FETCHING_STATE'
 };
 
 export const DETAILS = {
@@ -92,16 +93,16 @@ export function receiveLists(json) {
 export function fetchStateChange(record, type) {
     const url = getStateChangeUrl(record, type);
     return dispatch => {
-        dispatch(setTableLoadingStatus(true));
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
         }).then(function(response) {
             if(response.ok) {
                 dispatch(fetchLists());
-                dispatch(setTableLoadingStatus(false));
+                dispatch(switchFetchingState(false));
             }else {
-                dispatch(setTableLoadingStatus(false));
+                dispatch(switchFetchingState(false));
             }
         });
     }
@@ -219,6 +220,13 @@ export function fetchUpdateSlice(state, slice, callback) {
                 callback(false, message);
             }
         });
+    }
+}
+
+export function switchFetchingState(isFetching) {
+    return {
+        type: LISTS.SWITCH_FETCHING_STATE,
+        isFetching: isFetching
     }
 }
 
