@@ -18,6 +18,7 @@ import functools
 import sqlalchemy as sqla
 
 from flask import (g, request, redirect, flash, Response, render_template)
+from flask import session as flask_session
 from flask_appbuilder import ModelView, BaseView, expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.decorators import has_access
@@ -3498,6 +3499,7 @@ class Home(BaseSupersetView):
         """default page"""
         if not g.user or not g.user.get_id():
             return redirect(appbuilder.get_url_for_login)
+        HDFSBrowser.login_micro_service()
         return self.render_template('superset/home.html')
 
     @catch_exception
@@ -3557,13 +3559,6 @@ class HDFSBrowser(BaseSupersetView):
     @catch_exception
     @expose('/list')
     def list(self):
-        # TODO at present use the first HDFSConnection as default
-        conn = db.session.query(HDFSConnection).order_by(HDFSConnection.id).first()
-        if not conn:
-            raise Exception("No HDFS connections")
-        server = app.config.get('HDFS_MICROSERVICES_SERVER')
-        HDFSTable.login_micro_service(requests, server, g.user.username,
-                                      AuthDBView.mock_user.get(g.user.username), conn.httpfs)
         return self.render_template('superset/hdfsList.html')
 
     @catch_exception
@@ -3573,6 +3568,37 @@ class HDFSBrowser(BaseSupersetView):
             {'server': app.config.get('HDFS_MICROSERVICES_SERVER'),
             'username': g.user.username,
             'password': AuthDBView.mock_user.get(g.user.username)})
+
+    @classmethod
+    def login_micro_service(cls, hdfs_conn_id=None):
+        try:
+            if hdfs_conn_id:
+                conn = db.session.query(HDFSConnection)\
+                    .filter_by(id=hdfs_conn_id).first()
+            else:
+                conn = db.session.query(HDFSConnection)\
+                    .order_by(HDFSConnection.id).first()
+            if not conn:
+                logging.error("No hdfs connections, login hdfs-micro-service failed.")
+            server = app.config.get('HDFS_MICROSERVICES_SERVER')
+            cls.login_action(requests.Session(), server, g.user.username,
+                             AuthDBView.mock_user.get(g.user.username), conn.httpfs)
+            logging.info('Login hdfs-micro-service succeed.')
+        except Exception as e:
+            logging.error(e)
+            flash('Login hdfs-micro-service failed.')
+
+    @classmethod
+    def login_action(cls, req, server, username, password, httpfs):
+        data = {"username": username,
+                "password": password,
+                "httpfshost": httpfs}
+        resp = req.post('http://{}/login'.format(server), data=data)
+        if resp.status_code != requests.codes.ok:
+            resp.raise_for_status()
+        flask_session['hdfs_micro_service_cookie'] = \
+            requests.utils.dict_from_cookiejar(resp.cookies)
+        return resp
 
 
 appbuilder.add_view_no_menu(DatabaseAsync)

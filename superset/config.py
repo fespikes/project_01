@@ -160,7 +160,7 @@ CACHE_CONFIG = {'CACHE_TYPE': 'filesystem',
                 'CACHE_DIR': '/tmp/pilot_cache'}
 
 # CORS Options
-ENABLE_CORS = False
+ENABLE_CORS = True
 CORS_OPTIONS = {}
 
 

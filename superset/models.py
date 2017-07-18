@@ -1962,15 +1962,6 @@ class HDFSTable(Model, AuditMixinNullable):
         return "\n".join(text.split("\\n"))
 
     @classmethod
-    def login_micro_service(cls, session, server, username, password, httpfs):
-        data = {"username": username,
-                "password": password,
-                "httpfshost": httpfs}
-        resp = session.post('http://{}/login'.format(server), data=data)
-        if resp.status_code != requests.codes.ok:
-            resp.raise_for_status()
-
-    @classmethod
     def parse_file(cls, file_content, **kwargs):
         separator = kwargs.get('separator', ',')
         quote = kwargs.get('quote')
