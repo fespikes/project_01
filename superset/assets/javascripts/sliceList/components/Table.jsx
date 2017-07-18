@@ -85,7 +85,7 @@ class SliceTable extends React.Component {
                 render: (text, record) => {
                     return (
                         <i className={record.favorite ? 'icon icon-star-fav' : 'icon icon-star'}
-                           onClick={() => this.favoriteSlice(record)}></i>
+                           onClick={() => this.favoriteSlice(record)}/>
                     )
                 }
             },
@@ -166,10 +166,10 @@ class SliceTable extends React.Component {
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <i className="icon icon-edit" onClick={() => this.editSlice(record)}></i>&nbsp;
+                            <i className="icon icon-edit" onClick={() => this.editSlice(record)}/>
                             <i className={record.online ? 'icon icon-online' : 'icon icon-offline'}
-                               onClick={() => this.publishSlice(record)}></i>&nbsp;
-                            <i className="icon icon-delete" onClick={() => this.deleteSlice(record)}></i>
+                               onClick={() => this.publishSlice(record)}/>
+                            <i className="icon icon-delete" onClick={() => this.deleteSlice(record)}/>
                         </div>
                     )
                 }

@@ -10,7 +10,8 @@ function conditions(state = {
     pageSize: 10,
     selectedRowKeys: [],
     selectedRowNames: [],
-    tableLoading: false
+    tableLoading: false,
+
 }, action) {
     switch (action.type) {
         case CONDITION_PARAMS.SHOW_TYPE:
@@ -65,6 +66,10 @@ function lists(state = {
             return Object.assign({}, state, {
                 isFetching: false,
                 items: action.lists
+            });
+        case LISTS.SWITCH_FETCHING_STATE:
+            return Object.assign({}, state, {
+                isFetching: action.isFetching
             });
         default:
             return state;
