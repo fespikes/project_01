@@ -2,7 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Select, TreeSelect } from 'antd';
 import PropTypes from 'prop-types';
-import { appendTreeData, constructTreeData } from '../../../utils/common2'
+import { appendTreeData, constructTreeData } from '../../../utils/common2';
+import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
 
 class DisplayOriginalTable extends React.Component {
     constructor(props) {
@@ -36,6 +37,8 @@ class DisplayOriginalTable extends React.Component {
         const self = this;
         const schema = node.props.value;
         const url = window.location.origin + '/table/tables/' + this.state.currentDbId + '/' + schema;
+        const loadingModal = renderLoadingModal();
+        loadingModal.show();
         return $.ajax({
             url: url,
             type: 'GET',
@@ -53,6 +56,9 @@ class DisplayOriginalTable extends React.Component {
             },
             error: error => {
                 console.log(error);
+            },
+            complete: () => {
+                loadingModal.hide();
             }
         });
     }

@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { Select } from 'antd';
+import { ComponentSelect } from '../../databaseList/components';
 import { switchDatasetType, fetchTypeList } from '../actions';
 import PropTypes from 'prop-types';
 import {
@@ -94,13 +95,7 @@ class SliceOperate extends React.Component {
     }
 
     render() {
-
         const Option = Select.Option;
-        const addOptions = this.state.datasetTypes.map(dataset => {
-            return <Option key={dataset} value={dataset}>
-                <Link to={`/add/detail/${dataset}/`}>{dataset}</Link>
-            </Option>
-        });
         let datasetTypes = JSON.parse(JSON.stringify(this.state.datasetTypes));
         datasetTypes.splice(0, 0, 'all');
         const filterOptions = datasetTypes.map(dataset => {
@@ -110,15 +105,12 @@ class SliceOperate extends React.Component {
             <div className="operations">
                 <ul className="icon-list">
                     <li style={{ width: '130px', textAlign: 'left' }}>
-                        <i className="icon icon-plus"/>
-                        <Select
-                            style={{ width: '100px' }}
-                            placeholder="新建连接"
-                            showText="新建连接"
-                            onChange={this.selectChange}
+                        <ComponentSelect
+                            opeType='addConnect'
+                            options={this.state.datasetTypes}
+                            selectChange={this.selectChange}
                         >
-                            {addOptions}
-                        </Select>
+                        </ComponentSelect>
                     </li>
                     <li onClick={this.onDelete}>
                         <i className="icon icon-trash" />

@@ -40,7 +40,7 @@ $borderStyle: solid 1px #e9eaed;
                 background-color:#fff;
                 border-radius: 4px;
                 margin:0 15px;
-                li{
+                > li{
                     width:40px;
                     height:30px;
                     border-right:$borderStyle;
