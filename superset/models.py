@@ -728,10 +728,7 @@ class Database(Model, AuditMixinNullable):
     force_ctas_schema = Column(String(250))
     args = Column(Text, default=textwrap.dedent("""\
     {
-        "connect_args": 
-            {"framed": 0,
-            "hive": "Hive Server 2",
-            "mech": "LADP"}
+        "connect_args": {}
     }
     """))
     perm = Column(String(1000))
