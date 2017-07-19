@@ -2205,8 +2205,8 @@ class Superset(BaseSupersetView):
                     # the password-masked uri was passed
                     # use the URI associated with this database
                     uri = database.sqlalchemy_uri_decrypted
-            connect_args = (
-                args.get('args', {}).get('connect_args', {}))
+            connect_args = eval(args.get('args', {})).get('connect_args', {})
+            connect_args = Database.args_append_keytab(connect_args)
             engine = create_engine(uri, connect_args=connect_args)
             engine.connect()
             return json.dumps(engine.table_names(), indent=4)
