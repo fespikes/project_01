@@ -448,8 +448,8 @@
     min-height: 300px;
 }
 
-.edit-detail-page {
-    .edit-detail-page-title {
+.detail-page {
+    .detail-page-title {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -493,6 +493,9 @@
             }
         }
     }
+}
+
+.edit-detail-page {
 
     .edit-table {
         background-color: #ffffff;
@@ -535,25 +538,6 @@
 }
 
 .event-detail-page {
-    .event-detail-page-title {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 20px;
-        margin-top: 20px;
-
-        .title {
-            color: #354052;
-            font-size: 18px;
-        }
-
-        .back-button {
-            margin-left: 20px;
-            color: #2ccc26;
-            width: 70px;
-            height: 30px;
-        }
-    }
 
     .ant-table-pagination {
         float: none;

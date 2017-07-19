@@ -43,11 +43,8 @@ class EditDetail extends Component {
     }
 
     render() {
-        let selected = this.props.currentCatagory;
-        let dataSource = this.props.editList;
-        const onChangeCatagory = this.props.onChangeCatagory;
+        const {currentCatagory, dataSource, onChangeCatagory, pagination, itemCount} = this.props;
         const redirect = this.state ? this.state.redirect : false;
-        const pagination = this.props.pagination;
 
         const columns = [{
             title: '名称',
@@ -75,18 +72,18 @@ class EditDetail extends Component {
         }];
 
         return (
-            <div className="edit-detail-page">
-                <div className="edit-detail-page-title">
+            <div className="edit-detail-page detail-page">
+                <div className="edit-detail-page-title detail-page-title">
                     <div className="left">
                         <span className="title">最近编辑</span>
                         <span className="count-title">记录条目</span>
-                        <span　className="count-value">20</span>
+                        <span　className="count-value">{itemCount || 0}</span>
                     </div>
                     <div className="right">
                         <div className="title-tab">
                             <ul>
-                                <li onClick={ () => {onChangeCatagory('dashboard')} } className={selected==='slice'?'':'current'}>仪表板</li>
-                                <li onClick={ () => {onChangeCatagory('slice')} } className={selected==='slice'?'current':''}>工作表</li>
+                                <li onClick={ () => {onChangeCatagory('dashboard')} } className={currentCatagory==='dashboard'?'current':''}>仪表板</li>
+                                <li onClick={ () => {onChangeCatagory('slice')} } className={currentCatagory==='slice'?'current':''}>工作表</li>
                             </ul>
                         </div>
                         <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
@@ -157,10 +154,11 @@ const mapStateToProps = (state, props) => {
     const { posts, switcher} = state;
     return {
         currentCatagory: switcher.editPanelCatagory,
-        editList: getEidtListData(state),
-        pagination: getPagination(state)
+        dataSource: getEidtListData(state),
+        pagination: getPagination(state),
+        itemCount: posts.param.count
     };
-}
+};
 
 const mapDispatchToProps = (dispatch) => {
     return {
@@ -171,7 +169,7 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(fetchEditDetail(catagory, index, orderColumn, orderDirection));
         }
     }
-}
+};
 
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditDetail);

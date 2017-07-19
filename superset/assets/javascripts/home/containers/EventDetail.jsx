@@ -39,6 +39,7 @@ class EventDetail extends Component {
     render() {
 
         const dataSource = this.props.actions;
+        const itemCount = this.props.itemCount;
         const redirect = this.state ? this.state.redirect : false;
 
         const columns = [{
@@ -78,10 +79,16 @@ class EventDetail extends Component {
 
 
         return (
-            <div className="event-detail-page">
-                <div className="event-detail-page-title">
-                    <span className="title">事件</span>
-                    <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
+            <div className="event-detail-page detail-page">
+                <div className="event-detail-page-title detail-page-title">
+                    <div className="left">
+                        <span className="title">事件</span>
+                        <span className="count-title">记录条目</span>
+                        <span　className="count-value">{itemCount || 0}</span>
+                    </div>
+                    <div className="right">
+                        <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
+                    </div>
                 </div>
                 <Table onChange={this.tableOnChange} className="event-table" pagination={pagination} dataSource={dataSource} columns={columns} />
             </div>
@@ -151,7 +158,8 @@ const mapStateToProps = (state, props) => {
     const { posts } = state;
     return {
         actions: getActionList(state),
-        pagination: getPagination(state)
+        pagination: getPagination(state),
+        itemCount: posts.param.count
     };
 }
 
