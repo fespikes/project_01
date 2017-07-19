@@ -33,10 +33,9 @@ class Popup extends React.Component {
 
         this.submit = this.submit.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
-        this.onChange = this.onChange.bind(this);
-
         this.HDFSOnChange = this.HDFSOnChange.bind(this);
         this.keyTabOnChange = this.keyTabOnChange.bind(this);
+        this.setPopupState = this.setPopupState.bind(this);
     }
 
     componentDidMount () {
@@ -48,20 +47,9 @@ class Popup extends React.Component {
         this.dispatch(changePopupStatus('none'));
     }
 
-    onChange () {
-        //this.setState({
-            //sqlalchemyUri:this.refs.sqlalchemyUri.value
-        //});
-    }
-
     setSubmitParam () {
-        const me = this;
         const { datasetType } = this.props;
-        const {
-            databaseId,
-            configFile,
-            keytabFile
-        } = this.state;
+        const {databaseId} = this.state;
         const setPopupParam = this.props.setPopupParam;
 
         const databaseName = this.refs.databaseName.value;
@@ -110,17 +98,10 @@ class Popup extends React.Component {
             if(json) {
                 exception.type = "success";
                 exception.message = "该连接是一个合法连接";
-                connected = true;
             }else {
                 exception.type = "error";
                 exception.message = "该连接是一个不合法连接";
-                connected = false;
             }
-            /*
-            me.setState({
-                exception: exception,
-                connected: connected
-            });*/
             const tipBox = me.refs['testConnectTip'];
             render(
                 <Alert
@@ -138,10 +119,14 @@ class Popup extends React.Component {
 
     }
 
+    setPopupState(databaseId) {
+        this.setState({
+            databaseId: databaseId
+        });
+    }
+
     submit () {
         const me = this;
-        const {setPopupParam} = this.props;
-        //unnecessary to set state
 
         me.setSubmitParam();
 
@@ -221,26 +206,8 @@ class Popup extends React.Component {
 
     render () {
         const me = this;
-
-        const {
-            title, deleteTips, confirm, closeDialog, showDialog,
-
-            datasetType,            //'inceptor', //uploadFile HDFS inceptor
-            setPopupParam,
-            status
-        } = this.props;
-
-        const {
-            databaseName,
-            sqlalchemyUri,
-            connectionNames
-        } = this.state;
-
-        const setPopupState = (obj) => {
-            me.setState({
-                databaseId: obj.key
-            });
-        };
+        const {title,datasetType,status} = this.props;
+        const {connectionNames} = this.state;
 
         let iconClass = 'icon-connect';
         let tipMsg = <span>this is the tip message text.</span>;
@@ -294,7 +261,6 @@ class Popup extends React.Component {
                                                 type="text"
                                                 placeholder="SQLAlchemy连接串"
                                                 defaultValue={this.state.sqlalchemyUri}
-                                                onChange={this.onChange}
                                                 required="required"
                                             />
                                             <Tooltip placement="topRight" title={tipMsg}>
@@ -359,64 +325,9 @@ class Popup extends React.Component {
                                                 ref="databaseId"
                                                 options={connectionNames}
                                                 width={420}
-                                                handleSelect={(argus)=>setPopupState(argus)}
+                                                handleSelect={(argus)=>this.setPopupState(argus)}
                                             />
                                         </label>
-{/*
-<label className="data-detail-item">
-<span>HDFS配置文件：</span>
-<input
-    ref="configFile"
-    type="file"
-    defaultValue="file"
-    required="required"
-    onChange={this.HDFSOnChange}
-/>
-</label>
-<label className="data-detail-item">
-    <span>用户名：</span>
-    <input
-        ref="principal"
-        type="text"
-        defaultValue="Heatmap"
-        required="required"
-    />
-</label>
-<label className="data-detail-item">
-    <span>认证类型：</span>
-    <dl onClick={()=>this.switchVerfifyType('password')}>
-        <dd className={(verfifyType==='password'?'radio-glugin-active':'')+' radio-glugin'} ></dd>
-        <dd className={verfifyType==='password'?'active':''}>密码认证</dd>
-    </dl>
-    <dl onClick={()=>this.switchVerfifyType('keyTab')}>
-        <dd className={(verfifyType==='keyTab'?'radio-glugin-active':'')+' radio-glugin'}></dd>
-        <dd className={verfifyType==='keyTab'?'active':''}>keyTab</dd>
-    </dl>
-</label>
-<label
-    style={{display: verfifyType==='password'?'':'none' }}
-    className="data-detail-item "
->
-    <span>密码：</span>
-    <input
-        ref="password"
-        type="text"
-        required="required"
-        defaultValue="Heatmap" />
-</label>
-<label
-    style={{display: verfifyType==='keyTab'?'':'none' }}
-    className="data-detail-item"
->
-    <span>keyTab：</span>
-    <input
-        onChange={this.keyTabOnChange}
-        ref="keytabFile"
-        required="required"
-        type="file"
-        defaultValue="Heatmap" />
-</label>
-*/}
                                     </div>
                                 </div>
                             </div>

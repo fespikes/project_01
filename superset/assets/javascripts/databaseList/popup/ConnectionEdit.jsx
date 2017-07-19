@@ -22,7 +22,7 @@ class ConnectionEdit extends React.Component {
         this.closeDialog = this.closeDialog.bind(this);
         this.testConnection = this.testConnection.bind(this);
         this.closeAlert = this.closeAlert.bind(this);
-
+        this.setPopupState = this.setPopupState.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
     };
 
@@ -32,13 +32,15 @@ class ConnectionEdit extends React.Component {
         const database = {
             ...this.state.database,
             connectionType: this.props.connectionType
-        }
+        };
         this.setState({
             database: database
         });
 
-        let connectParams = JSON.stringify(JSON.parse(this.state.database.args), undefined, 4);
-        document.getElementById('connectParams').value = connectParams;
+        if(this.props.connectionType === "INCEPTOR") {
+            let connectParams = JSON.stringify(JSON.parse(this.state.database.args), undefined, 4);
+            document.getElementById('connectParams').value = connectParams;
+        }
     }
 
     fetchConnectionNames () {
@@ -103,6 +105,16 @@ class ConnectionEdit extends React.Component {
         });
     }
 
+    setPopupState(databaseId) {
+        const database = {
+            ...this.state.database,
+            database_id: databaseId
+        };
+        this.setState({
+            database: database
+        });
+    }
+
     confirm() {
         const me = this;
         const { dispatch } = me.props;
@@ -127,17 +139,9 @@ class ConnectionEdit extends React.Component {
     }
 
     render() {
-        const me = this;
         const connectionType = this.props.connectionType;
         const types = connectionTypes;
         const database = this.state.database;
-
-        const setPopupState = (obj) => {
-            me.setState({
-                databaseId: obj.key
-            });
-        }
-
         const {connectionNames}= this.state;
 
         return (
@@ -325,8 +329,9 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                     <Select
                                         options={connectionNames}
+                                        value={database.database}
                                         width={420}
-                                        handleSelect={(argus)=>setPopupState(argus)}
+                                        handleSelect={(argus)=>this.setPopupState(argus)}
                                     />
                                 </div>
                                 <div className="dialog-item">
