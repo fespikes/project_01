@@ -4,17 +4,17 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import os
 import logging
 import celery
 from celery.bin import worker as celery_worker
-from datetime import datetime
 from subprocess import Popen
 
-from flask_migrate import MigrateCommand
+from flask_migrate import MigrateCommand, upgrade
 from flask_script import Manager
 
 from superset import app, db, data, security
-from superset.models import DailyNumber
+
 
 config = app.config
 
@@ -26,6 +26,21 @@ manager.add_command('db', MigrateCommand)
 def init():
     """Inits the application"""
     security.sync_role_definitions()
+
+
+def init_db_and_role():
+    rs = db.session.execute('show tables like "alembic_version";')
+    if rs.rowcount == 0:
+        logging.info("Start to create metadata tables...")
+        BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+        migration_dir = os.path.join(BASE_DIR, 'migrations')
+        upgrade(directory=migration_dir)
+        db.session.commit()
+        logging.info("Finished to create metadata tables.")
+
+        logging.info("Start to initialize permissions and roles...")
+        init()
+        logging.info("Finished to initialize permissions and roles.")
 
 
 @manager.option(
@@ -45,6 +60,7 @@ def init():
     help="Specify the timeout (seconds) for the gunicorn web server")
 def runserver(debug, address, port, timeout, workers):
     """Starts a web server"""
+    init_db_and_role()
     debug = debug or config.get("DEBUG")
     if debug:
         app.run(
