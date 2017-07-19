@@ -4,6 +4,7 @@ import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fetchPosts } from '../actions';
 import { Operations, Tables, Paginations } from '../components';
+import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
 
 class TableContainer extends React.Component {
     constructor(props) {
@@ -16,13 +17,25 @@ class TableContainer extends React.Component {
         dispatch(fetchPosts());
     }
 
+    componentWillReceiveProps(nextProps) {
+        const { posts } = this.props;
+        if(posts.isFetching !== nextProps.posts.isFetching) {
+            const loadingModal = renderLoadingModal();
+            if(nextProps.posts.isFetching) {
+                loadingModal.show();
+            }else {
+                loadingModal.hide();
+            }
+        }
+    }
+
     render() {
         const { dispatch, posts, configs } = this.props;
         return (
             <div className="dashboard-panel">
                 <div className="panel-top">
                     <div className="left">
-                        <i className="icon icon-dashboard"></i>
+                        <i className="icon icon-dashboard"/>
                         <span>仪表盘</span>
                         <span>记录条目</span>
                         <span>{posts.params.count}</span>

@@ -85,18 +85,13 @@ export function getTbTitleHDFS(commonTitle) {
 
 export function getTbContent(data) {
     let tbContent = [];
-    data.columns.map((column) => {
-        let values = data.data[column];
-        for(var index in values) {
-            if(tbContent.length <= index) {
-                let objContent = {};
-                objContent[column] = values[index];
-                objContent.key = index;
-                tbContent.push(objContent);
-            }else {
-                tbContent[index][column] = values[index];
-            }
+    data.records.map((record, index) => {
+        let contentObj = {};
+        contentObj.key = index + 1;
+        for(var attr in record) {
+            contentObj[attr] = record[attr];
         }
+        tbContent.push(contentObj);
     });
     return tbContent;
 }

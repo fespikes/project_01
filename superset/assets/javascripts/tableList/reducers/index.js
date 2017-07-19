@@ -51,6 +51,10 @@ function emitFetch(state = {
                 didInvalidate: false,
                 response: action.response
             });
+        case actionTypes.switchFetchingState:
+            return Object.assign({}, state, {
+                isFetching: action.isFetching
+            });
         default:
         return state;
     }

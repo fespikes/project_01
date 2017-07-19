@@ -1,4 +1,5 @@
 import fetch from 'isomorphic-fetch';
+import {getPublishConnectionUrl} from '../utils';
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -18,7 +19,8 @@ export const actionTypes = {
     setPopupParam: 'SET_POPUP_PARAM',
     changePopupStatus: 'CHNAGE_POPUP_STATUS',
 
-    receiveConnectionNames: 'RECEIVE_CONNECTION_NAMES'
+    receiveConnectionNames: 'RECEIVE_CONNECTION_NAMES',
+    switchFetchingState: 'SWITCH_FETCHING_STATE'
 }
 
 export const connectionTypes = {
@@ -43,6 +45,7 @@ const getParamDB = (database) => {
         db.database_name = database.database_name;
         db.sqlalchemy_uri = database.sqlalchemy_uri;
         db.description = database.description;
+        db.args = database.args;
     } else {
         db = {
             connection_name: database.connection_name,
@@ -148,6 +151,32 @@ export function fetchInceptorConnectAdd(connect, callback) {
     }
 }
 
+export function fetchPublishConnection(record) {
+    const url = getPublishConnectionUrl(record);
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin"
+        }).then(function(response) {
+            if(response.ok) {
+                response.json().then(() => {
+                    dispatch(fetchIfNeeded());
+                    dispatch(switchFetchingState(false));
+                });
+            }else {
+                dispatch(switchFetchingState(false));
+            }
+        })
+    }
+}
+
+export function switchFetchingState(isFetching) {
+    return {
+        type: actionTypes.switchFetchingState,
+        isFetching: isFetching
+    }
+}
+
 /**
 @description: add connection in database list
 
@@ -163,9 +192,11 @@ export function applyAdd (callback) {
             databaseName,
             sqlalchemyUri,
 
-            description,
+            descriptionHDFS,
+            descriptionInceptor,
 
             connectionName,
+            args,
             databaseId,
             httpfs,
         } = getState().popupParam;
@@ -177,8 +208,9 @@ export function applyAdd (callback) {
                 ...paramObj,
                 body: JSON.stringify({
                     'database_name': databaseName,
-                    'sqlalchemy_uri':sqlalchemyUri,
-                    'description':description
+                    'sqlalchemy_uri': sqlalchemyUri,
+                    'description': descriptionInceptor,
+                    'args': args
                 })
             };
         } else {
@@ -189,7 +221,7 @@ export function applyAdd (callback) {
                     'connection_name': connectionName,
                     'database_id':databaseId,
                     'httpfs':httpfs,
-                    'description':description
+                    'description':descriptionHDFS
                 })
             };
         }

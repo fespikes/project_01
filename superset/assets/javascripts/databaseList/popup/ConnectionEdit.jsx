@@ -36,9 +36,12 @@ class ConnectionEdit extends React.Component {
         this.setState({
             database: database
         });
+
+        let connectParams = JSON.stringify(JSON.parse(this.state.database.args), undefined, 4);
+        document.getElementById('connectParams').value = connectParams;
     }
 
-    fetchConnectionNames (type) {
+    fetchConnectionNames () {
         const me = this;
         const callback = (connectionNames) => {
             me.setState({connectionNames:connectionNames});
@@ -94,8 +97,7 @@ class ConnectionEdit extends React.Component {
         const target = e.currentTarget;
         const name = target.name;
         const val = target.value;
-        console.log(val, name, 'in handleInputChange');
-        const database = {...this.state.database, [name]: val}
+        const database = {...this.state.database, [name]: val};
         this.setState({
             database: database
         });
@@ -190,6 +192,21 @@ class ConnectionEdit extends React.Component {
                                         />
                                     </div>
                                 </div>
+
+                                <label className="dialog-item">
+                                    <div className="item-left">
+                                        <span>连接参数：</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <textarea
+                                            id="connectParams"
+                                            name="args"
+                                            className="dialog-area"
+                                            onChange={this.handleInputChange}
+                                        >
+                                        </textarea>
+                                    </div>
+                                </label>
 
                                 <div className="dialog-item">
                                     <div className="item-left">

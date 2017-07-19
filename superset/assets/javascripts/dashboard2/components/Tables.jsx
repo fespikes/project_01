@@ -73,7 +73,7 @@ class Tables extends React.Component {
 
     render() {
 
-        const { dashboardList, selectedRowKeys, loading } = this.props;
+        const { dashboardList, selectedRowKeys } = this.props;
 
         const columns = [{
             title: '',
@@ -83,7 +83,7 @@ class Tables extends React.Component {
             render: (text, record) => {
                 return (
                     <i className={record.favorite ? 'icon icon-star-fav' : 'icon icon-star'}
-                       onClick={() => this.favoriteSlice(record)}></i>
+                       onClick={() => this.favoriteSlice(record)}/>
                 )
             }
         }, {
@@ -150,10 +150,10 @@ class Tables extends React.Component {
             render: (record) => {
                 return (
                     <div className="icon-group">
-                        <i className="icon icon-edit" onClick={() => this.editDashboard(record)}></i>&nbsp;
+                        <i className="icon icon-edit" onClick={() => this.editDashboard(record)}/>
                         <i className={record.online ? 'icon icon-online' : 'icon icon-offline'}
-                           onClick={() => this.publishDashboard(record)}></i>&nbsp;
-                        <i className="icon icon-delete" onClick={() => this.deleteDashboard(record)}></i>
+                           onClick={() => this.publishDashboard(record)}/>
+                        <i className="icon icon-delete" onClick={() => this.deleteDashboard(record)}/>
                     </div>
                 )
             }
@@ -170,7 +170,6 @@ class Tables extends React.Component {
                 dataSource={dashboardList}
                 columns={columns}
                 pagination={false}
-                loading={loading}
             />
         );
     }

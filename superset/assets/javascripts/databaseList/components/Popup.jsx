@@ -6,6 +6,14 @@ import {Select} from './';
 import PropTypes from 'prop-types';
 import './popup.scss';
 
+const defaultParams = {
+    "connect_args": {
+        "framed": 0,
+        "hive": "Hive Server 2",
+        "mech": "LDAP"
+    }
+};
+
 class Popup extends React.Component {
     constructor (props, context) {
         super(props);
@@ -58,8 +66,10 @@ class Popup extends React.Component {
 
         const databaseName = this.refs.databaseName.value;
         const sqlalchemyUri = this.refs.sqlalchemyUri.value;
+        const args = this.refs.args.value;
+        const descriptionInceptor = this.refs.descriptionInceptor.value;
 
-        const description = this.refs.description.value;
+        const descriptionHDFS = this.refs.descriptionHDFS.value;
 
         const connectionName = this.refs.connectionName.value;
         const httpfs = this.refs.httpfs.value;
@@ -70,17 +80,20 @@ class Popup extends React.Component {
                     datasetType,
                     databaseName,
                     sqlalchemyUri,
-                    description
+                    descriptionInceptor,
+                    args
                 }
             ));
         } else if (datasetType==='HDFS') {
-            this.dispatch(setPopupParam({
-                                            datasetType,
-                                            connectionName,
-                                            databaseId,
-                                            httpfs,
-                                            description
-                                        }));
+            this.dispatch(
+                setPopupParam({
+                    datasetType,
+                    connectionName,
+                    databaseId,
+                    httpfs,
+                    descriptionHDFS
+                }
+            ));
         }
     }
 
@@ -227,7 +240,7 @@ class Popup extends React.Component {
             me.setState({
                 databaseId: obj.key
             });
-        }
+        };
 
         let iconClass = 'icon-connect';
         let tipMsg = <span>this is the tip message text.</span>;
@@ -235,18 +248,17 @@ class Popup extends React.Component {
         let {submitState} = this.state;
         let showAlert = !(submitState==='error' || submitState==='succeed') && submitState ;
 
-
         return (
             <div className="popup" ref="popupContainer" style={{display: status}}>
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className={'icon '+ iconClass}></i>
+                                <i className={'icon '+ iconClass}/>
                                 <span>{title}</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog}/>
                             </div>
                         </div>
                         <div className="popup-body">
@@ -270,7 +282,7 @@ class Popup extends React.Component {
                                             <input
                                                 type="text"
                                                 defaultValue=""
-                                                ref="description"
+                                                ref="descriptionInceptor"
                                                 name="description"
                                             />
                                         </label>
@@ -286,7 +298,7 @@ class Popup extends React.Component {
                                                 required="required"
                                             />
                                             <Tooltip placement="topRight" title={tipMsg}>
-                                                <i className="icon icon-infor icon-infor-ps"></i>
+                                                <i className="icon icon-infor icon-infor-ps"/>
                                             </Tooltip>
                                         </label>
 
@@ -295,10 +307,22 @@ class Popup extends React.Component {
                                             <button
                                                 className="test-connect"
                                                 onClick={ag=> me.testConnection(ag)}>
-                                                <i className="icon icon-connect-test"></i>
+                                                <i className="icon icon-connect-test"/>
                                                 <span>测试连接</span>
                                             </button>
                                             <div ref="testConnectTip"></div>
+                                        </label>
+                                        <label className="data-detail-item">
+                                            <span>连接参数：</span>
+                                            <textarea
+                                                id="connectParams"
+                                                rows="5"
+                                                style={{width:'420px'}}
+                                                required="required"
+                                                ref="args"
+                                                defaultValue={JSON.stringify(defaultParams, undefined, 4)}
+                                            >
+                                            </textarea>
                                         </label>
                                     </div>
                                     <div style={{ display: datasetType==='HDFS'?'block':'none' }} >
@@ -317,8 +341,8 @@ class Popup extends React.Component {
                                                 rows="5"
                                                 style={{width:'420px'}}
                                                 required="required"
-                                                ref="description"
-                                            ></textarea>
+                                                ref="descriptionHDFS"
+                                            />
                                         </label>
                                         <label className="data-detail-item">
                                             <span>httpfs地址：</span>

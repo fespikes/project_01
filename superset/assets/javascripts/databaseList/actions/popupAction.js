@@ -76,7 +76,7 @@ function receiveConnectionNames (connectionNames) {
 */
 export const testConnection = (callback) => {
     return (dispatch, getState) => {
-        const URL = origin + '/pilot/testconn';
+        const URL = window.location.origin + '/pilot/testconn';
         const {
             datasetType,
             databaseName,

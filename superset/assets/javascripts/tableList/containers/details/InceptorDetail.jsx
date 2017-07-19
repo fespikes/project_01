@@ -8,7 +8,7 @@ import { Link, withRouter } from 'react-router-dom';
 import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
 import { fetchSchemaList } from '../../actions';
-import { constructInceptorDataset, appendTreeChildren, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
+import { constructInceptorDataset, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
 import { appendTreeData, constructTreeData } from '../../../../utils/common2';
 import { renderLoadingModal, renderAlertTip } from '../../../../utils/utils';
 
@@ -245,7 +245,7 @@ class InceptorDetail extends Component {
             <div>
                 <div className="data-detail-item">
                     <span>数据集名称：</span>
-                    <input type="text" name="dataset_name" value={dsInceptor.dataset_name}
+                    <input type="text" name="dataset_name" value={dsInceptor.dataset_name} defaultValue=""
                         onChange={this.handleChange}/>
                 </div>
                 <div className="data-detail-item">

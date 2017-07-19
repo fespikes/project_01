@@ -1,4 +1,5 @@
 import fetch from 'isomorphic-fetch';
+import {getPublishTableUrl} from '../utils';
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -381,7 +382,8 @@ export function fetchSchemaList(dbId, callback) {
 }
 
 export function fetchTableList(dbId, schema, callback) {
-    return () => {
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
         const url = baseURL + 'tables/' + dbId + '/' + schema;
         return fetch(url, {
             credentials: 'include',
@@ -391,9 +393,11 @@ export function fetchTableList(dbId, schema, callback) {
                 if(response.ok) {
                     response.json().then(response => {
                         callback(true, response);
+                        dispatch(switchFetchingState(false));
                     });
                 }else {
                     callback(false);
+                    dispatch(switchFetchingState(false));
                 }
             }
         );
@@ -525,7 +529,8 @@ export function fetchTypeList(callback) {
 }
 
 export function fetchDatasetPreviewData(id, callback) {
-    return () => {
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
         const url = baseURL + 'preview_data?dataset_id=' + id;
         return fetch(url, {
             credentials: 'include',
@@ -535,9 +540,11 @@ export function fetchDatasetPreviewData(id, callback) {
                 if(response.ok) {
                     response.json().then(response => {
                         callback(true, response);
+                        dispatch(switchFetchingState(false));
                     });
                 }else {
                     callback(false);
+                    dispatch(switchFetchingState(false));
                 }
             }
         );
@@ -670,6 +677,25 @@ export function fetchHDFSDetail(id, callback) {
                 }
             }
         );
+    }
+}
+
+export function fetchPublishTable(record) {
+    const url = getPublishTableUrl(record);
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin"
+        }).then(function(response) {
+            if(response.ok) {
+                response.json().then(() => {
+                    dispatch(applyFetch(getState().condition));
+                    dispatch(switchFetchingState(false));
+                });
+            }else {
+                dispatch(switchFetchingState(false));
+            }
+        })
     }
 }
 

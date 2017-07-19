@@ -1,23 +1,12 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import {
-    fetchIfNeeded,
-    setPopupParam,
-
-    popupActions
-} from '../actions';
-
-import {
-    Pagination,
-    Table,
-    Operate
-} from '../components';
+import { fetchIfNeeded, setPopupParam, popupActions } from '../actions';
+import { Pagination, Table, Operate } from '../components';
 import { Popup } from '../components';
-
 import '../style/popupAdd.scss';
-
 import PropTypes from 'prop-types';
+import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
 
 class App extends Component {
 
@@ -48,6 +37,16 @@ class App extends Component {
 //            nextProps.paramOfDelete.connToBeDeleted !== this.props.paramOfDelete.connToBeDeleted
         ) {
             dispatch(fetchIfNeeded(nextProps.condition));
+        }
+
+        const { isFetching } = this.props;
+        if(isFetching !== nextProps.isFetching) {
+            const loadingModal = renderLoadingModal();
+            if(nextProps.isFetching) {
+                loadingModal.show();
+            }else {
+                loadingModal.hide();
+            }
         }
     }
 
@@ -106,7 +105,7 @@ function mapStateToProps(state) {
         isFetching,
         response        ///
     } = requestByCondition||{
-        isFetching: true,
+        isFetching: false,
         response: {}
     }
 
