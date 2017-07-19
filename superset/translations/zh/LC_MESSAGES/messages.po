@@ -1826,6 +1826,15 @@ msgstr "欢迎！"
 msgid "Test Connection"
 msgstr "测试连接"
 
+msgid "Home"
+msgstr "首页"
+
+msgid "SQL Lab"
+msgstr "SQL Lab"
+
+msgid "HDFS Browser"
+msgstr "HDFS浏览器"
+
 msgid "Databases"
 msgstr "连接"
 
@@ -1849,12 +1858,6 @@ msgstr "文档"
 
 msgid "Standalone version, use to embed anywhere"
 msgstr ""
-
-msgid "Access requests"
-msgstr "访问请求"
-
-msgid "List Datasource Access Request"
-msgstr "数据源访问请求"
 
 msgid "Access Log"
 msgstr "访问日志"
@@ -1889,18 +1892,6 @@ msgstr "结束时间"
 msgid "CSS Templates"
 msgstr "CSS模板"
 
-msgid "List Database"
-msgstr "连接列表"
-
-msgid "Edit Database"
-msgstr "编辑连接"
-
-msgid "Add Database"
-msgstr "添加连接"
-
-msgid "Show Database"
-msgstr "连接详细信息"
-
 msgid "Backend"
 msgstr "数据库"
 
@@ -1927,9 +1918,6 @@ msgstr "允许异步运行"
 msgid "Allow users to run non-SELECT statements (UPDATE, DELETE, CREATE, ...) in SQL Lab"
 msgstr "允许用户在SQL Lab中执行更新，删除和创建操作"
 
-msgid "Show Database"
-msgstr ""
-
 msgid "Created By"
 msgstr "创建者"
 
@@ -1941,42 +1929,6 @@ msgstr "修改者"
 
 msgid "Changed On"
 msgstr "修改日期"
-
-msgid "List Table"
-msgstr "数据集列表"
-
-msgid "Show Table"
-msgstr "数据集详细信息"
-
-msgid "Add Table"
-msgstr "添加数据集"
-
-msgid "Edit Table"
-msgstr "编辑数据集"
-
-msgid "List Sql Metric"
-msgstr "SQL度量列表"
-
-msgid "Show Sql Metric"
-msgstr "SQL度量详细信息"
-
-msgid "Add Sql Metric"
-msgstr "添加SQL度量"
-
-msgid "Edit Sql Metric"
-msgstr "编辑SQL度量"
-
-msgid "List Table Column"
-msgstr "字段列表"
-
-msgid "Show Table Column"
-msgstr "字段详细信息"
-
-msgid "Add Table Column"
-msgstr "添加字段"
-
-msgid "Edit Table Column"
-msgstr "编辑字段"
 
 msgid "Delete"
 msgstr "删除"
@@ -2002,18 +1954,6 @@ msgstr "D3格式"
 msgid "Is Restricted"
 msgstr "权限限制"
 
-msgid "List Slice"
-msgstr "工作表"
-
-msgid "Show Slice"
-msgstr "工作表详细信息"
-
-msgid "Add Slice"
-msgstr "添加工作表"
-
-msgid "Edit Slice"
-msgstr "编辑工作表"
-
 msgid "Click on a table link to create a Slice"
 msgstr "点击数据集链接创建工作表"
 
@@ -2031,18 +1971,6 @@ msgstr "修改表"
 
 msgid "Export"
 msgstr "导出"
-
-msgid "List Dashboard"
-msgstr "仪表板列表"
-
-msgid "Show Dashboard"
-msgstr "仪表板详细信息"
-
-msgid "Edit Dashboard"
-msgstr "编辑仪表板"
-
-msgid "Add Dashboard"
-msgstr "添加仪表板"
 
 msgid "Select Value"
 msgstr "点击选择"

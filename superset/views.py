@@ -3549,11 +3549,10 @@ appbuilder.add_view_no_menu(HDFSBrowser)
 appbuilder.add_view(
     Home,
     "Home",
-    label='home',
+    label=__("Home"),
     category='',
     category_label='',
     icon="fa-list-ol")
-
 appbuilder.add_view(
     DashboardModelView,
     "Dashboards",
@@ -3561,7 +3560,6 @@ appbuilder.add_view(
     icon="fa-dashboard",
     category='',
     category_icon='',)
-
 appbuilder.add_view(
     SliceModelView,
     "Slices",
@@ -3569,7 +3567,6 @@ appbuilder.add_view(
     icon="fa-bar-chart",
     category="",
     category_icon='',)
-
 appbuilder.add_view(
     DatabaseView,
     "Databases",
@@ -3578,7 +3575,6 @@ appbuilder.add_view(
     category="Sources",
     category_label=__("Sources"),
     category_icon='fa-database',)
-
 appbuilder.add_view(
     DatasetModelView,
     "Dataset",
@@ -3586,23 +3582,24 @@ appbuilder.add_view(
     category="Sources",
     category_label=__("Sources"),
     icon='fa-table',)
-
 appbuilder.add_link(
     'SQL Editor',
     href='/pilot/sqllab',
     category_icon="fa-flask",
     icon="fa-flask",
-    category='SQL Lab')
+    category='SQL Lab',
+    category_label=__("SQL Lab"),)
 appbuilder.add_link(
     'Query Search',
     href='/pilot/sqllab#search',
     icon="fa-search",
     category_icon="fa-flask",
-    category='SQL Lab')
+    category='SQL Lab',
+    category_label=__("SQL Lab"),)
 appbuilder.add_link(
     'HDFS Browser',
     href='/hdfs/list',
-    label="HDFS Browser",
+    label=__("HDFS Browser"),
     icon="fa-flask",
     category='',
     category_icon='')
