@@ -29,7 +29,7 @@
 
 .data-tendency{
     border-radius: 4px;
-    padding:0 20px;
+    padding:0 20px 10px 20px;
     margin:20px 0;
     min-width: 1100px !important;
 
@@ -68,7 +68,7 @@
     .data-title{
         display:flex;
         justify-content:center;
-        padding:20px 0;
+        padding:5px 0;
         h2{
             border-right: 1px solid #edf1f5;
             padding:0 45px;
@@ -82,14 +82,14 @@
                 i{
                     width: 26px;
                     height: 22px;;
-                    margin-bottom: 16px;
+                    margin-bottom: 0;
                     margin-right: 8px;
                 }
             }
             dd{
                 user-select: none;
                 .count {
-                    font-size:28px;
+                    font-size:24px;
                     color:#1d2531;
                     text-align: left;
                 }
@@ -108,6 +108,10 @@
             &:last-child {
                 border-right: none;
             }
+        }
+        h2.selected {
+            background-color: rgba(46, 161, 248, 0.1);
+            border-radius: 4px;
         }
     }
     .dashboard-linechart{
