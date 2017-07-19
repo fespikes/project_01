@@ -740,20 +740,6 @@ class DatabaseView(SupersetModelView):  # noqa
         return response
 
 
-class DatabaseAsync(DatabaseView):
-    route_base = '/databaseasync'
-    list_columns = [
-        'id', 'database_name',
-        'expose_in_sqllab', 'allow_ctas', 'force_ctas_schema',
-        'allow_run_async', 'allow_run_sync', 'allow_dml',
-    ]
-
-
-class DatabaseTablesAsync(DatabaseView):
-    route_base = '/databasetablesasync'
-    list_columns = ['id', 'all_table_names', 'all_schema_names']
-
-
 class HDFSConnectionModelView(SupersetModelView):
     model = models.HDFSConnection
     datamodel = SQLAInterface(models.HDFSConnection)
@@ -1469,22 +1455,6 @@ class SliceModelView(SupersetModelView):  # noqa
         return response
 
 
-class SliceAsync(SliceModelView):  # noqa
-    route_base = '/sliceasync'
-    list_columns = ['slice_link', 'viz_type', 'modified', 'icons']
-    label_columns = {
-        'icons': ' ',
-        'slice_link': _('Slice'),
-    }
-
-
-class SliceAddView(SliceModelView):  # noqa
-    route_base = '/sliceaddview'
-    list_columns = [
-        'id', 'slice_name', 'slice_link', 'viz_type',
-        'owners', 'modified', 'changed_on']
-
-
 class DashboardModelView(SupersetModelView):  # noqa
     model = models.Dashboard
     datamodel = SQLAInterface(models.Dashboard)
@@ -1683,25 +1653,10 @@ class DashboardModelView(SupersetModelView):  # noqa
         return True
 
 
-class DashboardModelViewAsync(DashboardModelView):  # noqa
-    route_base = '/dashboardmodelviewasync'
-    list_columns = ['dashboard_link', 'creator', 'modified', 'dashboard_title']
-
-
 class QueryView(SupersetModelView):
     route_base = '/queryview'
     datamodel = SQLAInterface(models.Query)
     list_columns = ['user', 'database', 'status', 'start_time', 'end_time']
-
-
-@app.route('/health/')
-def health():
-    return "OK"
-
-
-@app.route('/ping/')
-def ping():
-    return "OK"
 
 
 class Superset(BaseSupersetView):
@@ -3554,16 +3509,16 @@ class HDFSBrowser(BaseSupersetView):
         return requests.utils.dict_from_cookiejar(resp.cookies)
 
 
-appbuilder.add_view_no_menu(DatabaseAsync)
-appbuilder.add_view_no_menu(DatabaseTablesAsync)
+@app.route('/health/')
+def health():
+    return "OK"
+
+
 appbuilder.add_view_no_menu(ConnectionView)
 appbuilder.add_view_no_menu(HDFSConnectionModelView)
 appbuilder.add_view_no_menu(HDFSTableModelView)
 appbuilder.add_view_no_menu(TableColumnInlineView)
 appbuilder.add_view_no_menu(SqlMetricInlineView)
-appbuilder.add_view_no_menu(SliceAsync)
-appbuilder.add_view_no_menu(SliceAddView)
-appbuilder.add_view_no_menu(DashboardModelViewAsync)
 appbuilder.add_view_no_menu(Superset)
 appbuilder.add_view_no_menu(HDFSBrowser)
 
