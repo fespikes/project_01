@@ -46,7 +46,7 @@ class EventDetail extends Component {
             title: '用户',
             dataIndex: 'user',
             key: 'user',
-            width: '33%',
+            width: '23%',
             sorter: true,
             className: 'user-column',
             render: (text, record) => (<a className="user-td" href={record.link}><i className="icon user-icon"></i><span>{text}</span></a>)
@@ -55,13 +55,15 @@ class EventDetail extends Component {
             dataIndex: 'action',
             key: 'action',
             sorter: true,
-            width: '33%',
+            width: '43%',
             render: (text, record) => {
                         const classes = "icon action-title-icon " + record.type + "-icon";
                         return (
                             <div>
                                 <div className="action-text">{text}</div>
-                                <div className="action-title"><i className={classes}></i>{record.title}</div>
+                                <div className="action-title">
+                                    <i className={classes}/>{record.title}
+                                </div>
                             </div>
                         );
                     }
@@ -70,7 +72,7 @@ class EventDetail extends Component {
             dataIndex: 'time',
             key: 'time',
             sorter: true,
-            width: '30%',
+            width: '33%',
             className: 'time-col',
             render: (text) => (<span>{text}</span>)
         }];

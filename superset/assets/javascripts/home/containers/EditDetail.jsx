@@ -67,7 +67,7 @@ class EditDetail extends Component {
             key: 'time',
             className: "time-column",
             sorter: true,
-            width: '30%',
+            width: '33%',
             render: (text) => (<span>{text}</span>)
         }];
 
@@ -121,6 +121,9 @@ const getEidtListData = createSelector(
                 'time': obj.time,
                 'link': obj.link
             };
+            if(obj.action === 'edit') {
+                item.action = '编辑';
+            }
             result.push(item);
         });
 

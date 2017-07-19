@@ -344,6 +344,11 @@
                             width: 220px;
                             display: block;
                         }
+
+                        i {
+                            position: relative;
+                            top: -5px;
+                        }
                     }
 
                     .action-title-icon {
@@ -453,8 +458,8 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 20px;
-        margin-top: 20px;
+        margin-bottom: 10px;
+        margin-top: 10px;
 
         .left {
             .title {
@@ -593,6 +598,10 @@
                     align-items: center;
                     font-size: 12px;
                     color: #7f8fa4;
+                    i {
+                        position: relative;
+                        top: -5px;
+                    }
                 }
 
                 .action-title-icon {
