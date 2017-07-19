@@ -6,7 +6,7 @@ import { LoadingModal } from '../javascripts/common/components';
 export function renderLoadingModal() {
     const loadingModal = render(
         <LoadingModal />,
-        document.getElementById('popup_root'));
+        document.getElementById('loading_root'));
 
     return loadingModal;
 }

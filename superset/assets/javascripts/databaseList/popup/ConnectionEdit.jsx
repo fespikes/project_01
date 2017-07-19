@@ -56,7 +56,7 @@ class ConnectionEdit extends React.Component {
         ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
-    testConnection() {
+    testConnection(testCallBack) {
         const me = this;
         const { dispatch } = me.props;
         dispatch(testConnectionInEditConnectPopup(me.state.database, callback));
@@ -87,6 +87,9 @@ class ConnectionEdit extends React.Component {
                 />,
                 document.getElementById('test-connect-tip')
             );
+            if(typeof testCallBack === 'function') {
+                testCallBack(me.state.connected);
+            }
         }
     }
 
@@ -115,9 +118,9 @@ class ConnectionEdit extends React.Component {
         });
     }
 
-    confirm() {
+    doUpdateConnection() {
+        const {dispatch} = this.props;
         const me = this;
-        const { dispatch } = me.props;
         dispatch(fetchUpdateConnection(me.state.database, callback));
         function callback(success, message) {
             if(success) {
@@ -135,6 +138,24 @@ class ConnectionEdit extends React.Component {
                     document.getElementById('edit-connect-tip')
                 );
             }
+        }
+    }
+
+    confirm() {
+        const me = this;
+        if(this.props.connectionType === "INCEPTOR") {
+            if(this.state.connected) {
+                this.doUpdateConnection();
+            }else {
+                this.testConnection(testCallBack);
+                function testCallBack(success) {
+                    if(success) {
+                        me.doUpdateConnection();
+                    }
+                }
+            }
+        }else if(this.props.connectionType === "HDFS") {
+            this.doUpdateConnection();
         }
     }
 

@@ -16,9 +16,8 @@ class LoadingModal extends React.Component {
     }
 
     hide() {
-        //this.refs.loading.style.display = "none";
         ReactDOM.unmountComponentAtNode(
-            document.getElementById("popup_root")
+            document.getElementById("loading_root")
         );
     }
 
