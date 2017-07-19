@@ -1944,27 +1944,6 @@ class HDFSTable(Model, AuditMixinNullable):
         engine.execute(sql)
 
     @classmethod
-    def parse_hdfs_file(cls, **kwargs):
-        file = cls.cached_file.get(kwargs.get('path'))
-        if not file:
-            file = cls.get_file(**kwargs)
-            cls.cached_file[kwargs.get('path')] = file
-        return cls.parse_file(file, **kwargs)
-
-    @classmethod
-    def get_file(cls, **kwargs):
-        session = requests.Session()
-        server = kwargs.get('server')
-        cls.login_micro_service(session, server, kwargs.get('username'),
-                                kwargs.get('password'), kwargs.get('httpfs'))
-        resp = session.get("http://{}/filebrowser?action=preview&path={}"\
-                           .format(server, kwargs.get('path')))
-        if resp.status_code != requests.codes.ok:
-            resp.raise_for_status()
-        text = resp.text[1:-1]
-        return "\n".join(text.split("\\n"))
-
-    @classmethod
     def parse_file(cls, file_content, **kwargs):
         separator = kwargs.get('separator', ',')
         quote = kwargs.get('quote')

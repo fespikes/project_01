@@ -1062,7 +1062,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         if not conn:
             raise Exception("Not found HDFS connection by id: [{}]".format(conn_id))
         args['httpfs'] = conn.httpfs
-        df = HDFSTable.parse_hdfs_file(**args)
+        df = self.parse_hdfs_file(**args)
         return json.dumps(dict(
             records=df.to_dict(orient="records"),
             columns=list(df.columns),)
@@ -1280,6 +1280,27 @@ class DatasetModelView(SupersetModelView):  # noqa
         action_str = 'Delete dataset: [{}]'.format(repr(table))
         log_action('delete', action_str, 'dataset', table.id)
         log_number('dataset', table.online, get_user_id())
+
+    @classmethod
+    def parse_hdfs_file(cls, **kwargs):
+        file = HDFSTable.cached_file.get(kwargs.get('path'))
+        if not file:
+            file = cls.get_file(**kwargs)
+            HDFSTable.cached_file[kwargs.get('path')] = file
+        return HDFSTable.parse_file(file, **kwargs)
+
+    @classmethod
+    def get_file(cls, **kwargs):
+        session = requests.Session()
+        server = kwargs.get('server')
+        HDFSBrowser.login_action(session, server, kwargs.get('username'),
+                                kwargs.get('password'), kwargs.get('httpfs'))
+        resp = session.get("http://{}/filebrowser?action=preview&path={}" \
+                           .format(server, kwargs.get('path')))
+        if resp.status_code != requests.codes.ok:
+            resp.raise_for_status()
+        text = resp.text[1:-1]
+        return "\n".join(text.split("\\n"))
 
 
 class HDFSTableModelView(SupersetModelView):
