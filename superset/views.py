@@ -2429,26 +2429,14 @@ class Superset(BaseSupersetView):
             qry = qry.filter_by(id=int(dashboard_id))
         else:
             qry = qry.filter_by(slug=dashboard_id)
-
         dash = qry.one()
-        datasources = {slc.datasource for slc in dash.slices}
-        for datasource in datasources:
-            if not self.datasource_access(datasource):
-                flash(
-                    __(get_datasource_access_error_msg(datasource.name)),
-                    "danger")
-                return redirect(
-                    'pilot/request_access/?'
-                    'dashboard_id={dash.id}&'
-                    ''.format(**locals()))
 
         # Hack to log the dashboard_id properly, even when getting a slug
         def dashboard(**kwargs):  # noqa
             pass
         dashboard(dashboard_id=dash.id)
-        dash_edit_perm = check_ownership(dash, raise_if_false=False)
-        dash_save_perm = \
-            dash_edit_perm and self.can_access('can_save_dash', 'Superset')
+        dash_edit_perm = True
+        dash_save_perm = dash_edit_perm
         standalone = request.args.get("standalone") == "true"
         context = dict(
             user_id=g.user.get_id(),
