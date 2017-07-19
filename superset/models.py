@@ -434,8 +434,11 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
     @property
     def table_names(self):
-        return ", ".join(
-            {"{}".format(s.datasource.name) for s in self.slices})
+        tables = []
+        for s in self.slices:
+            if s.datasource:
+                tables.append(s.datasource.name)
+        return ", ".join(set(tables))
 
     @property
     def url(self):
