@@ -66,6 +66,9 @@ from superset.utils import wrap_clause_in_parens, DTTM_ALIAS, QueryStatus
 config = app.config
 
 
+FillterPattern = re.compile(r'''((?:[^,"']|"[^"]*"|'[^']*')+)''')
+
+
 class QueryResult(object):
 
     """Object returned by the query interface"""
@@ -82,26 +85,6 @@ class QueryResult(object):
         self.duration = duration
         self.status = status
         self.error_message = error_message
-
-
-FillterPattern = re.compile(r'''((?:[^,"']|"[^"]*"|'[^']*')+)''')
-
-
-def set_perm(mapper, connection, target):  # noqa
-    if target.perm != target.get_perm():
-        link_table = target.__table__
-        connection.execute(
-            link_table.update()
-            .where(link_table.c.id == target.id)
-            .values(perm=target.get_perm())
-        )
-
-
-def set_related_perm(mapper, connection, target):  # noqa
-    src_class = target.cls_model
-    id_ = target.datasource_id
-    ds = db.session.query(src_class).filter_by(id=int(id_)).first()
-    target.perm = ds.perm
 
 
 class ImportMixin(object):
@@ -197,9 +180,7 @@ slice_user = Table('slice_user', Model.metadata,
 
 
 class Slice(Model, AuditMixinNullable, ImportMixin):
-
     """A slice is essentially a report or a view on data"""
-
     __tablename__ = 'slices'
     id = Column(Integer, primary_key=True)
     slice_name = Column(String(250))
@@ -214,7 +195,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     description = Column(Text)
     department = Column(Text)
     cache_timeout = Column(Integer)
-    perm = Column(String(1000))
+    # perm = Column(String(1000))
     owners = relationship("User", secondary=slice_user)
 
     export_fields = ('slice_name', 'datasource_type', 'datasource_name',
@@ -224,8 +205,12 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         return self.slice_name
 
     @property
-    def cls_model(self):
-        return SourceRegistry.sources[self.datasource_type]
+    def perm(self):
+        return self.slice_name
+
+    # @property
+    # def cls_model(self):
+    #     return SourceRegistry.sources[self.datasource_type]
 
     @property
     def datasource(self):
@@ -234,9 +219,8 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     @datasource.getter
     @utils.memoized
     def get_datasource(self):
-        ds = db.session.query(
-            self.cls_model).filter_by(
-            id=self.datasource_id).first()
+        ds = db.session.query(Dataset)\
+            .filter_by(id=self.datasource_id).first()
         return ds
 
     @renders('datasource_name')
@@ -387,10 +371,6 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
             slice.online = True
             db.session.commit()
             DailyNumber.log_number('slice', True, None)
-
-
-sqla.event.listen(Slice, 'before_insert', set_related_perm)
-sqla.event.listen(Slice, 'before_update', set_related_perm)
 
 
 dashboard_slices = Table(
@@ -731,7 +711,6 @@ class Database(Model, AuditMixinNullable):
         "connect_args": {}
     }
     """))
-    perm = Column(String(1000))
 
     def __repr__(self):
         return self.database_name
@@ -744,6 +723,10 @@ class Database(Model, AuditMixinNullable):
     def backend(self):
         url = make_url(self.sqlalchemy_uri_decrypted)
         return url.get_backend_name()
+
+    @property
+    def perm(self):
+        return "[{obj.database_name}].(id:{obj.id})".format(obj=self)
 
     def set_sqlalchemy_uri(self, uri):
         if 'mech=kerberos' in uri.lower():
@@ -962,10 +945,6 @@ class Database(Model, AuditMixinNullable):
     def sql_url(self):
         return '/pilot/sql/{}/'.format(self.id)
 
-    def get_perm(self):
-        return (
-            "[{obj.database_name}].(id:{obj.id})").format(obj=self)
-
     @classmethod
     def release(cls, database):
         if str(database.created_by_fk) == str(g.user.get_id()):
@@ -999,10 +978,6 @@ class Database(Model, AuditMixinNullable):
         file.write(keytab)
         file.close()
         return path
-
-
-sqla.event.listen(Database, 'after_insert', set_perm)
-sqla.event.listen(Database, 'after_update', set_perm)
 
 
 class HDFSConnection(Model, AuditMixinNullable):
@@ -1277,7 +1252,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     filter_select_enabled = Column(Boolean, default=False)
     main_dttm_col = Column(String(250))
     params = Column(Text)
-    perm = Column(String(1000))
     offset = Column(Integer, default=0)
     default_endpoint = Column(Text)
     is_featured = Column(Boolean, default=False)
@@ -1293,12 +1267,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         'database_id', 'is_featured', 'offset', 'cache_timeout', 'schema',
         'sql', 'params')
 
-    # __table_args__ = (
-    #     sqla.UniqueConstraint(
-    #         'database_id', 'schema', 'table_name',
-    #         name='_customer_location_uc'),)
-
-    # three wayS to create dateset, but two kinds of dataset_type: INCEPTOR and HDFS
     dataset_type_dict = {
         'inceptor': 'INCEPTOR',
         'hdfs': 'HDFS',
@@ -1343,10 +1311,9 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         """Returns schema permission if present, database one otherwise."""
         return utils.get_schema_perm(self.database, self.schema)
 
-    def get_perm(self):
-        return (
-            "[{obj.database}].[{obj.table_name}]"
-            "(id:{obj.id})").format(obj=self)
+    @property
+    def perm(self):
+        return "[{obj.database}].[{obj.table_name}](id:{obj.id})".format(obj=self)
 
     @property
     def name(self):
@@ -1886,9 +1853,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             dataset.online = True
             db.session.commit()
             DailyNumber.log_number('dataset', True, None)
-
-sqla.event.listen(Dataset, 'after_insert', set_perm)
-sqla.event.listen(Dataset, 'after_update', set_perm)
 
 
 class HDFSTable(Model, AuditMixinNullable):
