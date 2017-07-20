@@ -94,9 +94,9 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
         # edit
         json_data['description'] = 'this is for test'
         obj = self.view.populate_object(added_sql_metric.id, self.user.id, json_data)
-        self.view.pre_update(obj)
+        #self.view.pre_update(obj)
         self.view.datamodel.edit(obj)
-        self.view.post_update(obj)
+        #self.view.post_update(obj)
         edited_sql_metric = db.session.query(SqlMetric)\
             .filter_by(metric_name=json_data.get('metric_name'))\
             .filter_by(expression=json_data.get('expression'))\
@@ -107,7 +107,7 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
 
         # delete
         obj = self.view.get_object(edited_sql_metric.id)
-        self.view.delete(edited_sql_metric.id)
+        self.view.datamodel.delete(obj)
         target_sql_metric = db.session.query(SqlMetric) \
             .filter_by(id=edited_sql_metric.id) \
             .first()
@@ -115,12 +115,12 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
 
     def test_addablechoices(self):
         result = self.view.get_addable_choices()
-        available_table_list = result.get('available_tables')
-        for one_available_table in available_table_list:
-            target_table = db.session.query(Dataset) \
-                .filter_by(id=one_available_table.get('id'), dataset_name=one_available_table.get('dataset_name')) \
+        available_dataset_list = result.get('available_dataset')
+        for one_available_dataset in available_dataset_list:
+            target_dataset = db.session.query(Dataset) \
+                .filter_by(id=one_available_dataset.get('id'), dataset_name=one_available_dataset.get('dataset_name')) \
                 .first()
-            assert target_table is not None
+            assert target_dataset is not None
 
 
 if __name__ == '__main__':

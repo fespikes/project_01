@@ -96,7 +96,7 @@ class HomeTests(SupersetTestCase, PageMixin):
         obj.online = True
         obj.created_by_fk = self.user.id
         db.session.commit()
-        DailyNumber.log_number('dashboard', self.user.id)
+        log_number('dashboard', True, self.user.id)
 
         obj = db.session.query(Dashboard).all()
         # add table
@@ -118,10 +118,10 @@ class HomeTests(SupersetTestCase, PageMixin):
         obj.online = True
         obj.created_by_fk = self.user.id
         db.session.commit()
-        DailyNumber.log_number('dataset', self.user.id)
+        log_number('dataset', True, self.user.id)
 
         # add database
-        self.view = DatabaseView()
+        '''self.view = DatabaseView()
         one_database = db.session.query(Database).first()
         new_database = {
             'database_name': '1.198_copy_test_lc'+str(datetime.now()),
@@ -135,7 +135,7 @@ class HomeTests(SupersetTestCase, PageMixin):
         obj.online = True
         obj.created_by_fk = self.user.id
         db.session.commit()
-        DailyNumber.log_number('database', self.user.id)
+        log_number('database', True, self.user.id)'''
 
         #edit slice
         self.view = SliceModelView()
@@ -202,9 +202,9 @@ class HomeTests(SupersetTestCase, PageMixin):
         self.add_dashboard_database_slice_table()
         home_data = self.get_home_data()
         slice_count_new, table_count_new, dashboard_count_new, database_count_new = self.parse_trends_data(home_data)
-        #assert (table_count+1) == table_count_new
-        #assert (dashboard_count+1) == dashboard_count_new
-        #assert (database_count+1) == database_count_new
+        assert (table_count+1) == table_count_new
+        assert (dashboard_count+1) == dashboard_count_new
+        assert (database_count+1) == database_count_new
 
         # edits
         assert time.strftime('%Y-%m-%d') in home_data.get('edits').get('slice')[0].get('time')

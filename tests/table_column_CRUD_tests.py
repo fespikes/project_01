@@ -71,6 +71,8 @@ class TableColumnCRUDTests(SupersetTestCase, PageMixin):
                 pass
             elif attr == 'available_tables':
                 self.check_available_tables(attributes.get('available_tables'))
+            elif attr == 'dataset':
+                assert str(getattr(one_table_column, attr)) == attributes.get(attr)
             else:
                 assert getattr(one_table_column, attr) == attributes.get(attr)
 
@@ -113,7 +115,7 @@ class TableColumnCRUDTests(SupersetTestCase, PageMixin):
         assert edited_table is not None
 
         #delete
-        self.view.delete(edited_table.id)
+        self.view.datamodel.delete(edited_table)
         target_table = db.session.query(TableColumn) \
             .filter_by(id=edited_table.id) \
             .filter_by(column_name=json_data['column_name']) \
