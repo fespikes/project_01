@@ -1215,29 +1215,10 @@ class DatasetModelView(SupersetModelView):  # noqa
         return attributes
 
     def pre_add(self, table):
-        if table.table_name:
-            try:
-                table.get_sqla_table_object()
-            except Exception as e:
-                logging.exception(e)
-                raise Exception(
-                    "Table [{}] could not be found, please double check your "
-                    "database connection, schema, and table name".format(table.name))
-
-    @staticmethod
-    def merge_perm(table):  # Deprecated
-        security.merge_perm(sm, 'datasource_access', table.get_perm())
-        if table.schema:
-            security.merge_perm(sm, 'schema_access', table.schema_perm)
-        flash(_(
-            "The table was created. As part of this two phase configuration "
-            "process, you should now click the edit button by "
-            "the new table to configure it."),
-            "info")
+        table.get_sqla_table_object()
 
     def post_add(self, table):
         table.fetch_metadata()
-        # DatasetModelView.merge_perm(table)
         action_str = 'Add dataset: [{}]'.format(repr(table))
         log_action('add', action_str, 'dataset', table.id)
         log_number('dataset', table.online, get_user_id())
@@ -1253,9 +1234,12 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def pre_update(self, table):
         check_ownership(table)
+        self.pre_add(table)
+        TableColumnInlineView.datamodel.delete_all(table.ref_columns)
+        SqlMetricInlineView.datamodel.delete_all(table.ref_metrics)
 
     def post_update(self, table):
-        # DatasetModelView.merge_perm(table)
+        table.fetch_metadata()
         action_str = 'Edit dataset: [{}]'.format(repr(table))
         log_action('edit', action_str, 'dataset', table.id)
 
@@ -3493,13 +3477,19 @@ class HDFSBrowser(BaseSupersetView):
             cookie = self.login_action(requests.Session(), server, g.user.username,
                              AuthDBView.mock_user.get(g.user.username), conn.httpfs)
             logging.info('Login hdfs-micro-service succeed.')
-            return json.dumps({'cookie': cookie})
+            # return json.dumps({'cookie': cookie})
+            from flask import make_response
+            response = make_response('OK')
+            response.set_cookie('session', cookie.get('session'), domain='172.16.130.60')
+            return response
         except Exception as e:
             logging.error(e)
             flash('Login hdfs-micro-service failed.')
 
     @classmethod
     def login_action(cls, req, server, username, password, httpfs):
+        server = '172.16.201.240:5000'
+        httpfs = '172.16.130.60'
         data = {"username": username,
                 "password": password,
                 "httpfshost": httpfs}
