@@ -8,6 +8,7 @@ import SaveModal from './SaveModal';
 import CodeModal from './CodeModal';
 import SliceAdder from './SliceAdder';
 import DashboardEdit from './DashboardEdit';
+import { renderLoadingModal } from '../../../utils/utils';
 
 const propTypes = {
     dashboard: React.PropTypes.object.isRequired,
@@ -36,6 +37,8 @@ class Controls extends React.PureComponent {
         }else {
             url += 'online/' + dashboard.id;
         }
+        const loadingModel = renderLoadingModal();
+        loadingModel.show();
         $.get(url, (data) => {
             if($.parseJSON(data).success) {
                 let url = '/pilot/if_online/dashboard/' + dashboard.id;
@@ -43,6 +46,7 @@ class Controls extends React.PureComponent {
                     self.setState({
                         published: $.parseJSON(data).online
                     });
+                    loadingModel.hide();
                 });
             }
         });
@@ -75,29 +79,29 @@ class Controls extends React.PureComponent {
                     tooltip="发布仪表盘"
                     placement="bottom"
                     >
-                    <i className={this.state.published ? 'icon icon-online' : 'icon icon-offline'}></i>
+                    <i className={this.state.published ? 'icon icon-online' : 'icon icon-offline'}/>
                 </Button>
                 <Button
                     onClick={this.refresh.bind(this)}
                     tooltip="刷新仪表盘"
                     placement="bottom"
                     >
-                    <i className="icon icon-refresh" />
+                    <i className="icon icon-refresh"/>
                 </Button>
                 <SliceAdder
                     dashboard={dashboard}
                     triggerNode={
-                        <i className="icon icon-plus" />
+                        <i className="icon icon-plus"/>
                     }
                 />
-                <RefreshIntervalModal
+                {
+                    /*<RefreshIntervalModal
                     onChange={refreshInterval => dashboard.startPeriodicRender(refreshInterval * 1000)}
                     triggerNode={
                         <i className="icon icon-clock" />
                     }
                 />
-                {
-                    /*
+
                     <CodeModal
                         codeCallback={dashboard.readFilters.bind(dashboard)}
                         triggerNode={<i className="icon icon-setting" />}
@@ -116,23 +120,23 @@ class Controls extends React.PureComponent {
                 <DashboardEdit
                     dashboard={dashboard}
                     triggerNode={
-                        <i className="icon icon-edit" />
+                        <i className="icon icon-edit"/>
                     }
                 />
                 <SaveModal
                     dashboard={dashboard}
                     css={this.state.css}
                     triggerNode={
-                        <i className="icon icon-save" />
+                        <i className="icon icon-save"/>
                     }
                 />
-                <Button
+                {/*<Button
                     onClick={() => { window.location = emailLink; }}
                     tooltip="发送邮件"
                     placement="bottom"
                     >
                     <i className="icon icon-email"></i>
-                </Button>
+                </Button>*/}
             </ButtonGroup>
         );
     }

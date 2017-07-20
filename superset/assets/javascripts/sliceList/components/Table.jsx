@@ -93,7 +93,7 @@ class SliceTable extends React.Component {
                 title: '名称',  //TODO: title need to i18n
                 key: 'slice_name',
                 dataIndex: 'slice_name',
-                width: '20%',
+                width: '25%',
                 render: (text, record) => {
                     return (
                         <div className="entity-name">
@@ -162,7 +162,7 @@ class SliceTable extends React.Component {
             }, {
                 title: '操作',
                 key: 'action',
-                width: '15%',
+                width: '10%',
                 render: (record) => {
                     return (
                         <div className="icon-group">

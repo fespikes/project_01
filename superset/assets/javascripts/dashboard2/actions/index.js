@@ -247,15 +247,15 @@ export function fetchAddDashboard(state, availableSlices, callback) {
 export function fetchStateChange(record, type) {
     const url = getStateChangeUrl(record, type);
     return dispatch => {
-        dispatch(setTableLoadingStatus(true));
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: "same-origin",
         }).then(function(response) {
             if(response.ok) {
                 dispatch(fetchPosts());
-                dispatch(setTableLoadingStatus(false));
+                dispatch(switchFetchingState(false));
             }else {
-                dispatch(setTableLoadingStatus(false));
+                dispatch(switchFetchingState(false));
             }
         })
     }
