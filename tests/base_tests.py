@@ -71,13 +71,15 @@ class SupersetTestCase(unittest.TestCase):
         ):
             logging.info("Loading examples")
             cli.load_examples(load_test_data=True)
-            self.add_admin_user(self.test_username)
-            self.update_example_user(self.test_username)
-            self.add_admin_user('hive')
             logging.info("Done loading examples")
             os.environ['examples_loaded'] = '1'
 
-        sync_role_definitions()
+        logging.info("add test user")
+        self.add_admin_user(self.test_username)
+        self.update_example_user(self.test_username)
+        self.add_admin_user('hive')
+
+        #sync_role_definitions()
         super(SupersetTestCase, self).__init__(*args, **kwargs)
         self.client = app.test_client()
         self.maxDiff = None

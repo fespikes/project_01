@@ -57,18 +57,19 @@ class DatabaseCRUDTests(SupersetTestCase,PageMixin):
         # add
         new_database = {
             'database_name': '1.198_copy_test_lc'+str(datetime.now()),
-            'sqlalchemy_uri': one_database.sqlalchemy_uri,
+            'sqlalchemy_uri': 'mysql://root:120303@localhost/pilot_test?charset=utf8',
             'description': 'test the database',
+            'args': "{'connect_args': {} }"
         }
         new_database_obj = self.view.populate_object(None, self.user.id, new_database)
-
+        self.view.pre_add(new_database_obj)
         self.view.datamodel.add(new_database_obj)
 
         added_database = db.session.query(Database) \
-            .filter_by(sqlalchemy_uri=new_database.get('sqlalchemy_uri'), database_name=new_database.get('database_name')) \
+            .filter_by(database_name=new_database.get('database_name')) \
             .first()
         assert added_database is not None
-        new_database_id = added_database.id
+        new_database_id = new_database.id
 
         # edit
         new_database['database_name']='1.198_copy_test_lc_edited'+str(datetime.now())
