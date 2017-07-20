@@ -350,3 +350,7 @@ a{text-decoration:none;}
     position:relative;
     right:78px
 }
+
+.data-preview .ant-table-body > table {
+    padding: 0;
+}
