@@ -79,7 +79,7 @@ class SupersetTestCase(unittest.TestCase):
         self.update_example_user(self.test_username)
         self.add_admin_user('hive')
 
-        sync_role_definitions()
+        #sync_role_definitions()
         super(SupersetTestCase, self).__init__(*args, **kwargs)
         self.client = app.test_client()
         self.maxDiff = None
