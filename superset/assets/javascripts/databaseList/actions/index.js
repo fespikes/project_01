@@ -186,7 +186,6 @@ export function applyAdd (callback) {
         const inceptorAddURL = baseURL;
         const HDFSAddURL = origin + '/hdfsconnection/';
         let URL;
-        //{"database_name":"1.198_copy", "sqlalchemy_uri":"inceptor://hive:123"}
         const {
             datasetType,
             databaseName,
