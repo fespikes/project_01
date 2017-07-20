@@ -134,3 +134,28 @@
 		text-align: center;
 	}
 }
+
+#view-tab-container {
+    .ant-radio-button-wrapper {
+        width: 80px;
+        padding: 0;
+        text-align: center;
+    }
+}
+
+#query_button, #save_button {
+    &:hover {
+        color: #fff;
+        background-color: #279cf2;
+    }
+}
+.slice-detail-table {
+    .ant-table-thead>tr>th {
+        padding-left: 5px;
+        background-color: #f7f7f7;
+    }
+    .ant-table-tbody>tr>td {
+        padding-left: 5px;
+    }
+}
+
