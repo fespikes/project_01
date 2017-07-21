@@ -4,15 +4,10 @@ import { Tooltip, Alert } from 'antd';
 
 import {Select} from './';
 import PropTypes from 'prop-types';
-import './popup.scss';
 
-const defaultParams = {
-    "connect_args": {
-        "framed": 0,
-        "hive": "Hive Server 2",
-        "mech": "LDAP"
-    }
-};
+import { getDatabaseDefaultParams } from '../../../utils/utils';
+
+const defaultParams = getDatabaseDefaultParams();
 
 class Popup extends React.Component {
     constructor (props, context) {
@@ -21,7 +16,6 @@ class Popup extends React.Component {
             databaseName: '',
             sqlalchemyUri: '',
 
-            verfifyType: 'password',     //verfifyType: keyTab password
             connectionNames: [],
             connectionName:'',
             databaseId:'',
@@ -33,9 +27,7 @@ class Popup extends React.Component {
 
         this.submit = this.submit.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
-        this.HDFSOnChange = this.HDFSOnChange.bind(this);
-        this.keyTabOnChange = this.keyTabOnChange.bind(this);
-        this.setPopupState = this.setPopupState.bind(this);
+        this.setSelectConnection = this.setSelectConnection.bind(this);
     }
 
     componentDidMount () {
@@ -43,8 +35,25 @@ class Popup extends React.Component {
     }
 
     closeDialog () {
-        const {changePopupStatus} = this.props;
+        const {changePopupStatus, clearPopupParams} = this.props;
+        this.clearDomParams();
+        this.dispatch(clearPopupParams());
         this.dispatch(changePopupStatus('none'));
+    }
+
+    clearDomParams() {
+        const { datasetType } = this.props;
+        if(datasetType === "INCEPTOR") {
+            this.refs.databaseName.value = '';
+            this.refs.descriptionInceptor.value = '';
+            this.refs.httpfs.value = '';
+            this.refs.sqlalchemyUri.value = '';
+        }else if(datasetType === "HDFS") {
+            this.refs.connectionName.value = '';
+            this.refs.descriptionHDFS.value = '';
+            this.refs.httpfs.value = '';
+            this.refs.databaseId.value = '';
+        }
     }
 
     setSubmitParam () {
@@ -54,12 +63,11 @@ class Popup extends React.Component {
 
         const databaseName = this.refs.databaseName.value;
         const sqlalchemyUri = this.refs.sqlalchemyUri.value;
-        const args = this.refs.args.value;
+        const databaseArgs = this.refs.databaseArgs.value;
         const descriptionInceptor = this.refs.descriptionInceptor.value;
 
-        const descriptionHDFS = this.refs.descriptionHDFS.value;
-
         const connectionName = this.refs.connectionName.value;
+        const descriptionHDFS = this.refs.descriptionHDFS.value;
         const httpfs = this.refs.httpfs.value;
 
         if (datasetType==='INCEPTOR') {
@@ -69,7 +77,7 @@ class Popup extends React.Component {
                     databaseName,
                     sqlalchemyUri,
                     descriptionInceptor,
-                    args
+                    databaseArgs
                 }
             ));
         } else if (datasetType==='HDFS') {
@@ -94,7 +102,6 @@ class Popup extends React.Component {
 
         function callback(json) {
             let exception = {};
-            let connected;
             if(json) {
                 exception.type = "success";
                 exception.message = "该连接是一个合法连接";
@@ -119,7 +126,7 @@ class Popup extends React.Component {
 
     }
 
-    setPopupState(databaseId) {
+    setSelectConnection(databaseId) {
         this.setState({
             databaseId: databaseId
         });
@@ -155,7 +162,7 @@ class Popup extends React.Component {
 
 
 
-    fetchConnectionNames (type) {
+    fetchConnectionNames () {
         const me = this;
         const fetchConnectionNames = this.props.fetchConnectionNames;
 
@@ -165,48 +172,9 @@ class Popup extends React.Component {
         this.dispatch(fetchConnectionNames(callback));
     }
 
-    switchVerfifyType (type) {
-        this.setState({
-            verfifyType: type
-        });
-    }
-
-    HDFSOnChange (argus) {
-
-        const me = this;
-        const input = this.refs.configFile;
-        const file = input.files[0];
-        const reader = new FileReader();
-
-        // We read the file and call the upload function with the result
-        reader.onload = function (e) {
-            const result = e.currentTarget.result;
-            me.setState({
-                configFile: result
-            });
-        };
-        let text = reader.readAsText(file);
-    }
-
-    keyTabOnChange (argus) {
-        const me = this;
-        const input = me.refs.keytabFile;
-        const file = input.files[0];
-        const reader = new FileReader();
-
-        // We read the file and call the upload function with the result
-        reader.onload = function (e) {
-            const result = e.currentTarget.result;
-            me.setState({
-                keytabFile: result
-            });
-        };
-        let text = reader.readAsText(file);
-    }
-
     render () {
         const me = this;
-        const {title,datasetType,status} = this.props;
+        const { title, datasetType, status } = this.props;
         const {connectionNames} = this.state;
 
         let iconClass = 'icon-connect';
@@ -285,7 +253,7 @@ class Popup extends React.Component {
                                                 rows="5"
                                                 style={{width:'420px'}}
                                                 required="required"
-                                                ref="args"
+                                                ref="databaseArgs"
                                                 defaultValue={JSON.stringify(defaultParams, undefined, 4)}
                                             >
                                             </textarea>
@@ -296,7 +264,7 @@ class Popup extends React.Component {
                                             <span>连接名称：</span>
                                             <input
                                                 type="text"
-                                                defaultValue=""
+                                                defaultValue=''
                                                 required="required"
                                                 ref="connectionName"
                                             />
@@ -305,6 +273,7 @@ class Popup extends React.Component {
                                             <span>描述：</span>
                                             <textarea
                                                 rows="5"
+                                                defaultValue=''
                                                 style={{width:'420px'}}
                                                 required="required"
                                                 ref="descriptionHDFS"
@@ -315,7 +284,8 @@ class Popup extends React.Component {
                                             <input
                                                 ref="httpfs"
                                                 type="text"
-                                                defaultValue="httpfs地址"
+                                                defaultValue=''
+                                                placeholder="httpfs地址"
                                                 required="required"
                                             />
                                         </label>
@@ -325,7 +295,7 @@ class Popup extends React.Component {
                                                 ref="databaseId"
                                                 options={connectionNames}
                                                 width={420}
-                                                handleSelect={(argus)=>this.setPopupState(argus)}
+                                                handleSelect={(argus)=>this.setSelectConnection(argus)}
                                             />
                                         </label>
                                     </div>
