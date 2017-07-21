@@ -44,7 +44,7 @@ class TableAdd extends Component {
                             <ul>
                                 <li>
                                     <NavLink to={`/${opeType}/detail/${datasetType}/${id}`} activeClassName="active" isActive={isDetailActive}>
-                                        Detail
+                                        基本信息
                                     </NavLink>
                                 </li>
                                 <li>
@@ -54,12 +54,12 @@ class TableAdd extends Component {
                                 </li>
                                 <li>
                                     <NavLink to={`/${opeType}/columns/${datasetType}/${id}`} activeClassName="active" className={enableClick?'':'link-disabled'} isActive={isColumnsActive}>
-                                        List Table Column
+                                        列属性
                                     </NavLink>
                                 </li>
                                 <li>
                                     <NavLink to={`/${opeType}/sqlMetric/${datasetType}/${id}`} activeClassName="active" className={enableClick?'':'link-disabled'} isActive={isSqlMetricActive}>
-                                        SqlMetric
+                                        度量
                                     </NavLink>
                                 </li>
                             </ul>

@@ -190,6 +190,26 @@ button.test-connect {
     }
 }
 
+.popup-modal-add-slice .modal-dialog {
+    width: 900px;
+    .search-input{
+        text-align: right;
+        position:relative;
+        input {
+            width:243px;
+            height:30px;
+            border:$borderStyle;
+            border-radius: 4px;
+            padding-left:10px;
+        }
+        i {
+            position:absolute;
+            top:10px;
+            right:15px;
+        }
+    }
+}
+
 /*  overlay modal-dialog css  */
 
 .modal-dialog{
