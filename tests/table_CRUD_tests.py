@@ -11,7 +11,7 @@ from flask_appbuilder.security.sqla.models import User
 from superset import db
 from superset.views import DatasetModelView
 from superset.models import Dataset
-from superset import  models
+from superset import models
 from superset.models import Database
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
