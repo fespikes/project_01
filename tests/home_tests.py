@@ -29,8 +29,8 @@ class HomeTests(SupersetTestCase, PageMixin):
 
     add_slice_id = None
     add_dashboard_id = None
-    add_table_id = None
-    add_database_id = None
+    add_dataset_id = None
+    add_connection_id = None
 
     def __init__(self, *args, **kwargs):
         super(HomeTests, self).__init__(*args, **kwargs)
@@ -48,26 +48,26 @@ class HomeTests(SupersetTestCase, PageMixin):
     '''
     def parse_trends_data(self, data):
         slice_today = data.get('trends').get('slice')
-        table_today = data.get('trends').get('table')
+        dataset_today = data.get('trends').get('dataset')
         dashboard_today = data.get('trends').get('dashboard')
-        database_today = data.get('trends').get('database')
+        connection_today = data.get('trends').get('connection')
 
         today = time.strftime('%Y-%m-%d')
         count_today = {
             'slice': 0,
-            'table': 0,
+            'dataset': 0,
             'dashboard': 0,
-            'database': 0,
+            'connection': 0,
         }
         if slice_today:
             count_today['slice'] = slice_today[-1]['count']
-        if table_today:
-            count_today['table'] = table_today[-1]['count']
+        if dataset_today:
+            count_today['dataset'] = dataset_today[-1]['count']
         if dashboard_today:
             count_today['dashboard'] = dashboard_today[-1]['count']
-        if database_today:
-            count_today['database'] = database_today[-1]['count']
-        return count_today['slice'], count_today['table'], count_today['dashboard'], count_today['database']
+        if connection_today:
+            count_today['connection'] = connection_today[-1]['count']
+        return count_today['slice'], count_today['dataset'], count_today['dashboard'], count_today['connection']
 
     def log_action(self, action_type, action, obj_type, obj_id):
         sesh = db.session()
@@ -82,7 +82,7 @@ class HomeTests(SupersetTestCase, PageMixin):
         sesh.add(log_c)
         sesh.commit()
 
-    def add_dashboard_database_slice_table(self):
+    def add_dashboard_connection_slice_dataset(self):
         # add dashboards
         self.view = DashboardModelView()
         new_slices = self.view.get_available_slices(self.user.id)[:2]
@@ -96,21 +96,21 @@ class HomeTests(SupersetTestCase, PageMixin):
         obj.online = True
         obj.created_by_fk = self.user.id
         db.session.commit()
-        log_number('slice', True, self.user.id)
+        log_number('dashboard', True, self.user.id)
 
 
         obj = db.session.query(Dashboard).all()
-        # add table
+        # add dataset
         self.view = DatasetModelView()
-        one_table = db.session.query(Dataset).first()
+        one_dataset = db.session.query(Dataset).first()
         json_data = {
-            'dataset_name': 'this is a for test' + str(datetime.now()),#one_table.dataset_name,
+            'dataset_name': 'this is a for test' + str(datetime.now()),#one_dataset.dataset_name,
             'dataset_type': 'inceptor',
             'table_name': 'dbs',
             'schema': None,
-            'database_id': one_table.database_id,
+            'database_id': one_dataset.database_id,
             'sql': None,
-            'description': 'this table is for test' + str(datetime.now()),
+            'description': 'this dataset is for test' + str(datetime.now()),
         }
         obj = self.view.populate_object(None, self.user.id, json_data)
         self.view.datamodel.add(obj)
@@ -122,23 +122,23 @@ class HomeTests(SupersetTestCase, PageMixin):
         log_number('dataset', True, self.user.id)
 
 
-        # add database
+        # add connection
         self.view = DatabaseView()
-        one_database = db.session.query(Database).first()
-        new_database = {
+        one_connection = db.session.query(Database).first()
+        new_connection = {
             'database_name': '1.198_copy_test_lc'+str(datetime.now()),
             'sqlalchemy_uri': 'mysql://root:120303@localhost/pilot_test?charset=utf8',
             'description': 'test the database',
             'args': "{'connect_args': {} }"
         }
-        obj = self.view.populate_object(None, self.user.id, new_database)
+        obj = self.view.populate_object(None, self.user.id, new_connection)
         self.view.datamodel.add(obj)
 
-        obj = db.session.query(Database).filter_by(database_name=new_database.get('database_name')).first()
+        obj = db.session.query(Database).filter_by(database_name=new_connection.get('database_name')).first()
         obj.online = True
         obj.created_by_fk = self.user.id
         db.session.commit()
-        log_number('database', True, self.user.id)
+        log_number('connection', True, self.user.id)
 
         #edit slice
         self.view = SliceModelView()
@@ -200,18 +200,19 @@ class HomeTests(SupersetTestCase, PageMixin):
 
     def test_alldata(self):
         # trends
+        self.add_dashboard_connection_slice_dataset()
         home_data = self.get_home_data()
-        slice_count, table_count, dashboard_count, database_count = self.parse_trends_data(home_data)
-        self.add_dashboard_database_slice_table()
+        slice_count, dataset_count, dashboard_count, connection_count = self.parse_trends_data(home_data)
+        self.add_dashboard_connection_slice_dataset()
         home_data = self.get_home_data()
-        slice_count_new, table_count_new, dashboard_count_new, database_count_new = self.parse_trends_data(home_data)
-        #assert (table_count+1) == table_count_new
-        #assert (dashboard_count+1) == dashboard_count_new
-        #assert (database_count+1) == database_count_new
+        slice_count_new, dataset_count_new, dashboard_count_new, connection_count_new = self.parse_trends_data(home_data)
+        assert (dataset_count+1) == dataset_count_new
+        assert (dashboard_count+1) == dashboard_count_new
+        assert (connection_count+1) == connection_count_new
+
 
         # edits
         assert time.strftime('%Y-%m-%d') in home_data.get('edits').get('slice')[0].get('time')
-        #assert time.strftime('%Y-%m-%d') in home_data.get('edits').get('dashboard')[0].get('time')
 
         response_attr = {
             'edits': ['time', 'name', 'action', 'link', 'description'],
@@ -233,55 +234,6 @@ class HomeTests(SupersetTestCase, PageMixin):
             for obj in home_data.get(title):
                 for attr in response_attr.get(title):
                     assert attr in obj
-
-    # def test_get_object_counts(self):
-    #     types = ['dashboard', 'slice', 'table', 'database']
-    #     response = self.home.get_object_counts(types, 0)
-    #     print(response)
-    #
-    # def test_log_number(self):
-    #     from superset.models import DailyNumber
-    #     DailyNumber.log_number('slice', 1)
-    #     # DailyNumber.log_number('dashboard', 1)
-    #     # DailyNumber.log_number('table', 1)
-    #     # DailyNumber.log_number('database', 1)
-    #
-    # def test_get_object_number_trend(self):
-    #     objs = ['slice', 'dashboard', 'table', 'database']
-    #     obj = objs[1]
-    #     response = self.home.get_object_number_trend(obj)
-    #     print('{}: {}'.format(obj, response))
-    #
-    # def test_get_object_number_trends(self):
-    #     objs = ['slice', 'dashboard', 'table', 'database']
-    #     response = self.home.get_object_number_trends(1, objs)
-    #     print(response)
-    #
-    # def test_get_fav_dashboards(self):
-    #     response = self.home.get_fav_dashboards(2, limit=10)
-    #     print(response)
-    #
-    # def test_get_fav_slices(self):
-    #     response = self.home.get_fav_slices(1, limit=10)
-    #     print(response)
-    #
-    # def test_get_refered_slices(self):
-    #     response = self.home.get_refered_slices(1, limit=5)
-    #     print(response)
-    #
-    # def test_get_slice_types(self):
-    #     response = self.home.get_slice_types()
-    #     print(response)
-    #
-    # def test_get_edited_objects(self):
-    #     types = ['dashboard', 'slice']
-    #     response = self.home.get_edited_objects(1, types, limit=5)
-    #     print(response)
-    #
-    # def test_get_user_actions(self):
-    #     types = ['release', 'downline']
-    #     response = self.home.get_user_actions(1, types=types, limit=10)
-    #     print(response)
 
 if __name__ == '__main__':
     unittest.main()

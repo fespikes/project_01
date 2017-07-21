@@ -69,7 +69,7 @@ class DatabaseCRUDTests(SupersetTestCase,PageMixin):
             .filter_by(database_name=new_database.get('database_name')) \
             .first()
         assert added_database is not None
-        new_database_id = new_database.id
+        new_database_id = added_database.id
 
         # edit
         new_database['database_name']='1.198_copy_test_lc_edited'+str(datetime.now())
