@@ -1313,7 +1313,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     @property
     def perm(self):
-        return "[{obj.database}].[{obj.table_name}](id:{obj.id})".format(obj=self)
+        return "[{obj.database}].[{obj.dataset_name}](id:{obj.id})".format(obj=self)
 
     @property
     def name(self):
@@ -1620,13 +1620,13 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             query=sql,
             error_message=error_message)
 
-    def drop_temp_view(self, engine, view_name):
-        drop_view = "DROP VIEW IF EXISTS {}".format(view_name)
+    def drop_temp_view(self, engine, view_name, schema='default'):
+        drop_view = "DROP VIEW IF EXISTS {}.{}".format(schema, view_name)
         engine.execute(drop_view)
 
-    def create_temp_view(self, engine, view_name, sql):
+    def create_temp_view(self, engine, view_name, sql, schema='default'):
         self.drop_temp_view(engine, view_name)
-        create_view = "CREATE VIEW {} AS {}".format(view_name, sql)
+        create_view = "CREATE VIEW {}.{} AS {}".format(schema, view_name, sql)
         engine.execute(create_view)
 
     def get_sqla_table_object(self):
@@ -1641,6 +1641,9 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 return table
             else:
                 return self.database.get_table(self.table_name, schema=self.schema)
+        except sqla.exc.DBAPIError as e:
+            logging.error("Drop or create temporary view by sql failed. " + str(e))
+            raise Exception("Drop or create temporary view by sql failed.")
         except Exception:
             raise Exception("Couldn't fetch table: [{}]'s information "
                             "in the specified database: [{}]"
