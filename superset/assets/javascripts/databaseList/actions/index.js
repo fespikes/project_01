@@ -17,6 +17,7 @@ export const actionTypes = {
     //for popup only
     setPopupTitle: 'SET_POPUP_TITLE',
     setPopupParam: 'SET_POPUP_PARAM',
+    clearPopupParams: 'CLEAR_POPUP_PARAMS',
     changePopupStatus: 'CHNAGE_POPUP_STATUS',
 
     receiveConnectionNames: 'RECEIVE_CONNECTION_NAMES',
@@ -45,7 +46,7 @@ const getParamDB = (database) => {
         db.database_name = database.database_name;
         db.sqlalchemy_uri = database.sqlalchemy_uri;
         db.description = database.description;
-        db.args = database.args;
+        db.args = database.databaseArgs;
     } else {
         db = {
             connection_name: database.connection_name,
@@ -188,19 +189,19 @@ export function applyAdd (callback) {
         let URL;
         const {
             datasetType,
+
             databaseName,
             sqlalchemyUri,
-
-            descriptionHDFS,
+            databaseArgs,
             descriptionInceptor,
 
             connectionName,
-            args,
             databaseId,
             httpfs,
+            descriptionHDFS,
         } = getState().popupParam;
 
-        let paramObj = {credentials: 'include', method: 'post',};
+        let paramObj = {credentials: 'include', method: 'post'};
         if (datasetType==='INCEPTOR') {
             URL = inceptorAddURL;
             paramObj= {
@@ -209,7 +210,7 @@ export function applyAdd (callback) {
                     'database_name': databaseName,
                     'sqlalchemy_uri': sqlalchemyUri,
                     'description': descriptionInceptor,
-                    'args': args
+                    'args': databaseArgs
                 })
             };
         } else {

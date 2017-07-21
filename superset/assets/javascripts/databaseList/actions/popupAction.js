@@ -18,6 +18,29 @@ export function setPopupParam (param) {
     };
 }
 
+export function clearPopupParams() {
+    return {
+        type: actionTypes.clearPopupParams,
+        params: {
+            popupContainer: 'popup',
+            title: '',
+            content: '',
+            deleteTips: '',
+            deleteType: '',
+            datasetType: '',
+            databaseName: '',
+            sqlalchemyUri: '',
+            databaseArgs: '',
+            descriptionInceptor: '',
+            descriptionHDFS: '',
+            connectionName: '',
+            databaseId: '',
+            httpfs: 'httpfs',
+            connectionNames: []
+        }
+    }
+}
+
 export function changePopupStatus (status) {
     return {
         type: actionTypes.changePopupStatus,
