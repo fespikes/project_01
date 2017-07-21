@@ -16,6 +16,17 @@ Edit.propTypes = {
 export default class EditList extends Component {
     constructor(props) {
         super();
+        this.translateOperation = this.translateOperation.bind(this);
+    }
+
+    translateOperation(type) {
+        if(type === 'edit') {
+            return '编辑';
+        }else if('create') {
+            return '创建';
+        }else {
+            return type;
+        }
     }
 
     render() {
@@ -36,7 +47,7 @@ export default class EditList extends Component {
             key: 'action',
             className: "action-column",
             sorter: (a, b) => a.action.localeCompare(b.action),
-            render: (text) => (<span>{text}</span>)
+            render: (text) => (<span>{this.translateOperation(text)}</span>)
         }, {
             title: '编辑时间',
             dataIndex: 'time',

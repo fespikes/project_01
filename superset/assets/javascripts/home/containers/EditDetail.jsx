@@ -123,6 +123,8 @@ const getEidtListData = createSelector(
             };
             if(obj.action === 'edit') {
                 item.action = '编辑';
+            }else if(obj.action === 'create') {
+                item.action = '创建';
             }
             result.push(item);
         });
