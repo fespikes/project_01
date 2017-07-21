@@ -5,13 +5,9 @@ import { Tooltip, Alert } from 'antd';
 import {Select} from './';
 import PropTypes from 'prop-types';
 
-const defaultParams = {
-    "connect_args": {
-        "framed": 0,
-        "hive": "Hive Server 2",
-        "mech": "LDAP"
-    }
-};
+import { getDatabaseDefaultParams } from '../../../utils/utils';
+
+const defaultParams = getDatabaseDefaultParams();
 
 class Popup extends React.Component {
     constructor (props, context) {

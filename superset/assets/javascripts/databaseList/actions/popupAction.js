@@ -101,7 +101,6 @@ export const testConnection = (callback) => {
     return (dispatch, getState) => {
         const URL = window.location.origin + '/pilot/testconn';
         const {
-            datasetType,
             databaseName,
             sqlalchemyUri
         } = getState().popupParam;

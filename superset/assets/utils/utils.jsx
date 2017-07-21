@@ -26,3 +26,14 @@ export function renderAlertTip(response, mountId) {
         ReactDOM.unmountComponentAtNode(document.getElementById(mountId));
     }, 5000);
 }
+
+export function getDatabaseDefaultParams() {
+    const defaultParams = {
+        "connect_args": {
+            "framed": 0,
+            "hive": "Hive Server 2",
+            "mech": "LDAP"
+        }
+    };
+    return defaultParams;
+}

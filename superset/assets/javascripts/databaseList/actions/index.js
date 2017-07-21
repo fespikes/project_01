@@ -108,11 +108,10 @@ export function clearRows () {
 export function testConnectionInEditConnectPopup(database, callback) {
     return (dispatch, getState) => {
         const URL = origin + '/pilot/testconn';
-        const db = getParamDB(database);
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',
-            body: JSON.stringify(db)
+            body: JSON.stringify(database)
         })
         .then(
             response => {

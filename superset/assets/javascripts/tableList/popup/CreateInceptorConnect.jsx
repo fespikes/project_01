@@ -4,6 +4,9 @@ import { render } from 'react-dom';
 import { fetchInceptorConnectAdd, testConnectionInEditConnectPopup } from '../../databaseList/actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
+import { getDatabaseDefaultParams } from '../../../utils/utils';
+
+const defaultParams = getDatabaseDefaultParams();
 
 class CreateInceptorConnect extends React.Component {
     constructor(props) {
@@ -77,8 +80,10 @@ class CreateInceptorConnect extends React.Component {
         const inceptorObj = {
             database_name: self.refs.connectionName.value,
             description: self.refs.connectionDes.value,
-            sqlalchemy_uri: self.refs.connectionUri.value
+            sqlalchemy_uri: self.refs.connectionUri.value,
+            args: self.refs.databaseArgs.value
         };
+
         dispatch(fetchInceptorConnectAdd(inceptorObj, callback));
         function callback(success, message) {
             if(success) {
@@ -165,6 +170,20 @@ class CreateInceptorConnect extends React.Component {
                                 <Tooltip title="structure your URL" placement="bottom">
                                     <i className="icon icon-info" style={{ position: 'absolute', top: '-32px', right: '-23px' }} />
                                 </Tooltip>
+                            </div>
+                            <div className="dialog-item">
+                                <div className="item-left">
+                                    <span>连接参数：</span>
+                                </div>
+                                <div className="item-right">
+                                    <textarea
+                                        className="dialog-area"
+                                        rows="5"
+                                        required="required"
+                                        ref="databaseArgs"
+                                        defaultValue={JSON.stringify(defaultParams, undefined, 4)}
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className="popup-footer">
