@@ -370,7 +370,6 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         if str(slice.created_by_fk) == str(g.user.get_id()):
             slice.online = True
             db.session.commit()
-            DailyNumber.log_number('slice', True, None)
 
 
 dashboard_slices = Table(
@@ -618,7 +617,6 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
         if str(dash.created_by_fk) == str(g.user.get_id()):
             dash.online = True
             db.session.commit()
-            DailyNumber.log_number('dashboard', True, None)
 
 
 class Queryable(object):
@@ -950,7 +948,6 @@ class Database(Model, AuditMixinNullable):
         if str(database.created_by_fk) == str(g.user.get_id()):
             database.online = True
             db.session.commit()
-            DailyNumber.log_number('connection', True, None)
 
     @classmethod
     def args_append_keytab(cls, connect_args):
@@ -1009,7 +1006,6 @@ class HDFSConnection(Model, AuditMixinNullable):
         if str(conn.created_by_fk) == str(g.user.get_id()):
             conn.online = True
             db.session.commit()
-            DailyNumber.log_number('connection', True, None)
 
 
 class Connection(object):
@@ -1855,7 +1851,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         if str(dataset.created_by_fk) == str(g.user.get_id()):
             dataset.online = True
             db.session.commit()
-            DailyNumber.log_number('dataset', True, None)
 
 
 class HDFSTable(Model, AuditMixinNullable):
@@ -2179,3 +2174,17 @@ class DailyNumber(Model):
                 cls.do_log(obj_type, user.id)
         else:
             cls.do_log(obj_type, user_id)
+
+    @classmethod
+    def log_related_number(cls, obj_type, all_user, user_id=None):
+        if obj_type == 'dashboard':
+            cls.log_number(obj_type, all_user, user_id)
+            obj_type = 'slice'
+        if obj_type == 'slice':
+            cls.log_number(obj_type, all_user, user_id)
+            obj_type = 'dataset'
+        if obj_type == 'dataset':
+            cls.log_number(obj_type, all_user, user_id)
+            obj_type = 'connection'
+        if obj_type == 'connection':
+            cls.log_number(obj_type, all_user, user_id)

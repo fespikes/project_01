@@ -49,7 +49,7 @@ config = app.config
 log_action = models.Log.log_action
 log_number = models.DailyNumber.log_number
 can_access = utils.can_access
-QueryStatus = models.QueryStatus
+QueryStatus = utils.QueryStatus
 
 
 def get_error_msg():
@@ -1688,13 +1688,16 @@ class Superset(BaseSupersetView):
             msg = '{}. Model:{} Id:{}'.format(OBJECT_NOT_FOUND, cls.__name__, id)
             logging.error(msg)
             return build_response(400, False, msg)
-        elif obj.created_by_fk != get_user_id():
-            return build_response(200, True, NO_ONLINE_PERMISSION)
-        elif action.lower() == 'online':
+        check_ownership(obj, raise_if_false=True)
+
+        if model in ['database', 'hdfsconnection']:
+            model = 'connection'
+        if action.lower() == 'online':
             if obj.online is True:
                 return build_response(200, True, OBJECT_IS_ONLINE)
             else:
                 cls.release(obj)  # release releated objects
+                DailyNumber.log_related_number(model, True)
                 action_str = 'Change {} and dependent objects to online: [{}]'\
                     .format(model, repr(obj))
                 log_action('online', action_str, model, id)
