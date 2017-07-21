@@ -90,7 +90,7 @@ class Tables extends React.Component {
             title: '名称',
             dataIndex: 'dashboard_title',
             key: 'dashboard_title',
-            width: '30%',
+            width: '35%',
             render: (text, record) => {
                 return (
                     <div className="entity-name">
@@ -118,8 +118,6 @@ class Tables extends React.Component {
                 )
             },
             sorter(a, b) {
-                console.log(a.online);
-                console.log(b.online);
                 return a.online - b.online;
             }
         }, {
@@ -139,14 +137,14 @@ class Tables extends React.Component {
             title: '最后修改时间',
             dataIndex: 'changed_on',
             key: 'changed_on',
-            width: '15%',
+            width: '20%',
             sorter(a, b) {
                 return a.changed_on - b.changed_on ? 1 : -1;
             }
         }, {
             title: '操作',
             key: 'action',
-            width: '20%',
+            width: '10%',
             render: (record) => {
                 return (
                     <div className="icon-group">
