@@ -115,8 +115,7 @@ class TableCRUDTests(SupersetTestCase, PageMixin):
         assert edited_table is not None
 
         # delete
-        obj = self.view.get_object(edited_table.id)
-        self.view.delete(edited_table.id)
+        self.view.datamodel.delete(edited_table)
         target_table = db.session.query(Dataset) \
             .filter_by(id=edited_table.id) \
             .first()

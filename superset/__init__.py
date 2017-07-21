@@ -47,6 +47,8 @@ cache = Cache(app, config=app.config.get('CACHE_CONFIG'))
 
 migrate = Migrate(app, db, directory=APP_DIR + "/migrations")
 
+logging.getLogger('flask_appbuilder').setLevel(logging.WARNING)
+
 # Logging configuration
 logging.basicConfig(format=app.config.get('LOG_FORMAT'))
 logging.getLogger().setLevel(app.config.get('LOG_LEVEL'))

@@ -740,20 +740,6 @@ class DatabaseView(SupersetModelView):  # noqa
         return response
 
 
-class DatabaseAsync(DatabaseView):
-    route_base = '/databaseasync'
-    list_columns = [
-        'id', 'database_name',
-        'expose_in_sqllab', 'allow_ctas', 'force_ctas_schema',
-        'allow_run_async', 'allow_run_sync', 'allow_dml',
-    ]
-
-
-class DatabaseTablesAsync(DatabaseView):
-    route_base = '/databasetablesasync'
-    list_columns = ['id', 'all_table_names', 'all_schema_names']
-
-
 class HDFSConnectionModelView(SupersetModelView):
     model = models.HDFSConnection
     datamodel = SQLAInterface(models.HDFSConnection)
@@ -1062,7 +1048,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         if not conn:
             raise Exception("Not found HDFS connection by id: [{}]".format(conn_id))
         args['httpfs'] = conn.httpfs
-        df = HDFSTable.parse_hdfs_file(**args)
+        df = self.parse_hdfs_file(**args)
         return json.dumps(dict(
             records=df.to_dict(orient="records"),
             columns=list(df.columns),)
@@ -1229,29 +1215,10 @@ class DatasetModelView(SupersetModelView):  # noqa
         return attributes
 
     def pre_add(self, table):
-        if table.table_name:
-            try:
-                table.get_sqla_table_object()
-            except Exception as e:
-                logging.exception(e)
-                raise Exception(
-                    "Table [{}] could not be found, please double check your "
-                    "database connection, schema, and table name".format(table.name))
-
-    @staticmethod
-    def merge_perm(table):  # Deprecated
-        security.merge_perm(sm, 'datasource_access', table.get_perm())
-        if table.schema:
-            security.merge_perm(sm, 'schema_access', table.schema_perm)
-        flash(_(
-            "The table was created. As part of this two phase configuration "
-            "process, you should now click the edit button by "
-            "the new table to configure it."),
-            "info")
+        table.get_sqla_table_object()
 
     def post_add(self, table):
         table.fetch_metadata()
-        # DatasetModelView.merge_perm(table)
         action_str = 'Add dataset: [{}]'.format(repr(table))
         log_action('add', action_str, 'dataset', table.id)
         log_number('dataset', table.online, get_user_id())
@@ -1267,9 +1234,12 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def pre_update(self, table):
         check_ownership(table)
+        self.pre_add(table)
+        TableColumnInlineView.datamodel.delete_all(table.ref_columns)
+        SqlMetricInlineView.datamodel.delete_all(table.ref_metrics)
 
     def post_update(self, table):
-        # DatasetModelView.merge_perm(table)
+        table.fetch_metadata()
         action_str = 'Edit dataset: [{}]'.format(repr(table))
         log_action('edit', action_str, 'dataset', table.id)
 
@@ -1280,6 +1250,27 @@ class DatasetModelView(SupersetModelView):  # noqa
         action_str = 'Delete dataset: [{}]'.format(repr(table))
         log_action('delete', action_str, 'dataset', table.id)
         log_number('dataset', table.online, get_user_id())
+
+    @classmethod
+    def parse_hdfs_file(cls, **kwargs):
+        file = HDFSTable.cached_file.get(kwargs.get('path'))
+        if not file:
+            file = cls.get_file(**kwargs)
+            HDFSTable.cached_file[kwargs.get('path')] = file
+        return HDFSTable.parse_file(file, **kwargs)
+
+    @classmethod
+    def get_file(cls, **kwargs):
+        session = requests.Session()
+        server = kwargs.get('server')
+        HDFSBrowser.login_action(session, server, kwargs.get('username'),
+                                kwargs.get('password'), kwargs.get('httpfs'))
+        resp = session.get("http://{}/filebrowser?action=preview&path={}" \
+                           .format(server, kwargs.get('path')))
+        if resp.status_code != requests.codes.ok:
+            resp.raise_for_status()
+        text = resp.text[1:-1]
+        return "\n".join(text.split("\\n"))
 
 
 class HDFSTableModelView(SupersetModelView):
@@ -1446,22 +1437,6 @@ class SliceModelView(SupersetModelView):  # noqa
         response['only_favorite'] = only_favorite
         response['data'] = data
         return response
-
-
-class SliceAsync(SliceModelView):  # noqa
-    route_base = '/sliceasync'
-    list_columns = ['slice_link', 'viz_type', 'modified', 'icons']
-    label_columns = {
-        'icons': ' ',
-        'slice_link': _('Slice'),
-    }
-
-
-class SliceAddView(SliceModelView):  # noqa
-    route_base = '/sliceaddview'
-    list_columns = [
-        'id', 'slice_name', 'slice_link', 'viz_type',
-        'owners', 'modified', 'changed_on']
 
 
 class DashboardModelView(SupersetModelView):  # noqa
@@ -1662,25 +1637,10 @@ class DashboardModelView(SupersetModelView):  # noqa
         return True
 
 
-class DashboardModelViewAsync(DashboardModelView):  # noqa
-    route_base = '/dashboardmodelviewasync'
-    list_columns = ['dashboard_link', 'creator', 'modified', 'dashboard_title']
-
-
 class QueryView(SupersetModelView):
     route_base = '/queryview'
     datamodel = SQLAInterface(models.Query)
     list_columns = ['user', 'database', 'status', 'start_time', 'end_time']
-
-
-@app.route('/health/')
-def health():
-    return "OK"
-
-
-@app.route('/ping/')
-def ping():
-    return "OK"
 
 
 class Superset(BaseSupersetView):
@@ -2205,8 +2165,8 @@ class Superset(BaseSupersetView):
                     # the password-masked uri was passed
                     # use the URI associated with this database
                     uri = database.sqlalchemy_uri_decrypted
-            connect_args = (
-                args.get('args', {}).get('connect_args', {}))
+            connect_args = eval(args.get('args', {})).get('connect_args', {})
+            connect_args = Database.args_append_keytab(connect_args)
             engine = create_engine(uri, connect_args=connect_args)
             engine.connect()
             return json.dumps(engine.table_names(), indent=4)
@@ -2363,54 +2323,6 @@ class Superset(BaseSupersetView):
             mimetype="application/json")
 
     @catch_exception
-    @expose("/warm_up_cache/", methods=['GET'])
-    def warm_up_cache(self):
-        """Warms up the cache for the slice or table."""
-        slices = None
-        session = db.session()
-        slice_id = request.args.get('slice_id')
-        table_name = request.args.get('table_name')
-        db_name = request.args.get('db_name')
-
-        if not slice_id and not (table_name and db_name):
-            return json_error_response(__(
-                "Malformed request. slice_id or table_name and db_name "
-                "arguments are expected"), status=400)
-        if slice_id:
-            slices = session.query(models.Slice).filter_by(id=slice_id).all()
-            if not slices:
-                return json_error_response(__(
-                    "Slice %(id)s not found", id=slice_id), status=404)
-        elif table_name and db_name:
-            table = (
-                session.query(models.Dataset)
-                .join(models.Database)
-                .filter(
-                    models.Database.database_name == db_name or
-                    models.Dataset.table_name == table_name)
-            ).first()
-            if not table:
-                return json_error_response(__(
-                    "Table %(t)s wasn't found in the database %(d)s",
-                    t=table_name, s=db_name), status=404)
-            slices = session.query(models.Slice).filter_by(
-                datasource_id=table.id,
-                datasource_type=table.type).all()
-
-        for slice in slices:
-            try:
-                obj = slice.get_viz()
-                obj.get_json(force=True)
-            except Exception as e:
-                return json_error_response(utils.error_msg_from_exception(e))
-        return Response(
-            json.dumps(
-                [{"slice_id": session.id, "slice_name": session.slice_name}
-                 for session in slices]),
-            status=200,
-            mimetype="application/json")
-
-    @catch_exception
     @expose("/favstar/<class_name>/<obj_id>/<action>/")
     def favstar(self, class_name, obj_id, action):
         """Toggle favorite stars on Slices and Dashboard"""
@@ -2477,26 +2389,14 @@ class Superset(BaseSupersetView):
             qry = qry.filter_by(id=int(dashboard_id))
         else:
             qry = qry.filter_by(slug=dashboard_id)
-
         dash = qry.one()
-        datasources = {slc.datasource for slc in dash.slices}
-        for datasource in datasources:
-            if not self.datasource_access(datasource):
-                flash(
-                    __(get_datasource_access_error_msg(datasource.name)),
-                    "danger")
-                return redirect(
-                    'pilot/request_access/?'
-                    'dashboard_id={dash.id}&'
-                    ''.format(**locals()))
 
         # Hack to log the dashboard_id properly, even when getting a slug
         def dashboard(**kwargs):  # noqa
             pass
         dashboard(dashboard_id=dash.id)
-        dash_edit_perm = check_ownership(dash, raise_if_false=False)
-        dash_save_perm = \
-            dash_edit_perm and self.can_access('can_save_dash', 'Superset')
+        dash_edit_perm = True
+        dash_save_perm = dash_edit_perm
         standalone = request.args.get("standalone") == "true"
         context = dict(
             user_id=g.user.get_id(),
@@ -3577,13 +3477,19 @@ class HDFSBrowser(BaseSupersetView):
             cookie = self.login_action(requests.Session(), server, g.user.username,
                              AuthDBView.mock_user.get(g.user.username), conn.httpfs)
             logging.info('Login hdfs-micro-service succeed.')
-            return json.dumps({'cookie': cookie})
+            # return json.dumps({'cookie': cookie})
+            from flask import make_response
+            response = make_response('OK')
+            response.set_cookie('session', cookie.get('session'), domain='172.16.130.60')
+            return response
         except Exception as e:
             logging.error(e)
             flash('Login hdfs-micro-service failed.')
 
     @classmethod
     def login_action(cls, req, server, username, password, httpfs):
+        server = '172.16.201.240:5000'
+        httpfs = '172.16.130.60'
         data = {"username": username,
                 "password": password,
                 "httpfshost": httpfs}
@@ -3593,27 +3499,26 @@ class HDFSBrowser(BaseSupersetView):
         return requests.utils.dict_from_cookiejar(resp.cookies)
 
 
-appbuilder.add_view_no_menu(DatabaseAsync)
-appbuilder.add_view_no_menu(DatabaseTablesAsync)
+@app.route('/health/')
+def health():
+    return "OK"
+
+
 appbuilder.add_view_no_menu(ConnectionView)
 appbuilder.add_view_no_menu(HDFSConnectionModelView)
 appbuilder.add_view_no_menu(HDFSTableModelView)
 appbuilder.add_view_no_menu(TableColumnInlineView)
 appbuilder.add_view_no_menu(SqlMetricInlineView)
-appbuilder.add_view_no_menu(SliceAsync)
-appbuilder.add_view_no_menu(SliceAddView)
-appbuilder.add_view_no_menu(DashboardModelViewAsync)
 appbuilder.add_view_no_menu(Superset)
 appbuilder.add_view_no_menu(HDFSBrowser)
 
 appbuilder.add_view(
     Home,
     "Home",
-    label='home',
+    label=__("Home"),
     category='',
     category_label='',
     icon="fa-list-ol")
-
 appbuilder.add_view(
     DashboardModelView,
     "Dashboards",
@@ -3621,7 +3526,6 @@ appbuilder.add_view(
     icon="fa-dashboard",
     category='',
     category_icon='',)
-
 appbuilder.add_view(
     SliceModelView,
     "Slices",
@@ -3629,7 +3533,6 @@ appbuilder.add_view(
     icon="fa-bar-chart",
     category="",
     category_icon='',)
-
 appbuilder.add_view(
     DatabaseView,
     "Databases",
@@ -3638,7 +3541,6 @@ appbuilder.add_view(
     category="Sources",
     category_label=__("Sources"),
     category_icon='fa-database',)
-
 appbuilder.add_view(
     DatasetModelView,
     "Dataset",
@@ -3646,23 +3548,24 @@ appbuilder.add_view(
     category="Sources",
     category_label=__("Sources"),
     icon='fa-table',)
-
 appbuilder.add_link(
     'SQL Editor',
     href='/pilot/sqllab',
     category_icon="fa-flask",
     icon="fa-flask",
-    category='SQL Lab')
+    category='SQL Lab',
+    category_label=__("SQL Lab"),)
 appbuilder.add_link(
     'Query Search',
     href='/pilot/sqllab#search',
     icon="fa-search",
     category_icon="fa-flask",
-    category='SQL Lab')
+    category='SQL Lab',
+    category_label=__("SQL Lab"),)
 appbuilder.add_link(
     'HDFS Browser',
     href='/hdfs/list',
-    label="HDFS Browser",
+    label=__("HDFS Browser"),
     icon="fa-flask",
     category='',
     category_icon='')

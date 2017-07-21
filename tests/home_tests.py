@@ -96,7 +96,8 @@ class HomeTests(SupersetTestCase, PageMixin):
         obj.online = True
         obj.created_by_fk = self.user.id
         db.session.commit()
-        DailyNumber.log_number('dashboard', self.user.id)
+        log_number('slice', True, self.user.id)
+
 
         obj = db.session.query(Dashboard).all()
         # add table
@@ -118,15 +119,17 @@ class HomeTests(SupersetTestCase, PageMixin):
         obj.online = True
         obj.created_by_fk = self.user.id
         db.session.commit()
-        DailyNumber.log_number('dataset', self.user.id)
+        log_number('dataset', True, self.user.id)
+
 
         # add database
         self.view = DatabaseView()
         one_database = db.session.query(Database).first()
         new_database = {
             'database_name': '1.198_copy_test_lc'+str(datetime.now()),
-            'sqlalchemy_uri': one_database.sqlalchemy_uri,
+            'sqlalchemy_uri': 'mysql://root:120303@localhost/pilot_test?charset=utf8',
             'description': 'test the database',
+            'args': "{'connect_args': {} }"
         }
         obj = self.view.populate_object(None, self.user.id, new_database)
         self.view.datamodel.add(obj)
@@ -135,7 +138,7 @@ class HomeTests(SupersetTestCase, PageMixin):
         obj.online = True
         obj.created_by_fk = self.user.id
         db.session.commit()
-        DailyNumber.log_number('database', self.user.id)
+        log_number('database', True, self.user.id)
 
         #edit slice
         self.view = SliceModelView()

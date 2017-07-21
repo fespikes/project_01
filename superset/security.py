@@ -10,7 +10,6 @@ from superset import conf, db, models, sm, source_registry
 
 
 READ_ONLY_MODELVIEWS = {
-    'DatabaseAsync',
     'DatabaseView',
 }
 

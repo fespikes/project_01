@@ -66,6 +66,9 @@ from superset.utils import wrap_clause_in_parens, DTTM_ALIAS, QueryStatus
 config = app.config
 
 
+FillterPattern = re.compile(r'''((?:[^,"']|"[^"]*"|'[^']*')+)''')
+
+
 class QueryResult(object):
 
     """Object returned by the query interface"""
@@ -82,26 +85,6 @@ class QueryResult(object):
         self.duration = duration
         self.status = status
         self.error_message = error_message
-
-
-FillterPattern = re.compile(r'''((?:[^,"']|"[^"]*"|'[^']*')+)''')
-
-
-def set_perm(mapper, connection, target):  # noqa
-    if target.perm != target.get_perm():
-        link_table = target.__table__
-        connection.execute(
-            link_table.update()
-            .where(link_table.c.id == target.id)
-            .values(perm=target.get_perm())
-        )
-
-
-def set_related_perm(mapper, connection, target):  # noqa
-    src_class = target.cls_model
-    id_ = target.datasource_id
-    ds = db.session.query(src_class).filter_by(id=int(id_)).first()
-    target.perm = ds.perm
 
 
 class ImportMixin(object):
@@ -197,9 +180,7 @@ slice_user = Table('slice_user', Model.metadata,
 
 
 class Slice(Model, AuditMixinNullable, ImportMixin):
-
     """A slice is essentially a report or a view on data"""
-
     __tablename__ = 'slices'
     id = Column(Integer, primary_key=True)
     slice_name = Column(String(250))
@@ -214,7 +195,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     description = Column(Text)
     department = Column(Text)
     cache_timeout = Column(Integer)
-    perm = Column(String(1000))
+    # perm = Column(String(1000))
     owners = relationship("User", secondary=slice_user)
 
     export_fields = ('slice_name', 'datasource_type', 'datasource_name',
@@ -224,8 +205,12 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         return self.slice_name
 
     @property
-    def cls_model(self):
-        return SourceRegistry.sources[self.datasource_type]
+    def perm(self):
+        return self.slice_name
+
+    # @property
+    # def cls_model(self):
+    #     return SourceRegistry.sources[self.datasource_type]
 
     @property
     def datasource(self):
@@ -234,9 +219,8 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     @datasource.getter
     @utils.memoized
     def get_datasource(self):
-        ds = db.session.query(
-            self.cls_model).filter_by(
-            id=self.datasource_id).first()
+        ds = db.session.query(Dataset)\
+            .filter_by(id=self.datasource_id).first()
         return ds
 
     @renders('datasource_name')
@@ -389,10 +373,6 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
             DailyNumber.log_number('slice', True, None)
 
 
-sqla.event.listen(Slice, 'before_insert', set_related_perm)
-sqla.event.listen(Slice, 'before_update', set_related_perm)
-
-
 dashboard_slices = Table(
     'dashboard_slices', Model.metadata,
     Column('id', Integer, primary_key=True),
@@ -434,8 +414,11 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
     @property
     def table_names(self):
-        return ", ".join(
-            {"{}".format(s.datasource.name) for s in self.slices})
+        tables = []
+        for s in self.slices:
+            if s.datasource:
+                tables.append(s.datasource.name)
+        return ", ".join(set(tables))
 
     @property
     def url(self):
@@ -725,13 +708,9 @@ class Database(Model, AuditMixinNullable):
     force_ctas_schema = Column(String(250))
     args = Column(Text, default=textwrap.dedent("""\
     {
-        "connect_args": 
-            {"framed": 0,
-            "hive": "Hive Server 2",
-            "mech": "LADP"}
+        "connect_args": {}
     }
     """))
-    perm = Column(String(1000))
 
     def __repr__(self):
         return self.database_name
@@ -744,6 +723,10 @@ class Database(Model, AuditMixinNullable):
     def backend(self):
         url = make_url(self.sqlalchemy_uri_decrypted)
         return url.get_backend_name()
+
+    @property
+    def perm(self):
+        return "[{obj.database_name}].(id:{obj.id})".format(obj=self)
 
     def set_sqlalchemy_uri(self, uri):
         if 'mech=kerberos' in uri.lower():
@@ -962,10 +945,6 @@ class Database(Model, AuditMixinNullable):
     def sql_url(self):
         return '/pilot/sql/{}/'.format(self.id)
 
-    def get_perm(self):
-        return (
-            "[{obj.database_name}].(id:{obj.id})").format(obj=self)
-
     @classmethod
     def release(cls, database):
         if str(database.created_by_fk) == str(g.user.get_id()):
@@ -999,10 +978,6 @@ class Database(Model, AuditMixinNullable):
         file.write(keytab)
         file.close()
         return path
-
-
-sqla.event.listen(Database, 'after_insert', set_perm)
-sqla.event.listen(Database, 'after_update', set_perm)
 
 
 class HDFSConnection(Model, AuditMixinNullable):
@@ -1277,7 +1252,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     filter_select_enabled = Column(Boolean, default=False)
     main_dttm_col = Column(String(250))
     params = Column(Text)
-    perm = Column(String(1000))
     offset = Column(Integer, default=0)
     default_endpoint = Column(Text)
     is_featured = Column(Boolean, default=False)
@@ -1293,12 +1267,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         'database_id', 'is_featured', 'offset', 'cache_timeout', 'schema',
         'sql', 'params')
 
-    # __table_args__ = (
-    #     sqla.UniqueConstraint(
-    #         'database_id', 'schema', 'table_name',
-    #         name='_customer_location_uc'),)
-
-    # three wayS to create dateset, but two kinds of dataset_type: INCEPTOR and HDFS
     dataset_type_dict = {
         'inceptor': 'INCEPTOR',
         'hdfs': 'HDFS',
@@ -1343,10 +1311,9 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         """Returns schema permission if present, database one otherwise."""
         return utils.get_schema_perm(self.database, self.schema)
 
-    def get_perm(self):
-        return (
-            "[{obj.database}].[{obj.table_name}]"
-            "(id:{obj.id})").format(obj=self)
+    @property
+    def perm(self):
+        return "[{obj.database}].[{obj.dataset_name}](id:{obj.id})".format(obj=self)
 
     @property
     def name(self):
@@ -1653,13 +1620,13 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             query=sql,
             error_message=error_message)
 
-    def drop_temp_view(self, engine, view_name):
-        drop_view = "DROP VIEW IF EXISTS {}".format(view_name)
+    def drop_temp_view(self, engine, view_name, schema='default'):
+        drop_view = "DROP VIEW IF EXISTS {}.{}".format(schema, view_name)
         engine.execute(drop_view)
 
-    def create_temp_view(self, engine, view_name, sql):
+    def create_temp_view(self, engine, view_name, sql, schema='default'):
         self.drop_temp_view(engine, view_name)
-        create_view = "CREATE VIEW {} AS {}".format(view_name, sql)
+        create_view = "CREATE VIEW {}.{} AS {}".format(schema, view_name, sql)
         engine.execute(create_view)
 
     def get_sqla_table_object(self):
@@ -1674,6 +1641,9 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 return table
             else:
                 return self.database.get_table(self.table_name, schema=self.schema)
+        except sqla.exc.DBAPIError as e:
+            logging.error("Drop or create temporary view by sql failed. " + str(e))
+            raise Exception("Drop or create temporary view by sql failed.")
         except Exception:
             raise Exception("Couldn't fetch table: [{}]'s information "
                             "in the specified database: [{}]"
@@ -1887,9 +1857,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             db.session.commit()
             DailyNumber.log_number('dataset', True, None)
 
-sqla.event.listen(Dataset, 'after_insert', set_perm)
-sqla.event.listen(Dataset, 'after_update', set_perm)
-
 
 class HDFSTable(Model, AuditMixinNullable):
     __tablename__ = "hdfs_table"
@@ -1939,27 +1906,6 @@ class HDFSTable(Model, AuditMixinNullable):
         engine = database.get_sqla_engine()
         engine.execute("drop table if exists " + table_name)
         engine.execute(sql)
-
-    @classmethod
-    def parse_hdfs_file(cls, **kwargs):
-        file = cls.cached_file.get(kwargs.get('path'))
-        if not file:
-            file = cls.get_file(**kwargs)
-            cls.cached_file[kwargs.get('path')] = file
-        return cls.parse_file(file, **kwargs)
-
-    @classmethod
-    def get_file(cls, **kwargs):
-        session = requests.Session()
-        server = kwargs.get('server')
-        cls.login_micro_service(session, server, kwargs.get('username'),
-                                kwargs.get('password'), kwargs.get('httpfs'))
-        resp = session.get("http://{}/filebrowser?action=preview&path={}"\
-                           .format(server, kwargs.get('path')))
-        if resp.status_code != requests.codes.ok:
-            resp.raise_for_status()
-        text = resp.text[1:-1]
-        return "\n".join(text.split("\\n"))
 
     @classmethod
     def parse_file(cls, file_content, **kwargs):
