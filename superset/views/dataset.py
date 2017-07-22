@@ -85,13 +85,12 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     model = SqlMetric
     datamodel = SQLAInterface(SqlMetric)
     route_base = '/sqlmetric'
-    list_columns = ['id', 'metric_name', 'description',
-                    'metric_type', 'expression']
+    list_columns = [
+        'id', 'metric_name', 'description', 'metric_type', 'expression']
     _list_columns = list_columns
-
     show_columns = list_columns + ['dataset_id', 'dataset']
-    edit_columns = ['metric_name', 'description', 'metric_type',
-                    'expression', 'dataset_id']
+    edit_columns = [
+        'metric_name', 'description', 'metric_type', 'expression', 'dataset_id']
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
     description_columns = {}
@@ -208,8 +207,8 @@ class DatasetModelView(SupersetModelView):  # noqa
         if dataset_id:
             return self.get_object(dataset_id).preview_data(limit=rows)
         else:
-            dataset = Superset.temp_table(database_id, full_tb_name,
-                                          need_columns=False)
+            dataset = Dataset.temp_table(database_id, full_tb_name,
+                                         need_columns=False)
             return dataset.preview_data(limit=rows)
 
     @catch_exception

@@ -407,23 +407,6 @@ class DashboardModelView(SupersetModelView):  # noqa
 class Superset(BaseSupersetView):
     route_base = '/pilot'
 
-    @staticmethod
-    def temp_table(database_id, full_tb_name, need_columns=True):
-        """A temp table for slice"""
-        table = Dataset()
-        table.id = 0
-        if '.' in full_tb_name:
-            table.schema, table.table_name = full_tb_name.split('.')
-        else:
-            table.table_name = full_tb_name
-        table.database_id = database_id
-        table.database = db.session.query(Database) \
-            .filter_by(id=database_id).first()
-        table.filter_select_enabled = True
-        if need_columns:
-            table.set_temp_columns_and_metrics()
-        return table
-
     def get_viz(self, slice_id=None, args=None,
                 datasource_type=None, datasource_id=None,
                 database_id=None, full_tb_name=None):
@@ -433,7 +416,7 @@ class Superset(BaseSupersetView):
         else:
             viz_type = args.get('viz_type', 'table')
             if database_id and full_tb_name:
-                datasource = self.temp_table(database_id, full_tb_name)
+                datasource = Dataset.temp_table(database_id, full_tb_name)
             else:
                 datasource = SourceRegistry.get_datasource(
                     datasource_type, datasource_id, db.session)
@@ -506,13 +489,6 @@ class Superset(BaseSupersetView):
             logging.exception(e)
             return json_error_response(utils.error_msg_from_exception(e))
 
-        # if not self.datasource_access(viz_obj.datasource):
-        #     return Response(
-        #         json.dumps(
-        #             {'error': DATASOURCE_ACCESS_ERR}),
-        #         status=404,
-        #         mimetype="application/json")
-
         payload = {}
         status = 200
         try:
@@ -547,15 +523,15 @@ class Superset(BaseSupersetView):
 
         datasources = db.session.query(Dataset) \
             .filter(
-            or_(Dataset.created_by_fk == user_id,
-                Dataset.online == 1)
-        ).all()
+                or_(Dataset.created_by_fk == user_id,
+                    Dataset.online == 1)
+            ).all()
         datasources = sorted(datasources, key=lambda ds: ds.full_name)
         databases = db.session.query(Database) \
             .filter(
-            or_(Database.created_by_fk == user_id,
-                Database.online == 1)
-        ).all()
+                or_(Database.created_by_fk == user_id,
+                    Database.online == 1)
+            ).all()
         databases = sorted(databases, key=lambda d: d.name)
         try:
             viz_obj = self.get_viz(
@@ -802,11 +778,7 @@ class Superset(BaseSupersetView):
     @expose("/all_tables/<db_id>/")
     def all_tables(self, db_id):
         """Endpoint that returns all tables and views from the database"""
-        database = (
-            db.session.query(Database)
-                .filter_by(id=db_id)
-                .one()
-        )
+        database = db.session.query(Database).filter_by(id=db_id).one()
         all_tables = []
         all_views = []
         schemas = database.all_schema_names()
@@ -826,11 +798,7 @@ class Superset(BaseSupersetView):
     def tables(self, db_id, schema):
         """endpoint to power the calendar heatmap on the welcome page"""
         schema = None if schema in ('null', 'undefined') else schema
-        database = (
-            db.session.query(Database)
-                .filter_by(id=db_id)
-                .one()
-        )
+        database = db.session.query(Database).filter_by(id=db_id).one()
         tables = [t for t in database.all_table_names(schema) if
                   self.datasource_access_by_name(database, t, schema=schema)]
         views = [v for v in database.all_table_names(schema) if
@@ -899,7 +867,6 @@ class Superset(BaseSupersetView):
         """Add and save slices to a dashboard"""
         data = json.loads(request.form.get('data'))
         session = db.session()
-        Slice = Slice  # noqa
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
         # check_ownership(dash, raise_if_false=True)
         new_slices = session.query(Slice).filter(
@@ -936,8 +903,8 @@ class Superset(BaseSupersetView):
             return json.dumps(engine.table_names(), indent=4)
         except Exception as e:
             return Response((
-                                "Connection failed!\n\n"
-                                "The error message returned was:\n{}").format(e),
+                            "Connection failed!\n\n"
+                            "The error message returned was:\n{}").format(e),
                             status=500,
                             mimetype="application/json")
 
@@ -948,14 +915,14 @@ class Superset(BaseSupersetView):
         M = models  # noqa
         qry = (
             db.session.query(M.Log, M.Dashboard, M.Slice)
-                .outerjoin(M.Dashboard, M.Dashboard.id == M.Log.dashboard_id)
-                .outerjoin(M.Slice, M.Slice.id == M.Log.slice_id)
-                .filter(
+            .outerjoin(M.Dashboard, M.Dashboard.id == M.Log.dashboard_id)
+            .outerjoin(M.Slice, M.Slice.id == M.Log.slice_id)
+            .filter(
                 sqla.and_(
                     ~M.Log.action.in_(('queries', 'shortner', 'sql_json')),
                     M.Log.user_id == user_id))
-                .order_by(M.Log.dttm.desc())
-                .limit(1000)
+            .order_by(M.Log.dttm.desc())
+            .limit(1000)
         )
         payload = []
         for log in qry.all():
@@ -983,12 +950,12 @@ class Superset(BaseSupersetView):
     def fave_dashboards(self, user_id):
         qry = (
             db.session.query(Dashboard, FavStar.dttm)
-                .join(FavStar,
-                      sqla.and_(
-                          FavStar.user_id == int(user_id),
-                          FavStar.class_name == 'Dashboard',
-                          Dashboard.id == FavStar.obj_id))
-                .order_by(FavStar.dttm.desc())
+            .join(FavStar,
+                  sqla.and_(
+                      FavStar.user_id == int(user_id),
+                      FavStar.class_name == 'Dashboard',
+                      Dashboard.id == FavStar.obj_id))
+            .order_by(FavStar.dttm.desc())
         )
         payload = []
         for o in qry.all():
@@ -1015,11 +982,11 @@ class Superset(BaseSupersetView):
         Dash = Dashboard  # noqa
         qry = (
             db.session.query(Dash)
-                .filter(
+            .filter(
                 sqla.or_(
                     Dash.created_by_fk == user_id,
                     Dash.changed_by_fk == user_id,))
-                .order_by(Dash.changed_on.desc())
+            .order_by(Dash.changed_on.desc())
         )
         payload = [{
             'id': o.id,
@@ -1093,14 +1060,14 @@ class Superset(BaseSupersetView):
         count = 0
         favs = (
             session.query(FavStar)
-                .filter_by(class_name=class_name, obj_id=obj_id, user_id=g.user.get_id())
-                .all()
+            .filter_by(class_name=class_name, obj_id=obj_id, user_id=g.user.get_id())
+            .all()
         )
         # get obj name to make log readable
         obj = (
             session.query(str_to_model[class_name.lower()])
-                .filter_by(id=obj_id)
-                .one()
+            .filter_by(id=obj_id)
+            .one()
         )
 
         if action == 'select':
@@ -1477,8 +1444,8 @@ class Superset(BaseSupersetView):
         """Download the query results as csv."""
         query = (
             db.session.query(Query)
-                .filter_by(client_id=client_id)
-                .one()
+            .filter_by(client_id=client_id)
+            .one()
         )
 
         if not self.database_access(query.database):
@@ -1501,8 +1468,8 @@ class Superset(BaseSupersetView):
         datasource_class = SourceRegistry.sources[datasource_type]
         datasource = (
             db.session.query(datasource_class)
-                .filter_by(id=request.args.get('datasource_id'))
-                .first()
+            .filter_by(id=request.args.get('datasource_id'))
+            .first()
         )
 
         # Check if datasource exists
@@ -1536,11 +1503,11 @@ class Superset(BaseSupersetView):
 
         sql_queries = (
             db.session.query(Query)
-                .filter(
+            .filter(
                 Query.user_id == g.user.get_id(),
                 Query.changed_on >= last_updated_dt,
                 )
-                .all()
+            .all()
         )
         dict_queries = {q.client_id: q.to_dict() for q in sql_queries}
         return Response(
@@ -1587,8 +1554,8 @@ class Superset(BaseSupersetView):
         query_limit = config.get('QUERY_SEARCH_LIMIT', 1000)
         sql_queries = (
             query.order_by(Query.start_time.asc())
-                .limit(query_limit)
-                .all()
+            .limit(query_limit)
+            .all()
         )
 
         dict_queries = [q.to_dict() for q in sql_queries]

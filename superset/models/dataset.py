@@ -630,6 +630,23 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                             "in the specified database: [{}]"
                             .format(self.table_name, self.schema))
 
+    @classmethod
+    def temp_table(cls, database_id, full_tb_name, need_columns=True):
+        """A temp table for slice"""
+        table = cls()
+        table.id = 0
+        if '.' in full_tb_name:
+            table.schema, table.table_name = full_tb_name.split('.')
+        else:
+            table.table_name = full_tb_name
+        table.database_id = database_id
+        table.database = db.session.query(Database) \
+            .filter_by(id=database_id).first()
+        table.filter_select_enabled = True
+        if need_columns:
+            table.set_temp_columns_and_metrics()
+        return table
+
     def set_temp_columns_and_metrics(self):
         """Get table's columns and metrics"""
         table = self.get_sqla_table_object()
