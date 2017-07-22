@@ -20,7 +20,7 @@ class ConnectionNameSelect extends React.Component {
 
     render () {
 
-        const {options, showText, width} = this.props;
+        const {options, showText, width, value} = this.props;
 
         const children = options.map((obj, key) =>
             <Option key={obj.id}>{obj.label}</Option>
@@ -29,8 +29,7 @@ class ConnectionNameSelect extends React.Component {
         return (
             <div>
                 <Select
-                    labelInValue
-                    defaultValue={{ key: 'select database name' }}
+                    defaultValue={value || 'select database name'}
                     style={{width: width}}
                     onSelect={this.handleSelect}
                 >

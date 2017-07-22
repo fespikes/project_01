@@ -35,6 +35,7 @@ export default function QueryAndSaveBtns({ canAdd, onQuery, onSave, disabled, er
           <i className="fa fa-bolt" /> Query
         </Button>
         <Button
+          id="save_button"
           className={saveClasses}
           data-target="#save_modal"
           data-toggle="modal"

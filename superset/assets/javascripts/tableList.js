@@ -23,6 +23,8 @@ const $ = window.$ = require('jquery');
 const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
 require('bootstrap');
 
+$('.nav > li:nth-child(4)').addClass('active');
+
 render(
     <Provider store={store}>
         <HashRouter>

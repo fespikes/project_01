@@ -28,6 +28,7 @@ class SubDetail extends Component {
             datasetId = getDatasetId("edit", window.location.hash);
             saveDatasetId(datasetId);
         }else if(opeType === 'add') {
+            saveDatasetId('');
             clearDatasetData();
         }
     }
