@@ -16,6 +16,7 @@ class QueryView(SupersetModelView):
     list_columns = ['user', 'database', 'status', 'start_time', 'end_time']
 
 
+appbuilder.add_view_no_menu(QueryView)
 appbuilder.add_link(
     'SQL Editor',
     href='/pilot/sqllab',
