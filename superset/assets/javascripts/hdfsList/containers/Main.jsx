@@ -27,11 +27,7 @@ class Main extends Component {
     }
 
     componentDidMount() {
-        const {condition, fetchConnections } = this.props;
-        const callback = argu => {
-            console.log(argu, 'in fetchConnections-callback');
-        }
-        fetchConnections(condition, callback);
+        // const {condition } = this.props;
     }
 
     componentWillReceiveProps (nextProps) {
@@ -53,7 +49,6 @@ class Main extends Component {
     }
 
     render () {
-
         const {
             popupActions,
 
@@ -86,15 +81,6 @@ class Main extends Component {
 
         return (
             <div className="hdfs-panel">
-                <div className="popupContainer">
-                    <PopupConnections
-                        response={connectionResponse}
-                        {...popupParam}
-                        {...popupActions}
-                        submit={fetchIfNeeded}
-                        popupChangeStatus={popupChangeStatus}
-                    />
-                </div>
                 <div className="panel-top">
                     <div className="left">
                         <span className="f14">路径</span>
@@ -164,7 +150,6 @@ function mapStateToProps (state, pros) {
 
 function mapDispatchToProps (dispatch) {
     const {
-        fetchConnections,
         setPopupParam,
         fetchIfNeeded,
         popupChangeStatus,
@@ -173,7 +158,6 @@ function mapDispatchToProps (dispatch) {
     } = bindActionCreators(actions, dispatch);
 
     return {
-        fetchConnections,
         setPopupParam,
         popupActions:actions.popupActions,
         fetchIfNeeded,

@@ -5,7 +5,6 @@ export const actionTypes = {
     receiveData: 'RECEIVE_DATA',
 
     search: 'SEARCH',
-    fetchConnections: 'FETCH_CONNECTIONS',
 
     setSelectedRows: 'SET_SELECTED_ROWS'
 }
@@ -40,198 +39,174 @@ const errorHandler = error => alert(error);
 */
 const connectionsMock = require('../mock/connections.json');
 
-//@description: E-mock
-
-export function fetchConnections (condition, callback) {
-    callback = callback || (argu=> argu);
-    return (dispatch, getState) => {
-
-        return fetch(connectionListUrl, {
-            credentials: 'include',
-            method: 'GET'
-        })
-        .then(
-            response => response.ok?
-                response.json() : (response=>errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            dispatch(setPopupParam({
-                response:json
-            }));
-            callback(json);
-        });
-    };
-}
-
-function fetchMakedir () {
+function fetchMakedir() {
     return (dispatch, getState) => {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL+`action=mkdir&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL + `action=mkdir&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
         })
-        .then(
-            response => response.ok?
-                response.json() : (response => errorHandler(response))(response),
-            error => errorHandler(error)
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
         )
-        .then(json => {
-            console.log('TODO: get the interface');
-        });
+            .then(json => {
+                console.log('TODO: get the interface');
+            });
     }
 }
 
-export function fetchOperation () {
-    let submit = argu=>argu;
+export function fetchOperation() {
+    let submit = argu => argu;
     return (dispatch, getState) => {
         const popupType = getState().popupNormalParam.popupType;
 
         switch (popupType) {
-            case CONSTANT.mkdir:
-                submit = fetchMakedir;
-                break;
-            case CONSTANT.move:
-                submit = fetchMove;
-                break;
-            case CONSTANT.copy:
-                submit = fetchCopy;
-                break;
-            case CONSTANT.auth:
-                submit = fetchAuth;
-                break;
-            case CONSTANT.upload:
-                submit = fetchUpload;
-                break;
-            default:
+        case CONSTANT.mkdir:
+            submit = fetchMakedir;
+            break;
+        case CONSTANT.move:
+            submit = fetchMove;
+            break;
+        case CONSTANT.copy:
+            submit = fetchCopy;
+            break;
+        case CONSTANT.auth:
+            submit = fetchAuth;
+            break;
+        case CONSTANT.upload:
+            submit = fetchUpload;
+            break;
+        default:
             break;
         }
         return dispatch(submit());
     }
 }
 
-function fetchMove () {
+function fetchMove() {
     return (dispatch, getState) => {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL+`action=move&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL + `action=move&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
-//TODO:get the path and dest_path
-//TODO:set the params befor commit
+        //TODO:get the path and dest_path
+        //TODO:set the params befor commit
 
-//path=/user/hive/employee/subdir/test_upload.txt&
-//dest_path=/user/hive/employee
+        //path=/user/hive/employee/subdir/test_upload.txt&
+        //dest_path=/user/hive/employee
 
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
         })
-        .then(
-            response => response.ok?
-                response.json() : (response => errorHandler(response))(response),
-            error => errorHandler(error)
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
         )
-        .then(json => {
-            console.log('TODO: get the interface');
-        });
+            .then(json => {
+                console.log('TODO: get the interface');
+            });
     }
 }
 
-function fetchCopy () {
+function fetchCopy() {
     return (dispatch, getState) => {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL+`action=copy&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL + `action=copy&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
         })
-        .then(
-            response => response.ok?
-                response.json() : (response => errorHandler(response))(response),
-            error => errorHandler(error)
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
         )
-        .then(json => {
-            console.log('TODO: get the interface');
-        });
+            .then(json => {
+                console.log('TODO: get the interface');
+            });
     }
 }
 
 //no api but have the function
-function fetchAuth () {
+function fetchAuth() {
     return (dispatch, getState) => {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL+`action=&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL + `action=&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
         })
-        .then(
-            response => response.ok?
-                response.json() : (response => errorHandler(response))(response),
-            error => errorHandler(error)
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
         )
-        .then(json => {
-            console.log('TODO: get the interface');
-        });
+            .then(json => {
+                console.log('TODO: get the interface');
+            });
     }
 }
 
-function fetchUpload () {
+function fetchUpload() {
     return (dispatch, getState) => {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL+`action=upload&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL + `action=upload&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
         })
-        .then(
-            response => response.ok?
-                response.json() : (response => errorHandler(response))(response),
-            error => errorHandler(error)
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
         )
-        .then(json => {
-            console.log('TODO: get the interface');
-        });
+            .then(json => {
+                console.log('TODO: get the interface');
+            });
     }
 }
 
-function fetchRemove () {
+function fetchRemove() {
     return (dispatch, getState) => {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL+`action=remove&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL + `action=remove&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
         })
-        .then(
-            response => response.ok?
-                response.json() : (response => errorHandler(response))(response),
-            error => errorHandler(error)
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
         )
-        .then(json => {
-            console.log('TODO: get the interface');
-        });
+            .then(json => {
+                console.log('TODO: get the interface');
+            });
     }
 }
 //S: popup related actions
-export function setPopupParam (param) {
+export function setPopupParam(param) {
     return {
         type: popupActions.setPopupParam,
         status: param.status,
@@ -239,7 +214,7 @@ export function setPopupParam (param) {
     }
 }
 
-export function popupChangeStatus (param) {
+export function popupChangeStatus(param) {
     return {
         type: popupActions.popupChangeStatus,
         status: param
@@ -247,18 +222,18 @@ export function popupChangeStatus (param) {
 }
 
 //normal popup in operation
-export function setPopupNormalParam (param) {
+export function setPopupNormalParam(param) {
     return {
         type: popupNormalActions.setPopupParam,
         path: param.path,
         dirName: param.dirName,
         connectionID: param.connectionID,
         popupType: param.popupType,
-        submit:param.submit,
+        submit: param.submit,
         status: param.status
     }
 }
-export function popupNormalChangeStatus (param) {
+export function popupNormalChangeStatus(param) {
     return {
         type: popupNormalActions.popupChangeStatus,
         status: param
@@ -268,7 +243,7 @@ export function popupNormalChangeStatus (param) {
 /**
 @description: S:operation functions here
 */
-export function search (filter) {
+export function search(filter) {
     return {
         type: actionTypes.search,
         filter: filter
@@ -278,53 +253,53 @@ export function search (filter) {
 @description: E:operation functions here
 */
 
-function sendRequest (condition) {
-  return {
-    type: actionTypes.sendRequest,
-    condition,
-  };
+function sendRequest(condition) {
+    return {
+        type: actionTypes.sendRequest,
+        condition,
+    };
 }
 
-function receiveData (condition, json) {
-  return {
-    type: actionTypes.receiveData,
-    condition,
-    response: json,
-    receivedAt: Date.now()
-  };
+function receiveData(condition, json) {
+    return {
+        type: actionTypes.receiveData,
+        condition,
+        response: json,
+        receivedAt: Date.now()
+    };
 }
 
 function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
 
-        const URL = baseURL + 'action=list&'+
-            (condition.connectionId? 'connection_id=' + condition.connectionId : '');
+        const URL = baseURL + 'action=list&' +
+        (condition.connectionId ? 'connection_id=' + condition.connectionId : '');
 
         const errorHandler = (error => alert(error));
         const dataMatch = json => {
-            if(!json.files) return json;
-            json.files.map(function(obj, index, arr){
-                obj.key = index+1;
+            if (!json.files) return json;
+            json.files.map(function(obj, index, arr) {
+                obj.key = index + 1;
             });
             return json;
         }
 
-/*      return fetch(URL, {
-            credentials: 'include',
-            method: 'GET'
-        })
-        .then(
-            response => response.ok?
-                response.json() : (response => errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            dispatch(receiveData(condition, dataMatch(json)));
-        });
-*/
+        /*      return fetch(URL, {
+                    credentials: 'include',
+                    method: 'GET'
+                })
+                .then(
+                    response => response.ok?
+                        response.json() : (response => errorHandler(response))(response),
+                    error => errorHandler(error)
+                )
+                .then(json => {
+                    dispatch(receiveData(condition, dataMatch(json)));
+                });
+        */
 
-        let mockFunc = function () {
+        let mockFunc = function() {
             dispatch(receiveData(condition, dataMatch(connectionsMock)));
         }();
     };
@@ -335,15 +310,15 @@ function shouldFetch(state, condition) {
 }
 
 export function fetchIfNeeded(condition) {
-  return (dispatch, getState) => {
-    if (shouldFetch(getState(), condition)) {
-      return dispatch(applyFetch(condition));
-    }
-    return null;
-  };
+    return (dispatch, getState) => {
+        if (shouldFetch(getState(), condition)) {
+            return dispatch(applyFetch(condition));
+        }
+        return null;
+    };
 }
 
-export function setSelectedRows (selectedRowKeys, selectedRowNames) {
+export function setSelectedRows(selectedRowKeys, selectedRowNames) {
 
     return {
         type: actionTypes.setSelectedRows,
