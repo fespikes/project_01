@@ -41,13 +41,13 @@ def upgrade():
         sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('dashboard_title')
+        sa.UniqueConstraint('dashboard_title', 'created_by_fk', name='dashboard_title_owner_uc')
     )
     op.create_table('dbs',
         sa.Column('created_on', sa.DateTime(), nullable=True),
         sa.Column('changed_on', sa.DateTime(), nullable=True),
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('database_name', sa.String(length=250), nullable=True),
+        sa.Column('database_name', sa.String(length=250), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('online', sa.Boolean(), nullable=True, server_default="0"),
         sa.Column('sqlalchemy_uri', sa.String(length=1024), nullable=True),
@@ -64,7 +64,7 @@ def upgrade():
         sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('database_name')
+        sa.UniqueConstraint('database_name', 'created_by_fk', name='database_name_owner_uc')
     )
     op.create_table('favstar',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -92,7 +92,7 @@ def upgrade():
         sa.Column('created_on', sa.DateTime(), nullable=True),
         sa.Column('changed_on', sa.DateTime(), nullable=True),
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('slice_name', sa.String(length=250), nullable=True),
+        sa.Column('slice_name', sa.String(length=250), nullable=False),
         sa.Column('online', sa.Boolean(), nullable=True, server_default="0"),
         sa.Column('datasource_id', sa.Integer(), nullable=True),
         sa.Column('datasource_type', sa.String(length=200), nullable=True),
@@ -106,7 +106,8 @@ def upgrade():
         sa.Column('cache_timeout', sa.Integer(), nullable=True),
         sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
-        sa.PrimaryKeyConstraint('id')
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('slice_name', 'created_by_fk', name='slice_name_owner_uc')
     )
     op.create_table('dashboard_slices',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -187,7 +188,8 @@ def upgrade():
         sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.ForeignKeyConstraint(['database_id'], ['dbs.id'], ),
-        sa.PrimaryKeyConstraint('id')
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('connection_name', 'created_by_fk', name='connection_name_owner_uc')
         )
     op.create_table('dataset',
         sa.Column('created_on', sa.DateTime(), nullable=True),
@@ -213,7 +215,7 @@ def upgrade():
         sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.ForeignKeyConstraint(['database_id'], ['dbs.id'], ),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('dataset_name')
+        sa.UniqueConstraint('dataset_name', 'created_by_fk', name='dataset_name_owner_uc')
     )
     op.create_table('hdfs_table',
         sa.Column('created_on', sa.DateTime(), nullable=True),
@@ -239,7 +241,7 @@ def upgrade():
         sa.Column('created_on', sa.DateTime(), nullable=True),
         sa.Column('changed_on', sa.DateTime(), nullable=True),
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('metric_name', sa.String(length=512), nullable=True),
+        sa.Column('metric_name', sa.String(length=512), nullable=False),
         sa.Column('verbose_name', sa.String(length=1024), nullable=True),
         sa.Column('metric_type', sa.String(length=32), nullable=True),
         sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -250,14 +252,15 @@ def upgrade():
         sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
-        sa.PrimaryKeyConstraint('id')
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('metric_name', 'dataset_id', name='metric_name_dataset_uc')
     )
     op.create_table('table_columns',
         sa.Column('created_on', sa.DateTime(), nullable=True),
         sa.Column('changed_on', sa.DateTime(), nullable=True),
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('dataset_id', sa.Integer(), nullable=True),
-        sa.Column('column_name', sa.String(length=255), nullable=True),
+        sa.Column('column_name', sa.String(length=255), nullable=False),
         sa.Column('verbose_name', sa.String(length=1024), nullable=True),
         sa.Column('is_dttm', sa.Boolean(), nullable=True, server_default="0"),
         sa.Column('is_active', sa.Boolean(), nullable=True, server_default="1"),
@@ -276,7 +279,8 @@ def upgrade():
         sa.Column('changed_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.Column('created_by_fk', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
         sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
-        sa.PrimaryKeyConstraint('id')
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('column_name', 'dataset_id', name='column_name_dataset_uc')
     )
     # ### end Alembic commands ###
 

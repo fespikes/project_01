@@ -21,7 +21,7 @@ from flask_appbuilder import Model
 import sqlalchemy as sqla
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, Text, Boolean,
-    DateTime, desc, asc, select, and_
+    DateTime, desc, asc, select, and_, UniqueConstraint
 )
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.ext.compiler import compiles
@@ -53,7 +53,7 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
         'Dataset',
         backref=backref('ref_columns', cascade='all, delete-orphan'),
         foreign_keys=[dataset_id])
-    column_name = Column(String(255))
+    column_name = Column(String(255), nullable=False)
     verbose_name = Column(String(1024))
     is_dttm = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
@@ -69,6 +69,10 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
     description = Column(Text, default='')
     python_date_format = Column(String(255))
     database_expression = Column(String(255))
+
+    __table_args__ = (
+        UniqueConstraint('column_name', 'dataset_id', name='column_name_dataset_uc'),
+    )
 
     num_types = ('DOUBLE', 'FLOAT', 'INT', 'BIGINT', 'LONG')
     date_types = ('DATE', 'TIME')
@@ -166,7 +170,7 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
 
     __tablename__ = 'sql_metrics'
     id = Column(Integer, primary_key=True)
-    metric_name = Column(String(512))
+    metric_name = Column(String(512), nullable=False)
     verbose_name = Column(String(1024))
     metric_type = Column(String(32))
     dataset_id = Column(Integer, ForeignKey('dataset.id'))
@@ -178,6 +182,10 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
     description = Column(Text)
     is_restricted = Column(Boolean, default=False, nullable=True)
     d3format = Column(String(128))
+
+    __table_args__ = (
+        UniqueConstraint('metric_name', 'dataset_id', name='metric_name_dataset_uc'),
+    )
 
     export_fields = (
         'metric_name', 'verbose_name', 'metric_type', 'table_id', 'expression',
@@ -213,7 +221,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     __tablename__ = 'dataset'
 
     id = Column(Integer, primary_key=True)
-    dataset_name = Column(String(250), unique=True, nullable=False)
+    dataset_name = Column(String(250), nullable=False)
     dataset_type = Column(String(250), nullable=False)
     table_name = Column(String(250))
     schema = Column(String(255))
@@ -237,6 +245,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     default_endpoint = Column(Text)
     is_featured = Column(Boolean, default=False)
     cache_timeout = Column(Integer)
+
+    __table_args__ = (
+        UniqueConstraint('dataset_name', 'created_by_fk', name='dataset_name_owner_uc'),
+    )
 
     baselink = "table"
     column_cls = TableColumn
