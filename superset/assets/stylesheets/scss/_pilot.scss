@@ -1,8 +1,11 @@
 $borderStyle: solid 1px #e9eaed;
 
-.dashboard-panel, .slice-panel {
+.dashboard-panel, .slice-panel, .datasource-panel {
     margin: 0 50px;
     background-color: #edf0f5;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 50px);
     .panel-top {
         display: flex;
         justify-content: space-between;
@@ -109,7 +112,8 @@ $borderStyle: solid 1px #e9eaed;
     .panel-middle {
         display: flex;
         justify-content: center;
-
+        flex: 1;
+        background-color: #fff;
         .icon-group{
             display: flex;
             .icon:nth-of-type(2) {

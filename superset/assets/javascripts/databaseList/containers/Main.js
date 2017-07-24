@@ -56,7 +56,7 @@ class App extends Component {
         const count = response&&response.count ||0;
 
         return (
-            <div className="slice-panel">
+            <div className="datasource-panel">
                 <div className="popupContainer">
                     <Popup
                         {...popupParam}
