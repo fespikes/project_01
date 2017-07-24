@@ -11,9 +11,9 @@ from datetime import datetime, timedelta, date
 from sqlalchemy import and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset import db
-from superset.views import SqlMetricInlineView
-from superset.models import SqlMetric
-from superset.models import Dataset
+from superset.views.dataset import SqlMetricInlineView
+from superset.models.dataset import SqlMetric
+from superset.models.dataset import Dataset
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 
