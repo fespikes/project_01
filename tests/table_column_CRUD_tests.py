@@ -9,9 +9,9 @@ from datetime import datetime
 
 
 from superset import db
-from superset.views import TableColumnInlineView
-from superset.models import TableColumn
-from superset.models import Dataset
+from superset.views.dataset import TableColumnInlineView
+from superset.models.dataset import TableColumn
+from superset.models.dataset import Dataset
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 

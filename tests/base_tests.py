@@ -16,7 +16,7 @@ from flask import (g, request, redirect, flash,
 
 from superset import app, cli, db, models, appbuilder, security, sm
 from superset.security import sync_role_definitions
-from superset.views import DashboardModelView
+from superset.views.core import DashboardModelView
 
 os.environ['SUPERSET_CONFIG'] = 'tests.superset_test_config'
 

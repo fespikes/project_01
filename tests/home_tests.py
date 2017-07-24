@@ -4,18 +4,18 @@ import unittest
 import time
 from datetime import datetime
 
-from superset.models import DailyNumber, Log
+from superset.models.aider import DailyNumber, Log
 
-from superset.models import Database
-from superset.models import Slice
-from superset.models import Dataset
-from superset.models import Dashboard
+from superset.models.connection import Database
+from superset.models.core import Slice
+from superset.models.dataset import Dataset
+from superset.models.core import Dashboard
 
-from superset.views import Home
-from superset.views import DashboardModelView
-from superset.views import SliceModelView
-from superset.views import DatasetModelView
-from superset.views import DatabaseView
+from superset.views.home import Home
+from superset.views.core import DashboardModelView
+from superset.views.core import SliceModelView
+from superset.views.dataset import DatasetModelView
+from superset.views.connection import DatabaseView
 
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin

@@ -9,8 +9,8 @@ from datetime import datetime
 
 from flask_appbuilder.security.sqla.models import User
 from superset import db
-from superset.views import DatasetModelView
-from superset.models import Dataset
+from superset.views.dataset import DatasetModelView
+from superset.models.dataset import Dataset
 from superset import models
 from superset.models import Database
 from tests.base_tests import SupersetTestCase
