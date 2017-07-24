@@ -10,10 +10,10 @@ from datetime import datetime, timedelta, date
 from sqlalchemy import and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset import db
-from superset.views import SliceModelView
-from superset.models import Dashboard
-from superset.models import FavStar
-from superset.models import Slice
+from superset.views.core import SliceModelView
+from superset.models.core import Dashboard
+from superset.models.aider import FavStar
+from superset.models.core import Slice
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 

@@ -8,8 +8,8 @@ import unittest
 from datetime import datetime
 
 from superset import db
-from superset.models import Database
-from superset.views import DatabaseView
+from superset.models.connection import Database
+from superset.views.connection import DatabaseView
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 
