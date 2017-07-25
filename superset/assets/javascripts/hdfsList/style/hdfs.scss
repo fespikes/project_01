@@ -14,6 +14,24 @@ $borderStyle: solid 1px #e9eaed;
         display: flex;
         justify-content: space-between;
         margin: 15px 0;
+        .left{
+            span, textarea, i{
+                display: inline-block;
+                float:left;
+            }
+            textarea {
+                padding:0 3px;
+                margin:1px 5px 0;
+                background:transparent;
+            }
+            .editing {
+                border: 1px #108ee9 solid;
+                padding: 3px 0 2px 5px;
+                margin-top:-1px;
+                border-radius: 5px;
+                letter-spacing:1px;
+            }
+        }
 
         .right .operations{
             display:flex;
@@ -153,6 +171,6 @@ $borderStyle: solid 1px #e9eaed;
 }
 
 /*common*/
-.f14{
+.f16{
     font-size:16px; font-weight:600;
 }

@@ -4,6 +4,8 @@ export const actionTypes = {
     sendRequest: 'SEND_REQUEST',
     receiveData: 'RECEIVE_DATA',
 
+    changePath: 'CHANGE_PATH',
+
     search: 'SEARCH',
 
     setSelectedRows: 'SET_SELECTED_ROWS'
@@ -38,6 +40,13 @@ const errorHandler = error => alert(error);
 @description: S-mock
 */
 const connectionsMock = require('../mock/connections.json');
+
+export function changePath(path) {
+    return {
+        type: actionTypes.changePath,
+        path
+    }
+}
 
 function fetchMakedir() {
     return (dispatch, getState) => {

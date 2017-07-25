@@ -21,13 +21,17 @@ class Main extends Component {
 
     constructor(props, context) {
         super(props);
+        const {condition} = this.props;
+
         this.state = {
-            breadCrumbEditable: false
+            breadCrumbEditable: false,
+            path: condition.path
         };
     }
 
     componentDidMount() {
-        // const {condition } = this.props;
+        const {condition } = this.props;
+        this.props.fetchIfNeeded(condition);
     }
 
     componentWillReceiveProps (nextProps) {
@@ -36,7 +40,9 @@ class Main extends Component {
         if (condition.filter !== this.props.condition.filter ||
             condition.onlyFavorite !== this.props.condition.onlyFavorite ||
             condition.tableType !== this.props.condition.tableType ||
-            nextProps.popupNormalParam.status==='none' && this.props.popupNormalParam.status==='flex'
+            condition.popupNormalParam && 
+                condition.popupNormalParam.status==='none' && this.props.popupNormalParam.status==='flex' ||
+            condition.path !== this.props.condition.path
         ) {
             this.props.fetchIfNeeded(condition);
         }
@@ -46,6 +52,23 @@ class Main extends Component {
         this.setState({
             breadCrumbEditable: !this.state.breadCrumbEditable
         })
+    }
+
+    onPathChange (e) {
+        this.setState({
+            path: e.currentTarget.value
+        });
+    }
+
+    onPathBlur (e) {
+        console.log('this is the path,', e.currentTarget.value);
+        const {dispatch, condition, changePath} = this.props;
+        let val = e.currentTarget.value.trim();
+        if (val === condition.path) {
+            return;
+        }
+        console.log('tell me what happenning');
+        changePath(val);
     }
 
     render () {
@@ -73,7 +96,9 @@ class Main extends Component {
 
         let username = "TODO: user name";
 
-        let count=0, breadCrumbText = `user/${username}`;
+        // let count=0, breadCrumbText = `user/${username}`;
+        let count=0,
+            breadCrumbText = this.state.path || `user/${username}`;
         if (response.length >0) {
             count = response.page.total_count;
             breadCrumbText = response.path;
@@ -83,7 +108,7 @@ class Main extends Component {
             <div className="hdfs-panel">
                 <div className="panel-top">
                     <div className="left">
-                        <span className="f14">路径</span>
+                        <span className="f16">路径:</span>
 {/*
 <span contentEditable={editable} className="bread-crumb-span">
 
@@ -95,9 +120,15 @@ class Main extends Component {
     <small className="crumb">/</small>
 </span>*/}
 
-                        <span contentEditable={editable}>
-                            &nbsp;&nbsp;<small className="text">{breadCrumbText}</small>&nbsp;&nbsp;
-                        </span>
+                        <textarea rows="1" cols="30" contentEditable={editable}
+                            className={(editable?'editing':'')+' f16'}
+                            name="pathName"
+                            onBlur={e => this.onPathBlur(e)}
+                            onChange={e => this.onPathChange(e)}
+                            value={breadCrumbText}
+                            disabled={editable?'':'disabled'}
+                            >
+                        </textarea>
                         <i
                             className="icon icon-edit"
                             onClick={() => this.breadCrumbEditable()}
@@ -150,6 +181,7 @@ function mapStateToProps (state, pros) {
 
 function mapDispatchToProps (dispatch) {
     const {
+        changePath,
         setPopupParam,
         fetchIfNeeded,
         popupChangeStatus,
@@ -158,6 +190,7 @@ function mapDispatchToProps (dispatch) {
     } = bindActionCreators(actions, dispatch);
 
     return {
+        changePath,
         setPopupParam,
         popupActions:actions.popupActions,
         fetchIfNeeded,
