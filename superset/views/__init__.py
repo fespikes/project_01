@@ -5,3 +5,4 @@ from . import connection
 from . import dataset
 from . import sql_lab
 from . import hdfs
+from . import user
