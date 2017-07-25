@@ -6,30 +6,6 @@ import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
 import style from '../style/hdfs.scss'
 
-
-
-/*const getData = (length) => {
-    length = length||12;
-    let arr = [];
-    for( let i=length; i--;) {
-        arr.push({
-            type: Math.random(),
-
-            key: i,
-            name: 'rowId'+i,
-            size: 'size'+i,
-            user: 'user'+i,
-            group: 'group'+i,
-            permission: 'permission'+i,
-            date: 'date'+i
-        });
-    }
-    return arr;
-};
-
-const data = getData();
-*/
-
 class InnerTable extends React.Component {
     constructor(props, context) {
         super(props);
@@ -46,66 +22,54 @@ class InnerTable extends React.Component {
 
     render() {
 
-        const { files } = this.props;
+        const {files, giveDetail, changePath} = this.props;
         const dispatch = this.dispatch;
-
-        function deleteSlice(record) {
-
-            /* let deleteTips = "确定删除" + record.slice_name + "?";
-            let deleteSlicePopup = render(
-                <SliceDelete
-                    dispatch={dispatch}
-                    deleteType={'single'}
-                    deleteTips={deleteTips}
-                    slice={record}/>,
-                document.getElementById('popup_root'));
-            if(deleteSlicePopup) {
-                deleteSlicePopup.showDialog();
-            } */
-        }
-
-        function publishSlice(record) {
-            dispatch(fetchStateChange(record, "publish"));
-        }
-
-        function favoriteSlice(record) {
-            dispatch(fetchStateChange(record, "favorite"));
-        }
 
         const rowSelection = {
             onChange: this.onSelectChange
         };
-
+        const flushDetail = (record) => {
+            const {mtime, size, stats, path} = record;
+            const {user, group, mode} = stats;
+            giveDetail({
+                path,
+                mtime, //last time modify
+                size,
+                user,
+                group,
+                mode
+            });
+        }
         const columns = [
             {
-                title: '名称',  //TODO: title need to i18n
+                title: '名称', //TODO: title need to i18n
                 width: '5%',
                 render: (text, record) => {
                     const type = record.type;
-//                        const typesetSelectedRows= Math.random();
+                    //                        const typesetSelectedRows= Math.random();
                     let datasetType;
 
                     switch (type) {
-                        case 'dir':
-                        default:
+                    case 'dir':
+                        if (record.name === '.') {
                             datasetType = 'icon-backfile-default';
-                            break;
-                        case 'file':
-                            datasetType = 'icon-backfile-default';
-                            break;
-                    }
-/*                    if (type>0.75) {
-                        datasetType = 'icon-backfile-default';
-                    } else if (type>0.5) {
-                        datasetType = 'icon-backfile-openfile-warning';
-                    } else if (type>0.25) {
-                        datasetType = 'icon-disabledfile-info';
-                    } else {
+                        } else if (record.name === '..') {
+                            datasetType = 'icon-backarrow-default';
+                        } else {
+                            datasetType = 'icon-backfile-openfile-warning';
+                        }
+                        break;
+                    case 'file':
                         datasetType = 'icon-grayfile-info';
-                    }*/
+                        break;
+                    default:
+                        datasetType = 'icon-grayfile-info';
+                        break;
+                    }
 
+                    //datasetType = 'icon-disabledfile-info';
                     return (
-                        <i className={'icon ' + 'icon-disabledfile-info '+ datasetType }></i>
+                        <i className={'icon ' + datasetType}></i>
                     )
                 },
                 sorter(a, b) {
@@ -113,12 +77,26 @@ class InnerTable extends React.Component {
                 }
             },
             {
-//                title: '名称',  //TODO: title need to i18n
+                title: '',
                 key: 'name',
                 dataIndex: 'name',
                 width: '24%',
                 render: (text, record) => {
-                    return (<Link to="/filebrowser">{record.path}</Link>);
+                    const name = record.name;
+                    if (record.type === 'file') { //go to detail page
+                        return (
+                            <Link onClick={() => flushDetail(record)} to="/filebrowser">
+                                {name === '..' ? name :
+                                name === '.' ? ('  ' + name + '  ') : record.path}
+                            </Link>
+                        );
+                    } else { //send request.
+                        return (<a onClick={
+                            record => changePath({
+                                path: record.url
+                            })
+                            }>{record.path}</a>);
+                    }
                 }
             }, {
                 title: '大小',
@@ -133,23 +111,23 @@ class InnerTable extends React.Component {
                 dataIndex: 'user',
                 key: 'user',
                 width: '10%',
-                sorter (a, b) {
+                sorter(a, b) {
                     return a.stats.user - b.stats.user;
                 },
                 render: (text, record) => {
 
-                    return (<span>{record.stats?(record.stats.user||' '):' '}</span>);
+                    return (<span>{record.stats ? (record.stats.user || ' ') : ' '}</span>);
                 }
             }, {
                 title: '组',
                 dataIndex: 'group',
                 key: 'group',
                 width: '10%',
-                sorter (a, b) {
-                   return a.stats.group - b.stats.group;
+                sorter(a, b) {
+                    return a.stats.group - b.stats.group;
                 },
                 render: (text, record) => {
-                    return (<span>{record.stats?(record.stats.group||' '):' '}</span>);
+                    return (<span>{record.stats ? (record.stats.group || ' ') : ' '}</span>);
                 }
             }, {
                 title: '权限',
@@ -157,43 +135,29 @@ class InnerTable extends React.Component {
                 key: 'rwx',
                 width: '15%',
                 render: (text, record) => {
-                    return (<span>{record.rwx?record.rwx:' '}</span>);
+                    return (<span>{record.rwx ? record.rwx : ' '}</span>);
                 },
-                sorter (a, b) {
+                sorter(a, b) {
                     return a.rwx - b.rwx;
                 }
             }, {
-               title: '日期',
-               dataIndex: 'mtime',
-               key: 'mtime',
-               width: '25%',
-               sorter(a, b) {
-                   return a.mtime - b.mtime ? 1 : -1;
-               }
-           }
-
-/*           ,{
-                title: '操作',
-                width: '10%',
-                render: (record) => {
-                    return (
-                        <div className="icon-group">
-                            <i className="icon" ></i>
-                            &nbsp;&nbsp;
-                            <i className="icon " onClick={() => deleteSlice(record)}></i>
-                        </div>
-                    )
+                title: '日期',
+                dataIndex: 'mtime',
+                key: 'mtime',
+                width: '25%',
+                sorter(a, b) {
+                    return a.mtime - b.mtime ? 1 : -1;
                 }
-            }*/
+            }
         ];
 
         return (
             <Table
-                rowSelection={rowSelection}
-                dataSource={files}
-                columns={columns}
-                pagination={false}
-                rowKey={record => record.key}
+            rowSelection={rowSelection}
+            dataSource={files}
+            columns={columns}
+            pagination={false}
+            rowKey={record => record.key}
             />
         );
     }

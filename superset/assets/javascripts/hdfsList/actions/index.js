@@ -4,8 +4,6 @@ export const actionTypes = {
     sendRequest: 'SEND_REQUEST',
     receiveData: 'RECEIVE_DATA',
 
-    changePath: 'CHANGE_PATH',
-
     search: 'SEARCH',
 
     setSelectedRows: 'SET_SELECTED_ROWS'
@@ -17,6 +15,7 @@ export const popupActions = {
 }
 
 export const popupNormalActions = {
+    setPopupParams: 'SET_POPUP_NORMAL_PARAMS',
     setPopupParam: 'SET_POPUP_NORMAL_PARAM',
     popupChangeStatus: 'POPUP_NORMAL_CHANGE_STATUS'
 }
@@ -60,13 +59,14 @@ const errorHandler = error => alert(error);
 */
 const connectionsMock = require('../mock/connections.json');
 
+actionTypes.changePath = 'CHANGE_PATH';
 export function changePath(path) {
     return {
         type: actionTypes.changePath,
         path
     }
 }
-
+//TODO
 function fetchMakedir() {
     return (dispatch, getState) => {
         const state = getState();
@@ -95,9 +95,6 @@ export function fetchOperation() {
         const popupType = getState().popupNormalParam.popupType;
 
         switch (popupType) {
-        case CONSTANT.mkdir:
-            submit = fetchMakedir;
-            break;
         case CONSTANT.move:
             submit = fetchMove;
             break;
@@ -110,6 +107,9 @@ export function fetchOperation() {
         case CONSTANT.upload:
             submit = fetchUpload;
             break;
+        case CONSTANT.mkdir:
+            submit = fetchMakedir;
+            break;
         default:
             break;
         }
@@ -117,12 +117,16 @@ export function fetchOperation() {
     }
 }
 
+//doing
 function fetchMove() {
     return (dispatch, getState) => {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL + `action=move&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+
+        const URL = baseURL + `move/?` +
+        (condition.path ? ('path=' + condition.path + '&') : '') +
+        (condition.dest_path ? 'dest_path=' + condition.dest_path : '');
 
         //TODO:get the path and dest_path
         //TODO:set the params befor commit
@@ -250,15 +254,22 @@ export function popupChangeStatus(param) {
 }
 
 //normal popup in operation
-export function setPopupNormalParam(param) {
+export function setPopupNormalParams(param) {
     return {
-        type: popupNormalActions.setPopupParam,
+        type: popupNormalActions.setPopupParams,
         path: param.path,
         dirName: param.dirName,
-        connectionID: param.connectionID,
         popupType: param.popupType,
         submit: param.submit,
         status: param.status
+    }
+}
+
+//normal popup in operation
+export function setPopupNormalParam(param) {
+    return {
+        type: popupNormalActions.setPopupParam,
+        param
     }
 }
 export function popupNormalChangeStatus(param) {
@@ -316,7 +327,7 @@ function applyFetch(condition) {
             return json;
         };
 
-        return fetch(URL, {
+        /*return fetch(URL, {
             credentials: 'include',
             method: 'GET',
             mode: 'cors'
@@ -328,10 +339,11 @@ function applyFetch(condition) {
         )
             .then(json => {
                 dispatch(receiveData(condition, dataMatch(json)));
-            });
-            /*let mockFunc = function () {
-                dispatch(receiveData(condition, dataMatch(connectionsMock)));
-            }();*/
+            });*/
+
+        let mockFunc = function() {
+            dispatch(receiveData(condition, dataMatch(connectionsMock)));
+        }();
 
     };
 }
@@ -355,5 +367,43 @@ export function setSelectedRows(selectedRowKeys, selectedRowNames) {
         type: actionTypes.setSelectedRows,
         selectedRowKeys,
         selectedRowNames
+    }
+}
+
+actionTypes.giveDetail = 'GIVE_DETAIL';
+export function giveDetail(detail) {
+    return {
+        type: actionTypes.giveDetail,
+        detail
+    }
+}
+
+actionTypes.setPreview = 'SET_PREVIEW';
+export function setPreview(preview) {
+    return {
+        type: actionTypes.setPreview,
+        preview
+    }
+}
+
+export function fetchPreview() {
+    return (dispatch, getState) => {
+        const state = getState();
+
+        const URL = baseURL + `preview/?path=${state.fileReducer.path}`;
+        // /hdfs/preview/?path=/tmp/test_upload.txt
+
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'GET'
+        })
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
+        )
+            .then(preview => {
+                dispatch(setPreview(preview));
+            });
     }
 }

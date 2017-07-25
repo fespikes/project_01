@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
+import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import {FileBrowserTable} from '../components';
+import { fetchPreview } from '../actions';
 import '../style/file-browser.scss';
 
 class FileBrowser extends Component {
@@ -10,9 +11,13 @@ class FileBrowser extends Component {
         this.state = {};
     }
 
+    componentDidMount() {
+        this.props.fetchPreview();
+    }
+
     render() {
-        const {dispatch, response, condition} = this.props;
-        const count = response.count;
+        const {fileReducer} = this.props;
+        const {path, mtime, size, user, group, mode, preview} = fileReducer;
 
         return (
             <div className="file-browse">
@@ -25,39 +30,33 @@ class FileBrowser extends Component {
                         <div className="item-left-module operate">
                             <h3>操作</h3>
                             <ul className="module-list">
-                                <li><span>以文本格式查看</span><i className="icon icon-text-hover"></i></li>
+                                { /*<li><span>以文本格式查看</span><i className="icon icon-text-hover"></i></li>*/ }
                                 <li><span>下载</span><i className="icon icon-download-hover"></i></li>
-                                <li><span>查看文件位置</span><i className="icon icon-file-hover"></i></li>
+                                { /*<li><span>查看文件位置</span><i className="icon icon-file-hover"></i></li>*/ }
                                 <li><span>刷新</span><i className="icon icon-refresh-hover"></i></li>
                             </ul>
                         </div>
                         <div className="item-left-module infor">
                             <h3>信息</h3>
                             <ul className="module-list">
-                                <li><span><i className="icon icon-time-default"></i>上次修改</span><em>十一月23、2016 4：50a.m</em></li>
-                                <li><span><i className="icon icon-user-default"></i>用户</span><em>hive</em></li>
-                                <li><span><i className="icon icon-group-default"></i>组</span><em>hive</em></li>
-                                <li><span><i className="icon icon-storage－default"></i>大小</span><em>10.0MB</em></li>
-                                <li><span><i className="icon icon-pattern-default"></i>模式</span><em>10644</em></li>
+                                <li><span><i className="icon icon-time-default"></i>上次修改</span><em>{mtime}</em></li>
+                                <li><span><i className="icon icon-user-default"></i>用户</span><em>{user}</em></li>
+                                <li><span><i className="icon icon-group-default"></i>组</span><em>{group}</em></li>
+                                <li><span><i className="icon icon-storage－default"></i>大小</span><em>{size}</em></li>
+                                <li><span><i className="icon icon-pattern-default"></i>模式</span><em>{mode}</em></li>
                             </ul>
                         </div>
                     </div>
                     <div className="item-right">
-                        <div className="bread-crumb">
-                            <span className="fleft bread-crumb-box">
-                                <span className="slash">/</span>
-                                <span className="text">user</span>
-                                <span className="slash">/</span>
-                                <span className="text">hive</span>
-                                <span className="slash">/</span>
-                                <span className="text">sparkstaging</span>
-                                <span className="slash">/</span>
-                                <span className="text">recommend</span>
-                            </span>
-                            <i className="icon icon-pattern-ps icon-edit"></i>
-                        </div>
+                        <span className="f16">路径:</span>
+                        <textarea rows="1"
+            value={path}
+            onChange={argu => argu}
+            disabled='disabled'>
+                        </textarea>
+
                         <div className="tableWrapper">
-                            <FileBrowserTable />
+                        {preview}
                         </div>
                     </div>
                 </div>
@@ -69,29 +68,21 @@ class FileBrowser extends Component {
 FileBrowser.propTypes = {};
 
 function mapStateToProps(state) {
-    const { condition, requestByCondition } = state;
+    const {fileReducer} = state;
 
-    const {
-        isFetching,
-        response        ///
-    } = requestByCondition[condition.tableType]||{
-        isFetching: true,
-        response: {}
-    }
     return {
-        condition,
-        response,
-        isFetching
+        fileReducer
     };
 }
 
 function mapDispatchToProps(dispatch) {
-  return {
-    actions: bindActionCreators(actions, dispatch),
-  };
+    const action = argus => dispatch(fetchPreview(argus));
+    return {
+        fetchPreview: action
+    };
 }
 
 export default connect(
-    mapStateToProps
+    mapStateToProps,
+    mapDispatchToProps
 )(FileBrowser);
-

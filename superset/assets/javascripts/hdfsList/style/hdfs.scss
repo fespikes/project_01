@@ -6,15 +6,6 @@
 }
 
 $borderStyle: solid 1px #e9eaed;
-
-.hdfs-panel {
-    margin: 0 50px;
-    background-color: #edf0f5;
-    .panel-top {
-        display: flex;
-        justify-content: space-between;
-        margin: 15px 0;
-        .left{
             span, textarea, i{
                 display: inline-block;
                 float:left;
@@ -32,6 +23,14 @@ $borderStyle: solid 1px #e9eaed;
                 border-radius: 5px;
                 letter-spacing:1px;
             }
+.hdfs-panel {
+    margin: 0 50px;
+    background-color: #edf0f5;
+    .panel-top {
+        display: flex;
+        justify-content: space-between;
+        margin: 15px 0;
+        .left{
         }
 
         .right .operations{
@@ -157,18 +156,6 @@ $borderStyle: solid 1px #e9eaed;
         margin-top: 30px;
         margin-bottom: 20px;
     }
-}
-
-
-.bread-crumb-span{
-    margin:0 10px;
-    font-size:12px;
-    line-height:25px;
-    border-bottom:1px blue solid;
-}
-
-.bread-crumb-span small.slash{
-    padding:0 5px;
 }
 
 /*common*/

@@ -49,6 +49,7 @@ function condition(state = {
     }
 }
 
+//TODO: remove it
 function popupParam(state = {
         //popup callbacks
         submit: argu => argu,
@@ -89,7 +90,7 @@ function popupNormalParam(state = {
 
         path: '',
         dirName: '',
-        connectionID: ''
+        dest_path: ''
 
     }, action) {
     switch (action.type) {
@@ -98,15 +99,23 @@ function popupNormalParam(state = {
             ...state,
             status: action.status
         };
-    case popupNormalActions.setPopupParam:
+    case popupNormalActions.setPopupParams:
         return {
             ...state,
             path: action.path,
             dirName: action.dirName,
-            connectionID: action.connectionID,
             popupType: action.popupType,
             submit: action.submit,
-            status: action.status
+            status: action.status,
+            dest_path: action.dest_path
+        };
+        break;
+    case popupNormalActions.setPopupParam:
+        const param = action.param;
+        const key = Object.getOwnPropertyNames(param)[0];
+        return {
+            ...state,
+            [key]: param[key]
         };
         break;
     default:
@@ -135,11 +144,47 @@ function emitFetch(state = {
     }
 }
 
+function fileReducer(state = {
+        path: '',
+        mtime: '', //last time modify
+        size: '',
+        user: '',
+        group: '',
+        mode: '',
+
+        preview: ''
+    }, action) {
+    switch (action.type) {
+    case actionTypes.giveDetail:
+        return {
+            ...state,
+            ...action.detail
+        // path: action.path,
+        // mtime: action.mtime, //last time modify
+        // size: action.size,
+        // user: action.user,
+        // group: action.group,
+        // mode: action.mode
+        };
+        break;
+
+    case actionTypes.setPreview:
+        return {
+            ...state,
+            preview: action.preview
+        };
+        break;
+    default:
+        return state;
+    }
+}
+
 const rootReducer = combineReducers({
     condition,
     popupParam,
     popupNormalParam,
-    emitFetch
+    emitFetch,
+    fileReducer
 });
 
 export default rootReducer;

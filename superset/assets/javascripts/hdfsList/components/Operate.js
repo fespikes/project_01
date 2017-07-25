@@ -4,7 +4,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
 import PropTypes from 'prop-types';
-import { selectType, search, CONSTANT, fetchOperation, setPopupNormalParam, popupNormalChangeStatus } from '../actions';
+import { selectType, search, CONSTANT, fetchOperation, setPopupNormalParams, popupNormalChangeStatus } from '../actions';
 
 import { Select, PopupNormal } from './';
 
@@ -28,11 +28,18 @@ class Operate extends React.Component {
 
                 TODO: dispatch fetchOperation.
                 if (ag.key===CONSTANT.move) {
-                    setPopupNormalParam({path:mkdirPath, dirName, connectionID, popupType});
+                    setPopupNormalParams({path:mkdirPath, dirName, connectionID, popupType});
                 } else if (ag.key===CONSTANT.move) {
-                    setPopupNormalParam({path:uploadPath, hdfsFile, connectionID, popupType});
+                    setPopupNormalParams({path:uploadPath, hdfsFile, connectionID, popupType});
                 }*/
-        console.log(ag, 'in manipulate');
+        const popupType = ag.key;
+        const {fetchOperation, setPopupNormalParams} = this.props;
+        const normalPopupParam = {
+            popupType: popupType,
+            submit: fetchOperation,
+            status: 'flex'
+        }
+        setPopupNormalParams(normalPopupParam);
     }
 
     onChange() {
@@ -45,13 +52,13 @@ class Operate extends React.Component {
 
     upload(ag) {
         console.log(ag, 'in upload');
-        const {fetchOperation, setPopupNormalParam} = this.props;
+        const {fetchOperation, setPopupNormalParams} = this.props;
         const normalPopupParam = {
             popupType: CONSTANT.upload,
             submit: fetchOperation,
             status: 'flex'
         }
-        setPopupNormalParam(normalPopupParam);
+        setPopupNormalParams(normalPopupParam);
     }
 
     onRemove() {
@@ -96,13 +103,12 @@ class Operate extends React.Component {
             ];
 
         const openPopup = (ag) => {
-            console.log(ag, 'in openPopup');
             const normalPopupParam = {
                 popupType: ag.key,
                 submit: fetchOperation,
                 status: 'flex'
             }
-            this.props.setPopupNormalParam(normalPopupParam);
+            this.props.setPopupNormalParams(normalPopupParam);
         //            this.props.popupNormalChangeStatus('flex');
         };
 
@@ -188,7 +194,7 @@ const mapDispatchToProps = function(dispatch, props) {
         search,
         fetchOperation,
 
-        setPopupNormalParam,
+        setPopupNormalParams,
         popupNormalChangeStatus
     }, dispatch);
 }
