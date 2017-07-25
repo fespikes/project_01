@@ -39,13 +39,14 @@ class EventDetail extends Component {
     render() {
 
         const dataSource = this.props.actions;
+        const itemCount = this.props.itemCount;
         const redirect = this.state ? this.state.redirect : false;
 
         const columns = [{
             title: '用户',
             dataIndex: 'user',
             key: 'user',
-            width: '33%',
+            width: '23%',
             sorter: true,
             className: 'user-column',
             render: (text, record) => (<a className="user-td" href={record.link}><i className="icon user-icon"></i><span>{text}</span></a>)
@@ -54,13 +55,15 @@ class EventDetail extends Component {
             dataIndex: 'action',
             key: 'action',
             sorter: true,
-            width: '33%',
+            width: '43%',
             render: (text, record) => {
                         const classes = "icon action-title-icon " + record.type + "-icon";
                         return (
                             <div>
                                 <div className="action-text">{text}</div>
-                                <div className="action-title"><i className={classes}></i>{record.title}</div>
+                                <div className="action-title">
+                                    <i className={classes}/>{record.title}
+                                </div>
                             </div>
                         );
                     }
@@ -69,7 +72,7 @@ class EventDetail extends Component {
             dataIndex: 'time',
             key: 'time',
             sorter: true,
-            width: '30%',
+            width: '33%',
             className: 'time-col',
             render: (text) => (<span>{text}</span>)
         }];
@@ -78,10 +81,16 @@ class EventDetail extends Component {
 
 
         return (
-            <div className="event-detail-page">
-                <div className="event-detail-page-title">
-                    <span className="title">事件</span>
-                    <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
+            <div className="event-detail-page detail-page">
+                <div className="event-detail-page-title detail-page-title">
+                    <div className="left">
+                        <span className="title">事件</span>
+                        <span className="count-title">记录条目</span>
+                        <span　className="count-value">{itemCount || 0}</span>
+                    </div>
+                    <div className="right">
+                        <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
+                    </div>
                 </div>
                 <Table onChange={this.tableOnChange} className="event-table" pagination={pagination} dataSource={dataSource} columns={columns} />
             </div>
@@ -151,7 +160,8 @@ const mapStateToProps = (state, props) => {
     const { posts } = state;
     return {
         actions: getActionList(state),
-        pagination: getPagination(state)
+        pagination: getPagination(state),
+        itemCount: posts.param.count
     };
 }
 

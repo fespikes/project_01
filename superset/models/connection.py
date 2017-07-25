@@ -21,8 +21,8 @@ import sqlalchemy as sqla
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy_utils import EncryptedType
 from sqlalchemy import (
-    Column, Integer, String, ForeignKey, Text, Boolean,
-    Table, LargeBinary, create_engine, MetaData, select
+    Column, Integer, String, ForeignKey, Text, Boolean, Table,
+    LargeBinary, create_engine, MetaData, select, UniqueConstraint
 )
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.sql import text
@@ -43,7 +43,7 @@ class Database(Model, AuditMixinNullable):
     type = "table"
 
     id = Column(Integer, primary_key=True)
-    database_name = Column(String(250), unique=True)
+    database_name = Column(String(250), nullable=False)
     description = Column(Text)
     online = Column(Boolean, default=False)
     sqlalchemy_uri = Column(String(1024))
@@ -61,6 +61,10 @@ class Database(Model, AuditMixinNullable):
         "connect_args": {}
     }
     """))
+
+    __table_args__ = (
+        UniqueConstraint('database_name', 'created_by_fk', name='database_name_owner_uc'),
+    )
 
     def __repr__(self):
         return self.database_name
@@ -333,7 +337,7 @@ class HDFSConnection(Model, AuditMixinNullable):
     type = 'table'
 
     id = Column(Integer, primary_key=True)
-    connection_name = Column(String(256), nullable=False, unique=True)
+    connection_name = Column(String(256), nullable=False)
     description = Column(Text)
     online = Column(Boolean, default=False)
     database_id = Column(Integer, ForeignKey('dbs.id'))
@@ -348,6 +352,10 @@ class HDFSConnection(Model, AuditMixinNullable):
         'Database',
         backref=backref('hdfs_connection', lazy='dynamic'),
         foreign_keys=[database_id])
+
+    __table_args__ = (
+        UniqueConstraint('connection_name', 'created_by_fk', name='connection_name_owner_uc'),
+    )
 
     def __repr__(self):
         return self.connection_name

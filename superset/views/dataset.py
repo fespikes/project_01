@@ -13,16 +13,21 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.views import AuthDBView
 from flask_appbuilder.security.sqla.models import User
 
+from fileRobot_client.FileRobotClientFactory import fileRobotClientFactory
+from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
+from fileRobot_common.conf.FileRobotVars import FileRobotVars
+
 from sqlalchemy import or_
 from superset import app, db, appbuilder
+from superset.utils import SupersetException
 from superset.models import (
     Database, Dataset, HDFSTable, HDFSConnection, Log, DailyNumber,
     TableColumn, SqlMetric
 )
 from superset.message import *
 from .base import (
-    SupersetModelView, catch_exception, get_user_id,
-    check_ownership, build_response
+    SupersetModelView, catch_exception, get_user_id, check_ownership,
+    build_response
 )
 
 config = app.config
@@ -85,13 +90,12 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     model = SqlMetric
     datamodel = SQLAInterface(SqlMetric)
     route_base = '/sqlmetric'
-    list_columns = ['id', 'metric_name', 'description',
-                    'metric_type', 'expression']
+    list_columns = [
+        'id', 'metric_name', 'description', 'metric_type', 'expression']
     _list_columns = list_columns
-
     show_columns = list_columns + ['dataset_id', 'dataset']
-    edit_columns = ['metric_name', 'description', 'metric_type',
-                    'expression', 'dataset_id']
+    edit_columns = [
+        'metric_name', 'description', 'metric_type', 'expression', 'dataset_id']
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
     description_columns = {}
@@ -208,8 +212,8 @@ class DatasetModelView(SupersetModelView):  # noqa
         if dataset_id:
             return self.get_object(dataset_id).preview_data(limit=rows)
         else:
-            dataset = Superset.temp_table(database_id, full_tb_name,
-                                          need_columns=False)
+            dataset = Dataset.temp_table(database_id, full_tb_name,
+                                         need_columns=False)
             return dataset.preview_data(limit=rows)
 
     @catch_exception
@@ -447,16 +451,21 @@ class DatasetModelView(SupersetModelView):  # noqa
         return HDFSTable.parse_file(file, **kwargs)
 
     @classmethod
-    def get_file(cls, **kwargs):
-        session = requests.Session()
-        server = kwargs.get('server')
-        HDFSBrowser.login_action(session, server, kwargs.get('username'),
-                                 kwargs.get('password'), kwargs.get('httpfs'))
-        resp = session.get("http://{}/filebrowser?action=preview&path={}" \
-                           .format(server, kwargs.get('path')))
-        if resp.status_code != requests.codes.ok:
-            resp.raise_for_status()
-        text = resp.text[1:-1]
+    def get_file(cls, server='', username='', password='', httpfs='', path=''):
+        if not server:
+            raise SupersetException('Cannot get HDFS_MICROSERVICES_SERVER from config.')
+        if not password:
+            raise SupersetException('Need password to access hdfs_micro_service, '
+                                    'try logout and then login.')
+        conf = FileRobotConfiguartion()
+        conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
+        client = fileRobotClientFactory.getInstance(conf)
+        response = client.login(username, password, httpfs)
+        response = client.preview(path)
+
+        if response.status_code != requests.codes.ok:
+            response.raise_for_status()
+        text = response.text[1:-1]
         return "\n".join(text.split("\\n"))
 
 

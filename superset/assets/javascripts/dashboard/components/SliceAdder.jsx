@@ -2,6 +2,7 @@ import $ from 'jquery';
 import React, { PropTypes } from 'react';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import ModalTrigger from '../../components/ModalTrigger';
+import { Table, Pagination } from 'antd';
 require('react-bootstrap-table/css/react-bootstrap-table.css');
 
 const propTypes = {
@@ -15,42 +16,59 @@ class SliceAdder extends React.Component {
         this.state = {
             slices: [],
             slicesLoaded: false,
-            selectionMap: {},
-        };
-
-        this.options = {
-            defaultSortOrder: 'desc',
-            defaultSortName: 'sliceName',
-            sizePerPage: 10,
+            selectedSliceIds: [],
+            pageSize: 10,
+            totalPage: 0,
+            pageNumber: 1
         };
 
         this.addSlices = this.addSlices.bind(this);
-        this.toggleSlice = this.toggleSlice.bind(this);
-
-        this.selectRowProp = {
-            mode: 'checkbox',
-            clickToSelect: true,
-            onSelect: this.toggleSlice,
-        };
+        this.onPageChange = this.onPageChange.bind(this);
+        this.keywordChange = this.keywordChange.bind(this);
     }
 
-    componentDidMount() {
-        const url = '/slice/listdata';
+    keywordChange(event) {
+        const keyword = event.target.value;
+        this.getSliceList(1, keyword);
+    }
+
+    onSelectChange = (selectedRowKeys, selectedRows) => {
+        let selectedSliceIds = [];
+        selectedRows.forEach(function(row) {
+            selectedSliceIds.push(row.id);
+        });
+        this.setState({
+            selectedSliceIds: selectedSliceIds
+        });
+    };
+
+    onPageChange(page) {
+        this.setState({
+            pageNumber: page
+        });
+        this.getSliceList(page, '');
+    }
+
+    addSlices() {
+        this.props.dashboard.addSlicesToDashboard(this.state.selectedSliceIds);
+    }
+
+    getSliceList(pageNumber, keyword) {
+        const self = this;
+        const url = '/slice/listdata?page=' + (pageNumber-1) + '&page_size=' + self.state.pageSize + '&filter=' + keyword;
         this.slicesRequest = $.ajax({
             url: url,
             type: 'GET',
             success: response => {
-                // Prepare slice data for table
-                const slices = $.parseJSON(response).data.map(slice => ({
-                    id: slice.id,
-                    sliceName: slice.slice_name,
-                    vizType: slice.viz_type,
-                }));
-
+                const slices = $.parseJSON(response).data;
+                const sliceCount = $.parseJSON(response).count;
+                const totalPage = Math.ceil(sliceCount/self.state.pageSize);
                 this.setState({
                     slices,
-                    selectionMap: {},
-                    slicesLoaded: true,
+                    selectedSliceIds: [],
+                    totalPage: totalPage,
+                    pageNumber: pageNumber,
+                    slicesLoaded: true
                 });
             },
             error: error => {
@@ -58,50 +76,85 @@ class SliceAdder extends React.Component {
                 this.setState({
                     errorMsg: this.props.dashboard.getAjaxErrorMsg(error),
                 });
-            },
+            }
         });
+    }
+
+    componentDidMount() {
+        //first load list
+        this.getSliceList(1, '');
     }
 
     componentWillUnmount() {
         this.slicesRequest.abort();
     }
 
-    addSlices() {
-        this.props.dashboard.addSlicesToDashboard(Object.keys(this.state.selectionMap));
-    }
-
-    toggleSlice(slice) {
-        const selectionMap = Object.assign({}, this.state.selectionMap);
-        selectionMap[slice.id] = !selectionMap[slice.id];
-        this.setState({ selectionMap });
-    }
-
-    modifiedDateComparator(a, b, order) {
-        if (order === 'desc') {
-            if (a.changed_on > b.changed_on) {
-                return -1;
-            } else if (a.changed_on < b.changed_on) {
-                return 1;
-            }
-            return 0;
-        }
-
-        if (a.changed_on < b.changed_on) {
-            return -1;
-        } else if (a.changed_on > b.changed_on) {
-            return 1;
-        }
-        return 0;
-    }
-
     render() {
         const hideLoad = this.state.slicesLoaded || this.errored;
-        let enableAddSlice = this.state.selectionMap && Object.keys(this.state.selectionMap);
-        if (enableAddSlice) {
-            enableAddSlice = enableAddSlice.some(function (key) {
-                return this.state.selectionMap[key];
-            }, this);
-        }
+        const enableAddSlice = this.state.selectedSliceIds && this.state.selectedSliceIds.length > 0;
+
+        const rowSelection = {
+            onChange: this.onSelectChange
+        };
+
+        const columns = [
+            {
+                title: '名称',
+                key: 'slice_name',
+                dataIndex: 'slice_name',
+                width: '40%',
+                render: (text, record) => {
+                    return (
+                        <div className="entity-name">
+                            <div className="entity-title">
+                                {record.slice_name}
+                            </div>
+                            <div
+                                className="entity-description"
+                                style={{
+                                    textOverflow:'ellipsis',
+                                    whiteSpace:'nowrap',
+                                    overflow:'hidden',
+                                    maxWidth:'230px'
+                                }}
+                            >
+                                {record.description}
+                            </div>
+                        </div>
+                    )
+                },
+                sorter(a, b) {
+                    return a.slice_name.substring(0, 1).charCodeAt() - b.slice_name.substring(0, 1).charCodeAt();
+                }
+            }, {
+                title: '图表类型',
+                dataIndex: 'viz_type',
+                key: 'viz_type',
+                width: '20%',
+                sorter(a, b) {
+                    return a.viz_type.substring(0, 1).charCodeAt() - b.viz_type.substring(0, 1).charCodeAt();
+                }
+            }, {
+                title: '数据集',
+                dataIndex: 'datasource',
+                key: 'datasource',
+                width: '20%',
+                sorter(a, b) {
+                    return a.datasource.substring(0, 1).charCodeAt() - b.datasource.substring(0, 1).charCodeAt();
+                }
+            }, {
+                title: '所有者',
+                dataIndex: 'created_by_user',
+                key: 'created_by_user',
+                width: '20%',
+                sorter(a, b) {
+                    return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
+                }
+            }
+        ];
+
+        const modalTitle = "添加工作表";
+        const modalIcon = "icon icon-plus";
         const modalContent = (
             <div>
                 <img
@@ -113,41 +166,38 @@ class SliceAdder extends React.Component {
                     {this.state.errorMsg}
                 </div>
                 <div className={this.state.slicesLoaded ? '' : 'hidden'}>
-                    <BootstrapTable
-                        ref="table"
-                        data={this.state.slices}
-                        selectRow={this.selectRowProp}
-                        options={this.options}
-                        hover
-                        search
-                        pagination
-                        condensed
-                        height="auto"
-                        >
-                        <TableHeaderColumn
-                            dataField="sliceName"
-                            isKey
-                            dataSort
-                        >
-                            Name
-                        </TableHeaderColumn>
-                        <TableHeaderColumn
-                            dataField="vizType"
-                            dataSort
-                        >
-                            Viz
-                        </TableHeaderColumn>
-                    </BootstrapTable>
-                    <button
-                        type="button"
-                        className="btn btn-default"
-                        data-dismiss="modal"
-                        onClick={this.addSlices}
-                        disabled={!enableAddSlice}
-                    >
-                        Add Slices
-                    </button>
+                    <div className="search-input">
+                        <input onChange={this.keywordChange} placeholder="search..." />
+                        <i className="icon icon-search"/>
+                    </div>
+                    <Table
+                        rowSelection={rowSelection}
+                        dataSource={this.state.slices}
+                        columns={columns}
+                        pagination={false}
+                    />
+                    <Pagination
+                        size="small"
+                        style={{textAlign: 'right', marginTop: 10}}
+                        pageSize={this.state.pageSize}
+                        total={this.state.totalPage}
+                        current={this.state.pageNumber}
+                        onChange={this.onPageChange}
+                    />
                 </div>
+            </div>
+        );
+        const modalFooter = (
+            <div>
+                <button
+                    type="button"
+                    className="btn btn-default"
+                    data-dismiss="modal"
+                    onClick={this.addSlices}
+                    disabled={!enableAddSlice}
+                >
+                    添加
+                </button>
             </div>
         );
 
@@ -155,10 +205,11 @@ class SliceAdder extends React.Component {
             <ModalTrigger
                 triggerNode={this.props.triggerNode}
                 isButton
+                className='popup-modal-add-slice'
                 modalBody={modalContent}
-                bsSize="large"
-                modalIcon="icon icon-plus"
-                modalTitle="添加工作表"
+                modalIcon={modalIcon}
+                modalTitle={modalTitle}
+                modalFooter={modalFooter}
             />
         );
     }

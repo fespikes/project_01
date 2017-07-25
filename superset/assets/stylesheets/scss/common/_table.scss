@@ -2,6 +2,29 @@
     width: 100%;
 }
 
+thead.ant-table-thead > tr > th.ant-table-column-sort {
+    background-color: #fff;
+}
+
+thead.ant-table-thead > tr >th .ant-table-column-sorter {
+    height: auto;
+    span.ant-table-column-sorter-up, span.ant-table-column-sorter-down {
+        width: 50px;
+        height: 15px;
+        display: block;
+        text-align: left;
+        position: relative;
+    }
+    i.anticon-caret-up {
+        position: absolute;
+        bottom: 0;
+    }
+    i.anticon-caret-down {
+        position: absolute;
+        top: 0;
+    }
+}
+
 table {
     thead.ant-table-thead > tr > th {
         height:40px;

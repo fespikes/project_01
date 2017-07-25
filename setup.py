@@ -44,6 +44,7 @@ setup(
         'celery==3.1.23',
         'configobj==5.0.6',
         'cryptography==1.5.3',
+        'fileRobot-client==0.0.1',
         'flask-appbuilder==1.8.1',
         'flask-cache==0.13.1',
         'Flask-Cors>=2.0.0',

@@ -1090,7 +1090,7 @@ class FormFactory(object):
         # datasource type specific form elements
         datasource_classname = viz.datasource.__class__.__name__
         time_fields = None
-        if datasource_classname == 'SqlaTable':
+        if datasource_classname == 'Dataset':
             QueryForm.fieldsets += ({
                 'label': _('SQL'),
                 'fields': ['where', 'having'],

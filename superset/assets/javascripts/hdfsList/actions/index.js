@@ -30,9 +30,12 @@ export const CONSTANT = {
     remove: 'remove'
 }
 
-const ORIGIN = window.location.origin;
+//const ORIGIN = window.location.origin;
+const ORIGIN = `http://172.16.3.108:5000`;
+//const ORIGIN = `http://172.16.11.105:5000`;
+
 const connectionListUrl = `${ORIGIN}/connection/listdata`;
-const baseURL = `${ORIGIN}/hdfsfilebrowser?`;
+const baseURL = `${ORIGIN}/filebrowser?`;
 
 const errorHandler = error => alert(error);
 
@@ -293,24 +296,24 @@ function applyFetch(condition) {
             });
             return json;
         }
+        return fetch(URL, {
+            headers: myHeaders,
+            credentials: 'include',
+            method: 'GET',
+            mode: 'cors'
+        })
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
+        )
+            .then(json => {
+                dispatch(receiveData(condition, dataMatch(json)));
+            });
 
-        /*      return fetch(URL, {
-                    credentials: 'include',
-                    method: 'GET'
-                })
-                .then(
-                    response => response.ok?
-                        response.json() : (response => errorHandler(response))(response),
-                    error => errorHandler(error)
-                )
-                .then(json => {
-                    dispatch(receiveData(condition, dataMatch(json)));
-                });
-        */
-
-        let mockFunc = function() {
-            dispatch(receiveData(condition, dataMatch(connectionsMock)));
-        }();
+    /*let mockFunc = function () {
+        dispatch(receiveData(condition, dataMatch(connectionsMock)));
+    }();*/
     };
 }
 

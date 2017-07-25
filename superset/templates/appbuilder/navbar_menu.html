@@ -9,28 +9,30 @@
     {% if item1 | is_menu_visible %}
         {% if item1.childs %}
             <li class="dropdown nav-li">
-            <a class="dropdown-toggle" href="javascript:void(0)">
-            {% if item1.icon %}
-                <i class="icon"></i>
-            {% endif %}
-            {{_(item1.label)}}
-            <i class="icon-caret"></i></a>
-            <ul class="dropdown-menu">
-            {% set divider = False %}
-            {% for item2 in item1.childs %}
-                {% if item2.name == '-' %}
-                    {% set divider = True %}
-                {% else %}
-                    {% if item2 | is_menu_visible %}
-                        {% if divider %}
-                            <li class="divider"></li>
-                            {% set divider = False %}
-                        {% endif %}
-                        <li>{{ menu_item(item2) }}</li>
+                <a class="dropdown-toggle p-dropdown-toggle" href="javascript:void(0)">
+                    {% if item1.icon %}
+                        <i class="icon"></i>
                     {% endif %}
-                {% endif %}
-            {% endfor %}
-            </ul></li>
+                    {{_(item1.label)}}
+                    <i class="icon-caret"></i>
+                </a>
+                <ul class="dropdown-menu">
+                {% set divider = False %}
+                {% for item2 in item1.childs %}
+                    {% if item2.name == '-' %}
+                        {% set divider = True %}
+                    {% else %}
+                        {% if item2 | is_menu_visible %}
+                            {% if divider %}
+                                <li class="divider"></li>
+                                {% set divider = False %}
+                            {% endif %}
+                            <li>{{ menu_item(item2) }}</li>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                </ul>
+            </li>
         {% else %}
             <li class="nav-li">
                 <a tabindex="-1" href="{{item1.get_url()}}">

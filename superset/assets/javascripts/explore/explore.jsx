@@ -31,6 +31,8 @@ const getPanelClass = function (fieldPrefix) {
     return (fieldPrefix === 'flt' ? 'filter' : 'having') + '_panel';
 };
 
+let sliceResultData = {};
+
 function prepForm() {
     // Assigning the right id to form elements in filters
     const fixId = function ($filter, fieldPrefix, i) {
@@ -400,7 +402,7 @@ function generateTableView(previewData) {
         dataSource.push(dataItem);
     });
 
-    return <Table columns={columns} dataSource={dataSource} />;
+    return <Table columns={columns} dataSource={dataSource} className="slice-detail-table"/>;
 }
 
 
@@ -411,27 +413,31 @@ function renderViewTab() {
     function onChange(event) {
         if(event.target.value === "graph") {
             $('.graph-view').css('display', 'block');
-            $('.table-view').css('display', 'none');
-        }else if(event.target.value === "table") {
-            let datasourceId = viewTabEl.getAttribute('datasourceId');
-            let url = window.location.origin + "/table/preview_data?dataset_id=" + datasourceId;
+            $('.result-view').css('display', 'none');
+            $('.original-view').css('display', 'none');
+        }else if(event.target.value === "original") {
+            const datasourceId = viewTabEl.getAttribute('datasourceId');
+            const url = window.location.origin + "/table/preview_data?dataset_id=" + datasourceId;
             $.ajax({
                 url: url,
                 type: 'GET',
                 success: response => {
-                    renderPreviewData(response);
+                    renderPreviewOriginalData(response);
                 },
                 error: error => {
                     console.log(error);
                 }
             });
+        }else if(event.target.value === "result") {
+            renderPreviewResultData(sliceResultData);
         }
     }
     ReactDOM.render(
         <div>
             <RadioGroup onChange={onChange} defaultValue="graph">
                 <RadioButton value="graph">图表</RadioButton>
-                <RadioButton value="table">数据预览</RadioButton>
+                <RadioButton value="result">结果集</RadioButton>
+                <RadioButton value="original">源数据</RadioButton>
             </RadioGroup>
         </div>, viewTabEl
     );
@@ -439,15 +445,24 @@ function renderViewTab() {
 
 function refreshPreviewData(slice) {
     if(slice.data && slice.data.dataframe) {
-        renderPreviewData(slice.data.dataframe);
+        sliceResultData = slice.data.dataframe;
     }
 }
 
-function renderPreviewData(data) {
-    let table = generateTableView(data);
+function renderPreviewResultData(data) {
+    const table = generateTableView(data);
     $('.graph-view').css('display', 'none');
-    $('.table-view').css('display', 'block');
-    ReactDOM.render(table, document.getElementById('table-view-preview'));
+    $('.result-view').css('display', 'block');
+    $('.original-view').css('display', 'none');
+    ReactDOM.render(table, document.getElementById('table-view-result'));
+}
+
+function renderPreviewOriginalData(data) {
+    const table = generateTableView(data);
+    $('.graph-view').css('display', 'none');
+    $('.result-view').css('display', 'none');
+    $('.original-view').css('display', 'block');
+    ReactDOM.render(table, document.getElementById('table-view-original'));
 }
 
 function initComponents() {

@@ -52,10 +52,10 @@ class DataTendency extends Component {
             <div>
                 <aside className="data-tendency white-bg-and-border-radius">
                     <hgroup className="data-title">
-                        <h2>
+                        <h2 className={catagory === 'dashboard' ? 'selected' : ''}>
                             <dl onClick={ () => {onChangeCatagory('dashboard')}}>
                                 <dt className="margin-left-20px">
-                                    <i className="icon dashboard-icon"></i>
+                                    <i className="icon dashboard-icon"/>
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.dashboard ? counts.dashboard : 0}</div>
@@ -63,10 +63,10 @@ class DataTendency extends Component {
                                 </dd>
                             </dl>
                         </h2>
-                        <h2>
+                        <h2 className={catagory === 'slice' ? 'selected' : ''}>
                             <dl onClick={ () => {onChangeCatagory('slice')}}>
                                 <dt>
-                                    <i className="icon slice-icon"></i>
+                                    <i className="icon slice-icon"/>
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.slice ? counts.slice : 0}</div>
@@ -75,10 +75,10 @@ class DataTendency extends Component {
 
                             </dl>
                         </h2>
-                        <h2>
+                        <h2 className={catagory === 'connection' ? 'selected' : ''}>
                             <dl onClick={ () => {onChangeCatagory('connection')}}>
                                 <dt>
-                                    <i className="icon connection-icon"></i>
+                                    <i className="icon connection-icon"/>
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.connection ? counts.connection : 0}</div>
@@ -86,10 +86,10 @@ class DataTendency extends Component {
                                 </dd>
                             </dl>
                         </h2>
-                        <h2>
+                        <h2 className={catagory === 'dataset' ? 'selected' : ''}>
                             <dl onClick={ () => {onChangeCatagory('dataset')}}>
                                 <dt>
-                                    <i className="icon dataset-icon"></i>
+                                    <i className="icon dataset-icon"/>
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.dataset ? counts.dataset : 0}</div>
