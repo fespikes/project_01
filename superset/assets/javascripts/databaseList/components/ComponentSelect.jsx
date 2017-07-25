@@ -29,17 +29,19 @@ class ComponentSelect extends React.Component {
         let flag = true;
         $(document).bind("click",function(e){
             let targetEl = document.getElementById('selectionToggle');
-            let x = e.clientX;
-            let y = e.clientY;
-            let minX = getEleOffsetLeft(targetEl);
-            let minY = getEleOffsetTop(targetEl);
-            let maxX = minX + targetEl.offsetWidth;
-            let maxY = minY + targetEl.offsetHeight;
-            if(flag && (x<minX || x>maxX || y<minY || y>maxY)){
-                self.setState({
-                    opened: false
-                });
-                return;
+            if(targetEl) {
+                let x = e.clientX;
+                let y = e.clientY;
+                let minX = getEleOffsetLeft(targetEl);
+                let minY = getEleOffsetTop(targetEl);
+                let maxX = minX + targetEl.offsetWidth;
+                let maxY = minY + targetEl.offsetHeight;
+                if(flag && (x<minX || x>maxX || y<minY || y>maxY)){
+                    self.setState({
+                        opened: false
+                    });
+                    return;
+                }
             }
         });
     }
