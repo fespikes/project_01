@@ -120,7 +120,7 @@ class Main extends Component {
     <small className="crumb">/</small>
 </span>*/}
 
-                        <textarea rows="1" cols="30" contentEditable={editable}
+                        <textarea rows="1" contentEditable={editable}
                             className={(editable?'editing':'')+' f16'}
                             name="pathName"
                             onBlur={e => this.onPathBlur(e)}

@@ -314,9 +314,9 @@ function applyFetch(condition) {
                 obj.key = index + 1;
             });
             return json;
-        }
+        };
+
         return fetch(URL, {
-            headers: myHeaders,
             credentials: 'include',
             method: 'GET',
             mode: 'cors'
