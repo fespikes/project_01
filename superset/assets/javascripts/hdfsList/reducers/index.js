@@ -2,12 +2,12 @@ import { combineReducers } from 'redux';
 import { actionTypes, popupActions, popupNormalActions } from '../actions';
 
 function condition(state = {
-        page: 0,
-        pageSize: 10,
+        page_num: 0,
+        page_size: 10,
         //order_column,：取值：'name','online','changed_on','connection_type', 'owner';默认：'changed_on'.
         //order_direction: 取值：'desc' or 'asc', 默认：'desc'
         filter: '',
-        path: '',
+        path: '/usr',
 
         selectedRowKeys: [],
         selectedRowNames: [],

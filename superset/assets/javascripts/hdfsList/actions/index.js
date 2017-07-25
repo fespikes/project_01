@@ -30,12 +30,28 @@ export const CONSTANT = {
     remove: 'remove'
 }
 
-//const ORIGIN = window.location.origin;
-const ORIGIN = `http://172.16.3.108:5000`;
-//const ORIGIN = `http://172.16.11.105:5000`;
+const ORIGIN = window.location.origin;
+const baseURL = `${ORIGIN}/hdfs/`;
 
-const connectionListUrl = `${ORIGIN}/connection/listdata`;
-const baseURL = `${ORIGIN}/filebrowser?`;
+// const urlDown = baseURL + `download/?path=/tmp/test_upload.txt   GET 下载  None    200，400，404 
+// ?
+// /hdfs/upload/?dest_path=/tmp&filename=test.txt  POST    上传
+
+// filename:上传后保存的文件名； 文件内容以二进制post    200，400 
+// ?
+// /hdfs/remove/?path=/tmp/test_upload.txt GET 删除  None    200，400，404 
+// ?
+// /hdfs/move/?path=/tmp/test_upload.txt&dest_path=/tmp/testdir    GET 移动  None    200，400，404 
+// ?
+// /hdfs/copy/?path=/tmp/testdir/test_upload.txt&dest_path=/tmp    GET 拷贝  None    200，400，404 
+// ?
+// /hdfs/mkdir/?path=/tmp&dir_name=testdir GET 创建目录    None    200，400 
+// ?
+// /hdfs/rmdir/?path=/tmp/testdir  GET 删除目录    None    200，400 
+// ?
+// /hdfs/preview/?path=/tmp/test_upload.txt    GET 预览文件    None    200，400 
+// ?
+// /hdfs/chmod/?path=/tmp/test_upload.txt&mode=0o777
 
 const errorHandler = error => alert(error);
 
@@ -285,10 +301,13 @@ function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
 
-        const URL = baseURL + 'action=list&' +
-        (condition.connectionId ? 'connection_id=' + condition.connectionId : '');
+        const URL = baseURL + `list/?` +
+        (condition.path ? ('path=' + condition.path + '&') : '') +
+        (condition.page_num !== undefined ? ('page_num=' + condition.page_num + '&') : '') +
+        (condition.page_size ? 'page_size=' + condition.page_size : '');
 
-        const errorHandler = (error => alert(error));
+        // const urlListUnderPath = baseURL + `list/` //?path=/tmp&page_num=0&page_size=10   GET 列出目录下所有文件   
+
         const dataMatch = json => {
             if (!json.files) return json;
             json.files.map(function(obj, index, arr) {
@@ -310,10 +329,10 @@ function applyFetch(condition) {
             .then(json => {
                 dispatch(receiveData(condition, dataMatch(json)));
             });
+            /*let mockFunc = function () {
+                dispatch(receiveData(condition, dataMatch(connectionsMock)));
+            }();*/
 
-    /*let mockFunc = function () {
-        dispatch(receiveData(condition, dataMatch(connectionsMock)));
-    }();*/
     };
 }
 

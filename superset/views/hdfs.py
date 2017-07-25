@@ -197,7 +197,6 @@ class HDFSBrowser(BaseView):
         response = client.login(username, password, httpfs)
         return client, response
 
-
 appbuilder.add_view_no_menu(HDFSBrowser)
 appbuilder.add_link(
     'HDFS Browser',
