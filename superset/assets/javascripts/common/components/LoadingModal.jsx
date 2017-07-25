@@ -26,7 +26,7 @@ class LoadingModal extends React.Component {
         return (
             <div className="loading-overlay" ref="loading">
                 <div className="transwarp-spinner-img"></div>
-                <img className="loading-image"/>
+                <div className="loading-image"></div>
             </div>
         );
     }

@@ -5,6 +5,9 @@ import React from 'react';
 import { render } from 'react-dom';
 import PropTypes from 'prop-types';
 import { Link }  from 'react-router-dom';
+import { getEleOffsetLeft, getEleOffsetTop } from '../../../utils/utils'
+
+const $ = window.$ = require('jquery');
 
 class ComponentSelect extends React.Component {
     constructor(props) {
@@ -15,10 +18,29 @@ class ComponentSelect extends React.Component {
         this.onToggle = this.onToggle.bind(this);
     }
 
-    onToggle() {
+    onToggle(event) {
+        event.stopPropagation();
         let opened = this.state.opened;
         this.setState({
             opened: !opened
+        });
+
+        const self = this;
+        let flag = true;
+        $(document).bind("click",function(e){
+            let targetEl = document.getElementById('selectionToggle');
+            let x = e.clientX;
+            let y = e.clientY;
+            let minX = getEleOffsetLeft(targetEl);
+            let minY = getEleOffsetTop(targetEl);
+            let maxX = minX + targetEl.offsetWidth;
+            let maxY = minY + targetEl.offsetHeight;
+            if(flag && (x<minX || x>maxX || y<minY || y>maxY)){
+                self.setState({
+                    opened: false
+                });
+                return;
+            }
         });
     }
 
@@ -52,7 +74,7 @@ class ComponentSelect extends React.Component {
 
         return (
             <div className="component-select">
-                <div className="selection-toggle" onClick={this.onToggle}>
+                <div id="selectionToggle" className="selection-toggle" onClick={this.onToggle}>
                     <i className="icon icon-plus"/>
                     <span>{this.state.selected || "请选择"}</span>
                 </div>

@@ -6,7 +6,7 @@ import { LoadingModal } from '../javascripts/common/components';
 export function renderLoadingModal() {
     const loadingModal = render(
         <LoadingModal />,
-        document.getElementById('popup_root'));
+        document.getElementById('loading_root'));
 
     return loadingModal;
 }
@@ -25,4 +25,35 @@ export function renderAlertTip(response, mountId) {
     setTimeout(function() {
         ReactDOM.unmountComponentAtNode(document.getElementById(mountId));
     }, 5000);
+}
+
+export function getDatabaseDefaultParams() {
+    const defaultParams = {
+        "connect_args": {
+            "framed": 0,
+            "hive": "Hive Server 2",
+            "mech": "LDAP"
+        }
+    };
+    return defaultParams;
+}
+
+export function getEleOffsetLeft(element) {
+    var actualLeft = element.offsetLeft;
+    var current = element.offsetParent;
+    while (current !== null){
+        actualLeft += current.offsetLeft;
+        current = current.offsetParent;
+    }
+    return actualLeft;
+}
+
+export function getEleOffsetTop(element) {
+    var actualTop = element.offsetTop;
+    var current = element.offsetParent;
+    while (current !== null){
+        actualTop += current.offsetTop;
+        current = current.offsetParent;
+    }
+    return actualTop;
 }
