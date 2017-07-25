@@ -55,27 +55,25 @@
     }
 }
 
-#table-view-preview {
-    .ant-table-body {
-        overflow: auto;
-        .ant-table-thead {
-            th {
-                background: #f7f7f7;
-                border: solid 1px #ecedf0;
-                text-align: left;
-                padding-left: 20px;
-                font-weight: bold;
-                color: #7f8fa4;
-                min-width: 140px;
-            }
+#table-view-preview .ant-table-body {
+    overflow: auto;
+    .ant-table-thead {
+        th {
+            background: #f7f7f7;
+            border: solid 1px #ecedf0;
+            text-align: left;
+            padding-left: 20px;
+            font-weight: bold;
+            color: #7f8fa4;
+            min-width: 140px;
         }
+    }
 
-        .ant-table-tbody {
-            td {
-                text-align: left;
-                padding-left: 20px;
-                min-width: 140px;
-            }
+    .ant-table-tbody {
+        td {
+            text-align: left;
+            padding-left: 20px;
+            min-width: 140px;
         }
     }
 }

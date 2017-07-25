@@ -35,7 +35,9 @@ div.ant-select-dropdown {
     ul.ant-select-tree {
 
         > li > span.ant-select-tree-node-content-wrapper {
-            //cursor: not-allowed;
+            cursor: not-allowed;
+            display: inline-block;
+            width: 100%;
             &:hover {
                 background-color: #fff
             }
