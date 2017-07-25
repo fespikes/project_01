@@ -56,11 +56,11 @@ export default class ModalTrigger extends React.Component {
                 <Modal.Header>
                     <div className="popup-header">
                         <div className="header-left">
-                            <i className={this.props.modalIcon}></i>
+                            <i className={this.props.modalIcon}/>
                             <span>{this.props.modalTitle}</span>
                         </div>
                         <div className="header-right">
-                            <i className="icon icon-close" onClick={this.close}></i>
+                            <i className="icon icon-close" onClick={this.close}/>
                         </div>
                     </div>
                 </Modal.Header>

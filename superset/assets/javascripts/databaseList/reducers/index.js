@@ -10,10 +10,6 @@ function condition(state = {
     orderDirection: 'desc',//取值 ('desc' or 'asc'),
     filter: '',//搜索字符串,
     tableType: 'all',//选择数据集类型时需要('database','hdfs', 'upload');
-
-//    onlyFavorite: 0,//全部or收藏，取值 (0 or 1),
-//    order_column,
-//    table_id: list column/metric时需要
 }, action) {
     switch (action.type) {
         case actionTypes.navigateTo:

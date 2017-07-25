@@ -161,6 +161,7 @@ class SubPreview extends Component {
                 <div className="preview-table">
                     <div className={datasetType==='INCEPTOR'?'table-header':'none'} style={{width: tableWidth}}>
                         <Table
+                            className="data-preview"
                             columns={tbTitle}
                             dataSource={tbType}
                             size='small'

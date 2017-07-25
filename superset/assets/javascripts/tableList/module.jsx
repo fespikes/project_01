@@ -187,7 +187,7 @@ export function getDatasetTitle(opeType, datasetType) {
 export function getDatasetTab2Name(datasetType) {
     let tab2Name = "配置";
     if(datasetType === 'INCEPTOR') {
-        tab2Name = '预览';
+        tab2Name = '数据预览';
     }
     return tab2Name;
 }

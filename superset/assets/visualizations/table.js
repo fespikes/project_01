@@ -22,7 +22,6 @@ function tableVis(slice) {
             return;
         }
         function onSuccess(json) {
-            console.log('json=', json);
             const data = json.data;
             const fd = json.form_data;
             // Removing metrics (aggregates) that are strings

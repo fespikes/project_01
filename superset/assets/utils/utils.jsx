@@ -37,7 +37,6 @@ export function getDatabaseDefaultParams() {
     };
     return defaultParams;
 }
-
 export function getEleOffsetLeft(element) {
     var actualLeft = element.offsetLeft;
     var current = element.offsetParent;

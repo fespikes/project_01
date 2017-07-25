@@ -14,7 +14,8 @@ from flask import escape, g, Markup
 from flask_appbuilder import Model
 from flask_appbuilder.models.decorators import renders
 from sqlalchemy import (
-    Column, Integer, String, ForeignKey, Text, Boolean, Table,  MetaData,
+    Column, Integer, String, ForeignKey, Text, Boolean, Table,
+    MetaData, UniqueConstraint
 )
 from sqlalchemy.orm import relationship, subqueryload
 from sqlalchemy.orm.session import make_transient
@@ -52,6 +53,10 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     department = Column(Text)
     cache_timeout = Column(Integer)
     owners = relationship("User", secondary=slice_user)
+
+    __table_args__ = (
+        UniqueConstraint('slice_name', 'created_by_fk', name='slice_name_owner_uc'),
+    )
 
     export_fields = ('slice_name', 'datasource_type', 'datasource_name',
                      'viz_type', 'params', 'cache_timeout')
@@ -252,6 +257,10 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     slices = relationship(
         'Slice', secondary=dashboard_slices, backref='dashboards')
     owners = relationship("User", secondary=dashboard_user)
+
+    __table_args__ = (
+        UniqueConstraint('dashboard_title', 'created_by_fk', name='dashboard_title_owner_uc'),
+    )
 
     export_fields = ('dashboard_title', 'position_json', 'json_metadata',
                      'description', 'css', 'slug')

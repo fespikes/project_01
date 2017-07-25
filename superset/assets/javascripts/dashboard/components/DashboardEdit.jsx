@@ -93,8 +93,8 @@ class DashboardEdit extends React.Component {
                 selectedSlices: value
             });
         }
-        const modalTitle = "编辑工作表";
-        const modalIcon = "icon icon-dashboard-popup"
+        const modalTitle = "编辑仪表盘";
+        const modalIcon = "icon icon-dashboard-popup";
         const modalContent = (
             <div>
                 <img
@@ -119,8 +119,11 @@ class DashboardEdit extends React.Component {
                         <span>描述：</span>
                     </div>
                     <div className="item-right">
-                        <textarea className="dialog-area" value={this.state.dashboard.description}
-                              onChange={this.handleDescriptionChange}></textarea>
+                        <textarea
+                            className="dialog-area"
+                            value={this.state.dashboard.description}
+                            onChange={this.handleDescriptionChange}
+                        />
                     </div>
                 </div>
                 <div className="dialog-item">

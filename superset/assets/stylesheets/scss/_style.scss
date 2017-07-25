@@ -1,7 +1,8 @@
 @import './common/table';
 @import './common/icon';
-@import "./common/select";
-@import "./common/componentSelect";
+@import './common/select';
+@import './common/componentSelect';
+@import './golbal';
 @import './reset';
 @import './common';
 @import './home';
@@ -10,11 +11,11 @@
 @import './OSQL';
 @import './popup';
 @import './explore';
-@import './_DashboardList';
-@import './_overlay';
+@import './DashboardList';
 @import './pilot';
 @import './slice';
 @import './dashboard';
 @import './sqlEditor';
 @import './sqlSearch';
+@import './navbar';
 

@@ -15,17 +15,15 @@ export default function popupParam(state = {
     datasetType: 'inceptor',     //uploadFile HDFS inceptor
     databaseName: '',
     sqlalchemyUri: '',
-    args: '',
-
+    databaseArgs: '',
     descriptionInceptor: '',
-    descriptionHDFS: '',
+    connectionNames:[],
 
     //2.datasetType: 'HDFS'
-    connectionName:'',      //连接名  /database/listdata   param-》 page_size:1000
-    databaseId:2,      //related to above name
-    httpfs:'httpfs',
-
-    connectionNames:[],
+    connectionName: '',      //连接名  /database/listdata   param-》 page_size:1000
+    databaseId: '',      //related to above name
+    httpfs: '',
+    descriptionHDFS: '',
 
     //popup callbacks
     submit: argu=>argu,
@@ -40,6 +38,9 @@ export default function popupParam(state = {
             break;
         case actionTypes.setPopupParam:
             return {...state, ...action.param};
+            break;
+        case actionTypes.clearPopupParams:
+            return {...state, ...action.params};
             break;
         case actionTypes.changePopupStatus:
             return {...state, status:action.status};
