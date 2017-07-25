@@ -47,7 +47,7 @@ class HDFSBrowser(BaseView):
         self.hdfs_conn_id = None
 
     @catch_exception
-    @expose('/render_html/')
+    @expose('/')
     def render_html(self):
         return self.render_template('superset/hdfsList.html')
 
@@ -89,11 +89,11 @@ class HDFSBrowser(BaseView):
     @catch_exception
     @ensure_logined
     @expose('/upload/', methods=['POST'])
-    def upload_to_hdfs(self):
+    def upload(self):
         f = request.data
         dest_path = request.args.get('dest_path')
-        filename = request.args.get('filename')
-        response = self.client.upload(dest_path, {'file': (filename, f)})
+        file_name = request.args.get('file_name')
+        response = self.client.upload(dest_path, {'file': (file_name, f)})
         return Response(response.text)
 
     @catch_exception
@@ -201,7 +201,7 @@ class HDFSBrowser(BaseView):
 appbuilder.add_view_no_menu(HDFSBrowser)
 appbuilder.add_link(
     'HDFS Browser',
-    href='/hdfs/render_html/',
+    href='/hdfs/',
     label=__("HDFS Browser"),
     icon="fa-flask",
     category='',

@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from datetime import datetime
+import re
 import json
 import logging
 import traceback
@@ -50,6 +51,11 @@ def catch_exception(f):
     def wraps(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
+        except sqla.exc.IntegrityError as e:
+            logging.exception(e)
+            m = re.compile(r'"(.*)"').search(e.args[0])
+            msg = m.group(1) if len(m.groups()) else str(e)
+            return json_error_response(msg)
         except Exception as e:
             logging.exception(e)
             return json_error_response(str(e))

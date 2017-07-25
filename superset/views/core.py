@@ -738,11 +738,9 @@ class Superset(BaseSupersetView):
             return redirect(slc.slice_url)
 
     def save_slice(self, slc):
-        session = db.session()
-        msg = "Slice [{}] has been saved".format(slc.slice_name)
-        session.add(slc)
-        session.commit()
-        flash(msg, "info")
+        db.session.add(slc)
+        db.session.commit()
+        flash("Slice [{}] has been saved".format(slc.slice_name), "info")
         action_str = 'Add slice: [{}]'.format(slc.slice_name)
         log_action('add', action_str, 'slice', slc.id)
         log_number('slice', slc.online, get_user_id())
@@ -752,11 +750,9 @@ class Superset(BaseSupersetView):
         if not can_update:
             flash("You cannot overwrite [{}]".format(slc), "danger")
         else:
-            session = db.session()
-            session.merge(slc)
-            session.commit()
-            msg = "Slice [{}] has been overwritten".format(slc.slice_name)
-            flash(msg, "info")
+            db.session.merge(slc)
+            db.session.commit()
+            flash("Slice [{}] has been overwritten".format(slc.slice_name), "info")
             action_str = 'Edit slice: [{}]'.format(slc.slice_name)
             log_action('edit', action_str, 'slice', slc.id)
 
