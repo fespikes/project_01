@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 import json
 import requests
-from flask import g, request
+from flask import g, request, Response
 from flask_babel import gettext as __
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
@@ -200,7 +200,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/dataset_types/', methods=['GET', ])
     def dataset_types(self):
-        return json.dumps(list(set(self.model.dataset_type_dict.values())))
+        return json.dumps(['INCEPTOR', 'HDFS', 'UPLOAD FILE'])
 
     @catch_exception
     @expose('/preview_data/', methods=['GET', ])
@@ -215,35 +215,6 @@ class DatasetModelView(SupersetModelView):  # noqa
             dataset = Dataset.temp_table(database_id, full_tb_name,
                                          need_columns=False)
             return dataset.preview_data(limit=rows)
-
-    @catch_exception
-    @expose('/preview_file/', methods=['GET', ])
-    def preview_file(self):
-        args = {}
-        args['path'] = request.args.get('path')
-        args['hdfs_connection_id'] = request.args.get('hdfs_connection_id')
-        args['separator'] = request.args.get('separator', ',')
-        args['quote'] = request.args.get('quote', '"')
-        args['skip_rows'] = int(request.args.get('skip_rows', 0))
-        args['next_as_header'] = request.args.get('next_as_header', False)
-        args['skip_more_rows'] = int(request.args.get('skip_more_rows', 0))
-        args['charset'] = request.args.get('charset', 'utf-8')
-        args['nrows'] = int(request.args.get('nrows', 100))
-        args['names'] = request.args.get('names')
-        args['username'] = g.user.username
-        args['password'] = AuthDBView.mock_user.get(g.user.username)
-        args['server'] = config.get('HDFS_MICROSERVICES_SERVER')
-
-        conn_id = args.get('hdfs_connection_id')
-        conn = db.session.query(HDFSConnection).filter_by(id=conn_id).first()
-        if not conn:
-            raise Exception("Not found HDFS connection by id: [{}]".format(conn_id))
-        args['httpfs'] = conn.httpfs
-        df = self.parse_hdfs_file(**args)
-        return json.dumps(dict(
-            records=df.to_dict(orient="records"),
-            columns=list(df.columns),)
-        )
 
     @catch_exception
     @expose('/add', methods=['POST', ])
@@ -442,34 +413,9 @@ class DatasetModelView(SupersetModelView):  # noqa
         log_action('delete', action_str, 'dataset', table.id)
         log_number('dataset', table.online, get_user_id())
 
-    @classmethod
-    def parse_hdfs_file(cls, **kwargs):
-        file = HDFSTable.cached_file.get(kwargs.get('path'))
-        if not file:
-            file = cls.get_file(**kwargs)
-            HDFSTable.cached_file[kwargs.get('path')] = file
-        return HDFSTable.parse_file(file, **kwargs)
-
-    @classmethod
-    def get_file(cls, server='', username='', password='', httpfs='', path=''):
-        if not server:
-            raise SupersetException('Cannot get HDFS_MICROSERVICES_SERVER from config.')
-        if not password:
-            raise SupersetException('Need password to access hdfs_micro_service, '
-                                    'try logout and then login.')
-        conf = FileRobotConfiguartion()
-        conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
-        client = fileRobotClientFactory.getInstance(conf)
-        response = client.login(username, password, httpfs)
-        response = client.preview(path)
-
-        if response.status_code != requests.codes.ok:
-            response.raise_for_status()
-        text = response.text[1:-1]
-        return "\n".join(text.split("\\n"))
-
 
 class HDFSTableModelView(SupersetModelView):
+    route_base = '/hdfstable'
     model = HDFSTable
     datamodel = SQLAInterface(HDFSTable)
     add_columns = ['hdfs_path', 'separator', 'file_type', 'quote',
@@ -477,6 +423,80 @@ class HDFSTableModelView(SupersetModelView):
                    'charset', 'hdfs_connection_id']
     show_columns = add_columns
     edit_columns = add_columns
+
+    @catch_exception
+    @expose('/files/', methods=['GET'])
+    def list_hdfs_files(self):
+        path = request.args.get('path', '/')
+        hdfs_connection_id = request.args.get('hdfs_connection_id')
+        client = self.login_hdfs_micro_service(hdfs_connection_id)
+        response = client.list(path)
+        return Response(response.text)
+
+    @catch_exception
+    @expose('/preview/', methods=['GET'])
+    def preview_hdfs_file(self):
+        args = request.args.to_dict()
+        path = args.pop('path')
+
+        file = HDFSTable.cached_file.get(path)
+        if not file:
+            file = self.download_hdfs_file(path, args.pop('hdfs_connection_id', None))
+            HDFSTable.cached_file[path] = file
+        df = HDFSTable.parse_file(file, **args)
+
+        return Response(json.dumps(
+            dict(records=df.to_dict(orient="records"),
+                 columns=list(df.columns),)
+        ))
+
+    @catch_exception
+    @expose('/upload/', methods=['POST'])
+    def upload(self):
+        f = request.data
+        dest_path = request.args.get('dest_path')
+        file_name = request.args.get('file_name')
+        hdfs_connection_id = request.args.get('hdfs_connection_id')
+        client = self.login_hdfs_micro_service(hdfs_connection_id)
+
+        response = client.upload(dest_path, {'file': (file_name, f)})
+        return Response(response.text)
+
+    @classmethod
+    def login_hdfs_micro_service(cls, hdfs_conn_id=None):
+        def get_httpfs(hdfs_conn_id=None):
+            if hdfs_conn_id:
+                conn = db.session.query(HDFSConnection) \
+                    .filter_by(id=hdfs_conn_id).first()
+            else:
+                conn = db.session.query(HDFSConnection) \
+                    .order_by(HDFSConnection.id).first()
+            return conn.httpfs
+
+        httpfs = get_httpfs(hdfs_conn_id)
+        server = app.config.get('HDFS_MICROSERVICES_SERVER')
+        username = g.user.username
+        password = AuthDBView.mock_user.get(username)
+        if not server:
+            raise SupersetException('Cannot get HDFS_MICROSERVICES_SERVER from config.')
+        if not password:
+            raise SupersetException('Need password to access hdfs_micro_service, '
+                                    'try logout and then login.')
+
+        conf = FileRobotConfiguartion()
+        conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
+        client = fileRobotClientFactory.getInstance(conf)
+        client.login(username, password, httpfs)
+        return client
+
+    @classmethod
+    def download_hdfs_file(cls, path, hdfs_conn_id=None):
+        client = cls.login_hdfs_micro_service(hdfs_conn_id)
+        response = client.preview(path)
+        if response.status_code != requests.codes.ok:
+            response.raise_for_status()
+        text = response.text[1:-1]
+        return "\n".join(text.split("\\n"))
 
 
 appbuilder.add_view_no_menu(HDFSTableModelView)
