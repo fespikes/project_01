@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { Select, TreeSelect } from 'antd';
 import PropTypes from 'prop-types';
 import { appendTreeData, constructTreeData } from '../../../utils/common2';
-import { renderLoadingModal, renderAlertTip, addBodyClass, removeBodyClass } from '../../../utils/utils';
+import { renderLoadingModal, renderAlertTip} from '../../../utils/utils';
 
 class DisplayOriginalTable extends React.Component {
     constructor(props) {
@@ -103,11 +103,6 @@ class DisplayOriginalTable extends React.Component {
 
             }
         });
-        addBodyClass('slice-detail');
-    }
-
-    componentWillUnmount() {
-        removeBodyClass('slice-detail');
     }
 
     render() {
@@ -128,17 +123,20 @@ class DisplayOriginalTable extends React.Component {
                 >
                     {conOptions}
                 </Select>
-                <TreeSelect
-                    showSearch
-                    value={this.state.value}
-                    style={{ width: '100%' }}
-                    placeholder="Please select"
-                    treeData={this.state.treeData}
-                    loadData={this.onLoadData}
-                    onSelect={this.onSelect}
-                    dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
-                >
-                </TreeSelect>
+                <div className="slice-detail" id="slice-detail-tree-select">
+                    <TreeSelect
+                        showSearch
+                        value={this.state.value}
+                        style={{ width: '100%' }}
+                        placeholder="Please select"
+                        treeData={this.state.treeData}
+                        loadData={this.onLoadData}
+                        onSelect={this.onSelect}
+                        getPopupContainer={() => document.getElementById('slice-detail-tree-select')}
+                        dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+                    >
+                    </TreeSelect>
+                </div>
             </div>
         );
     }

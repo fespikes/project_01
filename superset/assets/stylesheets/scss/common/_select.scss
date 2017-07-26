@@ -52,7 +52,7 @@ div.ant-select-dropdown {
     }
 }
 
-body.dataset-detail {
+.dataset-detail {
     div.ant-select-dropdown ul.ant-select-tree > li > span.ant-select-tree-node-content-wrapper {
         &:hover {
             background-color: #337ab7;
@@ -63,7 +63,7 @@ body.dataset-detail {
     }
 }
 
-body.slice-detail {
+.slice-detail {
     div.ant-select-dropdown ul.ant-select-tree > li > span.ant-select-tree-node-content-wrapper {
         cursor: not-allowed;
         &:hover {

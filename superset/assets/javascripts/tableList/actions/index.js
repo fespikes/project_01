@@ -442,7 +442,7 @@ export function fetchUploadFile(data, fileName, path, callback) {
                     }
                 )
             }else {
-                callback(true);
+                callback(false);
             }
         });
     }

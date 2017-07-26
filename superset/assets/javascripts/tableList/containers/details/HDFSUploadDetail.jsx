@@ -8,7 +8,7 @@ import { Link, withRouter } from 'react-router-dom';
 import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
 import { constructFileBrowserData, appendTreeChildren, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
-import { renderLoadingModal, renderAlertTip, addBodyClass, removeBodyClass } from '../../../../utils/utils';
+import { renderLoadingModal, renderAlertTip } from '../../../../utils/utils';
 
 class HDFSUploadDetail extends Component {
 
@@ -106,16 +106,16 @@ class HDFSUploadDetail extends Component {
     handleFile() {
         this.refs.fileName.innerText = this.refs.fileSelect.files[0].name;
         let objUpload = {
-            ...this.state.dsUpload,
+            ...this.state.dsHDFS,
             uploadFileName: this.refs.fileSelect.files[0].name
         };
         this.setState({
-            dsUpload: objUpload
+            dsHDFS: objUpload
         });
     }
 
     uploadFile() {//only upload one file
-        if(this.state.dsUpload.uploadFileName === '') {
+        if(this.state.dsHDFS.uploadFileName === '') {
             let confirmPopup = render(
                 <Confirm />,
                 document.getElementById('popup_root'));
@@ -159,13 +159,6 @@ class HDFSUploadDetail extends Component {
                 this.doDatasetEdit();
             }
         }
-        addBodyClass('dataset-detail');
-        //let bodyEl = document.getElementById('pilot_body');
-        //bodyEl.setAttribute('class', 'dataset-detail');
-    }
-
-    componentWillUnmount() {
-        removeBodyClass('dataset-detail');
     }
 
     doFetchInceptorList() {
@@ -293,7 +286,7 @@ class HDFSUploadDetail extends Component {
                         <textarea name="description" value={dsHDFS.description} defaultValue=""
                               onChange={this.handleChange}/>
                     </div>
-                    <div className={datasetType==='INCEPTOR FILE'?'':'none'}>
+                    <div className={datasetType==='UPLOAD FILE'?'data-detail-item':'none'}>
                         <span></span>
                         <div>
                             <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
@@ -346,19 +339,23 @@ class HDFSUploadDetail extends Component {
                     </div>
                     <div className="data-detail-item">
                         <span>选择数据目录：</span>
-                        <TreeSelect
-                            showSearch
-                            style={{ width: 300 }}
-                            placeholder="please select"
-                            treeCheckable={false}
-                            treeData={dsHDFS.fileBrowserData}
-                            onSelect={this.onSelect}
-                            loadData={this.onLoadData}
-                            dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
-                        >
-                        </TreeSelect>
+                        <div className="dataset-detail" id="dataset-detail-tree-select">
+                            <TreeSelect
+                                showSearch
+                                style={{ width: 300 }}
+                                placeholder="please select"
+                                treeCheckable={false}
+                                treeData={dsHDFS.fileBrowserData}
+                                onSelect={this.onSelect}
+                                loadData={this.onLoadData}
+                                getPopupContainer={() => document.getElementById('dataset-detail-tree-select')}
+                                dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+                            >
+                            </TreeSelect>
+                        </div>
                     </div>
                     <div className="sub-btn">
+                        <input type="button" defaultValue="上传文件" onClick={this.uploadFile}/>
                         <Link to={`/${opeType}/preview/${datasetType}/${datasetId}`} onClick={this.onConfig}>
                             配置
                         </Link>
