@@ -102,7 +102,8 @@ export const testConnection = (callback) => {
         const URL = window.location.origin + '/pilot/testconn';
         const {
             databaseName,
-            sqlalchemyUri
+            sqlalchemyUri,
+            databaseArgs,
         } = getState().popupParam;
 
         return fetch(URL, {
@@ -110,7 +111,8 @@ export const testConnection = (callback) => {
             method: 'post',
             body: JSON.stringify({
                 'database_name': databaseName,
-                'sqlalchemy_uri':sqlalchemyUri
+                'sqlalchemy_uri':sqlalchemyUri,
+                'args': databaseArgs
             })
         })
         .then(
