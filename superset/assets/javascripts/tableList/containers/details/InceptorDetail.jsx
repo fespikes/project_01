@@ -245,13 +245,13 @@ class InceptorDetail extends Component {
             <div>
                 <div className="data-detail-item">
                     <span>数据集名称：</span>
-                    <input type="text" name="dataset_name" value={dsInceptor.dataset_name} defaultValue=""
-                        onChange={this.handleChange}/>
+                    <input type="text" name="dataset_name" value={dsInceptor.dataset_name || ''}
+                           defaultValue="" onChange={this.handleChange}/>
                 </div>
                 <div className="data-detail-item">
                     <span>描述：</span>
-                    <textarea name="description" value={dsInceptor.description} defaultValue=""
-                        onChange={this.handleChange}/>
+                    <textarea name="description" value={dsInceptor.description}
+                          defaultValue="" onChange={this.handleChange}/>
                 </div>
                 <div className="data-detail-item">
                     <span>选择连接：</span>
@@ -285,8 +285,8 @@ class InceptorDetail extends Component {
                 </div>
                 <div className="data-detail-item">
                     <span>SQL：</span>
-                    <textarea cols="30" rows="10" value={dsInceptor.sql} defaultValue=""
-                          name="sql" onChange={this.handleChange}/>
+                    <textarea cols="30" rows="10" value={dsInceptor.sql}
+                              defaultValue="" name="sql" onChange={this.handleChange}/>
                     <a href={ window.location.origin + '/pilot/sqllab' } target="_blank">
                         切换至SQL LAB编辑
                     </a>

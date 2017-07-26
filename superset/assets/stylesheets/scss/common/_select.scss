@@ -34,26 +34,40 @@ div.ant-select-dropdown {
 
     ul.ant-select-tree {
 
-        > li > span.ant-select-tree-node-content-wrapper {
-            cursor: not-allowed;
+        li span.ant-select-tree-node-content-wrapper {
             display: inline-block;
             width: 100%;
-            &:hover {
-                background-color: #fff
-            }
         }
 
-        > li ul.ant-select-tree-child-tree > li:hover {
+        > li ul.ant-select-tree-child-tree > li span.ant-select-tree-node-content-wrapper:hover {
+            display: inline-block;
+            width: 100%;
             color: #fff;
             background-color: #337ab7;
         }
 
-        > li ul.ant-select-tree-child-tree > li span.ant-select-tree-node-content-wrapper:hover {
-            background-color: transparent;
-        }
-
         > li ul.ant-select-tree-child-tree > li span.ant-select-tree-node-selected {
             background-color: #337ab7;
+        }
+    }
+}
+
+.dataset-detail {
+    div.ant-select-dropdown ul.ant-select-tree > li > span.ant-select-tree-node-content-wrapper {
+        &:hover {
+            background-color: #337ab7;
+        }
+    }
+    div.ant-select-dropdown ul.ant-select-tree > li > span.ant-select-tree-node-selected {
+        background-color: #337ab7;
+    }
+}
+
+.slice-detail {
+    div.ant-select-dropdown ul.ant-select-tree > li > span.ant-select-tree-node-content-wrapper {
+        cursor: not-allowed;
+        &:hover {
+            background-color: #fff;
         }
     }
 }
