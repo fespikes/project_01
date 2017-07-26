@@ -404,9 +404,10 @@ export function fetchTableList(dbId, schema, callback) {
     }
 }
 
-export function fetchHDFSFileBrowser(callback) {
-    return () => {
-        const url = '';
+export function fetchHDFSFileBrowser(path, callback) {
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
+        const url = window.location.origin + '/hdfstable/files/?path=' + path;
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
@@ -414,9 +415,11 @@ export function fetchHDFSFileBrowser(callback) {
             response => {
                 if(response.ok) {
                     response.json().then(response => {
+                        dispatch(switchFetchingState(false));
                         callback(true, response);
                     });
                 }else {
+                    dispatch(switchFetchingState(false));
                     callback(false);
                 }
             }
@@ -424,8 +427,8 @@ export function fetchHDFSFileBrowser(callback) {
     }
 }
 
-export function fetchUploadFile(data, id, path, callback) {
-    const url = window.location.origin + '/hdfsfilebrowser?action=upload&connection_id=' + id + '&hdfs_path=' + path;
+export function fetchUploadFile(data, fileName, path, callback) {
+    const url = window.location.origin + '/hdfstable/upload?dest_path=' + path + '&file_name=' + fileName;
     return () => {
         return fetch(url, {
             credentials: 'include',
@@ -446,7 +449,8 @@ export function fetchUploadFile(data, id, path, callback) {
 }
 
 export function createDataset(dataset, callback) {
-    return () => {
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
         const url = baseURL + 'add';
         return fetch(url, {
             credentials: 'include',
@@ -458,12 +462,15 @@ export function createDataset(dataset, callback) {
                     response.json().then(response => {
                         if(response.success) {
                             callback(true, response.data);
+                            dispatch(switchFetchingState(false));
                         }else {
                             callback(false, response.message);
+                            dispatch(switchFetchingState(false));
                         }
                     });
                 }else {
                     callback(false);
+                    dispatch(switchFetchingState(false));
                 }
             }
         );
@@ -471,7 +478,8 @@ export function createDataset(dataset, callback) {
 }
 
 export function editDataset(dataset, id, callback) {
-    return () => {
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
         const url = baseURL + 'edit/' + id;
         return fetch(url, {
             credentials: 'include',
@@ -483,12 +491,15 @@ export function editDataset(dataset, id, callback) {
                     response.json().then(response => {
                         if(response.success) {
                             callback(true, response.data);
+                            dispatch(switchFetchingState(false));
                         }else {
                             callback(false, response.message);
+                            dispatch(switchFetchingState(false));
                         }
                     });
                 }else {
                     callback(false);
+                    dispatch(switchFetchingState(false));
                 }
             }
         );

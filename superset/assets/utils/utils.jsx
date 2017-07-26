@@ -62,3 +62,13 @@ export function getEleOffsetTop(element) {
     }
     return actualTop;
 }
+
+export function addBodyClass(className) {
+    let bodyEl = document.getElementById('pilot_body');
+    bodyEl.setAttribute('class', className);
+}
+
+export function removeBodyClass(className) {
+    let bodyEl = document.getElementById('pilot_body');
+    bodyEl.removeAttribute('class', className);
+}

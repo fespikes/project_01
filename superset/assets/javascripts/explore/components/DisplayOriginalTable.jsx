@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { Select, TreeSelect } from 'antd';
 import PropTypes from 'prop-types';
 import { appendTreeData, constructTreeData } from '../../../utils/common2';
-import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
+import { renderLoadingModal, renderAlertTip, addBodyClass, removeBodyClass } from '../../../utils/utils';
 
 class DisplayOriginalTable extends React.Component {
     constructor(props) {
@@ -103,6 +103,11 @@ class DisplayOriginalTable extends React.Component {
 
             }
         });
+        addBodyClass('slice-detail');
+    }
+
+    componentWillUnmount() {
+        removeBodyClass('slice-detail');
     }
 
     render() {
