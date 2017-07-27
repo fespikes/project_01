@@ -172,7 +172,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/databases/', methods=['GET', ])
     def addable_databases(self):
-        return json.dumps(self.get_available_connections(get_user_id()))
+        return json.dumps(self.get_available_databases(get_user_id()))
 
     @catch_exception
     @expose('/schemas/<database_id>/', methods=['GET', ])
