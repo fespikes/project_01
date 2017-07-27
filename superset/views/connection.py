@@ -32,7 +32,6 @@ class DatabaseView(SupersetModelView):  # noqa
     datamodel = SQLAInterface(models.Database)
     route_base = '/database'
     list_columns = ['id', 'database_name', 'description', 'backend', 'changed_on']
-    _list_columns = list_columns
     show_columns = ['id', 'database_name', 'description', 'sqlalchemy_uri',
                     'args', 'backend',  'created_on', 'changed_on']
     add_columns = ['database_name', 'description', 'sqlalchemy_uri', 'args']
@@ -133,7 +132,7 @@ class DatabaseView(SupersetModelView):  # noqa
         data = []
         for obj, user in rs:
             line = {}
-            for col in self._list_columns:
+            for col in self.list_columns:
                 if col in self.str_columns:
                     line[col] = str(getattr(obj, col, None))
                 else:
@@ -157,7 +156,6 @@ class HDFSConnectionModelView(SupersetModelView):
     datamodel = SQLAInterface(models.HDFSConnection)
     route_base = '/hdfsconnection'
     list_columns = ['id', 'connection_name']
-    _list_columns = list_columns
     show_columns = ['id', 'connection_name', 'description', 'httpfs',
                     'database_id', 'database']
     add_columns = ['connection_name', 'description', 'httpfs', 'database_id']
@@ -185,7 +183,7 @@ class HDFSConnectionModelView(SupersetModelView):
         data = []
         for obj, user in query.all():
             line = {}
-            for col in self._list_columns:
+            for col in self.list_columns:
                 if col in self.str_columns:
                     line[col] = str(getattr(obj, col, None))
                 else:
