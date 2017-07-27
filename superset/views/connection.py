@@ -57,8 +57,6 @@ class DatabaseView(SupersetModelView):  # noqa
 
     def pre_add(self, obj):
         obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
-        # if not obj.test_uri(obj.sqlalchemy_uri_decrypted):
-        #      raise Exception("Not a valid connection")
 
     def post_add(self, obj):
         self.add_or_edit_database_account(obj)

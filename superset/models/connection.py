@@ -83,9 +83,6 @@ class Database(Model, AuditMixinNullable):
         return "[{obj.database_name}].(id:{obj.id})".format(obj=self)
 
     def set_sqlalchemy_uri(self, uri):
-        if 'mech=kerberos' in uri.lower():
-            self.sqlalchemy_uri = uri
-            return
         password_mask = "X" * 10
         conn = sqla.engine.url.make_url(uri)
         if conn.password != password_mask:
@@ -93,16 +90,6 @@ class Database(Model, AuditMixinNullable):
             self.password = conn.password
         conn.password = password_mask if conn.password else None
         self.sqlalchemy_uri = str(conn)  # hides the password
-
-    def test_uri(self, url):
-        extra = self.get_extra()
-        params = extra.get('engine_params', {})
-        try:
-            inspector = sqla.inspect(create_engine(url, **params))
-            inspector.get_schema_names()
-            return True
-        except Exception:
-            return False
 
     def fill_sqlalchemy_uri(self, user_id=None):
         try:
@@ -116,9 +103,9 @@ class Database(Model, AuditMixinNullable):
         url = make_url(self.sqlalchemy_uri)
         account = (
             db.session.query(DatabaseAccount)
-                .filter(DatabaseAccount.user_id == user_id,
-                        DatabaseAccount.database_id == self.id)
-                .first()
+            .filter(DatabaseAccount.user_id == user_id,
+                    DatabaseAccount.database_id == self.id)
+            .first()
         )
         if not account:
             user = db.session.query(User).filter(User.id == user_id).first()
