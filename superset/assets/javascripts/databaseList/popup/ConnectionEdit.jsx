@@ -59,7 +59,13 @@ class ConnectionEdit extends React.Component {
     testConnection(testCallBack) {
         const me = this;
         const { dispatch } = me.props;
-        dispatch(testConnectionInEditConnectPopup(me.state.database, callback));
+        dispatch(testConnectionInEditConnectPopup(
+            {
+                database_name: me.state.database.database_name,
+                sqlalchemy_uri: me.state.database.sqlalchemy_uri,
+                args: me.state.database.databaseArgs
+            }, callback)
+        );
 
         function callback(success) {
             let exception = {};
@@ -225,7 +231,7 @@ class ConnectionEdit extends React.Component {
                                     <div className="item-right">
                                         <textarea
                                             id="connectParams"
-                                            name="args"
+                                            name="databaseArgs"
                                             className="dialog-area"
                                             onChange={this.handleInputChange}
                                         >

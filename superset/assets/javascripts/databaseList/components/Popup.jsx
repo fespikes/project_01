@@ -222,6 +222,18 @@ class Popup extends React.Component {
                                             />
                                         </label>
                                         <label className="data-detail-item">
+                                            <span>连接参数：</span>
+                                            <textarea
+                                                id="connectParams"
+                                                rows="5"
+                                                style={{width:'420px'}}
+                                                required="required"
+                                                ref="databaseArgs"
+                                                defaultValue={JSON.stringify(defaultParams, undefined, 4)}
+                                            >
+                                            </textarea>
+                                        </label>
+                                        <label className="data-detail-item">
                                             <span>连接串：</span>
                                             <input
                                                 ref="sqlalchemyUri"
@@ -245,18 +257,6 @@ class Popup extends React.Component {
                                                 <span>测试连接</span>
                                             </button>
                                             <div ref="testConnectTip"></div>
-                                        </label>
-                                        <label className="data-detail-item">
-                                            <span>连接参数：</span>
-                                            <textarea
-                                                id="connectParams"
-                                                rows="5"
-                                                style={{width:'420px'}}
-                                                required="required"
-                                                ref="databaseArgs"
-                                                defaultValue={JSON.stringify(defaultParams, undefined, 4)}
-                                            >
-                                            </textarea>
                                         </label>
                                     </div>
                                     <div style={{ display: datasetType==='HDFS'?'block':'none' }} >

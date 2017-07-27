@@ -38,6 +38,9 @@ export function getDatabaseDefaultParams() {
     return defaultParams;
 }
 export function getEleOffsetLeft(element) {
+    if(element === null || element === undefined) {
+        return 0;
+    }
     var actualLeft = element.offsetLeft;
     var current = element.offsetParent;
     while (current !== null){
@@ -48,6 +51,9 @@ export function getEleOffsetLeft(element) {
 }
 
 export function getEleOffsetTop(element) {
+    if(element === null || element === undefined) {
+        return 0;
+    }
     var actualTop = element.offsetTop;
     var current = element.offsetParent;
     while (current !== null){

@@ -7,7 +7,7 @@ import { Link, withRouter } from 'react-router-dom';
 import * as actionCreators from '../actions';
 import { Table, Input, Button, Icon, Select, Alert } from 'antd';
 import { getTableWidth, getColumnWidth, getTbTitle, getTbContent, getTbType, getTbTitleHDFS,
-    getTbTitleInceptor, extractOpeType, extractDatasetType, constructHDFSDataset, getDatasetId } from '../module';
+    getTbTitleInceptor, extractOpeType, extractDatasetType, constructHDFSDataset, getDatasetId, initHDFSPreviewData } from '../module';
 import {renderAlertTip, renderLoadingModal} from '../../../utils/utils';
 
 class SubPreview extends Component {
@@ -16,9 +16,10 @@ class SubPreview extends Component {
         super(props);
         this.state = {
             tableWidth: '100%',
-            dsHDFS: {
-                charset: 'utf-8'
-            }
+            dsHDFS: initHDFSPreviewData(
+                props.dsHDFS,
+                extractOpeType(window.location.hash)
+            )
         };
         //bindings
         this.charsetChange = this.charsetChange.bind(this);
@@ -97,7 +98,7 @@ class SubPreview extends Component {
         const me = this;
         const { createDataset, editDataset, saveHDFSDataset } = this.props;
         this.saveHDFSFilterParam();
-        const dsHDFS = constructHDFSDataset({...this.state.dsHDFS,...this.props.dsHDFS});
+        const dsHDFS = constructHDFSDataset(this.state.dsHDFS);
         const opeType = extractOpeType(window.location.hash);
         if(opeType === 'add') {
             createDataset(dsHDFS, callback);
