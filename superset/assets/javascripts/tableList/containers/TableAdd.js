@@ -4,6 +4,7 @@ import { HashRouter, Route, NavLink, Switch } from 'react-router-dom';
 import { connect, Provider } from 'react-redux';
 import { SubDetail, SubPreview, SubColumns, SubSqlMetric } from './';
 import '../style/tableAdd.css';
+import { isActive } from '../module';
 
 class TableAdd extends Component {
     constructor(props) {
@@ -22,16 +23,16 @@ class TableAdd extends Component {
         const id = getDatasetId(opeType, path);
         const enableClick = judgeEnableClick(opeName, opeType, datasetType, datasetId);
         const isDetailActive = (match, location) => {
-            return location.pathname.indexOf('/detail/INCEPTOR') > -1 || location.pathname.indexOf('/detail/HDFS') > -1 || location.pathname.indexOf('/detail/UPLOAD') > -1;
+            return isActive('detail', location);
         };
         const isPreviewActive = (match, location) => {
-            return location.pathname.indexOf('/preview/INCEPTOR') > -1 || location.pathname.indexOf('/preview/HDFS') > -1 || location.pathname.indexOf('/preview/UPLOAD') > -1;
+            return isActive('preview', location);
         };
         const isColumnsActive = (match, location) => {
-            return location.pathname.indexOf('/columns/INCEPTOR') > -1 || location.pathname.indexOf('/columns/HDFS') > -1 || location.pathname.indexOf('/columns/UPLOAD') > -1;
+            return isActive('columns', location);
         };
         const isSqlMetricActive = (match, location) => {
-            return location.pathname.indexOf('/sqlMetric/INCEPTOR') > -1 || location.pathname.indexOf('/sqlMetric/HDFS') > -1 || location.pathname.indexOf('/sqlMetric/UPLOAD') > -1;
+            return isActive('sqlMetric', location);
         };
         return (
             <div className="data-detail">

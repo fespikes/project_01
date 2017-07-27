@@ -5,7 +5,7 @@ import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
 import * as actionCreators from '../actions';
-import {InceptorDetail, HDFSDetail, UploadDetail} from './details';
+import {InceptorDetail, HDFSUploadDetail, UploadDetail} from './details';
 import {extractOpeType, getDatasetId, extractDatasetType} from '../module';
 
 class SubDetail extends Component {
@@ -22,7 +22,6 @@ class SubDetail extends Component {
     initDatasetCache(props) {
         const {clearDatasetData, saveDatasetId} = props;
         const opeType = extractOpeType(window.location.hash);
-        const datasetType = extractDatasetType(window.location.hash);
         let datasetId = '';
         if(opeType === 'edit') {
             datasetId = getDatasetId("edit", window.location.hash);
@@ -58,6 +57,7 @@ class SubDetail extends Component {
             fetchDatasetDetail,
             fetchHDFSConnectList,
             fetchHDFSDetail,
+            fetchHDFSFileBrowser,
             fetchInceptorConnectList,
             fetchUploadFile
         } = this.props;
@@ -86,8 +86,8 @@ class SubDetail extends Component {
                             editDataset={editDataset}
                         />
                     </div>
-                    <div className={datasetType==='HDFS'?'':'none'}>
-                        <HDFSDetail
+                    <div className={(datasetType==='HDFS' || datasetType==='UPLOAD FILE')?'':'none'}>
+                        <HDFSUploadDetail
                             dispatch={dispatch}
                             datasetId={datasetId}
                             datasetType={datasetType}
@@ -99,15 +99,29 @@ class SubDetail extends Component {
                             fetchHDFSDetail={fetchHDFSDetail}
                             switchHDFSConnected={switchHDFSConnected}
                             fetchDatasetDetail={fetchDatasetDetail}
+                            fetchHDFSFileBrowser={fetchHDFSFileBrowser}
                             fetchHDFSConnectList={fetchHDFSConnectList}
                             fetchInceptorConnectList={fetchInceptorConnectList}
-                        />
-                    </div>
-                    <div className={datasetType==='UPLOAD'?'':'none'}>
-                        <UploadDetail
                             fetchUploadFile={fetchUploadFile}
                         />
                     </div>
+                    {/*<div className={datasetType==='UPLOAD FILE'?'':'none'}>
+                        <UploadDetail
+                            fetchUploadFile={fetchUploadFile}
+                            dispatch={dispatch}
+                            datasetId={datasetId}
+                            datasetType={datasetType}
+                            dsUpload={dsUpload}
+                            isFetching={isFetching}
+                            saveUploadDataset={saveUploadDataset}
+                            fetchDBDetail={fetchDBDetail}
+                            fetchHDFSDetail={fetchHDFSDetail}
+                            fetchDatasetDetail={fetchDatasetDetail}
+                            fetchHDFSFileBrowser={fetchHDFSFileBrowser}
+                            fetchHDFSConnectList={fetchHDFSConnectList}
+                            fetchInceptorConnectList={fetchInceptorConnectList}
+                        />
+                    </div>*/}
                     <div id="showAlert" className="alert-tip"></div>
                 </div>
             </div>
@@ -129,6 +143,7 @@ function mapDispatchToProps (dispatch) {
         saveDatasetId,
         saveHDFSDataset,
         saveInceptorDataset,
+        saveUploadDataset,
         fetchHDFSConnectList,
         fetchInceptorConnectList,
         fetchHDFSFileBrowser,
@@ -149,6 +164,7 @@ function mapDispatchToProps (dispatch) {
         saveDatasetId,
         saveHDFSDataset,
         saveInceptorDataset,
+        saveUploadDataset,
         fetchHDFSConnectList,
         fetchInceptorConnectList,
         fetchHDFSFileBrowser,

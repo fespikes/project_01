@@ -165,13 +165,36 @@ export function constructFileBrowserData(data) {
     return fbData;
 }
 
-export function appendTreeChildren(folderName, children, fbData) {
-    fbData.map(folder => {
-        if(folder.value === folderName) {
-            folder.children = constructFileBrowserData(children);
-        }
-    });
+export function appendTreeChildren(path, children, fbData) {
+    let treeNode = findTreeNode(fbData, path);
+    if(treeNode) {
+        treeNode.children = constructFileBrowserData(children);
+    }
     return fbData;
+}
+
+export function findTreeNode(treeNodes, path) {
+    let node = undefined;
+    if (!treeNodes || !treeNodes.length) {
+        node
+    }
+    let stack = [], item;
+    for (let i = 0; i < treeNodes.length; i++) {
+        stack.push(treeNodes[i]);
+    }
+    while (stack.length) {
+        item = stack.shift();
+        if(item.hdfs_path === path) {
+            node = item;
+            break;
+        }
+        if (item.children && item.children.length) {
+
+            stack = stack.concat(item.children);
+        }
+    }
+
+    return node;
 }
 
 export function getDatasetTitle(opeType, datasetType) {
@@ -290,5 +313,25 @@ function initHDFSData(newData, oldData) {
 
 function initUploadData() {
     //TODO
+}
+
+export function initHDFSPreviewData(data, opeType) {
+    let dataset = data;
+    if(opeType === "add") {
+        dataset.file_type = "csv";
+        dataset.separator = ",";
+        dataset.quote = "\\";
+        dataset.skip_rows = "0";
+        dataset.next_as_header = false;
+        dataset.skip_more_rows = "0";
+        dataset.charset = "utf-8";
+    }
+    return dataset;
+}
+
+export function isActive(type, location) {
+    return location.pathname.indexOf(`/${type}/INCEPTOR`) > -1 ||
+        location.pathname.indexOf(`/${type}/HDFS`) > -1 ||
+        location.pathname.indexOf(`/${type}/UPLOAD FILE`) > -1;
 }
 

@@ -8,14 +8,9 @@ import { Link, withRouter } from 'react-router-dom';
 import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
 import { constructFileBrowserData, appendTreeChildren, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
-import { appendTreeData, constructTreeData } from '../../../../utils/common2';
 import { renderLoadingModal, renderAlertTip } from '../../../../utils/utils';
 
-/* mock data  */
-const fileBrowserData = require('../../mock/fileData1.json');
-const fileBrowserData2 = require('../../mock/fileData2.json');
-
-class HDFSDetail extends Component {
+class HDFSUploadDetail extends Component {
 
     constructor (props) {
         super(props);
@@ -30,6 +25,8 @@ class HDFSDetail extends Component {
         this.onInceptorConnectChange = this.onInceptorConnectChange.bind(this);
         this.onSelect = this.onSelect.bind(this);
         this.onLoadData = this.onLoadData.bind(this);
+        this.uploadFile = this.uploadFile.bind(this);
+        this.handleFile = this.handleFile.bind(this);
     }
 
     handleChange(e) {
@@ -85,14 +82,13 @@ class HDFSDetail extends Component {
 
     onLoadData(node) {
         const me = this;
-        const folderName = node.props.value;
+        const hdfsPath = node.props.hdfs_path;
         const { fetchHDFSFileBrowser } = me.props;
-        //return fetchHDFSFileBrowser(callback);
-        callback(true, fileBrowserData2);
+        return fetchHDFSFileBrowser(node.props.hdfs_path, callback);
         function callback(success, data) {
             if(success) {
                 let treeData = appendTreeChildren(
-                    folderName,
+                    hdfsPath,
                     data,
                     JSON.parse(JSON.stringify(me.state.dsHDFS.fileBrowserData))
                 );
@@ -107,6 +103,47 @@ class HDFSDetail extends Component {
         }
     }
 
+    handleFile() {
+        this.refs.fileName.innerText = this.refs.fileSelect.files[0].name;
+        let objUpload = {
+            ...this.state.dsHDFS,
+            uploadFileName: this.refs.fileSelect.files[0].name
+        };
+        this.setState({
+            dsHDFS: objUpload
+        });
+    }
+
+    uploadFile() {//only upload one file
+        if(this.state.dsHDFS.uploadFileName === '') {
+            let confirmPopup = render(
+                <Confirm />,
+                document.getElementById('popup_root'));
+            if(confirmPopup) {
+                confirmPopup.showDialog();
+            }
+            return;
+        }
+        const { fetchUploadFile } = this.props;
+        fetchUploadFile(
+            this.refs.fileSelect.files[0],
+            this.state.dsHDFS.uploadFileName,
+            this.state.dsHDFS.hdfsPath,
+            callback
+        );
+        function callback(success) {
+            let response = {};
+            if(success) {
+                response.type = 'success';
+                response.message = '上传成功';
+            }else {
+                response.type = 'error';
+                response.message = '上传失败';
+                renderAlertTip(response, 'showAlert');
+            }
+        }
+    }
+
     onConfig() {
         const { saveHDFSDataset } = this.props;
         saveHDFSDataset(this.state.dsHDFS);
@@ -114,24 +151,10 @@ class HDFSDetail extends Component {
 
     componentDidMount() {
         const datasetType = extractDatasetType(window.location.hash);
-        if(datasetType === "HDFS") {
-            const me = this;
+        if(datasetType === "HDFS" || datasetType === "UPLOAD FILE") {
             this.doFetchInceptorList();
             this.doFetchHDFSList();
-            //fetchHDFSFileBrowser(fileCallback);
-            fileCallback(true, fileBrowserData);
-            function fileCallback(success, fileBrowserData) {
-                if(success) {
-                    const browserData = constructFileBrowserData(fileBrowserData);
-                    let objHDFS = {
-                        ...me.state.dsHDFS,
-                        fileBrowserData: browserData
-                    };
-                    me.setState({
-                        dsHDFS: objHDFS
-                    });
-                }
-            }
+            this.doFetchHDFSFileData('/');
             if(window.location.hash.indexOf('/edit') > 0) {
                 this.doDatasetEdit();
             }
@@ -173,6 +196,27 @@ class HDFSDetail extends Component {
                 }else {
                     switchHDFSConnected(false);
                 }
+            }
+        }
+    }
+
+    doFetchHDFSFileData(path) {
+        const me = this;
+        const { fetchHDFSFileBrowser } = me.props;
+        fetchHDFSFileBrowser(path, fileCallback);
+        function fileCallback(success, fileBrowserData) {
+            console.log('success=', success);
+            console.log('fileBrowserData=', fileBrowserData);
+            if(success) {
+                const browserData = constructFileBrowserData(fileBrowserData);
+                console.log('browserData=', browserData);
+                let objHDFS = {
+                    ...me.state.dsHDFS,
+                    fileBrowserData: browserData
+                };
+                me.setState({
+                    dsHDFS: objHDFS
+                });
             }
         }
     }
@@ -234,13 +278,29 @@ class HDFSDetail extends Component {
                 <div className="data-detail-border">
                     <div className="data-detail-item">
                         <span>数据集名称：</span>
-                        <input type="text" name="dataset_name" value={dsHDFS.dataset_name}
+                        <input type="text" name="dataset_name" value={dsHDFS.dataset_name || ''}
                                onChange={this.handleChange}/>
                     </div>
                     <div className="data-detail-item">
                         <span>描述：</span>
                         <textarea name="description" value={dsHDFS.description} defaultValue=""
                               onChange={this.handleChange}/>
+                    </div>
+                    <div className={datasetType==='UPLOAD FILE'?'data-detail-item':'none'}>
+                        <span></span>
+                        <div>
+                            <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
+                                <span>选择文件</span>
+                            </label>
+                            <div className="file-name">
+                                <i className="icon icon-file"/>
+                                <span ref="fileName"/>
+                            </div>
+                            <div className="file-upload" style={{display: 'none'}}>
+                                <input type="file" id="xFile" className="file-select" onChange={this.handleFile}
+                                       ref="fileSelect"/>
+                            </div>
+                        </div>
                     </div>
                     <div className={HDFSConnected===false?'':'none'}>
                         <div className="data-detail-item">
@@ -279,19 +339,23 @@ class HDFSDetail extends Component {
                     </div>
                     <div className="data-detail-item">
                         <span>选择数据目录：</span>
-                        <TreeSelect
-                            showSearch
-                            style={{ width: 300 }}
-                            placeholder="please select"
-                            treeCheckable={false}
-                            treeData={dsHDFS.fileBrowserData}
-                            onSelect={this.onSelect}
-                            loadData={this.onLoadData}
-                            dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
-                        >
-                        </TreeSelect>
+                        <div className="dataset-detail" id="dataset-detail-tree-select">
+                            <TreeSelect
+                                showSearch
+                                style={{ width: 300 }}
+                                placeholder="please select"
+                                treeCheckable={false}
+                                treeData={dsHDFS.fileBrowserData}
+                                onSelect={this.onSelect}
+                                loadData={this.onLoadData}
+                                getPopupContainer={() => document.getElementById('dataset-detail-tree-select')}
+                                dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+                            >
+                            </TreeSelect>
+                        </div>
                     </div>
                     <div className="sub-btn">
+                        <input type="button" defaultValue="上传文件" onClick={this.uploadFile}/>
                         <Link to={`/${opeType}/preview/${datasetType}/${datasetId}`} onClick={this.onConfig}>
                             配置
                         </Link>
@@ -302,4 +366,4 @@ class HDFSDetail extends Component {
     }
 }
 
-export default HDFSDetail;
+export default HDFSUploadDetail;

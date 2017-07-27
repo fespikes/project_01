@@ -36,7 +36,8 @@ class CreateInceptorConnect extends React.Component {
         const { dispatch } = self.props;
         const connectObj = {
             database_name: 'none',
-            sqlalchemy_uri: self.refs.connectionUri.value
+            sqlalchemy_uri: self.refs.connectionUri.value,
+            args: self.refs.databaseArgs.value
         };
         dispatch(testConnectionInEditConnectPopup(connectObj, callback));
 
@@ -148,6 +149,20 @@ class CreateInceptorConnect extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
+                                    <span>连接参数：</span>
+                                </div>
+                                <div className="item-right">
+                                    <textarea
+                                        className="dialog-area"
+                                        rows="5"
+                                        required="required"
+                                        ref="databaseArgs"
+                                        defaultValue={JSON.stringify(defaultParams, undefined, 4)}
+                                    />
+                                </div>
+                            </div>
+                            <div className="dialog-item">
+                                <div className="item-left">
                                     <span>连接串：</span>
                                 </div>
                                 <div className="item-right">
@@ -170,20 +185,6 @@ class CreateInceptorConnect extends React.Component {
                                 <Tooltip title="structure your URL" placement="bottom">
                                     <i className="icon icon-info" style={{ position: 'absolute', top: '-32px', right: '-23px' }} />
                                 </Tooltip>
-                            </div>
-                            <div className="dialog-item">
-                                <div className="item-left">
-                                    <span>连接参数：</span>
-                                </div>
-                                <div className="item-right">
-                                    <textarea
-                                        className="dialog-area"
-                                        rows="5"
-                                        required="required"
-                                        ref="databaseArgs"
-                                        defaultValue={JSON.stringify(defaultParams, undefined, 4)}
-                                    />
-                                </div>
                             </div>
                         </div>
                         <div className="popup-footer">
