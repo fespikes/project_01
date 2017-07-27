@@ -13,6 +13,7 @@ import sqlparse
 from io import StringIO
 import pandas as pd
 from datetime import datetime
+from distutils.util import strtobool
 
 from flask import g, Markup, escape
 from flask_babel import lazy_gettext as _
@@ -917,9 +918,14 @@ class HDFSTable(Model, AuditMixinNullable):
         engine.execute(sql)
 
     @classmethod
-    def parse_file(cls, file_content, separator=',', quote='"', skip_rows=0,
-                   next_as_header=False, skip_more_rows=0, charset='utf-8',
-                   nrows=100, names=None):
+    def parse_file(cls, file_content, separator=',', quote='"', skip_rows='0',
+                   next_as_header='false', skip_more_rows='0', charset='utf-8',
+                   nrows='100', names=None):
+        skip_rows = int(skip_rows)
+        next_as_header = strtobool(next_as_header)
+        skip_more_rows = int(skip_more_rows)
+        nrows = int(nrows)
+
         header = skip_rows + 1 if next_as_header else None
         names = None if header else names
         skiprows = int(skip_rows) + int(skip_more_rows)

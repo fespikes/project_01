@@ -438,10 +438,11 @@ class HDFSTableModelView(SupersetModelView):
     def preview_hdfs_file(self):
         args = request.args.to_dict()
         path = args.pop('path')
+        hdfs_conn_id = args.pop('hdfs_connection_id', None)
 
         file = HDFSTable.cached_file.get(path)
         if not file:
-            file = self.download_hdfs_file(path, args.pop('hdfs_connection_id', None))
+            file = self.download_hdfs_file(path, hdfs_conn_id)
             HDFSTable.cached_file[path] = file
         df = HDFSTable.parse_file(file, **args)
 
