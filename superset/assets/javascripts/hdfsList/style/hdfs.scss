@@ -6,23 +6,26 @@
 }
 
 $borderStyle: solid 1px #e9eaed;
-            span, textarea, i{
-                display: inline-block;
-                float:left;
-            }
-            textarea {
-                padding:0 5px;
-                margin:1px 5px 0;
-                background:transparent;
-                word-spacing:no-warp;
-            }
-            .editing {
-                border: 1px #108ee9 solid;
-                padding: 3px 5px 2px;
-                margin-top:-1px;
-                border-radius: 5px;
-                letter-spacing:1px;
-            }
+
+span, textarea, i{
+    display: inline-block;
+    float:left;
+}
+textarea {
+    padding:0 5px;
+    margin:1px 5px 0;
+    background:transparent;
+    word-spacing:no-warp;
+    letter-spacing:1px;
+}
+.editing {
+    border: 1px #108ee9 solid;
+    padding: 2px 5px 3px;
+    margin-top:-2px;
+    border-radius: 5px;
+    
+}
+
 .hdfs-panel {
     margin: 0 50px;
     background-color: #edf0f5;

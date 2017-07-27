@@ -8,13 +8,12 @@ function condition(state = {
         //order_direction: 取值：'desc' or 'asc', 默认：'desc'
         filter: '',
         path: '/user',
+        paths: [],
 
         selectedRowKeys: [],
         selectedRowNames: [],
 
         //    breadCrumbText: '',
-        connectionID: '',
-
         manipulate: '',
         upload: ''
     }, action) {
@@ -22,13 +21,7 @@ function condition(state = {
     case actionTypes.changePath:
         return {
             ...state,
-            path: action.path
-        };
-        break;
-    case actionTypes.receiveData:
-        return {
-            ...state,
-            connectionID: action.condition.connectionID
+            ...action.path
         };
         break;
     case actionTypes.search:
@@ -50,7 +43,7 @@ function condition(state = {
 }
 
 //TODO: remove it
-function popupParam(state = {
+/*function popupParam(state = {
         //popup callbacks
         submit: argu => argu,
         closeDialog: argu => argu,
@@ -76,7 +69,7 @@ function popupParam(state = {
     default:
         return state;
     }
-}
+}*/
 
 //used only in operation bar
 function popupNormalParam(state = {
@@ -90,7 +83,9 @@ function popupNormalParam(state = {
 
         path: '',
         dirName: '',
-        dest_path: ''
+        dest_path: '',
+
+        treeData: []
 
     }, action) {
     switch (action.type) {
@@ -118,6 +113,11 @@ function popupNormalParam(state = {
             [key]: param[key]
         };
         break;
+    case popupNormalActions.receiveLeafData:
+        return {
+            ...state,
+            treeData: action.treeData
+        };
     default:
         return state;
     }
@@ -181,7 +181,7 @@ function fileReducer(state = {
 
 const rootReducer = combineReducers({
     condition,
-    popupParam,
+    // popupParam,
     popupNormalParam,
     emitFetch,
     fileReducer

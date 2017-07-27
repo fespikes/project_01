@@ -102,16 +102,6 @@ class Operate extends React.Component {
                 }
             ];
 
-        const openPopup = (ag) => {
-            const normalPopupParam = {
-                popupType: ag.key,
-                submit: fetchOperation,
-                status: 'flex'
-            }
-            this.props.setPopupNormalParams(normalPopupParam);
-        //            this.props.popupNormalChangeStatus('flex');
-        };
-
         return (
             <div className="operations">
                 <div className="popupContainer">
@@ -146,7 +136,7 @@ class Operate extends React.Component {
             options={createOptions}
             theValue={'新建'}
             width={60}
-            handleSelect={(argus) => openPopup(argus)}
+            handleSelect={(argus) => this.manipulate(argus)}
             />  
                     </li>
                     <li

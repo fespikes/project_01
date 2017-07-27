@@ -4,8 +4,10 @@ import { Tooltip, Alert } from 'antd';
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux';
 
-import { Select } from './';
-import { setPopupNormalParams, setPopupNormalParam, popupNormalChangeStatus, CONSTANT } from '../actions'
+import { Select, TreeSelect } from './';
+// import { setPopupNormalParams, setPopupNormalParam, popupNormalChangeStatus, CONSTANT } from '../actions'
+import * as actions from '../actions'
+import { CONSTANT } from '../actions'
 
 import PropTypes from 'prop-types';
 import './popup.scss';
@@ -13,8 +15,6 @@ import './popup.scss';
 class Popup extends React.Component {
     constructor(props, context) {
         super(props);
-
-        this.dispatch = context.dispatch;
 
         this.closeDialog = this.closeDialog.bind(this);
         this.submit = this.submit.bind(this);
@@ -78,7 +78,7 @@ class Popup extends React.Component {
         const me = this;
 
         //'inceptor', //uploadFile HDFS inceptor
-        const {closeDialog, status, popupType, setPopupNormalParams, popupNormalChangeStatus} = this.props;
+        const {closeDialog, condition, status, popupType, setPopupNormalParams, popupNormalChangeStatus, fetchLeafData, response} = this.props;
 
         const setPopupState = (obj) => {
             me.closeDialog();
@@ -89,7 +89,7 @@ class Popup extends React.Component {
             let title = '';
             switch (popupType) {
             case CONSTANT.move:
-                title = '移动';
+                title = '移至';
                 break;
             case CONSTANT.copy:
                 title = '拷贝';
@@ -114,31 +114,43 @@ class Popup extends React.Component {
         const getChildren = (popupType) => {
             switch (popupType) {
             case CONSTANT.move:
-                return <div className='data-detail-border'>
-                    <label className="data-detail-item">
-                        <span>from路径：</span>
-                        <input
-                    type="text"
-                    defaultValue=""
-                    disabled
-                    ref="path"
-                    onChange={argu => argu}
-                    />
-                    </label>
-                    <label className="data-detail-item">
-                        <span>目录path：</span>
-                        <input
-                    type="text"
-                    defaultValue=""
-                    required="required"
-                    name="dir_name"
-                    onChange={(e) => this.onInputChange(e)}
-                    />
-                    </label>
-                </div>;
+                return <div
+                    className="popup-body"
+                    style={{
+                        height: '200px'
+                    }}
+                    >
+                    <div className="add-connection">
+                        <div className='data-detail-border'>
+                            <label className="data-detail-item">
+                                <span>移动至：</span>
+                                <div
+                                    style={{width:'420px'}}
+                                    className="tree-here">
+                                    <TreeSelect
+                                        response={response}
+                                        fetchLeafData={fetchLeafData}
+                                        condition={condition} />
+                                </div>
+                            </label>
+{/*                            <label className="data-detail-item">
+                                <span>目录path：</span>
+                                <input
+                        type="text"
+                        defaultValue=""
+                        required="required"
+                        name="dir_name"
+                        onChange={(e) => this.onInputChange(e)}
+                        />
+                            </label>*/}
+                        </div>
+                    </div>
+                </div>
                 break;
             case CONSTANT.copy:
-                return <div className='data-detail-border'>
+                return <div className="popup-body">
+                            <div className="add-connection">
+                            <div className='data-detail-border'>
                     <label className="data-detail-item">
                         <span>from路径：</span>
                         <input
@@ -159,10 +171,13 @@ class Popup extends React.Component {
                     onChange={(e) => this.onInputChange(e)}
                     />
                     </label>
-                </div>;
+                </div>
+                </div>
+                        </div>
                 break;
             case CONSTANT.auth:
-                return <div className='data-detail-border'>
+                return <div className="popup-body">
+                            <div className="add-connection"><div className='data-detail-border'>
                     <label className="data-detail-item">
                         <span>from路径：</span>
                         <input
@@ -183,10 +198,14 @@ class Popup extends React.Component {
                     onChange={(e) => this.onInputChange(e)}
                     />
                     </label>
-                </div>;
+                </div>
+                </div>
+                </div>
                 break;
             case CONSTANT.upload:
-                return <div className={popupType === CONSTANT.upload ? 'data-detail-border' : 'none'} >
+                return <div className="popup-body">
+                            <div className="add-connection">
+                            <div className={popupType === CONSTANT.upload ? 'data-detail-border' : 'none'} >
                     <label className="data-detail-item">
                         <span>上传到：</span>
                         <input
@@ -204,10 +223,13 @@ class Popup extends React.Component {
                     ref="hdfsFile"
                     />
                     </label>
-                </div>;
+                </div>
+                </div>                </div>;
                 break;
             case CONSTANT.mkdir:
-                return <div className='data-detail-border'>
+                return <div className="popup-body">
+                            <div className="add-connection">
+                            <div className='data-detail-border'>
                     <label className="data-detail-item">
                         <span>路径名：</span>
                         <input
@@ -227,7 +249,7 @@ class Popup extends React.Component {
                     ref="dirName"
                     />
                     </label>
-                </div>;
+                </div></div></div>;
                 break;
             default:
                 return '';
@@ -250,11 +272,8 @@ class Popup extends React.Component {
                                 <i className="icon icon-close" onClick={this.closeDialog}></i>
                             </div>
                         </div>
-                        <div className="popup-body">
-                            <div className="add-connection">
-                                {getChildren(popupType)}
-                            </div>
-                        </div>
+                        
+                        {getChildren(popupType)}
 
                         <div className="popup-footer">
                             <button
@@ -271,22 +290,23 @@ class Popup extends React.Component {
 }
 
 const mapStateToProps = function(state, props) {
+    const {popupNormalParam, emitFetch, condition}=state;
     return {
-        ...state.popupNormalParam
+        ...popupNormalParam,
+        response: emitFetch.response,
+        condition
     }
 }
 
-const mapDispatchToProps = function(dispatch, props) {
+/*const mapDispatchToProps = function(dispatch, props) {
     return bindActionCreators({
         setPopupNormalParams,
         setPopupNormalParam,
-        popupNormalChangeStatus
+        popupNormalChangeStatus,
     }, dispatch);
-}
+}*/
 
 Popup.propTypes = {};
 Popup.defaultProps = {};
-Popup.contextTypes = {
-    dispatch: PropTypes.func.isRequired
-};
-export default connect(mapStateToProps, mapDispatchToProps)(Popup);
+
+export default connect(mapStateToProps, actions)(Popup);

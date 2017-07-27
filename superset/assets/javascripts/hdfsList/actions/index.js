@@ -1,5 +1,7 @@
 import fetch from 'isomorphic-fetch';
 
+import { appendTreeChildren, findTreeNode } from '../../tableList/module';
+
 export const actionTypes = {
     sendRequest: 'SEND_REQUEST',
     receiveData: 'RECEIVE_DATA',
@@ -308,6 +310,46 @@ function receiveData(condition, json) {
     };
 }
 
+popupNormalActions.receiveLeafData = 'RECEIVE_LEAF_DATA';
+function receiveLeafData(json) {
+    return {
+        type: popupNormalActions.receiveLeafData,
+        treeData: json
+    };
+}
+
+export function fetchLeafData(condition) {
+    //TODO: adjust the data and dispatch receiveLeafData
+    return (dispatch, getState) => {
+        const treeData = getState().popupNormalParam.treeData;
+
+        const URL = baseURL + `list/?` +
+        (condition.path ? ('path=' + condition.path + '&') : '');
+
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'GET',
+            mode: 'cors'
+        })
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
+        )
+            .then(json => {
+                treeData[condition.path] = json.files;
+
+                console.log(json, 'in fetchLeafData');
+
+                fetchCallback(dispatch, receiveLeafData, treeData);
+            // dispatch(receiveLeafData(condition, dataMatch(json)));
+            });
+    }
+}
+
+const fetchCallback = (dispatch, receiveData, data, condition) => {
+    dispatch(receiveData(condition, data));
+}
 function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
@@ -319,15 +361,14 @@ function applyFetch(condition) {
 
         // const urlListUnderPath = baseURL + `list/` //?path=/tmp&page_num=0&page_size=10   GET 列出目录下所有文件   
 
-        const dataMatch = json => {
+        const listDataMatch = json => {
             if (!json.files) return json;
             json.files.map(function(obj, index, arr) {
                 obj.key = index + 1;
             });
             return json;
         };
-
-        /*return fetch(URL, {
+        return fetch(URL, {
             credentials: 'include',
             method: 'GET',
             mode: 'cors'
@@ -338,13 +379,14 @@ function applyFetch(condition) {
                 error => errorHandler(error)
         )
             .then(json => {
-                dispatch(receiveData(condition, dataMatch(json)));
-            });*/
+                const data = listDataMatch(json);
+                fetchCallback(dispatch, receiveData, data, condition);
+            // dispatch(receiveData(condition, listDataMatch(json)));
+            });
 
-        let mockFunc = function() {
-            dispatch(receiveData(condition, dataMatch(connectionsMock)));
-        }();
-
+    /*        let mockFunc = function() {
+                dispatch(receiveData(condition, dataMatch(connectionsMock)));
+            }();*/
     };
 }
 

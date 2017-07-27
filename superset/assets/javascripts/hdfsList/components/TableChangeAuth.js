@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
 import style from '../style/hdfs.scss'
 
-class InnerTable extends React.Component {
+class TableChageAuth extends React.Component {
     constructor(props, context) {
         super(props);
         this.dispatch = context.dispatch;
@@ -26,7 +26,6 @@ class InnerTable extends React.Component {
         const dispatch = this.dispatch;
 
         const rowSelection = {
-            selectedRowKeys,
             onChange: this.onSelectChange
         };
         const flushDetail = (record) => {
@@ -165,4 +164,4 @@ class InnerTable extends React.Component {
     }
 }
 
-export default InnerTable;
+export default TableChageAuth;

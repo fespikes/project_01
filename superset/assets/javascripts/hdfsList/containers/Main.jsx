@@ -13,8 +13,7 @@ class Main extends Component {
         const {dispatch, condition} = this.props;
         this.dispatch = dispatch;
         return {
-            dispatch: dispatch,
-            connectionID: condition.connectionID
+            dispatch: dispatch
         }
 
     }
@@ -27,6 +26,10 @@ class Main extends Component {
             breadCrumbEditable: false,
             path: condition.path
         };
+    }
+
+    componentWillMount() {
+        console.log('componentWillMount');
     }
 
     componentDidMount() {
@@ -54,31 +57,33 @@ class Main extends Component {
         })
     }
 
+    //S:Path 
     onPathChange(e) {
+        let val = e.currentTarget.value.trim();
         this.setState({
-            path: e.currentTarget.value
+            path: val
         });
     }
 
     onPathBlur(e) {
         console.log('this is the path,', e.currentTarget.value);
         const {dispatch, condition, changePath} = this.props;
-        let val = e.currentTarget.value.trim();
+        let val = this.state.path;
         if (val === condition.path) {
             return;
         }
         console.log('tell me what happenning');
-        changePath(val);
+        changePath({
+            path: val
+        });
     }
+    //E:Path 
 
     render() {
-        const {changePath, giveDetail, popupParam, condition, emitFetch, fetchIfNeeded, popupChangeStatus, setSelectedRows} = this.props;
+        const {changePath, giveDetail, condition, emitFetch, fetchIfNeeded, popupChangeStatus, setSelectedRows} = this.props;
 
         const editable = this.state.breadCrumbEditable;
         //TODO: what does edit folder path mean here???
-
-
-        const connectionResponse = popupParam.response;
 
         const response = emitFetch.response;
 
@@ -88,8 +93,13 @@ class Main extends Component {
         let count = 0,
             breadCrumbText = this.state.path || `user/${username}`;
         if (response.length > 0) {
-            count = response.page.total_count;
+            count = response.pagesize;
             breadCrumbText = response.path;
+        }
+
+        const linkToPath = (ag) => {
+            this.setState({...ag});
+            changePath(ag);
         }
 
         return (
@@ -142,15 +152,15 @@ class Main extends Component {
                     <Table
             {...response}
             giveDetail={giveDetail}
-            changePath={changePath}
+            linkToPath={linkToPath}
             setSelectedRows={setSelectedRows}
             />
                 </div>
                 <div className="panel-bottom">
                     <Pagination
             count={count}
-            pageSize={condition.pageSize}
-            pageNumber={condition.page}
+            pageSize={condition.page_size}
+            pageNumber={condition.page_num}
             />
                 </div>
             </div>
@@ -187,7 +197,6 @@ function mapDispatchToProps(dispatch) {
 }
 
 Main.childContextTypes = {
-    connectionID: PropTypes.string.isRequired,
     dispatch: PropTypes.func.isRequired
 }
 
