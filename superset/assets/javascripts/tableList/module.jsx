@@ -1,9 +1,24 @@
 import React from 'react';
-import { Select } from 'antd';
+import { Select, Popover } from 'antd';
 
 const MIN_WIDTH = 120;
 const MAX_COLUMNS = 10;
 const SCREEN_WIDTH = document.body.clientWidth - 100;
+
+const typeArray = [
+    'int',
+    'bigint',
+    'float',
+    'double',
+    'decimal',
+    'boolean',
+    'string',
+    'varchar',
+    'date',
+    'timestamp',
+    'time'
+];
+
 export function getTableWidth(number) {
     let width = '100%';
     if(number <= MAX_COLUMNS || Math.floor(SCREEN_WIDTH/number) >= MIN_WIDTH) {
@@ -50,20 +65,8 @@ export function getTbTitleInceptor(commonTitle) {
     return tbTitle;
 }
 
-export function getTbTitleHDFS(commonTitle) {
+export function getTbTitleHDFS(commonTitle, _this) {
 
-    let typeArray = [
-        'int',
-        'bigint',
-        'float',
-        'doubledecimal',
-        'boolean',
-        'string',
-        'varchar',
-        'date',
-        'timestamp',
-        'time'
-    ];
     const Option = Select.Option;
     const options = typeArray.map(type => {
         return <Option key={type}>{type}</Option>
@@ -74,6 +77,7 @@ export function getTbTitleHDFS(commonTitle) {
             return (
                 <Select
                     style={{ width: '100%' }}
+                    onSelect={ (value)=>_this.onTypeSelect(value, column) }
                     placeholder='select the type'>
                     {options}
                 </Select>
@@ -81,6 +85,46 @@ export function getTbTitleHDFS(commonTitle) {
         }
     });
     return tbTitle;
+}
+
+export function setHDFSColumnType(selColumn, tbTitle, typeStr, _this) {
+    let typeArrayAccuracy = setTypeArrayAccuracy(typeStr);
+    const Option = Select.Option;
+    const options = typeArrayAccuracy.map(type => {
+        return <Option key={type}>{type}</Option>
+    });
+    tbTitle.map(column => {
+        if(column.key === selColumn.key) {
+            column.type = typeStr;
+            column.render = () => {
+                return (
+                    <Select
+                        style={{ width: '100%' }}
+                        value={typeStr}
+                        onSelect={ (value)=>_this.onTypeSelect(value, column) }
+                        placeholder='select the type'>
+                        {options}
+                    </Select>
+                )
+            }
+        }
+    });
+    return tbTitle;
+}
+
+function setTypeArrayAccuracy(typeStr) {
+    let typeArrayAccuracy = typeArray.concat();
+    if(!(typeStr.indexOf('varchar') > -1 || typeStr.indexOf('decimal') > -1)) {
+        return typeArrayAccuracy;
+    }
+    let k = 0;
+    typeArrayAccuracy.map((item, index) => {
+        if(typeStr.indexOf(item) === 0) {
+            k = index;
+        }
+    });
+    typeArrayAccuracy.splice(k, 1, typeStr);
+    return typeArrayAccuracy;
 }
 
 export function getTbContent(data) {
@@ -121,18 +165,15 @@ export function constructInceptorDataset(dataset) {
     return inceptorDataset;
 }
 
-export function constructHDFSDataset(dataset) {
+export function constructHDFSDataset(dataset, title) {
     let hdfsDataset = {};
     hdfsDataset.dataset_name = dataset.dataset_name;
     hdfsDataset.dataset_type = 'HDFS';
     hdfsDataset.database_id = dataset.inceptorConnectId;
     hdfsDataset.description = dataset.description;
-    hdfsDataset.hdfs_path = "/tmp/jiajie/hdfs_table";//mock data
+    hdfsDataset.hdfs_path = dataset.hdfsPath;
     hdfsDataset.separator = dataset.separator;
-    hdfsDataset.columns = {
-        "names": ["birthday", "gender", "name"],
-        "types": ["date", "varchar(30)", "varchar(120)"]
-    };//mock data
+    hdfsDataset.columns = constructHDFSColumns(title);
     hdfsDataset.hdfs_connection_id = dataset.hdfsConnectId;
     hdfsDataset.file_type = dataset.file_type;
     hdfsDataset.quote = dataset.quote;
@@ -143,8 +184,18 @@ export function constructHDFSDataset(dataset) {
     return hdfsDataset;
 }
 
-export function constructUploadDataset() {
-    //TODO
+function constructHDFSColumns(title) {
+    let names = [];
+    let types = [];
+    title.map(t => {
+        names.push(t.title);
+        types.push(t.type);
+    });
+    let columns = {
+        names: names,
+        types: types
+    };
+    return columns;
 }
 
 export function constructFileBrowserData(data) {
@@ -176,7 +227,7 @@ export function appendTreeChildren(path, children, fbData) {
 export function findTreeNode(treeNodes, path) {
     let node = undefined;
     if (!treeNodes || !treeNodes.length) {
-        node
+        return node;
     }
     let stack = [], item;
     for (let i = 0; i < treeNodes.length; i++) {
@@ -333,5 +384,14 @@ export function isActive(type, location) {
     return location.pathname.indexOf(`/${type}/INCEPTOR`) > -1 ||
         location.pathname.indexOf(`/${type}/HDFS`) > -1 ||
         location.pathname.indexOf(`/${type}/UPLOAD FILE`) > -1;
+}
+
+export function constructHDFSPreviewUrl(dataset) {
+    let url = window.location.origin + '/hdfstable/preview/';
+    url += '?hdfs_connection_id=' + parseInt(dataset.hdfsConnectId) + '&path=' + dataset.hdfsPath +
+        '&separator=' + dataset.separator + '&quote=' + dataset.quote + '&skip_rows=' + parseInt(dataset.skip_rows) +
+        '&next_as_header=' + dataset.next_as_header + '&skip_more_rows=' + parseInt(dataset.skip_more_rows) +
+        '&charset=' + dataset.charset;
+    return url;
 }
 
