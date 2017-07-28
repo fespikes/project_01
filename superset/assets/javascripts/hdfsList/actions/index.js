@@ -28,7 +28,8 @@ export const CONSTANT = {
     copy: 'copy',
     auth: 'auth',
     upload: 'upload',
-    remove: 'remove'
+    remove: 'remove',
+    noSelect: 'noSelect'
 }
 
 const ORIGIN = window.location.origin;
@@ -89,6 +90,9 @@ export function fetchOperation(param) {
             break;
         case CONSTANT.mkdir:
             submit = fetchMakedir;
+            break;
+        case CONSTANT.noSelect:
+            submit = fetchNoSlect;
             break;
         default:
             break;
@@ -173,14 +177,16 @@ function fetchAuth() {
 
 function fetchUpload() {
     return (dispatch, getState) => {
-        const state = getState();
-        const connectionID = state.condition.connectionID;
-        const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL + `action=upload&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const popupNormalParam = getState().popupNormalParam;
+        const destPath = popupNormalParam.dest_path;
+        const fileName = popupNormalParam.file_name;
+        const binaryFile = popupNormalParam.binaryFile;
+        const url = baseURL + 'upload/?dest_path=' + destPath + '&file_name=' + fileName;
 
-        return fetch(URL, {
+        return fetch(url, {
             credentials: 'include',
-            method: 'GET'
+            method: "POST",
+            body: binaryFile
         })
             .then(
                 response => response.ok ?
@@ -241,6 +247,11 @@ function fetchRemove() {
             });
     }
 }
+
+function fetchNoSlect(callback) {
+    callback(true, CONSTANT.noSelect);
+}
+
 //S: popup related actions
 export function setPopupParam(param) {
     return {

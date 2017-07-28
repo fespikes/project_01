@@ -348,6 +348,7 @@ class HDFSUploadDetail extends Component {
                         <div className="dataset-detail" id="dataset-detail-tree-select">
                             <TreeSelect
                                 showSearch
+                                value={dsHDFS.hdfsPath}
                                 style={{ width: 300 }}
                                 placeholder="please select"
                                 treeCheckable={false}
