@@ -7,6 +7,25 @@
 
 $borderStyle: solid 1px #e9eaed;
 
+span, textarea, i{
+    display: inline-block;
+    float:left;
+}
+textarea {
+    padding:0 5px;
+    margin:1px 5px 0;
+    background:transparent;
+    word-spacing:no-warp;
+    letter-spacing:1px;
+}
+.editing {
+    border: 1px #108ee9 solid;
+    padding: 2px 5px 3px;
+    margin-top:-2px;
+    border-radius: 5px;
+    
+}
+
 .hdfs-panel {
     margin: 0 50px;
     background-color: #edf0f5;
@@ -14,6 +33,8 @@ $borderStyle: solid 1px #e9eaed;
         display: flex;
         justify-content: space-between;
         margin: 15px 0;
+        .left{
+        }
 
         .right .operations{
             display:flex;
@@ -140,19 +161,7 @@ $borderStyle: solid 1px #e9eaed;
     }
 }
 
-
-.bread-crumb-span{
-    margin:0 10px;
-    font-size:12px;
-    line-height:25px;
-    border-bottom:1px blue solid;
-}
-
-.bread-crumb-span small.slash{
-    padding:0 5px;
-}
-
 /*common*/
-.f14{
+.f16{
     font-size:16px; font-weight:600;
 }

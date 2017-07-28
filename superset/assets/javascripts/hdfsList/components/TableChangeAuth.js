@@ -4,58 +4,27 @@ import { message, Table, Icon } from 'antd';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
-import style from '../style/hdfs.scss'
 
-class InnerTable extends React.Component {
+class TableChageAuth extends React.Component {
     constructor(props, context) {
         super(props);
         this.dispatch = context.dispatch;
-
-        this.state = {
-            selectedRowKeys: []
-        }
-
-        this.onSelectChange = this.onSelectChange.bind(this);
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
-        let length = selectedRows.length;
-        let selectedRow = selectedRows[length - 1];
-
-        if (!selectedRow) {
-            this.props.setSelectedRows({
-                selectedRows: [],
-                selectedRowKeys: [],
-                selectedRowNames: []
-            });
-            this.setState({
-                selectedRowKeys: []
-            })
-            return;
-        }
         let selectedRowNames = [];
-        this.setState({
-            selectedRowKeys: [selectedRowKeys[length - 1]]
+        selectedRows.forEach(function(row) {
+            selectedRowNames.push(row.name);
         });
-        // selectedRows.forEach(function(row) {
-        //     selectedRowNames.push(row.name);
-        // });
-        selectedRows = [selectedRows[length - 1]];
-        selectedRowKeys = [selectedRowKeys[length - 1]]
-
-        //TODO: when have no selected row
-
-        selectedRowNames = [selectedRow['name']];
-        this.props.setSelectedRows(selectedRows, selectedRowKeys, selectedRowNames);
+        this.props.setSelectedRows(selectedRowKeys, selectedRowNames);
     };
 
     render() {
-        const {selectedRowKeys} = this.state;
+
         const {files, giveDetail, linkToPath} = this.props;
         const dispatch = this.dispatch;
 
         const rowSelection = {
-            selectedRowKeys,
             onChange: this.onSelectChange
         };
         const flushDetail = (record) => {
@@ -194,4 +163,4 @@ class InnerTable extends React.Component {
     }
 }
 
-export default InnerTable;
+export default TableChageAuth;
