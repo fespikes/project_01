@@ -117,13 +117,6 @@ def upgrade():
         sa.ForeignKeyConstraint(['slice_id'], ['slices.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('dashboard_user',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('user_id', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
-        sa.Column('dashboard_id', sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(['dashboard_id'], ['dashboards.id'], ),
-        sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('database_account',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('user_id', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
@@ -163,13 +156,6 @@ def upgrade():
         sa.UniqueConstraint('client_id')
     )
     op.create_index('ti_user_id_changed_on', 'query', ['user_id', 'changed_on'], unique=False)
-    op.create_table('slice_user',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('user_id', sa.Integer(), sa.ForeignKey("ab_user.id"), nullable=True),
-        sa.Column('slice_id', sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(['slice_id'], ['slices.id'], ),
-        sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('hdfs_connection',
         sa.Column('created_on', sa.DateTime(), nullable=True),
         sa.Column('changed_on', sa.DateTime(), nullable=True),
