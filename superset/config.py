@@ -38,6 +38,9 @@ PILOT_WEBSERVER_TIMEOUT = 60
 CUSTOM_SECURITY_MANAGER = None
 # ---------------------------------------------------------
 
+# The Community Edition will abandon guardian module, and embed user management module
+COMMUNITY_EDITION = False
+
 # License check
 LICENSE_CHECK = True
 LICENSE_CHECK_SERVER = '172.16.2.41:2291'

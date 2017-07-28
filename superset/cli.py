@@ -13,7 +13,7 @@ from subprocess import Popen
 from flask_migrate import MigrateCommand, upgrade
 from flask_script import Manager
 
-from superset import app, db, data, security
+from superset import app, sm, db, data, security
 
 
 config = app.config
@@ -28,7 +28,20 @@ def init():
     security.sync_role_definitions()
 
 
-def init_db_and_role():
+def create_default_user():
+    if config.get('COMMUNITY_EDITION') is False \
+            or sm.find_user(username='admin'):
+        return
+    logging.info("Start to add default admin user ...")
+    user = sm.add_user(
+        'admin', 'admin', 'admin', 'admin@email.com', sm.find_role('Admin'),
+        password='123456')
+    if not user:
+        logging.error("Failed to add default admin user.")
+    logging.info("Finished to add default admin user.")
+
+
+def init_pilot():
     rs = db.session.execute('show tables like "alembic_version";')
     if rs.rowcount == 0:
         logging.info("Start to create metadata tables...")
@@ -41,6 +54,8 @@ def init_db_and_role():
         logging.info("Start to initialize permissions and roles...")
         init()
         logging.info("Finished to initialize permissions and roles.")
+
+    create_default_user()
 
 
 @manager.option(
@@ -60,7 +75,7 @@ def init_db_and_role():
     help="Specify the timeout (seconds) for the gunicorn web server")
 def runserver(debug, address, port, timeout, workers):
     """Starts a web server"""
-    init_db_and_role()
+    init_pilot()
     debug = debug or config.get("DEBUG")
     if debug:
         app.run(
