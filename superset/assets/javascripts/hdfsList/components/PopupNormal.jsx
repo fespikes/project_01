@@ -64,7 +64,7 @@ class Popup extends React.Component {
             this.checkIfSubmit();
         }, 800);
     }
-    
+
     submit() {
         this.props.popupNormalParam.submit();
     }
@@ -138,12 +138,14 @@ class Popup extends React.Component {
                     popupNormalParam={popupNormalParam}
                     condition={condition} />
                                     <input
-                                    type="text"
-                                    required="required"
-                                    value={dest_path}
-                                    onChange={this.onInputChange}
-                                    style={{display:'none'}}
-                                    />
+                    type="text"
+                    required="required"
+                    value={dest_path}
+                    onChange={this.onInputChange}
+                    style={{
+                        display: 'none'
+                    }}
+                    />
                                 </div>
                             </label>
                         </div>
@@ -266,7 +268,8 @@ class Popup extends React.Component {
 
                         <div className="popup-footer">
                             <button
-                            ref="submit"
+            disabled="disabled"
+            ref="submit"
             className="tp-btn tp-btn-middle tp-btn-primary j_submit"
             onClick={me.submit}>
                                 提交
