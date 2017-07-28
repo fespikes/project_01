@@ -105,7 +105,8 @@ function popupNormalParam(state = {
             popupType: action.popupType,
             submit: action.submit,
             status: action.status,
-            dest_path: action.dest_path
+            dest_path: action.dest_path,
+            dir_name: action.dir_name
         };
         break;
     case popupNormalActions.setPopupParam:

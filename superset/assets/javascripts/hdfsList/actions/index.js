@@ -202,7 +202,7 @@ function fetchMakedir() {
 
         const URL = baseURL + `mkdir/?` +
         (path ? ('path=' + path + '&') : '') +
-        (dir_name ? 'dest_path=' + dir_name : '');
+        (dir_name ? 'dir_name=' + dir_name : '');
         ///hdfs/mkdir/?path=/tmp&dir_name=testdir
 
         return fetch(URL, {
@@ -266,7 +266,8 @@ export function setPopupNormalParams(param) {
         popupType: param.popupType,
         submit: param.submit,
         status: param.status,
-        dest_path: param.dest_path
+        dest_path: param.dest_path,
+        dir_name: param.dir_name
     }
 }
 

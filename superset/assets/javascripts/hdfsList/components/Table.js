@@ -126,7 +126,7 @@ class InnerTable extends React.Component {
                                 linkToPath({
                                     path: record.path
                                 });
-                            }}>{record.path}</a>);
+                            }}>{record.name}</a>);
                     }
                 }
             }, {

@@ -233,7 +233,7 @@ class Popup extends React.Component {
                     />
                                 </label>
                                 <label className="data-detail-item">
-                                    <span>文件名称：</span>
+                                    <span>文件夹名:</span>
                                     <input
                     required="required"
                     type="text"
