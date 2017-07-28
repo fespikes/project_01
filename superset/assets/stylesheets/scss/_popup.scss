@@ -187,6 +187,9 @@ button.test-connect {
     }
     .warning {
         margin-top: 30px;
+        .ant-alert {
+            min-height: 100px;
+        }
     }
 }
 

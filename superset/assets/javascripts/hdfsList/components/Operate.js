@@ -50,13 +50,22 @@ class Operate extends React.Component {
         }
     }
 
-    upload(ag) {
-        console.log(ag, 'in upload');
-        const {fetchOperation, setPopupNormalParams} = this.props;
-        const normalPopupParam = {
-            popupType: CONSTANT.upload,
-            submit: fetchOperation,
-            status: 'flex'
+    upload() {
+        const {fetchOperation, setPopupNormalParams, condition} = this.props;
+        let normalPopupParam = {};
+        if(condition.selectedRows.length === 0) {
+            normalPopupParam = {
+                popupType: CONSTANT.noSelect,
+                submit: fetchOperation,
+                status: 'flex'
+            };
+        }else {
+            normalPopupParam = {
+                popupType: CONSTANT.upload,
+                submit: fetchOperation,
+                status: 'flex',
+                dest_path: condition.selectedRows[0].path
+            };
         }
         setPopupNormalParams(normalPopupParam);
     }
@@ -188,4 +197,4 @@ const mapDispatchToProps = function(dispatch, props) {
     }, dispatch);
 }
 
-export default connect(null, mapDispatchToProps)(Operate);
+export default connect(mapStateToProps, mapDispatchToProps)(Operate);
