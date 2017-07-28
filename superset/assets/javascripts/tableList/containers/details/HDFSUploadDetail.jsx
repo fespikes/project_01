@@ -104,14 +104,20 @@ class HDFSUploadDetail extends Component {
     }
 
     handleFile() {
+        const me = this;
         this.refs.fileName.innerText = this.refs.fileSelect.files[0].name;
-        let objUpload = {
-            ...this.state.dsHDFS,
-            uploadFileName: this.refs.fileSelect.files[0].name
-        };
-        this.setState({
-            dsHDFS: objUpload
-        });
+        let reader = new FileReader();
+        reader.readAsBinaryString(this.refs.fileSelect.files[0]);
+        reader.onload = function(e) {
+            let objUpload = {
+                ...me.state.dsHDFS,
+                uploadFileName: me.refs.fileSelect.files[0].name,
+                binaryFile: e.target.result
+            };
+            me.setState({
+                dsHDFS: objUpload
+            });
+        }
     }
 
     uploadFile() {//only upload one file
@@ -126,7 +132,7 @@ class HDFSUploadDetail extends Component {
         }
         const { fetchUploadFile } = this.props;
         fetchUploadFile(
-            this.refs.fileSelect.files[0],
+            this.state.dsHDFS.binaryFile,
             this.state.dsHDFS.uploadFileName,
             this.state.dsHDFS.hdfsPath,
             callback
@@ -355,7 +361,8 @@ class HDFSUploadDetail extends Component {
                         </div>
                     </div>
                     <div className="sub-btn">
-                        <input type="button" defaultValue="上传文件" onClick={this.uploadFile}/>
+                        <input type="button" className={datasetType==='UPLOAD FILE'?'':'none'}
+                               defaultValue="上传文件" onClick={this.uploadFile}/>
                         <Link to={`/${opeType}/preview/${datasetType}/${datasetId}`} onClick={this.onConfig}>
                             配置
                         </Link>

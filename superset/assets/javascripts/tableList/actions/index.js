@@ -1,5 +1,6 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishTableUrl} from '../utils';
+import {constructHDFSPreviewUrl} from '../module';
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -428,7 +429,7 @@ export function fetchHDFSFileBrowser(path, callback) {
 }
 
 export function fetchUploadFile(data, fileName, path, callback) {
-    const url = window.location.origin + '/hdfstable/upload?dest_path=' + path + '&file_name=' + fileName;
+    const url = window.location.origin + '/hdfs/upload/?dest_path=' + path + '&file_name=' + fileName;
     return () => {
         return fetch(url, {
             credentials: 'include',
@@ -539,10 +540,33 @@ export function fetchTypeList(callback) {
     }
 }
 
-export function fetchDatasetPreviewData(id, callback) {
+export function fetchInceptorPreviewData(id, callback) {
     return (dispatch) => {
         dispatch(switchFetchingState(true));
         const url = baseURL + 'preview_data?dataset_id=' + id;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                        dispatch(switchFetchingState(false));
+                    });
+                }else {
+                    callback(false);
+                    dispatch(switchFetchingState(false));
+                }
+            }
+        );
+    }
+}
+
+export function fetchHDFSPreviewData(dsHDFS, callback) {
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
+        const url = constructHDFSPreviewUrl(dsHDFS);
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
