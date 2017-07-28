@@ -43,7 +43,6 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     list_columns = [
         'id', 'column_name', 'description', 'type', 'groupby', 'filterable',
         'count_distinct', 'sum', 'min', 'max', 'is_dttm', 'expression']
-    _list_columns = list_columns
     edit_columns = [
         'column_name', 'description', 'groupby', 'filterable', 'is_dttm',
         'count_distinct', 'sum', 'min', 'max', 'expression', 'dataset_id']
@@ -66,7 +65,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         data = []
         for row in rows:
             line = {}
-            for col in self._list_columns:
+            for col in self.list_columns:
                 if col in self.str_columns:
                     line[col] = str(getattr(row, col, None))
                 else:
@@ -92,7 +91,6 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     route_base = '/sqlmetric'
     list_columns = [
         'id', 'metric_name', 'description', 'metric_type', 'expression']
-    _list_columns = list_columns
     show_columns = list_columns + ['dataset_id', 'dataset']
     edit_columns = [
         'metric_name', 'description', 'metric_type', 'expression', 'dataset_id']
@@ -122,7 +120,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
         data = []
         for row in rows:
             line = {}
-            for col in self._list_columns:
+            for col in self.list_columns:
                 if col in self.str_columns:
                     line[col] = str(getattr(row, col, None))
                 else:
@@ -143,7 +141,6 @@ class DatasetModelView(SupersetModelView):  # noqa
     route_base = '/table'
     list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url',
                     'connection', 'changed_on']
-    _list_columns = list_columns
     add_columns = ['dataset_name', 'dataset_type', 'database_id', 'description',
                    'schema', 'table_name', 'sql']
     show_columns = add_columns + ['id']
@@ -172,7 +169,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/databases/', methods=['GET', ])
     def addable_databases(self):
-        return json.dumps(self.get_available_connections(get_user_id()))
+        return json.dumps(self.get_available_databases(get_user_id()))
 
     @catch_exception
     @expose('/schemas/<database_id>/', methods=['GET', ])
@@ -348,7 +345,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         data = []
         for obj, user in rs:
             line = {}
-            for col in self._list_columns:
+            for col in self.list_columns:
                 if col in self.str_columns:
                     line[col] = str(getattr(obj, col, None))
                 else:

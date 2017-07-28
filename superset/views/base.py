@@ -21,7 +21,7 @@ from wtforms.validators import ValidationError
 from superset import app, appbuilder, db, models, sm, utils
 from superset.source_registry import SourceRegistry
 from superset.utils import json_error_response
-from superset.models import FavStar
+from superset.models import Dataset, Database, Dashboard, Slice, FavStar
 from superset.message import *
 
 
@@ -413,7 +413,7 @@ class SupersetModelView(ModelView, PageMixin):
 
     def get_available_tables(self):
         # TODO just return dataset_type=='inceptor'
-        tbs = db.session.query(models.Dataset).all()
+        tbs = db.session.query(Dataset).all()
         tb_list = []
         for t in tbs:
             row = {'id': t.id, 'dataset_name': t.dataset_name}
@@ -421,11 +421,19 @@ class SupersetModelView(ModelView, PageMixin):
         return tb_list
 
     def get_available_connections(self, user_id):
+        return self.get_available_databases(user_id)
+
+    def get_available_databases(self, user_id):
         """TODO just return connection_type=='inceptor'"""
-        dbs = db.session.query(models.Database) \
-            .filter(models.Database.database_name != 'main',
-                    models.Database.created_by_fk == user_id) \
+        dbs = (
+            db.session.query(Database)
+            .filter(Database.database_name != 'main',
+                    or_(Database.created_by_fk == user_id,
+                        Database.online == 1)
+            )
+            .order_by(Database.database_name)
             .all()
+        )
         dbs_list = [{'id': d.id, 'database_name': d.database_name}
                     for d in dbs]
         return dbs_list
@@ -433,10 +441,10 @@ class SupersetModelView(ModelView, PageMixin):
     @staticmethod
     def get_available_dashboards(user_id):
         dashs = (
-            db.session.query(models.Dashboard)
-                .filter_by(created_by_fk=user_id)
-                .order_by(models.Dashboard.changed_on.desc())
-                .all()
+            db.session.query(Dashboard)
+            .filter_by(created_by_fk=user_id)
+            .order_by(Dashboard.changed_on.desc())
+            .all()
         )
         return dashs
 
@@ -451,13 +459,13 @@ class SupersetModelView(ModelView, PageMixin):
     @staticmethod
     def get_available_slices(user_id):
         slices = (
-            db.session.query(models.Slice)
-                .filter(
-                or_(models.Slice.created_by_fk == user_id,
-                    models.Slice.online == 1)
+            db.session.query(Slice)
+            .filter(
+                or_(Slice.created_by_fk == user_id,
+                    Slice.online == 1)
             )
-                .order_by(models.Slice.changed_on.desc())
-                .all()
+            .order_by(Slice.changed_on.desc())
+            .all()
         )
         return slices
 

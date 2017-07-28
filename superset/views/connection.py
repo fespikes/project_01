@@ -12,7 +12,7 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
 
 import sqlalchemy as sqla
-from sqlalchemy import select, literal, cast, or_
+from sqlalchemy import select, literal, cast, or_, and_
 
 from superset import app, db, models, appbuilder
 from superset.models import Database, HDFSConnection
@@ -32,7 +32,6 @@ class DatabaseView(SupersetModelView):  # noqa
     datamodel = SQLAInterface(models.Database)
     route_base = '/database'
     list_columns = ['id', 'database_name', 'description', 'backend', 'changed_on']
-    _list_columns = list_columns
     show_columns = ['id', 'database_name', 'description', 'sqlalchemy_uri',
                     'args', 'backend',  'created_on', 'changed_on']
     add_columns = ['database_name', 'description', 'sqlalchemy_uri', 'args']
@@ -58,8 +57,6 @@ class DatabaseView(SupersetModelView):  # noqa
 
     def pre_add(self, obj):
         obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
-        # if not obj.test_uri(obj.sqlalchemy_uri_decrypted):
-        #      raise Exception("Not a valid connection")
 
     def post_add(self, obj):
         self.add_or_edit_database_account(obj)
@@ -133,7 +130,7 @@ class DatabaseView(SupersetModelView):  # noqa
         data = []
         for obj, user in rs:
             line = {}
-            for col in self._list_columns:
+            for col in self.list_columns:
                 if col in self.str_columns:
                     line[col] = str(getattr(obj, col, None))
                 else:
@@ -157,7 +154,6 @@ class HDFSConnectionModelView(SupersetModelView):
     datamodel = SQLAInterface(models.HDFSConnection)
     route_base = '/hdfsconnection'
     list_columns = ['id', 'connection_name']
-    _list_columns = list_columns
     show_columns = ['id', 'connection_name', 'description', 'httpfs',
                     'database_id', 'database']
     add_columns = ['connection_name', 'description', 'httpfs', 'database_id']
@@ -185,7 +181,7 @@ class HDFSConnectionModelView(SupersetModelView):
         data = []
         for obj, user in query.all():
             line = {}
-            for col in self._list_columns:
+            for col in self.list_columns:
                 if col in self.str_columns:
                     line[col] = str(getattr(obj, col, None))
                 else:
@@ -293,11 +289,17 @@ class ConnectionView(BaseSupersetView, PageMixin):
         union_q = s1.union_all(s2).alias('connection')
         query = (
             db.session.query(union_q, User.username)
-                .join(User, User.id == union_q.c.user_id)
-                .filter(
+            .join(User, User.id == union_q.c.user_id)
+            .filter(
                 or_(
                     union_q.c.user_id == user_id,
-                    union_q.c.online == 1)
+                    union_q.c.online == 1),
+                or_(
+                    union_q.c.connection_type == 'HDFS',
+                    and_(union_q.c.connection_type == 'INCEPTOR',
+                         union_q.c.name != 'main')
+                ),
+
             )
         )
 

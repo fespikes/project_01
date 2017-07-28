@@ -57,7 +57,6 @@ class SliceModelView(SupersetModelView):  # noqa
     can_add = False
     list_columns = ['id', 'slice_name', 'description', 'slice_url', 'datasource',
                     'viz_type', 'online', 'changed_on']
-    _list_columns = list_columns
     edit_columns = ['slice_name', 'description']
     show_columns = ['id', 'slice_name', 'description', 'created_on', 'changed_on']
     base_order = ('changed_on', 'desc')
@@ -184,7 +183,7 @@ class SliceModelView(SupersetModelView):  # noqa
         data = []
         for obj, username, fav_id in rs:
             line = {}
-            for col in self._list_columns:
+            for col in self.list_columns:
                 if col in self.str_columns:
                     line[col] = str(getattr(obj, col, None))
                 else:
@@ -212,7 +211,6 @@ class DashboardModelView(SupersetModelView):  # noqa
     route_base = '/dashboard'
     list_columns = ['id', 'dashboard_title', 'url', 'description',
                     'online',  'changed_on']
-    _list_columns = list_columns
     edit_columns = ['dashboard_title', 'description']
     show_columns = ['id', 'dashboard_title', 'description', 'table_names']
     add_columns = edit_columns
@@ -312,7 +310,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         data = []
         for obj, username, fav_id in rs:
             line = {}
-            for col in self._list_columns:
+            for col in self.list_columns:
                 if col in self.str_columns:
                     line[col] = str(getattr(obj, col, None))
                 else:
