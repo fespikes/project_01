@@ -105,23 +105,6 @@ class SubDetail extends Component {
                             fetchUploadFile={fetchUploadFile}
                         />
                     </div>
-                    {/*<div className={datasetType==='UPLOAD FILE'?'':'none'}>
-                        <UploadDetail
-                            fetchUploadFile={fetchUploadFile}
-                            dispatch={dispatch}
-                            datasetId={datasetId}
-                            datasetType={datasetType}
-                            dsUpload={dsUpload}
-                            isFetching={isFetching}
-                            saveUploadDataset={saveUploadDataset}
-                            fetchDBDetail={fetchDBDetail}
-                            fetchHDFSDetail={fetchHDFSDetail}
-                            fetchDatasetDetail={fetchDatasetDetail}
-                            fetchHDFSFileBrowser={fetchHDFSFileBrowser}
-                            fetchHDFSConnectList={fetchHDFSConnectList}
-                            fetchInceptorConnectList={fetchInceptorConnectList}
-                        />
-                    </div>*/}
                     <div id="showAlert" className="alert-tip"></div>
                 </div>
             </div>
