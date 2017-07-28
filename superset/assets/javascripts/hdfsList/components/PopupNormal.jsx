@@ -21,12 +21,12 @@ class Popup extends React.Component {
         this.submit = this.submit.bind(this);
         this.checkIfSubmit = this.checkIfSubmit.bind(this);
         this.onInputChange = this.onInputChange.bind(this);
-
-        //popupType = ['mkdir', 'upload'][0];
-        this.state = {}
     }
 
-    componentDidMount() {}
+    componentDidUpdate() {
+        this.checkIfSubmit();
+
+    }
 
     closeDialog() {
         this.props.popupNormalChangeStatus('none');
@@ -36,19 +36,20 @@ class Popup extends React.Component {
 
     checkIfSubmit() {
         var fields = $(".popup-body input[required]");
-        var bool = false;
+        let disabled = null;
         fields.each((idx, obj) => {
             if (obj.value === '') {
-                bool = true;
+                disabled = 'disabled';
                 return;
             }
         });
 
-        if (bool) {
-            this.refs.submit.disabled = 'disabled';
-        } else {
-            this.refs.submit.disabled = null;
+        if (disabled ===this.props.popupNormalParam.disabled){
+            return;
         }
+        this.props.setPopupNormalParam({
+            disabled: disabled
+        });
     }
 
     onInputChange(e) {
@@ -77,7 +78,7 @@ class Popup extends React.Component {
             setPopupNormalParams, popupNormalChangeStatus, //
             fetchLeafData} = this.props;
 
-        const {popupType, dest_path, treeData, status} = popupNormalParam;
+        const {popupType, disabled, dest_path, treeData, status} = popupNormalParam;
 
         const setPopupState = (obj) => {
             me.closeDialog();
@@ -137,15 +138,18 @@ class Popup extends React.Component {
 
                     popupNormalParam={popupNormalParam}
                     condition={condition} />
-                                    <input
-                                    type="text"
-                                    required="required"
-                                    value={dest_path}
-                                    onChange={this.onInputChange}
-                                    style={{display:'none'}}
-                                    />
                                 </div>
                             </label>
+                            <label className="data-detail-item">
+                                    <span></span>
+                                    <input
+                    type="text"
+                    disabled="disabled"
+                    required="required"
+                    value={dest_path}
+                    onChange={this.onInputChange}
+                    />
+                                </label>
                         </div>
                     </div>
                 </div>
@@ -202,7 +206,7 @@ class Popup extends React.Component {
                     />
                                 </label>
                                 <label className="data-detail-item">
-                                    <span>$nbsp;$nbsp;</span>
+                                    <span></span>
                                     <input
                     type="file"
                     required="required"
@@ -266,10 +270,9 @@ class Popup extends React.Component {
 
                         <div className="popup-footer">
                             <button
-                                disabled='disabled'
-                                ref="submit"
-                                className="tp-btn tp-btn-middle tp-btn-primary j_submit"
-                                onClick={me.submit}>
+            disabled={disabled}
+            className="tp-btn tp-btn-middle tp-btn-primary j_submit"
+            onClick={me.submit}>
                                 提交
                             </button>
                         </div>

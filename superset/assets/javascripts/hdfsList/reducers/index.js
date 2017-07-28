@@ -80,6 +80,7 @@ function popupNormalParam(state = {
         closeDialog: argu => argu,
 
         status: 'none', //flex, none
+        disabled: 'disabled',
         showAlert: false,
         popupType: '',
 

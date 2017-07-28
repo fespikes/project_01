@@ -407,6 +407,8 @@ export function fetchLeafData(condition, treeDataReady) {
                             isLeaf: true
                         }
                     });
+
+                    treeData = JSON.parse(JSON.stringify(treeData));
                     dispatch(receiveLeafData(treeData));
 
                 // fetchCallback(dispatch, receiveLeafData, treeData);

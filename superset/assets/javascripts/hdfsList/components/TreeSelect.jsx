@@ -1,32 +1,12 @@
 import React, { Component } from 'react';
 import { TreeSelect } from 'antd';
 import PropTypes from 'prop-types';
-
 const TreeNode = TreeSelect.TreeNode;
 
-// import '../style/treeSelect.scss';
+import '../style/treeSelect.scss';
 
 // import { render, unmountComponentAtNode } from 'react-dom';
 // import { Tooltip, Alert } from 'antd';
-
-// import PropTypes from 'prop-types';
-const treeData = [{
-    label: 'Node1',
-    value: '0-0',
-    key: '0-0',
-
-}, {
-    label: 'Node2',
-    value: '0-1',
-    key: '0-1',
-}];
-
-const dataMapping = ag => {
-    if (!ag || !ag.length) return;
-    ag.map((obj, index) => {
-
-    })
-}
 
 class TreeSelector extends Component {
 
@@ -113,7 +93,7 @@ class TreeSelector extends Component {
     }
 
     onSelect = (value) => {
-        let popupNormalParam = this.props.popupNormalParam;
+        let {popupNormalParam, checkIfSubmit} = this.props;
         let dest_path = value;
 
         this.props.setPopupNormalParams({
@@ -138,7 +118,6 @@ class TreeSelector extends Component {
                 overflow: 'auto'
             }}
             getPopupContainer={() => document.getElementById('tree-select-box')}
-            loadData={this.loadData}
             onSelect={this.onSelect}
             placeholder="please select dest-path"
             showSearch
