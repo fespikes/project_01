@@ -64,7 +64,7 @@ class Popup extends React.Component {
             this.checkIfSubmit();
         }, 800);
     }
-    
+
     submit() {
         this.props.popupNormalParam.submit();
     }
@@ -266,10 +266,10 @@ class Popup extends React.Component {
 
                         <div className="popup-footer">
                             <button
-                            disabled='disabled'
-                            ref="submit"
-            className="tp-btn tp-btn-middle tp-btn-primary j_submit"
-            onClick={me.submit}>
+                                disabled='disabled'
+                                ref="submit"
+                                className="tp-btn tp-btn-middle tp-btn-primary j_submit"
+                                onClick={me.submit}>
                                 提交
                             </button>
                         </div>
