@@ -236,8 +236,6 @@ class DashboardModelView(SupersetModelView):  # noqa
         return data
 
     def pre_add(self, obj):
-        if g.user not in obj.owners:
-            obj.owners.append(g.user)
         utils.validate_json(obj.json_metadata)
         utils.validate_json(obj.position_json)
 
@@ -680,7 +678,7 @@ class Superset(BaseSupersetView):
 
         if action in ('saveas'):
             d.pop('slice_id')  # don't save old slice_id
-            slc = Slice(owners=[g.user] if g.user else [])
+            slc = Slice()
 
         slc.params = json.dumps(d, indent=4, sort_keys=True)
         slc.datasource_name = args.get('datasource_name')
@@ -710,9 +708,7 @@ class Superset(BaseSupersetView):
                     dash.dashboard_title),
                 "info")
         elif request.args.get('add_to_dash') == 'new':
-            dash = Dashboard(
-                dashboard_title=request.args.get('new_dashboard_name'),
-                owners=[g.user] if g.user else [])
+            dash = Dashboard(dashboard_title=request.args.get('new_dashboard_name'))
             flash(
                 "Dashboard [{}] just got created and slice [{}] was added "
                 "to it".format(
@@ -809,7 +805,6 @@ class Superset(BaseSupersetView):
         data = json.loads(request.form.get('data'))
         dash = Dashboard()
         original_dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        dash.owners = [g.user] if g.user else []
         dash.dashboard_title = data['dashboard_title']
         dash.slices = original_dash.slices
         dash.params = original_dash.params

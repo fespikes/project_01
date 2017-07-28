@@ -29,13 +29,6 @@ from .dataset import Dataset
 config = app.config
 
 
-slice_user = Table('slice_user', Model.metadata,
-                   Column('id', Integer, primary_key=True),
-                   Column('user_id', Integer, ForeignKey('ab_user.id')),
-                   Column('slice_id', Integer, ForeignKey('slices.id'))
-                   )
-
-
 class Slice(Model, AuditMixinNullable, ImportMixin):
     """A slice is essentially a report or a view on data"""
     __tablename__ = 'slices'
@@ -52,7 +45,6 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     description = Column(Text)
     department = Column(Text)
     cache_timeout = Column(Integer)
-    owners = relationship("User", secondary=slice_user)
 
     __table_args__ = (
         UniqueConstraint('slice_name', 'created_by_fk', name='slice_name_owner_uc'),
@@ -235,13 +227,6 @@ dashboard_slices = Table(
     Column('slice_id', Integer, ForeignKey('slices.id')),
 )
 
-dashboard_user = Table(
-    'dashboard_user', Model.metadata,
-    Column('id', Integer, primary_key=True),
-    Column('user_id', Integer, ForeignKey('ab_user.id')),
-    Column('dashboard_id', Integer, ForeignKey('dashboards.id'))
-)
-
 
 class Dashboard(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = 'dashboards'
@@ -256,7 +241,6 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     slug = Column(String(255))
     slices = relationship(
         'Slice', secondary=dashboard_slices, backref='dashboards')
-    owners = relationship("User", secondary=dashboard_user)
 
     __table_args__ = (
         UniqueConstraint('dashboard_title', 'created_by_fk', name='dashboard_title_owner_uc'),
