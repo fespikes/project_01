@@ -34,19 +34,20 @@ class Popup extends React.Component {
 
     timer = 0
 
-    checkIfSubmit () {
+    checkIfSubmit() {
         var fields = $(".popup-body input[required]");
         var bool = false;
-        fields.each((idx, obj)=>{
-            if (obj.value==='') {
+        fields.each((idx, obj) => {
+            if (obj.value === '') {
                 bool = true;
                 return;
             }
         });
+
         if (bool) {
-            $('.j_submit').prop('disabled', 'disabled');
+            this.refs.submit.disabled = 'disabled';
         } else {
-            $('.j_submit').removeAttr('disabled');
+            this.refs.submit.disabled = null;
         }
     }
 
@@ -59,43 +60,12 @@ class Popup extends React.Component {
             [key]: val
         });
         clearTimeout(this.timer);
-        this.timer=setTimeout(()=>{
+        this.timer = setTimeout(() => {
             this.checkIfSubmit();
         }, 800);
     }
-
-    /*    setParams() {
-            const popupType = this.state.popupType;
-            const setPopupNormalParams = this.props.setPopupNormalParams;
-
-            //params of mkdir
-            let mkdirPath = this.refs.mkdirPath.value;
-            let dirName = this.refs.dirName.value;
-
-            //params of upload file
-            let uploadPath = this.refs.uploadPath.value;
-            let hdfsFile = this.refs.hdfsFile.value;
-
-            if (popupType === CONSTANT.move) {
-
-            } else if (popupType === CONSTANT.mkdir) {
-                setPopupNormalParams({
-                    path: mkdirPath,
-                    dirName,
-                    popupType
-                });
-            } else if (popupType === CONSTANT.upload) {
-                setPopupNormalParams({
-                    path: uploadPath,
-                    hdfsFile,
-                    popupType
-                });
-            }
-        }*/
-
+    
     submit() {
-        console.log('submit this popup');
-        // this.setParams();
         this.props.popupNormalParam.submit();
     }
 
@@ -107,7 +77,7 @@ class Popup extends React.Component {
             setPopupNormalParams, popupNormalChangeStatus, //
             fetchLeafData} = this.props;
 
-        const {popupType, treeData, status} = popupNormalParam;
+        const {popupType, dest_path, treeData, status} = popupNormalParam;
 
         const setPopupState = (obj) => {
             me.closeDialog();
@@ -163,9 +133,17 @@ class Popup extends React.Component {
                     treeData={treeData}
                     fetchLeafData={fetchLeafData}
                     setPopupNormalParams={setPopupNormalParams}
+                    checkIfSubmit={this.checkIfSubmit}
 
                     popupNormalParam={popupNormalParam}
                     condition={condition} />
+                                    <input
+                                    type="text"
+                                    required="required"
+                                    value={dest_path}
+                                    onChange={this.onInputChange}
+                                    style={{display:'none'}}
+                                    />
                                 </div>
                             </label>
                         </div>
@@ -215,7 +193,7 @@ class Popup extends React.Component {
                             <div className="add-connection">
                             <div className={popupType === CONSTANT.upload ? 'data-detail-border' : 'none'} >
                                 <label className="data-detail-item">
-                                    <span>上传到：</span>
+                                    <span>上传ddd到：</span>
                                     <input
                     type="text"
                     defaultValue=""
@@ -288,9 +266,9 @@ class Popup extends React.Component {
 
                         <div className="popup-footer">
                             <button
-                            disabled
+                            ref="submit"
             className="tp-btn tp-btn-middle tp-btn-primary j_submit"
-            onClick={this.submit}>
+            onClick={me.submit}>
                                 提交
                             </button>
                         </div>
