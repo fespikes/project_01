@@ -93,7 +93,6 @@ class Operate extends React.Component {
                     id: CONSTANT.auth,
                     name: '更改权限'
                 }
-
             ],
             createOptions = [
                 {

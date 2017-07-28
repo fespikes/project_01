@@ -68,30 +68,8 @@ export function changePath(path) {
         path
     }
 }
-//TODO
-function fetchMakedir() {
-    return (dispatch, getState) => {
-        const state = getState();
-        const connectionID = state.condition.connectionID;
-        const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL + `action=mkdir&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
 
-        return fetch(URL, {
-            credentials: 'include',
-            method: 'GET'
-        })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
-        )
-            .then(json => {
-                console.log('TODO: get the interface');
-            });
-    }
-}
-
-export function fetchOperation() {
+export function fetchOperation(param) {
     let submit = argu => argu;
     return (dispatch, getState) => {
         const popupType = getState().popupNormalParam.popupType;
@@ -103,10 +81,10 @@ export function fetchOperation() {
         case CONSTANT.copy:
             submit = fetchCopy;
             break;
-        case CONSTANT.auth:
+        case CONSTANT.auth: //TODO:
             submit = fetchAuth;
             break;
-        case CONSTANT.upload:
+        case CONSTANT.upload: //TODO:
             submit = fetchUpload;
             break;
         case CONSTANT.mkdir:
@@ -115,26 +93,20 @@ export function fetchOperation() {
         default:
             break;
         }
-        return dispatch(submit());
+        return dispatch(submit(param));
     }
 }
 
 //doing
-function fetchMove() {
+function fetchMove(param) {
     return (dispatch, getState) => {
-        const state = getState();
-        const connectionID = state.condition.connectionID;
-        const popupNormalParam = state.popupNormalParam;
+        const popupNormalParam = getState().popupNormalParam;
+        const path = popupNormalParam.path;
+        const dest_path = popupNormalParam.dest_path;
 
         const URL = baseURL + `move/?` +
-        (condition.path ? ('path=' + condition.path + '&') : '') +
-        (condition.dest_path ? 'dest_path=' + condition.dest_path : '');
-
-        //TODO:get the path and dest_path
-        //TODO:set the params befor commit
-
-        //path=/user/hive/employee/subdir/test_upload.txt&
-        //dest_path=/user/hive/employee
+        (path ? ('path=' + path + '&') : '') +
+        (dest_path ? 'dest_path=' + dest_path : '');
 
         return fetch(URL, {
             credentials: 'include',
@@ -146,17 +118,20 @@ function fetchMove() {
                 error => errorHandler(error)
         )
             .then(json => {
-                console.log('TODO: get the interface');
+                console.log();
             });
     }
 }
 
 function fetchCopy() {
     return (dispatch, getState) => {
-        const state = getState();
-        const connectionID = state.condition.connectionID;
-        const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL + `action=copy&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const popupNormalParam = getState().popupNormalParam;
+        const path = popupNormalParam.path;
+        const dest_path = popupNormalParam.dest_path;
+
+        const URL = baseURL + `copy/?` +
+        (path ? ('path=' + path + '&') : '') +
+        (dest_path ? 'dest_path=' + dest_path : '');
 
         return fetch(URL, {
             credentials: 'include',
@@ -218,6 +193,33 @@ function fetchUpload() {
     }
 }
 
+//TODO
+function fetchMakedir() {
+    return (dispatch, getState) => {
+        const popupNormalParam = getState().popupNormalParam;
+        const path = popupNormalParam.path;
+        const dir_name = popupNormalParam.dir_name;
+
+        const URL = baseURL + `mkdir/?` +
+        (path ? ('path=' + path + '&') : '') +
+        (dir_name ? 'dest_path=' + dir_name : '');
+        ///hdfs/mkdir/?path=/tmp&dir_name=testdir
+
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'GET'
+        })
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
+        )
+            .then(json => {
+                console.log('TODO: get the interface');
+            });
+    }
+}
+
 function fetchRemove() {
     return (dispatch, getState) => {
         const state = getState();
@@ -263,7 +265,8 @@ export function setPopupNormalParams(param) {
         dirName: param.dirName,
         popupType: param.popupType,
         submit: param.submit,
-        status: param.status
+        status: param.status,
+        dest_path: param.dest_path
     }
 }
 
@@ -301,7 +304,7 @@ function sendRequest(condition) {
     };
 }
 
-function receiveData(condition, json) {
+function receiveData(json, condition) {
     return {
         type: actionTypes.receiveData,
         condition,
@@ -310,21 +313,38 @@ function receiveData(condition, json) {
     };
 }
 
+popupNormalActions.requestLeafData = 'REQUEST_LEAF_DATA';
+function requestLeafData(json) {
+    return {
+        type: popupNormalActions.requestLeafData,
+        isFetching: true
+    };
+}
 popupNormalActions.receiveLeafData = 'RECEIVE_LEAF_DATA';
 function receiveLeafData(json) {
+    console.log('in receiveLeafData:', json);
     return {
         type: popupNormalActions.receiveLeafData,
-        treeData: json
+        treeData: json,
+        isFetching: false
     };
 }
 
-export function fetchLeafData(condition) {
+export function fetchLeafData(condition, treeDataReady) {
     //TODO: adjust the data and dispatch receiveLeafData
     return (dispatch, getState) => {
-        const treeData = getState().popupNormalParam.treeData;
+
+        dispatch(requestLeafData());
+        let treeData = getState().popupNormalParam.treeData;
 
         const URL = baseURL + `list/?` +
-        (condition.path ? ('path=' + condition.path + '&') : '');
+        (condition.pathString ? ('path=' + condition.pathString) : '');
+
+        let pathArray = [].concat(condition.pathArray);
+
+        let length = pathArray.length; //the min is 2
+        let pathString = condition.pathString;
+        let keyData = {}; //record the correct child node;
 
         return fetch(URL, {
             credentials: 'include',
@@ -337,18 +357,69 @@ export function fetchLeafData(condition) {
                 error => errorHandler(error)
         )
             .then(json => {
-                treeData[condition.path] = json.files;
+                let i = 0;
 
-                console.log(json, 'in fetchLeafData');
+                //only used when path is '/'
+                if (length === 1) {
+                    keyData = json.files.filter(file => {
+                        return (file.name !== '.' && file.name !== '..');
+                    }).map((file, index) => {
+                        return {
+                            title: file.name, //what to display
+                            value: file.path, //for filter
+                            key: file.path,
+                            isLeaf: true
+                        }
+                    });
+                    dispatch(receiveLeafData(keyData));
+                } else {
+                    let treeData = getState().popupNormalParam.treeData;
+                    let swap = {};
+                    while (i < length) {
 
-                fetchCallback(dispatch, receiveLeafData, treeData);
+                        if (length = 2) {
+                            for (var j = 0; j < treeData.length; j++) {
+                                if (treeData[j].value === pathString) {
+                                    keyData = treeData[j];
+                                    continue;
+                                }
+                            }
+                        //if length ===3 or more
+                        } else {
+                            for (var j = 0; j < keyData.children.length; j++) {
+                                swap = keyData.children[j];
+                                if (swap.value === pathString) {
+                                    keyData = swap;
+                                }
+                            }
+                        }
+                        i++;
+                    }
+
+                    keyData.isLeaf = false
+                    keyData.children = json.files.filter(file => {
+                        return (file.name !== '.' && file.name !== '..');
+                    }).map((file, index) => {
+                        return {
+                            title: file.name, //what to display
+                            value: file.path, //for filter
+                            key: file.path,
+                            isLeaf: true
+                        }
+                    });
+                    dispatch(receiveLeafData(treeData));
+
+                // fetchCallback(dispatch, receiveLeafData, treeData);
+                }
+                treeDataReady && treeDataReady(treeData);
+
             // dispatch(receiveLeafData(condition, dataMatch(json)));
             });
     }
 }
 
 const fetchCallback = (dispatch, receiveData, data, condition) => {
-    dispatch(receiveData(condition, data));
+    dispatch(receiveData(data, condition));
 }
 function applyFetch(condition) {
     return (dispatch, getState) => {
@@ -362,7 +433,7 @@ function applyFetch(condition) {
         // const urlListUnderPath = baseURL + `list/` //?path=/tmp&page_num=0&page_size=10   GET 列出目录下所有文件   
 
         const listDataMatch = json => {
-            if (!json.files) return json;
+            if (!json || !json.files) return json;
             json.files.map(function(obj, index, arr) {
                 obj.key = index + 1;
             });
@@ -403,10 +474,10 @@ export function fetchIfNeeded(condition) {
     };
 }
 
-export function setSelectedRows(selectedRowKeys, selectedRowNames) {
-
+export function setSelectedRows(selectedRows, selectedRowKeys, selectedRowNames) {
     return {
         type: actionTypes.setSelectedRows,
+        selectedRows,
         selectedRowKeys,
         selectedRowNames
     }

@@ -4,7 +4,6 @@ import { message, Table, Icon } from 'antd';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
-import style from '../style/hdfs.scss'
 
 class TableChageAuth extends React.Component {
     constructor(props, context) {

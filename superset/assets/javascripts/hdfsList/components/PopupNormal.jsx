@@ -6,11 +6,12 @@ import { connect } from 'react-redux';
 
 import { Select, TreeSelect } from './';
 // import { setPopupNormalParams, setPopupNormalParam, popupNormalChangeStatus, CONSTANT } from '../actions'
-import * as actions from '../actions'
+import * as ActionCreators from '../actions'
 import { CONSTANT } from '../actions'
 
 import PropTypes from 'prop-types';
 import './popup.scss';
+const $ = window.$ = require('jquery');
 
 class Popup extends React.Component {
     constructor(props, context) {
@@ -18,6 +19,8 @@ class Popup extends React.Component {
 
         this.closeDialog = this.closeDialog.bind(this);
         this.submit = this.submit.bind(this);
+        this.checkIfSubmit = this.checkIfSubmit.bind(this);
+        this.onInputChange = this.onInputChange.bind(this);
 
         //popupType = ['mkdir', 'upload'][0];
         this.state = {}
@@ -29,6 +32,24 @@ class Popup extends React.Component {
         this.props.popupNormalChangeStatus('none');
     }
 
+    timer = 0
+
+    checkIfSubmit () {
+        var fields = $(".popup-body input[required]");
+        var bool = false;
+        fields.each((idx, obj)=>{
+            if (obj.value==='') {
+                bool = true;
+                return;
+            }
+        });
+        if (bool) {
+            $('.j_submit').prop('disabled', 'disabled');
+        } else {
+            $('.j_submit').removeAttr('disabled');
+        }
+    }
+
     onInputChange(e) {
         const target = e.currentTarget;
         const key = target.name;
@@ -37,6 +58,10 @@ class Popup extends React.Component {
         setPopupNormalParam({
             [key]: val
         });
+        clearTimeout(this.timer);
+        this.timer=setTimeout(()=>{
+            this.checkIfSubmit();
+        }, 800);
     }
 
     /*    setParams() {
@@ -71,14 +96,18 @@ class Popup extends React.Component {
     submit() {
         console.log('submit this popup');
         // this.setParams();
-        this.props.submit();
+        this.props.popupNormalParam.submit();
     }
 
     render() {
         const me = this;
 
         //'inceptor', //uploadFile HDFS inceptor
-        const {closeDialog, condition, status, popupType, setPopupNormalParams, popupNormalChangeStatus, fetchLeafData, response} = this.props;
+        const {closeDialog, condition, popupNormalParam, //
+            setPopupNormalParams, popupNormalChangeStatus, //
+            fetchLeafData} = this.props;
+
+        const {popupType, treeData, status} = popupNormalParam;
 
         const setPopupState = (obj) => {
             me.closeDialog();
@@ -92,7 +121,7 @@ class Popup extends React.Component {
                 title = '移至';
                 break;
             case CONSTANT.copy:
-                title = '拷贝';
+                title = '复制到';
                 break;
             case CONSTANT.auth:
                 title = '修改权限';
@@ -115,140 +144,122 @@ class Popup extends React.Component {
             switch (popupType) {
             case CONSTANT.move:
                 return <div
-                    className="popup-body"
+                    className="popup-body move"
                     style={{
                         height: '200px'
                     }}
                     >
                     <div className="add-connection">
                         <div className='data-detail-border'>
+                            <div id="tree-select-box"></div>
                             <label className="data-detail-item">
                                 <span>移动至：</span>
                                 <div
-                                    style={{width:'420px'}}
-                                    className="tree-here">
+                    style={{
+                        width: '420px'
+                    }}
+                    className="tree-here">
                                     <TreeSelect
-                                        response={response}
-                                        fetchLeafData={fetchLeafData}
-                                        condition={condition} />
+                    treeData={treeData}
+                    fetchLeafData={fetchLeafData}
+                    setPopupNormalParams={setPopupNormalParams}
+
+                    popupNormalParam={popupNormalParam}
+                    condition={condition} />
                                 </div>
                             </label>
-{/*                            <label className="data-detail-item">
-                                <span>目录path：</span>
-                                <input
-                        type="text"
-                        defaultValue=""
-                        required="required"
-                        name="dir_name"
-                        onChange={(e) => this.onInputChange(e)}
-                        />
-                            </label>*/}
                         </div>
                     </div>
                 </div>
                 break;
             case CONSTANT.copy:
-                return <div className="popup-body">
-                            <div className="add-connection">
-                            <div className='data-detail-border'>
-                    <label className="data-detail-item">
-                        <span>from路径：</span>
-                        <input
-                    type="text"
-                    defaultValue=""
-                    disabled
-                    ref="path"
-                    onChange={argu => argu}
-                    />
-                    </label>
-                    <label className="data-detail-item">
-                        <span>目录path：</span>
-                        <input
-                    type="text"
-                    defaultValue=""
-                    required="required"
-                    name="dir_name"
-                    onChange={(e) => this.onInputChange(e)}
-                    />
-                    </label>
-                </div>
-                </div>
+                return <div
+                    className="popup-body move"
+                    style={{
+                        height: '200px'
+                    }}
+                    >
+                    <div className="add-connection">
+                        <div className='data-detail-border'>
+                            <div id="tree-select-box"></div>
+                            <label className="data-detail-item">
+                                <span> </span>
+                                <div
+                    style={{
+                        width: '420px'
+                    }}
+                    className="tree-here">
+                                    <TreeSelect
+                    treeData={treeData}
+                    fetchLeafData={fetchLeafData}
+                    setPopupNormalParams={setPopupNormalParams}
+
+                    popupNormalParam={popupNormalParam}
+                    condition={condition} />
+                                </div>
+                            </label>
                         </div>
+                    </div>
+                </div>
                 break;
             case CONSTANT.auth:
                 return <div className="popup-body">
-                            <div className="add-connection"><div className='data-detail-border'>
-                    <label className="data-detail-item">
-                        <span>from路径：</span>
-                        <input
-                    type="text"
-                    defaultValue=""
-                    disabled
-                    ref="path"
-                    onChange={argu => argu}
-                    />
-                    </label>
-                    <label className="data-detail-item">
-                        <span>目录path：</span>
-                        <input
-                    type="text"
-                    defaultValue=""
-                    required="required"
-                    name="dir_name"
-                    onChange={(e) => this.onInputChange(e)}
-                    />
-                    </label>
-                </div>
-                </div>
+                            <div className="add-connection">
+                                <div className='data-detail-border'>
+                        </div>
+                    </div>
                 </div>
                 break;
             case CONSTANT.upload:
                 return <div className="popup-body">
                             <div className="add-connection">
                             <div className={popupType === CONSTANT.upload ? 'data-detail-border' : 'none'} >
-                    <label className="data-detail-item">
-                        <span>上传到：</span>
-                        <input
+                                <label className="data-detail-item">
+                                    <span>上传到：</span>
+                                    <input
                     type="text"
                     defaultValue=""
                     required="required"
-                    ref="uploadPath"
+                    onChange={this.onInputChange}
                     />
-                    </label>
-                    <label className="data-detail-item">
-                        <span>$nbsp;$nbsp;</span>
-                        <input
+                                </label>
+                                <label className="data-detail-item">
+                                    <span>$nbsp;$nbsp;</span>
+                                    <input
                     type="file"
+                    required="required"
                     defaultValue="浏览文件"
-                    ref="hdfsFile"
+                    onChange={this.onInputChange}
                     />
-                    </label>
-                </div>
-                </div>                </div>;
+                                </label>
+                            </div>
+                        </div>
+                    </div>;
                 break;
             case CONSTANT.mkdir:
                 return <div className="popup-body">
                             <div className="add-connection">
                             <div className='data-detail-border'>
-                    <label className="data-detail-item">
-                        <span>路径名：</span>
-                        <input
+                                <label className="data-detail-item">
+                                    <span>目录名称：</span>
+                                    <input
+                    required="required"
                     type="text"
                     defaultValue=""
-                    required="required"
-                    ref="mkdirPath"
+                    name="path"
+                    onChange={this.onInputChange}
                     />
-                    </label>
-                    <label className="data-detail-item">
-                        <span>目录名：</span>
-                        <input
+                                </label>
+                                <label className="data-detail-item">
+                                    <span>文件名称：</span>
+                                    <input
+                    required="required"
                     type="text"
                     defaultValue=""
-                    required="required"
                     name="dir_name"
-                    ref="dirName"
+                    onChange={this.onInputChange}
                     />
-                    </label>
+                                </label>
                 </div></div></div>;
                 break;
             default:
@@ -277,7 +288,8 @@ class Popup extends React.Component {
 
                         <div className="popup-footer">
                             <button
-            className="tp-btn tp-btn-middle tp-btn-primary"
+                            disabled
+            className="tp-btn tp-btn-middle tp-btn-primary j_submit"
             onClick={this.submit}>
                                 提交
                             </button>
@@ -290,10 +302,9 @@ class Popup extends React.Component {
 }
 
 const mapStateToProps = function(state, props) {
-    const {popupNormalParam, emitFetch, condition}=state;
+    const {popupNormalParam, emitFetch, condition} = state;
     return {
-        ...popupNormalParam,
-        response: emitFetch.response,
+        popupNormalParam,
         condition
     }
 }
@@ -303,10 +314,11 @@ const mapStateToProps = function(state, props) {
         setPopupNormalParams,
         setPopupNormalParam,
         popupNormalChangeStatus,
+        fetchLeafData
     }, dispatch);
 }*/
 
 Popup.propTypes = {};
 Popup.defaultProps = {};
 
-export default connect(mapStateToProps, actions)(Popup);
+export default connect(mapStateToProps, ActionCreators)(Popup);

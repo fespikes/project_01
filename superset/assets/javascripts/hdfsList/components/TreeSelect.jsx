@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 
 const TreeNode = TreeSelect.TreeNode;
 
-import '../style/treeSelect.scss';
+// import '../style/treeSelect.scss';
 
 // import { render, unmountComponentAtNode } from 'react-dom';
 // import { Tooltip, Alert } from 'antd';
@@ -14,15 +14,7 @@ const treeData = [{
     label: 'Node1',
     value: '0-0',
     key: '0-0',
-    children: [{
-        label: 'Child Node1',
-        value: '0-0-1',
-        key: '0-0-1',
-    }, {
-        label: 'Child Node2',
-        value: '0-0-2',
-        key: '0-0-2',
-    }],
+
 }, {
     label: 'Node2',
     value: '0-1',
@@ -41,70 +33,93 @@ class TreeSelector extends Component {
     constructor(props, context) {
         super(props);
         this.dispatch = context.dispatch;
+        this.treeDataReady = this.treeDataReady.bind(this);
+        this.loadTreeData = this.loadTreeData.bind(this);
     }
 
     state = {
-        value: undefined,
+        value: 'please select path',
+        treeData: []
     }
 
     componentDidMount() {
+        this.loadTreeData();
+    }
 
-        console.log(this.props.condition);
-        const path = this.props.condition.path;
+    componentWillReceiveProps() {}
+
+    //when clock on tree parent node 
+    loadData(node) {
+        console.log(node);
+    }
+
+    loadTreeData() {
+        const me = this;
+        const {condition, popupNormalParam, //
+            fetchLeafData, setPopupNormalParams} = this.props;
+        const dispatch = this.dispatch;
+
+        if (condition.selectedRows.length === 0) return;
+        const selectedRow = condition.selectedRows[0];
+
+        const path = selectedRow.path;
+        setPopupNormalParams({
+            ...popupNormalParam,
+            path: path
+        });
 
         let arr = path.split('/');
-        let a = [];
-        let l;
-        for (l = arr.length; l--;) {
-            if (l === 0) {
-                a.push('/')
-            } else {
-                a.push(arr.join('/'));
-            }
-            arr.pop();
-        }
-        //TODO: send the request;
-        console.log(a);
+        // let a = [];
+        let ar = [];
+        let pathString;
+        let deep = 1;
 
-        //related to arr here;
-        const func = (arr) => {
-            let condition = {};
-            while (arr.length) {
-                condition = {
-                    path: arr[arr.length - 1]
+        //TODO: only arr.length >1, then can move or copy
+
+        for (let i = 1; i <= arr.length; i++) {
+            ar.push(arr[i - 1]);
+            pathString = ar.join('/');
+
+            let param = {
+                pathString: pathString || '/',
+                deep: i,
+                pathArray: ar
+            }
+            fetchLeafData(param, me.treeDataReady.bind(me));
+        }
+
+    //related to arr here;
+    /*        const func = (arr, spiit) => {
+                let condition = {};
+                let deep = 1;
+                while (arr.length) {
+                    condition = {
+                        path: arr[arr.length - 1],
+                        deep: deep
+                    }
+                    fetchLeafData(condition, me.treeDataReady.bind(me));
+                    arr.pop();
+                    deep++;
                 }
-                this.dispatch(fetchLeafData(condition));
-                arr.pop();
-            }
-        };
-        func(arr);
+            };
+            func(a, arr);*/
     }
 
-    onLoadData(node) {
-        const me = this;
-        const hdfsPath = node.props.hdfs_path;
-        const {fetchHDFSFileBrowser} = me.props;
-        return fetchHDFSFileBrowser(node.props.hdfs_path, callback);
-        function callback(success, data) {
-            if (success) {
-                let treeData = appendTreeChildren(
-                    hdfsPath,
-                    data,
-                    JSON.parse(JSON.stringify(me.state.dsHDFS.fileBrowserData))
-                );
-                let objHDFS = {
-                    ...me.state.dsHDFS,
-                    fileBrowserData: treeData
-                };
-                me.setState({
-                    dsHDFS: objHDFS
-                });
-            }
-        }
+    treeDataReady(treeData) {
+        console.log(treeData);
+    /*        this.setState({
+                treeData: treeData
+            })*/
     }
 
-    onChange = (value) => {
-        console.log(arguments);
+    onSelect = (value) => {
+        let popupNormalParam = this.props.popupNormalParam;
+        let dest_path = value;
+
+        this.props.setPopupNormalParams({
+            ...popupNormalParam,
+            dest_path: dest_path
+        });
         this.setState({
             value
         });
@@ -112,28 +127,28 @@ class TreeSelector extends Component {
 
     render() {
 
-        console.log(this.props.response);
+        let {treeData} = this.props;
+        console.log('into TreeSelect component:', treeData);
 
         return (
             <TreeSelect
-            style={{
-                width: '100%'
-            }}
-            value={this.state.value}
+            allowClear
             dropdownStyle={{
-                maxHeight: 400,
+                maxHeight: 300,
                 overflow: 'auto'
+            }}
+            getPopupContainer={() => document.getElementById('tree-select-box')}
+            loadData={this.loadData}
+            onSelect={this.onSelect}
+            placeholder="please select dest-path"
+            showSearch
+            showCheckedStrategy={TreeSelect.SHOW_ALL}
+            style={{
+                width: 420
             }}
             treeData={treeData}
             treeDefaultExpandAll
-            onChange={this.onChange}
-            showSearch
-            allowClear
-            placeholder="please select dest-path"
-            showCheckedStrategy={TreeSelect.SHOW_PARENT}
-            treeDefaultExpandAll
-            loadData={this.onLoadData}
-
+            value={this.state.value}
             />
         );
     }

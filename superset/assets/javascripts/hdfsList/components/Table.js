@@ -10,18 +10,47 @@ class InnerTable extends React.Component {
     constructor(props, context) {
         super(props);
         this.dispatch = context.dispatch;
+
+        this.state = {
+            selectedRowKeys: []
+        }
+
+        this.onSelectChange = this.onSelectChange.bind(this);
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
+        let length = selectedRows.length;
+        let selectedRow = selectedRows[length - 1];
+
+        if (!selectedRow) {
+            this.props.setSelectedRows({
+                selectedRows: [],
+                selectedRowKeys: [],
+                selectedRowNames: []
+            });
+            this.setState({
+                selectedRowKeys: []
+            })
+            return;
+        }
         let selectedRowNames = [];
-        selectedRows.forEach(function(row) {
-            selectedRowNames.push(row.name);
+        this.setState({
+            selectedRowKeys: [selectedRowKeys[length - 1]]
         });
-        this.props.setSelectedRows(selectedRowKeys, selectedRowNames);
+        // selectedRows.forEach(function(row) {
+        //     selectedRowNames.push(row.name);
+        // });
+        selectedRows = [selectedRows[length - 1]];
+        selectedRowKeys = [selectedRowKeys[length - 1]]
+
+        //TODO: when have no selected row
+
+        selectedRowNames = [selectedRow['name']];
+        this.props.setSelectedRows(selectedRows, selectedRowKeys, selectedRowNames);
     };
 
     render() {
-
+        const {selectedRowKeys} = this.state;
         const {files, giveDetail, linkToPath} = this.props;
         const dispatch = this.dispatch;
 

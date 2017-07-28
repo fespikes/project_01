@@ -10,6 +10,7 @@ function condition(state = {
         path: '/user',
         paths: [],
 
+        selectedRows: [],
         selectedRowKeys: [],
         selectedRowNames: [],
 
@@ -33,6 +34,7 @@ function condition(state = {
     case actionTypes.setSelectedRows:
         return {
             ...state,
+            selectedRows: action.selectedRows,
             selectedRowKeys: action.selectedRowKeys,
             selectedRowNames: action.selectedRowNames
         };
@@ -79,7 +81,7 @@ function popupNormalParam(state = {
 
         status: 'none', //flex, none
         showAlert: false,
-        popupType: 'mkdir',
+        popupType: '',
 
         path: '',
         dirName: '',
