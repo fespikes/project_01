@@ -54,8 +54,8 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
         'Dataset',
         backref=backref('ref_columns', cascade='all, delete-orphan'),
         foreign_keys=[dataset_id])
-    column_name = Column(String(255), nullable=False)
-    verbose_name = Column(String(1024))
+    column_name = Column(String(128), nullable=False)
+    verbose_name = Column(String(128))
     is_dttm = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     type = Column(String(32), default='')
@@ -68,8 +68,8 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
     filterable = Column(Boolean, default=True)
     expression = Column(Text, default='')
     description = Column(Text, default='')
-    python_date_format = Column(String(255))
-    database_expression = Column(String(255))
+    python_date_format = Column(String(256))
+    database_expression = Column(String(256))
 
     __table_args__ = (
         UniqueConstraint('column_name', 'dataset_id', name='column_name_dataset_uc'),
@@ -171,8 +171,8 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
 
     __tablename__ = 'sql_metrics'
     id = Column(Integer, primary_key=True)
-    metric_name = Column(String(512), nullable=False)
-    verbose_name = Column(String(1024))
+    metric_name = Column(String(128), nullable=False)
+    verbose_name = Column(String(128))
     metric_type = Column(String(32))
     dataset_id = Column(Integer, ForeignKey('dataset.id'))
     dataset = relationship(
@@ -222,10 +222,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     __tablename__ = 'dataset'
 
     id = Column(Integer, primary_key=True)
-    dataset_name = Column(String(250), nullable=False)
-    dataset_type = Column(String(250), nullable=False)
-    table_name = Column(String(250))
-    schema = Column(String(255))
+    dataset_name = Column(String(128), nullable=False)
+    dataset_type = Column(String(32), nullable=False)
+    table_name = Column(String(128))
+    schema = Column(String(128))
     sql = Column(Text)
 
     database_id = Column(Integer, ForeignKey('dbs.id'), nullable=False)
@@ -240,7 +240,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     online = Column(Boolean, default=False)
     description = Column(Text)
     filter_select_enabled = Column(Boolean, default=False)
-    main_dttm_col = Column(String(250))
+    main_dttm_col = Column(String(128))
     params = Column(Text)
     offset = Column(Integer, default=0)
     default_endpoint = Column(Text)
