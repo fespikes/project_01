@@ -19,8 +19,8 @@
 
 .popup .popup-body {
     width: 100%;
-    min-height: 200px;
-    padding: 10px 0;
+    min-height: auto;
+    padding: 10px 0 20px;
 }
 
 .popup-body-common {
@@ -58,4 +58,10 @@
 .data-detail-item
 .ant-select-selection.ant-select-selection--single{
     border:1px #ddd solid;
+}
+
+.alert-wrapper{
+    border: 1px #ddd solid;
+    margin: 0 0 20px;
+    height: 40px;
 }

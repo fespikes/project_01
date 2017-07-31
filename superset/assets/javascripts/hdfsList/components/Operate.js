@@ -33,8 +33,9 @@ class Operate extends React.Component {
                     setPopupNormalParams({path:uploadPath, hdfsFile, connectionID, popupType});
                 }*/
         const popupType = ag.key;
-        const {fetchOperation, setPopupNormalParams} = this.props;
+        const {fetchOperation, popupNormalParam, setPopupNormalParams} = this.props;
         const normalPopupParam = {
+            ...popupNormalParam,
             popupType: popupType,
             submit: fetchOperation,
             status: 'flex'
@@ -51,16 +52,18 @@ class Operate extends React.Component {
     }
 
     upload() {
-        const {fetchOperation, setPopupNormalParams, condition} = this.props;
+        const {fetchOperation, popupNormalParam, setPopupNormalParams, condition} = this.props;
         let normalPopupParam = {};
-        if(condition.selectedRows.length === 0) {
+        if (condition.selectedRows.length === 0) {
             normalPopupParam = {
+                ...popupNormalParam,
                 popupType: CONSTANT.noSelect,
                 submit: fetchOperation,
                 status: 'flex'
             };
-        }else {
+        } else {
             normalPopupParam = {
+                ...popupNormalParam,
                 popupType: CONSTANT.upload,
                 submit: fetchOperation,
                 status: 'flex',
@@ -179,10 +182,11 @@ Operate.contextTypes = {
 };
 
 function mapStateToProps(state, pros) {
-    const {condition} = state;
+    const {condition, popupNormalParam} = state;
 
     return {
-        condition
+        condition,
+        popupNormalParam
     };
 }
 

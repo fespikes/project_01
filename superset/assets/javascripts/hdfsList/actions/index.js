@@ -56,7 +56,9 @@ const baseURL = `${ORIGIN}/hdfs/`;
 // /hdfs/chmod/?path=/tmp/test_upload.txt&mode=0o777
 
 const errorHandler = error => alert(error);
+const succeedHandler = argus => {
 
+};
 /**
 @description: S-mock
 */
@@ -221,7 +223,24 @@ function fetchMakedir() {
                 error => errorHandler(error)
         )
             .then(json => {
-                console.log('TODO: get the interface');
+                let obj = {};
+                if (json) {
+                    obj = {
+                        ...popupNormalParam,
+                        alertStatus: '',
+                        alertMsg: json.message,
+                        alertType: 'success'
+                    };
+                } else {
+                    obj = {
+                        ...popupNormalParam,
+                        alertStatus: '',
+                        alertMsg: json.message || 'made an error',
+                        alertType: 'error',
+                        disabled: 'disabled'
+                    };
+                }
+                dispatch(setPopupNormalParams(obj));
             });
     }
 }
@@ -261,6 +280,9 @@ export function setPopupParam(param) {
     }
 }
 
+/**
+deprecated
+*/
 export function popupChangeStatus(param) {
     return {
         type: popupActions.popupChangeStatus,
@@ -278,7 +300,12 @@ export function setPopupNormalParams(param) {
         submit: param.submit,
         status: param.status,
         dest_path: param.dest_path,
-        dir_name: param.dir_name
+        dir_name: param.dir_name,
+
+
+        alertStatus: param.alertStatus,
+        alertMsg: param.alertMsg,
+        alertType: param.alertType
     }
 }
 

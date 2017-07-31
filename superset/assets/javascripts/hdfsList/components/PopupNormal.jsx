@@ -33,7 +33,14 @@ class Popup extends React.Component {
     }
 
     closeDialog() {
-        this.props.popupNormalChangeStatus('none');
+        const popupNormalParam = this.props;
+        this.props.setPopupNormalParams({
+            ...popupNormalParam,
+            status:'none',
+            alertStatus: 'none',
+            alertMsg: '',
+            alertType: ''
+        });
     }
 
     timer = 0;
@@ -48,7 +55,7 @@ class Popup extends React.Component {
             }
         });
 
-        if (disabled ===this.props.popupNormalParam.disabled){
+        if (disabled === this.props.popupNormalParam.disabled) {
             return;
         }
         this.props.setPopupNormalParam({
@@ -60,10 +67,10 @@ class Popup extends React.Component {
         const target = e.currentTarget;
         const key = target.name;
         let val = '';
-        if(eventType === "selectFile") {
+        if (eventType === "selectFile") {
             const pathArray = target.value.split('\\');
             val = pathArray[pathArray.length - 1];
-        }else {
+        } else {
             val = target.value;
         }
         const setPopupNormalParam = this.props.setPopupNormalParam;
@@ -94,23 +101,23 @@ class Popup extends React.Component {
         const me = this;
         function callback(success, popupType, response) {
             switch (popupType) {
-                case CONSTANT.mkdir:
-                    break;
-                case CONSTANT.move:
-                    break;
-                case CONSTANT.copy:
-                    break;
-                case CONSTANT.auth:
-                    break;
-                case CONSTANT.upload:
-                    break;
-                case CONSTANT.remove:
-                    break;
-                case CONSTANT.noSelect:
-                    me.props.popupNormalChangeStatus('none');
-                    break;
-                default:
-                    break;
+            case CONSTANT.mkdir:
+                break;
+            case CONSTANT.move:
+                break;
+            case CONSTANT.copy:
+                break;
+            case CONSTANT.auth:
+                break;
+            case CONSTANT.upload:
+                break;
+            case CONSTANT.remove:
+                break;
+            case CONSTANT.noSelect:
+                me.props.popupNormalChangeStatus('none');
+                break;
+            default:
+                break;
             }
         }
         this.props.popupNormalParam.submit(callback);
@@ -124,14 +131,15 @@ class Popup extends React.Component {
             setPopupNormalParams, popupNormalChangeStatus, //
             fetchLeafData} = this.props;
 
-        const {popupType, disabled, dest_path, treeData, status} = popupNormalParam;
+        const {popupType, disabled, dest_path, treeData, //
+            status, alertStatus, alertMsg, alertType} = popupNormalParam;
 
         const setPopupState = (obj) => {
             me.closeDialog();
         };
 
         let btnTitle = "提交";
-        if(popupType === CONSTANT.noSelect) {
+        if (popupType === CONSTANT.noSelect) {
             btnTitle = "确定";
         }
 
@@ -173,8 +181,6 @@ class Popup extends React.Component {
                         height: '200px'
                     }}
                     >
-                    <div className="add-connection">
-                        <div className='data-detail-border'>
                             <div id="tree-select-box"></div>
                             <label className="data-detail-item">
                                 <span>移动至：</span>
@@ -203,117 +209,107 @@ class Popup extends React.Component {
                     onChange={this.onInputChange}
                     />
                                 </label>
-                        </div>
-                    </div>
                 </div>
                 break;
             case CONSTANT.copy:
                 return <div
-                    className="popup-body move"
+                    className="popup-body copy"
                     style={{
                         height: '200px'
                     }}
                     >
-                    <div className="add-connection">
-                        <div className='data-detail-border'>
-                            <div id="tree-select-box"></div>
-                            <label className="data-detail-item">
-                                <span> </span>
-                                <div
+                        <div id="tree-select-box"></div>
+                        <label className="data-detail-item">
+                            <span> </span>
+                            <div
                     style={{
                         width: '420px'
                     }}
                     className="tree-here">
-                                    <TreeSelect
+                                <TreeSelect
                     treeData={treeData}
                     fetchLeafData={fetchLeafData}
                     setPopupNormalParams={setPopupNormalParams}
 
                     popupNormalParam={popupNormalParam}
                     condition={condition} />
-                                </div>
-                            </label>
-                        </div>
-                    </div>
+                            </div>
+                        </label>
                 </div>
                 break;
             case CONSTANT.auth:
                 return <div className="popup-body">
-                            <div className="add-connection">
-                                <div className='data-detail-border'>
-                        </div>
-                    </div>
                 </div>
                 break;
             case CONSTANT.upload:
                 return <div className="popup-body">
-                            <div className="add-connection">
                             <div className={popupType === CONSTANT.upload ? 'data-detail-border' : 'none'} >
                                 <label className="data-detail-item">
                                     <span>上传到：</span>
                                     <input
-                                        type="text"
-                                        defaultValue=""
-                                        value={condition.selectedRows[0].path}
-                                        required="required"
-                                        onChange={this.onInputChange}
-                                    />
+                    type="text"
+                    defaultValue=""
+                    value={condition.selectedRows[0].path}
+                    required="required"
+                    onChange={this.onInputChange}
+                    />
                                 </label>
                                 <div className="data-detail-item">
                                     <span></span>
                                     <div>
-                                        <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
+                                        <label className="file-browser" htmlFor="xFile" style={{
+                        width: 200
+                    }}>
                                             <span>选择文件</span>
                                         </label>
                                         <div className="file-name">
                                             <i className="icon icon-file"/>
                                             <span ref="fileName"/>
                                         </div>
-                                        <div className="file-upload" style={{display: 'none'}}>
+                                        <div className="file-upload" style={{
+                        display: 'none'
+                    }}>
                                             <input type="file" id="xFile" name="file_name" className="file-select"
-                                                   required="required" onChange={this.handleFile} ref="fileSelect"/>
+                    required="required" onChange={this.handleFile} ref="fileSelect"/>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
                     </div>;
                 break;
             case CONSTANT.mkdir:
                 return <div className="popup-body">
-                            <div className="add-connection">
-                            <div className='data-detail-border'>
-                                <label className="data-detail-item">
-                                    <span>目录名称：</span>
-                                    <input
+                        <label className="data-detail-item">
+                            <span>目录名称:</span>
+                            <input
                     required="required"
                     type="text"
                     defaultValue=""
                     name="path"
                     onChange={this.onInputChange}
                     />
-                                </label>
-                                <label className="data-detail-item">
-                                    <span>文件夹名:</span>
-                                    <input
+                        </label>
+                        <label className="data-detail-item">
+                            <span>文件夹名:</span>
+                            <input
                     required="required"
                     type="text"
                     defaultValue=""
                     name="dir_name"
                     onChange={this.onInputChange}
                     />
-                                </label>
-                </div></div></div>;
+                        </label>
+                    </div>;
                 break;
             case CONSTANT.noSelect:
                 return <div className="popup-body">
                     <div className="warning">
                         <Alert
-                            message="Warning"
-                            description="没有选择HDFS路径，请先选择！"
-                            type="warning"
-                            showIcon
-                        />
+                    message="Warning"
+                    description="没有选择HDFS路径，请先选择！"
+                    type="warning"
+                    showIcon
+                    />
                     </div>
                 </div>;
             default:
@@ -340,11 +336,15 @@ class Popup extends React.Component {
                         
                         {getChildren(popupType)}
 
+                        <div className={alertStatus + ' alert-wrapper'}>
+                            <Alert message={alertMsg} type={alertType} showIcon />
+                        </div>
+
                         <div className="popup-footer">
                             <button
-                                disabled={disabled}
-                                className="tp-btn tp-btn-middle tp-btn-primary j_submit"
-                                onClick={me.submit}>
+            disabled={disabled}
+            className="tp-btn tp-btn-middle tp-btn-primary j_submit"
+            onClick={me.submit}>
                                 {btnTitle}
                             </button>
                         </div>

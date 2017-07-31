@@ -88,7 +88,11 @@ function popupNormalParam(state = {
         dirName: '',
         dest_path: '',
 
-        treeData: []
+        treeData: [],
+
+        alertStatus: 'none',
+        alertMsg: '',
+        alertType: '',
 
     }, action) {
     switch (action.type) {
@@ -106,7 +110,11 @@ function popupNormalParam(state = {
             submit: action.submit,
             status: action.status,
             dest_path: action.dest_path,
-            dir_name: action.dir_name
+            dir_name: action.dir_name,
+
+            alertStatus: action.alertStatus,
+            alertMsg: action.alertMsg,
+            alertType: action.alertType
         };
         break;
     case popupNormalActions.setPopupParam:
