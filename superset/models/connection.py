@@ -43,7 +43,7 @@ class Database(Model, AuditMixinNullable):
     type = "table"
 
     id = Column(Integer, primary_key=True)
-    database_name = Column(String(250), nullable=False)
+    database_name = Column(String(128), nullable=False)
     description = Column(Text)
     online = Column(Boolean, default=False)
     sqlalchemy_uri = Column(String(1024))
@@ -55,7 +55,7 @@ class Database(Model, AuditMixinNullable):
     allow_run_async = Column(Boolean, default=False)
     allow_ctas = Column(Boolean, default=False)
     allow_dml = Column(Boolean, default=True)
-    force_ctas_schema = Column(String(250))
+    force_ctas_schema = Column(String(64))
     args = Column(Text, default=textwrap.dedent("""\
     {
         "connect_args": {}
@@ -324,16 +324,16 @@ class HDFSConnection(Model, AuditMixinNullable):
     type = 'table'
 
     id = Column(Integer, primary_key=True)
-    connection_name = Column(String(256), nullable=False)
+    connection_name = Column(String(128), nullable=False)
     description = Column(Text)
     online = Column(Boolean, default=False)
     database_id = Column(Integer, ForeignKey('dbs.id'))
-    httpfs = Column(String(256))
-    webhdfs_url = Column(String(256))
-    fs_defaultfs = Column(String(256))
-    logical_name = Column(String(256))
-    principal = Column(String(256))
-    hdfs_user = Column(String(256))
+    httpfs = Column(String(64))
+    webhdfs_url = Column(String(64))
+    fs_defaultfs = Column(String(64))
+    logical_name = Column(String(64))
+    principal = Column(String(64))
+    hdfs_user = Column(String(64))
     keytab_file = Column(LargeBinary)
     database = relationship(
         'Database',
@@ -368,7 +368,7 @@ class DatabaseAccount(Model):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('ab_user.id'), nullable=True)
     database_id = Column(Integer, ForeignKey('dbs.id'))
-    username = Column(String(255))
+    username = Column(String(64))
     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
     database = relationship(
         'Database',

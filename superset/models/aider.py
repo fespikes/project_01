@@ -44,8 +44,8 @@ class Log(Model):
 
     id = Column(Integer, primary_key=True)
     action = Column(String(512))
-    action_type = Column(String(200))
-    obj_type = Column(String(50))
+    action_type = Column(String(32))
+    obj_type = Column(String(32))
     obj_id = Column(Integer)
     user_id = Column(Integer, ForeignKey('ab_user.id'))
     json = Column(Text)
@@ -87,7 +87,7 @@ class FavStar(Model):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('ab_user.id'))
-    class_name = Column(String(50))
+    class_name = Column(String(32))
     obj_id = Column(Integer)
     dttm = Column(DateTime, default=datetime.utcnow)
 
@@ -198,10 +198,10 @@ class DailyNumber(Model):
     """
     __tablename__ = 'daily_number'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('ab_user.id'))
+    user_id = Column(Integer, ForeignKey('ab_user.id'), nullable=False)
     obj_type = Column(String(32), nullable=False)
     count = Column(Integer, nullable=False)
-    dt = Column(Date, default=date.today())
+    dt = Column(Date, default=date.today(), nullable=False)
 
     type_convert = {
         'dashboard': 'dashboard',

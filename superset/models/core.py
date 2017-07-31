@@ -33,17 +33,17 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     """A slice is essentially a report or a view on data"""
     __tablename__ = 'slices'
     id = Column(Integer, primary_key=True)
-    slice_name = Column(String(250))
+    slice_name = Column(String(128))
     online = Column(Boolean, default=False)
     datasource_id = Column(Integer)
-    datasource_type = Column(String(200))
-    datasource_name = Column(String(2000))
+    datasource_type = Column(String(32))
+    datasource_name = Column(String(128))
     database_id = Column(Integer)
-    full_table_name = Column(String(2000))
-    viz_type = Column(String(250))
+    full_table_name = Column(String(128))
+    viz_type = Column(String(32))
     params = Column(Text)
     description = Column(Text)
-    department = Column(Text)
+    department = Column(String(256))
     cache_timeout = Column(Integer)
 
     __table_args__ = (
@@ -231,14 +231,14 @@ dashboard_slices = Table(
 class Dashboard(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = 'dashboards'
     id = Column(Integer, primary_key=True)
-    dashboard_title = Column(String(255), unique=True)
+    dashboard_title = Column(String(128), unique=True)
     position_json = Column(Text)
     description = Column(Text)
-    department = Column(Text)
+    department = Column(String(256))
     css = Column(Text)
     online = Column(Boolean, default=False)
     json_metadata = Column(Text)
-    slug = Column(String(255))
+    slug = Column(String(128))
     slices = relationship(
         'Slice', secondary=dashboard_slices, backref='dashboards')
 
