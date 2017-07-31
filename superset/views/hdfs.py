@@ -98,28 +98,31 @@ class HDFSBrowser(BaseView):
 
     @catch_exception
     @ensure_logined
-    @expose('/remove/', methods=['GET'])
+    @expose('/remove/', methods=['POST'])
     def remove(self):
-        path = request.args.get('path')
-        response = self.client.remove(path)
+        args = self.get_request_data()
+        paths = ';'.join(args.get('path'))
+        response = self.client.remove(paths)
         return Response(response.text)
 
     @catch_exception
     @ensure_logined
-    @expose('/move/', methods=['GET'])
+    @expose('/move/', methods=['POST'])
     def move(self):
-        path = request.args.get('path')
-        dest_path = request.args.get('dest_path')
-        response = self.client.move(path, dest_path)
+        args = self.get_request_data()
+        paths = ';'.join(args.get('path'))
+        dest_path = args.get('dest_path')
+        response = self.client.move(paths, dest_path)
         return Response(response.text)
 
     @catch_exception
     @ensure_logined
-    @expose('/copy/', methods=['GET'])
+    @expose('/copy/', methods=['POST'])
     def copy(self):
-        path = request.args.get('path')
-        dest_path = request.args.get('dest_path')
-        response = self.client.copy(path, dest_path)
+        args = self.get_request_data()
+        paths = ';'.join(args.get('path'))
+        dest_path = args.get('dest_path')
+        response = self.client.copy(paths, dest_path)
         return Response(response.text)
 
     @catch_exception
@@ -133,10 +136,11 @@ class HDFSBrowser(BaseView):
 
     @catch_exception
     @ensure_logined
-    @expose('/rmdir/', methods=['GET'])
+    @expose('/rmdir/', methods=['POST'])
     def rmdir(self):
-        path = request.args.get('path')
-        response = self.client.rmdir(path)
+        args = self.get_request_data()
+        paths = ';'.join(args.get('path'))
+        response = self.client.rmdir(paths)
         return Response(response.text)
 
     @catch_exception
@@ -155,6 +159,9 @@ class HDFSBrowser(BaseView):
         mode = request.args.get('mode')
         response = self.client.chmod(path, mode)
         return Response(response.text)
+
+    def get_request_data(self):
+        return json.loads(str(request.data, encoding='utf-8'))
 
     def re_login(self):
         args = self.get_login_args(self.hdfs_conn_id)
