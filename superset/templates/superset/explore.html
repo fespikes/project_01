@@ -31,7 +31,11 @@
     <div class="panel-top-header">
       <div class="header-left">
         <i class="icon"></i>
-        <span>工作表</span>
+        <span
+            id="slice-title-name"
+            sliceId="{{ slice.id }}"
+            >
+        </span>
       </div>
       <div class="header-right">
         <div
@@ -215,7 +219,7 @@
           <input type="hidden" name="datasource_name" value="{{ datasource.name }}">
           <input type="hidden" name="datasource_id" value="{{ datasource.id }}">
           <input type="hidden" name="datasource_type" value="{{ datasource.type }}">
-          <input type="hidden" name="previous_viz_type" value="{{ viz.viz_type or "table" }}">
+          <input id="viz-type-id" type="hidden" name="previous_viz_type" value="{{ viz.viz_type or "table" }}">
       </div>
       <div class="col-md-9">
         {% block messages %}{% endblock %}
