@@ -116,8 +116,7 @@ class InnerTable extends React.Component {
                     if (record.type === 'file') { //go to detail page
                         return (
                             <Link onClick={() => flushDetail(record)} to="/filebrowser">
-                                {name === '..' ? name :
-                                name === '.' ? ('  ' + name + '  ') : record.path}
+                                {name === '.' ? ('  ' + name + '  ') : name}
                             </Link>
                         );
                     } else { //send request.
@@ -126,7 +125,7 @@ class InnerTable extends React.Component {
                                 linkToPath({
                                     path: record.path
                                 });
-                            }}>{record.name}</a>);
+                            }}>{name}</a>);
                     }
                 }
             }, {

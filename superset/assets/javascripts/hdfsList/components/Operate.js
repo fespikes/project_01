@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { selectType, search, CONSTANT, fetchOperation, setPopupNormalParams, popupNormalChangeStatus } from '../actions';
 
-import { Select, PopupNormal } from './';
+import { Select, PopupNormal, PopupDelete } from './';
 
 class Operate extends React.Component {
     constructor(props, context) {
@@ -74,8 +74,22 @@ class Operate extends React.Component {
     }
 
     onRemove() {
-        console.log('onRemove');
-        const {selectedRowKeys, selectedRowNames} = this.props;
+        const {dispatch, selectedRowNames} = this.props;
+        let deleteType = 'multiple';
+        let deleteTips = '确定删除' + selectedRowNames + '?';
+        if (selectedRowNames.length === 0) {
+            deleteType = 'none';
+            deleteTips = '没有选择任何将要删除的记录，请选择！';
+        }
+        let deleteSlicePopup = render(
+            <PopupDelete
+            dispatch={dispatch}
+            deleteType={deleteType}
+            deleteTips={deleteTips} />,
+            document.getElementById('popup_root'));
+        if (deleteSlicePopup) {
+            deleteSlicePopup.showDialog();
+        }
 
     }
 
@@ -191,7 +205,7 @@ function mapStateToProps(state, pros) {
 }
 
 const mapDispatchToProps = function(dispatch, props) {
-    return bindActionCreators({
+    const {selectType, search, fetchOperation, setPopupNormalParams, popupNormalChangeStatus} = bindActionCreators({
         selectType,
         search,
         fetchOperation,
@@ -199,6 +213,15 @@ const mapDispatchToProps = function(dispatch, props) {
         setPopupNormalParams,
         popupNormalChangeStatus
     }, dispatch);
+    return {
+        selectType,
+        search,
+        fetchOperation,
+
+        setPopupNormalParams,
+        popupNormalChangeStatus,
+        dispatch
+    };
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Operate);
