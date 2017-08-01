@@ -3,11 +3,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import logging
 import json
 import functools
 import requests
-import string
-import random
 from flask import g, request, Response
 from flask_babel import gettext as __
 from flask_appbuilder import BaseView, expose
@@ -20,9 +19,26 @@ from fileRobot_common.conf.FileRobotVars import FileRobotVars
 from superset import app, db, appbuilder
 from superset.utils import SupersetException
 from superset.models import HDFSConnection
-from .base import catch_exception
+from .base import catch_exception, json_response
 
 config = app.config
+
+
+def catch_hdfs_exception(f):
+    """
+    A decorator to label an endpoint as an API. Catches uncaught exceptions and
+    return the response in the JSON format
+    """
+    def wraps(self, *args, **kwargs):
+        try:
+            return f(self, *args, **kwargs)
+        except SupersetException as se:
+            logging.exception(se)
+            return json_response(status=500, message=str(se))
+        except Exception as e:
+            logging.exception(e)
+            return json_response(status=500, message=e.message)
+    return functools.update_wrapper(wraps, f)
 
 
 def ensure_logined(f):
@@ -51,23 +67,23 @@ class HDFSBrowser(BaseView):
     def render_html(self):
         return self.render_template('superset/hdfsList.html')
 
-    @catch_exception
+    @catch_hdfs_exception
     @expose('/login/', methods=['GET'])
     def login(self):
         id = request.args.get('hdfs_conn_id')
         self.hdfs_conn_id = int(id) if id else self.hdfs_conn_id
         args = self.get_login_args(self.hdfs_conn_id)
         self.client, response = self.do_login(**args)
-        if response.status_code != requests.codes.ok:
-            response.raise_for_status()
-        return Response("Login hdfs_micro_service success")
+        return json_response(message="Login hdfs_micro_service success",
+                             status=response.status_code)
 
-    @catch_exception
+    @catch_hdfs_exception
     @expose('/logout/', methods=['GET'])
     def logout(self):
         self.client.logout()
+        return json_response(message="Logout hdfs_micro_service success")
 
-    @catch_exception
+    @catch_hdfs_exception
     @ensure_logined
     @expose('/list/', methods=['GET'])
     def list(self):
@@ -76,17 +92,21 @@ class HDFSBrowser(BaseView):
         page_num = request.args.get('page_num', 0)
         path_size = request.args.get('path_size', 10)
         response = self.client.list(path)
-        return Response(response.text)
+        # return json_response(data=response.text,
+        #                      status=response.status_code)
+        return json_response(data=response.text,
+                             status=response.status_code)
 
-    @catch_exception
+    @catch_hdfs_exception
     @ensure_logined
     @expose('/download/', methods=['GET'])
     def download(self):
         path = request.args.get('path')
         response = self.client.download(path)
-        return Response(response.text)
+        return json_response(data=response.text,
+                             status=response.status_code)
 
-    @catch_exception
+    @catch_hdfs_exception
     @ensure_logined
     @expose('/upload/', methods=['POST'])
     def upload(self):
@@ -94,18 +114,20 @@ class HDFSBrowser(BaseView):
         dest_path = request.args.get('dest_path')
         file_name = request.args.get('file_name')
         response = self.client.upload(dest_path, {'file': (file_name, f)})
-        return Response(response.text)
+        return json_response(message=response.text,
+                             status=response.status_code)
 
-    @catch_exception
+    @catch_hdfs_exception
     @ensure_logined
     @expose('/remove/', methods=['POST'])
     def remove(self):
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         response = self.client.remove(paths)
-        return Response(response.text)
+        return json_response(message=response.text,
+                             status=response.status_code)
 
-    @catch_exception
+    @catch_hdfs_exception
     @ensure_logined
     @expose('/move/', methods=['POST'])
     def move(self):
@@ -113,9 +135,10 @@ class HDFSBrowser(BaseView):
         paths = ';'.join(args.get('path'))
         dest_path = args.get('dest_path')
         response = self.client.move(paths, dest_path)
-        return Response(response.text)
+        return json_response(message=response.text,
+                             status=response.status_code)
 
-    @catch_exception
+    @catch_hdfs_exception
     @ensure_logined
     @expose('/copy/', methods=['POST'])
     def copy(self):
@@ -123,42 +146,47 @@ class HDFSBrowser(BaseView):
         paths = ';'.join(args.get('path'))
         dest_path = args.get('dest_path')
         response = self.client.copy(paths, dest_path)
-        return Response(response.text)
+        return json_response(message=response.text,
+                             status=response.status_code)
 
-    @catch_exception
+    @catch_hdfs_exception
     @ensure_logined
     @expose('/mkdir/', methods=['GET'])
     def mkdir(self):
         path = request.args.get('path')
         dir_name = request.args.get('dir_name')
         response = self.client.mkdir(path, dir_name)
-        return Response(response.text)
+        return json_response(message=response.text,
+                             status=response.status_code)
 
-    @catch_exception
+    @catch_hdfs_exception
     @ensure_logined
     @expose('/rmdir/', methods=['POST'])
     def rmdir(self):
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         response = self.client.rmdir(paths)
-        return Response(response.text)
+        return json_response(message=response.text,
+                             status=response.status_code)
 
-    @catch_exception
+    @catch_hdfs_exception
     @ensure_logined
     @expose('/preview/', methods=['GET'])
     def preview(self):
         path = request.args.get('path')
         response = self.client.preview(path)
-        return Response(response.text)
+        return json_response(data=response.text,
+                             status=response.status_code)
 
-    @catch_exception
+    @catch_hdfs_exception
     @ensure_logined
     @expose('/chmod/', methods=['GET'])
     def chmod(self):
         path = request.args.get('path')
         mode = request.args.get('mode')
         response = self.client.chmod(path, mode)
-        return Response(response.text)
+        return json_response(message=response.text,
+                             status=response.status_code)
 
     def get_request_data(self):
         return json.loads(str(request.data, encoding='utf-8'))
