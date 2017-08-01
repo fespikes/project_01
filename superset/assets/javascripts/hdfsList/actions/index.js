@@ -96,8 +96,11 @@ export function fetchOperation(param) {
         case CONSTANT.mkdir:
             submit = fetchMakedir;
             break;
+        case CONSTANT.remove:
+            submit = fetchRemove;
+            break;
         case CONSTANT.noSelect:
-            submit = fetchNoSlect;
+            submit = fetchNoSelection;
             break;
         default:
             break;
@@ -131,7 +134,7 @@ function fetchMove(param) {
             });
     }
 }
-
+//TODO
 function fetchCopy() {
     return (dispatch, getState) => {
         const popupNormalParam = getState().popupNormalParam;
@@ -168,14 +171,14 @@ function fetchAuth() {
             credentials: 'include',
             method: 'GET'
         })
-        .then(
-            response => response.ok ?
-                response.json() : (response => errorHandler(response))(response),
-            error => errorHandler(error)
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
         )
-        .then(json => {
-            console.log('');
-        });
+            .then(json => {
+                console.log('');
+            });
     }
 }
 
@@ -203,7 +206,7 @@ function fetchUpload() {
     }
 }
 
-//TODO
+
 function fetchMakedir() {
     return (dispatch, getState) => {
         const popupNormalParam = getState().popupNormalParam;
@@ -229,13 +232,18 @@ function fetchMakedir() {
                 if (json) {
                     obj = {
                         ...popupNormalParam,
+                        path: '',
+                        dirName: '',
+
                         alertStatus: '',
                         alertMsg: json.message,
-                        alertType: 'success'
+                        alertType: 'success',
+                        disabled: 'disabled'
                     };
                 } else {
                     obj = {
                         ...popupNormalParam,
+                        dirName: '',
                         alertStatus: '',
                         alertMsg: json.message || 'made an error',
                         alertType: 'error',
@@ -250,15 +258,21 @@ function fetchMakedir() {
 function fetchRemove() {
     return (dispatch, getState) => {
         const state = getState();
-        const connectionID = state.condition.connectionID;
+        const selectedRows = state.condition.selectedRows;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL + `rmdir/?` +
-        (path ? ('path=' + path + '&') : '') +
-        (dir_name ? 'dir_name=' + dir_name : '');
+        let path = [];
+        selectedRows.map((currentValue, index, array) => {
+            path.push(currentValue.path);
+        });
+
+        const URL = baseURL + `remove/`;
 
         return fetch(URL, {
             credentials: 'include',
-            method: 'POST'
+            method: 'POST',
+            body: JSON.stringify({
+                path: path
+            })
         })
             .then(
                 response => response.ok ?
@@ -266,13 +280,49 @@ function fetchRemove() {
                 error => errorHandler(error)
         )
             .then(json => {
-                console.log('TODO: get the interface');
+
+                let obj = {};
+
+                if (json) {
+                    obj = {
+                        ...popupNormalParam,
+                        path: '',
+                        dirName: '',
+
+                        alertStatus: '',
+                        alertMsg: json.message || json || 'succeed!',
+                        alertType: 'success',
+                        disabled: 'disabled'
+                    };
+                } else {
+                    obj = {
+                        ...popupNormalParam,
+                        dirName: '',
+                        alertStatus: '',
+                        alertMsg: json.message || 'made an error',
+                        alertType: 'error',
+                        disabled: 'disabled'
+                    };
+                }
+                dispatch(setPopupNormalParams(obj));
+
+                dispatch(setSelectedRows({
+                    selectedRows: [],
+                    selectedRowKeys: [],
+                    selectedRowNames: []
+                }));
+            //TODO: remove state.selectedRowKeys in table
             });
     }
 }
 
-function fetchNoSlect(callback) {
+popupNormalActions.fetchNoSelection = 'FETCH_NO_SELECTION';
+function fetchNoSelection(callback) {
     callback(true, CONSTANT.noSelect);
+
+    return {
+        type: popupNormalActions.fetchNoSelection
+    }
 }
 
 export function setPermData(permData) {
@@ -330,7 +380,9 @@ export function setPopupNormalParams(param) {
 
         alertStatus: param.alertStatus,
         alertMsg: param.alertMsg,
-        alertType: param.alertType
+        alertType: param.alertType,
+
+        deleteTips: param.deleteTips
     }
 }
 

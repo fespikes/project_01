@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import * as actions from '../actions';
 import { CONSTANT } from '../actions';
 
-import { Select, PopupNormal, PopupDelete } from './';
+import { Select, PopupNormal } from './';
 import { getPermData, updatePermMode } from '../module';
 
 class Operate extends React.Component {
@@ -43,7 +43,7 @@ class Operate extends React.Component {
             status: 'flex'
         };
         setPopupNormalParams(normalPopupParam);
-        if(popupType === "auth") {
+        if (popupType === "auth") {
             const permData = getPermData(condition.selectedRows);
             const permMode = updatePermMode(permData);
             setPermData(permData);
@@ -83,23 +83,27 @@ class Operate extends React.Component {
     }
 
     onRemove() {
-        const {dispatch, selectedRowNames} = this.props;
-        let deleteType = 'multiple';
-        let deleteTips = '确定删除' + selectedRowNames + '?';
-        if (selectedRowNames.length === 0) {
-            deleteType = 'none';
-            deleteTips = '没有选择任何将要删除的记录，请选择！';
-        }
-        let deleteSlicePopup = render(
-            <PopupDelete
-            dispatch={dispatch}
-            deleteType={deleteType}
-            deleteTips={deleteTips} />,
-            document.getElementById('popup_root'));
-        if (deleteSlicePopup) {
-            deleteSlicePopup.showDialog();
-        }
+        const {fetchOperation, popupNormalParam, setPopupNormalParams, condition} = this.props;
+        let normalPopupParam = {};
 
+        if (condition.selectedRows.length === 0) {
+            normalPopupParam = {
+                ...popupNormalParam,
+                popupType: CONSTANT.noSelect,
+                submit: fetchOperation,
+                status: 'flex'
+            };
+        } else {
+            let deleteTips = deleteTips = '确定删除' + condition.selectedRowNames.join(' ') + '?';
+            normalPopupParam = {
+                ...popupNormalParam,
+                popupType: CONSTANT.remove,
+                submit: fetchOperation,
+                status: 'flex',
+                deleteTips: deleteTips
+            };
+        }
+        setPopupNormalParams(normalPopupParam);
     }
 
     handleSelectChange(argus) {

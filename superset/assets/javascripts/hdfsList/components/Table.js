@@ -35,17 +35,12 @@ class InnerTable extends React.Component {
         }
         let selectedRowNames = [];
         this.setState({
-            selectedRowKeys: [selectedRowKeys[length - 1]]
+            selectedRowKeys: selectedRowKeys
         });
-        // selectedRows.forEach(function(row) {
-        //     selectedRowNames.push(row.name);
-        // });
-        selectedRows = [selectedRows[length - 1]];
-        selectedRowKeys = [selectedRowKeys[length - 1]]
+        selectedRows.forEach(function(row) {
+            selectedRowNames.push('"' + row.name + '"');
+        });
 
-        //TODO: when have no selected row
-
-        selectedRowNames = [selectedRow['name']];
         this.props.setSelectedRows(selectedRows, selectedRowKeys, selectedRowNames);
     };
 

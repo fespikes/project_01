@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
-import { fetchLists, fetchSliceDelete, fetchSliceDeleteMul } from '../actions';
+import { CONSTANT } from '../actions';
 
 class PopupDelete extends React.Component {
     constructor(props) {
@@ -24,13 +24,23 @@ class PopupDelete extends React.Component {
     }
 
     confirm() {
+
+        const {fetchOperation, popupNormalParam, setPopupNormalParams} = this.props;
+        const normalPopupParam = {
+            ...popupNormalParam,
+            popupType: CONSTANT.remove,
+            submit: fetchOperation,
+            status: 'flex'
+        }
+
+        setPopupNormalParams(normalPopupParam);
+
+
+
         const self = this;
         const { dispatch, slice, deleteType } = self.props;
-        if(deleteType === "single") {
-            dispatch(fetchSliceDelete(slice.id, callback));
-        }else if(deleteType === "multiple") {
-            dispatch(fetchSliceDeleteMul(callback));
-        }else if(deleteType === "none") {
+        
+        if(deleteType === "none") {
             ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
         } else {
             dispatch(fetchSliceDeleteMul(callback));

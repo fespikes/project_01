@@ -96,7 +96,9 @@ function popupNormalParam(state = {
         alertType: '',
 
         permData: [],
-        permMode: ''
+        permMode: '',
+
+        deleteTips: ''
     }, action) {
     switch (action.type) {
     case popupNormalActions.popupChangeStatus:
@@ -117,7 +119,9 @@ function popupNormalParam(state = {
 
             alertStatus: action.alertStatus,
             alertMsg: action.alertMsg,
-            alertType: action.alertType
+            alertType: action.alertType,
+
+            deleteTips: action.deleteTips
         };
         break;
     case popupNormalActions.setPopupParam:

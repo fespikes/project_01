@@ -37,7 +37,7 @@ class Popup extends React.Component {
         const popupNormalParam = this.props;
         this.props.setPopupNormalParams({
             ...popupNormalParam,
-            status:'none',
+            status: 'none',
             alertStatus: 'none',
             alertMsg: '',
             alertType: ''
@@ -99,7 +99,7 @@ class Popup extends React.Component {
     }
 
     onPermChange(record, type) {
-        const { setPermData, setPermMode, popupNormalParam} = this.props;
+        const {setPermData, setPermMode, popupNormalParam} = this.props;
         const permData = updatePermData(record, type, popupNormalParam.permData);
         const permMode = updatePermMode(permData);
         setPermData(permData);
@@ -111,15 +111,10 @@ class Popup extends React.Component {
         function callback(success, popupType, response) {
             switch (popupType) {
             case CONSTANT.mkdir:
-                break;
             case CONSTANT.move:
-                break;
             case CONSTANT.copy:
-                break;
             case CONSTANT.auth:
-                break;
             case CONSTANT.upload:
-                break;
             case CONSTANT.remove:
                 break;
             case CONSTANT.noSelect:
@@ -140,8 +135,9 @@ class Popup extends React.Component {
             setPopupNormalParams, popupNormalChangeStatus, //
             fetchLeafData} = this.props;
 
-        const {popupType, disabled, dest_path, treeData, //
-            status, alertStatus, alertMsg, alertType, permData} = popupNormalParam;
+        const {popupType, disabled, dest_path, treeData,//
+            status, alertStatus, alertMsg,//
+            alertType, permData, deleteTips} = popupNormalParam;
 
         const setPopupState = (obj) => {
             me.closeDialog();
@@ -168,11 +164,14 @@ class Popup extends React.Component {
                 title = '修改权限';
                 permColumns = getPermColumns(me);
                 break;
+            case CONSTANT.upload:
+                title = '上传文件';
+                break;
             case CONSTANT.mkdir:
                 title = '创建目录';
                 break;
-            case CONSTANT.upload:
-                title = '上传文件';
+            case CONSTANT.remove:
+                title = '删除HDFS连接';
                 break;
             case CONSTANT.noSelect:
                 title = '提示';
@@ -262,11 +261,11 @@ class Popup extends React.Component {
                             <div className="add-connection">
                                 <div className='data-detail-border'>
                                     <Table
-                                        columns={permColumns}
-                                        dataSource={permData}
-                                        size='small'
-                                        pagination={false}
-                                    />
+                    columns={permColumns}
+                    dataSource={permData}
+                    size='small'
+                    pagination={false}
+                    />
                                 </div>
                             </div>
                         </div>
@@ -278,26 +277,30 @@ class Popup extends React.Component {
                                 <label className="data-detail-item">
                                     <span>上传到：</span>
                                     <input
-                                        type="text"
-                                        defaultValue=""
-                                        value={condition.selectedRows[0].path}
-                                        required="required"
-                                        onChange={this.onInputChange}
-                                    />
+                    type="text"
+                    defaultValue=""
+                    value={condition.selectedRows[0].path}
+                    required="required"
+                    onChange={this.onInputChange}
+                    />
                                 </label>
                                 <div className="data-detail-item">
                                     <span></span>
                                     <div>
-                                        <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
+                                        <label className="file-browser" htmlFor="xFile" style={{
+                        width: 200
+                    }}>
                                             <span>选择文件</span>
                                         </label>
                                         <div className="file-name">
                                             <i className="icon icon-file"/>
                                             <span ref="fileName"/>
                                         </div>
-                                        <div className="file-upload" style={{display: 'none'}}>
+                                        <div className="file-upload" style={{
+                        display: 'none'
+                    }}>
                                             <input type="file" id="xFile" name="file_name" className="file-select"
-                                                   required="required" onChange={this.handleFile} ref="fileSelect"/>
+                    required="required" onChange={this.handleFile} ref="fileSelect"/>
                                         </div>
                                     </div>
                                 </div>
@@ -331,15 +334,28 @@ class Popup extends React.Component {
                                 </label>
                 </div></div></div>;
                 break;
+
+            case CONSTANT.remove:
+                return <div className="popup-body">
+                    <div className="warning">
+                                <Alert
+                    message="Warning"
+                    description={deleteTips}
+                    type="warning"
+                    showIcon
+                    />
+                    </div>
+                </div>;
+
             case CONSTANT.noSelect:
                 return <div className="popup-body">
                     <div className="warning">
                         <Alert
-                            message="Warning"
-                            description="没有选择HDFS路径，请先选择！"
-                            type="warning"
-                            showIcon
-                        />
+                    message="Warning"
+                    description="没有选择HDFS路径，请先选择！"
+                    type="warning"
+                    showIcon
+                    />
                     </div>
                 </div>;
             default:
@@ -368,9 +384,9 @@ class Popup extends React.Component {
 
                         <div className="popup-footer">
                             <button
-                                disabled={disabled}
-                                className="tp-btn tp-btn-middle tp-btn-primary j_submit"
-                                onClick={me.submit}>
+            disabled={disabled}
+            className="tp-btn tp-btn-middle tp-btn-primary j_submit"
+            onClick={me.submit}>
                                 {btnTitle}
                             </button>
                         </div>

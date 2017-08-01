@@ -10,4 +10,3 @@ export TreeSelect from './TreeSelect';
 
 export TableChangeAuth from './TableChangeAuth';
 
-export PopupDelete from './PopupDelete';
