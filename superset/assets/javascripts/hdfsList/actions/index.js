@@ -552,7 +552,7 @@ function applyFetch(condition) {
                 error => errorHandler(error)
         )
             .then(json => {
-                const data = listDataMatch(json);
+                const data = listDataMatch(json.data);
                 fetchCallback(dispatch, receiveData, data, condition);
             // dispatch(receiveData(condition, listDataMatch(json)));
             });

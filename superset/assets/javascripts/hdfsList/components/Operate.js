@@ -190,14 +190,13 @@ class Operate extends React.Component {
                         &nbsp;&nbsp;<i className="icon icon-clock ps"></i>
                     </li>
                 </div>*/ }
-                { /*<div className="search-input">
+                <div className="search-input">
                     <input
             onChange={this.searchOnChange}
             ref="searchField"
             placeholder="search file name" />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"></i>
                 </div>
-                */ }
             </div>
         );
     }
