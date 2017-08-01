@@ -250,11 +250,13 @@ function fetchRemove() {
         const state = getState();
         const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL + `action=remove&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL + `rmdir/?` +
+        (path ? ('path=' + path + '&') : '') +
+        (dir_name ? 'dir_name=' + dir_name : '');
 
         return fetch(URL, {
             credentials: 'include',
-            method: 'GET'
+            method: 'POST'
         })
             .then(
                 response => response.ok ?
