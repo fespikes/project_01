@@ -8,6 +8,7 @@ import * as actions from '../actions';
 import { CONSTANT } from '../actions';
 
 import { Select, PopupNormal, PopupDelete } from './';
+import { getPermData, updatePermMode } from '../module';
 
 class Operate extends React.Component {
     constructor(props, context) {
@@ -34,14 +35,21 @@ class Operate extends React.Component {
                     setPopupNormalParams({path:uploadPath, hdfsFile, connectionID, popupType});
                 }*/
         const popupType = ag.key;
-        const {fetchOperation, popupNormalParam, setPopupNormalParams} = this.props;
+        const {fetchOperation, popupNormalParam, setPopupNormalParams, setPermData, setPermMode, setHDFSPath, condition} = this.props;
         const normalPopupParam = {
             ...popupNormalParam,
             popupType: popupType,
             submit: fetchOperation,
             status: 'flex'
-        }
+        };
         setPopupNormalParams(normalPopupParam);
+        if(popupType === "auth") {
+            const permData = getPermData(condition.selectedRows);
+            const permMode = updatePermMode(permData);
+            setPermData(permData);
+            setPermMode(permMode);
+            setHDFSPath(condition.selectedRows[0].path);
+        }
     }
 
     onChange() {
@@ -206,7 +214,7 @@ function mapStateToProps(state, pros) {
 }
 
 const mapDispatchToProps = function(dispatch, props) {
-    const {selectType, search, fetchOperation, setPopupNormalParams, popupNormalChangeStatus} = bindActionCreators(actions, dispatch);
+    const {selectType, search, fetchOperation, setPopupNormalParams, popupNormalChangeStatus, setPermData, setPermMode, setHDFSPath} = bindActionCreators(actions, dispatch);
     return {
         selectType,
         search,
@@ -214,6 +222,9 @@ const mapDispatchToProps = function(dispatch, props) {
 
         setPopupNormalParams,
         popupNormalChangeStatus,
+        setPermData,
+        setPermMode,
+        setHDFSPath,
         dispatch
     };
 }
