@@ -16,7 +16,7 @@ class Operate extends React.Component {
         this.state = {};
         this.dispatch = context.dispatch;
 
-        this.onChange = this.onChange.bind(this);
+        this.searchOnChange = this.searchOnChange.bind(this);
         this.onRemove = this.onRemove.bind(this);
         this.onSearch = this.onSearch.bind(this);
         this.upload = this.upload.bind(this);
@@ -24,16 +24,6 @@ class Operate extends React.Component {
     }
 
     manipulate(ag) {
-        /*            the ag only determine the type,
-                TODO: get the data from the table row;
-                TODO: set params before dispatch;
-
-                TODO: dispatch fetchOperation.
-                if (ag.key===CONSTANT.move) {
-                    setPopupNormalParams({path:mkdirPath, dirName, connectionID, popupType});
-                } else if (ag.key===CONSTANT.move) {
-                    setPopupNormalParams({path:uploadPath, hdfsFile, connectionID, popupType});
-                }*/
         const popupType = ag.key;
         const {fetchOperation, popupNormalParam, setPopupNormalParams, setPermData, setPermMode, setHDFSPath, condition} = this.props;
         const normalPopupParam = {
@@ -52,12 +42,18 @@ class Operate extends React.Component {
         }
     }
 
-    onChange() {
-        if (this.refs.searchField.value) {
-            this.refs.searchIcon.removeAttribute('disabled');
-        } else {
-            this.refs.searchIcon.setAttribute('disabled', 'disabled');
-        }
+    searchTimer=0;
+
+    searchOnChange() {
+        // if (this.refs.searchField.value) {
+        //     this.refs.searchIcon.removeAttribute('disabled');
+        // } else {
+        //     this.refs.searchIcon.setAttribute('disabled', 'disabled');
+        //     this.searchTimer && clearTimeout(this.searchTimer);
+        //     this.searchTimer = setTimeout(function() {
+        //         dispatch(search(''));
+        //     }, 300);
+        // }
     }
 
     upload() {
@@ -194,10 +190,14 @@ class Operate extends React.Component {
                         &nbsp;&nbsp;<i className="icon icon-clock ps"></i>
                     </li>
                 </div>*/ }
-                <div className="search-input">
-                    <input onChange={this.onChange} ref="searchField" placeholder="search..." />
+                { /*<div className="search-input">
+                    <input
+            onChange={this.searchOnChange}
+            ref="searchField"
+            placeholder="search file name" />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"></i>
                 </div>
+                */ }
             </div>
         );
     }
