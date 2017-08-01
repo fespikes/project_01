@@ -214,7 +214,7 @@ function mapStateToProps(state, pros) {
 }
 
 const mapDispatchToProps = function(dispatch, props) {
-    const {selectType, search, fetchOperation, setPopupNormalParams, popupNormalChangeStatus} = bindActionCreators(actions, dispatch);
+    const {selectType, search, fetchOperation, setPopupNormalParams, popupNormalChangeStatus, setPermData, setPermMode, setHDFSPath} = bindActionCreators(actions, dispatch);
     return {
         selectType,
         search,
@@ -222,6 +222,9 @@ const mapDispatchToProps = function(dispatch, props) {
 
         setPopupNormalParams,
         popupNormalChangeStatus,
+        setPermData,
+        setPermMode,
+        setHDFSPath,
         dispatch
     };
 }
