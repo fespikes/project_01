@@ -40,7 +40,6 @@ export function getPermColumns(_this) {
 }
 
 export function getPermData(hdfsItem) {
-    console.log('hdfsItem=', hdfsItem);
     const perms = analysisPerms(hdfsItem[0].rwx);
     if(!perms) {
         return;
@@ -74,29 +73,27 @@ function analysisPerms(permStr) {
     let executeStr = permStr.slice(7, 10);
     let strArray = [readStr, writeStr, executeStr];
     let permArray = constructPermArray(strArray);
-    console.log('permArray=', permArray);
     return permArray;
 }
 
 function constructPermArray(strArray) {
-    let array = [];
-    strArray.map((str) => {
-        array.push(constructSinglePerm(str));
+    let userArray = [];
+    let groupArray = [];
+    let otherArray = [];
+    strArray.map((str, index) => {
+        userArray[index] = judgePerm(str[0]);
+        groupArray[index] = judgePerm(str[1]);
+        otherArray[index] = judgePerm(str[2]);
     });
-    return array;
+    return [userArray, groupArray, otherArray];
 }
 
-function constructSinglePerm(str) {
-    let strArray = str.split('');
-    let permArray = [];
-    strArray.map((word, index) => {
-        if(word !== '-') {
-            permArray[index] = true
-        }else {
-            permArray[index] = false;
-        }
-    });
-    return permArray;
+function judgePerm(word) {
+    if(word !== '-') {
+        return true;
+    }else {
+        return false;
+    }
 }
 
 export function updatePermData(record, type, permData) {
@@ -105,12 +102,10 @@ export function updatePermData(record, type, permData) {
             perm[type] = !perm[type];
         }
     });
-    console.log('permData=', permData);
     return permData;
 }
 
 export function updatePermMode(permData) {
-    console.log('permData=', permData);
     let userArray = [];
     let groupArray = [];
     let otherArray = [];
@@ -120,7 +115,6 @@ export function updatePermMode(permData) {
         otherArray[index] = perm.other;
     });
     let permMode = '0o' + computePermNum([userArray, groupArray, otherArray]);
-    console.log('permMode=', permMode);
     return permMode;
 }
 
