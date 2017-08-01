@@ -15,6 +15,7 @@ from flask_appbuilder.security.views import AuthDBView
 from fileRobot_client.FileRobotClientFactory import fileRobotClientFactory
 from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
 from fileRobot_common.conf.FileRobotVars import FileRobotVars
+from fileRobot_common.exception.FileRobotException import FileRobotException
 
 from superset import app, db, appbuilder
 from superset.utils import SupersetException
@@ -32,12 +33,14 @@ def catch_hdfs_exception(f):
     def wraps(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
+        except FileRobotException as fe:
+            return json_response(status=fe.status, code=fe.returnCode, message=fe.message)
         except SupersetException as se:
             logging.exception(se)
             return json_response(status=500, message=str(se))
         except Exception as e:
             logging.exception(e)
-            return json_response(status=500, message=e.message)
+            return json_response(status=500, message=str(e))
     return functools.update_wrapper(wraps, f)
 
 
@@ -113,7 +116,7 @@ class HDFSBrowser(BaseView):
         dest_path = request.args.get('dest_path')
         file_name = request.args.get('file_name')
         response = self.client.upload(dest_path, {'file': (file_name, f)})
-        return json_response(message=response.text,
+        return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
@@ -123,7 +126,7 @@ class HDFSBrowser(BaseView):
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         response = self.client.remove(paths)
-        return json_response(message=response.text,
+        return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
@@ -134,7 +137,7 @@ class HDFSBrowser(BaseView):
         paths = ';'.join(args.get('path'))
         dest_path = args.get('dest_path')
         response = self.client.move(paths, dest_path)
-        return json_response(message=response.text,
+        return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
@@ -145,7 +148,7 @@ class HDFSBrowser(BaseView):
         paths = ';'.join(args.get('path'))
         dest_path = args.get('dest_path')
         response = self.client.copy(paths, dest_path)
-        return json_response(message=response.text,
+        return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
@@ -155,7 +158,7 @@ class HDFSBrowser(BaseView):
         path = request.args.get('path')
         dir_name = request.args.get('dir_name')
         response = self.client.mkdir(path, dir_name)
-        return json_response(message=response.text,
+        return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
@@ -165,7 +168,7 @@ class HDFSBrowser(BaseView):
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         response = self.client.rmdir(paths)
-        return json_response(message=response.text,
+        return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
@@ -184,7 +187,7 @@ class HDFSBrowser(BaseView):
         path = request.args.get('path')
         mode = request.args.get('mode')
         response = self.client.chmod(path, mode)
-        return json_response(message=response.text,
+        return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     def get_request_data(self):
