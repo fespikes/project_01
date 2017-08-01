@@ -58,7 +58,9 @@ const baseURL = `${ORIGIN}/hdfs/`;
 // ?
 // /hdfs/chmod/?path=/tmp/test_upload.txt&mode=0o777
 
-const errorHandler = error => alert(error);
+const errorHandler = error => {
+    console.log(error.message);
+};
 const succeedHandler = argus => {
 
 };
@@ -229,11 +231,12 @@ function fetchMakedir() {
         )
             .then(json => {
                 let obj = {};
+                //TODO: the verification
                 if (json) {
                     obj = {
                         ...popupNormalParam,
                         path: '',
-                        dirName: '',
+                        dir_name: '',
 
                         alertStatus: '',
                         alertMsg: json.message,
@@ -243,9 +246,10 @@ function fetchMakedir() {
                 } else {
                     obj = {
                         ...popupNormalParam,
-                        dirName: '',
+                        dir_name: '',
                         alertStatus: '',
-                        alertMsg: json.message || 'made an error',
+                        //TODO:
+                        alertMsg: 'json.message' || 'made an error',
                         alertType: 'error',
                         disabled: 'disabled'
                     };
@@ -287,7 +291,7 @@ function fetchRemove() {
                     obj = {
                         ...popupNormalParam,
                         path: '',
-                        dirName: '',
+                        dir_name: '',
 
                         alertStatus: '',
                         alertMsg: json.message || json || 'succeed!',
@@ -297,7 +301,7 @@ function fetchRemove() {
                 } else {
                     obj = {
                         ...popupNormalParam,
-                        dirName: '',
+                        dir_name: '',
                         alertStatus: '',
                         alertMsg: json.message || 'made an error',
                         alertType: 'error',
@@ -370,7 +374,7 @@ export function setPopupNormalParams(param) {
     return {
         type: popupNormalActions.setPopupParams,
         path: param.path,
-        dirName: param.dirName,
+        dir_name: param.dir_name,
         popupType: param.popupType,
         submit: param.submit,
         status: param.status,

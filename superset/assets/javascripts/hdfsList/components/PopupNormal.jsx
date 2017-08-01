@@ -46,6 +46,12 @@ class Popup extends React.Component {
 
     timer = 0;
 
+    removeAlert () {
+        this.props.setPopupNormalParam({
+            alertStatus: 'none'
+        });
+    }
+
     checkIfSubmit() {
         var fields = $(".popup-body input[required]");
         let disabled = null;
@@ -78,6 +84,9 @@ class Popup extends React.Component {
         setPopupNormalParam({
             [key]: val
         });
+        
+        this.removeAlert();
+
         clearTimeout(this.timer);
         this.timer = setTimeout(() => {
             this.checkIfSubmit();
@@ -135,9 +144,11 @@ class Popup extends React.Component {
             setPopupNormalParams, popupNormalChangeStatus, //
             fetchLeafData} = this.props;
 
-        const {popupType, disabled, dest_path, treeData,//
-            status, alertStatus, alertMsg,//
-            alertType, permData, deleteTips} = popupNormalParam;
+        const {popupType, disabled, treeData, //
+            status, alertStatus, alertMsg, //
+            alertType, permData, deleteTips, //
+
+            path, dir_name, dest_path} = popupNormalParam;
 
         const setPopupState = (obj) => {
             me.closeDialog();
@@ -317,7 +328,7 @@ class Popup extends React.Component {
                                     <input
                     required="required"
                     type="text"
-                    defaultValue=""
+                    value={path}
                     name="path"
                     onChange={this.onInputChange}
                     />
@@ -327,7 +338,7 @@ class Popup extends React.Component {
                                     <input
                     required="required"
                     type="text"
-                    defaultValue=""
+                    value={dir_name}
                     name="dir_name"
                     onChange={this.onInputChange}
                     />
@@ -381,6 +392,10 @@ class Popup extends React.Component {
                         </div>
                         
                         {getChildren(popupType)}
+                        
+                        <div className={alertStatus + ' alert-wrapper'}>
+                            <Alert message={alertMsg} type={alertType} showIcon />
+                        </div>
 
                         <div className="popup-footer">
                             <button

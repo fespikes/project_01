@@ -85,10 +85,9 @@ function popupNormalParam(state = {
         popupType: '',
 
         path: '',
-        dirName: '',
+        dir_name: '',
         dest_path: '',
 
-        treeData: [],
         treeData: [],
 
         alertStatus: 'none',
@@ -110,7 +109,7 @@ function popupNormalParam(state = {
         return {
             ...state,
             path: action.path,
-            dirName: action.dirName,
+            dir_name: action.dir_name,
             popupType: action.popupType,
             submit: action.submit,
             status: action.status,
