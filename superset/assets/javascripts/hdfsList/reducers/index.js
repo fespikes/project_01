@@ -89,11 +89,14 @@ function popupNormalParam(state = {
         dest_path: '',
 
         treeData: [],
+        treeData: [],
 
         alertStatus: 'none',
         alertMsg: '',
         alertType: '',
 
+        permData: [],
+        permMode: ''
     }, action) {
     switch (action.type) {
     case popupNormalActions.popupChangeStatus:
@@ -130,6 +133,25 @@ function popupNormalParam(state = {
             ...state,
             treeData: action.treeData
         };
+        break;
+    case popupNormalActions.setPermData:
+        return {
+            ...state,
+            permData: action.permData
+        };
+        break;
+    case popupNormalActions.setPermMode:
+        return {
+            ...state,
+            permMode: action.permMode
+        }
+        break;
+    case popupNormalActions.setHDFSPath:
+        return {
+            ...state,
+            path: action.path
+        }
+        break;
     default:
         return state;
     }

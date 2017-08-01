@@ -9,18 +9,21 @@ export const actionTypes = {
     search: 'SEARCH',
 
     setSelectedRows: 'SET_SELECTED_ROWS'
-}
+};
 
 export const popupActions = {
     setPopupParam: 'SET_POPUP_PARAM',
     popupChangeStatus: 'POPUP_CHANGE_STATUS'
-}
+};
 
 export const popupNormalActions = {
     setPopupParams: 'SET_POPUP_NORMAL_PARAMS',
     setPopupParam: 'SET_POPUP_NORMAL_PARAM',
-    popupChangeStatus: 'POPUP_NORMAL_CHANGE_STATUS'
-}
+    popupChangeStatus: 'POPUP_NORMAL_CHANGE_STATUS',
+    setPermData: 'SET_PERM_DATA',
+    setPermMode: 'SET_PERM_MODE',
+    setHDFSPath: 'SET_HDFS_PATH'
+};
 
 export const CONSTANT = {
     mkdir: 'mkdir',
@@ -30,7 +33,7 @@ export const CONSTANT = {
     upload: 'upload',
     remove: 'remove',
     noSelect: 'noSelect'
-}
+};
 
 const ORIGIN = window.location.origin;
 const baseURL = `${ORIGIN}/hdfs/`;
@@ -84,10 +87,10 @@ export function fetchOperation(param) {
         case CONSTANT.copy:
             submit = fetchCopy;
             break;
-        case CONSTANT.auth: //TODO:
+        case CONSTANT.auth:
             submit = fetchAuth;
             break;
-        case CONSTANT.upload: //TODO:
+        case CONSTANT.upload:
             submit = fetchUpload;
             break;
         case CONSTANT.mkdir:
@@ -158,22 +161,21 @@ function fetchCopy() {
 function fetchAuth() {
     return (dispatch, getState) => {
         const state = getState();
-        const connectionID = state.condition.connectionID;
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL + `action=&connection_id=${connectionID}&path=${popupNormalParam.path}&dir_name=${popupNormalParam.dirName}`;
+        const URL = baseURL + "chmod/?path=" + popupNormalParam.path + '&mode=' + popupNormalParam.permMode;
 
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
         })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
+        .then(
+            response => response.ok ?
+                response.json() : (response => errorHandler(response))(response),
+            error => errorHandler(error)
         )
-            .then(json => {
-                console.log('TODO: get the interface');
-            });
+        .then(json => {
+            console.log('');
+        });
     }
 }
 
@@ -271,6 +273,27 @@ function fetchRemove() {
 
 function fetchNoSlect(callback) {
     callback(true, CONSTANT.noSelect);
+}
+
+export function setPermData(permData) {
+    return {
+        type: popupNormalActions.setPermData,
+        permData: permData
+    }
+}
+
+export function setPermMode(permMode) {
+    return {
+        type: popupNormalActions.setPermMode,
+        permMode: permMode
+    }
+}
+
+export function setHDFSPath(path) {
+    return {
+        type: popupNormalActions.setHDFSPath,
+        path: path
+    }
 }
 
 //S: popup related actions
