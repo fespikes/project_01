@@ -4,7 +4,8 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
 import PropTypes from 'prop-types';
-import { selectType, search, CONSTANT, fetchOperation, setPopupNormalParams, popupNormalChangeStatus } from '../actions';
+import * as actions from '../actions';
+import { CONSTANT } from '../actions';
 
 import { Select, PopupNormal, PopupDelete } from './';
 
@@ -205,14 +206,7 @@ function mapStateToProps(state, pros) {
 }
 
 const mapDispatchToProps = function(dispatch, props) {
-    const {selectType, search, fetchOperation, setPopupNormalParams, popupNormalChangeStatus} = bindActionCreators({
-        selectType,
-        search,
-        fetchOperation,
-
-        setPopupNormalParams,
-        popupNormalChangeStatus
-    }, dispatch);
+    const {selectType, search, fetchOperation, setPopupNormalParams, popupNormalChangeStatus} = bindActionCreators(actions, dispatch);
     return {
         selectType,
         search,
