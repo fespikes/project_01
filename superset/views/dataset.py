@@ -27,7 +27,7 @@ from superset.models import (
 from superset.message import *
 from .base import (
     SupersetModelView, catch_exception, get_user_id, check_ownership,
-    build_response
+    json_response
 )
 
 config = app.config
@@ -192,7 +192,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         self.update_hdfs_table(obj, json_data)
         self.datamodel.edit(obj)
         self.post_update(obj)
-        return build_response(200, True, UPDATE_SUCCESS)
+        return json_response(message=UPDATE_SUCCESS)
 
     @catch_exception
     @expose('/dataset_types/', methods=['GET', ])
@@ -221,8 +221,8 @@ class DatasetModelView(SupersetModelView):  # noqa
         if dataset_type == 'inceptor':
             dataset = self.populate_object(None, get_user_id(), args)
             self._add(dataset)
-            return build_response(
-                200, True, ADD_SUCCESS, {'object_id': dataset.id})
+            return json_response(
+                message=ADD_SUCCESS, data={'object_id': dataset.id})
         elif dataset_type == 'hdfs':
             HDFSTable.cached_file.clear()
             # create hdfs_table
@@ -247,7 +247,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             self._add(dataset)
             hdfs_table.dataset_id = dataset.id
             hdfs_table_view._add(hdfs_table)
-            return build_response(200, True, ADD_SUCCESS, {'object_id': dataset.id})
+            return json_response(message=ADD_SUCCESS, data={'object_id': dataset.id})
         else:
             raise Exception('{}: [{}]'.format(ERROR_DATASET_TYPE, dataset_type))
 
@@ -273,7 +273,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         if dataset_type == 'inceptor':
             dataset = self.populate_object(pk, get_user_id(), args)
             self._edit(dataset)
-            return build_response(200, True, UPDATE_SUCCESS)
+            return json_response(message=UPDATE_SUCCESS)
         elif dataset_type == 'hdfs':
             HDFSTable.cached_file.clear()
             # edit hdfs_table
@@ -295,7 +295,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             dataset.database_id = args.get('database_id')
             dataset.database = database
             self._edit(dataset)
-            return build_response(200, True, UPDATE_SUCCESS)
+            return json_response(message=UPDATE_SUCCESS)
         else:
             raise Exception('{}: [{}]'.format(ERROR_DATASET_TYPE, dataset_type))
 

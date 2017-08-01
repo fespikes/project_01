@@ -30,7 +30,7 @@ from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
 from superset.utils import (
     get_database_access_error_msg, get_datasource_access_error_msg,
-    json_error_response, SupersetException
+    SupersetException
 )
 from superset.models import (
     Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric,
@@ -39,7 +39,7 @@ from superset.models import (
 from superset.message import *
 from .base import (
     SupersetModelView, BaseSupersetView, catch_exception, get_user_id,
-    check_ownership, generate_download_headers, build_response, get_error_msg
+    check_ownership, generate_download_headers, json_response, get_error_msg
 )
 
 
@@ -431,34 +431,34 @@ class Superset(BaseSupersetView):
         if not obj:
             msg = '{}. Model:{} Id:{}'.format(OBJECT_NOT_FOUND, cls.__name__, id)
             logging.error(msg)
-            return build_response(400, False, msg)
+            return json_response(status=400, message=msg)
         check_ownership(obj, raise_if_false=True)
 
         if model in ['database', 'hdfsconnection']:
             model = 'connection'
         if action.lower() == 'online':
             if obj.online is True:
-                return build_response(200, True, OBJECT_IS_ONLINE)
+                return json_response(message=OBJECT_IS_ONLINE)
             else:
                 cls.release(obj)  # release releated objects
                 DailyNumber.log_related_number(model, True)
                 action_str = 'Change {} and dependences to online: [{}]' \
                     .format(model, repr(obj))
                 log_action('online', action_str, model, id)
-                return build_response(200, True, ONLINE_SUCCESS)
+                return json_response(message=ONLINE_SUCCESS)
         elif action.lower() == 'offline':
             if obj.online is False:
-                return build_response(200, True, OBJECT_IS_OFFLINE)
+                return json_response(message=OBJECT_IS_OFFLINE)
             else:
                 obj.online = False
                 db.session.commit()
                 action_str = 'Change {} to offline: [{}]'.format(model, repr(obj))
                 log_action('offline', action_str, model, id)
                 log_number(model, True, None)
-                return build_response(200, True, OFFLINE_SUCCESS)
+                return json_response(message=OFFLINE_SUCCESS)
         else:
             msg = ERROR_URL + ': {}'.format(request.url)
-            return build_response(400, False, msg)
+            return json_response(status=400, message=msg)
 
     @catch_exception
     @expose("/slice/<slice_id>/")
