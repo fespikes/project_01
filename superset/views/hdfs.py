@@ -92,9 +92,8 @@ class HDFSBrowser(BaseView):
         page_num = request.args.get('page_num', 0)
         path_size = request.args.get('path_size', 10)
         response = self.client.list(path)
-        # return json_response(data=response.text,
-        #                      status=response.status_code)
-        return json_response(data=response.text,
+        data = json.loads(response.text)
+        return json_response(data=data,
                              status=response.status_code)
 
     @catch_hdfs_exception

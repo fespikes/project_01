@@ -35,7 +35,7 @@ class CheckLicense(object):
             check.checkLicense(server_location)
         except JavaException as ex:
             logging.error(ex.message())
-            msg = "License check fialed with check server: {}".format(server_location)
+            msg = "License check failed with check server: {}".format(server_location)
             logging.error(msg)
             raise Exception(msg)
         finally:
