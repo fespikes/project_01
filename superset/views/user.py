@@ -9,7 +9,7 @@ from flask_appbuilder import BaseView, expose
 from superset import sm, appbuilder
 from superset.utils import SupersetException
 from superset.message import *
-from .base import catch_exception
+from .base import catch_exception, json_response
 
 
 class UserView(BaseView):
@@ -47,8 +47,8 @@ class UserView(BaseView):
             self.appbuilder.sm.find_role(self.default_role),
             password=password)
         if not user:
-            raise SupersetException(ADD_FAILED)
-        return Response(ADD_SUCCESS)
+            return json_response(message=ADD_FAILED, status=500)
+        return json_response(message=ADD_SUCCESS)
 
     @catch_exception
     @expose('/show/<pk>/', methods=['GET'])
@@ -58,7 +58,7 @@ class UserView(BaseView):
         for col in self.show_columns:
             data[col] = str(getattr(user, col))
         data['created_by'] = user.created_by.username if user.created_by else None
-        return Response(json.dumps({'data': data}))
+        return json_response(data=data)
 
     @catch_exception
     @expose('/edit/<pk>/', methods=['POST'])
@@ -73,11 +73,11 @@ class UserView(BaseView):
         user.email = data.get('email')
         rs = sm.update_user(user)
         if rs is False:
-            raise SupersetException(UPDATE_FAILED)
+            return json_response(message=UPDATE_FAILED, status=500)
         rs = sm.reset_password(pk, data.get('password'))
         if rs is False:
-            raise SupersetException('Update password failed')
-        return Response(UPDATE_SUCCESS)
+            return json_response(message='Update password failed', status=500)
+        return json_response(message=UPDATE_SUCCESS)
 
     @catch_exception
     @expose('/delete/<pk>/', methods=['GET'])
@@ -86,8 +86,8 @@ class UserView(BaseView):
         self.check_permission(user, 'delete')
         rs = sm.del_register_user(user)
         if not rs:
-            raise SupersetException(DELETE_FAILED)
-        return Response(DELETE_SUCCESS)
+            return json_response(message=DELETE_FAILED, status=500)
+        return json_response(message=DELETE_SUCCESS, status=500)
 
     @classmethod
     def get_request_data(cls):

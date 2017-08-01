@@ -11,7 +11,7 @@ import traceback
 from distutils.util import strtobool
 import functools
 
-from flask import g, request
+from flask import g, request, Response
 from flask_appbuilder import ModelView, BaseView, expose
 from flask_appbuilder.security.sqla.models import User
 import sqlalchemy as sqla
@@ -20,7 +20,6 @@ from wtforms.validators import ValidationError
 
 from superset import app, appbuilder, db, models, sm, utils
 from superset.source_registry import SourceRegistry
-from superset.utils import json_error_response
 from superset.models import Dataset, Database, Dashboard, Slice, FavStar
 from superset.message import *
 
@@ -55,10 +54,10 @@ def catch_exception(f):
             logging.exception(e)
             m = re.compile(r'"(.*)"').search(e.args[0])
             msg = m.group(1) if len(m.groups()) else str(e)
-            return json_error_response(msg)
+            return json_response(status=500, message=msg)
         except Exception as e:
             logging.exception(e)
-            return json_error_response(str(e))
+            return json_response(status=500, message=str(e))
     return functools.update_wrapper(wraps, f)
 
 
@@ -108,18 +107,14 @@ def get_user_id():
         raise Exception(NO_USER)
 
 
-def get_user_roles():
-    if g.user.is_anonymous():
-        public_role = config.get('AUTH_ROLE_PUBLIC')
-        return [appbuilder.sm.find_role(public_role)] if public_role else []
-    return g.user.roles
-
-
-def build_response(status=200, success=True, message="", data=None):
-    return json.dumps({'status': status,
-                       'success': success,
-                       'message': message,
-                       'data': data})
+def json_response(message='', status=200, data='', code=0):
+    resp = {'status': status,
+            'code': code,
+            'message': message,
+            'data': data}
+    return Response(
+        json.dumps(resp), status=status, mimetype="application/json"
+    )
 
 
 def validate_json(form, field):  # noqa
@@ -245,7 +240,7 @@ class SupersetModelView(ModelView, PageMixin):
         obj = self.populate_object(None, user_id, json_data)
         self._add(obj)
         data = {'object_id': obj.id}
-        return build_response(200, True, ADD_SUCCESS, data)
+        return json_response(message=ADD_SUCCESS, data=data)
 
     def _add(self, obj):
         self.pre_add(obj)
@@ -262,13 +257,13 @@ class SupersetModelView(ModelView, PageMixin):
         return json.dumps(attributes)
 
     @catch_exception
-    @expose('/edit/<pk>', methods=['GET', 'POST'])
+    @expose('/edit/<pk>', methods=['POST'])
     def edit(self, pk):
         user_id = get_user_id()
         json_data = self.get_request_data()
         obj = self.populate_object(pk, user_id, json_data)
         self._edit(obj)
-        return build_response(200, True, UPDATE_SUCCESS)
+        return json_response(message=UPDATE_SUCCESS)
 
     def _edit(self, obj):
         self.pre_update(obj)
@@ -281,7 +276,7 @@ class SupersetModelView(ModelView, PageMixin):
     def delete(self, pk):
         obj = self.get_object(pk)
         self._delete(obj)
-        return build_response(200, True, DELETE_SUCCESS)
+        return json_response(message=DELETE_SUCCESS)
 
     def _delete(self, obj):
         self.pre_delete(obj)
@@ -304,7 +299,7 @@ class SupersetModelView(ModelView, PageMixin):
             check_ownership(obj)
         self.datamodel.delete_all(objs)
         log_number(self.model.__name__, all_user, get_user_id())
-        return build_response(200, True, DELETE_SUCCESS)
+        return json_response(message=DELETE_SUCCESS)
 
     def get_addable_choices(self):
         data = {}

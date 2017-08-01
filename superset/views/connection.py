@@ -19,7 +19,7 @@ from superset.models import Database, HDFSConnection
 from superset.message import *
 from .base import (
     SupersetModelView, BaseSupersetView, PageMixin, catch_exception,
-    get_user_id,check_ownership, build_response
+    get_user_id, check_ownership, json_response
 )
 
 config = app.config
@@ -264,7 +264,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
                 db.session.delete(obj)
         db.session.commit()
         log_number('connection', all_user, get_user_id())
-        return build_response(200, True, DELETE_SUCCESS)
+        return json_response(message=DELETE_SUCCESS)
 
     def get_object_list_data(self, **kwargs):
         order_column = kwargs.get('order_column')
