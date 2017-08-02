@@ -187,8 +187,8 @@ class HDFSBrowser(BaseView):
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         mode = args.get('mode')
-        recursive = args.get('recursive', 'false')
-        recursive = True if recursive.lower() == 'true' else False
+        recursive = args.get('recursive')
+        recursive = True if recursive else False
         response = self.client.chmod(paths, mode, recursive=recursive)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
