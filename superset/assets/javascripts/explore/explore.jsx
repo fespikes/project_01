@@ -14,6 +14,7 @@ import QueryAndSaveBtns from './components/QueryAndSaveBtns.jsx';
 import ExploreActionButtons from './components/ExploreActionButtons.jsx';
 import DisplayOriginalTable from './components/DisplayOriginalTable.jsx';
 import { Radio, Table } from 'antd';
+import { renderLoadingModal } from '../../utils/utils';
 
 require('jquery-ui');
 $.widget.bridge('uitooltip', $.ui.tooltip); // Shutting down jq-ui tooltips
@@ -418,6 +419,8 @@ function renderViewTab() {
         }else if(event.target.value === "original") {
             const datasourceId = viewTabEl.getAttribute('datasourceId');
             const url = window.location.origin + "/table/preview_data?dataset_id=" + datasourceId;
+            const loadingModal = renderLoadingModal();
+            loadingModal.show();
             $.ajax({
                 url: url,
                 type: 'GET',
@@ -426,6 +429,9 @@ function renderViewTab() {
                 },
                 error: error => {
                     console.log(error);
+                },
+                complete: () => {
+                    loadingModal.hide();
                 }
             });
         }else if(event.target.value === "result") {
@@ -479,6 +485,16 @@ function initComponents() {
     renderViewTab();
 }
 
+function initTitle() {
+    const titleEl = document.getElementById('slice-title-name');
+    const sliceId = titleEl.getAttribute('sliceId');
+    if(sliceId === '') {
+        titleEl.innerHTML = "添加工作表";
+    }else {
+        titleEl.innerHTMl = "编辑工作表";
+    }
+}
+
 let exploreController = {
     type: 'slice',
     done: (sliceObj) => {
@@ -519,4 +535,5 @@ $(document).ready(function () {
     slice.bindResizeToWindowResize();
 
     initComponents();
+    initTitle();
 });
