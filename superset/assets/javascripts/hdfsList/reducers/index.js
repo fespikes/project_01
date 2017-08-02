@@ -2,7 +2,7 @@ import { combineReducers } from 'redux';
 import { actionTypes, popupActions, popupNormalActions } from '../actions';
 
 function condition(state = {
-        page_num: 0,
+        page_num: 1,
         page_size: 10,
         //order_column,：取值：'name','online','changed_on','connection_type', 'owner';默认：'changed_on'.
         //order_direction: 取值：'desc' or 'asc', 默认：'desc'
@@ -37,6 +37,18 @@ function condition(state = {
             selectedRows: action.selectedRows,
             selectedRowKeys: action.selectedRowKeys,
             selectedRowNames: action.selectedRowNames
+        };
+        break;
+    case actionTypes.navigateTo:
+        return {
+            ...state,
+            page_num: action.pageNum
+        };
+        break;
+    case actionTypes.changePageSize:
+        return {
+            ...state,
+            page_size: action.pageSize
         };
         break;
     default:

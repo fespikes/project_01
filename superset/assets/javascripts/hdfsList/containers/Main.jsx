@@ -39,20 +39,19 @@ class Main extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        const { emitFetch } = this.props;
-        const {condition, popupNormalParam} = nextProps;
+        const {condition, popupNormalParam, emitFetch} = nextProps;
 
         if (condition.filter !== this.props.condition.filter ||
-                condition.onlyFavorite !== this.props.condition.onlyFavorite ||
-                condition.tableType !== this.props.condition.tableType ||
                 popupNormalParam && popupNormalParam.status === 'none' && this.props.popupNormalParam.status === 'flex' ||
-                condition.path !== this.props.condition.path
+                condition.path !== this.props.condition.path ||
+                condition.page_num !== this.props.condition.page_num ||
+                condition.page_size !== this.props.condition.page_size
         ) {
             this.props.fetchIfNeeded(condition);
         }
-        if(emitFetch.isFetching !== nextProps.emitFetch.isFetching) {
+        if(emitFetch.isFetching !== this.props.emitFetch.isFetching) {
             const loadingModal = renderLoadingModal();
-            if(nextProps.emitFetch.isFetching) {
+            if(emitFetch.isFetching) {
                 loadingModal.show();
             }else {
                 loadingModal.hide();
@@ -101,8 +100,8 @@ class Main extends Component {
         // let count=0, breadCrumbText = `user/${username}`;
         let count = 0,
             breadCrumbText = this.state.path || `user/${username}`;
-        if (response.length > 0) {
-            count = response.pagesize;
+        if (response && response.page) {
+            count = response.page.total_count;
             breadCrumbText = response.path;
         }
 
@@ -147,7 +146,7 @@ class Main extends Component {
                 left: '10px',
                 top: '8px'
             }}
-            ></i>
+            />
                     </div>
                     <div className="right">
                         <Operate

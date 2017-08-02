@@ -5,12 +5,11 @@ import { appendTreeChildren, findTreeNode } from '../../tableList/module';
 export const actionTypes = {
     sendRequest: 'SEND_REQUEST',
     receiveData: 'RECEIVE_DATA',
-
     search: 'SEARCH',
-
     setSelectedRows: 'SET_SELECTED_ROWS',
-
-    switchFetchingStatus: 'SWITCH_FETCHING_STATUS'
+    switchFetchingStatus: 'SWITCH_FETCHING_STATUS',
+    navigateTo: 'NAVIGATE_TO',
+    changePageSize: 'CHANGE_PAGE_SIZE'
 };
 
 export const popupActions = {
@@ -363,6 +362,20 @@ export function setPopupParam(param) {
         type: popupActions.setPopupParam,
         status: param.status,
         response: param.response
+    }
+}
+
+export function navigateTo(pageNum) {
+    return {
+        type: actionTypes.navigateTo,
+        pageNum: pageNum
+    }
+}
+
+export function changePageSize(pageSize) {
+    return {
+        type: actionTypes.changePageSize,
+        pageSize: pageSize
     }
 }
 
