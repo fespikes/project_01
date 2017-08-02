@@ -24,7 +24,7 @@ export function renderAlertTip(response, mountId) {
     );
     setTimeout(function() {
         ReactDOM.unmountComponentAtNode(document.getElementById(mountId));
-    }, 30000);
+    }, 5000);
 }
 
 export function getDatabaseDefaultParams() {
