@@ -67,6 +67,7 @@ function popupNormalParam(state = {
 
         permData: [],
         permMode: '',
+        recursivePerm: false,
 
         deleteTips: ''
     }, action) {
@@ -106,13 +107,19 @@ function popupNormalParam(state = {
         return {
             ...state,
             permMode: action.permMode
-        }
+        };
         break;
     case popupNormalActions.setHDFSPath:
         return {
             ...state,
             path: action.path
-        }
+        };
+        break;
+    case popupNormalActions.setRecursivePerm:
+        return {
+            ...state,
+            recursivePerm: action.recursivePerm
+        };
         break;
     default:
         return state;

@@ -8,6 +8,7 @@ import { Select, TreeSelect } from './';
 import * as ActionCreators from '../actions'
 import { CONSTANT } from '../actions'
 import { getPermColumns, updatePermData, updatePermMode } from '../module'
+import { renderAlertTip } from '../../../utils/utils';
 
 import PropTypes from 'prop-types';
 import './popup.scss';
@@ -23,6 +24,7 @@ class Popup extends React.Component {
         this.onInputChange = this.onInputChange.bind(this);
         this.handleFile = this.handleFile.bind(this);
         this.onPermChange = this.onPermChange.bind(this);
+        this.onRecursivePermChange = this.onRecursivePermChange.bind(this);
 
         //popupType = ['mkdir', 'upload'][0];
         this.state = {}
@@ -119,22 +121,21 @@ class Popup extends React.Component {
         setPermMode(permMode);
     }
 
+    onRecursivePermChange() {
+        const { setRecursivePerm } = this.props;
+        setRecursivePerm(this.refs.recursivePermRef.checked);
+    }
+
     submit() {
         const me = this;
-        function callback(success, popupType, response) {
-            switch (popupType) {
-            case CONSTANT.mkdir:
-            case CONSTANT.move:
-            case CONSTANT.copy:
-            case CONSTANT.auth:
-            case CONSTANT.upload:
-            case CONSTANT.remove:
-                break;
-            case CONSTANT.noSelect:
+        const {fetchIfNeeded, condition} = this.props;
+        function callback(success, message) {
+            if(success) {
+                fetchIfNeeded(condition);
                 me.props.popupNormalChangeStatus('none');
-                break;
-            default:
-                break;
+            }else {
+                message.type = "error";
+                renderAlertTip(message, 'hdfs-popup-tip');
             }
         }
         this.props.popupNormalParam.submit(callback);
@@ -274,13 +275,21 @@ class Popup extends React.Component {
             case CONSTANT.auth:
                 return <div className="popup-body">
                             <div className="add-connection">
-                                <div className='data-detail-border'>
+                                <div className='data-detail-border' style={{ paddingBottom: 0 }}>
                                     <Table
-                    columns={permColumns}
-                    dataSource={permData}
-                    size='small'
-                    pagination={false}
-                    />
+                                        columns={permColumns}
+                                        dataSource={permData}
+                                        size='small'
+                                        pagination={false}
+                                    />
+                                    <div className="recursive-perm">
+                                        <div className="col-20 perm-name">递归</div>
+                                        <div className="col-60"></div>
+                                        <div className="col-20 perm-value">
+                                            <input type="checkbox" onClick={this.onRecursivePermChange}
+                                                   ref="recursivePermRef" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -394,7 +403,7 @@ class Popup extends React.Component {
                                 <i className="icon icon-close" onClick={this.closeDialog}/>
                             </div>
                         </div>
-                        
+                        <div className="error" id="hdfs-popup-tip"></div>
                         {getChildren(popupType)}
                         
                         <div className={alertStatus + ' alert-wrapper'}>

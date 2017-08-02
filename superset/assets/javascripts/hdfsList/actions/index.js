@@ -22,7 +22,8 @@ export const popupNormalActions = {
     popupChangeStatus: 'POPUP_NORMAL_CHANGE_STATUS',
     setPermData: 'SET_PERM_DATA',
     setPermMode: 'SET_PERM_MODE',
-    setHDFSPath: 'SET_HDFS_PATH'
+    setHDFSPath: 'SET_HDFS_PATH',
+    setRecursivePerm: 'SET_RECURSIVE_PERM'
 };
 
 export const CONSTANT = {
@@ -41,8 +42,12 @@ const baseURL = `${ORIGIN}/hdfs/`;
 const errorHandler = error => {
     console.log(error.message);
 };
-const succeedHandler = argus => {
-
+const succeedHandler = (response, callback) => {
+    if(response.status === 200) {
+        callback(true, response);
+    }else {
+        callback(false, response);
+    }
 };
 /**
 @description: S-mock
@@ -143,15 +148,21 @@ function fetchCopy() {
 }
 
 //no api but have the function
-function fetchAuth() {
+function fetchAuth(callback) {
     return (dispatch, getState) => {
         const state = getState();
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL + "chmod/?path=" + popupNormalParam.path + '&mode=' + popupNormalParam.permMode;
+        const params = {
+            path: [popupNormalParam.path],
+            mode: popupNormalParam.permMode,
+            recursive: popupNormalParam.recursivePerm
+        };
+        const URL = baseURL + "chmod/";
 
         return fetch(URL, {
             credentials: 'include',
-            method: 'GET'
+            method: 'POST',
+            body: JSON.stringify(params)
         })
             .then(
                 response => response.ok ?
@@ -159,12 +170,12 @@ function fetchAuth() {
                 error => errorHandler(error)
         )
             .then(json => {
-                console.log('');
+                succeedHandler(json, callback);
             });
     }
 }
 
-function fetchUpload() {
+function fetchUpload(callback) {
     return (dispatch, getState) => {
         const popupNormalParam = getState().popupNormalParam;
         const destPath = popupNormalParam.dest_path;
@@ -184,6 +195,7 @@ function fetchUpload() {
         )
             .then(json => {
                 console.log('TODO: get the interface');
+                succeedHandler(json, callback);
             });
     }
 }
@@ -323,6 +335,13 @@ export function setPermMode(permMode) {
     return {
         type: popupNormalActions.setPermMode,
         permMode: permMode
+    }
+}
+
+export function setRecursivePerm(isRecursive) {
+    return {
+        type: popupNormalActions,
+        recursivePerm: isRecursive
     }
 }
 
