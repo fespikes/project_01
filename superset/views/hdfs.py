@@ -182,11 +182,14 @@ class HDFSBrowser(BaseView):
 
     @catch_hdfs_exception
     @ensure_logined
-    @expose('/chmod/', methods=['GET'])
+    @expose('/chmod/', methods=['POST'])
     def chmod(self):
-        path = request.args.get('path')
-        mode = request.args.get('mode')
-        response = self.client.chmod(path, mode)
+        args = self.get_request_data()
+        paths = ';'.join(args.get('path'))
+        mode = args.get('mode')
+        recursive = args.get('recursive', 'false')
+        recursive = True if recursive.lower() == 'true' else False
+        response = self.client.chmod(paths, mode, recursive=recursive)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
