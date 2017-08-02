@@ -249,7 +249,8 @@ function fetchRemove() {
             path.push(currentValue.path);
         });
 
-        const URL = baseURL + `remove/`;
+        // const URL = baseURL + `remove/`;
+        const URL = baseURL + `rmdir/`;
 
         return fetch(URL, {
             credentials: 'include',
@@ -290,12 +291,14 @@ function fetchRemove() {
                 }
                 dispatch(setPopupNormalParams(obj));
 
-                dispatch(setSelectedRows({
-                    selectedRows: [],
-                    selectedRowKeys: [],
-                    selectedRowNames: []
-                }));
-            //TODO: remove state.selectedRowKeys in table
+                dispatch(setSelectedRows([], [], []));
+
+                setTimeout(argu => {
+                    dispatch(setPopupNormalParams({
+                        status: 'none',
+                        alertStatus: 'none'
+                    }));
+                }, 2000);
             });
     }
 }
@@ -353,20 +356,7 @@ export function popupChangeStatus(param) {
 export function setPopupNormalParams(param) {
     return {
         type: popupNormalActions.setPopupParams,
-        path: param.path,
-        dir_name: param.dir_name,
-        popupType: param.popupType,
-        submit: param.submit,
-        status: param.status,
-        dest_path: param.dest_path,
-        dir_name: param.dir_name,
-
-
-        alertStatus: param.alertStatus,
-        alertMsg: param.alertMsg,
-        alertType: param.alertType,
-
-        deleteTips: param.deleteTips
+        ...param
     }
 }
 
@@ -552,7 +542,7 @@ function applyFetch(condition) {
                 error => errorHandler(error)
         )
             .then(json => {
-                const data = listDataMatch(json.data);
+                const data = listDataMatch(json ? json.data : {});
                 fetchCallback(dispatch, receiveData, data, condition);
             // dispatch(receiveData(condition, listDataMatch(json)));
             });

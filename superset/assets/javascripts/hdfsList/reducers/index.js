@@ -44,35 +44,6 @@ function condition(state = {
     }
 }
 
-//TODO: remove it
-/*function popupParam(state = {
-        //popup callbacks
-        submit: argu => argu,
-        closeDialog: argu => argu,
-
-        status: 'flex', //flex, none
-        response: [],
-        showAlert: false
-
-    }, action) {
-    switch (action.type) {
-    case popupActions.popupChangeStatus:
-        return {
-            ...state,
-            status: action.status
-        };
-    case popupActions.setPopupParam:
-        return {
-            ...state,
-            response: action.response,
-            status: action.status
-        };
-        break;
-    default:
-        return state;
-    }
-}*/
-
 //used only in operation bar
 function popupNormalParam(state = {
         //popup callbacks
@@ -108,19 +79,7 @@ function popupNormalParam(state = {
     case popupNormalActions.setPopupParams:
         return {
             ...state,
-            path: action.path,
-            dir_name: action.dir_name,
-            popupType: action.popupType,
-            submit: action.submit,
-            status: action.status,
-            dest_path: action.dest_path,
-            dir_name: action.dir_name,
-
-            alertStatus: action.alertStatus,
-            alertMsg: action.alertMsg,
-            alertType: action.alertType,
-
-            deleteTips: action.deleteTips
+            ...action
         };
         break;
     case popupNormalActions.setPopupParam:

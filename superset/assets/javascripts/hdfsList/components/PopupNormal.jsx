@@ -55,6 +55,10 @@ class Popup extends React.Component {
     checkIfSubmit() {
         var fields = $(".popup-body input[required]");
         let disabled = null;
+
+        //for no fields form,for example: remove connections
+        // if (fields.length===0) return;
+
         fields.each((idx, obj) => {
             if (obj.value === '') {
                 disabled = 'disabled';

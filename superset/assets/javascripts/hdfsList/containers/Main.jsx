@@ -38,13 +38,12 @@ class Main extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        const {condition} = nextProps;
+        const {condition, popupNormalParam} = nextProps;
 
         if (condition.filter !== this.props.condition.filter ||
                 condition.onlyFavorite !== this.props.condition.onlyFavorite ||
                 condition.tableType !== this.props.condition.tableType ||
-                condition.popupNormalParam &&
-                condition.popupNormalParam.status === 'none' && this.props.popupNormalParam.status === 'flex' ||
+                popupNormalParam && popupNormalParam.status === 'none' && this.props.popupNormalParam.status === 'flex' ||
                 condition.path !== this.props.condition.path
         ) {
             this.props.fetchIfNeeded(condition);
