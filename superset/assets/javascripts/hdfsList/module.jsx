@@ -6,12 +6,12 @@ export function getPermColumns(_this) {
         title: '',
         dataIndex: 'name',
         key: 'name',
-        width: '25%'
+        width: '20%'
     }, {
         title: '用户',
         dataIndex: 'user',
         key: 'user',
-        width: '25%',
+        width: '20%',
         className: 'checkb',
         render: (text, record) => {
             return (<input type="checkbox" onClick={() => _this.onPermChange(record, 'user')} checked={record.user} />)
@@ -20,7 +20,7 @@ export function getPermColumns(_this) {
         title: '组',
         dataIndex: 'group',
         key: 'group',
-        width: '25%',
+        width: '20%',
         className: 'checkb',
         render: (text, record) => {
             return (<input type="checkbox" onClick={() => _this.onPermChange(record, 'group')} checked={record.group} />)
@@ -29,7 +29,7 @@ export function getPermColumns(_this) {
         title: '其他',
         dataIndex: 'other',
         key: 'other',
-        width: '25%',
+        width: '20%',
         className: 'checkb',
         render: (text, record) => {
             return (<input type="checkbox" onClick={() => _this.onPermChange(record, 'other')} checked={record.other} />)
