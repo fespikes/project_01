@@ -4,6 +4,7 @@ import { bindActionCreators } from 'redux';
 import * as actions from '../actions';
 import { Pagination, Table, Operate, PopupConnections } from '../components';
 import PropTypes from 'prop-types';
+import { renderLoadingModal } from '../../../utils/utils';
 
 import '../style/hdfs.scss';
 
@@ -38,6 +39,7 @@ class Main extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
+        const { emitFetch } = this.props;
         const {condition, popupNormalParam} = nextProps;
 
         if (condition.filter !== this.props.condition.filter ||
@@ -47,6 +49,14 @@ class Main extends Component {
                 condition.path !== this.props.condition.path
         ) {
             this.props.fetchIfNeeded(condition);
+        }
+        if(emitFetch.isFetching !== nextProps.emitFetch.isFetching) {
+            const loadingModal = renderLoadingModal();
+            if(nextProps.emitFetch.isFetching) {
+                loadingModal.show();
+            }else {
+                loadingModal.hide();
+            }
         }
     }
 
