@@ -26,14 +26,26 @@ class Operate extends React.Component {
     manipulate(ag) {
         const popupType = ag.key;
         const {fetchOperation, popupNormalParam, setPopupNormalParams, setPermData, setPermMode, setHDFSPath, condition} = this.props;
-        const normalPopupParam = {
-            ...popupNormalParam,
-            popupType: popupType,
-            submit: fetchOperation,
-            status: 'flex'
-        };
+
+        let normalPopupParam = {};
+        if (condition.selectedRows.length === 0) {
+            normalPopupParam = {
+                ...popupNormalParam,
+                popupType: CONSTANT.noSelect,
+                submit: fetchOperation,
+                status: 'flex'
+            };
+        } else {
+            normalPopupParam = {
+                ...popupNormalParam,
+                popupType: popupType,
+                submit: fetchOperation,
+                status: 'flex'
+            };
+        }
+
         setPopupNormalParams(normalPopupParam);
-        if (popupType === "auth") {
+        if (popupType === CONSTANT.auth) {
             const permData = getPermData(condition.selectedRows);
             const permMode = updatePermMode(permData);
             setPermData(permData);
