@@ -4,11 +4,11 @@ import { Pagination } from 'antd';
 import PropTypes from 'prop-types';
 import { navigateTo, changePageSize} from '../actions';
 
-class SlicePagination extends React.Component {
+class HDFSPagination extends React.Component {
     constructor(props, context) {
         super(props);
-        this.state = {}
-        this.dispatch = context.dispatch
+        this.state = {};
+        this.dispatch = context.dispatch;
 
     }
 
@@ -38,8 +38,8 @@ class SlicePagination extends React.Component {
     }
 }
 
-SlicePagination.propTypes = {};
-SlicePagination.contextTypes = {
+HDFSPagination.propTypes = {};
+HDFSPagination.contextTypes = {
     dispatch: PropTypes.func.isRequired
 };
-export default SlicePagination;
+export default HDFSPagination;

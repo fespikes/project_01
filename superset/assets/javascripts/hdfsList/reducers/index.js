@@ -2,7 +2,7 @@ import { combineReducers } from 'redux';
 import { actionTypes, popupActions, popupNormalActions } from '../actions';
 
 function condition(state = {
-        page_num: 0,
+        page_num: 1,
         page_size: 10,
         //order_column,：取值：'name','online','changed_on','connection_type', 'owner';默认：'changed_on'.
         //order_direction: 取值：'desc' or 'asc', 默认：'desc'
@@ -39,6 +39,18 @@ function condition(state = {
             selectedRowNames: action.selectedRowNames
         };
         break;
+    case actionTypes.navigateTo:
+        return {
+            ...state,
+            page_num: action.pageNum
+        };
+        break;
+    case actionTypes.changePageSize:
+        return {
+            ...state,
+            page_size: action.pageSize
+        };
+        break;
     default:
         return state;
     }
@@ -67,6 +79,7 @@ function popupNormalParam(state = {
 
         permData: [],
         permMode: '',
+        recursivePerm: false,
 
         deleteTips: ''
     }, action) {
@@ -106,13 +119,19 @@ function popupNormalParam(state = {
         return {
             ...state,
             permMode: action.permMode
-        }
+        };
         break;
     case popupNormalActions.setHDFSPath:
         return {
             ...state,
             path: action.path
-        }
+        };
+        break;
+    case popupNormalActions.setRecursivePerm:
+        return {
+            ...state,
+            recursivePerm: action.recursivePerm
+        };
         break;
     default:
         return state;
@@ -134,6 +153,11 @@ function emitFetch(state = {
         return {
             ...state,
             response: action.response
+        };
+    case actionTypes.switchFetchingStatus:
+        return {
+            ...state,
+            isFetching: action.isFetching
         };
     default:
         return state;

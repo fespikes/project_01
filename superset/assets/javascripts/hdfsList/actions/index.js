@@ -5,10 +5,11 @@ import { appendTreeChildren, findTreeNode } from '../../tableList/module';
 export const actionTypes = {
     sendRequest: 'SEND_REQUEST',
     receiveData: 'RECEIVE_DATA',
-
     search: 'SEARCH',
-
-    setSelectedRows: 'SET_SELECTED_ROWS'
+    setSelectedRows: 'SET_SELECTED_ROWS',
+    switchFetchingStatus: 'SWITCH_FETCHING_STATUS',
+    navigateTo: 'NAVIGATE_TO',
+    changePageSize: 'CHANGE_PAGE_SIZE'
 };
 
 export const popupActions = {
@@ -22,7 +23,8 @@ export const popupNormalActions = {
     popupChangeStatus: 'POPUP_NORMAL_CHANGE_STATUS',
     setPermData: 'SET_PERM_DATA',
     setPermMode: 'SET_PERM_MODE',
-    setHDFSPath: 'SET_HDFS_PATH'
+    setHDFSPath: 'SET_HDFS_PATH',
+    setRecursivePerm: 'SET_RECURSIVE_PERM'
 };
 
 export const CONSTANT = {
@@ -38,11 +40,18 @@ export const CONSTANT = {
 const ORIGIN = window.location.origin;
 const baseURL = `${ORIGIN}/hdfs/`;
 
-const errorHandler = error => {
+const errorHandler = (error, callback, dispatch) => {
     console.log(error.message);
+    if(typeof callback === 'function') {
+        callback(false, error);
+    }
+    dispatch(switchFetchingStatus(false));
 };
-const succeedHandler = argus => {
-
+const succeedHandler = (response, callback, dispatch) => {
+    if(typeof callback === 'function') {
+        callback(true, response);
+    }
+    dispatch(switchFetchingStatus(false));
 };
 /**
 @description: S-mock
@@ -143,28 +152,34 @@ function fetchCopy() {
 }
 
 //no api but have the function
-function fetchAuth() {
+function fetchAuth(callback) {
     return (dispatch, getState) => {
         const state = getState();
         const popupNormalParam = state.popupNormalParam;
-        const URL = baseURL + "chmod/?path=" + popupNormalParam.path + '&mode=' + popupNormalParam.permMode;
+        const params = {
+            path: [popupNormalParam.path],
+            mode: popupNormalParam.permMode,
+            recursive: popupNormalParam.recursivePerm
+        };
+        const URL = baseURL + "chmod/";
 
         return fetch(URL, {
             credentials: 'include',
-            method: 'GET'
+            method: 'POST',
+            body: JSON.stringify(params)
         })
             .then(
                 response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
+                    response.json() : (response => errorHandler(response, callback, dispatch))(response),
+                error => errorHandler(error, callback, dispatch)
         )
             .then(json => {
-                console.log('');
+                succeedHandler(json, callback, dispatch);
             });
     }
 }
 
-function fetchUpload() {
+function fetchUpload(callback) {
     return (dispatch, getState) => {
         const popupNormalParam = getState().popupNormalParam;
         const destPath = popupNormalParam.dest_path;
@@ -179,11 +194,12 @@ function fetchUpload() {
         })
             .then(
                 response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
+                    response.json() : (response => errorHandler(response, callback, dispatch))(response),
                 error => errorHandler(error)
         )
             .then(json => {
                 console.log('TODO: get the interface');
+                succeedHandler(json, callback, dispatch);
             });
     }
 }
@@ -326,6 +342,13 @@ export function setPermMode(permMode) {
     }
 }
 
+export function setRecursivePerm(isRecursive) {
+    return {
+        type: popupNormalActions,
+        recursivePerm: isRecursive
+    }
+}
+
 export function setHDFSPath(path) {
     return {
         type: popupNormalActions.setHDFSPath,
@@ -339,6 +362,20 @@ export function setPopupParam(param) {
         type: popupActions.setPopupParam,
         status: param.status,
         response: param.response
+    }
+}
+
+export function navigateTo(pageNum) {
+    return {
+        type: actionTypes.navigateTo,
+        pageNum: pageNum
+    }
+}
+
+export function changePageSize(pageSize) {
+    return {
+        type: actionTypes.changePageSize,
+        pageSize: pageSize
     }
 }
 
@@ -510,13 +547,20 @@ export function fetchLeafData(condition, treeDataReady) {
     }
 }
 
+export function switchFetchingStatus(status) {
+    return {
+        type: actionTypes.switchFetchingStatus,
+        isFetching: status
+    }
+}
+
 const fetchCallback = (dispatch, receiveData, data, condition) => {
     dispatch(receiveData(data, condition));
 }
-function applyFetch(condition) {
+function applyFetch(condition, callback) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
-
+        dispatch(switchFetchingStatus(true));
         const URL = baseURL + `list/?` +
         (condition.path ? ('path=' + condition.path + '&') : '') +
         (condition.page_num !== undefined ? ('page_num=' + condition.page_num + '&') : '') +
@@ -538,12 +582,13 @@ function applyFetch(condition) {
         })
             .then(
                 response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
+                    response.json() : (response => errorHandler(response, callback, dispatch ))(response),
+                error => errorHandler(error, callback, dispatch )
         )
             .then(json => {
                 const data = listDataMatch(json ? json.data : {});
                 fetchCallback(dispatch, receiveData, data, condition);
+                succeedHandler(json, callback, dispatch );
             // dispatch(receiveData(condition, listDataMatch(json)));
             });
 

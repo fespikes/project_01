@@ -23,7 +23,7 @@ class DisplayOriginalTable extends React.Component {
     onSelect(value, node, extra) {
         let {sliceId, vizType} = this.props;
         const vizTypeEl = document.getElementById('viz-type-id');
-        if(vizType === '') {
+        if(vizType === '' || vizType === 'None') {
             vizType = vizTypeEl.value;
         }
         if(node.props.isLeaf) {
