@@ -90,11 +90,10 @@ class HDFSBrowser(BaseView):
     @ensure_logined
     @expose('/list/', methods=['GET'])
     def list(self):
-        # TODO page
         path = request.args.get('path')
-        page_num = request.args.get('page_num', 0)
-        path_size = request.args.get('path_size', 10)
-        response = self.client.list(path)
+        page_num = request.args.get('page_num', 1)
+        page_size = request.args.get('page_size')
+        response = self.client.list(path, page_num, page_size)
         data = json.loads(response.text)
         return json_response(data=data,
                              status=response.status_code)
@@ -115,7 +114,7 @@ class HDFSBrowser(BaseView):
         f = request.data
         dest_path = request.args.get('dest_path')
         file_name = request.args.get('file_name')
-        response = self.client.upload(dest_path, {'file': (file_name, f)})
+        response = self.client.upload(dest_path, {'files': (file_name, f)})
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
