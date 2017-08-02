@@ -652,6 +652,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             table.schema, table.table_name = full_tb_name.split('.')
         else:
             table.table_name = full_tb_name
+        table.dataset_name = table.table_name
         table.database_id = database_id
         table.database = db.session.query(Database) \
             .filter_by(id=database_id).first()

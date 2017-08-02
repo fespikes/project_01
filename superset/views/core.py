@@ -481,8 +481,7 @@ class Superset(BaseSupersetView):
                 args=request.args)
         except Exception as e:
             logging.exception(e)
-            return json_response(message=utils.error_msg_from_exception(e),
-                                 status=500)
+            return Response(utils.error_msg_from_exception(e), status=500)
 
         payload = {}
         status = 200
@@ -490,8 +489,7 @@ class Superset(BaseSupersetView):
             payload = viz_obj.get_payload()
         except Exception as e:
             logging.exception(e)
-            return json_response(message=utils.error_msg_from_exception(e),
-                                 status=500)
+            return Response(utils.error_msg_from_exception(e), status=500)
 
         if payload.get('status') == QueryStatus.FAILED:
             status = 500
@@ -543,9 +541,9 @@ class Superset(BaseSupersetView):
             return redirect(viz_obj.datasource.default_endpoint)
 
         # slc perms
-        slice_add_perm = self.can_access('can_add', 'SliceModelView')
+        slice_add_perm = True
         slice_edit_perm = check_ownership(slc, raise_if_false=False)
-        slice_download_perm = self.can_access('can_download', 'SliceModelView')
+        slice_download_perm = True
 
         # handle save or overwrite
         action = request.args.get('action')
