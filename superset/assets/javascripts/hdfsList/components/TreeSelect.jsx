@@ -54,8 +54,6 @@ class TreeSelector extends Component {
         let pathString;
         let deep = 1;
 
-        //TODO: only arr.length >1, then can move or copy
-
         for (let i = 1; i <= arr.length; i++) {
             ar.push(arr[i - 1]);
             pathString = ar.join('/');
@@ -67,22 +65,6 @@ class TreeSelector extends Component {
             }
             fetchLeafData(param, me.treeDataReady.bind(me));
         }
-
-    //related to arr here;
-    /*        const func = (arr, spiit) => {
-                let condition = {};
-                let deep = 1;
-                while (arr.length) {
-                    condition = {
-                        path: arr[arr.length - 1],
-                        deep: deep
-                    }
-                    fetchLeafData(condition, me.treeDataReady.bind(me));
-                    arr.pop();
-                    deep++;
-                }
-            };
-            func(a, arr);*/
     }
 
     treeDataReady(treeData) {

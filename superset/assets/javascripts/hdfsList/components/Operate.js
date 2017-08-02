@@ -57,15 +57,32 @@ class Operate extends React.Component {
     searchTimer=0;
 
     searchOnChange() {
-        // if (this.refs.searchField.value) {
-        //     this.refs.searchIcon.removeAttribute('disabled');
-        // } else {
-        //     this.refs.searchIcon.setAttribute('disabled', 'disabled');
-        //     this.searchTimer && clearTimeout(this.searchTimer);
-        //     this.searchTimer = setTimeout(function() {
-        //         dispatch(search(''));
-        //     }, 300);
-        // }
+        const me = this;
+        const dispatch = me.dispatch;
+        const {emitFetch, swapResponse, returnResponse} = me.props;
+        const {response, heap} = emitFetch;
+        let value = me.refs.searchField.value;
+        let data = {
+            ...heap
+        };
+
+        if (this.refs.searchField.value) {
+            this.refs.searchIcon.removeAttribute('disabled');
+            //TODO: get the data from heap
+            data.files = data.files.filter((element, index, array) => {
+                let bu = element.name.indexOf(value) >= 0;
+                return bu;
+            });
+            dispatch(swapResponse({
+                response: data
+            }));
+        } else {
+            this.refs.searchIcon.setAttribute('disabled', 'disabled');
+            dispatch(swapResponse({
+                response: heap
+            }));
+        }
+
     }
 
     upload() {
@@ -220,28 +237,13 @@ Operate.contextTypes = {
 };
 
 function mapStateToProps(state, pros) {
-    const {condition, popupNormalParam} = state;
+    const {condition, popupNormalParam, emitFetch} = state;
 
     return {
         condition,
-        popupNormalParam
+        popupNormalParam,
+        emitFetch
     };
 }
 
-const mapDispatchToProps = function(dispatch, props) {
-    const {selectType, search, fetchOperation, setPopupNormalParams, popupNormalChangeStatus, setPermData, setPermMode, setHDFSPath} = bindActionCreators(actions, dispatch);
-    return {
-        selectType,
-        search,
-        fetchOperation,
-
-        setPopupNormalParams,
-        popupNormalChangeStatus,
-        setPermData,
-        setPermMode,
-        setHDFSPath,
-        dispatch
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(Operate);
+export default connect(mapStateToProps, actions)(Operate);
