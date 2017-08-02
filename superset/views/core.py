@@ -30,7 +30,7 @@ from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
 from superset.utils import (
     get_database_access_error_msg, get_datasource_access_error_msg,
-    SupersetException
+    SupersetException, json_error_response
 )
 from superset.models import (
     Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric,
@@ -470,11 +470,9 @@ class Superset(BaseSupersetView):
     @expose("/explore_json/<datasource_type>/<datasource_id>/")
     def explore_json(self, datasource_type, datasource_id):
         """render the chart of slice"""
-        # todo modify the url with parameters: datasource_id, full_tb_name
         database_id = request.args.get('database_id')
         full_tb_name = request.args.get('full_tb_name')
         try:
-            # todo midify get_viz with parameters: database_id, full_tb_name
             viz_obj = self.get_viz(
                 datasource_type=datasource_type,
                 datasource_id=datasource_id,
@@ -483,7 +481,8 @@ class Superset(BaseSupersetView):
                 args=request.args)
         except Exception as e:
             logging.exception(e)
-            return json_error_response(utils.error_msg_from_exception(e))
+            return json_response(message=utils.error_msg_from_exception(e),
+                                 status=500)
 
         payload = {}
         status = 200
@@ -491,8 +490,8 @@ class Superset(BaseSupersetView):
             payload = viz_obj.get_payload()
         except Exception as e:
             logging.exception(e)
-            status = 500
-            return json_error_response(utils.error_msg_from_exception(e))
+            return json_response(message=utils.error_msg_from_exception(e),
+                                 status=500)
 
         if payload.get('status') == QueryStatus.FAILED:
             status = 500
@@ -1095,7 +1094,8 @@ class Superset(BaseSupersetView):
             else:
                 return json.dumps({'online': False})
         except Exception as e:
-            return json_error_response(utils.error_msg_from_exception(e))
+            return json_response(message=utils.error_msg_from_exception(e),
+                                 status=500)
 
     @catch_exception
     @expose("/dashboard/<dashboard_id>/")
