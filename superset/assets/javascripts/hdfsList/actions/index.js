@@ -8,7 +8,9 @@ export const actionTypes = {
 
     search: 'SEARCH',
 
-    setSelectedRows: 'SET_SELECTED_ROWS'
+    setSelectedRows: 'SET_SELECTED_ROWS',
+
+    switchFetchingStatus: 'SWITCH_FETCHING_STATUS'
 };
 
 export const popupActions = {
@@ -39,15 +41,18 @@ export const CONSTANT = {
 const ORIGIN = window.location.origin;
 const baseURL = `${ORIGIN}/hdfs/`;
 
-const errorHandler = error => {
+const errorHandler = (error, callback, dispatch) => {
     console.log(error.message);
-};
-const succeedHandler = (response, callback) => {
-    if(response.status === 200) {
-        callback(true, response);
-    }else {
-        callback(false, response);
+    if(typeof callback === 'function') {
+        callback(false, error);
     }
+    dispatch(switchFetchingStatus(false));
+};
+const succeedHandler = (response, callback, dispatch) => {
+    if(typeof callback === 'function') {
+        callback(true, response);
+    }
+    dispatch(switchFetchingStatus(false));
 };
 /**
 @description: S-mock
@@ -166,11 +171,11 @@ function fetchAuth(callback) {
         })
             .then(
                 response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
+                    response.json() : (response => errorHandler(response, callback, dispatch))(response),
+                error => errorHandler(error, callback, dispatch)
         )
             .then(json => {
-                succeedHandler(json, callback);
+                succeedHandler(json, callback, dispatch);
             });
     }
 }
@@ -190,12 +195,12 @@ function fetchUpload(callback) {
         })
             .then(
                 response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
+                    response.json() : (response => errorHandler(response, callback, dispatch))(response),
                 error => errorHandler(error)
         )
             .then(json => {
                 console.log('TODO: get the interface');
-                succeedHandler(json, callback);
+                succeedHandler(json, callback, dispatch);
             });
     }
 }
@@ -529,13 +534,20 @@ export function fetchLeafData(condition, treeDataReady) {
     }
 }
 
+export function switchFetchingStatus(status) {
+    return {
+        type: actionTypes.switchFetchingStatus,
+        isFetching: status
+    }
+}
+
 const fetchCallback = (dispatch, receiveData, data, condition) => {
     dispatch(receiveData(data, condition));
 }
-function applyFetch(condition) {
+function applyFetch(condition, callback) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
-
+        dispatch(switchFetchingStatus(true));
         const URL = baseURL + `list/?` +
         (condition.path ? ('path=' + condition.path + '&') : '') +
         (condition.page_num !== undefined ? ('page_num=' + condition.page_num + '&') : '') +
@@ -557,12 +569,13 @@ function applyFetch(condition) {
         })
             .then(
                 response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
+                    response.json() : (response => errorHandler(response, callback, dispatch ))(response),
+                error => errorHandler(error, callback, dispatch )
         )
             .then(json => {
                 const data = listDataMatch(json ? json.data : {});
                 fetchCallback(dispatch, receiveData, data, condition);
+                succeedHandler(json, callback, dispatch );
             // dispatch(receiveData(condition, listDataMatch(json)));
             });
 

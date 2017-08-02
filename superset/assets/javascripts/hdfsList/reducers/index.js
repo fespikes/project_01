@@ -142,6 +142,11 @@ function emitFetch(state = {
             ...state,
             response: action.response
         };
+    case actionTypes.switchFetchingStatus:
+        return {
+            ...state,
+            isFetching: action.isFetching
+        };
     default:
         return state;
     }
