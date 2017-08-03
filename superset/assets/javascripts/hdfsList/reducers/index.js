@@ -18,7 +18,16 @@ function condition(state = {
         manipulate: '',
         upload: ''
     }, action) {
+
     switch (action.type) {
+    case actionTypes.receiveData:
+        return {
+            ...state,
+            selectedRows: [],
+            selectedRowKeys: [],
+            selectedRowNames: []
+        };
+        break;
     case actionTypes.changePath:
         return {
             ...state,

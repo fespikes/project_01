@@ -1,8 +1,13 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
+
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { fetchPreview } from '../actions';
+import * as actions from '../actions';
+
+import { CONSTANT } from '../actions';
+
 import '../style/file-browser.scss';
 
 class FileBrowser extends Component {
@@ -15,10 +20,24 @@ class FileBrowser extends Component {
         this.props.fetchPreview();
     }
 
-    render() {
-        const {fileReducer} = this.props;
-        const {path, mtime, size, user, group, mode, preview} = fileReducer;
+    download(ag) {
+        this.props.fetchDownload();
+    }
 
+    refresh(ag) {
+        this.props.fetchPreview();
+    }
+
+    render() {
+        const {fileReducer, changePath, fetchDownload, //
+            condition} = this.props;
+        const {path, mtime, size, user, group, mode, preview} = fileReducer;
+        const linkToPath = (ag) => {
+            this.setState({
+                ...ag
+            });
+            changePath(ag);
+        }
         return (
             <div className="file-browse">
                 <div className="title-bar">
@@ -31,9 +50,17 @@ class FileBrowser extends Component {
                             <h3>操作</h3>
                             <ul className="module-list">
                                 { /*<li><span>以文本格式查看</span><i className="icon icon-text-hover"></i></li>*/ }
-                                <li><span>下载</span><i className="icon icon-download-hover"></i></li>
+                                <li onClick={(_ => this.download(_))} >
+                                    <span>下载</span>
+                                    <a>
+                                        <i className="icon icon-download-hover"></i>
+                                    </a>
+                                </li>
                                 { /*<li><span>查看文件位置</span><i className="icon icon-file-hover"></i></li>*/ }
-                                <li><span>刷新</span><i className="icon icon-refresh-hover"></i></li>
+                                <li onClick={(_ => this.refresh(_))} >
+                                    <span>刷新</span>
+                                    <i className="icon icon-refresh-hover"></i>
+                                </li>
                             </ul>
                         </div>
                         <div className="item-left-module infor">
@@ -47,13 +74,21 @@ class FileBrowser extends Component {
                             </ul>
                         </div>
                     </div>
+
                     <div className="item-right">
-                        <span className="f16">路径:</span>
-                        <textarea rows="1"
+                        <div className="bread-crumb sec-class"
+            style={{ }}
+            >
+                            <span className="f16">
+                                <Link to="/">《返回</Link>
+                            </span>
+                            <textarea rows="1"
+            className={'f16 path'}
+            name="pathName"
             value={path}
-            onChange={argu => argu}
-            disabled='disabled'>
-                        </textarea>
+            >
+                            </textarea>
+                        </div>
 
                         <div className="tableWrapper">
                         {preview}
@@ -68,18 +103,24 @@ class FileBrowser extends Component {
 FileBrowser.propTypes = {};
 
 function mapStateToProps(state) {
-    const {fileReducer} = state;
+    const {fileReducer, condition} = state;
 
     return {
-        fileReducer
+        fileReducer,
+        condition
     };
 }
 
 function mapDispatchToProps(dispatch) {
-    const action = argus => dispatch(fetchPreview(argus));
+
+    const {fetchPreview, changePath, fetchDownload} = bindActionCreators(actions, dispatch);
+
     return {
-        fetchPreview: action
+        fetchPreview,
+        changePath,
+        fetchDownload
     };
+
 }
 
 export default connect(

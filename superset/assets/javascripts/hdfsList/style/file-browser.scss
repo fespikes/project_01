@@ -1,3 +1,5 @@
+@import 'hdfs.scss';
+
 *{margin:0;padding:0;border:0;}
 ul,li{
     list-style: none;
@@ -6,6 +8,11 @@ ul,li{
 
 .file-browse{
     background-color:#edf0f5;
+
+    .icon{
+        width:24px; height:24px;
+        margin-bottom:-5px;
+    }
 }
 .icon-browser-ps{
     margin: 3px 10px 0 20px;
@@ -48,6 +55,8 @@ ul,li{
     border-radius:5px;
     border:1px #ddd solid;
     overflow:hidden;
+
+
 }
 .file-browse .item-left-module{
     width:362px;
@@ -69,6 +78,9 @@ ul,li{
     color:#1d2531;
     padding:0 10px;
 }
+.infor{
+    margin-top:20px;
+}
 .infor li span{
     color:#7c8ca5;
     display: flex;
@@ -84,7 +96,7 @@ ul,li{
 }
 
 .tableWrapper{
-    padding-top:20px;
+    padding:20px 10px;
 }
 
 .edit-slice-ps{
@@ -123,3 +135,21 @@ ul,li{
     }
 }
 /* upload file css style end */
+
+.bread-crumb.sec-class{
+
+    padding: 10px;
+    height: 30px;
+
+    textarea{
+        height:30px; overflow-y:hidden;
+        width:420px;
+    }
+
+    .path{
+        height: 30px;
+        overflow-y: hidden;
+        width: 400px;
+    }
+
+}

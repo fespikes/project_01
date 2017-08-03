@@ -11,11 +11,8 @@ class InnerTable extends React.Component {
         super(props);
         this.dispatch = context.dispatch;
 
-        this.state = {
-            selectedRowKeys: []
-        }
-
         this.onSelectChange = this.onSelectChange.bind(this);
+        this.clearTableState = this.clearTableState.bind(this);
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
@@ -28,15 +25,10 @@ class InnerTable extends React.Component {
                 selectedRowKeys: [],
                 selectedRowNames: []
             });
-            this.setState({
-                selectedRowKeys: []
-            })
             return;
         }
         let selectedRowNames = [];
-        this.setState({
-            selectedRowKeys: selectedRowKeys
-        });
+
         selectedRows.forEach(function(row) {
             selectedRowNames.push('"' + row.name + '"');
         });
@@ -44,8 +36,14 @@ class InnerTable extends React.Component {
         this.props.setSelectedRows(selectedRows, selectedRowKeys, selectedRowNames);
     };
 
+    clearTableState() {
+        this.setState({
+            selectedRowKeys: []
+        })
+    }
+
     render() {
-        const {selectedRowKeys} = this.state;
+        const {selectedRowKeys} = this.props.condition;
         const {files, giveDetail, linkToPath} = this.props;
         const dispatch = this.dispatch;
 
@@ -54,9 +52,10 @@ class InnerTable extends React.Component {
             onChange: this.onSelectChange
         };
         const flushDetail = (record) => {
-            const {mtime, size, stats, path} = record;
+            const {mtime, size, stats, path, name} = record;
             const {user, group, mode} = stats;
             giveDetail({
+                name,
                 path,
                 mtime, //last time modify
                 size,
