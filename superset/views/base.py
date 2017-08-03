@@ -22,6 +22,7 @@ from superset import app, appbuilder, db, models, sm, utils
 from superset.source_registry import SourceRegistry
 from superset.models import Dataset, Database, Dashboard, Slice, FavStar
 from superset.message import *
+from superset.utils import SupersetException
 
 
 config = app.config
@@ -101,10 +102,11 @@ def check_ownership(obj, raise_if_false=True):
 
 
 def get_user_id():
-    try:
-        return int(g.user.get_id())
-    except Exception as e:
-        raise Exception(NO_USER)
+    id = g.user.get_id()
+    if id:
+        return int(id)
+    else:
+        raise SupersetException(NO_USER)
 
 
 def json_response(message='', status=200, data='', code=0):

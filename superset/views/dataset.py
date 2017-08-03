@@ -425,9 +425,10 @@ class HDFSTableModelView(SupersetModelView):
     @expose('/files/', methods=['GET'])
     def list_hdfs_files(self):
         path = request.args.get('path', '/')
+        page_size = request.args.get('page_size', 1000)
         hdfs_connection_id = request.args.get('hdfs_connection_id')
-        client = self.login_hdfs_micro_service(hdfs_connection_id)
-        response = client.list(path)
+        client = self.login_file_robot(hdfs_connection_id)
+        response = client.list(path, page_size=page_size)
         return Response(response.text)
 
     @catch_exception
@@ -455,13 +456,12 @@ class HDFSTableModelView(SupersetModelView):
         dest_path = request.args.get('dest_path')
         file_name = request.args.get('file_name')
         hdfs_connection_id = request.args.get('hdfs_connection_id')
-        client = self.login_hdfs_micro_service(hdfs_connection_id)
-
-        response = client.upload(dest_path, {'file': (file_name, f)})
+        client = self.login_file_robot(hdfs_connection_id)
+        response = client.upload(dest_path, {'files': (file_name, f)})
         return Response(response.text)
 
     @classmethod
-    def login_hdfs_micro_service(cls, hdfs_conn_id=None):
+    def login_file_robot(cls, hdfs_conn_id=None):
         def get_httpfs(hdfs_conn_id=None):
             if hdfs_conn_id:
                 conn = db.session.query(HDFSConnection) \
@@ -469,17 +469,18 @@ class HDFSTableModelView(SupersetModelView):
             else:
                 conn = db.session.query(HDFSConnection) \
                     .order_by(HDFSConnection.id).first()
+            if not conn:
+                raise SupersetException(NO_HDFS_CONNECTION)
             return conn.httpfs
 
         httpfs = get_httpfs(hdfs_conn_id)
-        server = app.config.get('HDFS_MICROSERVICES_SERVER')
+        server = app.config.get('FILE_ROBOT_SERVER')
         username = g.user.username
         password = AuthDBView.mock_user.get(username)
         if not server:
-            raise SupersetException('Cannot get HDFS_MICROSERVICES_SERVER from config.')
+            raise SupersetException(NO_FILEROBOT_SERVER)
         if not password:
-            raise SupersetException('Need password to access hdfs_micro_service, '
-                                    'try logout and then login.')
+            raise SupersetException(NEED_PASSWORD_FOR_FILEROBOT)
 
         conf = FileRobotConfiguartion()
         conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
@@ -489,7 +490,7 @@ class HDFSTableModelView(SupersetModelView):
 
     @classmethod
     def download_hdfs_file(cls, path, hdfs_conn_id=None):
-        client = cls.login_hdfs_micro_service(hdfs_conn_id)
+        client = cls.login_file_robot(hdfs_conn_id)
         response = client.preview(path)
         if response.status_code != requests.codes.ok:
             response.raise_for_status()
