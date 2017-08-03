@@ -44,13 +44,13 @@ const baseURL = `${ORIGIN}/hdfs/`;
 
 const errorHandler = (error, callback, dispatch) => {
     console.log(error.message);
-    if(typeof callback === 'function') {
+    if (typeof callback === 'function') {
         callback(false, error);
     }
     dispatch(switchFetchingStatus(false));
 };
 const succeedHandler = (response, callback, dispatch) => {
-    if(typeof callback === 'function') {
+    if (typeof callback === 'function') {
         callback(true, response);
     }
     dispatch(switchFetchingStatus(false));
@@ -464,6 +464,14 @@ function receiveLeafData(json) {
     };
 }
 
+popupNormalActions.swapResponse = 'SWAP_RESPONSE';
+export function swapResponse(json) {
+    return {
+        type: popupNormalActions.swapResponse,
+        response: json.response
+    };
+}
+
 export function fetchLeafData(condition, treeDataReady) {
     //TODO: adjust the data and dispatch receiveLeafData
     return (dispatch, getState) => {
@@ -589,13 +597,13 @@ function applyFetch(condition, callback) {
         })
             .then(
                 response => response.ok ?
-                    response.json() : (response => errorHandler(response, callback, dispatch ))(response),
-                error => errorHandler(error, callback, dispatch )
+                    response.json() : (response => errorHandler(response, callback, dispatch))(response),
+                error => errorHandler(error, callback, dispatch)
         )
             .then(json => {
                 const data = listDataMatch(json ? json.data : {});
                 fetchCallback(dispatch, receiveData, data, condition);
-                succeedHandler(json, callback, dispatch );
+                succeedHandler(json, callback, dispatch);
             // dispatch(receiveData(condition, listDataMatch(json)));
             });
 

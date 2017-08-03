@@ -417,15 +417,6 @@ const mapStateToProps = function(state, props) {
     }
 }
 
-/*const mapDispatchToProps = function(dispatch, props) {
-    return bindActionCreators({
-        setPopupNormalParams,
-        setPopupNormalParam,
-        popupNormalChangeStatus,
-        fetchLeafData
-    }, dispatch);
-}*/
-
 Popup.propTypes = {};
 Popup.defaultProps = {};
 

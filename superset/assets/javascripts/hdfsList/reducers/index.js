@@ -89,6 +89,7 @@ function popupNormalParam(state = {
             ...state,
             status: action.status
         };
+        break;
     case popupNormalActions.setPopupParams:
         return {
             ...state,
@@ -148,6 +149,7 @@ function emitFetch(state = {
         isFetching: false,
         didInvalidate: false,
         response: [],
+        heap: []
     }, action) {
     switch (action.type) {
     case actionTypes.invalidateCondition:
@@ -155,18 +157,29 @@ function emitFetch(state = {
             ...state,
             didInvalidate: true
         };
+        break;
     case actionTypes.receiveData:
         return {
             ...state,
-            response: action.response
+            response: action.response,
+            heap: action.response
         };
+        break;
     case actionTypes.switchFetchingStatus:
         return {
             ...state,
             isFetching: action.isFetching
         };
+        break;
+    case popupNormalActions.swapResponse:
+        return {
+            ...state,
+            response: action.response
+        }
+        break;
     default:
         return state;
+        break
     }
 }
 
