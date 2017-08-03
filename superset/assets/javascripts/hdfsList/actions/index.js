@@ -1,6 +1,7 @@
 import fetch from 'isomorphic-fetch';
 
-import { appendTreeChildren, findTreeNode } from '../../tableList/module';
+import { constructFileBrowserData, appendTreeChildren, findTreeNode } from '../../tableList/module';
+import { getSelectedPath } from '../module';
 
 export const actionTypes = {
     sendRequest: 'SEND_REQUEST',
@@ -24,7 +25,8 @@ export const popupNormalActions = {
     setPermData: 'SET_PERM_DATA',
     setPermMode: 'SET_PERM_MODE',
     setHDFSPath: 'SET_HDFS_PATH',
-    setRecursivePerm: 'SET_RECURSIVE_PERM'
+    setRecursivePerm: 'SET_RECURSIVE_PERM',
+    setTreeData: 'SET_TREE_DATA',
 };
 
 export const CONSTANT = {
@@ -100,54 +102,59 @@ export function fetchOperation(param) {
     }
 }
 
-//doing
-function fetchMove(param) {
+function fetchMove(callback) {
     return (dispatch, getState) => {
         const popupNormalParam = getState().popupNormalParam;
-        const path = popupNormalParam.path;
+        const condition = getState().condition;
+        const path = getSelectedPath(condition.selectedRows);
         const dest_path = popupNormalParam.dest_path;
-
-        const URL = baseURL + `move/?` +
-        (path ? ('path=' + path + '&') : '') +
-        (dest_path ? 'dest_path=' + dest_path : '');
-
+        const params = {
+            path: path,
+            dest_path: dest_path
+        };
+        const URL = baseURL + 'move/';
+        dispatch(switchFetchingStatus(true));
         return fetch(URL, {
             credentials: 'include',
-            method: 'GET'
+            method: 'POST',
+            body: JSON.stringify(params)
         })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
+        .then(
+            response => response.ok ?
+                response.json() : (response => errorHandler(response, callback, dispatch))(response),
+            error => errorHandler(error, callback, dispatch)
         )
-            .then(json => {
-                console.log();
-            });
+        .then(json => {
+            succeedHandler(json, callback, dispatch);
+        });
     }
 }
-//TODO
-function fetchCopy() {
+
+function fetchCopy(callback) {
     return (dispatch, getState) => {
         const popupNormalParam = getState().popupNormalParam;
-        const path = popupNormalParam.path;
+        const condition = getState().condition;
+        const path = getSelectedPath(condition.selectedRows);
         const dest_path = popupNormalParam.dest_path;
-
-        const URL = baseURL + `copy/?` +
-        (path ? ('path=' + path + '&') : '') +
-        (dest_path ? 'dest_path=' + dest_path : '');
-
+        const params = {
+            path: path,
+            dest_path: dest_path
+        };
+        const URL = baseURL + 'copy/';
+        dispatch(switchFetchingStatus(true));
         return fetch(URL, {
             credentials: 'include',
-            method: 'GET'
+            method: 'POST',
+            body: JSON.stringify(params)
         })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
+        .then(
+        response => response.ok ?
+            response.json() : (response => errorHandler(response, callback, dispatch))(response),
+            error => errorHandler(error, callback, dispatch)
         )
-            .then(json => {
-                console.log('TODO: get the interface');
-            });
+        .then(json => {
+            succeedHandler(json, callback, dispatch);
+        });
     }
 }
 
@@ -655,5 +662,43 @@ export function fetchPreview() {
             .then(preview => {
                 dispatch(setPreview(preview));
             });
+    }
+}
+
+export function fetchHDFSList(path, isFirst) {
+    return (dispatch, getState) => {
+        dispatch(switchFetchingStatus(true));
+        const url = baseURL + 'list/?path=' + path + '&page_num=1&page_size=1000';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        })
+        .then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        dispatch(switchFetchingStatus(false));
+                        if(isFirst) {
+                            dispatch(setTreeData(constructFileBrowserData(response.data)));
+                        }else {
+                            dispatch(setTreeData(appendTreeChildren(
+                                path,
+                                response.data,
+                                JSON.parse(JSON.stringify(getState().popupNormalParam.treeData))
+                            )));
+                        }
+                    });
+                }else {
+                    dispatch(switchFetchingStatus(false));
+                }
+            }
+        );
+    }
+}
+
+export function setTreeData(treeData) {
+    return {
+        type: popupNormalActions.setTreeData,
+        treeData: treeData
     }
 }

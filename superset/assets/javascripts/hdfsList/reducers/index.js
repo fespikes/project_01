@@ -133,6 +133,12 @@ function popupNormalParam(state = {
             recursivePerm: action.recursivePerm
         };
         break;
+    case popupNormalActions.setTreeData:
+        return {
+            ...state,
+            treeData: action.treeData
+        };
+        break;
     default:
         return state;
     }

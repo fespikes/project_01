@@ -32,7 +32,6 @@ class Popup extends React.Component {
 
     componentDidUpdate() {
         this.checkIfSubmit();
-
     }
 
     closeDialog() {
@@ -57,9 +56,6 @@ class Popup extends React.Component {
     checkIfSubmit() {
         var fields = $(".popup-body input[required]");
         let disabled = null;
-
-        //for no fields form,for example: remove connections
-        // if (fields.length===0) return;
 
         fields.each((idx, obj) => {
             if (obj.value === '') {
@@ -144,20 +140,13 @@ class Popup extends React.Component {
     render() {
         const me = this;
 
-        //'inceptor', //uploadFile HDFS inceptor
-        const {closeDialog, condition, popupNormalParam, //
-            setPopupNormalParams, popupNormalChangeStatus, //
-            fetchLeafData} = this.props;
+        const {condition, popupNormalParam, setPopupNormalParams,
+            fetchHDFSList, setPopupNormalParam} = this.props;
 
-        const {popupType, disabled, treeData, //
-            status, alertStatus, alertMsg, //
-            alertType, permData, deleteTips, //
-
+        const {popupType, disabled, treeData,
+            status, alertStatus, alertMsg,
+            alertType, permData, deleteTips,
             path, dir_name, dest_path} = popupNormalParam;
-
-        const setPopupState = (obj) => {
-            me.closeDialog();
-        };
 
         let btnTitle = "提交";
         if (popupType === CONSTANT.noSelect) {
@@ -213,31 +202,23 @@ class Popup extends React.Component {
                             <div id="tree-select-box"></div>
                             <label className="data-detail-item">
                                 <span>移动至：</span>
-                                <div
-                    style={{
-                        width: '420px'
-                    }}
-                    className="tree-here">
+                                <div>
                                     <TreeSelect
-                    treeData={treeData}
-                    fetchLeafData={fetchLeafData}
-                    setPopupNormalParams={setPopupNormalParams}
-                    checkIfSubmit={this.checkIfSubmit}
-
-                    popupNormalParam={popupNormalParam}
-                    condition={condition} />
+                                        treeData={treeData}
+                                        fetchHDFSList={fetchHDFSList}
+                                        setPopupNormalParam={setPopupNormalParam}
+                                    />
                                 </div>
                             </label>
                             <label className="data-detail-item">
-                                    <span></span>
-                                    <input
-                    type="text"
-                    disabled="disabled"
-                    required="required"
-                    value={dest_path}
-                    onChange={this.onInputChange}
-                    />
-                                </label>
+                                <span></span>
+                                <input
+                                    type="text"
+                                    disabled="disabled"
+                                    required="required"
+                                    value={dest_path}
+                                />
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -251,22 +232,25 @@ class Popup extends React.Component {
                     >
                     <div className="add-connection">
                         <div className='data-detail-border'>
-                            <div id="tree-select-box"></div>
+                            <div id="hdfs-tree-select" className="hdfs-tree-select"></div>
                             <label className="data-detail-item">
-                                <span> </span>
-                                <div
-                    style={{
-                        width: '420px'
-                    }}
-                    className="tree-here">
+                                <span>复制至：</span>
+                                <div>
                                     <TreeSelect
-                    treeData={treeData}
-                    fetchLeafData={fetchLeafData}
-                    setPopupNormalParams={setPopupNormalParams}
-
-                    popupNormalParam={popupNormalParam}
-                    condition={condition} />
+                                        treeData={treeData}
+                                        fetchHDFSList={fetchHDFSList}
+                                        setPopupNormalParam={setPopupNormalParam}
+                                    />
                                 </div>
+                            </label>
+                            <label className="data-detail-item">
+                                <span></span>
+                                <input
+                                    type="text"
+                                    disabled="disabled"
+                                    required="required"
+                                    value={dest_path}
+                                />
                             </label>
                         </div>
                     </div>

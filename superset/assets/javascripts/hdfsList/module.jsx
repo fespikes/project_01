@@ -144,3 +144,11 @@ function computePermNum(rolesArray) {
     });
     return characterArray.join('');
 }
+
+export function getSelectedPath(selectedRows) {
+    let rowPath = [];
+    selectedRows.map((row) => {
+        rowPath.push(row.path);
+    });
+    return rowPath;
+}

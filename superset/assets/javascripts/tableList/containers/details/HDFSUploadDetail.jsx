@@ -211,8 +211,6 @@ class HDFSUploadDetail extends Component {
         const { fetchHDFSFileBrowser } = me.props;
         fetchHDFSFileBrowser(path, fileCallback);
         function fileCallback(success, fileBrowserData) {
-            console.log('success=', success);
-            console.log('fileBrowserData=', fileBrowserData);
             if(success) {
                 const browserData = constructFileBrowserData(fileBrowserData);
                 console.log('browserData=', browserData);
