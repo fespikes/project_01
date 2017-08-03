@@ -45,7 +45,6 @@ export const CONSTANT = {
 };
 
 const errorHandler = (error, callback, dispatch) => {
-    console.log(error.message);
     if (typeof callback === 'function') {
         callback(false, error);
     }
@@ -332,12 +331,9 @@ export function fetchDownload() {
         const fileReducer = getState().fileReducer;
         const path = fileReducer.path;
         const name = fileReducer.name;
-        // let idx = path.lastIndexOf('.');
-        // const subfix = path.slice(idx);
-
         const URL = baseURL + `download/?` +
         (path ? ('path=' + path + '&') : '');
-
+        dispatch(switchFetchingStatus(true));
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
@@ -359,6 +355,8 @@ export function fetchDownload() {
                 aLink.download = name;
                 aLink.click();
                 window.URL.revokeObjectURL(url);
+
+                dispatch(switchFetchingStatus(false));
             });
     }
 }
@@ -692,8 +690,7 @@ export function fetchPreview() {
         const state = getState();
 
         const URL = baseURL + `preview/?path=${state.fileReducer.path}`;
-        // /hdfs/preview/?path=/tmp/test_upload.txt
-
+        dispatch(switchFetchingStatus(true));
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
@@ -705,6 +702,7 @@ export function fetchPreview() {
         )
             .then(json => {
                 dispatch(setPreview(json.data));
+                dispatch(switchFetchingStatus(false));
             });
     }
 }
