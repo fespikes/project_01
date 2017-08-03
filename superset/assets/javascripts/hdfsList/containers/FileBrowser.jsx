@@ -5,9 +5,8 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import * as actions from '../actions';
-
 import { CONSTANT } from '../actions';
-
+import { renderLoadingModal } from '../../../utils/utils';
 import '../style/file-browser.scss';
 
 class FileBrowser extends Component {
@@ -18,6 +17,19 @@ class FileBrowser extends Component {
 
     componentDidMount() {
         this.props.fetchPreview();
+    }
+
+    componentWillReceiveProps(nextProps) {
+        const {emitFetch} = nextProps;
+
+        if (emitFetch.isFetching !== this.props.emitFetch.isFetching) {
+            const loadingModal = renderLoadingModal();
+            if (emitFetch.isFetching) {
+                loadingModal.show();
+            } else {
+                loadingModal.hide();
+            }
+        }
     }
 
     download(ag) {
@@ -103,11 +115,12 @@ class FileBrowser extends Component {
 FileBrowser.propTypes = {};
 
 function mapStateToProps(state) {
-    const {fileReducer, condition} = state;
+    const {fileReducer, condition, emitFetch} = state;
 
     return {
         fileReducer,
-        condition
+        condition,
+        emitFetch
     };
 }
 
