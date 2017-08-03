@@ -18,6 +18,7 @@ from fileRobot_common.conf.FileRobotVars import FileRobotVars
 from fileRobot_common.exception.FileRobotException import FileRobotException
 
 from superset import app, db, appbuilder
+from superset.message import *
 from superset.utils import SupersetException
 from superset.models import HDFSConnection
 from .base import catch_exception, json_response
@@ -34,7 +35,9 @@ def catch_hdfs_exception(f):
         try:
             return f(self, *args, **kwargs)
         except FileRobotException as fe:
-            return json_response(status=fe.status, code=fe.returnCode, message=fe.message)
+            return json_response(status=fe.status,
+                                 code=fe.returnCode,
+                                 message=fe.message)
         except SupersetException as se:
             logging.exception(se)
             return json_response(status=500, message=str(se))
@@ -58,7 +61,6 @@ def ensure_logined(f):
 
 class HDFSBrowser(BaseView):
     route_base = '/hdfs'
-    retry_times = 3  # re_login times
 
     def __init__(self):
         super(HDFSBrowser, self).__init__()
@@ -77,14 +79,14 @@ class HDFSBrowser(BaseView):
         self.hdfs_conn_id = int(id) if id else self.hdfs_conn_id
         args = self.get_login_args(self.hdfs_conn_id)
         self.client, response = self.do_login(**args)
-        return json_response(message="Login hdfs_micro_service success",
+        return json_response(message=LOGIN_FILEROBOT_SUCCESS,
                              status=response.status_code)
 
     @catch_hdfs_exception
     @expose('/logout/', methods=['GET'])
     def logout(self):
         self.client.logout()
-        return json_response(message="Logout hdfs_micro_service success")
+        return json_response(message=LOGOUT_FILEROBOT_SUCCESS)
 
     @catch_hdfs_exception
     @ensure_logined
@@ -162,16 +164,6 @@ class HDFSBrowser(BaseView):
 
     @catch_hdfs_exception
     @ensure_logined
-    @expose('/rmdir/', methods=['POST'])
-    def rmdir(self):
-        args = self.get_request_data()
-        paths = ';'.join(args.get('path'))
-        response = self.client.rmdir(paths)
-        return json_response(message=eval(response.text).get("message"),
-                             status=response.status_code)
-
-    @catch_hdfs_exception
-    @ensure_logined
     @expose('/preview/', methods=['GET'])
     def preview(self):
         path = request.args.get('path')
@@ -197,11 +189,10 @@ class HDFSBrowser(BaseView):
 
     def re_login(self):
         args = self.get_login_args(self.hdfs_conn_id)
-        for index in range(self.retry_times):
-            self.client, response = self.do_login(**args)
-            if response.status_code == requests.codes.ok:
-                return True
-        raise SupersetException('Login hdfs micro service failed.')
+        self.client, response = self.do_login(**args)
+        if response.status_code == requests.codes.ok:
+            return True
+        raise SupersetException(LOGIN_FILEROBOT_FAILED)
 
     @staticmethod
     def get_login_args(hdfs_conn_id=None):
@@ -212,10 +203,12 @@ class HDFSBrowser(BaseView):
             else:
                 conn = db.session.query(HDFSConnection) \
                     .order_by(HDFSConnection.id).first()
+            if not conn:
+                raise SupersetException(NO_HDFS_CONNECTION)
             return conn.httpfs
 
         httpfs = get_httpfs(hdfs_conn_id)
-        server = app.config.get('HDFS_MICROSERVICES_SERVER')
+        server = app.config.get('FILE_ROBOT_SERVER')
         username = g.user.username
         password = AuthDBView.mock_user.get(username)
         return {'server': server,
@@ -226,15 +219,15 @@ class HDFSBrowser(BaseView):
     @classmethod
     def do_login(cls, server='', username='', password='', httpfs=''):
         if not server:
-            raise SupersetException('Cannot get HDFS_MICROSERVICES_SERVER from config.')
+            raise SupersetException(NO_FILEROBOT_SERVER)
         if not password:
-            raise SupersetException('Need password to access hdfs_micro_service, '
-                                    'try logout and then login.')
+            raise SupersetException(NEED_PASSWORD_FOR_FILEROBOT)
         conf = FileRobotConfiguartion()
         conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
         client = fileRobotClientFactory.getInstance(conf)
         response = client.login(username, password, httpfs)
         return client, response
+
 
 appbuilder.add_view_no_menu(HDFSBrowser)
 appbuilder.add_link(

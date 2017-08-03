@@ -18,7 +18,7 @@ OBJECT_IS_OFFLINE = __("This object is already offline")
 ERROR_URL = __("Error request url")
 ERROR_REQUEST_PARAM = __("Error request parameter")
 ERROR_CLASS_TYPE = __("Error model type")
-NO_USER = __("Can't get user")
+NO_USER = __("Can't get user, session may be timeout, try login again")
 NO_ONLINE_PERMISSION = __("No permission for 'online' and 'offline'")
 
 ADD_SUCCESS = __("Added success")
@@ -30,3 +30,10 @@ DELETE_FAILED = __("Deleted failed")
 
 ERROR_DATASET_TYPE = "Error dataset type"
 ERROR_CONNECTION_TYPE = "Error connection type"
+
+NO_HDFS_CONNECTION = "No hdfs connections, you can add a default hdfs connection"
+NO_FILEROBOT_SERVER = "Cannot get FILE_ROBOT_SERVER from config"
+NEED_PASSWORD_FOR_FILEROBOT = "Need password to access FileRobot, try login again"
+LOGIN_FILEROBOT_SUCCESS = "Login FileRobot success"
+LOGIN_FILEROBOT_FAILED = "Login FileRobot failed"
+LOGOUT_FILEROBOT_SUCCESS = "Logout FileRobot success"
