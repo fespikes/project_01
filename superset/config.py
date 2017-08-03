@@ -270,8 +270,8 @@ ROBOT_PERMISSION_ROLES = ['Public', 'Gamma', 'Alpha', 'Admin', 'sql_lab']
 # keytab defaull temp folder
 KETTAB_TMP_DIR = '/tmp/keytab/'
 
-# The config for hdfs_file microservices
-HDFS_MICROSERVICES_SERVER = 'localhost:8087'
+# The config for file robot microservice
+FILE_ROBOT_SERVER = 'localhost:5000'
 
 
 CONFIG_PATH_ENV_VAR = 'PILOT_CONFIG_PATH'
