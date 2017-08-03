@@ -97,7 +97,6 @@ class SliceOperate extends React.Component {
     render() {
         const Option = Select.Option;
         let datasetTypes = JSON.parse(JSON.stringify(this.state.datasetTypes));
-        datasetTypes.splice(datasetTypes.length-1, 1);
         datasetTypes.splice(0, 0, 'all');
         const filterOptions = datasetTypes.map(dataset => {
             return <Option key={dataset} value={dataset}>{dataset}</Option>
