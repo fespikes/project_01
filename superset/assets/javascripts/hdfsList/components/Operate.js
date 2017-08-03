@@ -25,7 +25,17 @@ class Operate extends React.Component {
 
     manipulate(ag) {
         const popupType = ag.key;
-        const {fetchOperation, popupNormalParam, setPopupNormalParams, setPermData, setPermMode, setHDFSPath, condition} = this.props;
+        const {
+            fetchOperation,
+            popupNormalParam,
+            setPopupNormalParams,
+            setPermData,
+            setPermMode,
+            setHDFSPath,
+            fetchHDFSList,
+            condition,
+
+        } = this.props;
 
         let normalPopupParam = {};
         if (condition.selectedRows.length === 0) {
@@ -35,6 +45,7 @@ class Operate extends React.Component {
                 submit: fetchOperation,
                 status: 'flex'
             };
+            setPopupNormalParams(normalPopupParam);
         } else {
             normalPopupParam = {
                 ...popupNormalParam,
@@ -42,15 +53,16 @@ class Operate extends React.Component {
                 submit: fetchOperation,
                 status: 'flex'
             };
-        }
-
-        setPopupNormalParams(normalPopupParam);
-        if (popupType === CONSTANT.auth) {
-            const permData = getPermData(condition.selectedRows);
-            const permMode = updatePermMode(permData);
-            setPermData(permData);
-            setPermMode(permMode);
-            setHDFSPath(condition.selectedRows[0].path);
+            setPopupNormalParams(normalPopupParam);
+            if (popupType === CONSTANT.auth) {
+                const permData = getPermData(condition.selectedRows);
+                const permMode = updatePermMode(permData);
+                setPermData(permData);
+                setPermMode(permMode);
+                setHDFSPath(condition.selectedRows[0].path);
+            }else if(popupType === CONSTANT.copy || popupType === CONSTANT.move) {
+                fetchHDFSList('/', true);
+            }
         }
     }
 

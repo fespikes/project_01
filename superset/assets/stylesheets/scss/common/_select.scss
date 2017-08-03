@@ -52,7 +52,7 @@ div.ant-select-dropdown {
     }
 }
 
-.dataset-detail {
+.dataset-detail, .hdfs-tree-select {
     div.ant-select-dropdown ul.ant-select-tree > li > span.ant-select-tree-node-content-wrapper {
         &:hover {
             background-color: #337ab7;
