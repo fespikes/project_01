@@ -27,6 +27,9 @@ export const popupNormalActions = {
     setRecursivePerm: 'SET_RECURSIVE_PERM'
 };
 
+const ORIGIN = window.location.origin;
+const baseURL = `${ORIGIN}/hdfs/`;
+
 export const CONSTANT = {
     mkdir: 'mkdir',
     move: 'move',
@@ -34,11 +37,10 @@ export const CONSTANT = {
     auth: 'auth',
     upload: 'upload',
     remove: 'remove',
-    noSelect: 'noSelect'
-};
+    noSelect: 'noSelect',
 
-const ORIGIN = window.location.origin;
-const baseURL = `${ORIGIN}/hdfs/`;
+    baseURL: baseURL
+};
 
 const errorHandler = (error, callback, dispatch) => {
     console.log(error.message);
@@ -265,8 +267,7 @@ function fetchRemove() {
             path.push(currentValue.path);
         });
 
-        // const URL = baseURL + `remove/`;
-        const URL = baseURL + `rmdir/`;
+        const URL = baseURL + `remove/`;
 
         return fetch(URL, {
             credentials: 'include',
@@ -315,6 +316,42 @@ function fetchRemove() {
                         alertStatus: 'none'
                     }));
                 }, 2000);
+            });
+    }
+}
+
+export function fetchDownload() {
+    return (dispatch, getState) => {
+        const fileReducer = getState().fileReducer;
+        const path = fileReducer.path;
+        const name = fileReducer.name;
+        // let idx = path.lastIndexOf('.');
+        // const subfix = path.slice(idx);
+
+        const URL = baseURL + `download/?` +
+        (path ? ('path=' + path + '&') : '');
+
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'GET'
+        })
+            .then(
+                response => response.ok ?
+                    response.json() : (response => errorHandler(response))(response),
+                error => errorHandler(error)
+        )
+            .then(json => {
+                let aLink = document.createElement('a');
+                const data = json.data;
+                let blob = new Blob([data], {
+                    type: 'plain/text',
+                    endings: 'native'
+                });
+                let url = window.URL.createObjectURL(blob);
+                aLink.href = url;
+                aLink.download = name;
+                aLink.click();
+                window.URL.revokeObjectURL(url);
             });
     }
 }
@@ -436,6 +473,7 @@ function receiveData(json, condition) {
         type: actionTypes.receiveData,
         condition,
         response: json,
+
         receivedAt: Date.now()
     };
 }
@@ -562,10 +600,8 @@ export function switchFetchingStatus(status) {
     }
 }
 
-const fetchCallback = (dispatch, receiveData, data, condition) => {
-    dispatch(receiveData(data, condition));
-}
 function applyFetch(condition, callback) {
+    console.log('fetching data.')
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
         dispatch(switchFetchingStatus(true));
@@ -595,7 +631,7 @@ function applyFetch(condition, callback) {
         )
             .then(json => {
                 const data = listDataMatch(json ? json.data : {});
-                fetchCallback(dispatch, receiveData, data, condition);
+                dispatch(receiveData(data, condition));
                 succeedHandler(json, callback, dispatch);
             // dispatch(receiveData(condition, listDataMatch(json)));
             });
@@ -660,8 +696,8 @@ export function fetchPreview() {
                     response.json() : (response => errorHandler(response))(response),
                 error => errorHandler(error)
         )
-            .then(preview => {
-                dispatch(setPreview(preview));
+            .then(json => {
+                dispatch(setPreview(json.data));
             });
     }
 }

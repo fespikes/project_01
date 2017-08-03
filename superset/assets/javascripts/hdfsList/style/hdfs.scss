@@ -6,6 +6,35 @@
 }
 
 $borderStyle: solid 1px #e9eaed;
+.bread-crumb{
+    span, textarea, i{
+        display: inline-block;
+        float:left;
+    }
+    textarea {
+        padding:0 5px;
+        margin:1px 5px 0;
+        background:transparent;
+        word-spacing:no-warp;
+        letter-spacing:1px;
+    }
+    .editing {
+        border: 1px #108ee9 solid;
+        padding: 2px 5px 3px;
+        margin-top:-2px;
+        border-radius: 5px;
+        
+    }
+
+    .ps-edit-icon{
+        width: 15px;
+        height: 14px;
+        background-position: -253px -134px;
+        position: relative;
+        left: 10px;
+        top: 8px
+    }
+}
 
 .hdfs-panel {
     margin: 0 50px;
@@ -15,27 +44,7 @@ $borderStyle: solid 1px #e9eaed;
         justify-content: space-between;
         margin: 15px 0;
 
-        .left{
-            span, textarea, i{
-                display: inline-block;
-                float:left;
-            }
-            textarea {
-                padding:0 5px;
-                margin:1px 5px 0;
-                background:transparent;
-                word-spacing:no-warp;
-                letter-spacing:1px;
-            }
-            .editing {
-                border: 1px #108ee9 solid;
-                padding: 2px 5px 3px;
-                margin-top:-2px;
-                border-radius: 5px;
-                
-            }
-        }
-
+        
         .right .operations{
             display:flex;
             align-items:center;

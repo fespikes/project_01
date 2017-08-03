@@ -49,11 +49,11 @@ class Main extends Component {
         ) {
             this.props.fetchIfNeeded(condition);
         }
-        if(emitFetch.isFetching !== this.props.emitFetch.isFetching) {
+        if (emitFetch.isFetching !== this.props.emitFetch.isFetching) {
             const loadingModal = renderLoadingModal();
-            if(emitFetch.isFetching) {
+            if (emitFetch.isFetching) {
                 loadingModal.show();
-            }else {
+            } else {
                 loadingModal.hide();
             }
         }
@@ -106,26 +106,17 @@ class Main extends Component {
         }
 
         const linkToPath = (ag) => {
-            this.setState({...ag});
+            this.setState({
+                ...ag
+            });
             changePath(ag);
         }
 
         return (
             <div className="hdfs-panel">
                 <div className="panel-top">
-                    <div className="left">
+                    <div className="bread-crumb">
                         <span className="f16">路径:</span>
-{ /*
-<span contentEditable={editable} className="bread-crumb-span">
-
-    <small className="text">Home</small>
-    <small className="slash">/</small>
-    <small className="text">Application Center</small>
-    <small className="slash">/</small>
-    <small>An Application</small>
-    <small className="crumb">/</small>
-</span>*/ }
-
                         <textarea rows="1" contentEditable={editable}
             className={(editable ? 'editing' : '') + ' f16'}
             name="pathName"
@@ -136,16 +127,8 @@ class Main extends Component {
             >
                         </textarea>
                         <i
-            className="icon icon-edit"
+            className="icon icon-edit ps-edit-icon"
             onClick={() => this.breadCrumbEditable()}
-            style={{
-                width: '15px',
-                height: '14px',
-                backgroundPosition: '-253px -134px',
-                position: 'relative',
-                left: '10px',
-                top: '8px'
-            }}
             />
                     </div>
                     <div className="right">
@@ -160,6 +143,7 @@ class Main extends Component {
                     <Table
             {...response}
             giveDetail={giveDetail}
+            condition={condition}
             linkToPath={linkToPath}
             setSelectedRows={setSelectedRows}
             />
