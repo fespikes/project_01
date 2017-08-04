@@ -26,7 +26,6 @@ class Popup extends React.Component {
         this.onPermChange = this.onPermChange.bind(this);
         this.onRecursivePermChange = this.onRecursivePermChange.bind(this);
 
-        //popupType = ['mkdir', 'upload'][0];
         this.state = {}
     }
 
@@ -86,7 +85,7 @@ class Popup extends React.Component {
         setPopupNormalParam({
             [key]: val
         });
-        
+
         this.removeAlert();
 
         clearTimeout(this.timer);
@@ -123,18 +122,7 @@ class Popup extends React.Component {
     }
 
     submit() {
-        const me = this;
-        const {fetchIfNeeded, condition} = this.props;
-        function callback(success, message) {
-            if(success) {
-                fetchIfNeeded(condition);
-                me.props.popupNormalChangeStatus('none');
-            }else {
-                message.type = "error";
-                renderAlertTip(message, 'hdfs-popup-tip');
-            }
-        }
-        this.props.popupNormalParam.submit(callback);
+        this.props.popupNormalParam.submit();
     }
 
     render() {
@@ -159,27 +147,27 @@ class Popup extends React.Component {
         const getConfig = (popupType) => {
             let title = '';
             switch (popupType) {
-            case CONSTANT.move:
-                title = '移至';
-                break;
-            case CONSTANT.copy:
-                title = '复制到';
-                break;
-            case CONSTANT.auth:
-                title = '修改权限';
-                permColumns = getPermColumns(me);
-                break;
-            case CONSTANT.upload:
-                title = '上传文件';
-                break;
-            case CONSTANT.mkdir:
-                title = '创建目录';
-                break;
-            case CONSTANT.remove:
-                title = '删除HDFS连接';
-                break;
-            case CONSTANT.noSelect:
-                title = '提示';
+                case CONSTANT.move:
+                    title = '移至';
+                    break;
+                case CONSTANT.copy:
+                    title = '复制到';
+                    break;
+                case CONSTANT.auth:
+                    title = '修改权限';
+                    permColumns = getPermColumns(me);
+                    break;
+                case CONSTANT.upload:
+                    title = '上传文件';
+                    break;
+                case CONSTANT.mkdir:
+                    title = '创建目录';
+                    break;
+                case CONSTANT.remove:
+                    title = '删除HDFS连接';
+                    break;
+                case CONSTANT.noSelect:
+                    title = '提示';
             }
             return {
                 title
@@ -190,107 +178,107 @@ class Popup extends React.Component {
 
         const getChildren = (popupType) => {
             switch (popupType) {
-            case CONSTANT.move:
-                return <div
-                    className="popup-body move"
-                    style={{
+                case CONSTANT.move:
+                    return <div
+                        className="popup-body move"
+                        style={{
                         height: '200px'
                     }}
                     >
-                    <div className="add-connection">
-                        <div className='data-detail-border'>
-                            <div id="tree-select-box"></div>
-                            <label className="data-detail-item">
-                                <span>移动至：</span>
-                                <div>
-                                    <TreeSelect
-                                        treeData={treeData}
-                                        fetchHDFSList={fetchHDFSList}
-                                        setPopupNormalParam={setPopupNormalParam}
+                        <div className="add-connection">
+                            <div className='data-detail-border'>
+                                <div id="hdfs-tree-select" className="hdfs-tree-select"></div>
+                                <label className="data-detail-item">
+                                    <span>移动至：</span>
+                                    <div>
+                                        <TreeSelect
+                                            treeData={treeData}
+                                            fetchHDFSList={fetchHDFSList}
+                                            setPopupNormalParam={setPopupNormalParam}
+                                        />
+                                    </div>
+                                </label>
+                                <label className="data-detail-item">
+                                    <span></span>
+                                    <input
+                                        type="text"
+                                        disabled="disabled"
+                                        required="required"
+                                        value={dest_path}
                                     />
-                                </div>
-                            </label>
-                            <label className="data-detail-item">
-                                <span></span>
-                                <input
-                                    type="text"
-                                    disabled="disabled"
-                                    required="required"
-                                    value={dest_path}
-                                />
-                            </label>
+                                </label>
+                            </div>
                         </div>
                     </div>
-                </div>
-                break;
-            case CONSTANT.copy:
-                return <div
-                    className="popup-body move"
-                    style={{
+                    break;
+                case CONSTANT.copy:
+                    return <div
+                        className="popup-body move"
+                        style={{
                         height: '200px'
                     }}
                     >
-                    <div className="add-connection">
-                        <div className='data-detail-border'>
-                            <div id="hdfs-tree-select" className="hdfs-tree-select"></div>
-                            <label className="data-detail-item">
-                                <span>复制至：</span>
-                                <div>
-                                    <TreeSelect
-                                        treeData={treeData}
-                                        fetchHDFSList={fetchHDFSList}
-                                        setPopupNormalParam={setPopupNormalParam}
+                        <div className="add-connection">
+                            <div className='data-detail-border'>
+                                <div id="hdfs-tree-select" className="hdfs-tree-select"></div>
+                                <label className="data-detail-item">
+                                    <span>复制至：</span>
+                                    <div>
+                                        <TreeSelect
+                                            treeData={treeData}
+                                            fetchHDFSList={fetchHDFSList}
+                                            setPopupNormalParam={setPopupNormalParam}
+                                        />
+                                    </div>
+                                </label>
+                                <label className="data-detail-item">
+                                    <span></span>
+                                    <input
+                                        type="text"
+                                        disabled="disabled"
+                                        required="required"
+                                        value={dest_path}
                                     />
-                                </div>
-                            </label>
-                            <label className="data-detail-item">
-                                <span></span>
-                                <input
-                                    type="text"
-                                    disabled="disabled"
-                                    required="required"
-                                    value={dest_path}
-                                />
-                            </label>
+                                </label>
+                            </div>
                         </div>
                     </div>
-                </div>
-                break;
-            case CONSTANT.auth:
-                return <div className="popup-body">
-                            <div className="add-connection">
-                                <div className='data-detail-border' style={{ paddingBottom: 0 }}>
-                                    <Table
-                                        columns={permColumns}
-                                        dataSource={permData}
-                                        size='small'
-                                        pagination={false}
-                                    />
-                                    <div className="recursive-perm">
-                                        <div className="col-20 perm-name">递归</div>
-                                        <div className="col-60"></div>
-                                        <div className="col-20 perm-value">
-                                            <input type="checkbox" onClick={this.onRecursivePermChange}
-                                                   ref="recursivePermRef" />
-                                        </div>
+                    break;
+                case CONSTANT.auth:
+                    return <div className="popup-body">
+                        <div className="add-connection">
+                            <div className='data-detail-border' style={{ paddingBottom: 0 }}>
+                                <Table
+                                    columns={permColumns}
+                                    dataSource={permData}
+                                    size='small'
+                                    pagination={false}
+                                />
+                                <div className="recursive-perm">
+                                    <div className="col-20 perm-name">递归</div>
+                                    <div className="col-60"></div>
+                                    <div className="col-20 perm-value">
+                                        <input type="checkbox" onClick={this.onRecursivePermChange}
+                                               ref="recursivePermRef" />
                                     </div>
                                 </div>
                             </div>
                         </div>
-                break;
-            case CONSTANT.upload:
-                return <div className="popup-body">
-                            <div className="add-connection">
+                    </div>
+                    break;
+                case CONSTANT.upload:
+                    return <div className="popup-body">
+                        <div className="add-connection">
                             <div className={popupType === CONSTANT.upload ? 'data-detail-border' : 'none'} >
                                 <label className="data-detail-item">
                                     <span>上传到：</span>
                                     <input
-                    type="text"
-                    defaultValue=""
-                    value={condition.selectedRows[0].path}
-                    required="required"
-                    onChange={this.onInputChange}
-                    />
+                                        type="text"
+                                        defaultValue=""
+                                        value={condition.selectedRows[0].path}
+                                        required="required"
+                                        onChange={this.onInputChange}
+                                    />
                                 </label>
                                 <div className="data-detail-item">
                                     <span></span>
@@ -308,67 +296,67 @@ class Popup extends React.Component {
                         display: 'none'
                     }}>
                                             <input type="file" id="xFile" name="file_name" className="file-select"
-                    required="required" onChange={this.handleFile} ref="fileSelect"/>
+                                                   required="required" onChange={this.handleFile} ref="fileSelect"/>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>;
-                break;
-            case CONSTANT.mkdir:
-                return <div className="popup-body">
-                            <div className="add-connection">
+                    break;
+                case CONSTANT.mkdir:
+                    return <div className="popup-body">
+                        <div className="add-connection">
                             <div className='data-detail-border'>
                                 <label className="data-detail-item">
                                     <span>目录名称：</span>
                                     <input
-                    required="required"
-                    type="text"
-                    value={path}
-                    name="path"
-                    onChange={this.onInputChange}
-                    />
+                                        required="required"
+                                        type="text"
+                                        value={path}
+                                        name="path"
+                                        onChange={this.onInputChange}
+                                    />
                                 </label>
                                 <label className="data-detail-item">
                                     <span>文件名称：</span>
                                     <input
-                    required="required"
-                    type="text"
-                    value={dir_name}
-                    name="dir_name"
-                    onChange={this.onInputChange}
-                    />
+                                        required="required"
+                                        type="text"
+                                        value={dir_name}
+                                        name="dir_name"
+                                        onChange={this.onInputChange}
+                                    />
                                 </label>
-                </div></div></div>;
-                break;
+                            </div></div></div>;
+                    break;
 
-            case CONSTANT.remove:
-                return <div className="popup-body">
-                    <div className="warning">
-                                <Alert
-                    message="Warning"
-                    description={deleteTips}
-                    type="warning"
-                    showIcon
-                    />
-                    </div>
-                </div>;
+                case CONSTANT.remove:
+                    return <div className="popup-body">
+                        <div className="warning">
+                            <Alert
+                                message="Warning"
+                                description={deleteTips}
+                                type="warning"
+                                showIcon
+                            />
+                        </div>
+                    </div>;
 
-            case CONSTANT.noSelect:
-                return <div className="popup-body">
-                    <div className="warning">
-                        <Alert
-                    message="Warning"
-                    description="没有选择HDFS路径，请先选择！"
-                    type="warning"
-                    showIcon
-                    />
-                    </div>
-                </div>;
-            default:
-                return '';
-                break;
+                case CONSTANT.noSelect:
+                    return <div className="popup-body">
+                        <div className="warning">
+                            <Alert
+                                message="Warning"
+                                description="没有选择HDFS路径，请先选择！"
+                                type="warning"
+                                showIcon
+                            />
+                        </div>
+                    </div>;
+                default:
+                    return '';
+                    break;
             }
         }
 
@@ -389,16 +377,16 @@ class Popup extends React.Component {
                         </div>
                         <div className="error" id="hdfs-popup-tip"></div>
                         {getChildren(popupType)}
-                        
+
                         <div className={alertStatus + ' alert-wrapper'}>
-                            <Alert message={alertMsg} type={alertType} showIcon />
+                            <Alert message={alertMsg} type={alertType} closable={true} showIcon />
                         </div>
 
                         <div className="popup-footer">
                             <button
-            disabled={disabled}
-            className="tp-btn tp-btn-middle tp-btn-primary j_submit"
-            onClick={me.submit}>
+                                disabled={disabled}
+                                className="tp-btn tp-btn-middle tp-btn-primary j_submit"
+                                onClick={me.submit}>
                                 {btnTitle}
                             </button>
                         </div>
