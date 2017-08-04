@@ -187,7 +187,7 @@ class Popup extends React.Component {
                     >
                         <div className="add-connection">
                             <div className='data-detail-border'>
-                                <div id="tree-select-box"></div>
+                                <div id="hdfs-tree-select" className="hdfs-tree-select"></div>
                                 <label className="data-detail-item">
                                     <span>移动至：</span>
                                     <div>
