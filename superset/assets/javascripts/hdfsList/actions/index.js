@@ -45,7 +45,7 @@ export const CONSTANT = {
     baseURL: baseURL
 };
 
-const handler = (success, response, callback) => {
+const callbackHandler = (success, response, callback) => {
     callback && callback(success, response);
 };
 const always = (response) => {
@@ -53,6 +53,29 @@ const always = (response) => {
 };
 const json = (response) => {
     return response.json();
+};
+const popupHandler = (response, popupNormalParam, dispatch) => {
+    let obj = {};
+    if(response.status === 200) {
+        obj = {
+            ...popupNormalParam,
+            status: 'none',
+            alertStatus: 'none',
+            alertMsg: response.message,
+            alertType: 'success'
+        };
+    }else if(response.status === 500) {
+        obj = {
+            ...popupNormalParam,
+            status: 'flex',
+            alertStatus: '',
+            alertMsg: response.message,
+            alertType: 'error'
+        };
+    }
+    dispatch(setPopupNormalParams(obj));
+    dispatch(setSelectedRows([], [], []));
+    dispatch(switchFetchingStatus(false));
 };
 
 /**
@@ -119,27 +142,7 @@ function fetchMove() {
             body: JSON.stringify(params)
         }).then(always).then(json).then(
             response => {
-                let obj = {};
-                if(response.status === 200) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'none',
-                        alertStatus: 'none',
-                        alertMsg: response.message,
-                        alertType: 'success'
-                    };
-                }else if(response.status === 500) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'flex',
-                        alertStatus: '',
-                        alertMsg: response.message,
-                        alertType: 'error'
-                    };
-                }
-                dispatch(setPopupNormalParams(obj));
-                dispatch(setSelectedRows([], [], []));
-                dispatch(switchFetchingStatus(false));
+                popupHandler(response, popupNormalParam, dispatch);
             }
         );
     }
@@ -164,27 +167,7 @@ function fetchCopy() {
         })
         .then(always).then(json).then(
             response => {
-                let obj = {};
-                if(response.status === 200) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'none',
-                        alertStatus: 'none',
-                        alertMsg: response.message,
-                        alertType: 'success'
-                    };
-                }else if(response.status === 500) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'flex',
-                        alertStatus: '',
-                        alertMsg: response.message,
-                        alertType: 'error'
-                    };
-                }
-                dispatch(setPopupNormalParams(obj));
-                dispatch(setSelectedRows([], [], []));
-                dispatch(switchFetchingStatus(false));
+                popupHandler(response, popupNormalParam, dispatch);
             }
         );
     }
@@ -208,27 +191,7 @@ function fetchAuth() {
             body: JSON.stringify(params)
         }).then(always).then(json).then(
             response => {
-                let obj = {};
-                if(response.status === 200) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'none',
-                        alertStatus: 'none',
-                        alertMsg: response.message,
-                        alertType: 'success'
-                    };
-                }else if(response.status === 500) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'flex',
-                        alertStatus: '',
-                        alertMsg: response.message,
-                        alertType: 'error'
-                    };
-                }
-                dispatch(setPopupNormalParams(obj));
-                dispatch(setSelectedRows([], [], []));
-                dispatch(switchFetchingStatus(false));
+                popupHandler(response, popupNormalParam, dispatch);
             }
         );
     }
@@ -248,27 +211,7 @@ function fetchUpload() {
             body: binaryFile
         }).then(always).then(json).then(
             response => {
-                let obj = {};
-                if(response.status === 200) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'none',
-                        alertStatus: 'none',
-                        alertMsg: response.message,
-                        alertType: 'success'
-                    };
-                }else if(response.status === 500) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'flex',
-                        alertStatus: '',
-                        alertMsg: response.message,
-                        alertType: 'error'
-                    };
-                }
-                dispatch(setPopupNormalParams(obj));
-                dispatch(setSelectedRows([], [], []));
-                dispatch(switchFetchingStatus(false));
+                popupHandler(response, popupNormalParam, dispatch);
             }
         );
     }
@@ -290,27 +233,7 @@ function fetchMakedir() {
             method: 'GET'
         }).then(always).then(json).then(
             response => {
-                let obj = {};
-                if(response.status === 200) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'none',
-                        alertStatus: 'none',
-                        alertMsg: response.message,
-                        alertType: 'success'
-                    };
-                }else if(response.status === 500) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'flex',
-                        alertStatus: '',
-                        alertMsg: response.message,
-                        alertType: 'error'
-                    };
-                }
-                dispatch(switchFetchingStatus(false));
-                dispatch(setSelectedRows([], [], []));
-                dispatch(setPopupNormalParams(obj));
+                popupHandler(response, popupNormalParam, dispatch);
             }
         );
     }
@@ -335,27 +258,7 @@ function fetchRemove() {
             })
         }).then(always).then(json).then(
             response => {
-                let obj = {};
-                if(response.status === 200) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'none',
-                        alertStatus: 'none',
-                        alertMsg: response.message,
-                        alertType: 'success'
-                    };
-                }else if(response.status === 500) {
-                    obj = {
-                        ...popupNormalParam,
-                        status: 'flex',
-                        alertStatus: '',
-                        alertMsg: response.message,
-                        alertType: 'error'
-                    };
-                }
-                dispatch(setPopupNormalParams(obj));
-                dispatch(setSelectedRows([], [], []));
-                dispatch(switchFetchingStatus(false));
+                popupHandler(response, popupNormalParam, dispatch);
             }
         );
     }
