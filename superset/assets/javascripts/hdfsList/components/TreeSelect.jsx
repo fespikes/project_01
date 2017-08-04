@@ -12,20 +12,16 @@ class TreeSelector extends Component {
 
     constructor(props, context) {
         super(props);
-        this.dispatch = context.dispatch;
         this.onSelect = this.onSelect.bind(this);
         this.onLoadData = this.onLoadData.bind(this);
     }
 
     onSelect(value, node)  {
-        const { setPopupNormalParam } = this.props;
-        const dispatch = this.dispatch;
-        dispatch(setPopupNormalParam({
-            dest_path: node.props.hdfs_path
-        }));
-        this.setState({
-            ...this.state,
-            value: value
+        const { setPopupNormalParams, popupNormalParam } = this.props;
+        setPopupNormalParams({
+            ...popupNormalParam,
+            dest_path: node.props.hdfs_path,
+            treeVal: value
         });
     }
 
@@ -37,9 +33,10 @@ class TreeSelector extends Component {
 
     render() {
 
-        const {treeData} = this.props;
+        const {treeData, treeVal} = this.props;
         return (
             <TreeSelect
+                value={treeVal}
                 allowClear
                 showSearch
                 style={{
@@ -60,7 +57,6 @@ class TreeSelector extends Component {
 }
 
 TreeSelector.contextTypes = {
-    dispatch: PropTypes.func.isRequired
 };
 
 export default TreeSelector;

@@ -2,6 +2,7 @@ import fetch from 'isomorphic-fetch';
 
 import { constructFileBrowserData, appendTreeChildren, findTreeNode } from '../../tableList/module';
 import { getSelectedPath } from '../module';
+import { message } from 'antd';
 
 export const actionTypes = {
     sendRequest: 'SEND_REQUEST',
@@ -44,22 +45,42 @@ export const CONSTANT = {
     baseURL: baseURL
 };
 
-const errorHandler = (error, callback, dispatch) => {
-    if (typeof callback === 'function') {
-        callback(false, error);
+const callbackHandler = (success, response, callback) => {
+    callback && callback(success, response);
+};
+const always = (response) => {
+    return Promise.resolve(response);
+};
+const json = (response) => {
+    return response.json();
+};
+const popupHandler = (response, popupNormalParam, dispatch) => {
+    let obj = {};
+    if (response.status === 200) {
+        obj = {
+            ...popupNormalParam,
+            status: 'none',
+            alertStatus: 'none',
+            alertMsg: response.message,
+            alertType: 'success'
+        };
+    } else if (response.status === 500) {
+        obj = {
+            ...popupNormalParam,
+            status: 'flex',
+            alertStatus: '',
+            alertMsg: response.message,
+            alertType: 'error'
+        };
     }
+    dispatch(setPopupNormalParams(obj));
+    dispatch(setSelectedRows([], [], []));
     dispatch(switchFetchingStatus(false));
 };
-const succeedHandler = (response, callback, dispatch) => {
-    if (typeof callback === 'function') {
-        callback(true, response);
-    }
-    dispatch(switchFetchingStatus(false));
-};
+
 /**
 @description: S-mock
 */
-const connectionsMock = require('../mock/connections.json');
 
 actionTypes.changePath = 'CHANGE_PATH';
 export function changePath(path) {
@@ -103,7 +124,7 @@ export function fetchOperation(param) {
     }
 }
 
-function fetchMove(callback) {
+function fetchMove() {
     return (dispatch, getState) => {
         const popupNormalParam = getState().popupNormalParam;
         const condition = getState().condition;
@@ -119,19 +140,15 @@ function fetchMove(callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(params)
-        })
-        .then(
-            response => response.ok ?
-                response.json() : (response => errorHandler(response, callback, dispatch))(response),
-            error => errorHandler(error, callback, dispatch)
-        )
-        .then(json => {
-            succeedHandler(json, callback, dispatch);
-        });
+        }).then(always).then(json).then(
+            response => {
+                popupHandler(response, popupNormalParam, dispatch);
+            }
+        );
     }
 }
 
-function fetchCopy(callback) {
+function fetchCopy() {
     return (dispatch, getState) => {
         const popupNormalParam = getState().popupNormalParam;
         const condition = getState().condition;
@@ -148,19 +165,16 @@ function fetchCopy(callback) {
             method: 'POST',
             body: JSON.stringify(params)
         })
-        .then(
-        response => response.ok ?
-            response.json() : (response => errorHandler(response, callback, dispatch))(response),
-            error => errorHandler(error, callback, dispatch)
-        )
-        .then(json => {
-            succeedHandler(json, callback, dispatch);
-        });
+            .then(always).then(json).then(
+            response => {
+                popupHandler(response, popupNormalParam, dispatch);
+            }
+        );
     }
 }
 
 //no api but have the function
-function fetchAuth(callback) {
+function fetchAuth() {
     return (dispatch, getState) => {
         const state = getState();
         const popupNormalParam = state.popupNormalParam;
@@ -170,24 +184,20 @@ function fetchAuth(callback) {
             recursive: popupNormalParam.recursivePerm
         };
         const URL = baseURL + "chmod/";
-
+        dispatch(switchFetchingStatus(true));
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(params)
-        })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response, callback, dispatch))(response),
-                error => errorHandler(error, callback, dispatch)
-        )
-            .then(json => {
-                succeedHandler(json, callback, dispatch);
-            });
+        }).then(always).then(json).then(
+            response => {
+                popupHandler(response, popupNormalParam, dispatch);
+            }
+        );
     }
 }
 
-function fetchUpload(callback) {
+function fetchUpload() {
     return (dispatch, getState) => {
         const popupNormalParam = getState().popupNormalParam;
         const destPath = popupNormalParam.dest_path;
@@ -199,16 +209,11 @@ function fetchUpload(callback) {
             credentials: 'include',
             method: "POST",
             body: binaryFile
-        })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response, callback, dispatch))(response),
-                error => errorHandler(error)
-        )
-            .then(json => {
-                console.log('TODO: get the interface');
-                succeedHandler(json, callback, dispatch);
-            });
+        }).then(always).then(json).then(
+            response => {
+                popupHandler(response, popupNormalParam, dispatch);
+            }
+        );
     }
 }
 
@@ -222,44 +227,15 @@ function fetchMakedir() {
         const URL = baseURL + `mkdir/?` +
         (path ? ('path=' + path + '&') : '') +
         (dir_name ? 'dir_name=' + dir_name : '');
-        ///hdfs/mkdir/?path=/tmp&dir_name=testdir
 
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
-        })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
-        )
-            .then(json => {
-                let obj = {};
-                //TODO: the verification
-                if (json) {
-                    obj = {
-                        ...popupNormalParam,
-                        path: '',
-                        dir_name: '',
-
-                        alertStatus: '',
-                        alertMsg: json.message,
-                        alertType: 'success',
-                        disabled: 'disabled'
-                    };
-                } else {
-                    obj = {
-                        ...popupNormalParam,
-                        dir_name: '',
-                        alertStatus: '',
-                        //TODO:
-                        alertMsg: 'json.message' || 'made an error',
-                        alertType: 'error',
-                        disabled: 'disabled'
-                    };
-                }
-                dispatch(setPopupNormalParams(obj));
-            });
+        }).then(always).then(json).then(
+            response => {
+                popupHandler(response, popupNormalParam, dispatch);
+            }
+        );
     }
 }
 
@@ -272,57 +248,19 @@ function fetchRemove() {
         selectedRows.map((currentValue, index, array) => {
             path.push(currentValue.path);
         });
-
         const URL = baseURL + `remove/`;
-
+        dispatch(switchFetchingStatus(true));
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify({
                 path: path
             })
-        })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
-        )
-            .then(json => {
-
-                let obj = {};
-
-                if (json) {
-                    obj = {
-                        ...popupNormalParam,
-                        path: '',
-                        dir_name: '',
-
-                        alertStatus: '',
-                        alertMsg: json.message || json || 'succeed!',
-                        alertType: 'success',
-                        disabled: 'disabled'
-                    };
-                } else {
-                    obj = {
-                        ...popupNormalParam,
-                        dir_name: '',
-                        alertStatus: '',
-                        alertMsg: json.message || 'made an error',
-                        alertType: 'error',
-                        disabled: 'disabled'
-                    };
-                }
-                dispatch(setPopupNormalParams(obj));
-
-                dispatch(setSelectedRows([], [], []));
-
-                setTimeout(argu => {
-                    dispatch(setPopupNormalParams({
-                        status: 'none',
-                        alertStatus: 'none'
-                    }));
-                }, 2000);
-            });
+        }).then(always).then(json).then(
+            response => {
+                popupHandler(response, popupNormalParam, dispatch);
+            }
+        );
     }
 }
 
@@ -337,36 +275,38 @@ export function fetchDownload() {
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
-        })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
-        )
-            .then(json => {
-                let aLink = document.createElement('a');
-                const data = json.data;
-                let blob = new Blob([data], {
-                    type: 'plain/text',
-                    endings: 'native'
-                });
-                let url = window.URL.createObjectURL(blob);
-                aLink.href = url;
-                aLink.download = name;
-                aLink.click();
-                window.URL.revokeObjectURL(url);
-
+        }).then(always).then(json).then(
+            response => {
+                if (response.status === 200) {
+                    let aLink = document.createElement('a');
+                    const data = json.data;
+                    let blob = new Blob([data], {
+                        type: 'plain/text',
+                        endings: 'native'
+                    });
+                    let url = window.URL.createObjectURL(blob);
+                    aLink.href = url;
+                    aLink.download = name;
+                    aLink.click();
+                    window.URL.revokeObjectURL(url);
+                } else if (response.status === 500) {
+                    message.error(response.message, 5);
+                }
                 dispatch(switchFetchingStatus(false));
-            });
+            }
+        );
     }
 }
 
 popupNormalActions.fetchNoSelection = 'FETCH_NO_SELECTION';
-function fetchNoSelection(callback) {
-    callback(true, CONSTANT.noSelect);
-
-    return {
-        type: popupNormalActions.fetchNoSelection
+function fetchNoSelection() {
+    return (dispatch, getState) => {
+        const popupNormalParam = getState().popupNormalParam;
+        const response = {
+            status: 200,
+            message: ''
+        };
+        popupHandler(response, popupNormalParam, dispatch);
     }
 }
 
@@ -508,96 +448,6 @@ export function swapResponse(json) {
     };
 }
 
-export function fetchLeafData(condition, treeDataReady) {
-    //TODO: adjust the data and dispatch receiveLeafData
-    return (dispatch, getState) => {
-
-        dispatch(requestLeafData());
-        let treeData = getState().popupNormalParam.treeData;
-
-        const URL = baseURL + `list/?` +
-        (condition.pathString ? ('path=' + condition.pathString) : '');
-
-        let pathArray = [].concat(condition.pathArray);
-
-        let length = pathArray.length; //the min is 2
-        let pathString = condition.pathString;
-        let keyData = {}; //record the correct child node;
-
-        return fetch(URL, {
-            credentials: 'include',
-            method: 'GET',
-            mode: 'cors'
-        })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
-        )
-            .then(json => {
-                let i = 0;
-
-                //only used when path is '/'
-                if (length === 1) {
-                    keyData = json.files.filter(file => {
-                        return (file.name !== '.' && file.name !== '..');
-                    }).map((file, index) => {
-                        return {
-                            title: file.name, //what to display
-                            value: file.path, //for filter
-                            key: file.path,
-                            isLeaf: true
-                        }
-                    });
-                    dispatch(receiveLeafData(keyData));
-                } else {
-                    let treeData = getState().popupNormalParam.treeData;
-                    let swap = {};
-                    while (i < length) {
-
-                        if (length = 2) {
-                            for (var j = 0; j < treeData.length; j++) {
-                                if (treeData[j].value === pathString) {
-                                    keyData = treeData[j];
-                                    continue;
-                                }
-                            }
-                        //if length ===3 or more
-                        } else {
-                            for (var j = 0; j < keyData.children.length; j++) {
-                                swap = keyData.children[j];
-                                if (swap.value === pathString) {
-                                    keyData = swap;
-                                }
-                            }
-                        }
-                        i++;
-                    }
-
-                    keyData.isLeaf = false
-                    keyData.children = json.files.filter(file => {
-                        return (file.name !== '.' && file.name !== '..');
-                    }).map((file, index) => {
-                        return {
-                            title: file.name, //what to display
-                            value: file.path, //for filter
-                            key: file.path,
-                            isLeaf: true
-                        }
-                    });
-
-                    treeData = JSON.parse(JSON.stringify(treeData));
-                    dispatch(receiveLeafData(treeData));
-
-                // fetchCallback(dispatch, receiveLeafData, treeData);
-                }
-                treeDataReady && treeDataReady(treeData);
-
-            // dispatch(receiveLeafData(condition, dataMatch(json)));
-            });
-    }
-}
-
 export function switchFetchingStatus(status) {
     return {
         type: actionTypes.switchFetchingStatus,
@@ -605,8 +455,7 @@ export function switchFetchingStatus(status) {
     }
 }
 
-function applyFetch(condition, callback) {
-    console.log('fetching data.')
+function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
         dispatch(switchFetchingStatus(true));
@@ -614,8 +463,6 @@ function applyFetch(condition, callback) {
         (condition.path ? ('path=' + condition.path + '&') : '') +
         (condition.page_num !== undefined ? ('page_num=' + condition.page_num + '&') : '') +
         (condition.page_size ? 'page_size=' + condition.page_size : '');
-
-        // const urlListUnderPath = baseURL + `list/` //?path=/tmp&page_num=0&page_size=10   GET 列出目录下所有文件   
 
         const listDataMatch = json => {
             if (!json || !json.files) return json;
@@ -628,22 +475,17 @@ function applyFetch(condition, callback) {
             credentials: 'include',
             method: 'GET',
             mode: 'cors'
-        })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response, callback, dispatch))(response),
-                error => errorHandler(error, callback, dispatch)
-        )
-            .then(json => {
-                const data = listDataMatch(json ? json.data : {});
-                dispatch(receiveData(data, condition));
-                succeedHandler(json, callback, dispatch);
-            // dispatch(receiveData(condition, listDataMatch(json)));
-            });
-
-    /*        let mockFunc = function() {
-                dispatch(receiveData(condition, dataMatch(connectionsMock)));
-            }();*/
+        }).then(always).then(json).then(
+            response => {
+                if (response.status === 200) {
+                    const data = listDataMatch(response ? response.data : {});
+                    dispatch(receiveData(data, condition));
+                } else if (response.status === 500) {
+                    message.error(response.message, 5);
+                }
+                dispatch(switchFetchingStatus(false));
+            }
+        );
     };
 }
 
@@ -694,45 +536,42 @@ export function fetchPreview() {
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
-        })
-            .then(
-                response => response.ok ?
-                    response.json() : (response => errorHandler(response))(response),
-                error => errorHandler(error)
-        )
-            .then(json => {
-                dispatch(setPreview(json.data));
+        }).then(always).then(json).then(
+            response => {
+                if (response.status === 200) {
+                    dispatch(setPreview(response.data));
+                } else if (response.status === 500) {
+                    message.error(response.message, 5);
+                }
                 dispatch(switchFetchingStatus(false));
-            });
+            }
+        );
     }
 }
 
-export function fetchHDFSList(path, isFirst) {
+export function fetchHDFSList(path, isFirst, callback) {
     return (dispatch, getState) => {
         dispatch(switchFetchingStatus(true));
         const url = baseURL + 'list/?path=' + path + '&page_num=1&page_size=1000';
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        })
-        .then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        dispatch(switchFetchingStatus(false));
-                        if(isFirst) {
-                            dispatch(setTreeData(constructFileBrowserData(response.data)));
-                        }else {
-                            dispatch(setTreeData(appendTreeChildren(
-                                path,
-                                response.data,
-                                JSON.parse(JSON.stringify(getState().popupNormalParam.treeData))
-                            )));
-                        }
-                    });
-                }else {
-                    dispatch(switchFetchingStatus(false));
+                if (response.status === 200) {
+                    if (isFirst) {
+                        dispatch(setTreeData(constructFileBrowserData(response.data)));
+                    } else {
+                        dispatch(setTreeData(appendTreeChildren(
+                            path,
+                            response.data,
+                            JSON.parse(JSON.stringify(getState().popupNormalParam.treeData))
+                        )));
+                    }
+                } else if (response.status === 500) {
+                    message.error(response.message, 5);
                 }
+                dispatch(switchFetchingStatus(false));
             }
         );
     }
