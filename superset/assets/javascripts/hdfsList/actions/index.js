@@ -56,7 +56,7 @@ const json = (response) => {
 };
 const popupHandler = (response, popupNormalParam, dispatch) => {
     let obj = {};
-    if(response.status === 200) {
+    if (response.status === 200) {
         obj = {
             ...popupNormalParam,
             status: 'none',
@@ -64,7 +64,7 @@ const popupHandler = (response, popupNormalParam, dispatch) => {
             alertMsg: response.message,
             alertType: 'success'
         };
-    }else if(response.status === 500) {
+    } else if (response.status === 500) {
         obj = {
             ...popupNormalParam,
             status: 'flex',
@@ -165,7 +165,7 @@ function fetchCopy() {
             method: 'POST',
             body: JSON.stringify(params)
         })
-        .then(always).then(json).then(
+            .then(always).then(json).then(
             response => {
                 popupHandler(response, popupNormalParam, dispatch);
             }
@@ -277,7 +277,7 @@ export function fetchDownload() {
             method: 'GET'
         }).then(always).then(json).then(
             response => {
-                if(response.status === 200) {
+                if (response.status === 200) {
                     let aLink = document.createElement('a');
                     const data = json.data;
                     let blob = new Blob([data], {
@@ -289,7 +289,7 @@ export function fetchDownload() {
                     aLink.download = name;
                     aLink.click();
                     window.URL.revokeObjectURL(url);
-                }else if(response.status === 500) {
+                } else if (response.status === 500) {
                     message.error(response.message, 5);
                 }
                 dispatch(switchFetchingStatus(false));
@@ -300,7 +300,7 @@ export function fetchDownload() {
 
 popupNormalActions.fetchNoSelection = 'FETCH_NO_SELECTION';
 function fetchNoSelection(callback) {
-    callback(true, CONSTANT.noSelect);
+    callback && callback(true, CONSTANT.noSelect);
 
     return {
         type: popupNormalActions.fetchNoSelection
@@ -474,10 +474,10 @@ function applyFetch(condition) {
             mode: 'cors'
         }).then(always).then(json).then(
             response => {
-                if(response.status === 200) {
+                if (response.status === 200) {
                     const data = listDataMatch(response ? response.data : {});
                     dispatch(receiveData(data, condition));
-                }else if(response.status === 500) {
+                } else if (response.status === 500) {
                     message.error(response.message, 5);
                 }
                 dispatch(switchFetchingStatus(false));
@@ -535,9 +535,9 @@ export function fetchPreview() {
             method: 'GET'
         }).then(always).then(json).then(
             response => {
-                if(response.status === 200) {
+                if (response.status === 200) {
                     dispatch(setPreview(response.data));
-                }else if(response.status === 500) {
+                } else if (response.status === 500) {
                     message.error(response.message, 5);
                 }
                 dispatch(switchFetchingStatus(false));
@@ -555,17 +555,17 @@ export function fetchHDFSList(path, isFirst, callback) {
             method: 'GET'
         }).then(always).then(json).then(
             response => {
-                if(response.status === 200) {
-                    if(isFirst) {
+                if (response.status === 200) {
+                    if (isFirst) {
                         dispatch(setTreeData(constructFileBrowserData(response.data)));
-                    }else {
+                    } else {
                         dispatch(setTreeData(appendTreeChildren(
                             path,
                             response.data,
                             JSON.parse(JSON.stringify(getState().popupNormalParam.treeData))
                         )));
                     }
-                }else if(response.status === 500) {
+                } else if (response.status === 500) {
                     message.error(response.message, 5);
                 }
                 dispatch(switchFetchingStatus(false));
