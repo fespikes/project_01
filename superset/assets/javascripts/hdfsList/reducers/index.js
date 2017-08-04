@@ -81,6 +81,7 @@ function popupNormalParam(state = {
         dest_path: '',
 
         treeData: [],
+        treeVal: '',
 
         alertStatus: 'none',
         alertMsg: '',
@@ -100,6 +101,7 @@ function popupNormalParam(state = {
         };
         break;
     case popupNormalActions.setPopupParams:
+        delete action.type;
         return {
             ...state,
             ...action

@@ -23,24 +23,34 @@ class Operate extends React.Component {
         this.handleSelectChange = this.handleSelectChange.bind(this);
     }
 
+    cleanNormalParamState(popupNormalParam) {
+        let obj = {
+            ...popupNormalParam
+        };
+        for (let key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                obj[key] = '';
+            }
+        }
+        obj['alertStatus'] = 'none';
+        obj['treeData'] = [];
+        obj['permData'] = [];
+        obj['recursivePerm'] = false;
+        obj['showAlert'] = false;
+        obj['disabled'] = 'disabled';
+        return obj;
+    }
+
     manipulate(ag) {
         const popupType = ag.key;
-        const {
-            fetchOperation,
-            popupNormalParam,
-            setPopupNormalParams,
-            setPermData,
-            setPermMode,
-            setHDFSPath,
-            fetchHDFSList,
-            condition,
+        const {fetchOperation, popupNormalParam, setPopupNormalParams, setPermData, setPermMode, setHDFSPath, fetchHDFSList, condition, } = this.props;
 
-        } = this.props;
+        let obj = this.cleanNormalParamState(popupNormalParam);
 
         let normalPopupParam = {};
         if (condition.selectedRows.length === 0) {
             normalPopupParam = {
-                ...popupNormalParam,
+                ...obj,
                 popupType: CONSTANT.noSelect,
                 submit: fetchOperation,
                 status: 'flex'
@@ -48,7 +58,7 @@ class Operate extends React.Component {
             setPopupNormalParams(normalPopupParam);
         } else {
             normalPopupParam = {
-                ...popupNormalParam,
+                ...obj,
                 popupType: popupType,
                 submit: fetchOperation,
                 status: 'flex'
@@ -60,7 +70,7 @@ class Operate extends React.Component {
                 setPermData(permData);
                 setPermMode(permMode);
                 setHDFSPath(condition.selectedRows[0].path);
-            }else if(popupType === CONSTANT.copy || popupType === CONSTANT.move) {
+            } else if (popupType === CONSTANT.copy || popupType === CONSTANT.move) {
                 fetchHDFSList('/', true);
             }
         }
@@ -100,16 +110,18 @@ class Operate extends React.Component {
     upload() {
         const {fetchOperation, popupNormalParam, setPopupNormalParams, condition} = this.props;
         let normalPopupParam = {};
+
+        let obj = this.cleanNormalParamState(popupNormalParam);
         if (condition.selectedRows.length === 0) {
             normalPopupParam = {
-                ...popupNormalParam,
+                ...obj,
                 popupType: CONSTANT.noSelect,
                 submit: fetchOperation,
                 status: 'flex'
             };
         } else {
             normalPopupParam = {
-                ...popupNormalParam,
+                ...obj,
                 popupType: CONSTANT.upload,
                 submit: fetchOperation,
                 status: 'flex',
