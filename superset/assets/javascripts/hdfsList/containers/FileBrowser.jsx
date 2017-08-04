@@ -98,6 +98,7 @@ class FileBrowser extends Component {
             className={'f16 path'}
             name="pathName"
             value={path}
+            onChange={_=>_}
             >
                             </textarea>
                         </div>
