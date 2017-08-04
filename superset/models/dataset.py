@@ -931,7 +931,11 @@ class HDFSTable(Model, AuditMixinNullable):
         names = None if header else names
         skiprows = int(skip_rows) + int(skip_more_rows)
         skiprows += 1 if next_as_header else skiprows
-        return pd.read_csv(StringIO(file_content), sep=separator,
-                           skiprows=skiprows, header=None, names=names,
-                           prefix='C', nrows=nrows, encoding=charset)
+        try:
+            return pd.read_csv(StringIO(file_content), sep=separator,
+                               skiprows=skiprows, header=None, names=names,
+                               prefix='C', nrows=nrows, encoding=charset)
+        except Exception as e:
+            msg = "Parse hdfs file error: {}".format(str(e))
+            raise Exception(msg)
 
