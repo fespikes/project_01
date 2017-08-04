@@ -195,9 +195,14 @@ class DatasetModelView(SupersetModelView):  # noqa
         return json_response(message=UPDATE_SUCCESS)
 
     @catch_exception
-    @expose('/dataset_types/', methods=['GET', ])
-    def dataset_types(self):
+    @expose('/add_dataset_types/', methods=['GET'])
+    def add_dataset_types(self):
         return json.dumps(['INCEPTOR', 'HDFS', 'UPLOAD FILE'])
+
+    @catch_exception
+    @expose('/filter_dataset_types/', methods=['GET'])
+    def filter_dataset_types(self):
+        return json.dumps(['ALL', 'INCEPTOR', 'HDFS'])
 
     @catch_exception
     @expose('/preview_data/', methods=['GET', ])
