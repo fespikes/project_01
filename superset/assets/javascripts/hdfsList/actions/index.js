@@ -299,11 +299,14 @@ export function fetchDownload() {
 }
 
 popupNormalActions.fetchNoSelection = 'FETCH_NO_SELECTION';
-function fetchNoSelection(callback) {
-    callback(true, CONSTANT.noSelect);
-
-    return {
-        type: popupNormalActions.fetchNoSelection
+function fetchNoSelection() {
+    return (dispatch, getState) => {
+        const popupNormalParam = getState().popupNormalParam;
+        const response = {
+            status: 200,
+            message: ''
+        };
+        popupHandler(response, popupNormalParam, dispatch);
     }
 }
 
