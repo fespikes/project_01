@@ -8,7 +8,7 @@ function condition(state = {
     pageSize: 10,
     orderDirection: 'desc',//取值 ('desc' or 'asc'),
     filter: '',//搜索字符串,
-    tableType: 'all',//选择数据集类型时需要('database','hdfs', 'upload');
+    tableType: 'ALL',//选择数据集类型时需要('database','hdfs', 'upload');
     selectedRowKeys: [],
     selectedRowNames: []
 }, action) {
