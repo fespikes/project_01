@@ -35,6 +35,9 @@ def catch_hdfs_exception(f):
         try:
             return f(self, *args, **kwargs)
         except FileRobotException as fe:
+            if fe.status == 401:
+                self.re_login()
+                return f(self, *args, **kwargs)
             return json_response(status=fe.status,
                                  code=fe.returnCode,
                                  message=fe.message)
@@ -97,8 +100,7 @@ class HDFSBrowser(BaseView):
         page_size = request.args.get('page_size')
         response = self.client.list(path, page_num, page_size)
         data = json.loads(response.text)
-        return json_response(data=data,
-                             status=response.status_code)
+        return json_response(data=data, status=response.status_code)
 
     @catch_hdfs_exception
     @ensure_logined
@@ -106,8 +108,7 @@ class HDFSBrowser(BaseView):
     def download(self):
         path = request.args.get('path')
         response = self.client.download(path)
-        return json_response(data=response.text,
-                             status=response.status_code)
+        return json_response(data=response.text, status=response.status_code)
 
     @catch_hdfs_exception
     @ensure_logined
