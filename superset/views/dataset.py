@@ -441,11 +441,12 @@ class HDFSTableModelView(SupersetModelView):
     def preview_hdfs_file(self):
         args = request.args.to_dict()
         path = args.pop('path')
+        size = args.pop('size', 4096)
         hdfs_conn_id = args.pop('hdfs_connection_id', None)
 
         file = HDFSTable.cached_file.get(path)
         if not file:
-            file = self.download_hdfs_file(path, hdfs_conn_id)
+            file = self.download_hdfs_file(path, hdfs_conn_id, size)
             HDFSTable.cached_file[path] = file
         df = HDFSTable.parse_file(file, **args)
 
@@ -494,13 +495,20 @@ class HDFSTableModelView(SupersetModelView):
         return client
 
     @classmethod
-    def download_hdfs_file(cls, path, hdfs_conn_id=None):
+    def download_hdfs_file(cls, path, hdfs_conn_id=None, size=4096):
+        max_size = 1024 * 1024
         client = cls.login_file_robot(hdfs_conn_id)
-        response = client.preview(path)
-        if response.status_code != requests.codes.ok:
-            response.raise_for_status()
-        text = response.text[1:-1]
-        return "\n".join(text.split("\\n"))
+        while size <= max_size:
+            response = client.preview(path, length=size)
+            if response.status_code != requests.codes.ok:
+                response.raise_for_status()
+            file = response.text[1:-1]
+            index = file.rfind('\n')
+            if index > 0:
+                file = file[:index]
+                return file
+            size = size * 2
+        raise SupersetException("Fetched {} bytes file, but still not a complete line")
 
 
 appbuilder.add_view_no_menu(HDFSTableModelView)

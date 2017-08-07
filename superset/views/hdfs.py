@@ -167,7 +167,9 @@ class HDFSBrowser(BaseView):
     @expose('/preview/', methods=['GET'])
     def preview(self):
         path = request.args.get('path')
-        response = self.client.preview(path)
+        offset = request.args.get('offset', 0)
+        length = request.args.get('length', 16 * 1024)
+        response = self.client.preview(path, offset=offset, length=length)
         return json_response(data=response.text,
                              status=response.status_code)
 
