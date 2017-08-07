@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { Select } from 'antd';
 import { ComponentSelect } from '../../databaseList/components';
-import { switchDatasetType, fetchTypeList } from '../actions';
+import { switchDatasetType, fetchAddTypeList, fetchFilterTypeList } from '../actions';
 import PropTypes from 'prop-types';
 import {
     selectType,
@@ -16,7 +16,8 @@ class SliceOperate extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            datasetTypes: []
+            addDatasetTypes: [],
+            filterDatasetTypes: []
         };
 
         this.onChange = this.onChange.bind(this);
@@ -82,23 +83,27 @@ class SliceOperate extends React.Component {
     componentDidMount() {
         const self = this;
         const { dispatch } = self.props;
-        dispatch(fetchTypeList(callback));
-        function callback(success, data) {
+        dispatch(fetchAddTypeList(addCallback));
+        dispatch(fetchFilterTypeList(filterCallback));
+        function addCallback(success, data) {
             if(success) {
                 self.setState({
-                    datasetTypes: data
+                    addDatasetTypes: data
                 });
-            }else {
-
+            }
+        }
+        function filterCallback(success, data) {
+            if(success) {
+                self.setState({
+                    filterDatasetTypes: data
+                });
             }
         }
     }
 
     render() {
         const Option = Select.Option;
-        let datasetTypes = JSON.parse(JSON.stringify(this.state.datasetTypes));
-        datasetTypes.splice(0, 0, 'all');
-        const filterOptions = datasetTypes.map(dataset => {
+        const filterOptions = this.state.filterDatasetTypes.map(dataset => {
             return <Option key={dataset} value={dataset}>{dataset}</Option>
         });
         return (
@@ -107,7 +112,7 @@ class SliceOperate extends React.Component {
                     <li style={{ width: '130px', textAlign: 'left' }}>
                         <ComponentSelect
                             opeType='addConnect'
-                            options={this.state.datasetTypes}
+                            options={this.state.addDatasetTypes}
                             selectChange={this.selectChange}
                         >
                         </ComponentSelect>
@@ -119,7 +124,7 @@ class SliceOperate extends React.Component {
                 <div className="tab-btn">
                     <Select
                         ref="tableType"
-                        defaultValue={datasetTypes[0]}
+                        defaultValue='ALL'
                         style={{ width: 120 }}
                         onChange={this.handleSelectChange}
                     >

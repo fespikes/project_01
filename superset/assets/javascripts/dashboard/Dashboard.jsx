@@ -74,14 +74,14 @@ function initDashboardView(dashboard) {
     );
 
     // Displaying widget controls on hover
-    $('.react-grid-item').hover(
-        function () {
-            $(this).find('.chart-controls').fadeIn(300);
-        },
-        function () {
-            $(this).find('.chart-controls').fadeOut(300);
-        }
-    );
+    //$('.react-grid-item').hover(
+    //    function () {
+    //        $(this).find('.chart-controls').fadeIn(300);
+    //    },
+    //    function () {
+    //        $(this).find('.chart-controls').fadeOut(300);
+    //    }
+    //);
     $('div.grid-container').css('visibility', 'visible');
 
     $('.select2').select2({

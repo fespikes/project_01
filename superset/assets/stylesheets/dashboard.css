@@ -20,7 +20,7 @@ div.widget .chart-controls {
   top: 5px;
   padding: 5px 5px;
   opacity: 0.75;
-  display: none;
+  /*display: none;*/
 }
 .slice-grid div.widget {
   border-radius: 0;
