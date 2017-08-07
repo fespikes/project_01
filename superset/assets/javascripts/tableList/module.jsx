@@ -160,7 +160,7 @@ export function constructInceptorDataset(dataset) {
     inceptorDataset.schema = dataset.schema;
     inceptorDataset.database_id = dataset.database_id;
     inceptorDataset.sql = dataset.sql || '';
-    inceptorDataset.description = dataset.description;
+    inceptorDataset.description = dataset.description || '';
 
     return inceptorDataset;
 }
