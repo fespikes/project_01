@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import { getUrlParam } from '../../utils/utils';
 const Mustache = require('mustache');
 const utils = require('./utils');
 // vis sources
@@ -99,8 +100,9 @@ const px = function () {
             jsonEndpoint() {
                 const parser = document.createElement('a');
                 parser.href = data.json_endpoint;
-                const urlPath = data.json_endpoint.split('&');
                 let endpoint = parser.pathname + this.querystring();
+                const databaseId = getUrlParam('database_id', data.json_endpoint);
+                const tableName = getUrlParam('full_tb_name', data.json_endpoint);
                 if (endpoint.charAt(0) !== '/') {
                     // Known issue for IE <= 11:
                     // https://connect.microsoft.com/IE/feedbackdetail/view/1002846/pathname-incorrect-for-out-of-document-elements
@@ -108,7 +110,7 @@ const px = function () {
                 }
                 endpoint += '&json=true';
                 endpoint += '&force=' + this.force;
-                endpoint += '&' + urlPath[1] + '&' + urlPath[2];
+                endpoint += '&database_id=' + databaseId + '&full_tb_name=' + tableName;
                 return endpoint;
             },
             d3format(col, number) {
