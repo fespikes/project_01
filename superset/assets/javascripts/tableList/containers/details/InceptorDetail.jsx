@@ -63,7 +63,7 @@ class InceptorDetail extends Component {
     }
 
     onSelectTable(value, node) {
-        if(node.props.category === 'file') {
+        if(node.props.isLeaf) {
             let dsInceptor = {
                 ...this.state.dsInceptor,
                 table_name: value
