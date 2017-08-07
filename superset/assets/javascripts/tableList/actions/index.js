@@ -461,7 +461,7 @@ export function createDataset(dataset, callback) {
             response => {
                 if(response.ok) {
                     response.json().then(response => {
-                        if(response.success) {
+                        if(response.status === 200) {
                             callback(true, response.data);
                             dispatch(switchFetchingState(false));
                         }else {
