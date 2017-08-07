@@ -520,9 +520,29 @@ export function clearDatasetData() {
     }
 }
 
-export function fetchTypeList(callback) {
+export function fetchAddTypeList(callback) {
     return () => {
-        const url = baseURL + 'dataset_types';
+        const url = baseURL + 'add_dataset_types';
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        callback(true, response);
+                    });
+                }else {
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchFilterTypeList(callback) {
+    return () => {
+        const url = baseURL + 'filter_dataset_types';
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
@@ -744,7 +764,7 @@ function applyFetch(condition) {
             (condition.orderColumn? '&order_column=' + condition.orderColumn : '') +
             (condition.orderDirection? '&order_direction=' + condition.orderDirection : '') +
             (condition.filter? '&filter=' + condition.filter : '') +
-            (condition.tableType&&condition.tableType!=='all'? '&dataset_type=' + condition.tableType : '');
+            (condition.tableType&&condition.tableType!=='ALL'? '&dataset_type=' + condition.tableType : '');
 
         const errorHandler = error => alert(error);
         const dataMatch = json => {
