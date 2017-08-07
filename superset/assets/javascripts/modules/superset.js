@@ -99,6 +99,7 @@ const px = function () {
             jsonEndpoint() {
                 const parser = document.createElement('a');
                 parser.href = data.json_endpoint;
+                const urlPath = data.json_endpoint.split('&');
                 let endpoint = parser.pathname + this.querystring();
                 if (endpoint.charAt(0) !== '/') {
                     // Known issue for IE <= 11:
@@ -107,6 +108,7 @@ const px = function () {
                 }
                 endpoint += '&json=true';
                 endpoint += '&force=' + this.force;
+                endpoint += '&' + urlPath[1] + '&' + urlPath[2];
                 return endpoint;
             },
             d3format(col, number) {
