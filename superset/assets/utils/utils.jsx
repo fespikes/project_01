@@ -62,3 +62,13 @@ export function getEleOffsetTop(element) {
     }
     return actualTop;
 }
+
+export function getUrlParam(name, url) {
+    let reg = new RegExp("[^\?&]?" + encodeURI(name) + "=[^&]+");
+    let str = url.match(reg);
+    if(str&&str.length > 0) {
+        return str[0].substring(str[0].indexOf('=') + 1);
+    }else {
+        return '';
+    }
+}
