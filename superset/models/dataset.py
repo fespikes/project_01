@@ -30,7 +30,7 @@ from sqlalchemy.sql import table, literal_column, text, column
 from sqlalchemy.sql.expression import ColumnClause, TextAsFrom
 
 from superset import db, app, import_util, utils
-from superset.utils import wrap_clause_in_parens, DTTM_ALIAS
+from superset.utils import wrap_clause_in_parens, DTTM_ALIAS, SupersetException
 from superset.jinja_context import get_template_processor
 from .base import (
     AuditMixinNullable, ImportMixin, Queryable, QueryResult, QueryStatus
@@ -656,8 +656,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     @classmethod
     def temp_dataset(cls, database_id, full_tb_name, need_columns=True):
         """A temp dataset for slice"""
-        dataset = cls()
-        dataset.id = 0
+        dataset = cls(id=0, online=True, filter_select_enabled=True)
         if '.' in full_tb_name:
             dataset.schema, dataset.table_name = full_tb_name.split('.')
         else:
@@ -669,7 +668,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         dataset.database_id = database_id
         dataset.database = db.session.query(Database) \
             .filter_by(id=database_id).first()
-        dataset.filter_select_enabled = True
         if need_columns:
             dataset.set_temp_columns_and_metrics()
         return dataset
@@ -844,6 +842,31 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 db.session.commit()
         if not self.main_dttm_col:
             self.main_dttm_col = any_date_col
+
+    @classmethod
+    def check_online(cls, dataset, raise_if_false=True):
+        def check(obj, user_id):
+            if (hasattr(obj, 'online') and obj.online is True) or \
+                            obj.created_by_fk == user_id:
+                return True
+            return False
+
+        user_id = g.user.get_id()
+        if check(dataset, user_id) is False:
+            if raise_if_false:
+                raise SupersetException(
+                    "Associated someone's dataset: [] is offline, "
+                    "so it's unavailable.".format(dataset))
+            else:
+                return False
+        if dataset.database and check(dataset.database, user_id) is False:
+            if raise_if_false:
+                raise SupersetException(
+                    "Associated someone's connection: [] is offline, "
+                    "so it's unavailable.".format(dataset.database))
+            else:
+                return False
+        return True
 
     @classmethod
     def import_obj(cls, i_datasource, import_time=None):
