@@ -72,26 +72,26 @@ class Main extends Component {
     //S:Path 
     onPathChange(e) {
         let val = e.currentTarget.value.trim();
-        
+
         this.setState({
-            breadCrumbText: val||'/'
+            breadCrumbText: val || '/'
         })
     }
 
-    pathAdjust (val) {
-        return val.lastIndexOf('/')===val.length-1?
-            val.substr(0, val.length-1): val;
+    pathAdjust(val) {
+        return val.lastIndexOf('/') === val.length - 1 ?
+            val.substr(0, val.length - 1) : val;
     }
 
     onPathBlur(e) {
         const {dispatch, condition, changePath} = this.props;
         let val = e.currentTarget.value.trim();
-        if (val === condition.path) {
-            return;
-        }
         this.setState({
             breadCrumbEditable: false
         });
+        if (val === condition.path) {
+            return;
+        }
 
         val = this.pathAdjust(val);
 
@@ -104,7 +104,7 @@ class Main extends Component {
         this.props.changePath(ag);
     }
 
-    navigation (ag) {
+    navigation(ag) {
         ag.target.dataset.href && this.linkToPath({
             path: ag.target.dataset.href
         });
@@ -136,13 +136,13 @@ class Main extends Component {
             let deep = 1;
             let result = [];
 
-            if (path==='/') {
+            if (path === '/') {
                 result.push({
                     href: '/',
                     show: '/'
                 })
             } else {
-                arr[arr.length-1]==='/' && arr.pop();
+                arr[arr.length - 1] === '/' && arr.pop();
 
                 for (let i = 1; i <= arr.length; i++) {
                     ar.push(arr[i - 1]);
@@ -162,7 +162,7 @@ class Main extends Component {
 
 
         const breadCrumbChildren = paths.map((obj, idx) => {
-            return <a key={idx + 1} data-href={obj.href}>{(idx>=2?'/':'')+obj.show}</a>;
+            return <a key={idx + 1} data-href={obj.href}>{(idx >= 2 ? '/' : '') + obj.show}</a>;
         });
 
         return (
@@ -178,9 +178,9 @@ class Main extends Component {
             value={breadCrumbText}
             disabled={editable ? '' : 'disabled'}></textarea>*/ }
                         <span
-                            className="anchor"
-                            onClick={ag=>this.navigation(ag)}
-                        >{breadCrumbChildren}</span>
+            className="anchor"
+            onClick={ag => this.navigation(ag)}
+            >{breadCrumbChildren}</span>
                         <input
             id="breadCrumbText"
             className="editing"
@@ -209,7 +209,7 @@ class Main extends Component {
             {...response}
             giveDetail={giveDetail}
             condition={condition}
-            linkToPath={(e)=>this.linkToPath(e)}
+            linkToPath={(e) => this.linkToPath(e)}
             setSelectedRows={setSelectedRows}
             />
                 </div>
