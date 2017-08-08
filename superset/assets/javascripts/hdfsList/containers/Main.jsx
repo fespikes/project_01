@@ -70,12 +70,17 @@ class Main extends Component {
     }
 
     //S:Path 
-    pathTimer: 0;
     onPathChange(e) {
         let val = e.currentTarget.value.trim();
+        
         this.setState({
-            breadCrumbText: val
+            breadCrumbText: val||'/'
         })
+    }
+
+    pathAdjust (val) {
+        return val.lastIndexOf('/')===val.length-1?
+            val.substr(0, val.length-1): val;
     }
 
     onPathBlur(e) {
@@ -88,12 +93,11 @@ class Main extends Component {
             breadCrumbEditable: false
         });
 
-        clearTimeout(this.pathTimer);
-        this.pathTimer = setTimeout(ag => {
-            changePath({
-                path: val||'/'
-            });
-        }, 500);
+        val = this.pathAdjust(val);
+
+        changePath({
+            path: val
+        });
     }
 
     linkToPath(ag) {
@@ -138,6 +142,8 @@ class Main extends Component {
                     show: '/'
                 })
             } else {
+                arr[arr.length-1]==='/' && arr.pop();
+
                 for (let i = 1; i <= arr.length; i++) {
                     ar.push(arr[i - 1]);
                     pathString = ar.join('/');
