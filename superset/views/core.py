@@ -495,9 +495,7 @@ class Superset(BaseSupersetView):
             else:
                 cls.release(obj)  # release releated objects
                 DailyNumber.log_related_number(model, True)
-                action_str = 'Change {} and dependences to online: [{}]' \
-                    .format(model, repr(obj))
-                log_action('online', action_str, model, id)
+                log_action('online', 'Online: [{}]'.format(repr(obj)), model, id)
                 return json_response(message=ONLINE_SUCCESS)
         elif action.lower() == 'offline':
             if obj.online is False:
@@ -505,8 +503,7 @@ class Superset(BaseSupersetView):
             else:
                 obj.online = False
                 db.session.commit()
-                action_str = 'Change {} to offline: [{}]'.format(model, repr(obj))
-                log_action('offline', action_str, model, id)
+                log_action('offline', 'Offline: [{}]'.format(repr(obj)), model, id)
                 log_number(model, True, None)
                 return json_response(message=OFFLINE_SUCCESS)
         else:
