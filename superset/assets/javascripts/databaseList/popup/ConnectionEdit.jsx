@@ -184,9 +184,7 @@ class ConnectionEdit extends React.Component {
                                 <i className="icon icon-close" onClick={this.closeDialog} />
                             </div>
                         </div>
-                        <div className="popup-body-common">
-                            <div className="error" id="edit-connect-tip"></div>
-
+                        <div className="popup-body">
                             {/*S: inceptor connection body*/}
                             <div className={connectionType===types.inceptor?'':'none'} >
                                 <div className="dialog-item">
@@ -215,12 +213,12 @@ class ConnectionEdit extends React.Component {
                                         <span>描述：</span>
                                     </div>
                                     <div className="item-right">
-                                        <textarea
-                                            name = "description"
-                                            className="dialog-area"
-                                            value={database.description||' '}
-                                            onChange={this.handleInputChange}
-                                        />
+                                    <textarea
+                                        name = "description"
+                                        className="dialog-area"
+                                        value={database.description||' '}
+                                        onChange={this.handleInputChange}
+                                    />
                                     </div>
                                 </div>
 
@@ -229,13 +227,13 @@ class ConnectionEdit extends React.Component {
                                         <span>连接参数：</span>
                                     </div>
                                     <div className="item-right">
-                                        <textarea
-                                            id="connectParams"
-                                            name="databaseArgs"
-                                            className="dialog-area"
-                                            onChange={this.handleInputChange}
-                                        >
-                                        </textarea>
+                                    <textarea
+                                        id="connectParams"
+                                        name="databaseArgs"
+                                        className="dialog-area"
+                                        onChange={this.handleInputChange}
+                                    >
+                                    </textarea>
                                     </div>
                                 </label>
 
@@ -330,12 +328,12 @@ class ConnectionEdit extends React.Component {
                                         <span>描述：</span>
                                     </div>
                                     <div className="item-right">
-                                        <textarea
-                                            className="dialog-area"
-                                            name="description"
-                                            value={database.description||' '}
-                                            onChange={this.handleInputChange}
-                                        />
+                                    <textarea
+                                        className="dialog-area"
+                                        name="description"
+                                        value={database.description||' '}
+                                        onChange={this.handleInputChange}
+                                    />
                                     </div>
                                 </div>
                                 <div className="dialog-item">
@@ -382,6 +380,7 @@ class ConnectionEdit extends React.Component {
                             </div>
                             {/*E: HDFS connection*/}
                         </div>
+                        <div className="error" id="edit-connect-tip"></div>
                         <div className="popup-footer">
                             <button
                                 className="tp-btn tp-btn-middle tp-btn-primary"

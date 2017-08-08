@@ -11,7 +11,6 @@ import { getPermColumns, updatePermData, updatePermMode } from '../module'
 import { renderAlertTip } from '../../../utils/utils';
 
 import PropTypes from 'prop-types';
-import './popup.scss';
 const $ = window.$ = require('jquery');
 
 class Popup extends React.Component {
