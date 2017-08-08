@@ -101,8 +101,7 @@ class Main extends Component {
     }
 
     navigation (ag) {
-        console.log(ag.currentTarget)
-        this.linkToPath({
+        ag.target.dataset.href && this.linkToPath({
             path: ag.target.dataset.href
         });
     }
@@ -123,7 +122,10 @@ class Main extends Component {
             count = response.page.total_count;
         }
 
+        //path 
+        //related to condition;
         let translate = (path) => {
+
             let arr = path.split('/');
             let ar = [];
             let pathString;
