@@ -25,7 +25,7 @@ class Main extends Component {
 
         this.state = {
             breadCrumbEditable: false,
-            path: condition.path
+            breadCrumbText: condition.path
         };
     }
 
@@ -40,6 +40,10 @@ class Main extends Component {
 
     componentWillReceiveProps(nextProps) {
         const {condition, popupNormalParam, emitFetch} = nextProps;
+
+        this.setState({
+            breadCrumbText: condition.path
+        });
 
         if (condition.filter !== this.props.condition.filter ||
                 popupNormalParam && popupNormalParam.status === 'none' && this.props.popupNormalParam.status === 'flex' ||
@@ -66,25 +70,43 @@ class Main extends Component {
     }
 
     //S:Path 
+    pathTimer: 0;
     onPathChange(e) {
         let val = e.currentTarget.value.trim();
         this.setState({
-            path: val
-        });
+            breadCrumbText: val
+        })
     }
 
     onPathBlur(e) {
-        console.log('this is the path,', e.currentTarget.value);
         const {dispatch, condition, changePath} = this.props;
-        let val = this.state.path;
+        let val = e.currentTarget.value.trim();
         if (val === condition.path) {
             return;
         }
-        console.log('tell me what happenning');
-        changePath({
-            path: val
+        this.setState({
+            breadCrumbEditable: false
+        });
+
+        clearTimeout(this.pathTimer);
+        this.pathTimer = setTimeout(ag => {
+            changePath({
+                path: val||'/'
+            });
+        }, 500);
+    }
+
+    linkToPath(ag) {
+        this.props.changePath(ag);
+    }
+
+    navigation (ag) {
+        console.log(ag.currentTarget)
+        this.linkToPath({
+            path: ag.target.dataset.href
         });
     }
+
     //E:Path 
 
     render() {
@@ -95,41 +117,76 @@ class Main extends Component {
 
         const response = emitFetch.response;
 
-        let username = "TODO: user name";
-
-        // let count=0, breadCrumbText = `user/${username}`;
         let count = 0,
-            breadCrumbText = this.state.path || `user/${username}`;
+            breadCrumbText = this.state.breadCrumbText;
         if (response && response.page) {
             count = response.page.total_count;
-            breadCrumbText = response.path;
         }
 
-        const linkToPath = (ag) => {
-            this.setState({
-                ...ag
-            });
-            changePath(ag);
-        }
+        let translate = (path) => {
+            let arr = path.split('/');
+            let ar = [];
+            let pathString;
+            let deep = 1;
+            let result = [];
+
+            if (path==='/') {
+                result.push({
+                    href: '/',
+                    show: '/'
+                })
+            } else {
+                for (let i = 1; i <= arr.length; i++) {
+                    ar.push(arr[i - 1]);
+                    pathString = ar.join('/');
+                    let param = {
+                        href: pathString || '/',
+                        show: arr[i - 1] || '/'
+                    }
+                    result.push(param);
+                }
+            }
+
+            return result;
+        };
+
+        const paths = translate(breadCrumbText);
+
+
+        const breadCrumbChildren = paths.map((obj, idx) => {
+            return <a key={idx + 1} data-href={obj.href}>{(idx>=2?'/':'')+obj.show}</a>;
+        });
 
         return (
             <div className="hdfs-panel">
                 <div className="panel-top">
                     <div className="bread-crumb">
                         <span className="f16">路径:</span>
-                        <textarea rows="1" contentEditable={editable}
+                        { /*<textarea rows="1" contentEditable={editable}
             className={(editable ? 'editing' : '') + ' f16'}
             name="pathName"
             onBlur={e => this.onPathBlur(e)}
             onChange={e => this.onPathChange(e)}
             value={breadCrumbText}
-            disabled={editable ? '' : 'disabled'}
-            >
-                        </textarea>
+            disabled={editable ? '' : 'disabled'}></textarea>*/ }
+                        <span
+                            className="anchor"
+                            onClick={ag=>this.navigation(ag)}
+                        >{breadCrumbChildren}</span>
+                        <input
+            id="breadCrumbText"
+            className="editing"
+            type="text"
+            value={breadCrumbText}
+            style={{
+                display: (editable ? 'inline-block' : 'none')
+            }}
+            onBlur={e => this.onPathBlur(e)}
+            onChange={e => this.onPathChange(e)}
+            autoComplete="off" />
                         <i
             className="icon icon-edit ps-edit-icon"
-            onClick={() => this.breadCrumbEditable()}
-            />
+            onClick={() => this.breadCrumbEditable()} />
                     </div>
                     <div className="right">
                         <Operate
@@ -144,7 +201,7 @@ class Main extends Component {
             {...response}
             giveDetail={giveDetail}
             condition={condition}
-            linkToPath={linkToPath}
+            linkToPath={(e)=>this.linkToPath(e)}
             setSelectedRows={setSelectedRows}
             />
                 </div>

@@ -7,32 +7,45 @@
 
 $borderStyle: solid 1px #e9eaed;
 .bread-crumb{
-    span, textarea, i{
+    position: relative;
+
+    span, textarea, input, a, i{
         display: inline-block;
         float:left;
     }
-    textarea {
-        padding:0 5px;
-        margin:1px 5px 0;
-        background:transparent;
-        word-spacing:no-warp;
-        letter-spacing:1px;
+    span{
+        margin-right:8px;
     }
-    .editing {
+    .anchor a:hover{
+        text-decoration: underline;
+    }
+    .anchor a, input.editing, textarea {
+        padding:0 2px;
+        margin:1px 0 0;
+        background:transparent;
+        letter-spacing:1px;
+        font-size: 15px; font-weight:600;
+    }
+    .anchor, input.editing {
+        width:300px;
+        height:30px;
+        box-shadow: 2px 3px 3px #eee;
+    }
+    input.editing {
+        background: #fff;
+        position: absolute;
+        top: -3px; left:42px;
         border: 1px #108ee9 solid;
         padding: 2px 5px 3px;
-        margin-top:-2px;
         border-radius: 5px;
-        
     }
-
     .ps-edit-icon{
         width: 15px;
         height: 14px;
         background-position: -253px -134px;
         position: relative;
         left: 10px;
-        top: 8px
+        top: 6px
     }
 }
 
