@@ -896,7 +896,7 @@ class HDFSTable(Model, AuditMixinNullable):
     hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection.id'))
     hdfsconnection = relationship(
         'HDFSConnection',
-        backref=backref('ref_hdfs_connection', lazy='joined'),
+        backref=backref('hdfs_table', lazy='joined'),
         foreign_keys=[hdfs_connection_id]
     )
     dataset_id = Column(Integer, ForeignKey('dataset.id'))

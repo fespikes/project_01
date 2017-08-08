@@ -142,6 +142,18 @@ class SliceModelView(SupersetModelView):  # noqa
                "Connection: [{}].".format(slice, dataset, conn)
         return json_response(data=info)
 
+    @catch_exception
+    @expose("/offline_info/<id>/", methods=['GET'])
+    def offline_info(self, id):
+        slice = db.session.query(Slice).filter_by(id=id).first()
+        if not slice:
+            raise SupersetException(
+                '{}: Slice.id={}'.format(OBJECT_NOT_FOUND, id))
+        dashs = slice.dashboards
+        info = "Changing slice [{}] to be offline will make it invisible " \
+               "in these dashboards: {}".format(slice, dashs)
+        return json_response(data=info)
+
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
         table = db.session.query(Dataset) \
@@ -381,6 +393,17 @@ class DashboardModelView(SupersetModelView):  # noqa
                "Slice: {},\n" \
                "Dataset: {},\n" \
                "Connection: {}.".format(dash.dashboard_title, slices, dataset, conns)
+        return json_response(data=info)
+
+    @catch_exception
+    @expose("/offline_info/<id>/", methods=['GET'])
+    def offline_info(self, id):
+        dash = db.session.query(Dashboard).filter_by(id=id).first()
+        if not dash:
+            raise SupersetException(
+                '{}: Dashboard.id={}'.format(OBJECT_NOT_FOUND, id))
+        info = "Changing dashboard [{}] to be offline will make it invisible " \
+               "for other users.".format(dash)
         return json_response(data=info)
 
     @catch_exception

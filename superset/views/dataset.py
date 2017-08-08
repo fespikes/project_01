@@ -22,7 +22,7 @@ from superset import app, db, appbuilder
 from superset.utils import SupersetException
 from superset.models import (
     Database, Dataset, HDFSTable, HDFSConnection, Log, DailyNumber,
-    TableColumn, SqlMetric
+    TableColumn, SqlMetric, Slice
 )
 from superset.message import *
 from .base import (
@@ -227,6 +227,18 @@ class DatasetModelView(SupersetModelView):  # noqa
                 '{}: Dataset.id={}'.format(OBJECT_NOT_FOUND, id))
         info = "Releasing dataset [{}] will release all associated objects too:\n" \
                "Connection: [{}].".format(dataset, dataset.database)
+        return json_response(data=info)
+
+    @catch_exception
+    @expose("/offline_info/<id>/", methods=['GET'])
+    def offline_info(self, id):
+        dataset = db.session.query(Dataset).filter_by(id=id).first()
+        if not dataset:
+            raise SupersetException(
+                '{}: Dataset.id={}'.format(OBJECT_NOT_FOUND, id))
+        slices = db.session.query(Slice).filter_by(datasource_id=id).all()
+        info = "Changing dataset [{}] to be offline will make these slices " \
+               "unusable: {}".format(dataset, slices)
         return json_response(data=info)
 
     @catch_exception
