@@ -32,7 +32,7 @@ class App extends Component {
         const {dispatch, lists, conditions} = this.props;
 
         return (
-            <div className="slice-panel">
+            <div className="pilot-panel slice-panel">
                 <div className="panel-top">
                     <div className="left">
                         <i className="icon icon-slice"></i>

@@ -4,7 +4,6 @@ import { bindActionCreators } from 'redux';
 import { fetchIfNeeded, setPopupParam, popupActions } from '../actions';
 import { Pagination, Table, Operate } from '../components';
 import { Popup } from '../components';
-import '../style/popupAdd.scss';
 import PropTypes from 'prop-types';
 import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
 
@@ -56,7 +55,7 @@ class App extends Component {
         const count = response&&response.count ||0;
 
         return (
-            <div className="datasource-panel">
+            <div className="pilot-panel datasource-panel">
                 <div className="popupContainer">
                     <Popup
                         {...popupParam}

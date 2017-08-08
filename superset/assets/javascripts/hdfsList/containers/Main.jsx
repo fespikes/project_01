@@ -6,8 +6,6 @@ import { Pagination, Table, Operate, PopupConnections } from '../components';
 import PropTypes from 'prop-types';
 import { renderLoadingModal } from '../../../utils/utils';
 
-import '../style/hdfs.scss';
-
 class Main extends Component {
 
     getChildContext() {
@@ -46,10 +44,10 @@ class Main extends Component {
         });
 
         if (condition.filter !== this.props.condition.filter ||
-                popupNormalParam && popupNormalParam.status === 'none' && this.props.popupNormalParam.status === 'flex' ||
-                condition.path !== this.props.condition.path ||
-                condition.page_num !== this.props.condition.page_num ||
-                condition.page_size !== this.props.condition.page_size
+            popupNormalParam && popupNormalParam.status === 'none' && this.props.popupNormalParam.status === 'flex' ||
+            condition.path !== this.props.condition.path ||
+            condition.page_num !== this.props.condition.page_num ||
+            condition.page_size !== this.props.condition.page_size
         ) {
             this.props.fetchIfNeeded(condition);
         }
@@ -106,7 +104,7 @@ class Main extends Component {
         });
     }
 
-    //E:Path 
+    //E:Path
 
     render() {
         const {changePath, giveDetail, condition, emitFetch, fetchIfNeeded, popupChangeStatus, setSelectedRows} = this.props;
@@ -122,7 +120,7 @@ class Main extends Component {
             count = response.page.total_count;
         }
 
-        //path 
+        //path
         //related to condition;
         let translate = (path) => {
 
@@ -160,7 +158,7 @@ class Main extends Component {
         });
 
         return (
-            <div className="hdfs-panel">
+            <div className="pilot-panel hdfs-panel">
                 <div className="panel-top">
                     <div className="bread-crumb">
                         <span className="f16">路径:</span>

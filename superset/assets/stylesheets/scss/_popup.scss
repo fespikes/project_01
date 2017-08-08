@@ -12,6 +12,9 @@ $borderRadius:4px;
 .tp-btn-primary{
     background-color:#2acc28;
 }
+.none{
+    display: none;
+}
 
 button:disabled {
     opacity: 0.5;
@@ -58,6 +61,7 @@ button.test-connect {
     }
 }
 
+/* single dialog css style start  */
 .popup {
     position: fixed;
     width: 100%;
@@ -98,7 +102,7 @@ button.test-connect {
     .popup-body {
         width: 100%;
         min-height: 200px;
-        padding: 20px 40px;
+        padding: 20px 0;
     }
 
     .popup-footer {
@@ -115,16 +119,15 @@ button.test-connect {
         display:flex;
         align-items:center;
         .item-left {
-            width: 17%;
+            width: 120px;
+            margin-right: 10px;
             text-align:right;
-            
             .item-label {
                 color: #7f8fa4;
             }
         }
         .item-right {
-            width: 83%;
-
+            width: 420px;
             .dialog-area{
                 width:100%;
                 height:79px;
@@ -151,21 +154,25 @@ button.test-connect {
         }
     }
     .sub-item {
-        width: 50%;
         display:flex;
         .item-left {
-            width: 30%;
+            width: 120px;
             text-align:right;
 
         }
         .item-right {
-            width: 70%;
-
+            width: 150px;
         }
+    }
+
+    input.dialog-input, textarea.dialog-area {
+        color: #333333;
+        font-size: 12px;
     }
 
     input.dialog-input {
         height: 32px;
+        padding: 10px;
     }
 
     input.dialog-input-sm {
@@ -175,24 +182,107 @@ button.test-connect {
     input.inline {
         display: inline;
     }
-
-    input.dialog-area {
-
+    textarea.dialog-area {
+        resize: none;
+        &:focus {
+            outline: 1px solid #66afe9;
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+        }
     }
-    .error {
-        margin-bottom: 20px;
+    .ant-select-selection__rendered {
+        margin-left: 10px;
+    }
+    .error, .warning {
+        margin: 20px 40px;
         .ant-alert {
+            min-height: 100px;
             padding: 5px 5px 5px 60px;
         }
     }
-    .warning {
-        margin-top: 30px;
-        .ant-alert {
-            min-height: 100px;
-        }
+}
+/* single dialog css style end  */
+
+/* multiple dialog css style start  */
+
+.popup {
+    left: 0;
+    top: 0;
+    .data-detail-item{
+        margin-bottom:10px;
+        align-items: center;
+        display:flex;
+        position: relative;
+    }
+    .data-detail-checkbox{
+        display: flex;
+        align-items: center;
+    }
+    .data-detail-checkbox>p{
+        font-size:12px;
+        color:#1d2531;
+        padding-left:10px;
+    }
+    .data-detail-item>.infor-icon{
+        width:16px;
+        height:16px;
+        background-position:-290px -251px;
+        margin-left:5px;
+    }
+    .data-detail-item>span{
+        color:#7c8ca5;
+        font-size:12px;
+        display:block;
+        width:120px;
+        text-align:right;
+        margin-right:10px;
+    }
+    .data-detail-item>input{
+        width:420px;
+        height:34px;
+        border-radius: 4px;
+        border:1px solid #dfe3e9;
+        padding-left:10px;
+        box-sizing: border-box;
+    }
+    .data-detail-item>textarea{
+        width:782px;
+        height:89px;
+        border-radius: 4px;
+        border:1px solid #dfe3e9;
+        box-sizing: border-box;
+        padding:10px;
+        resize: none;
+    }
+    .data-detail-item>dl{
+        display: flex;
+        align-items: center;
+        padding-right:38px;
+    }
+    .data-detail-item dd{
+        margin-left:10px;
+        color:#7f8fa4;
+        font-size:12px;
+    }
+    .data-detail-item>dl>.active{
+        color:#1d2531;
+    }
+    .data-detail-item
+    .ant-select-selection.ant-select-selection--single{
+        border:1px #ddd solid;
+    }
+    .icon-infor-ps{
+        margin-left:10px;
+    }
+    .alert-wrapper{
+        border: 1px #ddd solid;
+        margin: 0 0 20px;
+        height: 40px;
     }
 }
 
+/* multiple dialog css style end  */
+
+/*  overlay modal-dialog css start */
 .popup-modal-add-slice .modal-dialog {
     width: 900px;
     .search-input{
@@ -213,8 +303,6 @@ button.test-connect {
     }
 }
 
-/*  overlay modal-dialog css  */
-
 .modal-dialog{
     display: flex;
     justify-content: center;
@@ -231,7 +319,7 @@ button.test-connect {
         }
 
         .modal-body {
-
+            padding: 20px 0;
             .form-group .radio {
                 width: 100%;
                 height: 20px;
@@ -243,13 +331,12 @@ button.test-connect {
                 display:flex;
                 align-items:center;
                 .item-left {
-                    width: 15%;
+                    width: 120px;
                     text-align:right;
 
                 }
                 .item-right {
-                    width: 85%;
-
+                    width: 420px;
                     .dialog-area{
                         width:100%;
                         height:79px;
@@ -258,6 +345,10 @@ button.test-connect {
                         padding:10px;
                     }
                 }
+            }
+            input.dialog-input {
+                height: 32px;
+                padding: 10px;
             }
         }
 
@@ -281,5 +372,6 @@ button.test-connect {
         }
     }
 }
+/*  overlay modal-dialog css start */
 
 

@@ -3,4 +3,3 @@
  */
 export InceptorDetail from './InceptorDetail';
 export HDFSUploadDetail from './HDFSUploadDetail';
-export UploadDetail from './UploadDetail';
