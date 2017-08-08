@@ -219,6 +219,17 @@ class DatasetModelView(SupersetModelView):  # noqa
             return dataset.preview_data(limit=rows)
 
     @catch_exception
+    @expose("/online_info/<id>/", methods=['GET'])
+    def online_info(self, id):
+        dataset = db.session.query(Dataset).filter_by(id=id).first()
+        if not dataset:
+            raise SupersetException(
+                '{}: Dataset.id={}'.format(OBJECT_NOT_FOUND, id))
+        info = "Releasing dataset [{}] will release all associated objects too:\n" \
+               "Connection: [{}].".format(dataset, dataset.database)
+        return json_response(data=info)
+
+    @catch_exception
     @expose('/add', methods=['POST', ])
     def add(self):
         args = self.get_request_data()

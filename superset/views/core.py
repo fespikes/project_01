@@ -128,6 +128,20 @@ class SliceModelView(SupersetModelView):  # noqa
         log_action('delete', action_str, 'slice', obj.id)
         log_number('slice', obj.online, get_user_id())
 
+    @catch_exception
+    @expose("/online_info/<id>/", methods=['GET'])
+    def online_info(self, id):
+        slice = db.session.query(Slice).filter_by(id=id).first()
+        if not slice:
+            raise SupersetException(
+                '{}: Slice.id={}'.format(OBJECT_NOT_FOUND, id))
+        dataset = slice.datasource
+        conn = dataset.database if dataset else None
+        info = "Releasing slice [{}] will release all associated objects too:\n" \
+               "Dataset: [{}],\n" \
+               "Connection: [{}].".format(slice, dataset, conn)
+        return json_response(data=info)
+
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
         table = db.session.query(Dataset) \
@@ -352,6 +366,22 @@ class DashboardModelView(SupersetModelView):  # noqa
             msg = "Some slices are not found by ids: {}".format(ids)
             self.handle_exception(404, Exception, msg)
         return objs
+
+    @catch_exception
+    @expose("/online_info/<id>/", methods=['GET'])
+    def online_info(self, id):
+        dash = db.session.query(Dashboard).filter_by(id=id).first()
+        if not dash:
+            raise SupersetException(
+                '{}: Dashboard.id={}'.format(OBJECT_NOT_FOUND, id))
+        slices = dash.slices
+        dataset = list(set([s.datasource for s in slices]))
+        conns = list(set([d.database for d in dataset]))
+        info = "Releasing dashboard [{}] will release all associated objects too:\n" \
+               "Slice: {},\n" \
+               "Dataset: {},\n" \
+               "Connection: {}.".format(dash.dashboard_title, slices, dataset, conns)
+        return json_response(data=info)
 
     @catch_exception
     @expose("/import/", methods=['GET', 'POST'])
