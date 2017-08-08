@@ -412,7 +412,7 @@ class Superset(BaseSupersetView):
         else:
             viz_type = args.get('viz_type', 'table')
             if database_id and full_tb_name:
-                datasource = Dataset.temp_table(database_id, full_tb_name)
+                datasource = Dataset.temp_dataset(database_id, full_tb_name)
             else:
                 datasource = SourceRegistry.get_datasource(
                     datasource_type, datasource_id, db.session)

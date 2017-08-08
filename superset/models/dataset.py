@@ -50,7 +50,7 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = 'table_columns'
     id = Column(Integer, primary_key=True)
     dataset_id = Column(Integer, ForeignKey('dataset.id'))
-    dataset = relationship(
+    ref_dataset = relationship(
         'Dataset',
         backref=backref('ref_columns', cascade='all, delete-orphan'),
         foreign_keys=[dataset_id])
@@ -84,9 +84,14 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
         'filterable', 'expression', 'description', 'python_date_format',
         'database_expression'
     )
+    temp_dataset = None
 
     def __repr__(self):
         return self.column_name
+
+    @property
+    def dataset(self):
+        return self.temp_dataset if self.temp_dataset else self.ref_dataset
 
     @property
     def isnum(self):
@@ -175,7 +180,7 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
     verbose_name = Column(String(128))
     metric_type = Column(String(32))
     dataset_id = Column(Integer, ForeignKey('dataset.id'))
-    dataset = relationship(
+    ref_dataset = relationship(
         'Dataset',
         backref=backref('ref_metrics', cascade='all, delete-orphan'),
         foreign_keys=[dataset_id])
@@ -191,9 +196,14 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
     export_fields = (
         'metric_name', 'verbose_name', 'metric_type', 'table_id', 'expression',
         'description', 'is_restricted', 'd3format')
+    temp_dataset = None
 
     def __repr__(self):
         return self.metric_name
+
+    @property
+    def dataset(self):
+        return self.temp_dataset if self.temp_dataset else self.ref_dataset
 
     @property
     def sqla_col(self):
@@ -644,22 +654,25 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                             .format(self.table_name, self.schema))
 
     @classmethod
-    def temp_table(cls, database_id, full_tb_name, need_columns=True):
-        """A temp table for slice"""
-        table = cls()
-        table.id = 0
+    def temp_dataset(cls, database_id, full_tb_name, need_columns=True):
+        """A temp dataset for slice"""
+        dataset = cls()
+        dataset.id = 0
         if '.' in full_tb_name:
-            table.schema, table.table_name = full_tb_name.split('.')
+            dataset.schema, dataset.table_name = full_tb_name.split('.')
         else:
-            table.table_name = full_tb_name
-        table.dataset_name = table.table_name
-        table.database_id = database_id
-        table.database = db.session.query(Database) \
+            dataset.table_name = full_tb_name
+        dataset.dataset_name = '{}_{}'.format(
+            dataset.table_name,
+            ''.join(random.sample(string.ascii_lowercase, 10))
+        )
+        dataset.database_id = database_id
+        dataset.database = db.session.query(Database) \
             .filter_by(id=database_id).first()
-        table.filter_select_enabled = True
+        dataset.filter_select_enabled = True
         if need_columns:
-            table.set_temp_columns_and_metrics()
-        return table
+            dataset.set_temp_columns_and_metrics()
+        return dataset
 
     def set_temp_columns_and_metrics(self):
         """Get table's columns and metrics"""
@@ -673,13 +686,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 datatype = "{}".format(col.type).upper()
             except Exception as e:
                 datatype = "UNKNOWN"
-                logging.error(
-                    "Unrecognized data type in {}.{}".format(table, col.name))
+                logging.error("Unrecognized data type in {}.{}".format(table, col.name))
                 logging.exception(e)
 
-            new_col = TableColumn()
-            new_col.column_name = col.name
-            new_col.type = datatype
+            new_col = TableColumn(temp_dataset=self, column_name=col.name, type=datatype)
             new_col.groupby = new_col.is_string
             new_col.filterable = new_col.is_string
             new_col.sum = new_col.isnum
@@ -693,46 +703,46 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             quoted = "{}".format(
                 column(new_col.column_name).compile(dialect=db.engine.dialect))
             if new_col.sum:
-                new_metric = SqlMetric()
-                new_metric.metric_name = 'sum__' + new_col.column_name
-                new_metric.verbose_name = 'sum__' + new_col.column_name
-                new_metric.metric_type = 'sum'
-                new_metric.expression = "SUM({})".format(quoted)
+                new_metric = SqlMetric(temp_dataset=self,
+                                       metric_name='sum__' + new_col.column_name,
+                                       verbose_name='sum__' + new_col.column_name,
+                                       metric_type='sum',
+                                       expression='SUM({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
             if new_col.avg:
-                new_metric = SqlMetric()
-                new_metric.metric_name = 'avg__' + new_col.column_name
-                new_metric.verbose_name = 'avg__' + new_col.column_name
-                new_metric.metric_type = 'avg'
-                new_metric.expression = "AVG({})".format(quoted)
+                new_metric = SqlMetric(temp_dataset=self,
+                                       metric_name='avg__' + new_col.column_name,
+                                       verbose_name='avg__' + new_col.column_name,
+                                       metric_type='avg',
+                                       expression='AVG({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
             if new_col.max:
-                new_metric = SqlMetric()
-                new_metric.metric_name = 'max__' + new_col.column_name
-                new_metric.verbose_name = 'max__' + new_col.column_name
-                new_metric.metric_type = 'max'
-                new_metric.expression = "MAX({})".format(quoted)
+                new_metric = SqlMetric(temp_dataset=self,
+                                       metric_name='max__' + new_col.column_name,
+                                       verbose_name='max__' + new_col.column_name,
+                                       metric_type='max',
+                                       expression='MAX({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
             if new_col.min:
-                new_metric = SqlMetric()
-                new_metric.metric_name = 'min__' + new_col.column_name
-                new_metric.verbose_name = 'min__' + new_col.column_name
-                new_metric.metric_type = 'min'
-                new_metric.expression = "MIN({})".format(quoted)
+                new_metric = SqlMetric(temp_dataset=self,
+                                       metric_name='min__' + new_col.column_name,
+                                       verbose_name='min__' + new_col.column_name,
+                                       metric_type='min',
+                                       expression='MIN({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
             if new_col.count_distinct:
-                new_metric = SqlMetric()
-                new_metric.metric_name = 'count_distinct__' + new_col.column_name
-                new_metric.verbose_name = 'count_distinct__' + new_col.column_name
-                new_metric.metric_type = 'count_distinct'
-                new_metric.expression = "COUNT(DISTINCT {})".format(quoted)
+                new_metric = SqlMetric(temp_dataset=self,
+                                       metric_name='count_distinct__' + new_col.column_name,
+                                       verbose_name='count_distinct__' + new_col.column_name,
+                                       metric_type='count_distinct',
+                                       expression='COUNT(DISTINCT {})'.format(quoted))
                 self.temp_metrics.append(new_metric)
 
-        new_metric = SqlMetric()
-        new_metric.metric_name = 'count'
-        new_metric.verbose_name = 'COUNT(*)'
-        new_metric.metric_type = 'count'
-        new_metric.expression = "COUNT(*)"
+        new_metric = SqlMetric(temp_dataset=self,
+                               metric_name='count',
+                               verbose_name='COUNT(*)',
+                               metric_type='count',
+                               expression='COUNT(*)')
         self.temp_metrics.append(new_metric)
         if not self.main_dttm_col:
             self.main_dttm_col = any_date_col
