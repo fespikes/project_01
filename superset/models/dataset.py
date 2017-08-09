@@ -241,7 +241,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     database_id = Column(Integer, ForeignKey('dbs.id'), nullable=False)
     database = relationship(
         'Database',
-        backref=backref('dataset', cascade='all, delete-orphan'),
+        backref=backref('dataset'),
         foreign_keys=[database_id])
 
     user_id = Column(Integer, ForeignKey('ab_user.id'))
