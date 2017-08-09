@@ -242,6 +242,22 @@ class DatasetModelView(SupersetModelView):  # noqa
         return json_response(data=info)
 
     @catch_exception
+    @expose("/delete_info/<id>/", methods=['GET'])
+    def delete_info(self, id):
+        objects = self.associated_objects(id)
+        info = "Deleting dataset [{}] will make these slices unusable: {}"\
+            .format(objects.get('dataset'), objects.get('slice'))
+        return json_response(data=info)
+
+    def associated_objects(self, id):
+        dataset = db.session.query(Dataset).filter_by(id=id).first()
+        if not dataset:
+            raise SupersetException(
+                '{}: Dataset.id={}'.format(OBJECT_NOT_FOUND, id))
+        slices = db.session.query(Slice).filter_by(datasource_id=id).all()
+        return {'dataset': dataset, 'slice': slices}
+
+    @catch_exception
     @expose('/add', methods=['POST', ])
     def add(self):
         args = self.get_request_data()
