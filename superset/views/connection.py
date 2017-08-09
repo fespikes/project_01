@@ -301,7 +301,7 @@ class HDFSConnectionModelView(SupersetModelView):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         objects = self.associated_objects(id)
-        info = "Changing hdfs connection [{}] to be offline will make these unusable:\n" \
+        info = "Deleting hdfs connection [{}] will make these unusable:\n" \
                "Dataset: {},\nSlice: {}."\
             .format(objects.get('hdfs_connection'),
                     objects.get('dataset'),
