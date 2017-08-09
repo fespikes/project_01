@@ -463,6 +463,7 @@ export function createDataset(dataset, callback) {
                     response.json().then(response => {
                         if(response.status === 200) {
                             callback(true, response.data);
+                            dispatch(saveInceptorDataset(dataset));
                             dispatch(switchFetchingState(false));
                         }else {
                             callback(false, response.message);

@@ -131,7 +131,7 @@ class SliceOperate extends React.Component {
                         {filterOptions}
                     </Select>
                 </div>
-                <div className="search-input">
+                <div className="search-input" style={{marginRight: 0}}>
                     <input onKeyUp={this.onEnterSearch} onChange={this.onChange} ref="searchField" placeholder="search..." />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon" />
 
