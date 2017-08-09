@@ -163,21 +163,12 @@ class DatabaseView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        database = db.session.query(Database).filter_by(id=id).first()
-        if not database:
-            raise SupersetException(
-                '{}: Database.id={}'.format(OBJECT_NOT_FOUND, id))
-        dataset = database.dataset
-        dataset_ids = [d.id for d in dataset]
-        slices = db.session.query(Slice)\
-            .filter(
-                or_(Slice.datasource_id.in_(dataset_ids),
-                    Slice.database_id == id)
-            )\
-            .all()
+        objects = self.associated_objects(id)
         info = "Changing inceptor connection [{}] to be offline will make these unusable:\n" \
-               "Dataset: {},\n" \
-               "Slice: {}.".format(database, dataset, slices)
+               "Dataset: {},\nSlice: {}."\
+            .format(objects.get('database'),
+                    objects.get('dataset'),
+                    objects.get('slice'))
         return json_response(data=info)
 
     @catch_exception
@@ -282,19 +273,12 @@ class HDFSConnectionModelView(SupersetModelView):
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        hconn = db.session.query(HDFSConnection).filter_by(id=id).first()
-        if not hconn:
-            raise SupersetException(
-                '{}: HDFSConnection.id={}'.format(OBJECT_NOT_FOUND, id))
-        hdfs_tables = hconn.hdfs_table
-        dataset = [t.dataset for t in hdfs_tables]
-        dataset_ids = [d.id for d in dataset]
-        slices = db.session.query(Slice) \
-            .filter(Slice.datasource_id.in_(dataset_ids)) \
-            .all()
+        objects = self.associated_objects(id)
         info = "Changing hdfs connection [{}] to be offline will make these unusable:\n" \
-               "Dataset: {},\n" \
-               "Slice: {}.".format(hconn, dataset, slices)
+               "Dataset: {},\n Slice: {}."\
+            .format(objects.get('hdfs_connection'),
+                    objects.get('dataset'),
+                    objects.get('slice'))
         return json_response(data=info)
 
     @catch_exception

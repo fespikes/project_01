@@ -232,13 +232,9 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        dataset = db.session.query(Dataset).filter_by(id=id).first()
-        if not dataset:
-            raise SupersetException(
-                '{}: Dataset.id={}'.format(OBJECT_NOT_FOUND, id))
-        slices = db.session.query(Slice).filter_by(datasource_id=id).all()
+        objects = self.associated_objects(id)
         info = "Changing dataset [{}] to be offline will make these slices " \
-               "unusable: {}".format(dataset, slices)
+               "unusable: {}".format(objects.get('dataset'), objects.get('slice'))
         return json_response(data=info)
 
     @catch_exception

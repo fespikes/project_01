@@ -145,13 +145,10 @@ class SliceModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        slice = db.session.query(Slice).filter_by(id=id).first()
-        if not slice:
-            raise SupersetException(
-                '{}: Slice.id={}'.format(OBJECT_NOT_FOUND, id))
-        dashs = slice.dashboards
+        objects = self.associated_objects(id)
         info = "Changing slice [{}] to be offline will make it invisible " \
-               "in these dashboards: {}".format(slice, dashs)
+               "in these dashboards: {}"\
+            .format(objects.get('slice'), objects.get('dashboard'))
         return json_response(data=info)
 
     @catch_exception
