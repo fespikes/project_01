@@ -140,7 +140,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     datamodel = SQLAInterface(Dataset)
     route_base = '/table'
     list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url',
-                    'connection', 'changed_on']
+                    'connection', 'changed_on', 'online']
     add_columns = ['dataset_name', 'dataset_type', 'database_id', 'description',
                    'schema', 'table_name', 'sql']
     show_columns = add_columns + ['id']
