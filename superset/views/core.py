@@ -128,6 +128,32 @@ class SliceModelView(SupersetModelView):  # noqa
         log_action('delete', action_str, 'slice', obj.id)
         log_number('slice', obj.online, get_user_id())
 
+    @catch_exception
+    @expose("/online_info/<id>/", methods=['GET'])
+    def online_info(self, id):
+        slice = db.session.query(Slice).filter_by(id=id).first()
+        if not slice:
+            raise SupersetException(
+                '{}: Slice.id={}'.format(OBJECT_NOT_FOUND, id))
+        dataset = slice.datasource
+        conn = dataset.database if dataset else None
+        info = "Releasing slice [{}] will release all associated objects too:\n" \
+               "Dataset: [{}],\n" \
+               "Connection: [{}].".format(slice, dataset, conn)
+        return json_response(data=info)
+
+    @catch_exception
+    @expose("/offline_info/<id>/", methods=['GET'])
+    def offline_info(self, id):
+        slice = db.session.query(Slice).filter_by(id=id).first()
+        if not slice:
+            raise SupersetException(
+                '{}: Slice.id={}'.format(OBJECT_NOT_FOUND, id))
+        dashs = slice.dashboards
+        info = "Changing slice [{}] to be offline will make it invisible " \
+               "in these dashboards: {}".format(slice, dashs)
+        return json_response(data=info)
+
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
         table = db.session.query(Dataset) \
@@ -354,6 +380,33 @@ class DashboardModelView(SupersetModelView):  # noqa
         return objs
 
     @catch_exception
+    @expose("/online_info/<id>/", methods=['GET'])
+    def online_info(self, id):
+        dash = db.session.query(Dashboard).filter_by(id=id).first()
+        if not dash:
+            raise SupersetException(
+                '{}: Dashboard.id={}'.format(OBJECT_NOT_FOUND, id))
+        slices = dash.slices
+        dataset = list(set([s.datasource for s in slices]))
+        conns = list(set([d.database for d in dataset]))
+        info = "Releasing dashboard [{}] will release all associated objects too:\n" \
+               "Slice: {},\n" \
+               "Dataset: {},\n" \
+               "Connection: {}.".format(dash.dashboard_title, slices, dataset, conns)
+        return json_response(data=info)
+
+    @catch_exception
+    @expose("/offline_info/<id>/", methods=['GET'])
+    def offline_info(self, id):
+        dash = db.session.query(Dashboard).filter_by(id=id).first()
+        if not dash:
+            raise SupersetException(
+                '{}: Dashboard.id={}'.format(OBJECT_NOT_FOUND, id))
+        info = "Changing dashboard [{}] to be offline will make it invisible " \
+               "for other users.".format(dash)
+        return json_response(data=info)
+
+    @catch_exception
     @expose("/import/", methods=['GET', 'POST'])
     def import_dashboards(self):
         """Overrides the dashboards using pickled instances from the file."""
@@ -442,9 +495,7 @@ class Superset(BaseSupersetView):
             else:
                 cls.release(obj)  # release releated objects
                 DailyNumber.log_related_number(model, True)
-                action_str = 'Change {} and dependences to online: [{}]' \
-                    .format(model, repr(obj))
-                log_action('online', action_str, model, id)
+                log_action('online', 'Online: [{}]'.format(repr(obj)), model, id)
                 return json_response(message=ONLINE_SUCCESS)
         elif action.lower() == 'offline':
             if obj.online is False:
@@ -452,8 +503,7 @@ class Superset(BaseSupersetView):
             else:
                 obj.online = False
                 db.session.commit()
-                action_str = 'Change {} to offline: [{}]'.format(model, repr(obj))
-                log_action('offline', action_str, model, id)
+                log_action('offline', 'Offline: [{}]'.format(repr(obj)), model, id)
                 log_number(model, True, None)
                 return json_response(message=OFFLINE_SUCCESS)
         else:
@@ -479,6 +529,7 @@ class Superset(BaseSupersetView):
                 database_id=database_id,
                 full_tb_name=full_tb_name,
                 args=request.args)
+            Dataset.check_online(viz_obj.datasource)
         except Exception as e:
             logging.exception(e)
             return Response(utils.error_msg_from_exception(e), status=500)

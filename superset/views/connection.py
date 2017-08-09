@@ -15,7 +15,8 @@ import sqlalchemy as sqla
 from sqlalchemy import select, literal, cast, or_, and_
 
 from superset import app, db, models, appbuilder
-from superset.models import Database, HDFSConnection
+from superset.models import Database, HDFSConnection, Slice
+from superset.utils import SupersetException
 from superset.message import *
 from .base import (
     SupersetModelView, BaseSupersetView, PageMixin, catch_exception,
@@ -148,6 +149,37 @@ class DatabaseView(SupersetModelView):  # noqa
         response['data'] = data
         return response
 
+    @catch_exception
+    @expose("/online_info/<id>/", methods=['GET'])
+    def online_info(self, id):
+        database = db.session.query(Database).filter_by(id=id).first()
+        if not database:
+            raise SupersetException(
+                '{}: Database.id={}'.format(OBJECT_NOT_FOUND, id))
+        info = "Releasing inceptor connection [{}] will not release associated objects."\
+            .format(database)
+        return json_response(data=info)
+
+    @catch_exception
+    @expose("/offline_info/<id>/", methods=['GET'])
+    def offline_info(self, id):
+        database = db.session.query(Database).filter_by(id=id).first()
+        if not database:
+            raise SupersetException(
+                '{}: Database.id={}'.format(OBJECT_NOT_FOUND, id))
+        dataset = database.dataset
+        dataset_ids = [d.id for d in dataset]
+        slices = db.session.query(Slice)\
+            .filter(
+                or_(Slice.datasource_id.in_(dataset_ids),
+                    Slice.database_id == id)
+            )\
+            .all()
+        info = "Changing inceptor connection [{}] to be offline will make these unusable:\n" \
+               "Dataset: {},\n" \
+               "Slice: {}.".format(database, dataset, slices)
+        return json_response(data=info)
+
 
 class HDFSConnectionModelView(SupersetModelView):
     model = models.HDFSConnection
@@ -209,6 +241,35 @@ class HDFSConnectionModelView(SupersetModelView):
         action_str = 'Delete hdfsconnection: [{}]'.format(repr(conn))
         log_action('delete', action_str, 'dataset', conn.id)
         log_number('connection', conn.online, get_user_id())
+
+    @catch_exception
+    @expose("/online_info/<id>/", methods=['GET'])
+    def online_info(self, id):
+        hconn = db.session.query(HDFSConnection).filter_by(id=id).first()
+        if not hconn:
+            raise SupersetException(
+                '{}: HDFSConnection.id={}'.format(OBJECT_NOT_FOUND, id))
+        info = "Releasing hdfs connection [{}] will not release associated objects." \
+            .format(hconn)
+        return json_response(data=info)
+
+    @catch_exception
+    @expose("/offline_info/<id>/", methods=['GET'])
+    def offline_info(self, id):
+        hconn = db.session.query(HDFSConnection).filter_by(id=id).first()
+        if not hconn:
+            raise SupersetException(
+                '{}: HDFSConnection.id={}'.format(OBJECT_NOT_FOUND, id))
+        hdfs_tables = hconn.hdfs_table
+        dataset = [t.dataset for t in hdfs_tables]
+        dataset_ids = [d.id for d in dataset]
+        slices = db.session.query(Slice) \
+            .filter(Slice.datasource_id.in_(dataset_ids)) \
+            .all()
+        info = "Changing hdfs connection [{}] to be offline will make these unusable:\n" \
+               "Dataset: {},\n" \
+               "Slice: {}.".format(hconn, dataset, slices)
+        return json_response(data=info)
 
 
 class ConnectionView(BaseSupersetView, PageMixin):
