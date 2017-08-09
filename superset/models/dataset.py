@@ -846,6 +846,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     @classmethod
     def check_online(cls, dataset, raise_if_false=True):
         def check(obj, user_id):
+            user_id = int(user_id)
             if (hasattr(obj, 'online') and obj.online is True) or \
                             obj.created_by_fk == user_id:
                 return True
