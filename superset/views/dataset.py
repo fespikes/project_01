@@ -339,7 +339,9 @@ class DatasetModelView(SupersetModelView):  # noqa
 
         query = db.session.query(Dataset, User) \
             .filter(Dataset.created_by_fk == User.id,
-                    Dataset.created_by_fk == user_id)
+                    or_(Dataset.created_by_fk == user_id,
+                        Dataset.online == 1)
+                    )
 
         if dataset_type:
             query = query.filter(Dataset.dataset_type.ilike(dataset_type))
