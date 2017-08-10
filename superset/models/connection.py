@@ -33,6 +33,8 @@ from guardian_common_python.conf.GuardianConfiguration import GuardianConfigurat
 from guardian_common_python.conf.GuardianVars import GuardianVars
 
 from superset import db, app, db_engine_specs
+from superset.utils import SupersetException
+from superset.message import NEED_PASSWORD_FOR_KEYTAB
 from .base import AuditMixinNullable
 
 config = app.config
@@ -296,10 +298,11 @@ class Database(Model, AuditMixinNullable):
         if connect_args.get('mech', '').lower() == 'kerberos':
             dir = config.get('KETTAB_TMP_DIR', '/tmp/keytab')
             server = config.get('GUARDIAN_SERVER')
-            connect_args['keytab'] = \
-                cls.get_keytab(g.user.username,
-                               AuthDBView.mock_user.get(g.user.username),
-                               server, dir)
+            username = g.user.username
+            password = AuthDBView.mock_user.get(g.user.username)
+            if not password:
+                raise SupersetException(NEED_PASSWORD_FOR_KEYTAB)
+            connect_args['keytab'] = cls.get_keytab(username, password, server, dir)
         return connect_args
 
     @classmethod

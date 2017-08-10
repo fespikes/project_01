@@ -140,7 +140,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     datamodel = SQLAInterface(Dataset)
     route_base = '/table'
     list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url',
-                    'connection', 'changed_on']
+                    'connection', 'changed_on', 'online']
     add_columns = ['dataset_name', 'dataset_type', 'database_id', 'description',
                    'schema', 'table_name', 'sql']
     show_columns = add_columns + ['id']
@@ -232,14 +232,26 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
+        objects = self.associated_objects(id)
+        info = "Changing dataset [{}] to be offline will make these slices " \
+               "unusable: {}".format(objects.get('dataset'), objects.get('slice'))
+        return json_response(data=info)
+
+    @catch_exception
+    @expose("/delete_info/<id>/", methods=['GET'])
+    def delete_info(self, id):
+        objects = self.associated_objects(id)
+        info = "Deleting dataset [{}] will make these slices unusable: {}"\
+            .format(objects.get('dataset'), objects.get('slice'))
+        return json_response(data=info)
+
+    def associated_objects(self, id):
         dataset = db.session.query(Dataset).filter_by(id=id).first()
         if not dataset:
             raise SupersetException(
                 '{}: Dataset.id={}'.format(OBJECT_NOT_FOUND, id))
         slices = db.session.query(Slice).filter_by(datasource_id=id).all()
-        info = "Changing dataset [{}] to be offline will make these slices " \
-               "unusable: {}".format(dataset, slices)
-        return json_response(data=info)
+        return {'dataset': dataset, 'slice': slices}
 
     @catch_exception
     @expose('/add', methods=['POST', ])
@@ -339,7 +351,9 @@ class DatasetModelView(SupersetModelView):  # noqa
 
         query = db.session.query(Dataset, User) \
             .filter(Dataset.created_by_fk == User.id,
-                    Dataset.created_by_fk == user_id)
+                    or_(Dataset.created_by_fk == user_id,
+                        Dataset.online == 1)
+                    )
 
         if dataset_type:
             query = query.filter(Dataset.dataset_type.ilike(dataset_type))
@@ -457,11 +471,14 @@ class HDFSTableModelView(SupersetModelView):
         hdfs_connection_id = request.args.get('hdfs_connection_id')
         client = self.login_file_robot(hdfs_connection_id)
         response = client.list(path, page_size=page_size)
-        return Response(response.text)
+        return json_response(data=response.text)
 
     @catch_exception
     @expose('/preview/', methods=['GET'])
     def preview_hdfs_file(self):
+        """
+        The 'path' is a folder, need to get and parse one file in the 'path'
+        """
         args = request.args.to_dict()
         path = args.pop('path')
         size = args.pop('size', 4096)
@@ -469,14 +486,16 @@ class HDFSTableModelView(SupersetModelView):
 
         file = HDFSTable.cached_file.get(path)
         if not file:
-            file = self.download_hdfs_file(path, hdfs_conn_id, size)
+            client = self.login_file_robot(hdfs_conn_id)
+            files = self.list_files(client, path, size)
+            files = json.loads(files)
+            file_path = self.choice_one_file_path(files)
+            file = self.download_file(client, file_path, size)
             HDFSTable.cached_file[path] = file
         df = HDFSTable.parse_file(file, **args)
-
-        return Response(json.dumps(
-            dict(records=df.to_dict(orient="records"),
-                 columns=list(df.columns),)
-        ))
+        return json_response(data=dict(records=df.to_dict(orient="records"),
+                                       columns=list(df.columns))
+                             )
 
     @catch_exception
     @expose('/upload/', methods=['POST'])
@@ -487,7 +506,7 @@ class HDFSTableModelView(SupersetModelView):
         hdfs_connection_id = request.args.get('hdfs_connection_id')
         client = self.login_file_robot(hdfs_connection_id)
         response = client.upload(dest_path, {'files': (file_name, f)})
-        return Response(response.text)
+        return json_response(message=response.text)
 
     @classmethod
     def login_file_robot(cls, hdfs_conn_id=None):
@@ -518,9 +537,35 @@ class HDFSTableModelView(SupersetModelView):
         return client
 
     @classmethod
-    def download_hdfs_file(cls, path, hdfs_conn_id=None, size=4096):
+    def list_files(cls, client, path, size):
+        response = client.list(path, page_size=size)
+        return response.text
+
+    @classmethod
+    def choice_one_file_path(cls, files_json):
+        files = files_json.get('files')
+        file_path = ''
+        for file in files:
+            type = file.get('type')
+            name = file.get('name')
+            if name == '.' or name == '..':
+                pass
+            elif type == 'dir':
+                raise SupersetException('Should not exist folder [{}] in '
+                                        'selected path [{}] to create external table'
+                                        .format(file.get('path'), files_json.get('path')))
+            elif type == 'file':
+                file_path = file.get('path')
+            else:
+                raise SupersetException('Error file type: [{}]'.format(type))
+        if not file_path:
+            raise SupersetException('No files in selected path: [{}]'
+                                    .format(files_json.get('path')))
+        return file_path
+
+    @classmethod
+    def download_file(cls, client, path, size=4096):
         max_size = 1024 * 1024
-        client = cls.login_file_robot(hdfs_conn_id)
         while size <= max_size:
             response = client.preview(path, length=size)
             if response.status_code != requests.codes.ok:

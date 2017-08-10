@@ -163,22 +163,39 @@ class DatabaseView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        database = db.session.query(Database).filter_by(id=id).first()
+        objects = self.associated_objects(id)
+        info = "Changing inceptor connection [{}] to be offline will make these unusable:\n" \
+               "Dataset: {},\nSlice: {}."\
+            .format(objects.get('database'),
+                    objects.get('dataset'),
+                    objects.get('slice'))
+        return json_response(data=info)
+
+    @catch_exception
+    @expose("/delete_info/<id>/", methods=['GET'])
+    def delete_info(self, id):
+        objects = self.associated_objects(id)
+        info = "Deleting inceptor connection [{}] will make these unusable:\n" \
+               "Dataset: {},\nSlice: {}."\
+            .format(objects.get('database'),
+                    objects.get('dataset'),
+                    objects.get('slice'))
+        return json_response(data=info)
+
+    def associated_objects(self, db_id):
+        database = db.session.query(Database).filter_by(id=db_id).first()
         if not database:
             raise SupersetException(
-                '{}: Database.id={}'.format(OBJECT_NOT_FOUND, id))
+                '{}: Database.id={}'.format(OBJECT_NOT_FOUND, db_id))
         dataset = database.dataset
         dataset_ids = [d.id for d in dataset]
-        slices = db.session.query(Slice)\
+        slices = db.session.query(Slice) \
             .filter(
                 or_(Slice.datasource_id.in_(dataset_ids),
-                    Slice.database_id == id)
-            )\
+                    Slice.database_id == db_id)
+            ) \
             .all()
-        info = "Changing inceptor connection [{}] to be offline will make these unusable:\n" \
-               "Dataset: {},\n" \
-               "Slice: {}.".format(database, dataset, slices)
-        return json_response(data=info)
+        return {'database': database, 'slice': slices, 'dataset': dataset}
 
 
 class HDFSConnectionModelView(SupersetModelView):
@@ -256,6 +273,26 @@ class HDFSConnectionModelView(SupersetModelView):
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
+        objects = self.associated_objects(id)
+        info = "Changing hdfs connection [{}] to be offline will make these unusable:\n" \
+               "Dataset: {},\n Slice: {}."\
+            .format(objects.get('hdfs_connection'),
+                    objects.get('dataset'),
+                    objects.get('slice'))
+        return json_response(data=info)
+
+    @catch_exception
+    @expose("/delete_info/<id>/", methods=['GET'])
+    def delete_info(self, id):
+        objects = self.associated_objects(id)
+        info = "Deleting hdfs connection [{}] will make these unusable:\n" \
+               "Dataset: {},\nSlice: {}."\
+            .format(objects.get('hdfs_connection'),
+                    objects.get('dataset'),
+                    objects.get('slice'))
+        return json_response(data=info)
+
+    def associated_objects(self, id):
         hconn = db.session.query(HDFSConnection).filter_by(id=id).first()
         if not hconn:
             raise SupersetException(
@@ -266,10 +303,7 @@ class HDFSConnectionModelView(SupersetModelView):
         slices = db.session.query(Slice) \
             .filter(Slice.datasource_id.in_(dataset_ids)) \
             .all()
-        info = "Changing hdfs connection [{}] to be offline will make these unusable:\n" \
-               "Dataset: {},\n" \
-               "Slice: {}.".format(hconn, dataset, slices)
-        return json_response(data=info)
+        return {'hdfs_connection': hconn, 'dataset': dataset, 'slice': slices}
 
 
 class ConnectionView(BaseSupersetView, PageMixin):

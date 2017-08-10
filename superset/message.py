@@ -30,6 +30,7 @@ DELETE_FAILED = __("Deleted failed")
 
 ERROR_DATASET_TYPE = "Error dataset type"
 ERROR_CONNECTION_TYPE = "Error connection type"
+NEED_PASSWORD_FOR_KEYTAB = "Need password to get keytab file from guardian, try login again"
 
 NO_HDFS_CONNECTION = "No hdfs connections, you can add a default hdfs connection"
 NO_FILEROBOT_SERVER = "Cannot get FILE_ROBOT_SERVER from config"

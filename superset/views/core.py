@@ -145,14 +145,27 @@ class SliceModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
+        objects = self.associated_objects(id)
+        info = "Changing slice [{}] to be offline will make it invisible " \
+               "in these dashboards: {}"\
+            .format(objects.get('slice'), objects.get('dashboard'))
+        return json_response(data=info)
+
+    @catch_exception
+    @expose("/delete_info/<id>/", methods=['GET'])
+    def delete_info(self, id):
+        objects = self.associated_objects(id)
+        info = "Deleting slice [{}] will remove it from these dashboards: {}"\
+            .format(objects.get('slice'), objects.get('dashboard'))
+        return json_response(data=info)
+
+    def associated_objects(self, id):
         slice = db.session.query(Slice).filter_by(id=id).first()
         if not slice:
             raise SupersetException(
                 '{}: Slice.id={}'.format(OBJECT_NOT_FOUND, id))
         dashs = slice.dashboards
-        info = "Changing slice [{}] to be offline will make it invisible " \
-               "in these dashboards: {}".format(slice, dashs)
-        return json_response(data=info)
+        return {'slice': slice, 'dashboard': dashs}
 
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
@@ -405,6 +418,11 @@ class DashboardModelView(SupersetModelView):  # noqa
         info = "Changing dashboard [{}] to be offline will make it invisible " \
                "for other users.".format(dash)
         return json_response(data=info)
+
+    @catch_exception
+    @expose("/delete_info/<id>/", methods=['GET'])
+    def delete_info(self, id):
+        return json_response(data='')
 
     @catch_exception
     @expose("/import/", methods=['GET', 'POST'])
