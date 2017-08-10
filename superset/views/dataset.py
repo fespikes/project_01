@@ -212,11 +212,12 @@ class DatasetModelView(SupersetModelView):  # noqa
         full_tb_name = request.args.get('full_tb_name')
         rows = request.args.get('rows', 100)
         if dataset_id:
-            return self.get_object(dataset_id).preview_data(limit=rows)
+            data = self.get_object(dataset_id).preview_data(limit=rows)
         else:
             dataset = Dataset.temp_table(database_id, full_tb_name,
                                          need_columns=False)
-            return dataset.preview_data(limit=rows)
+            data = dataset.preview_data(limit=rows)
+        return json_response(data=data)
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
