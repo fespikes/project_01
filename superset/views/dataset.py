@@ -282,7 +282,8 @@ class DatasetModelView(SupersetModelView):  # noqa
                 table_name=args.get('dataset_name'),
                 description=args.get('description'),
                 database_id=args.get('database_id'),
-                database=database
+                database=database,
+                schema='default',
             )
             self._add(dataset)
             hdfs_table.dataset_id = dataset.id
@@ -570,7 +571,7 @@ class HDFSTableModelView(SupersetModelView):
             response = client.preview(path, length=size)
             if response.status_code != requests.codes.ok:
                 response.raise_for_status()
-            file = response.text[1:-1]
+            file = response.text
             index = file.rfind('\n')
             if index > 0:
                 file = file[:index]
