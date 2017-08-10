@@ -471,11 +471,14 @@ class HDFSTableModelView(SupersetModelView):
         hdfs_connection_id = request.args.get('hdfs_connection_id')
         client = self.login_file_robot(hdfs_connection_id)
         response = client.list(path, page_size=page_size)
-        return Response(response.text)
+        return json_response(data=response.text)
 
     @catch_exception
     @expose('/preview/', methods=['GET'])
     def preview_hdfs_file(self):
+        """
+        The 'path' is a folder, need to get and parse one file in the 'path'
+        """
         args = request.args.to_dict()
         path = args.pop('path')
         size = args.pop('size', 4096)
@@ -483,14 +486,16 @@ class HDFSTableModelView(SupersetModelView):
 
         file = HDFSTable.cached_file.get(path)
         if not file:
-            file = self.download_hdfs_file(path, hdfs_conn_id, size)
+            client = self.login_file_robot(hdfs_conn_id)
+            files = self.list_files(client, path, size)
+            files = json.loads(files)
+            file_path = self.choice_one_file_path(files)
+            file = self.download_file(client, file_path, size)
             HDFSTable.cached_file[path] = file
         df = HDFSTable.parse_file(file, **args)
-
-        return Response(json.dumps(
-            dict(records=df.to_dict(orient="records"),
-                 columns=list(df.columns),)
-        ))
+        return json_response(data=dict(records=df.to_dict(orient="records"),
+                                       columns=list(df.columns))
+                             )
 
     @catch_exception
     @expose('/upload/', methods=['POST'])
@@ -501,7 +506,7 @@ class HDFSTableModelView(SupersetModelView):
         hdfs_connection_id = request.args.get('hdfs_connection_id')
         client = self.login_file_robot(hdfs_connection_id)
         response = client.upload(dest_path, {'files': (file_name, f)})
-        return Response(response.text)
+        return json_response(message=response.text)
 
     @classmethod
     def login_file_robot(cls, hdfs_conn_id=None):
@@ -532,9 +537,35 @@ class HDFSTableModelView(SupersetModelView):
         return client
 
     @classmethod
-    def download_hdfs_file(cls, path, hdfs_conn_id=None, size=4096):
+    def list_files(cls, client, path, size):
+        response = client.list(path, page_size=size)
+        return response.text
+
+    @classmethod
+    def choice_one_file_path(cls, files_json):
+        files = files_json.get('files')
+        file_path = ''
+        for file in files:
+            type = file.get('type')
+            name = file.get('name')
+            if name == '.' or name == '..':
+                pass
+            elif type == 'dir':
+                raise SupersetException('Should not exist folder [{}] in '
+                                        'selected path [{}] to create external table'
+                                        .format(file.get('path'), files_json.get('path')))
+            elif type == 'file':
+                file_path = file.get('path')
+            else:
+                raise SupersetException('Error file type: [{}]'.format(type))
+        if not file_path:
+            raise SupersetException('No files in selected path: [{}]'
+                                    .format(files_json.get('path')))
+        return file_path
+
+    @classmethod
+    def download_file(cls, client, path, size=4096):
         max_size = 1024 * 1024
-        client = cls.login_file_robot(hdfs_conn_id)
         while size <= max_size:
             response = client.preview(path, length=size)
             if response.status_code != requests.codes.ok:
