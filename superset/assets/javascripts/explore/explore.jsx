@@ -165,14 +165,16 @@ function initExploreView() {
     }
 
     px.initFavStars();
-
-    $('#viz_type').change(function () {
+    
+    //submit form "query" when 已建数据集/图标类型 changed
+/*    $('#viz_type').change(function () {
         $('#query').submit();
     });
 
     $('#datasource_id').change(function () {
         window.location = $(this).find('option:selected').attr('url');
     });
+*/
 
     const collapsedFieldsets = getCollapsedFieldsets();
     for (let i = 0; i < collapsedFieldsets.length; i++) {
