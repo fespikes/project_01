@@ -471,7 +471,7 @@ class HDFSTableModelView(SupersetModelView):
         hdfs_connection_id = request.args.get('hdfs_connection_id')
         client = self.login_file_robot(hdfs_connection_id)
         response = client.list(path, page_size=page_size)
-        return json_response(data=response.text)
+        return json_response(data=json.loads(response.text))
 
     @catch_exception
     @expose('/preview/', methods=['GET'])
