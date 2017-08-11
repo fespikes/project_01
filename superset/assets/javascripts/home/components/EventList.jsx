@@ -11,10 +11,12 @@ function EventList(props) {
         className: "user-column",
         sorter: (a, b) => a.user.localeCompare(b.user),
         render: (text, record) => (
-            <a className="user-td" href={record.link}>
-                <i className="icon user-icon" />
-                <span>{text}</span>
-            </a>
+            <Tooltip placement="topLeft" title={text} arrowPointAtCenter>
+                <a className="user-td"  style={{display: 'inline'}} href={record.link}>
+                    <i className="icon user-icon" />
+                    <span>{text}</span>
+                </a>
+            </Tooltip>
         )
     }, {
         title: '操作',
