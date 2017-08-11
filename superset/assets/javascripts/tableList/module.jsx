@@ -76,6 +76,7 @@ export function getTbTitleHDFS(commonTitle, _this) {
         column.render = () => {
             return (
                 <Select
+                    defaultValue='string'
                     style={{ width: '100%' }}
                     onSelect={ (value)=>_this.onTypeSelect(value, column) }
                     placeholder='select the type'>
@@ -159,6 +160,7 @@ export function constructInceptorDataset(dataset) {
     inceptorDataset.table_name = dataset.table_name;
     inceptorDataset.schema = dataset.schema;
     inceptorDataset.database_id = dataset.database_id;
+    inceptorDataset.db_name = dataset.db_name;
     inceptorDataset.sql = dataset.sql || '';
     inceptorDataset.description = dataset.description || '';
 
@@ -187,14 +189,16 @@ export function constructHDFSDataset(dataset, title) {
 function constructHDFSColumns(title) {
     let names = [];
     let types = [];
-    title.map(t => {
-        names.push(t.title);
-        types.push(t.type);
-    });
     let columns = {
         names: names,
         types: types
     };
+    if(title) {
+        title.map(t => {
+            names.push(t.title);
+            types.push(t.type || 'string');
+        });
+    }
     return columns;
 }
 
@@ -291,14 +295,24 @@ export function getDatasetId(opeType, pathname) {
     return id;
 }
 
-export function judgeEnableClick(opeName, opeType, datasetType, datasetId) {
+export function judgeEnableClick(opeType, datasetId) {
     if(opeType === 'edit') {
         return true;
     }
     if(datasetId && datasetId !== '') {
         return true;
     }
-    if(opeName === 'detail' && (datasetType === 'HDFS' || datasetType === 'UPLOAD')) {
+    return false;
+}
+
+export function judgeEnableClickHDFSPreview(opeType, datasetType, datasetId, HDFSConfigured) {
+    if(opeType === 'edit') {
+        return true;
+    }
+    if(datasetId && datasetId !== '') {
+        return true;
+    }
+    if((datasetType === 'HDFS' || datasetType === 'UPLOAD FILE') && HDFSConfigured) {
         return true;
     }
 
@@ -314,8 +328,6 @@ export function initDatasetData(type, newData, oldData) {
         case 'HDFS':
             data = initHDFSData(newData, oldData);
             break;
-        case 'UPLOAD':
-            break;
         default:
             break;
     }
@@ -329,11 +341,11 @@ function initInceptorData(newData, oldData) {
         table_name: newData.table_name,
         schema: newData.schema,
         database_id: newData.database_id,
-        db_name: oldData.db_name,
-        sql: newData.sql,
+        sql: newData.sql || '',//for remove warning
         description: newData.description,
         databases: oldData.databases,
-        treeData: oldData.treeData
+        treeData: oldData.treeData,
+        db_name: oldData.db_name
     };
     return inceptorData;
 }
@@ -343,13 +355,6 @@ function initHDFSData(newData, oldData) {
         dataset_type: 'HDFS',
         dataset_name: newData.dataset_name,
         description: newData.description,
-        hdfsConnections: oldData.hdfsConnections,
-        inceptorConnections: oldData.inceptorConnections,
-        hdfsConnectId: oldData.hdfsConnectId,
-        inceptorConnectId: oldData.inceptorConnectId,
-        hdfsConnectName: oldData.hdfsConnectName,
-        inceptorConnectName: oldData.inceptorConnectName,
-        fileBrowserData: oldData.fileBrowserData,
         hdfsPath: newData.hdfs_path,
         charset: newData.charset,
         file_type: newData.file_type,
@@ -357,13 +362,16 @@ function initHDFSData(newData, oldData) {
         quote: newData.quote,
         separator: newData.separator,
         skip_more_rows: newData.skip_more_rows,
-        skip_rows: newData.skip_rows
+        skip_rows: newData.skip_rows,
+        hdfsConnections: oldData.hdfsConnections,
+        inceptorConnections: oldData.inceptorConnections,
+        hdfsConnectId: oldData.hdfsConnectId,
+        inceptorConnectId: oldData.inceptorConnectId,
+        hdfsConnectName: oldData.hdfsConnectName,
+        inceptorConnectName: oldData.inceptorConnectName,
+        fileBrowserData: oldData.fileBrowserData
     };
     return hdfsData;
-}
-
-function initUploadData() {
-    //TODO
 }
 
 export function initHDFSPreviewData(data, opeType) {
