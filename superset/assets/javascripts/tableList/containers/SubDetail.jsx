@@ -85,6 +85,7 @@ class SubDetail extends Component {
                     <div className={(datasetType==='HDFS' || datasetType==='UPLOAD FILE')?'':'none'}>
                         <HDFSUploadDetail
                             dispatch={dispatch}
+                            history={history}
                             datasetId={datasetId}
                             datasetType={datasetType}
                             dsHDFS={dsHDFS}
@@ -101,7 +102,7 @@ class SubDetail extends Component {
                             fetchUploadFile={fetchUploadFile}
                         />
                     </div>
-                    <div id="showAlert" className="alert-tip"></div>
+                    <div id="showAlertDetail" className="alert-tip"></div>
                 </div>
             </div>
         );

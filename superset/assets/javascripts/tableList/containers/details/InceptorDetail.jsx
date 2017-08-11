@@ -141,7 +141,7 @@ class InceptorDetail extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlert');
+                    renderAlertTip(response, 'showAlertDetail');
                 }
             }
         }else {
@@ -155,7 +155,7 @@ class InceptorDetail extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlert');
+                    renderAlertTip(response, 'showAlertDetail');
                 }
             }
         }
@@ -313,7 +313,7 @@ class InceptorDetail extends Component {
                 </div>
                 <div className="data-detail-item">
                     <span>SQL：</span>
-                    <textarea cols="30" rows="10" value={dsInceptor.sql}
+                f    <textarea cols="30" rows="10" value={dsInceptor.sql}
                               name="sql" onChange={this.handleChange}/>
                     <a href={ window.location.origin + '/pilot/sqllab' } target="_blank">
                         切换至SQL LAB编辑

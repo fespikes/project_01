@@ -4,10 +4,25 @@ import {REHYDRATE} from 'redux-persist/constants';
 
 export default function subDetail(state = {
     //all below are radios
-    datasetType: '',     //uploadFile HDFS inceptor
+    datasetType: '',     //INCEPTOR, HDFS, UPLOAD FILE
     HDFSConnected: true,
+    HDFSConfigured: false,
     datasetId: '',
-    dsHDFS: {},
+    dsHDFS: {
+        dataset_name: '',
+        description: '',
+        hdfsConnectName: '',
+        inceptorConnectName: '',
+        hdfsPath: '',
+        uploadFileName: '',
+        file_type: 'csv',
+        separator: ',',
+        quote: '\\',
+        skip_rows: '0',
+        next_as_header: false,
+        skip_more_rows: '0',
+        charset: 'utf-8'
+    },
     dsInceptor: {
         dataset_name: '',
         description: '',
@@ -31,7 +46,7 @@ export default function subDetail(state = {
             return {...state, dsInceptor: action.dsInceptor};
             break;
         case actionTypes.saveHDFSDataset:
-            return {...state, dsHDFS: action.dsHDFS};
+            return {...state, dsHDFS: action.dsHDFS, HDFSConfigured: action.HDFSConfigured};
             break;
         case actionTypes.switchFetchingState:
             return {...state, isFetching: action.isFetching};

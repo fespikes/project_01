@@ -76,6 +76,7 @@ export function getTbTitleHDFS(commonTitle, _this) {
         column.render = () => {
             return (
                 <Select
+                    defaultValue='string'
                     style={{ width: '100%' }}
                     onSelect={ (value)=>_this.onTypeSelect(value, column) }
                     placeholder='select the type'>
@@ -188,14 +189,16 @@ export function constructHDFSDataset(dataset, title) {
 function constructHDFSColumns(title) {
     let names = [];
     let types = [];
-    title.map(t => {
-        names.push(t.title);
-        types.push(t.type);
-    });
     let columns = {
         names: names,
         types: types
     };
+    if(title) {
+        title.map(t => {
+            names.push(t.title);
+            types.push(t.type || 'string');
+        });
+    }
     return columns;
 }
 
@@ -292,14 +295,24 @@ export function getDatasetId(opeType, pathname) {
     return id;
 }
 
-export function judgeEnableClick(opeName, opeType, datasetType, datasetId) {
+export function judgeEnableClick(opeType, datasetId) {
     if(opeType === 'edit') {
         return true;
     }
     if(datasetId && datasetId !== '') {
         return true;
     }
-    if(opeName === 'detail' && (datasetType === 'HDFS' || datasetType === 'UPLOAD FILE')) {
+    return false;
+}
+
+export function judgeEnableClickHDFSPreview(opeType, datasetType, datasetId, HDFSConfigured) {
+    if(opeType === 'edit') {
+        return true;
+    }
+    if(datasetId && datasetId !== '') {
+        return true;
+    }
+    if((datasetType === 'HDFS' || datasetType === 'UPLOAD FILE') && HDFSConfigured) {
         return true;
     }
 

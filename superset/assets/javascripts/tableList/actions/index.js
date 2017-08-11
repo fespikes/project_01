@@ -35,6 +35,24 @@ export const actionTypes = {
 
 const baseURL = window.location.origin + '/table/';
 
+const callbackHandler = (response, callback) => {
+    if(response.status === 200) {
+        callback && callback(true, response.data);
+    }else if(response.status === 500) {
+        callback && callback(false, response.message);
+    }
+};
+const always = (response) => {
+    return Promise.resolve(response);
+};
+const json = (response) => {
+    return response.json();
+};
+
+const errorHandler = (response, dispatch) => {
+    dispatch(switchFetchingState(false));
+};
+
 /**
 @deprecated
 */
@@ -114,7 +132,8 @@ function receiveSQLMetric(json) {
 export function saveHDFSDataset(json) {
     return {
         type: actionTypes.saveHDFSDataset,
-        dsHDFS: json
+        dsHDFS: json,
+        HDFSConfigured: true
     }
 }
 
@@ -128,17 +147,19 @@ export function saveInceptorDataset(json) {
 export function getTableColumn(dataset_id) {
     const url = window.location.origin + '/tablecolumn/listdata/?dataset_id=' + dataset_id;
     return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
         })
         .then(
             response => response.ok?
-                response.json() : (response => errorHandler(response))(response),
+                response.json() : (response => errorHandler(response, dispatch))(response),
             error => errorHandler(error)
         )
         .then(json => {
             dispatch(receiveTableColumn(json));
+            dispatch(switchFetchingState(false));
         });
     }
 }
@@ -277,17 +298,19 @@ export function fetchSQLMetricDelete(id, callback) {
 export function getSQLMetric(dataset_id) {
     const url = window.location.origin + '/sqlmetric/listdata/?dataset_id=' + dataset_id;
     return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
         })
         .then(
             response => response.ok?
-                response.json() : (response => errorHandler(response))(response),
+                response.json() : (response => errorHandler(response, dispatch))(response),
             error => errorHandler(error)
         )
         .then(json => {
             dispatch(receiveSQLMetric(json));
+            dispatch(switchFetchingState(false));
         });
     }
 }
@@ -457,23 +480,11 @@ export function createDataset(dataset, callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(dataset)
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        if(response.status === 200) {
-                            callback(true, response.data);
-                            dispatch(saveInceptorDataset(dataset));
-                            dispatch(switchFetchingState(false));
-                        }else {
-                            callback(false, response.message);
-                            dispatch(switchFetchingState(false));
-                        }
-                    });
-                }else {
-                    callback(false);
-                    dispatch(switchFetchingState(false));
-                }
+                callbackHandler(response, callback);
+                dispatch(saveInceptorDataset(dataset));
+                dispatch(switchFetchingState(false));
             }
         );
     }
@@ -487,22 +498,10 @@ export function editDataset(dataset, id, callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(dataset)
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        if(response.success) {
-                            callback(true, response.data);
-                            dispatch(switchFetchingState(false));
-                        }else {
-                            callback(false, response.message);
-                            dispatch(switchFetchingState(false));
-                        }
-                    });
-                }else {
-                    callback(false);
-                    dispatch(switchFetchingState(false));
-                }
+                dispatch(switchFetchingState(false));
+                callbackHandler(response, callback);
             }
         );
     }
@@ -568,17 +567,10 @@ export function fetchInceptorPreviewData(id, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        callback(true, response);
-                        dispatch(switchFetchingState(false));
-                    });
-                }else {
-                    callback(false);
-                    dispatch(switchFetchingState(false));
-                }
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
         );
     }
@@ -591,17 +583,10 @@ export function fetchHDFSPreviewData(dsHDFS, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        callback(true, response);
-                        dispatch(switchFetchingState(false));
-                    });
-                }else {
-                    callback(false);
-                    dispatch(switchFetchingState(false));
-                }
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
         );
     }
