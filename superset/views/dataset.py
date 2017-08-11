@@ -207,16 +207,19 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/preview_data/', methods=['GET', ])
     def preview_table(self):
-        dataset_id = request.args.get('dataset_id')
+        dataset_id = request.args.get('dataset_id', 0)
         database_id = request.args.get('database_id')
         full_tb_name = request.args.get('full_tb_name')
         rows = request.args.get('rows', 100)
-        if dataset_id:
+        if int(dataset_id) > 0:
             data = self.get_object(dataset_id).preview_data(limit=rows)
-        else:
+        elif database_id and full_tb_name:
             dataset = Dataset.temp_table(database_id, full_tb_name,
                                          need_columns=False)
             data = dataset.preview_data(limit=rows)
+        else:
+            raise SupersetException('{}: {}'.format(ERROR_REQUEST_PARAM,
+                                                    request.args.to_dict()))
         return json_response(data=data)
 
     @catch_exception
