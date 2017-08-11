@@ -495,29 +495,30 @@ class FormFactory(object):
                 "label": _("Since"),
                 "default": "100 years ago",
                 "choices": (
-                    ('1 hour ago', _('1 hour ago')),
-                    ('12 hours ago', _('12 hours ago')),
-                    ('1 day ago', _('1 day ago')),
-                    ('7 days ago', _('7 days ago')),
-                    ('28 days ago', _('28 days ago')),
-                    ('90 days ago', _('90 days ago')),
-                    ('1 year ago', _('1 year ago')),
-                    ('100 years ago', _('100 years ago')),
+                    ('1 hour ago', '1 hour ago'),
+                    ('12 hours ago', '12 hours ago'),
+                    ('7 days ago', '7 days ago'),
+                    ('1 year ago', '1 year ago'),
+                    ('100 years ago', '100 years ago'),
+                    ('2000-01-01', '2000-01-01'),
+                    ('2000-01-01 00:00:01', '2000-01-01 00:00:01'),
                 ),
                 "description": _(
                     "Timestamp from filter. This supports free form typing and "
-                    "natural language as in '1 day ago', '28 days' or '3 years'")
+                    "natural language as in '2010-01-01', '2017-07-01 12:00:00', "
+                    "'1 day ago', '28 days ago' or '3 years ago'")
             }),
             'until': (FreeFormSelectField, {
                 "label": _("Until"),
                 "default": "now",
                 "choices": (
-                    ('now', _('now')),
-                    ('1 day ago', _('1 day ago')),
-                    ('7 days ago', _('7 days ago')),
-                    ('28 days ago', _('28 days ago')),
-                    ('90 days ago', _('90 days ago')),
-                    ('1 year ago', _('1 year ago')),
+                    ('now', 'now'),
+                    ('1 hour ago', '1 hour ago'),
+                    ('12 hours ago', '12 hours ago'),
+                    ('1 day ago', '1 day ago'),
+                    ('1 year ago', '1 year ago'),
+                    ('2017-01-01', '2017-01-01'),
+                    ('2017-01-01 00:00:01', '2017-01-01 00:00:01'),
                 )
             }),
             'max_bubble_size': (FreeFormSelectField, {

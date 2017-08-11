@@ -506,9 +506,12 @@ msgstr "100年前"
 
 #: superset/forms.py:459
 msgid ""
-"Timestamp from filter. This supports free form typing and natural "
-"language as in '1 day ago', '28 days' or '3 years'"
-msgstr "时间范围。支持自定义，可使用自然语言，如'1 day ago', '28 days' or '3 years'"
+"Timestamp from filter. This supports free form typing and "
+"natural language as in '2010-01-01', '2017-07-01 12:00:00', "
+"'1 day ago', '28 days ago' or '3 years ago'"
+msgstr ""
+"时间范围。支持自定义，可使用自然语言，如'2010-01-01', '2017-07-01 12:00:00', "
+"'1 day ago', '28 days ago' or '3 years ago'"
 
 #: superset/forms.py:464
 msgid "Until"

@@ -11,6 +11,7 @@ import string
 import logging
 import sqlparse
 from io import StringIO
+import numpy
 import pandas as pd
 from datetime import datetime
 from distutils.util import strtobool
@@ -393,16 +394,16 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         sql = str(qry.compile(engine, compile_kwargs={"literal_binds": True},))
 
         df = pd.read_sql(sql, con=engine)
+        df = df.replace({numpy.nan: 'None'})
         columns = list(df.columns)
         types = []
         if self.table_name:
             tb = self.get_sqla_table_object()
             col_types = {col.name: str(col.type) for col in tb.columns}
             types = [col_types.get(c) for c in columns]
-        return json.dumps({'columns': columns,
-                           'types': types,
-                           'records': df.to_dict(orient='records')},
-                          default=utils.json_iso_dttm_ser)
+        return {'columns': columns,
+               'types': types,
+               'records': df.to_dict(orient='records')}
 
     def values_for_column(self, column_name, from_dttm, to_dttm, limit=500):
         """Runs query against sqla to retrieve some

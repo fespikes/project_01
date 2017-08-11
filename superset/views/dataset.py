@@ -212,11 +212,12 @@ class DatasetModelView(SupersetModelView):  # noqa
         full_tb_name = request.args.get('full_tb_name')
         rows = request.args.get('rows', 100)
         if dataset_id:
-            return self.get_object(dataset_id).preview_data(limit=rows)
+            data = self.get_object(dataset_id).preview_data(limit=rows)
         else:
             dataset = Dataset.temp_table(database_id, full_tb_name,
                                          need_columns=False)
-            return dataset.preview_data(limit=rows)
+            data = dataset.preview_data(limit=rows)
+        return json_response(data=data)
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
@@ -282,7 +283,8 @@ class DatasetModelView(SupersetModelView):  # noqa
                 table_name=args.get('dataset_name'),
                 description=args.get('description'),
                 database_id=args.get('database_id'),
-                database=database
+                database=database,
+                schema='default',
             )
             self._add(dataset)
             hdfs_table.dataset_id = dataset.id
@@ -471,7 +473,7 @@ class HDFSTableModelView(SupersetModelView):
         hdfs_connection_id = request.args.get('hdfs_connection_id')
         client = self.login_file_robot(hdfs_connection_id)
         response = client.list(path, page_size=page_size)
-        return json_response(data=response.text)
+        return json_response(data=json.loads(response.text))
 
     @catch_exception
     @expose('/preview/', methods=['GET'])
@@ -570,7 +572,7 @@ class HDFSTableModelView(SupersetModelView):
             response = client.preview(path, length=size)
             if response.status_code != requests.codes.ok:
                 response.raise_for_status()
-            file = response.text[1:-1]
+            file = response.text
             index = file.rfind('\n')
             if index > 0:
                 file = file[:index]
