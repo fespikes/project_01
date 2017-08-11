@@ -119,7 +119,7 @@ span.title-block {
     font-size: 11px !important;
 }
 div.navbar {
-  z-index: 999;
+  z-index:50;
 }
 .datasource form div.form-control {
   margin-bottom: 5px !important;
