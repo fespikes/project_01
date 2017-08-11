@@ -486,14 +486,15 @@ class HDFSTableModelView(SupersetModelView):
         size = args.pop('size', 4096)
         hdfs_conn_id = args.pop('hdfs_connection_id', None)
 
-        file = HDFSTable.cached_file.get(path)
+        cache_key = '{}-{}'.format(hdfs_conn_id, path)
+        file = HDFSTable.cached_file.get(cache_key)
         if not file:
             client = self.login_file_robot(hdfs_conn_id)
             files = self.list_files(client, path, size)
             files = json.loads(files)
             file_path = self.choice_one_file_path(files)
             file = self.download_file(client, file_path, size)
-            HDFSTable.cached_file[path] = file
+            HDFSTable.cached_file[cache_key] = file
         df = HDFSTable.parse_file(file, **args)
         return json_response(data=dict(records=df.to_dict(orient="records"),
                                        columns=list(df.columns))
