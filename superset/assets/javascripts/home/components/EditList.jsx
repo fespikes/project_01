@@ -40,7 +40,10 @@ export default class EditList extends Component {
             key: 'name',
             className: "name-column",
             sorter: (a, b) => a.name.localeCompare(b.name),
-            render: (text, record) => (<a href={record.link}>{text}</a>)
+            render: (text, record) => (
+                <Tooltip placement="topLeft" title={text} arrowPointAtCenter>
+                    <a href={record.link} style={{display: 'inline'}}>{text}</a>
+                </Tooltip>)
         }, {
             title: '操作',
             dataIndex: 'action',
