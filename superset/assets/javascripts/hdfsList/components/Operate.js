@@ -197,57 +197,47 @@ class Operate extends React.Component {
 
                 <ul className="icon-list">
                     <li
-            className="bolder-right li-setting"
-            >
-                         <i className="icon icon-setting ps"></i>
+                        className="li-setting"
+                    >
+                        <i className="icon icon-setting ps"></i>
                         <Select
-            ref="manipulate"
-            options={manipulateOptions}
-            theValue={'操作'}
-            width={65}
-            handleSelect={(argus) => this.manipulate(argus)}
-            />  
+                            ref="manipulate"
+                            options={manipulateOptions}
+                            theValue={'操作'}
+                            width={65}
+                            handleSelect={(argus) => this.manipulate(argus)}
+                        />
                     </li>
                     <li
-            className="bolder-right li-upload"
-            onClick={this.upload}
-            >
-                          <i className="icon icon-upload ps"></i>上传  
+                        className="li-upload"
+                        onClick={this.upload}
+                    >
+                        <i className="icon icon-upload ps"></i>上传
                     </li>
                     <li
-            className="li-plus bolder-right"
-            >
-                          <i className="icon icon-plus ps"></i>
+                        className="li-plus"
+                    >
+                        <i className="icon icon-plus ps"></i>
                         <Select
-            ref="create"
-            options={createOptions}
-            theValue={'新建'}
-            width={60}
-            handleSelect={(argus) => this.manipulate(argus)}
-            />  
+                            ref="create"
+                            options={createOptions}
+                            theValue={'新建'}
+                            width={60}
+                            handleSelect={(argus) => this.manipulate(argus)}
+                        />
                     </li>
                     <li
-            className="li-trash"
-            onClick={this.onRemove}
-            >
-                          <i className="icon icon-trash ps"></i>删除  
+                        className="li-trash  bolder-right-none"
+                        onClick={this.onRemove}
+                    >
+                        <i className="icon icon-trash ps"></i>删除
                     </li>
                 </ul>
-{ /*                <div className="icon-list">
-                    <li
-                        className="li-icons bolder-right"
-                    >
-                        &nbsp;&nbsp;<i className="icon icon-flow-refresh "></i>&nbsp;&nbsp;
-                    </li>
-                    <li>
-                        &nbsp;&nbsp;<i className="icon icon-clock ps"></i>
-                    </li>
-                </div>*/ }
-                <div className="search-input">
+                <div className="search-input" style={{marginRight: 0}}>
                     <input
-            onChange={this.searchOnChange}
-            ref="searchField"
-            placeholder="search file name" />
+                        onChange={this.searchOnChange}
+                        ref="searchField"
+                        placeholder="search file name" />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"></i>
                 </div>
             </div>

@@ -7,166 +7,74 @@
 
 $borderStyle: solid 1px #e9eaed;
 .bread-crumb{
-    span, textarea, i{
+    position: relative;
+
+    span, textarea, input, a, i{
         display: inline-block;
         float:left;
     }
-    textarea {
-        padding:0 5px;
-        margin:1px 5px 0;
-        background:transparent;
-        word-spacing:no-warp;
-        letter-spacing:1px;
+    span{
+        margin-right:8px;
     }
-    .editing {
+    .anchor a:hover{
+        text-decoration: underline;
+    }
+    .anchor a, input.editing, textarea {
+        padding:0 2px;
+        margin:1px 0 0;
+        background:transparent;
+        letter-spacing:1px;
+        font-size: 15px; font-weight:600;
+    }
+    .anchor, input.editing {
+        width:300px;
+        height:30px;
+        box-shadow: 2px 3px 3px #eee;
+    }
+    input.editing {
+        background: #fff;
+        position: absolute;
+        top: -3px; left:42px;
         border: 1px #108ee9 solid;
         padding: 2px 5px 3px;
-        margin-top:-2px;
         border-radius: 5px;
-        
     }
-
     .ps-edit-icon{
         width: 15px;
         height: 14px;
         background-position: -253px -134px;
         position: relative;
         left: 10px;
-        top: 8px
+        top: 6px
     }
 }
 
-.hdfs-panel {
-    margin: 0 50px;
-    background-color: #edf0f5;
-    .panel-top {
-        display: flex;
-        justify-content: space-between;
-        margin: 15px 0;
-
-        
-        .right .operations{
-            display:flex;
-            align-items:center;
-            .icon-list{
-                display: flex;
-                height:30px;
-                border:$borderStyle;
-                background-color:#fff;
-                border-radius: 4px;
-                padding:0 10px;
-                margin:0 15px;
-                li{
-
-                    height:30px;
-                    display:flex;
-                    justify-content:center;
-                    align-items:center;
-                    cursor:pointer;
-                }
-                li.bolder-right{
-                    border-right:$borderStyle;
-                }
-                .ps{
-                    margin:0 5px;
-                }
-
-                li.li-setting:hover i.icon-setting {
-                    background-position: -212px -411px;
-                }
-                li.li-upload:hover i.icon-upload {
-                    background-position: -92px -572px;
-                }
-                li.li-plus:hover i.icon-plus {
-                    background-position:-212px -172px;
-                }
-
-                li.li-trash:hover i.icon-trash {
-                    background-position:-251px -172px;
-                }
-                li.li-icons {
-                    .ps {
-                        margin-right:-0px;
-                    }
-                }
-            }
-            .tab-btn {
-                margin:0 15px;
-                background-color:#fff;
-                border: none;
-                border-radius: 4px;
-                overflow: hidden;
-                button {
-                    color:#9a9fa8;
-                    font:14px/32px Miscrosoft YaHei;
-                    text-align:center;
-                    padding:0 10px;
-                    height:32px;
-                    .icon {
-                        display:inline-block;
-                        position:relative;
-                        top:3px;
-                        margin-right:5px;
-                    }
-                }
-
-                .active {
-                    background-color:#279cf2;
-                    color:#fff;
-                }
-            }
-            .search-input{
-                margin-right:15px;
-                position:relative;
-                input {
-                    width:243px;
-                    height:30px;
-                    border:$borderStyle;
-                    border-radius: 4px;
-                    padding-left:10px;
-                }
-                i {
-                    position:absolute;
-                    top:10px;
-                    right:15px;
-                }
-            }
-        }
+.hdfs-panel .panel-top .right .operations .icon-list {
+    padding: 0 10px;
+    li {
+        width: auto;
     }
-    .panel-middle {
-        display: flex;
-        justify-content: center;
-
-        .icon-group{
-            display: flex;
-            .icon:nth-of-type(2) {
-                margin:0 20px;
-            }
-        }
-        .entity-name {
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-        .entity-description {
-            font-size: 12px;
-            color: #7f8fa4;
-        }
-        .entity-publish {
-            color: #333c48;
-        }
-        .entity-hover {
-            font-weight: bold;
-        }
-        .highlight {
-            cursor: pointer;
-            color: #279cf2;
-        }
+    li.bolder-right-none {
+        border-right: solid 1px transparent;
     }
-    .panel-bottom {
-        display: flex;
-        justify-content: center;
-        margin-top: 30px;
-        margin-bottom: 20px;
+    li.li-upload {
+        padding-right: 10px;
+    }
+    li.li-setting:hover i.icon-setting {
+        background-position: -212px -411px;
+    }
+    li.li-upload:hover i.icon-upload {
+        background-position: -92px -572px;
+    }
+    li.li-plus:hover i.icon-plus {
+        background-position:-212px -172px;
+    }
+
+    li.li-trash:hover i.icon-trash {
+        background-position:-251px -172px;
+    }
+    .ps {
+        margin: 0 5px;
     }
 }
 

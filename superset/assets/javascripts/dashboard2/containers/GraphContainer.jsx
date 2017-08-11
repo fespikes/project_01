@@ -34,7 +34,7 @@ class GraphContainer extends React.Component {
     render() {
         const { dispatch, posts, configs } = this.props;
         return (
-            <div className="dashboard-panel">
+            <div className="pilot-panel dashboard-panel">
                 <div className="panel-top">
                     <div className="left">
                         <i className="icon"></i>

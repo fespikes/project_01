@@ -45,7 +45,7 @@ class App extends Component {
         const count = response.count;
 
         return (
-            <div className="datasource-panel">
+            <div className="pilot-panel datasource-panel">
                 <div className="panel-top">
                     <div className="left">
                         <i

@@ -32,7 +32,7 @@ export default function QueryAndSaveBtns({ canAdd, onQuery, onSave, disabled, er
           disabled={qryButtonDisabled}
           bsStyle={qryButtonStyle}
         >
-          <i className="fa fa-bolt" /> Query
+          <i className="fa fa-bolt" /> 查询
         </Button>
         <Button
           id="save_button"
@@ -42,7 +42,7 @@ export default function QueryAndSaveBtns({ canAdd, onQuery, onSave, disabled, er
           disabled={qryButtonDisabled}
           onClick={onSave}
         >
-          <i className="fa fa-plus-circle"></i> Save as
+          <i className="fa fa-plus-circle"></i> 保存
         </Button>
       </ButtonGroup>
       {errorMessage &&

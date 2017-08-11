@@ -121,7 +121,7 @@ class DashboardAdd extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <textarea className="dialog-area" value={this.props.dashboard.description}
-                                              onChange={this.handleDescriptionChange} />
+                                              onChange={this.handleDescriptionChange} autofocus/>
                                 </div>
                             </div>
                             <div className="dialog-item">
