@@ -170,11 +170,10 @@ function initExploreView() {
 /*    $('#viz_type').change(function () {
         $('#query').submit();
     });
-
+*/
     $('#datasource_id').change(function () {
         window.location = $(this).find('option:selected').attr('url');
     });
-*/
 
     const collapsedFieldsets = getCollapsedFieldsets();
     for (let i = 0; i < collapsedFieldsets.length; i++) {
@@ -420,22 +419,30 @@ function renderViewTab() {
             $('.original-view').css('display', 'none');
         }else if(event.target.value === "original") {
             const datasourceId = viewTabEl.getAttribute('datasourceId');
-            const url = window.location.origin + "/table/preview_data?dataset_id=" + datasourceId;
-            const loadingModal = renderLoadingModal();
-            loadingModal.show();
-            $.ajax({
-                url: url,
-                type: 'GET',
-                success: response => {
-                    renderPreviewOriginalData(response);
-                },
-                error: error => {
-                    console.log(error);
-                },
-                complete: () => {
-                    loadingModal.hide();
-                }
-            });
+            
+            if (datasourceId===localStorage.getItem('explore:datasourceId')){
+                renderPreviewOriginalData(JSON.parse(localStorage.getItem('explore:previewData')));
+            } else {
+                const url = window.location.origin + "/table/preview_data?dataset_id=" + datasourceId;
+                const loadingModal = renderLoadingModal();
+                loadingModal.show();
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: response => {
+                        let previewData = response.data;
+                        localStorage.setItem('explore:datasourceId', datasourceId);
+                        localStorage.setItem('explore:previewData', JSON.stringify(previewData));
+                        renderPreviewOriginalData(previewData);
+                    },
+                    error: error => {
+                        console.log(error);
+                    },
+                    complete: () => {
+                        loadingModal.hide();
+                    }
+                });
+            }
         }else if(event.target.value === "result") {
             renderPreviewResultData(sliceResultData);
         }
