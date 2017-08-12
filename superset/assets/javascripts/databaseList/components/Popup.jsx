@@ -217,31 +217,33 @@ class Popup extends React.Component {
                                         name="description"
                                     />
                                 </div>
-                                <div className="data-detail-item">
-                                    <span>连接参数：</span>
-                                    <textarea
-                                        id="connectParams"
-                                        rows="5"
-                                        style={{width:'420px'}}
-                                        required="required"
-                                        ref="databaseArgs"
-                                        defaultValue={JSON.stringify(defaultParams, undefined, 4)}
-                                    >
-                                    </textarea>
-                                </div>
+
                                 <div className="data-detail-item">
                                     <span>连接串：</span>
                                     <input
                                         ref="sqlalchemyUri"
                                         name="sqlalchemy_uri"
                                         type="text"
-                                        placeholder="SQLAlchemy连接串"
+                                        placeholder="inceptor://username:password@172.0.0.1:10000/default"
                                         defaultValue={this.state.sqlalchemyUri}
                                         required="required"
                                     />
                                     <Tooltip placement="topRight" title={tipMsg}>
                                         <i className="icon icon-infor icon-infor-ps"/>
                                     </Tooltip>
+                                </div>
+
+                                <div className="data-detail-item">
+                                    <span>连接参数：</span>
+                                    <textarea
+                                        id="connectParams"
+                                        rows="5"
+                                        style={{width:'420px', height:'120px'}}
+                                        required="required"
+                                        ref="databaseArgs"
+                                        defaultValue={JSON.stringify(defaultParams, undefined, 4)}
+                                    >
+                                    </textarea>
                                 </div>
 
                                 <div className="data-detail-item">
