@@ -207,16 +207,19 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/preview_data/', methods=['GET', ])
     def preview_table(self):
-        dataset_id = request.args.get('dataset_id')
+        dataset_id = request.args.get('dataset_id', 0)
         database_id = request.args.get('database_id')
         full_tb_name = request.args.get('full_tb_name')
         rows = request.args.get('rows', 100)
-        if dataset_id:
+        if int(dataset_id) > 0:
             data = self.get_object(dataset_id).preview_data(limit=rows)
-        else:
+        elif database_id and full_tb_name:
             dataset = Dataset.temp_table(database_id, full_tb_name,
                                          need_columns=False)
             data = dataset.preview_data(limit=rows)
+        else:
+            raise SupersetException('{}: {}'.format(ERROR_REQUEST_PARAM,
+                                                    request.args.to_dict()))
         return json_response(data=data)
 
     @catch_exception
@@ -486,14 +489,15 @@ class HDFSTableModelView(SupersetModelView):
         size = args.pop('size', 4096)
         hdfs_conn_id = args.pop('hdfs_connection_id', None)
 
-        file = HDFSTable.cached_file.get(path)
+        cache_key = '{}-{}'.format(hdfs_conn_id, path)
+        file = HDFSTable.cached_file.get(cache_key)
         if not file:
             client = self.login_file_robot(hdfs_conn_id)
             files = self.list_files(client, path, size)
             files = json.loads(files)
             file_path = self.choice_one_file_path(files)
             file = self.download_file(client, file_path, size)
-            HDFSTable.cached_file[path] = file
+            HDFSTable.cached_file[cache_key] = file
         df = HDFSTable.parse_file(file, **args)
         return json_response(data=dict(records=df.to_dict(orient="records"),
                                        columns=list(df.columns))

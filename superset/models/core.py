@@ -133,6 +133,14 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         return href(slice_params)
 
     @property
+    def source_table_url(self):
+        if self.database_id and self.full_table_name:
+            return "/pilot/explore/table/0/?database_id={}&full_tb_name={}"\
+                .format(self.database_id, self.full_table_name)
+        else:
+            return None
+
+    @property
     def slice_id_url(self):
         return (
             "/pilot/{slc.datasource_type}/{slc.datasource_id}/{slc.id}/"
