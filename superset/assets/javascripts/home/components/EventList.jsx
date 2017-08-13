@@ -25,16 +25,16 @@ function EventList(props) {
         sorter: (a, b) => a.action.localeCompare(b.action),
         className: "action-column",
         render: (text, record) => {
-            const classes = "icon action-title-icon " + record.type + "-icon";
+            {/*const classes = "icon action-title-icon " + record.type + "-icon";*/}
             return (
                 <div>
                     <div className="action-text">
                         <Tooltip placement="topRight" title={text} arrowPointAtCenter>{text}</Tooltip>
                     </div>
-                    <div className="action-title">
+                    {/*<div className="action-title">
                         <i className={classes}/>
                         <span>{record.title}</span>
-                    </div>
+                    </div>*/}
                 </div>
             );
         }
