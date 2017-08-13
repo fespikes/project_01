@@ -116,17 +116,17 @@ class SaveModal extends React.PureComponent {
                             value="overwrite"
                             onChange={this.handleSaveTypeChange}
                             checked={this.state.saveType === 'overwrite'}>
-                            Overwrite Dashboard [{this.props.dashboard.dashboard_title}]
+                            覆盖仪表盘 [{this.props.dashboard.dashboard_title}]
                         </Radio>
                         <Radio
                             value="newDashboard"
                             onChange={this.handleSaveTypeChange}
                             checked={this.state.saveType === 'newDashboard'}>
-                            Save as:
+                            另存为:
                         </Radio>
                         <FormControl
                             type="text"
-                            placeholder="[dashboard name]"
+                            placeholder="仪表盘名字"
                             onFocus={this.handleNameChange}
                             onChange={this.handleNameChange}
                         />
