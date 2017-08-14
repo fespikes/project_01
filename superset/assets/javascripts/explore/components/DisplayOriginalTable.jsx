@@ -30,8 +30,8 @@ class DisplayOriginalTable extends React.Component {
             this.setState({
                 value: value
             });
-            window.location = window.location.origin + '/pilot/explore/table/0?database_id=' + this.state.currentDbId +
-                '&full_tb_name=' + this.state.currentSchema + '.' + value + '&slice_id=' + sliceId + '&viz_type=' + vizType;
+/*            window.location = window.location.origin + '/pilot/explore/table/0?database_id=' + this.state.currentDbId +
+                '&full_tb_name=' + this.state.currentSchema + '.' + value + '&slice_id=' + sliceId + '&viz_type=' + vizType;*/
         }
     }
 
@@ -91,6 +91,14 @@ class DisplayOriginalTable extends React.Component {
     componentDidMount() {
 
         const self = this;
+
+
+        if (location.search.indexOf('database_id')>0) {
+            $('input[name="optionsRadios"][value="sourcetable"]').prop('checked', 'checked');
+            $('#existed_data_source').css('display', 'none');
+            $('#original_table').css('display', 'block');
+        }
+
         let url = window.location.origin + '/table/databases';
         $.ajax({
             url: url,
