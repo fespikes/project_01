@@ -274,9 +274,10 @@ class Popup extends React.Component {
                                     <input
                     type="text"
                     defaultValue=""
-                    value={condition.selectedRows[0] ? condition.selectedRows[0].path : ''}
+                    value={condition.path : ''}
                     required="required"
                     onChange={this.onInputChange}
+                    disabled
                     />
                                 </label>
                                 <div className="data-detail-item">
