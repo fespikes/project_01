@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { getDatasetTab2Name, getDatasetTitle, getDatasetId, extractDatasetType, extractOpeType, extractOpeName, judgeEnableClick } from '../module.jsx';
+import { getDatasetTab2Name, getDatasetTitle, getDatasetId, extractDatasetType, extractOpeType, extractOpeName,
+    judgeEnableClick, judgeEnableClickHDFSPreview } from '../module.jsx';
 import { HashRouter, Route, NavLink, Switch } from 'react-router-dom';
 import { connect, Provider } from 'react-redux';
 import { SubDetail, SubPreview, SubColumns, SubSqlMetric } from './';
@@ -13,15 +14,15 @@ class TableAdd extends Component {
     }
 
     render() {
-        const { datasetId } = this.props;
+        const { datasetId, HDFSConfigured } = this.props;
         const path = window.location.hash;
         const datasetType = extractDatasetType(path);
         const tab2Name = getDatasetTab2Name(datasetType);
         const opeType = extractOpeType(path);
-        const opeName = extractOpeName(path);
         const title = getDatasetTitle(opeType, datasetType);
         const id = getDatasetId(opeType, path);
-        const enableClick = judgeEnableClick(opeName, opeType, datasetType, datasetId);
+        const enableClick = judgeEnableClick(opeType, datasetId);
+        const enableClickHDFSPreview = judgeEnableClickHDFSPreview(opeType, datasetType, datasetId, HDFSConfigured);
         const isDetailActive = (match, location) => {
             return isActive('detail', location);
         };
@@ -49,7 +50,7 @@ class TableAdd extends Component {
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink to={`/${opeType}/preview/${datasetType}/${id}`} activeClassName="active" className={enableClick?'':'link-disabled'} isActive={isPreviewActive} >
+                                    <NavLink to={`/${opeType}/preview/${datasetType}/${id}`} activeClassName="active" className={enableClickHDFSPreview?'':'link-disabled'} isActive={isPreviewActive} >
                                         { tab2Name }
                                     </NavLink>
                                 </li>
@@ -87,7 +88,8 @@ class TableAdd extends Component {
 function mapStateToProps(state) {
     const { subDetail } = state;
     return {
-        datasetId:  subDetail.datasetId
+        datasetId:  subDetail.datasetId,
+        HDFSConfigured: subDetail.HDFSConfigured
     };
 }
 

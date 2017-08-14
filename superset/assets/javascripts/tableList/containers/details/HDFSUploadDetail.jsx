@@ -15,7 +15,9 @@ class HDFSUploadDetail extends Component {
     constructor (props) {
         super(props);
         this.state={
-            dsHDFS: props.dsHDFS
+            dsHDFS: props.dsHDFS,
+            disabledConfig: 'disabled',
+            disabledUpload: 'disabled'
         };
         //bindings
         this.onConfig = this.onConfig.bind(this);
@@ -89,7 +91,7 @@ class HDFSUploadDetail extends Component {
             if(success) {
                 let treeData = appendTreeChildren(
                     hdfsPath,
-                    data,
+                    data.data,
                     JSON.parse(JSON.stringify(me.state.dsHDFS.fileBrowserData))
                 );
                 let objHDFS = {
@@ -105,7 +107,6 @@ class HDFSUploadDetail extends Component {
 
     handleFile() {
         const me = this;
-        this.refs.fileName.innerText = this.refs.fileSelect.files[0].name;
         let reader = new FileReader();
         reader.readAsBinaryString(this.refs.fileSelect.files[0]);
         reader.onload = function(e) {
@@ -114,8 +115,13 @@ class HDFSUploadDetail extends Component {
                 uploadFileName: me.refs.fileSelect.files[0].name,
                 binaryFile: e.target.result
             };
+            let disabled = 'disabled';
+            if(me.state.dsHDFS.hdfsPath.length > 0) {
+                disabled = null;
+            }
             me.setState({
-                dsHDFS: objUpload
+                dsHDFS: objUpload,
+                disabledUpload: disabled
             });
         }
     }
@@ -145,14 +151,39 @@ class HDFSUploadDetail extends Component {
             }else {
                 response.type = 'error';
                 response.message = '上传失败';
-                renderAlertTip(response, 'showAlert');
             }
+            renderAlertTip(response, 'showAlertDetail');
         }
     }
 
     onConfig() {
-        const { saveHDFSDataset } = this.props;
+        const { saveHDFSDataset, datasetType, datasetId, history } = this.props;
+        const opeType = extractOpeType(window.location.hash);
         saveHDFSDataset(this.state.dsHDFS);
+        const url = '/' + opeType + '/preview/' + datasetType + '/' + datasetId;
+        history.push(url);
+    }
+
+    checkIfSubmit() {
+        var fields = $(".hdfs-detail input[required]");
+        let disabled = null;
+
+        fields.each((idx, obj) => {
+            if (obj.value === '') {
+                disabled = 'disabled';
+                return;
+            }
+        });
+        if(disabled === this.state.disabledConfig) {
+            return;
+        }
+        this.setState({
+            disabledConfig: disabled
+        });
+    }
+
+    componentDidUpdate() {
+        this.checkIfSubmit();
     }
 
     componentDidMount() {
@@ -212,8 +243,7 @@ class HDFSUploadDetail extends Component {
         fetchHDFSFileBrowser(path, fileCallback);
         function fileCallback(success, fileBrowserData) {
             if(success) {
-                const browserData = constructFileBrowserData(fileBrowserData);
-                console.log('browserData=', browserData);
+                const browserData = constructFileBrowserData(fileBrowserData.data);
                 let objHDFS = {
                     ...me.state.dsHDFS,
                     fileBrowserData: browserData
@@ -238,19 +268,20 @@ class HDFSUploadDetail extends Component {
                     if(success) {
                         let objHDFS = {
                             ...me.state.dsHDFS,
-                            inceptorConnectName: dbData.database_name
+                            inceptorConnectName: dbData.database_name,
+                            inceptorConnectId: dbData.id
                         };
                         me.setState({
                             dsHDFS: initDatasetData('HDFS', data, objHDFS)
                         });
-
                     }
                 }
                 function hdfsCallback(success, hdfsData) {
                     if(success) {
                         let objHDFS = {
                             ...me.state.dsHDFS,
-                            hdfsConnectName: hdfsData.connection_name
+                            hdfsConnectName: hdfsData.connection_name,
+                            hdfsConnectId: hdfsData.id
                         };
                         me.setState({
                             dsHDFS: initDatasetData('HDFS', data, objHDFS)
@@ -278,94 +309,98 @@ class HDFSUploadDetail extends Component {
             });
         }
         return (
-            <div className="data-detail-centent shallow">
-                <div className="data-detail-border">
+            <div className="data-detail-centent hdfs-detail">
+                <div className="data-detail-item">
+                    <span>数据集名称：</span>
+                    <input type="text" name="dataset_name" value={dsHDFS.dataset_name}
+                           required="required" onChange={this.handleChange}/>
+                </div>
+                <div className="data-detail-item">
+                    <span>描述：</span>
+                    <textarea name="description" value={dsHDFS.description}
+                          required="required" onChange={this.handleChange}/>
+                </div>
+                <div className={datasetType==='UPLOAD FILE'?'data-detail-item':'none'}>
+                    <span></span>
+                    <div>
+                        <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
+                            <span>选择文件</span>
+                        </label>
+                        <div className="file-name">
+                            <i className="icon icon-file"/>
+                            <span ref="fileName">{dsHDFS.uploadFileName}</span>
+                        </div>
+                        <div className="file-upload" style={{display: 'none'}}>
+                            <input type="file" id="xFile" className="file-select" onChange={this.handleFile}
+                                   ref="fileSelect"/>
+                        </div>
+                    </div>
+                </div>
+                <div className={HDFSConnected===false?'':'none'}>
                     <div className="data-detail-item">
-                        <span>数据集名称：</span>
-                        <input type="text" name="dataset_name" value={dsHDFS.dataset_name || ''}
-                               onChange={this.handleChange}/>
+                        <span></span>
+                        <div className="data-connect-status">
+                            <span>尚未建立HDFS连接</span>
+                            <button onClick={this.createHDFSConnect}>建立HDFS连接</button>
+                        </div>
                     </div>
                     <div className="data-detail-item">
                         <span>描述：</span>
-                        <textarea name="description" value={dsHDFS.description} defaultValue=""
-                              onChange={this.handleChange}/>
+                        <textarea name="" id="" cols="30" rows="10"/>
                     </div>
-                    <div className={datasetType==='UPLOAD FILE'?'data-detail-item':'none'}>
-                        <span></span>
-                        <div>
-                            <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
-                                <span>选择文件</span>
-                            </label>
-                            <div className="file-name">
-                                <i className="icon icon-file"/>
-                                <span ref="fileName"/>
-                            </div>
-                            <div className="file-upload" style={{display: 'none'}}>
-                                <input type="file" id="xFile" className="file-select" onChange={this.handleFile}
-                                       ref="fileSelect"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div className={HDFSConnected===false?'':'none'}>
-                        <div className="data-detail-item">
-                            <span></span>
-                            <div className="data-connect-status">
-                                <span>尚未建立HDFS连接</span>
-                                <button onClick={this.createHDFSConnect}>建立HDFS连接</button>
-                            </div>
-                        </div>
-                        <div className="data-detail-item">
-                            <span>描述：</span>
-                            <textarea name="" id="" cols="30" rows="10"/>
-                        </div>
-                    </div>
-                    <div className={HDFSConnected===true?'':'none'}>
-                        <div className="data-detail-item">
-                            <span>选择连接：</span>
-                            <Select
-                                style={{ width: 300 }}
-                                value={dsHDFS.hdfsConnectName}
-                                onSelect={this.onHDFSConnectChange}
-                            >
-                                {hdfsOptions}
-                            </Select>
-                        </div>
-                        <div className="data-detail-item">
-                            <span>关联inceptor连接：</span>
-                            <Select
-                                style={{ width: 300 }}
-                                value={dsHDFS.inceptorConnectName}
-                                onSelect={this.onInceptorConnectChange}
-                            >
-                                {inceptorOptions}
-                            </Select>
-                        </div>
-                    </div>
+                </div>
+                <div className={HDFSConnected===true?'':'none'}>
                     <div className="data-detail-item">
-                        <span>选择数据目录：</span>
-                        <div className="dataset-detail" id="dataset-detail-tree-select">
-                            <TreeSelect
-                                showSearch
-                                value={dsHDFS.hdfsPath}
-                                style={{ width: 300 }}
-                                placeholder="please select"
-                                treeCheckable={false}
-                                treeData={dsHDFS.fileBrowserData}
-                                onSelect={this.onSelect}
-                                loadData={this.onLoadData}
-                                getPopupContainer={() => document.getElementById('dataset-detail-tree-select')}
-                                dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
-                            >
-                            </TreeSelect>
-                        </div>
+                        <span>HDFS连接：</span>
+                        <Select
+                            style={{ width: 300 }}
+                            value={dsHDFS.hdfsConnectName}
+                            onSelect={this.onHDFSConnectChange}
+                        >
+                            {hdfsOptions}
+                        </Select>
+                        <input type="hidden" required="required" value={dsHDFS.hdfsConnectName}/>
                     </div>
-                    <div className="sub-btn">
-                        <input type="button" className={datasetType==='UPLOAD FILE'?'':'none'}
-                               defaultValue="上传文件" onClick={this.uploadFile}/>
-                        <Link to={`/${opeType}/preview/${datasetType}/${datasetId}`} onClick={this.onConfig}>
-                            配置
-                        </Link>
+                </div>
+                <div className="data-detail-item">
+                    <span>数据目录：</span>
+                    <div className="dataset-detail" id="dataset-detail-tree-select">
+                        <TreeSelect
+                            showSearch
+                            value={dsHDFS.hdfsPath}
+                            style={{ width: 300 }}
+                            placeholder="please select"
+                            treeCheckable={false}
+                            treeData={dsHDFS.fileBrowserData}
+                            onSelect={this.onSelect}
+                            loadData={this.onLoadData}
+                            getPopupContainer={() => document.getElementById('dataset-detail-tree-select')}
+                            dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+                        >
+                        </TreeSelect>
+                        <input type="hidden" required="required" value={dsHDFS.hdfsPath}/>
                     </div>
+                </div>
+                <div className="data-detail-item">
+                    <span>关联inceptor连接：</span>
+                    <Select
+                        style={{ width: 300 }}
+                        value={dsHDFS.inceptorConnectName}
+                        onSelect={this.onInceptorConnectChange}
+                    >
+                        {inceptorOptions}
+                    </Select>
+                    <input type="hidden" required="required" value={dsHDFS.inceptorConnectName}/>
+                </div>
+                <div className="sub-btn">
+                    <button className={datasetType==='UPLOAD FILE'?'':'none'} onClick={this.uploadFile}
+                            style={{marginRight: 20}} disabled={this.state.disabledUpload}>
+                        上传文件
+                    </button>
+                    <button onClick={this.onConfig}
+                            disabled={this.state.disabledConfig}>
+                        配置
+                    </button>
                 </div>
             </div>
         );

@@ -12,12 +12,15 @@ import { constructInceptorDataset, initDatasetData, extractOpeType, getDatasetId
 import { appendTreeData, constructTreeData } from '../../../../utils/common2';
 import { renderLoadingModal, renderAlertTip } from '../../../../utils/utils';
 
+const $ = window.$ = require('jquery');
+
 class InceptorDetail extends Component {
 
     constructor (props) {
         super(props);
         this.state = {
-            dsInceptor: props.dsInceptor
+            dsInceptor: props.dsInceptor,
+            disabled: 'disabled'
         };
         //bindings
         this.onSave = this.onSave.bind(this);
@@ -26,6 +29,7 @@ class InceptorDetail extends Component {
         this.onConnectChange = this.onConnectChange.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.callbackRefresh = this.callbackRefresh.bind(this);
+        this.checkIfSubmit = this.checkIfSubmit.bind(this);
         this.createInceptorConnect = this.createInceptorConnect.bind(this);
     }
 
@@ -137,7 +141,7 @@ class InceptorDetail extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlert');
+                    renderAlertTip(response, 'showAlertDetail');
                 }
             }
         }else {
@@ -151,10 +155,28 @@ class InceptorDetail extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlert');
+                    renderAlertTip(response, 'showAlertDetail');
                 }
             }
         }
+    }
+
+    checkIfSubmit() {
+        var fields = $(".inceptor-detail input[required]");
+        let disabled = null;
+
+        fields.each((idx, obj) => {
+            if (obj.value === '') {
+                disabled = 'disabled';
+                return;
+            }
+        });
+        if(disabled === this.state.disabled) {
+            return;
+        }
+        this.setState({
+            disabled: disabled
+        });
     }
 
     componentDidMount() {
@@ -220,6 +242,10 @@ class InceptorDetail extends Component {
         }
     }
 
+    componentDidUpdate() {
+        this.checkIfSubmit();
+    }
+
     componentWillReceiveProps(nextProps) {
         const { isFetching } = this.props;
         if(isFetching !== nextProps.isFetching) {
@@ -242,16 +268,16 @@ class InceptorDetail extends Component {
             });
         }
         return (
-            <div>
+            <div className="inceptor-detail">
                 <div className="data-detail-item">
                     <span>数据集名称：</span>
-                    <input type="text" name="dataset_name" value={dsInceptor.dataset_name || ''}
-                           defaultValue="" onChange={this.handleChange}/>
+                    <input type="text" name="dataset_name" value={dsInceptor.dataset_name}
+                          required="required" onChange={this.handleChange}/>
                 </div>
                 <div className="data-detail-item">
                     <span>描述：</span>
                     <textarea name="description" value={dsInceptor.description}
-                          defaultValue="" onChange={this.handleChange}/>
+                          required="required" onChange={this.handleChange}/>
                 </div>
                 <div className="data-detail-item">
                     <span>选择连接：</span>
@@ -265,6 +291,7 @@ class InceptorDetail extends Component {
                     <div className="connect-success">
                         &nbsp;<button onClick={this.createInceptorConnect}>新建连接</button>
                     </div>
+                    <input type="hidden" required="required" value={dsInceptor.db_name}/>
                 </div>
                 <div className="data-detail-item">
                     <span>选择表：</span>
@@ -282,17 +309,20 @@ class InceptorDetail extends Component {
                     <Tooltip title="选择表">
                         <i className="icon icon-info"/>
                     </Tooltip>
+                    <input type="hidden" required="required" value={dsInceptor.table_name}/>
                 </div>
                 <div className="data-detail-item">
                     <span>SQL：</span>
-                    <textarea cols="30" rows="10" value={dsInceptor.sql}
-                              defaultValue="" name="sql" onChange={this.handleChange}/>
+                f    <textarea cols="30" rows="10" value={dsInceptor.sql}
+                              name="sql" onChange={this.handleChange}/>
                     <a href={ window.location.origin + '/pilot/sqllab' } target="_blank">
                         切换至SQL LAB编辑
                     </a>
                 </div>
                 <div className="sub-btn">
-                    <input type="button" defaultValue="保存" onClick={this.onSave}/>
+                    <button onClick={this.onSave} disabled={this.state.disabled}>
+                        保存
+                    </button>
                 </div>
             </div>
         );

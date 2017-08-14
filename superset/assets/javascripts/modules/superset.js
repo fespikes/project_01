@@ -103,8 +103,12 @@ const px = function () {
                 let endpoint = parser.pathname + this.querystring();
                 const databaseId = getUrlParam('database_id', data.json_endpoint);
                 const tableName = getUrlParam('full_tb_name', data.json_endpoint);
-                document.getElementById('save_as_database_id').value = databaseId;//for save as slice api add params
-                document.getElementById('save_as_full_tb_name').value = tableName;
+                if(document.getElementById('save_as_database_id')) {
+                    document.getElementById('save_as_database_id').value = databaseId;//for save as slice api add params
+                }
+                if(document.getElementById('save_as_full_tb_name')) {
+                    document.getElementById('save_as_full_tb_name').value = tableName;
+                }
                 if (endpoint.charAt(0) !== '/') {
                     // Known issue for IE <= 11:
                     // https://connect.microsoft.com/IE/feedbackdetail/view/1002846/pathname-incorrect-for-out-of-document-elements
