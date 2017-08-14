@@ -114,6 +114,11 @@ class PresentUserView(BaseView):
     route_base = '/present_user'
 
     @catch_exception
+    @expose('/')
+    def home(self):
+        return self.render_template('superset/user.html')
+
+    @catch_exception
     @expose('/show/', methods=['GET'])
     def show(self):
         user = g.user
