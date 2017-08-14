@@ -9,6 +9,7 @@ import { Table, Input, Button, Icon } from 'antd';
 import { SQLMetricAdd, SQLMetricDelete } from '../popup';
 import * as actionCreators from '../actions';
 const _ = require('lodash');
+import {renderAlertTip, renderLoadingModal} from '../../../utils/utils';
 
 class SubSqlMetric extends Component {
     

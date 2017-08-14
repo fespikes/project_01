@@ -110,4 +110,20 @@ class UserView(BaseView):
             raise SupersetException('Error action [{}]'.format(action))
 
 
-appbuilder.add_view_no_menu(UserView)
+class PresentUserView(BaseView):
+    route_base = '/present_user'
+
+    @catch_exception
+    @expose('/show/', methods=['GET'])
+    def show(self):
+        user = g.user
+        if not user:
+            raise SupersetException(NO_USER)
+
+        data = {'username': user.username,
+                'login_count': user.login_count,
+                'last_login': str(user.last_login)}
+        return json_response(data=data)
+
+
+appbuilder.add_view_no_menu(PresentUserView)

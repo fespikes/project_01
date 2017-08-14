@@ -9,6 +9,7 @@ import { Table, Input, Button, Icon } from 'antd';
 import { TableColumnAdd, TableColumnDelete } from '../popup';
 import * as actionCreators from '../actions';
 const _ = require('lodash');
+import {renderAlertTip, renderLoadingModal} from '../../../utils/utils';
 
 class SubColumns extends Component {
     constructor(props) {

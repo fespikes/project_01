@@ -20,15 +20,11 @@ class SubDetail extends Component {
     }
 
     initDatasetCache(props) {
-        const {clearDatasetData, saveDatasetId} = props;
+        const {saveDatasetId} = props;
         const opeType = extractOpeType(window.location.hash);
-        let datasetId = '';
         if(opeType === 'edit') {
-            datasetId = getDatasetId("edit", window.location.hash);
+            let datasetId = getDatasetId("edit", window.location.hash);
             saveDatasetId(datasetId);
-        }else if(opeType === 'add') {
-            saveDatasetId('');
-            clearDatasetData();
         }
     }
 
@@ -89,6 +85,7 @@ class SubDetail extends Component {
                     <div className={(datasetType==='HDFS' || datasetType==='UPLOAD FILE')?'':'none'}>
                         <HDFSUploadDetail
                             dispatch={dispatch}
+                            history={history}
                             datasetId={datasetId}
                             datasetType={datasetType}
                             dsHDFS={dsHDFS}
@@ -105,7 +102,7 @@ class SubDetail extends Component {
                             fetchUploadFile={fetchUploadFile}
                         />
                     </div>
-                    <div id="showAlert" className="alert-tip"></div>
+                    <div id="showAlertDetail" className="alert-tip"></div>
                 </div>
             </div>
         );
