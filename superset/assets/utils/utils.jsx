@@ -69,6 +69,6 @@ export function getUrlParam(name, url) {
     if(str&&str.length > 0) {
         return str[0].substring(str[0].indexOf('=') + 1);
     }else {
-        return undefined;
+        return '';
     }
 }

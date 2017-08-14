@@ -101,6 +101,8 @@ const px = function () {
                 const parser = document.createElement('a');
                 parser.href = data.json_endpoint;
                 let endpoint = parser.pathname + this.querystring();
+                const databaseId = getUrlParam('database_id', data.json_endpoint);
+                const tableName = getUrlParam('full_tb_name', data.json_endpoint);
                 if(document.getElementById('save_as_database_id')) {
                     document.getElementById('save_as_database_id').value = databaseId;//for save as slice api add params
                 }
@@ -114,12 +116,10 @@ const px = function () {
                 }
                 endpoint += '&json=true';
                 endpoint += '&force=' + this.force;
-                if(moduleType === 'slice' && getUrlParam('database_id', endpoint) === undefined) {
-                    const databaseId = getUrlParam('database_id', data.json_endpoint);
-                    const tableName = getUrlParam('full_tb_name', data.json_endpoint);
+                if(moduleType === 'slice' && endpoint.indexOf('database_id') === -1) {
                     endpoint += '&database_id=' + databaseId + '&full_tb_name=' + tableName;
                 }
-                if(moduleType === 'dashboard' && getUrlParam('slice_id', endpoint) === undefined) {
+                if(moduleType === 'dashboard' && endpoint.indexOf('slice_id') === -1) {
                     endpoint += '&slice_id=' + data.slice_id;
                 }
                 return endpoint;

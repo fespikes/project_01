@@ -31,11 +31,12 @@
     <div class="panel-top-header">
       <div class="header-left">
         <i class="icon"></i>
-        <span
+        <input
+            type="text"
             id="slice-title-name"
             sliceId="{{ slice.id }}"
-            >
-        </span>
+            value=""
+        />
       </div>
       <div class="header-right">
         <div
@@ -55,11 +56,11 @@
                   <div class="item-left">
                     <span>数据来源</span>
                     <div class="radio-item">
-                        <input type="radio" name="optionsRadios" value="datasource" checked>
+                        <input type="radio" id="existed_dataset_radio" name="optionsRadios" value="datasource">
                         <span>已建数据集</span>
                     </div>
                     <div class="radio-item">
-                        <input type="radio" name="optionsRadios" value="sourcetable">
+                        <input type="radio" id="original_table_radio" name="optionsRadios" value="sourcetable">
                         <span>原始表</span>
                       </label>
                     </div>  
