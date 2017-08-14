@@ -274,7 +274,7 @@ class Popup extends React.Component {
                                     <input
                     type="text"
                     defaultValue=""
-                    value={condition.path : ''}
+                    value={dest_path}
                     required="required"
                     onChange={this.onInputChange}
                     disabled
