@@ -112,22 +112,22 @@ class Operate extends React.Component {
         let normalPopupParam = {};
 
         let obj = this.cleanNormalParamState(popupNormalParam);
-        if (condition.selectedRows.length === 0) {
-            normalPopupParam = {
-                ...obj,
-                popupType: CONSTANT.noSelect,
-                submit: fetchOperation,
-                status: 'flex'
-            };
-        } else {
-            normalPopupParam = {
-                ...obj,
-                popupType: CONSTANT.upload,
-                submit: fetchOperation,
-                status: 'flex',
-                dest_path: condition.selectedRows[0].path
-            };
-        }
+        /*        if (condition.selectedRows.length === 0) {
+                    normalPopupParam = {
+                        ...obj,
+                        popupType: CONSTANT.noSelect,
+                        submit: fetchOperation,
+                        status: 'flex'
+                    };
+                } else {*/
+        normalPopupParam = {
+            ...obj,
+            popupType: CONSTANT.upload,
+            submit: fetchOperation,
+            status: 'flex',
+            dest_path: condition.path
+        };
+        // }
         setPopupNormalParams(normalPopupParam);
     }
 
@@ -197,47 +197,49 @@ class Operate extends React.Component {
 
                 <ul className="icon-list">
                     <li
-                        className="li-setting"
-                    >
+            className="li-setting"
+            >
                         <i className="icon icon-setting ps"></i>
                         <Select
-                            ref="manipulate"
-                            options={manipulateOptions}
-                            theValue={'操作'}
-                            width={65}
-                            handleSelect={(argus) => this.manipulate(argus)}
-                        />
+            ref="manipulate"
+            options={manipulateOptions}
+            theValue={'操作'}
+            width={65}
+            handleSelect={(argus) => this.manipulate(argus)}
+            />
                     </li>
                     <li
-                        className="li-upload"
-                        onClick={this.upload}
-                    >
+            className="li-upload"
+            onClick={this.upload}
+            >
                         <i className="icon icon-upload ps"></i>上传
                     </li>
                     <li
-                        className="li-plus"
-                    >
+            className="li-plus"
+            >
                         <i className="icon icon-plus ps"></i>
                         <Select
-                            ref="create"
-                            options={createOptions}
-                            theValue={'新建'}
-                            width={60}
-                            handleSelect={(argus) => this.manipulate(argus)}
-                        />
+            ref="create"
+            options={createOptions}
+            theValue={'新建'}
+            width={60}
+            handleSelect={(argus) => this.manipulate(argus)}
+            />
                     </li>
                     <li
-                        className="li-trash  bolder-right-none"
-                        onClick={this.onRemove}
-                    >
+            className="li-trash  bolder-right-none"
+            onClick={this.onRemove}
+            >
                         <i className="icon icon-trash ps"></i>删除
                     </li>
                 </ul>
-                <div className="search-input" style={{marginRight: 0}}>
+                <div className="search-input" style={{
+                marginRight: 0
+            }}>
                     <input
-                        onChange={this.searchOnChange}
-                        ref="searchField"
-                        placeholder="search file name" />
+            onChange={this.searchOnChange}
+            ref="searchField"
+            placeholder="search file name" />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"></i>
                 </div>
             </div>

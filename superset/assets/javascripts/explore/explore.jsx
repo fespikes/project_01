@@ -168,8 +168,8 @@ function initExploreView() {
     
     //submit form "query" when 已建数据集/图标类型 changed
 /*    $('#viz_type').change(function () {
-        $('#query').submit();
-    });
+    $('#query').submit();
+});
 */
     $('#datasource_id').change(function () {
         window.location = $(this).find('option:selected').attr('url');
@@ -539,7 +539,7 @@ $(document).ready(function () {
 
     // call vis render method, which issues ajax
     // calls render on the slice for the first time
-    query(false, false);
+    location.search!=='' && query(false, false);
 
     slice.bindResizeToWindowResize();
 

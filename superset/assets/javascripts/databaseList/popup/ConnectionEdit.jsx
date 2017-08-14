@@ -222,6 +222,19 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                 </div>
 
+                                <div className="dialog-item">
+                                    <div className="item-left">
+                                        <span>连接串：</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <input
+                                            name = "sqlalchemy_uri"
+                                            className="form-control dialog-input"
+                                            value={database.sqlalchemy_uri}
+                                            onChange={this.handleInputChange}/>
+                                    </div>
+                                </div>
+                                
                                 <label className="dialog-item">
                                     <div className="item-left">
                                         <span>连接参数：</span>
@@ -237,18 +250,6 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                 </label>
 
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>连接串：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <input
-                                            name = "sqlalchemy_uri"
-                                            className="form-control dialog-input"
-                                            value={database.sqlalchemy_uri}
-                                            onChange={this.handleInputChange}/>
-                                    </div>
-                                </div>
                                 <div className="dialog-item" style={{ position: 'relative' }}>
                                     <div className="item-left"></div>
                                     <div className="item-right item-connect-test">
