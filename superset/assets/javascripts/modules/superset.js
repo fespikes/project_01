@@ -52,7 +52,7 @@ const px = function () {
                 $(this).each(show);
             });
     }
-    const Slice = function (data, controller) {
+    const Slice = function (data, controller, moduleType) {
         let timer;
         const token = $('#' + data.token);
         const containerId = data.token + '_con';
@@ -101,8 +101,6 @@ const px = function () {
                 const parser = document.createElement('a');
                 parser.href = data.json_endpoint;
                 let endpoint = parser.pathname + this.querystring();
-                const databaseId = getUrlParam('database_id', data.json_endpoint);
-                const tableName = getUrlParam('full_tb_name', data.json_endpoint);
                 if(document.getElementById('save_as_database_id')) {
                     document.getElementById('save_as_database_id').value = databaseId;//for save as slice api add params
                 }
@@ -116,7 +114,14 @@ const px = function () {
                 }
                 endpoint += '&json=true';
                 endpoint += '&force=' + this.force;
-                endpoint += '&database_id=' + databaseId + '&full_tb_name=' + tableName;
+                if(moduleType === 'slice' && getUrlParam('database_id', endpoint) === undefined) {
+                    const databaseId = getUrlParam('database_id', data.json_endpoint);
+                    const tableName = getUrlParam('full_tb_name', data.json_endpoint);
+                    endpoint += '&database_id=' + databaseId + '&full_tb_name=' + tableName;
+                }
+                if(moduleType === 'dashboard' && getUrlParam('slice_id', endpoint) === undefined) {
+                    endpoint += '&slice_id=' + data.slice_id;
+                }
                 return endpoint;
             },
             d3format(col, number) {
