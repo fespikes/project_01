@@ -56,7 +56,7 @@ class ComponentSelect extends React.Component {
 
     render () {
         const self = this;
-        const { options, opeType } = self.props;
+        const { options, opeType, iconClass } = self.props;
         let typeOptions = [];
         if(opeType === "addConnect") {
             typeOptions = options.map((opt, index) => {
@@ -72,12 +72,19 @@ class ComponentSelect extends React.Component {
                     <span>{opt}</span>
                 </li>
             });
+        }else if(opeType === "hdfsOperation" || opeType === "addFolder") {
+            typeOptions = options.map((opt, index) => {
+                return <li className={this.state.selected===opt?'selected':''}
+                           key={opt.id} onClick={self.onSelect.bind(opt.name, self)}>
+                    <span>{opt.name}</span>
+                </li>
+            });
         }
 
         return (
             <div className="component-select">
                 <div id="selectionToggle" className="selection-toggle" onClick={this.onToggle}>
-                    <i className="icon icon-plus"/>
+                    <i className={iconClass}/>
                     <span>{this.state.selected || "请选择"}</span>
                 </div>
                 <div className={this.state.opened===true?'selection-section':'none'}>
