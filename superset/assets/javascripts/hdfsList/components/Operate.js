@@ -10,6 +10,8 @@ import { CONSTANT } from '../actions';
 import { Select, PopupNormal } from './';
 import { getPermData, updatePermMode } from '../module';
 
+const _ = require('lodash');
+
 class Operate extends React.Component {
     constructor(props, context) {
         super(props);
@@ -48,15 +50,7 @@ class Operate extends React.Component {
         let obj = this.cleanNormalParamState(popupNormalParam);
 
         let normalPopupParam = {};
-        if (condition.selectedRows.length === 0) {
-            normalPopupParam = {
-                ...obj,
-                popupType: CONSTANT.noSelect,
-                submit: fetchOperation,
-                status: 'flex'
-            };
-            setPopupNormalParams(normalPopupParam);
-        } else {
+        if (condition.selectedRows.length !== 0 || _.indexOf([CONSTANT.mkdir, CONSTANT.touch], popupType) >= 0) {
             normalPopupParam = {
                 ...obj,
                 popupType: popupType,
@@ -73,6 +67,14 @@ class Operate extends React.Component {
             } else if (popupType === CONSTANT.copy || popupType === CONSTANT.move) {
                 fetchHDFSList('/', true);
             }
+        } else {
+            normalPopupParam = {
+                ...obj,
+                popupType: CONSTANT.noSelect,
+                submit: fetchOperation,
+                status: 'flex'
+            };
+            setPopupNormalParams(normalPopupParam);
         }
     }
 
@@ -186,6 +188,10 @@ class Operate extends React.Component {
                 {
                     id: CONSTANT.mkdir,
                     name: '目录'
+                },
+                {
+                    id: CONSTANT.touch,
+                    name: '文件'
                 }
             ];
 
