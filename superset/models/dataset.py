@@ -931,7 +931,7 @@ class HDFSTable(Model, AuditMixinNullable):
     nrows = Column(Integer)             # the rows of data readed
     charset = Column(String(32))
     hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection.id'))
-    hdfsconnection = relationship(
+    hdfs_connection = relationship(
         'HDFSConnection',
         backref=backref('hdfs_table', lazy='joined'),
         foreign_keys=[hdfs_connection_id]
