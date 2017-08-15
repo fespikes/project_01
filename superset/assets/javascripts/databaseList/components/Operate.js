@@ -124,6 +124,7 @@ class Operate extends React.Component {
                     >
                         <ComponentSelect
                             opeType='addDataset'
+                            iconClass='icon icon-plus'
                             options={typeArray}
                             selectChange={(argus)=>this.onAdd(argus)}
                         >
