@@ -313,7 +313,7 @@ class InceptorDetail extends Component {
                 </div>
                 <div className="data-detail-item">
                     <span>SQL：</span>
-                f    <textarea cols="30" rows="10" value={dsInceptor.sql}
+                    <textarea cols="30" rows="10" value={dsInceptor.sql}
                               name="sql" onChange={this.handleChange}/>
                     <a href={ window.location.origin + '/pilot/sqllab' } target="_blank">
                         切换至SQL LAB编辑

@@ -152,3 +152,13 @@ export function getSelectedPath(selectedRows) {
     });
     return rowPath;
 }
+
+export function getPopupType(name, options) {
+    let popupType = '';
+    options.map(option => {
+        if(option.name === name) {
+            popupType = option.id;
+        }
+    });
+    return popupType;
+}

@@ -52,7 +52,7 @@ const px = function () {
                 $(this).each(show);
             });
     }
-    const Slice = function (data, controller) {
+    const Slice = function (data, controller, moduleType) {
         let timer;
         const token = $('#' + data.token);
         const containerId = data.token + '_con';
@@ -116,7 +116,12 @@ const px = function () {
                 }
                 endpoint += '&json=true';
                 endpoint += '&force=' + this.force;
-                endpoint += '&database_id=' + databaseId + '&full_tb_name=' + tableName;
+                if(moduleType === 'slice' && endpoint.indexOf('database_id') === -1) {
+                    endpoint += '&database_id=' + databaseId + '&full_tb_name=' + tableName;
+                }
+                if(moduleType === 'dashboard' && endpoint.indexOf('slice_id') === -1) {
+                    endpoint += '&slice_id=' + data.slice_id;
+                }
                 return endpoint;
             },
             d3format(col, number) {

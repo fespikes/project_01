@@ -112,6 +112,7 @@ class SliceOperate extends React.Component {
                     <li style={{ width: '130px', textAlign: 'left' }}>
                         <ComponentSelect
                             opeType='addConnect'
+                            iconClass='icon icon-plus'
                             options={this.state.addDatasetTypes}
                             selectChange={this.selectChange}
                         >

@@ -13,6 +13,8 @@ class DisplayOriginalTable extends React.Component {
             treeData: [],
             currentDbId: '',
             currentSchema: '',
+            databaseId: props.databaseId,
+            tableName: props.tableName,
             value: ''
         };
         this.onSelect = this.onSelect.bind(this);
@@ -20,7 +22,7 @@ class DisplayOriginalTable extends React.Component {
         this.onConnectionChange = this.onConnectionChange.bind(this);
     };
 
-    onSelect(value, node, extra) {
+    onSelect(value, node) {
         let {sliceId, vizType} = this.props;
         const vizTypeEl = document.getElementById('viz-type-id');
         if(vizType === '' || vizType === 'None') {
@@ -28,7 +30,7 @@ class DisplayOriginalTable extends React.Component {
         }
         if(node.props.isLeaf) {
             this.setState({
-                value: value
+                tableName: value
             });
             window.location = window.location.origin + '/pilot/explore/table/0?database_id=' + this.state.currentDbId +
                 '&full_tb_name=' + this.state.currentSchema + '.' + value + '&slice_id=' + sliceId + '&viz_type=' + vizType;
@@ -65,12 +67,22 @@ class DisplayOriginalTable extends React.Component {
         });
     }
 
-    onConnectionChange(databaseId) {
-
+    onConnectionChange(databaseId, isFirst) {
         const self = this;
         self.setState({
-            currentDbId: databaseId
+            currentDbId: databaseId,
         });
+        if(!isFirst) {
+            self.setState({
+                tableName: '',
+            });
+        }
+        this.getSchemas(databaseId);
+        this.getDatabaseName(databaseId);
+    }
+
+    getSchemas(databaseId) {
+        const self = this;
         let url = window.location.origin + '/table/schemas/' + databaseId;
         $.ajax({
             url: url,
@@ -88,12 +100,30 @@ class DisplayOriginalTable extends React.Component {
         });
     }
 
-    componentDidMount() {
-
+    getDatabaseName(databaseId) {
         const self = this;
-        let url = window.location.origin + '/table/databases';
+        let url_databaseName = window.location.origin + '/database/show/' + databaseId;
         $.ajax({
-            url: url,
+            url: url_databaseName,
+            type: 'GET',
+            success: response => {
+                response = JSON.parse(response);
+                console.log('response.database_name=', response.database_name);
+                self.setState({
+                    databaseName: response.database_name
+                });
+            },
+            error: error => {
+
+            }
+        });
+    }
+
+    getDatabaseList() {
+        const self = this;
+        let url_databaseList = window.location.origin + '/table/databases';
+        $.ajax({
+            url: url_databaseList,
             type: 'GET',
             success: response => {
                 response = JSON.parse(response);
@@ -105,6 +135,15 @@ class DisplayOriginalTable extends React.Component {
 
             }
         });
+    }
+
+    componentDidMount() {
+        const {databaseId} = this.props;
+        this.getDatabaseList();
+        if(databaseId && databaseId !== "") {
+            this.getDatabaseName(databaseId);
+            this.onConnectionChange(databaseId, true);
+        }
     }
 
     render() {
@@ -119,6 +158,7 @@ class DisplayOriginalTable extends React.Component {
             <div className="originalTable">
                 <Select
                     allowClear
+                    value={this.state.databaseName}
                     style={{ width: '100%' }}
                     placeholder="Please select"
                     onChange={this.onConnectionChange}
@@ -128,7 +168,7 @@ class DisplayOriginalTable extends React.Component {
                 <div className="slice-detail" id="slice-detail-tree-select">
                     <TreeSelect
                         showSearch
-                        value={this.state.value}
+                        value={this.state.tableName}
                         style={{ width: '100%' }}
                         placeholder="Please select"
                         treeData={this.state.treeData}

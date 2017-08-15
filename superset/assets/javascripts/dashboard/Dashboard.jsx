@@ -73,15 +73,6 @@ function initDashboardView(dashboard) {
         document.getElementById('grid-container')
     );
 
-    // Displaying widget controls on hover
-    //$('.react-grid-item').hover(
-    //    function () {
-    //        $(this).find('.chart-controls').fadeIn(300);
-    //    },
-    //    function () {
-    //        $(this).find('.chart-controls').fadeOut(300);
-    //    }
-    //);
     $('div.grid-container').css('visibility', 'visible');
 
     $('.select2').select2({
@@ -114,7 +105,7 @@ export function dashboardContainer(dashboard) {
                     const html = '<div class="alert alert-danger">' + data.error + '</div>';
                     $('#slice_' + data.slice_id).find('.token').html(html);
                 } else {
-                    const slice = px.Slice(data, this);
+                    const slice = px.Slice(data, this, 'dashboard');
                     $('#slice_' + data.slice_id).find('a.refresh').click(() => {
                         slice.render(true);
                     });
