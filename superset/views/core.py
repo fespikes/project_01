@@ -169,13 +169,19 @@ class SliceModelView(SupersetModelView):  # noqa
 
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
-        table = db.session.query(Dataset) \
-            .filter(or_(
-            Dataset.created_by_fk == get_user_id(),
-            Dataset.online == 1)
-        ).first()
-        redirect_url = table.explore_url \
-            if table else '/pilot/explore/table/0/'
+        dataset = (
+            db.session.query(Dataset)
+            .filter(
+                or_(Dataset.created_by_fk == get_user_id(),
+                    Dataset.online == 1))
+            .order_by(Dataset.id)
+            .first()
+        )
+        if dataset:
+            redirect_url = '{}?datasource_type=table&datasource_id={}'\
+                .format(dataset.explore_url, dataset.id)
+        else:
+            redirect_url = '/pilot/explore/table/0/?datasource_id='
         return redirect(redirect_url)
 
     def get_object_list_data(self, **kwargs):

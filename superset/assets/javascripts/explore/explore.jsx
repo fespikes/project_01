@@ -14,7 +14,7 @@ import QueryAndSaveBtns from './components/QueryAndSaveBtns.jsx';
 import ExploreActionButtons from './components/ExploreActionButtons.jsx';
 import DisplayOriginalTable from './components/DisplayOriginalTable.jsx';
 import { Radio, Table } from 'antd';
-import { renderLoadingModal } from '../../utils/utils';
+import { renderLoadingModal, getUrlParam } from '../../utils/utils';
 
 require('jquery-ui');
 $.widget.bridge('uitooltip', $.ui.tooltip); // Shutting down jq-ui tooltips
@@ -164,15 +164,24 @@ function initExploreView() {
         $('#collapsedFieldsets').val(collapsedFieldsets.join('||'));
     }
 
-    px.initFavStars();
-    
-    //submit form "query" when 已建数据集/图标类型 changed
-/*    $('#viz_type').change(function () {
-    $('#query').submit();
-});
-*/
-    $('#datasource_id').change(function () {
-        window.location = $(this).find('option:selected').attr('url');
+    const url = window.location.href;
+    const sliceId = getUrlParam('slice_id', url);
+    if(sliceId && sliceId !== '') {
+        px.initFavStars();
+    }
+
+    $('#viz_type').change(function () {
+        $('#query').submit();
+    });
+
+    $('#datasource_id').change(function (opt) {
+        const sliceId = document.getElementById('slice-title-name').getAttribute('sliceId');
+        const datasourceId = opt.val;
+        let url = $(this).find('option:selected').attr('url') + '?datasource_id=' + datasourceId;
+        if(sliceId && sliceId !== '') {
+            url += '&slice_id=' + sliceId;
+        }
+        window.location = url;
     });
 
     const collapsedFieldsets = getCollapsedFieldsets();
@@ -353,12 +362,14 @@ function initExploreView() {
     prepSaveDialog();
 }
 
-function renderOriginalTable() {
+function renderOriginalTable(databaseId, tableName) {
     const originalTableEl = document.getElementById('original_table');
     ReactDOM.render(
         <DisplayOriginalTable
             sliceId={originalTableEl.getAttribute('sliceId')}
             vizType={originalTableEl.getAttribute('vizType')}
+            databaseId={databaseId}
+            tableName={tableName}
         />,
         originalTableEl
     );
@@ -419,7 +430,7 @@ function renderViewTab() {
             $('.original-view').css('display', 'none');
         }else if(event.target.value === "original") {
             const datasourceId = viewTabEl.getAttribute('datasourceId');
-            
+
             if (datasourceId===localStorage.getItem('explore:datasourceId')){
                 renderPreviewOriginalData(JSON.parse(localStorage.getItem('explore:previewData')));
             } else {
@@ -490,18 +501,38 @@ function initComponents() {
         queryAndSaveBtnsEl
     );
     renderExploreActions();
-    renderOriginalTable();
     renderViewTab();
 }
 
 function initTitle() {
     const titleEl = document.getElementById('slice-title-name');
     const sliceId = titleEl.getAttribute('sliceId');
-    if(sliceId === '') {
-        titleEl.innerHTML = "添加工作表";
+    if(sliceId !== '') {
+        titleEl.value = "编辑工作表";
     }else {
-        titleEl.innerHTMl = "编辑工作表";
+        titleEl.value = "添加工作表";
     }
+}
+
+function initDatasourceState() {
+    const url = window.location.href;
+    const datasourceId = getUrlParam('datasource_id', url);
+    const databaseId = getUrlParam('database_id', url);
+    const full_tb_name = getUrlParam('full_tb_name', url);
+    if(datasourceId === '0' || datasourceId === '') {
+        document.getElementById('existed_dataset_radio').checked = false;
+        document.getElementById('original_table_radio').checked = true;
+        document.getElementById('existed_data_source').style.display = 'none';
+        document.getElementById('original_table').style.display = 'block';
+
+        document.getElementById('select2-chosen-1').innerHTML = '';
+    }else {
+        document.getElementById('existed_dataset_radio').checked = true;
+        document.getElementById('original_table_radio').checked = false;
+        document.getElementById('existed_data_source').style.display='block';
+        document.getElementById('original_table').style.display='none';
+    }
+    renderOriginalTable(databaseId, full_tb_name);
 }
 
 let exploreController = {
@@ -535,7 +566,7 @@ $(document).ready(function () {
 
     initExploreView();
 
-    slice = px.Slice(data, exploreController);
+    slice = px.Slice(data, exploreController, 'slice');
 
     // call vis render method, which issues ajax
     // calls render on the slice for the first time
@@ -545,4 +576,5 @@ $(document).ready(function () {
 
     initComponents();
     initTitle();
+    initDatasourceState();
 });
