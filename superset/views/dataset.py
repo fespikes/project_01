@@ -262,8 +262,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     def associated_objects(self, ids):
         dataset = db.session.query(Dataset).filter(Dataset.id.in_(ids)).all()
         if len(dataset) != len(ids):
-            raise SupersetException(
-                'Not found all datasets by ids: {}'.format(ids))
+            raise SupersetException('Not found all datasets by ids: {}'.format(ids))
         slices = (
             db.session.query(Slice)
             .filter(Slice.datasource_id.in_(ids),

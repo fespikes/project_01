@@ -154,18 +154,34 @@ class SliceModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.associated_objects(id)
+        objects = self.associated_objects([id, ])
         info = "Deleting slice [{}] will remove it from these dashboards: {}"\
             .format(objects.get('slice'), objects.get('dashboard'))
         return json_response(data=info)
 
-    def associated_objects(self, id):
-        slice = db.session.query(Slice).filter_by(id=id).first()
-        if not slice:
-            raise SupersetException(
-                '{}: Slice.id={}'.format(OBJECT_NOT_FOUND, id))
-        dashs = slice.dashboards
-        return {'slice': slice, 'dashboard': dashs}
+    @catch_exception
+    @expose("/muldelete_info/", methods=['POST'])
+    def muldelete_info(self):
+        json_data = self.get_request_data()
+        ids = json_data.get('ids')
+        objects = self.associated_objects(ids)
+        info = "Deleting slices {} will remove it from these and others' offline " \
+               "dashboards: {}" \
+            .format(objects.get('slice'), objects.get('dashboard'))
+        return json_response(data=info)
+
+    def associated_objects(self, ids):
+        slices = db.session.query(Slice).filter(Slice.id.in_(ids)).all()
+        if len(slices) != len(ids):
+            raise SupersetException('Not found all slices by ids: {}'.format(ids))
+        dashs = []
+        user_id = get_user_id()
+        for s in slices:
+            for d in s.dashboards:
+                if (d.created_by_fk == user_id or d.online == 1) \
+                        and d.dashboard_title not in dashs:
+                    dashs.append(d.dashboard_title)
+        return {'slice': slices, 'dashboard': dashs}
 
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
@@ -432,6 +448,13 @@ class DashboardModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
+        return json_response(data='')
+
+    @catch_exception
+    @expose("/muldelete_info/", methods=['POST'])
+    def muldelete_info(self):
+        # json_data = self.get_request_data()
+        # ids = json_data.get('ids')
         return json_response(data='')
 
     @catch_exception
