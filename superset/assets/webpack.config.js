@@ -13,6 +13,8 @@ const VERSION_STRING = JSON.parse(fs.readFileSync('package.json')).version;
 const config = {
   entry: {
     'css-theme': APP_DIR + '/javascripts/css-theme.js',
+
+    user: ['babel-polyfill', APP_DIR + '/javascripts/user.js'],
     home: ['babel-polyfill', APP_DIR + '/javascripts/home.js'],
     sliceList: ['babel-polyfill', APP_DIR + '/javascripts/sliceList.js'],
     databaseList: ['babel-polyfill', APP_DIR + '/javascripts/databaseList.js'],
