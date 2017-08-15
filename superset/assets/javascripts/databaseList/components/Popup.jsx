@@ -178,7 +178,7 @@ class Popup extends React.Component {
         const {connectionNames} = this.state;
 
         let iconClass = 'icon-connect';
-        let tipMsg = <span>this is the tip message text.</span>;
+        let tipMsg = <span>Please modify this required field.</span>;
 
         let {submitState} = this.state;
         let showAlert = !(submitState==='error' || submitState==='succeed') && submitState ;
@@ -224,8 +224,7 @@ class Popup extends React.Component {
                                         ref="sqlalchemyUri"
                                         name="sqlalchemy_uri"
                                         type="text"
-                                        placeholder="inceptor://username:password@172.0.0.1:10000/default"
-                                        defaultValue={this.state.sqlalchemyUri}
+                                        defaultValue="inceptor://username:password@172.0.0.1:10000/default"
                                         required="required"
                                     />
                                     <Tooltip placement="topRight" title={tipMsg}>
