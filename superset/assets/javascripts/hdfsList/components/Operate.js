@@ -8,7 +8,29 @@ import * as actions from '../actions';
 import { CONSTANT } from '../actions';
 
 import { Select, PopupNormal } from './';
-import { getPermData, updatePermMode } from '../module';
+import { ComponentSelect } from '../../databaseList/components';
+import { getPermData, updatePermMode, getPopupType } from '../module';
+
+const manipulateOptions = [
+        {
+            id: CONSTANT.move,
+            name: '移动'
+        },
+        {
+            id: CONSTANT.copy,
+            name: '复制'
+        },
+        {
+            id: CONSTANT.auth,
+            name: '更改权限'
+        }
+    ],
+    createOptions = [
+        {
+            id: CONSTANT.mkdir,
+            name: '目录'
+        }
+    ];
 
 class Operate extends React.Component {
     constructor(props, context) {
@@ -42,7 +64,7 @@ class Operate extends React.Component {
     }
 
     manipulate(ag) {
-        const popupType = ag.key;
+        const popupType = getPopupType(ag, manipulateOptions.concat(createOptions));
         const {fetchOperation, popupNormalParam, setPopupNormalParams, setPermData, setPermMode, setHDFSPath, fetchHDFSList, condition, } = this.props;
 
         let obj = this.cleanNormalParamState(popupNormalParam);
@@ -75,8 +97,6 @@ class Operate extends React.Component {
             }
         }
     }
-
-    searchTimer=0;
 
     searchOnChange() {
         const me = this;
@@ -112,14 +132,6 @@ class Operate extends React.Component {
         let normalPopupParam = {};
 
         let obj = this.cleanNormalParamState(popupNormalParam);
-        /*        if (condition.selectedRows.length === 0) {
-                    normalPopupParam = {
-                        ...obj,
-                        popupType: CONSTANT.noSelect,
-                        submit: fetchOperation,
-                        status: 'flex'
-                    };
-                } else {*/
         normalPopupParam = {
             ...obj,
             popupType: CONSTANT.upload,
@@ -127,7 +139,6 @@ class Operate extends React.Component {
             status: 'flex',
             dest_path: condition.path
         };
-        // }
         setPopupNormalParams(normalPopupParam);
     }
 
@@ -166,29 +177,6 @@ class Operate extends React.Component {
 
     render() {
 
-        const {tableType, selectType, search, fetchOperation} = this.props;
-
-        const manipulateOptions = [
-                {
-                    id: CONSTANT.move,
-                    name: '移动'
-                },
-                {
-                    id: CONSTANT.copy,
-                    name: '复制'
-                },
-                {
-                    id: CONSTANT.auth,
-                    name: '更改权限'
-                }
-            ],
-            createOptions = [
-                {
-                    id: CONSTANT.mkdir,
-                    name: '目录'
-                }
-            ];
-
         return (
             <div className="operations">
                 <div className="popupContainer">
@@ -197,39 +185,37 @@ class Operate extends React.Component {
 
                 <ul className="icon-list">
                     <li
-            className="li-setting"
-            >
-                        <i className="icon icon-setting ps"></i>
-                        <Select
-            ref="manipulate"
-            options={manipulateOptions}
-            theValue={'操作'}
-            width={65}
-            handleSelect={(argus) => this.manipulate(argus)}
-            />
+                        className="li-setting"
+                    >
+                        <ComponentSelect
+                            opeType="hdfsOperation"
+                            iconClass="icon icon-setting ps"
+                            options={manipulateOptions}
+                            selectChange={(argus) => this.manipulate(argus)}
+                        >
+                        </ComponentSelect>
                     </li>
                     <li
-            className="li-upload"
-            onClick={this.upload}
-            >
+                        className="li-upload"
+                        onClick={this.upload}
+                    >
                         <i className="icon icon-upload ps"></i>上传
                     </li>
                     <li
-            className="li-plus"
-            >
-                        <i className="icon icon-plus ps"></i>
-                        <Select
-            ref="create"
-            options={createOptions}
-            theValue={'新建'}
-            width={60}
-            handleSelect={(argus) => this.manipulate(argus)}
-            />
+                        className="li-plus"
+                    >
+                        <ComponentSelect
+                            opeType="addFolder"
+                            iconClass="icon icon-plus ps"
+                            options={createOptions}
+                            selectChange={(argus) => this.manipulate(argus)}
+                        >
+                        </ComponentSelect>
                     </li>
                     <li
-            className="li-trash  bolder-right-none"
-            onClick={this.onRemove}
-            >
+                        className="li-trash  bolder-right-none"
+                        onClick={this.onRemove}
+                    >
                         <i className="icon icon-trash ps"></i>删除
                     </li>
                 </ul>
@@ -237,9 +223,9 @@ class Operate extends React.Component {
                 marginRight: 0
             }}>
                     <input
-            onChange={this.searchOnChange}
-            ref="searchField"
-            placeholder="search file name" />
+                        onChange={this.searchOnChange}
+                        ref="searchField"
+                        placeholder="search file name" />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"></i>
                 </div>
             </div>
