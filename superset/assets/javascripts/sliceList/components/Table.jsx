@@ -2,8 +2,9 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
+import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail, fetchOfflineInfo } from '../actions';
 import { SliceDelete, SliceEdit } from '../popup';
+import { ConfirmOffline } from '../../dashboard2/popup';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -59,6 +60,28 @@ class SliceTable extends React.Component {
 
     publishSlice(record) {
         const { dispatch } = this.props;
+        const self = this;
+        if(record.online) {
+            dispatch(fetchOfflineInfo(record.id, callback));
+            function callback(success, data) {
+                if(success) {
+                    render(
+                        <ConfirmOffline
+                            dispatch={dispatch}
+                            record={record}
+                            fetchOffline={self.offlineSlice}
+                            confirmMessage={data} />,
+                        document.getElementById('popup_root')
+                    );
+                }
+            }
+        }else {
+            dispatch(fetchStateChange(record, "publish"));
+        }
+    }
+
+    offlineSlice() {
+        const {dispatch, record} = this;
         dispatch(fetchStateChange(record, "publish"));
     }
 

@@ -2,8 +2,9 @@ import React from 'react';
 import { render, ReactDOM } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange, setSelectedRow } from '../actions';
+import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange, setSelectedRow, fetchOfflineInfo } from '../actions';
 import { DashboardEdit, DashboardDelete } from '../popup';
+import { ConfirmOffline } from '../popup';
 import { Table } from 'antd';
 import 'antd/lib/table/style';
 
@@ -62,6 +63,28 @@ class Tables extends React.Component {
 
     publishDashboard(record) {
         const { dispatch } = this.props;
+        const self = this;
+        if(record.online) {
+            dispatch(fetchOfflineInfo(record.id, callback));
+            function callback(success, data) {
+                if(success) {
+                    render(
+                        <ConfirmOffline
+                            dispatch={dispatch}
+                            record={record}
+                            fetchOffline={self.offlineDashboard}
+                            confirmMessage={data} />,
+                        document.getElementById('popup_root')
+                    );
+                }
+            }
+        }else {
+            dispatch(fetchStateChange(record, "publish"));
+        }
+    }
+
+    offlineDashboard() {
+        const {dispatch, record} = this;
         dispatch(fetchStateChange(record, "publish"));
     }
 

@@ -1,5 +1,6 @@
 const $ = window.$ = require('jquery');
 import React from 'react';
+import { render, ReactDOM } from 'react-dom';
 import { ButtonGroup } from 'react-bootstrap';
 import Button from '../../components/Button';
 import CssEditor from './CssEditor';
@@ -8,6 +9,7 @@ import SaveModal from './SaveModal';
 import CodeModal from './CodeModal';
 import SliceAdder from './SliceAdder';
 import DashboardEdit from './DashboardEdit';
+import ConfirmOffline from '../../dashboard2/popup/ConfirmOffline';
 import { renderLoadingModal } from '../../../utils/utils';
 
 const propTypes = {
@@ -31,19 +33,48 @@ class Controls extends React.PureComponent {
     publish() {
         const self = this;
         const { dashboard } = self.props;
-        let url = '/pilot/release/dashboard/';
+        const loadingModel = renderLoadingModal();
         if(this.state.published) {
-            url += 'offline/' + dashboard.id;
+            loadingModel.show();
+            let url_offline = "/dashboard/offline_info/" + dashboard.id;
+            $.get(url_offline, (data) => {
+                loadingModel.hide();
+                if(data.status === 200) {
+                    render(
+                        <ConfirmOffline
+                            self={self}
+                            dashboardId={dashboard.id}
+                            dashboardStateChange={self.dashboardStateChange}
+                            fetchOffline={self.dashboardOffline}
+                            confirmMessage={data.data} />,
+                        document.getElementById('popup_root')
+                    );
+                }
+            });
         }else {
-            url += 'online/' + dashboard.id;
+            this.dashboardOnline(dashboard.id);
         }
+    }
+
+    dashboardOffline() {
+        const self = this.self;
+        let url = '/pilot/release/dashboard/offline/' + this.dashboardId;
+        this.dashboardStateChange(url, this.dashboardId, self);
+    }
+
+    dashboardOnline(dashboardId) {
+        let url = '/pilot/release/dashboard/online/' + dashboardId;
+        this.dashboardStateChange(url, dashboardId, this);
+    }
+
+    dashboardStateChange(url, dashboardId, _this) {
         const loadingModel = renderLoadingModal();
         loadingModel.show();
         $.get(url, (data) => {
-            if($.parseJSON(data).success) {
-                let url = '/pilot/if_online/dashboard/' + dashboard.id;
+            if(data.status === 200) {
+                let url = '/pilot/if_online/dashboard/' + dashboardId;
                 $.get(url, (data) => {
-                    self.setState({
+                    _this.setState({
                         published: $.parseJSON(data).online
                     });
                     loadingModel.hide();

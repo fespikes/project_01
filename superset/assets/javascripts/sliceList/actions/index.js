@@ -24,6 +24,20 @@ export const CONDITION_PARAMS = {
     TABLE_LOADING: 'TABLE_LOADING'
 };
 
+const callbackHandler = (response, callback) => {
+    if(response.status === 200) {
+        callback && callback(true, response.data);
+    }else if(response.status === 500) {
+        callback && callback(false, response.message);
+    }
+};
+const always = (response) => {
+    return Promise.resolve(response);
+};
+const json = (response) => {
+    return response.json();
+};
+
 const baseURL = window.location.origin + '/slice/';
 
 export function navigateTo(pageNumber){
@@ -105,6 +119,21 @@ export function fetchStateChange(record, type) {
                 dispatch(switchFetchingState(false));
             }
         });
+    }
+}
+
+export function fetchOfflineInfo(sliceId, callback) {
+    const url = window.location.origin + '/slice/offline_info/' + sliceId;
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 

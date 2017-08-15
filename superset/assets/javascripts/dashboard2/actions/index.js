@@ -21,6 +21,20 @@ export const CONFIG_PARAMS = {
     SWITCH_FETCHING_STATE: 'SWITCH_FETCHING_STATE'
 };
 
+const callbackHandler = (response, callback) => {
+    if(response.status === 200) {
+        callback && callback(true, response.data);
+    }else if(response.status === 500) {
+        callback && callback(false, response.message);
+    }
+};
+const always = (response) => {
+    return Promise.resolve(response);
+};
+const json = (response) => {
+    return response.json();
+};
+
 export function requestPosts() {
     return {
         type: REQUEST_POSTS
@@ -258,6 +272,21 @@ export function fetchStateChange(record, type) {
                 dispatch(switchFetchingState(false));
             }
         })
+    }
+}
+
+export function fetchOfflineInfo(dashboardId, callback) {
+    const url = window.location.origin + '/dashboard/offline_info/' + dashboardId;
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
