@@ -165,9 +165,12 @@ class SliceModelView(SupersetModelView):  # noqa
         json_data = self.get_request_data()
         ids = json_data.get('ids')
         objects = self.associated_objects(ids)
+
+        dashs = [d.dashboard_title for d in objects.get('dashboard')]
+        dashs = list(set(dashs))
         info = "Deleting slices {} will remove it from these and others' offline " \
                "dashboards: {}" \
-            .format(objects.get('slice'), objects.get('dashboard'))
+            .format(objects.get('slice'), dashs)
         return json_response(data=info)
 
     def associated_objects(self, ids):
@@ -178,9 +181,8 @@ class SliceModelView(SupersetModelView):  # noqa
         user_id = get_user_id()
         for s in slices:
             for d in s.dashboards:
-                if (d.created_by_fk == user_id or d.online == 1) \
-                        and d.dashboard_title not in dashs:
-                    dashs.append(d.dashboard_title)
+                if d.created_by_fk == user_id or d.online == 1:
+                    dashs.append(d)
         return {'slice': slices, 'dashboard': dashs}
 
     @expose('/add/', methods=['GET', 'POST'])
