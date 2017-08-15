@@ -36,11 +36,21 @@ def catch_hdfs_exception(f):
             return f(self, *args, **kwargs)
         except FileRobotException as fe:
             if fe.status == 401:
-                self.re_login()
-                return f(self, *args, **kwargs)
-            return json_response(status=fe.status,
-                                 code=fe.returnCode,
-                                 message=fe.message)
+                try:
+                    self.re_login()
+                    return f(self, *args, **kwargs)
+                except FileRobotException as fe2:
+                    return json_response(status=fe2.status,
+                                         code=fe2.returnCode,
+                                         message=fe2.message)
+                except Exception as e:
+                    logging.exception(e)
+                    return json_response(status=500, message=str(e))
+            else:
+                return json_response(status=fe.status,
+                                     code=fe.returnCode,
+                                     message=fe.message)
+
         except SupersetException as se:
             logging.exception(se)
             return json_response(status=500, message=str(se))
@@ -184,6 +194,26 @@ class HDFSBrowser(BaseView):
         recursive = args.get('recursive')
         recursive = True if recursive else False
         response = self.client.chmod(paths, mode, recursive=recursive)
+        return json_response(message=eval(response.text).get("message"),
+                             status=response.status_code)
+
+    @catch_hdfs_exception
+    @ensure_logined
+    @expose('/touch/', methods=['GET'])
+    def touch(self):
+        path = request.args.get('path')
+        filename = request.args.get('filename')
+        response = self.client.touch(path, filename)
+        return json_response(message=eval(response.text).get("message"),
+                             status=response.status_code)
+
+    @catch_hdfs_exception
+    @ensure_logined
+    @expose('/modify/', methods=['POST'])
+    def modify(self):
+        path = request.args.get('path')
+        file = request.data
+        response = self.client.modify(path, file)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
