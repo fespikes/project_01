@@ -9,7 +9,7 @@ import SaveModal from './SaveModal';
 import CodeModal from './CodeModal';
 import SliceAdder from './SliceAdder';
 import DashboardEdit from './DashboardEdit';
-import ConfirmOffline from '../../dashboard2/popup/ConfirmOffline';
+import { ConfirmModal } from '../../common/components';
 import { renderLoadingModal } from '../../../utils/utils';
 
 const propTypes = {
@@ -34,37 +34,30 @@ class Controls extends React.PureComponent {
         const self = this;
         const { dashboard } = self.props;
         const loadingModel = renderLoadingModal();
-        if(this.state.published) {
-            loadingModel.show();
-            let url_offline = "/dashboard/offline_info/" + dashboard.id;
-            $.get(url_offline, (data) => {
-                loadingModel.hide();
-                if(data.status === 200) {
-                    render(
-                        <ConfirmOffline
-                            self={self}
-                            dashboardId={dashboard.id}
-                            dashboardStateChange={self.dashboardStateChange}
-                            fetchOffline={self.dashboardOffline}
-                            confirmMessage={data.data} />,
-                        document.getElementById('popup_root')
-                    );
-                }
-            });
-        }else {
-            this.dashboardOnline(dashboard.id);
-        }
+        loadingModel.show();
+        let url = this.getOnOfflineUrl(dashboard.id, this.state.published, 'check');
+        $.get(url, (data) => {
+            loadingModel.hide();
+            if(data.status === 200) {
+                render(
+                    <ConfirmModal
+                        self={self}
+                        dashboardId={dashboard.id}
+                        published={this.state.published}
+                        dashboardStateChange={self.dashboardStateChange}
+                        needCallback={true}
+                        confirmCallback={self.dashboardOnOffline}
+                        confirmMessage={data.data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        });
     }
 
-    dashboardOffline() {
+    dashboardOnOffline() {
         const self = this.self;
-        let url = '/pilot/release/dashboard/offline/' + this.dashboardId;
+        const url = self.getOnOfflineUrl(this.dashboardId, this.published, 'release');
         this.dashboardStateChange(url, this.dashboardId, self);
-    }
-
-    dashboardOnline(dashboardId) {
-        let url = '/pilot/release/dashboard/online/' + dashboardId;
-        this.dashboardStateChange(url, dashboardId, this);
     }
 
     dashboardStateChange(url, dashboardId, _this) {
@@ -79,8 +72,36 @@ class Controls extends React.PureComponent {
                     });
                     loadingModel.hide();
                 });
+            }else {
+                render(
+                    <ConfirmModal
+                        needCallback={false}
+                        confirmMessage={data.message}
+                    />,
+                    document.getElementById('popup_root')
+                );
             }
         });
+    }
+
+    getOnOfflineUrl(dashboardId, published, type) {
+        let url = "";
+        if(type === 'check') {
+            url = '/dashboard/';
+            if(published) {
+                url += 'offline_info/' + dashboardId;
+            }else {
+                url += 'online_info/' + dashboardId;
+            }
+        }else if(type === "release") {
+            url = '/pilot/release/dashboard/';
+            if(published) {
+                url += 'offline/' + dashboardId;
+            }else {
+                url += 'online/' + dashboardId;
+            }
+        }
+        return url;
     }
 
     componentDidMount() {

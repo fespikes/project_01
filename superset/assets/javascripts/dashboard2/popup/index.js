@@ -4,4 +4,3 @@
 export DashboardEdit from './DashboardEdit';
 export DashboardAdd from './DashboardAdd';
 export DashboardDelete from './DashboardDelete';
-export ConfirmOffline from './ConfirmOffline';

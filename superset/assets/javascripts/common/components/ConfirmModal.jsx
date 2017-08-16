@@ -1,11 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Select, Alert } from 'antd';
+import { Alert } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchStateChange } from '../actions';
-const $ = window.$ = require('jquery');
 
-class ConfirmOffline extends React.Component {
+class ConfirmModal extends React.Component {
     constructor(props) {
         super(props);
         // bindings
@@ -18,7 +16,9 @@ class ConfirmOffline extends React.Component {
     }
 
     confirm() {
-        this.props.fetchOffline();
+        if(this.props.needCallback) {
+            this.props.confirmCallback();
+        }
         ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
@@ -26,7 +26,7 @@ class ConfirmOffline extends React.Component {
         const {confirmMessage} = this.props;
         return (
             <div className="popup" ref="popupConfirm">
-                <div className="popup-dialog popup-sm">
+                <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
@@ -59,4 +59,4 @@ class ConfirmOffline extends React.Component {
     }
 }
 
-export default ConfirmOffline;
+export default ConfirmModal;

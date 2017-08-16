@@ -1,4 +1,5 @@
 import fetch from 'isomorphic-fetch';
+import {getOnOfflineInfoUrl} from '../../../utils/utils'
 
 export const SHOW_ALL = 'showAll';
 export const SHOW_FAVORITE = 'showFavorite';
@@ -111,19 +112,20 @@ export function fetchStateChange(record, type) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchLists());
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
-            }else {
-                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchLists());
+                }
             }
-        });
+        );
     }
 }
 
-export function fetchOfflineInfo(sliceId, callback) {
-    const url = window.location.origin + '/slice/offline_info/' + sliceId;
+export function fetchOnOfflineInfo(sliceId, published, callback) {
+    const url = getOnOfflineInfoUrl(sliceId, 'slice', published);
     return dispatch => {
         dispatch(switchFetchingState(true));
         return fetch(url, {

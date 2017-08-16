@@ -2,9 +2,9 @@ import React from 'react';
 import { render, ReactDOM } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange, setSelectedRow, fetchOfflineInfo } from '../actions';
+import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange, setSelectedRow, fetchOnOfflineInfo } from '../actions';
 import { DashboardEdit, DashboardDelete } from '../popup';
-import { ConfirmOffline } from '../popup';
+import { ConfirmModal } from '../../common/components';
 import { Table } from 'antd';
 import 'antd/lib/table/style';
 
@@ -64,28 +64,35 @@ class Tables extends React.Component {
     publishDashboard(record) {
         const { dispatch } = this.props;
         const self = this;
-        if(record.online) {
-            dispatch(fetchOfflineInfo(record.id, callback));
-            function callback(success, data) {
-                if(success) {
-                    render(
-                        <ConfirmOffline
-                            dispatch={dispatch}
-                            record={record}
-                            fetchOffline={self.offlineDashboard}
-                            confirmMessage={data} />,
-                        document.getElementById('popup_root')
-                    );
-                }
+        dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
+        function callback(success, data) {
+            if(success) {
+                render(
+                    <ConfirmModal
+                        dispatch={dispatch}
+                        record={record}
+                        needCallback={true}
+                        confirmCallback={self.onOfflineDashboard}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
             }
-        }else {
-            dispatch(fetchStateChange(record, "publish"));
         }
     }
 
-    offlineDashboard() {
+    onOfflineDashboard() {
         const {dispatch, record} = this;
-        dispatch(fetchStateChange(record, "publish"));
+        dispatch(fetchStateChange(record, callback,"publish"));
+        function callback(success, data) {
+            if(!success) {
+                render(
+                    <ConfirmModal
+                        needCallback={false}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
     }
 
     favoriteSlice(record) {

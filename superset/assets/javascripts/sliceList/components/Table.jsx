@@ -2,9 +2,9 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail, fetchOfflineInfo } from '../actions';
+import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail, fetchOnOfflineInfo } from '../actions';
 import { SliceDelete, SliceEdit } from '../popup';
-import { ConfirmOffline } from '../../dashboard2/popup';
+import { ConfirmModal } from '../../common/components';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -61,28 +61,35 @@ class SliceTable extends React.Component {
     publishSlice(record) {
         const { dispatch } = this.props;
         const self = this;
-        if(record.online) {
-            dispatch(fetchOfflineInfo(record.id, callback));
-            function callback(success, data) {
-                if(success) {
-                    render(
-                        <ConfirmOffline
-                            dispatch={dispatch}
-                            record={record}
-                            fetchOffline={self.offlineSlice}
-                            confirmMessage={data} />,
-                        document.getElementById('popup_root')
-                    );
-                }
+        dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
+        function callback(success, data) {
+            if(success) {
+                render(
+                    <ConfirmModal
+                        dispatch={dispatch}
+                        record={record}
+                        needCallback={true}
+                        confirmCallback={self.onOfflineSlice}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
             }
-        }else {
-            dispatch(fetchStateChange(record, "publish"));
         }
     }
 
-    offlineSlice() {
+    onOfflineSlice() {
         const {dispatch, record} = this;
-        dispatch(fetchStateChange(record, "publish"));
+        dispatch(fetchStateChange(record, callback, "publish"));
+        function callback(success, data) {
+            if(!success) {
+                render(
+                    <ConfirmModal
+                        needCallback={false}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
     }
 
     favoriteSlice(record) {

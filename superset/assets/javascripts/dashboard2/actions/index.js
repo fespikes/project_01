@@ -2,6 +2,7 @@
  * Created by haitao on 17-5-18.
  */
 import fetch from 'isomorphic-fetch';
+import {getOnOfflineInfoUrl} from '../../../utils/utils'
 
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
@@ -258,25 +259,26 @@ export function fetchAddDashboard(state, availableSlices, callback) {
     }
 }
 
-export function fetchStateChange(record, type) {
+export function fetchStateChange(record, callback, type) {
     const url = getStateChangeUrl(record, type);
     return dispatch => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: "same-origin",
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchPosts());
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
-            }else {
-                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
+                }
             }
-        })
+        );
     }
 }
 
-export function fetchOfflineInfo(dashboardId, callback) {
-    const url = window.location.origin + '/dashboard/offline_info/' + dashboardId;
+export function fetchOnOfflineInfo(dashboardId, published, callback) {
+    const url = getOnOfflineInfoUrl(dashboardId, 'dashboard', published);
     return dispatch => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
@@ -321,7 +323,6 @@ export function fetchPosts() {
             })
     }
 }
-
 
 function getDashboardListUrl(state) {
     let url = window.location.origin + "/dashboard/listdata?page=" + (state.configs.pageNumber - 1) +
