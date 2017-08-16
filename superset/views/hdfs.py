@@ -7,10 +7,9 @@ import logging
 import json
 import functools
 import requests
-from flask import g, request, Response
+from flask import g, request
 from flask_babel import gettext as __
 from flask_appbuilder import BaseView, expose
-from flask_appbuilder.security.views import AuthDBView
 
 from fileRobot_client.FileRobotClientFactory import fileRobotClientFactory
 from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
@@ -257,6 +256,7 @@ class HDFSBrowser(BaseView):
                 raise SupersetException(NO_HDFS_CONNECTION)
             return conn.httpfs
 
+        from flask_appbuilder.security.views import AuthDBView
         httpfs = get_httpfs(hdfs_conn_id)
         server = app.config.get('FILE_ROBOT_SERVER')
         username = g.user.username
