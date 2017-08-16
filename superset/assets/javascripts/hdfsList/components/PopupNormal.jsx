@@ -129,7 +129,7 @@ class Popup extends React.Component {
 
         const {condition, popupNormalParam, setPopupNormalParams, fetchHDFSList} = this.props;
 
-        const {popupType, disabled, treeData, treeVal, status, alertStatus, alertMsg, alertType, permData, deleteTips, path, dir_name, dest_path} = popupNormalParam;
+        const {popupType, disabled, treeData, treeVal, status, alertStatus, alertMsg, alertType, permData, deleteTips, path, dir_name, dest_path, filename} = popupNormalParam;
 
         let btnTitle = "提交";
         if (popupType === CONSTANT.noSelect) {
@@ -157,6 +157,9 @@ class Popup extends React.Component {
                 break;
             case CONSTANT.mkdir:
                 title = '创建目录';
+                break;
+            case CONSTANT.touch:
+                title = '新建文件';
                 break;
             case CONSTANT.remove:
                 title = '删除HDFS连接';
@@ -319,7 +322,7 @@ class Popup extends React.Component {
                     />
                                 </label>
                                 <label className="data-detail-item">
-                                    <span>文件名称：</span>
+                                    <span>文件夹名称：</span>
                                     <input
                     required="required"
                     type="text"
@@ -330,7 +333,32 @@ class Popup extends React.Component {
                                 </label>
                             </div></div></div>;
                 break;
-
+            case CONSTANT.touch:
+                return <div className="popup-body">
+                        <div className="add-connection">
+                            <div className='data-detail-border'>
+                                <label className="data-detail-item">
+                                    <span>目录名称：</span>
+                                    <input
+                    required="required"
+                    type="text"
+                    value={path}
+                    name="path"
+                    onChange={this.onInputChange}
+                    />
+                                </label>
+                                <label className="data-detail-item">
+                                    <span>文件名称：</span>
+                                    <input
+                    required="required"
+                    type="text"
+                    value={filename}
+                    name="filename"
+                    onChange={this.onInputChange}
+                    />
+                                </label>
+                            </div></div></div>;
+                break;
             case CONSTANT.remove:
                 return <div className="popup-body">
                         <div className="warning">

@@ -35,6 +35,8 @@ const baseURL = `${ORIGIN}/hdfs/`;
 
 export const CONSTANT = {
     mkdir: 'mkdir',
+    touch: 'touch',
+
     move: 'move',
     copy: 'copy',
     auth: 'auth',
@@ -110,6 +112,9 @@ export function fetchOperation(param) {
             break;
         case CONSTANT.mkdir:
             submit = fetchMakedir;
+            break;
+        case CONSTANT.touch:
+            submit = fetchMakeFile;
             break;
         case CONSTANT.remove:
             submit = fetchRemove;
@@ -227,6 +232,27 @@ function fetchMakedir() {
         const URL = baseURL + `mkdir/?` +
         (path ? ('path=' + path + '&') : '') +
         (dir_name ? 'dir_name=' + dir_name : '');
+
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(always).then(json).then(
+            response => {
+                popupHandler(response, popupNormalParam, dispatch);
+            }
+        );
+    }
+}
+
+function fetchMakeFile() {
+    return (dispatch, getState) => {
+        const popupNormalParam = getState().popupNormalParam;
+        const path = popupNormalParam.path;
+        const filename = popupNormalParam.filename;
+
+        const URL = baseURL + `touch/?` +
+        (path ? ('path=' + path + '&') : '') +
+        (filename ? 'filename=' + filename : '');
 
         return fetch(URL, {
             credentials: 'include',
