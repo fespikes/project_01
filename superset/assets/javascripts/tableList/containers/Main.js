@@ -4,7 +4,7 @@ import { bindActionCreators } from 'redux';
 import { fetchIfNeeded, invalidateCondition } from '../actions';
 import { Pagination, Table, Operate } from '../components';
 import PropTypes from 'prop-types';
-import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
+import { renderAlertTip } from '../../../utils/utils';
 
 class App extends Component {
     constructor(props) {
@@ -27,16 +27,6 @@ class App extends Component {
         {
             dispatch(invalidateCondition(condition));
             dispatch(fetchIfNeeded(condition));
-        }
-
-        const { isFetching } = this.props;
-        if(isFetching !== nextProps.isFetching) {
-            const loadingModal = renderLoadingModal();
-            if(nextProps.isFetching) {
-                loadingModal.show();
-            }else {
-                loadingModal.hide();
-            }
         }
     }
 

@@ -21,7 +21,9 @@ class Popup extends React.Component {
             databaseId:'',
 
             submitState:'',
-            submitMsg:''
+            submitMsg:'',
+
+            connected: false
         };
         this.dispatch = context.dispatch;
 
@@ -57,7 +59,7 @@ class Popup extends React.Component {
     }
 
     setSubmitParam () {
-        const { datasetType } = this.props;
+        const {datasetType} = this.props;
         const {databaseId} = this.state;
         const setPopupParam = this.props.setPopupParam;
 
@@ -100,9 +102,9 @@ class Popup extends React.Component {
 
         this.dispatch(testConnection(callback));
 
-        function callback(json) {
+        function callback(success) {
             let exception = {};
-            if(json) {
+            if(success) {
                 exception.type = "success";
                 exception.message = "该连接是一个合法连接";
             }else {
@@ -110,6 +112,9 @@ class Popup extends React.Component {
                 exception.message = "该连接是一个不合法连接";
             }
             const tipBox = me.refs['testConnectTip'];
+            me.setState({
+                connected: success
+            });
             render(
                 <Alert
                     message={exception.message}
@@ -137,23 +142,17 @@ class Popup extends React.Component {
 
         me.setSubmitParam();
 
-        function callback(success, json) {
+        function callback(success, data) {
             if(success) {
                 me.setState({
-                    submitState:'success',
-                    submitMsg:json.message
+                    submitState:'',
+                    submitMsg:''
                 });
-                setTimeout(argu =>{
-                    me.setState({
-                        submitState:'',
-                        submitMsg:''
-                    });
-                    me.closeDialog();
-                }, 3000);
+                me.closeDialog();
             }else {
                 me.setState({
                     submitState:'error',
-                    submitMsg:json.message
+                    submitMsg:data
                 });
             }
         }
@@ -304,6 +303,7 @@ class Popup extends React.Component {
                         />
                         <div className="popup-footer">
                             <button
+                                disabled={datasetType==="INCEPTOR"&&!this.state.connected}
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.submit}>
                                 确定

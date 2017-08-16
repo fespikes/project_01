@@ -1,6 +1,7 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishTableUrl} from '../utils';
 import {constructHDFSPreviewUrl} from '../module';
+import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -721,22 +722,36 @@ export function fetchHDFSDetail(id, callback) {
     }
 }
 
-export function fetchPublishTable(record) {
+export function fetchPublishTable(record, callback) {
     const url = getPublishTableUrl(record);
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: "same-origin"
-        }).then(function(response) {
-            if(response.ok) {
-                response.json().then(() => {
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
                     dispatch(applyFetch(getState().condition));
-                    dispatch(switchFetchingState(false));
-                });
-            }else {
+                }
+            }
+        );
+    }
+}
+
+export function fetchOnOfflineInfo(datasetId, published, callback) {
+    const url = getOnOfflineInfoUrl(datasetId, 'table', published);
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
             }
-        })
+        );
     }
 }
 
@@ -840,6 +855,12 @@ export function switchOperationType (operationType) {
 }
 
 export function switchFetchingState(isFetching) {
+    const loadingModal = renderLoadingModal();
+    if(isFetching) {
+        loadingModal.show();
+    }else {
+        loadingModal.hide();
+    }
     return {
         type: actionTypes.switchFetchingState,
         isFetching: isFetching

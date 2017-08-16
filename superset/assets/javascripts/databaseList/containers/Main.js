@@ -33,19 +33,8 @@ class App extends Component {
             nextProps.condition.onlyFavorite !== this.props.condition.onlyFavorite ||
             nextProps.condition.tableType !== this.props.condition.tableType ||
             nextProps.condition.page !== this.props.condition.page
-//            nextProps.paramOfDelete.connToBeDeleted !== this.props.paramOfDelete.connToBeDeleted
         ) {
             dispatch(fetchIfNeeded(nextProps.condition));
-        }
-
-        const { isFetching } = this.props;
-        if(isFetching !== nextProps.isFetching) {
-            const loadingModal = renderLoadingModal();
-            if(nextProps.isFetching) {
-                loadingModal.show();
-            }else {
-                loadingModal.hide();
-            }
         }
     }
 

@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { fetchLists } from '../actions';
 import { Pagination, Table, Operate } from '../components';
 import PropTypes from 'prop-types';
-import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
+import { renderAlertTip } from '../../../utils/utils';
 
 class App extends Component {
     constructor(props) {
@@ -14,18 +14,6 @@ class App extends Component {
     componentDidMount() {
         const { dispatch } = this.props;
         dispatch(fetchLists());
-    }
-
-    componentWillReceiveProps(nextProps) {
-        const { lists } = this.props;
-        if(lists.isFetching !== nextProps.lists.isFetching) {
-            const loadingModal = renderLoadingModal();
-            if(nextProps.lists.isFetching) {
-                loadingModal.show();
-            }else {
-                loadingModal.hide();
-            }
-        }
     }
 
     render() {
