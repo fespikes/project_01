@@ -169,6 +169,21 @@ export function fetchDashboardDelete(dashboardId, callback) {
     }
 }
 
+export function fetchDashbaordDelInfo(dashboardId, callback) {
+    const url = window.location.origin + "/dashboard/delete_info/" + dashboardId;
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
+    }
+}
+
 export function fetchDashboardDeleteMul(callback) {
     const url = window.location.origin + "/dashboard/muldelete";
     return (dispatch, getState) => {
@@ -190,6 +205,25 @@ export function fetchDashboardDeleteMul(callback) {
                 }
             }
         });
+    }
+}
+
+export function fetchDashboardMulDelInfo(callback) {
+    const url = window.location.origin + "/dashboard/muldelete_info/";
+    return (dispatch, getState) => {
+        const selectedRowKeys = getState().configs.selectedRowKeys;
+        let data = {selectedRowKeys: selectedRowKeys};
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+            method: "POST",
+            body: JSON.stringify(data)
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 

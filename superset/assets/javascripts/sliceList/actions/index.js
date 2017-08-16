@@ -182,6 +182,22 @@ export function fetchSliceDelete(sliceId, callback) {
     }
 }
 
+export function fetchSliceDelInfo(sliceId, callback) {
+    const url = baseURL + "delete_info/" + sliceId;
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
+    }
+}
+
 export function fetchSliceDeleteMul(callback) {
     const url = baseURL + "muldelete";
     return (dispatch, getState) => {
@@ -203,6 +219,25 @@ export function fetchSliceDeleteMul(callback) {
                 }
             }
         });
+    }
+}
+
+export function fetchSliceDelMulInfo(callback) {
+    const url = baseURL + "muldelete_info/";
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        const selectedRowKeys = getState().conditions.selectedRowKeys;
+        let data = {selectedRowKeys: selectedRowKeys};
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(data)
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
