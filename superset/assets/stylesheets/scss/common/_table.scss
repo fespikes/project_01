@@ -58,3 +58,11 @@ table {
         }
     }
 }
+
+.table-add-slice {
+
+    .ant-table-content .ant-table-body {
+        max-height: 500px;
+        overflow: auto;
+    }
+}
