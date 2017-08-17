@@ -38,6 +38,8 @@ def create_default_user():
         password='123456')
     if not user:
         logging.error("Failed to add default admin user.")
+    user.password2 = '123456'
+    sm.get_session.commit()
     logging.info("Finished to add default admin user.")
 
 
