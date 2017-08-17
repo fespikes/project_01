@@ -256,14 +256,10 @@ class HDFSBrowser(BaseView):
                 raise SupersetException(NO_HDFS_CONNECTION)
             return conn.httpfs
 
-        from flask_appbuilder.security.views import AuthDBView
         httpfs = get_httpfs(hdfs_conn_id)
-        server = app.config.get('FILE_ROBOT_SERVER')
-        username = g.user.username
-        password = AuthDBView.mock_user.get(username)
-        return {'server': server,
-                'username': username,
-                'password': password,
+        return {'server': app.config.get('FILE_ROBOT_SERVER'),
+                'username': g.user.username,
+                'password': g.user.password2,
                 'httpfs': httpfs}
 
 
