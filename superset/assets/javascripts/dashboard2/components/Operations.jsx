@@ -138,15 +138,15 @@ class Operations extends React.Component {
                     </button>
                 </div>
                 <div className="search-input">
-                    <input onKeyUp={this.searchDashboard} onChange={this.keywordChange} placeholder="search..." />
-                    <i className="icon icon-search" onClick={this.clickSearchDashboard}></i>
+                    <input onKeyUp={this.searchDashboard} onChange={this.keywordChange} className="tp-input" placeholder="search..." />
+                    <i className="icon icon-search" onClick={this.clickSearchDashboard}/>
                 </div>
                 <div className="view-btn">
                     <Link to="/table" onClick={this.switchTableMode}>
-                        <i className={viewMode === 'table' ? 'icon icon-table-mode active' : 'icon icon-table-mode'}></i>
+                        <i className={viewMode === 'table' ? 'icon icon-table-mode active' : 'icon icon-table-mode'}/>
                     </Link>
                     <Link to="/graph" onClick={this.switchGraphMode}>
-                        <i className={viewMode === 'graph' ? 'icon icon-graph-mode active' : 'icon icon-graph-mode'}></i>
+                        <i className={viewMode === 'graph' ? 'icon icon-graph-mode active' : 'icon icon-graph-mode'}/>
                     </Link>
                 </div>
             </div>
