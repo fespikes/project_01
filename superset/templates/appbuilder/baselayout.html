@@ -15,8 +15,8 @@
 
     {% block uncontained %}{% endblock %}
 
-    <div class="container">
-      <div class="row">
+    <div>
+      <div>
           {% block messages %}
             {% include 'superset/flash_wrapper.html' %}
           {% endblock %}
@@ -30,13 +30,13 @@
     </div>
 
     {% block footer %}
-        <footer>
-          <div class="img-rounded nav-fixed-bottom">
-              <div class="container-fluid">
-                  {% include 'appbuilder/footer.html' %}
-              </div>
-          </div>
-        </footer>
+{#        <footer>#}
+{#          <div class="img-rounded nav-fixed-bottom">#}
+{#              <div class="container-fluid">#}
+{#                  {% include 'appbuilder/footer.html' %}#}
+{#              </div>#}
+{#          </div>#}
+{#        </footer>#}
     {% endblock %}
 {% endblock %}
 
