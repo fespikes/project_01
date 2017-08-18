@@ -546,7 +546,7 @@ class HDFSTableModelView(SupersetModelView):
         httpfs = get_httpfs(hdfs_conn_id)
         server = app.config.get('FILE_ROBOT_SERVER')
         username = g.user.username
-        password = AuthDBView.mock_user.get(username)
+        password = g.user.password2
         if not server:
             raise SupersetException(NO_FILEROBOT_SERVER)
         if not password:
