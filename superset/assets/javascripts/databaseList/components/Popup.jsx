@@ -209,7 +209,7 @@ class Popup extends React.Component {
                                             required="required"
                                             name="database_name"
                                             ref="databaseName"
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                         />
                                     </div>
                                 </div>
@@ -223,7 +223,7 @@ class Popup extends React.Component {
                                             defaultValue=""
                                             ref="descriptionInceptor"
                                             name="description"
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                         />
                                     </div>
                                 </div>
@@ -239,7 +239,7 @@ class Popup extends React.Component {
                                             type="text"
                                             defaultValue="inceptor://username:password@172.0.0.1:10000/default"
                                             required="required"
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                         />
                                         <Tooltip placement="topRight" title={tipMsg}>
                                             <i className="icon icon-infor icon-infor-ps"/>
@@ -259,7 +259,7 @@ class Popup extends React.Component {
                                             required="required"
                                             ref="databaseArgs"
                                             defaultValue={JSON.stringify(defaultParams, undefined, 4)}
-                                            className="dialog-area"
+                                            className="tp-textarea dialog-area"
                                         >
                                         </textarea>
                                     </div>
@@ -291,7 +291,7 @@ class Popup extends React.Component {
                                             defaultValue=''
                                             required="required"
                                             ref="connectionName"
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                         />
                                     </div>
                                 </div>
@@ -306,7 +306,7 @@ class Popup extends React.Component {
                                             style={{width:'420px'}}
                                             required="required"
                                             ref="descriptionHDFS"
-                                            className="dialog-area"
+                                            className="tp-textarea dialog-area"
                                         />
                                     </div>
                                 </div>
@@ -321,7 +321,7 @@ class Popup extends React.Component {
                                             defaultValue=''
                                             placeholder="httpfs地址"
                                             required="required"
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                         />
                                     </div>
                                 </div>

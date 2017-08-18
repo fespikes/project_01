@@ -89,7 +89,8 @@ class CreateHDFSConnect extends React.Component {
                                     <span>连接名称：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" defaultValue=""
+                                    <input className="tp-input dialog-input"
+                                           defaultValue=""
                                            ref="connectionName"/>
                                 </div>
                             </div>
@@ -98,7 +99,8 @@ class CreateHDFSConnect extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" defaultValue=""
+                                    <textarea className="tp-textarea dialog-area"
+                                              defaultValue=""
                                               ref="connectionDes"/>
                                 </div>
                             </div>
@@ -107,7 +109,8 @@ class CreateHDFSConnect extends React.Component {
                                     <span>httpfs地址：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" defaultValue=""
+                                    <input className="tp-input dialog-input"
+                                           defaultValue=""
                                            ref="connectionHttp"/>
                                 </div>
                             </div>

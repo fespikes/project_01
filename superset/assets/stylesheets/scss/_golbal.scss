@@ -4,8 +4,12 @@
 }
 
 //global variable
-$borderStyle: solid 1px #e9eaed;
-$borderRadius:4px;
+$borderStyleNormal: solid 1px #e9eaed;
+$borderStyleFocus: solid 1px #66afe9;
+$borderRadius: 4px;
+$smFontSize: 12px;
+$mdFontSize: 14px;
+$lgFontSize: 16px;
 
 .tp-btn{
     border-radius:$borderRadius;
@@ -15,7 +19,8 @@ $borderRadius:4px;
 .tp-btn-middle{
     width:120px;
     height:34px;
-    font:16px/34px;
+    line-height: 34px;
+    font-size: $lgFontSize;
 }
 .tp-btn-primary{
     background-color:#2acc28;
@@ -25,12 +30,30 @@ button:disabled {
     cursor: not-allowed;
 }
 
-.tp-input {
+.tp-input, .tp-textarea {
+    width: 100%;
+    padding: 10px;
+    color: #333;
+    border: $borderStyleNormal;
+    border-radius: $borderRadius;
+    font-size: $smFontSize;
+    &:focus {
+        outline: $borderStyleFocus;
+        border-radius: $borderRadius;
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+    }
+}
 
+.tp-input {
+    height: 32px;
 }
 
 .tp-textarea {
+    resize: none;
+}
 
+.ant-select .ant-select-selection {
+    border: $borderStyleNormal;
 }
 
 .none{

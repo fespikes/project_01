@@ -121,7 +121,7 @@ class DashboardEdit extends React.Component {
                                     <span>标题：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.dashboardDetail.dashboard_title}
+                                    <input className="tp-input dialog-input" value={this.props.dashboardDetail.dashboard_title}
                                       onChange={this.handleTitleChange} disabled={!self.props.editable}/>
                                 </div>
                             </div>
@@ -130,7 +130,7 @@ class DashboardEdit extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" value={this.props.dashboardDetail.description}
+                                    <textarea className="tp-textarea dialog-area" value={this.props.dashboardDetail.description}
                                         onChange={this.handleDescriptionChange} disabled={!self.props.editable} />
                                 </div>
                             </div>
@@ -157,7 +157,7 @@ class DashboardEdit extends React.Component {
                                     <span>数据集：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.dashboardDetail.table_names} disabled />
+                                    <input className="tp-input dialog-input" value={this.props.dashboardDetail.table_names} disabled />
                                 </div>
                             </div>
                         </div>

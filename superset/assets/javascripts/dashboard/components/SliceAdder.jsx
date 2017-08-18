@@ -191,7 +191,7 @@ class SliceAdder extends React.Component {
             <div>
                 <button
                     type="button"
-                    className="btn btn-default"
+                    className="tp-btn tp-btn-middle tp-btn-primary"
                     data-dismiss="modal"
                     onClick={this.addSlices}
                     disabled={!enableAddSlice}

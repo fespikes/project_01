@@ -189,12 +189,14 @@ class Popup extends React.Component {
                                 <span>请选择:</span>
                             </div>
                             <div className="item-right">
-                                <TreeSelect
-                                    treeData={treeData}
-                                    treeVal={treeVal}
-                                    fetchHDFSList={fetchHDFSList}
-                                    setPopupNormalParams={setPopupNormalParams}
-                                />
+                                <div id="edit_pop_select">
+                                    <TreeSelect
+                                        treeData={treeData}
+                                        treeVal={treeVal}
+                                        fetchHDFSList={fetchHDFSList}
+                                        setPopupNormalParams={setPopupNormalParams}
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className="dialog-item">
@@ -207,7 +209,7 @@ class Popup extends React.Component {
                                     disabled="disabled"
                                     required="required"
                                     value={dest_path}
-                                    className="form-control dialog-input"
+                                    className="tp-input dialog-input"
                                 />
                             </div>
                         </div>
@@ -226,12 +228,14 @@ class Popup extends React.Component {
                                 <span>请选择:</span>
                             </div>
                             <div className="item-right">
-                                <TreeSelect
-                                    treeVal={treeVal}
-                                    treeData={treeData}
-                                    fetchHDFSList={fetchHDFSList}
-                                    setPopupNormalParams={setPopupNormalParams}
-                                />
+                                <div id="edit_pop_select">
+                                    <TreeSelect
+                                        treeVal={treeVal}
+                                        treeData={treeData}
+                                        fetchHDFSList={fetchHDFSList}
+                                        setPopupNormalParams={setPopupNormalParams}
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className="dialog-item">
@@ -244,7 +248,7 @@ class Popup extends React.Component {
                                     disabled="disabled"
                                     required="required"
                                     value={dest_path}
-                                    className="form-control dialog-input"
+                                    className="tp-input dialog-input"
                                 />
                             </div>
                         </div>
@@ -262,8 +266,11 @@ class Popup extends React.Component {
                             <div className="col-20 perm-name">递归</div>
                             <div className="col-60"></div>
                             <div className="col-20 perm-value">
-                                <input type="checkbox" onClick={this.onRecursivePermChange}
-                                       ref="recursivePermRef" className="form-control dialog-input"/>
+                                <input
+                                    type="checkbox"
+                                    onClick={this.onRecursivePermChange}
+                                    ref="recursivePermRef"
+                                    className="tp-input dialog-input"/>
                             </div>
                         </div>
                     </div>
@@ -282,7 +289,7 @@ class Popup extends React.Component {
                                     value={dest_path}
                                     required="required"
                                     onChange={this.onInputChange}
-                                    className="form-control dialog-input"
+                                    className="tp-input dialog-input"
                                     disabled
                                 />
                             </div>
@@ -325,7 +332,7 @@ class Popup extends React.Component {
                                             value={path}
                                             name="path"
                                             onChange={this.onInputChange}
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                         />
                                     </div>
                                 </div>
@@ -340,7 +347,7 @@ class Popup extends React.Component {
                                             value={dir_name}
                                             name="dir_name"
                                             onChange={this.onInputChange}
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                         />
                                     </div>
                                 </div>
@@ -359,7 +366,7 @@ class Popup extends React.Component {
                                             value={path}
                                             name="path"
                                             onChange={this.onInputChange}
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                         />
                                     </div>
                                 </div>
@@ -432,7 +439,7 @@ class Popup extends React.Component {
                         <div className="popup-footer">
                             <button
                                 disabled={disabled}
-                                className="tp-btn tp-btn-middle tp-btn-primary j_submit"
+                                className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={me.submit}>
                                 {btnTitle}
                             </button>
