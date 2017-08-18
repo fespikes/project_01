@@ -78,22 +78,6 @@ $borderStyle: solid 1px #e9eaed;
     }
 }
 
-.recursive-perm {
-    display: flex;
-    height: 50px;
-    align-items: center;
-    .perm-name {
-        color: #7f8fa4;
-        font-size: 14px;
-        padding-left: 18px;
-    }
-    .perm-value {
-        display: flex;
-        justify-content: flex-start;
-        padding-left: 3px;
-    }
-}
-
 /*common*/
 .f16{
     font-size:16px; font-weight:600;

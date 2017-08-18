@@ -198,102 +198,145 @@ class Popup extends React.Component {
                         </div>
                         <div className="popup-body">
                             <div style={{ display: datasetType==='INCEPTOR'?'block':'none' }} >
-                                <div className="data-detail-item">
-                                    <span>连接名称：</span>
-                                    <input
-                                        type="text"
-                                        defaultValue=""
-                                        required="required"
-                                        name="database_name"
-                                        ref="databaseName"
-                                    />
+                                <div className="dialog-item">
+                                    <div className="item-left">
+                                        <span>连接名称：</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <input
+                                            type="text"
+                                            defaultValue=""
+                                            required="required"
+                                            name="database_name"
+                                            ref="databaseName"
+                                            className="form-control dialog-input"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="data-detail-item">
-                                    <span>描述：</span>
-                                    <input
-                                        type="text"
-                                        defaultValue=""
-                                        ref="descriptionInceptor"
-                                        name="description"
-                                    />
-                                </div>
-
-                                <div className="data-detail-item">
-                                    <span>连接串：</span>
-                                    <input
-                                        ref="sqlalchemyUri"
-                                        name="sqlalchemy_uri"
-                                        type="text"
-                                        defaultValue="inceptor://username:password@172.0.0.1:10000/default"
-                                        required="required"
-                                    />
-                                    <Tooltip placement="topRight" title={tipMsg}>
-                                        <i className="icon icon-infor icon-infor-ps"/>
-                                    </Tooltip>
+                                <div className="dialog-item">
+                                    <div className="item-left">
+                                        <span>描述：</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <input
+                                            type="text"
+                                            defaultValue=""
+                                            ref="descriptionInceptor"
+                                            name="description"
+                                            className="form-control dialog-input"
+                                        />
+                                    </div>
                                 </div>
 
-                                <div className="data-detail-item">
-                                    <span>连接参数：</span>
-                                    <textarea
-                                        id="connectParams"
-                                        rows="5"
-                                        style={{width:'420px', height:'120px'}}
-                                        required="required"
-                                        ref="databaseArgs"
-                                        defaultValue={JSON.stringify(defaultParams, undefined, 4)}
-                                    >
-                                    </textarea>
+                                <div className="dialog-item">
+                                    <div className="item-left">
+                                        <span>连接串：</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <input
+                                            ref="sqlalchemyUri"
+                                            name="sqlalchemy_uri"
+                                            type="text"
+                                            defaultValue="inceptor://username:password@172.0.0.1:10000/default"
+                                            required="required"
+                                            className="form-control dialog-input"
+                                        />
+                                        <Tooltip placement="topRight" title={tipMsg}>
+                                            <i className="icon icon-infor icon-infor-ps"/>
+                                        </Tooltip>
+                                    </div>
                                 </div>
 
-                                <div className="data-detail-item">
-                                    <span>&nbsp;</span>
-                                    <button
-                                        className="test-connect"
-                                        onClick={ag=> me.testConnection(ag)}>
-                                        <i className="icon icon-connect-test"/>
-                                        <span>测试连接</span>
-                                    </button>
-                                    <div ref="testConnectTip" style={{position: 'absolute', right: 50}}></div>
+                                <div className="dialog-item">
+                                    <div className="item-left">
+                                        <span>连接参数：</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <textarea
+                                            id="connectParams"
+                                            rows="5"
+                                            style={{width:'420px', height:'120px'}}
+                                            required="required"
+                                            ref="databaseArgs"
+                                            defaultValue={JSON.stringify(defaultParams, undefined, 4)}
+                                            className="dialog-area"
+                                        >
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <div className="dialog-item">
+                                    <div className="item-left">
+                                        <span>&nbsp;</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <button
+                                            className="test-connect"
+                                            onClick={ag=> me.testConnection(ag)}>
+                                            <i className="icon icon-connect-test"/>
+                                            <span>测试连接</span>
+                                        </button>
+                                        <div ref="testConnectTip" style={{position: 'absolute', right: 50}}></div>
+                                    </div>
                                 </div>
                             </div>
                             <div style={{ display: datasetType==='HDFS'?'block':'none' }} >
-                                <div className="data-detail-item">
-                                    <span>连接名称：</span>
-                                    <input
-                                        type="text"
-                                        defaultValue=''
-                                        required="required"
-                                        ref="connectionName"
-                                    />
+                                <div className="dialog-item">
+                                    <div className="item-left">
+                                        <span>连接名称：</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <input
+                                            type="text"
+                                            defaultValue=''
+                                            required="required"
+                                            ref="connectionName"
+                                            className="form-control dialog-input"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="data-detail-item">
-                                    <span>描述：</span>
-                                    <textarea
-                                        rows="5"
-                                        defaultValue=''
-                                        style={{width:'420px'}}
-                                        required="required"
-                                        ref="descriptionHDFS"
-                                    />
+                                <div className="dialog-item">
+                                    <div className="item-left">
+                                        <span>描述：</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <textarea
+                                            rows="5"
+                                            defaultValue=''
+                                            style={{width:'420px'}}
+                                            required="required"
+                                            ref="descriptionHDFS"
+                                            className="dialog-area"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="data-detail-item">
-                                    <span>httpfs地址：</span>
-                                    <input
-                                        ref="httpfs"
-                                        type="text"
-                                        defaultValue=''
-                                        placeholder="httpfs地址"
-                                        required="required"
-                                    />
+                                <div className="dialog-item">
+                                    <div className="item-left">
+                                        <span>httpfs地址：</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <input
+                                            ref="httpfs"
+                                            type="text"
+                                            defaultValue=''
+                                            placeholder="httpfs地址"
+                                            required="required"
+                                            className="form-control dialog-input"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="data-detail-item">
-                                    <span>默认inceptor连接：</span>
-                                    <Select
-                                        ref="databaseId"
-                                        options={connectionNames}
-                                        width={420}
-                                        handleSelect={(argus)=>this.setSelectConnection(argus)}
-                                    />
+                                <div className="dialog-item">
+                                    <div className="item-left">
+                                        <span>默认inceptor连接：</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <Select
+                                            ref="databaseId"
+                                            options={connectionNames}
+                                            width={420}
+                                            handleSelect={(argus)=>this.setSelectConnection(argus)}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
