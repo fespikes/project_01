@@ -256,37 +256,37 @@ class SubPreview extends Component {
                     <div className="data-detail-border">
                         <div className="data-detail-item">
                             <span>文件类型：</span>
-                            <input type="text" value={dsHDFS.file_type}
+                            <input type="text" value={dsHDFS.file_type} className="tp-input"
                                    name="file_type" onChange={this.handleChange}/>
                         </div>
                         <div className="data-detail-item">
                             <span>分隔符：</span>
-                            <input type="text" value={dsHDFS.separator}
+                            <input type="text" value={dsHDFS.separator} className="tp-input"
                                    name="separator" onChange={this.handleChange}/>
                             <i className="icon infor-icon" />
                         </div>
                         <div className="data-detail-item">
                             <span>引号符：</span>
-                            <input type="text" value={dsHDFS.quote}
+                            <input type="text" value={dsHDFS.quote} className="tp-input"
                                    name="quote" onChange={this.handleChange}/>
                             <i className="icon infor-icon" />
                         </div>
                         <div className="data-detail-item">
                             <span>忽略行数：</span>
-                            <input type="text" value={dsHDFS.skip_rows}
+                            <input type="text" value={dsHDFS.skip_rows} className="tp-input"
                                    name="skip_rows" onChange={this.handleChange}/>
                         </div>
                         <div className="data-detail-item">
                             <span></span>
                             <div className="data-detail-checkbox">
-                                <input type="checkbox" checked={dsHDFS.next_as_header}
+                                <input type="checkbox" checked={dsHDFS.next_as_header} className="tp-input"
                                        name="next_as_header" onChange={this.handleChange}/>
                                 <p>下一行为列名</p>
                             </div>
                         </div>
                         <div className="data-detail-item">
                             <span>再忽略行数：</span>
-                            <input type="text" value={dsHDFS.skip_more_rows}
+                            <input type="text" value={dsHDFS.skip_more_rows} className="tp-input"
                                    name="skip_more_rows" onChange={this.handleChange}/>
                         </div>
                         <div className="data-detail-item">

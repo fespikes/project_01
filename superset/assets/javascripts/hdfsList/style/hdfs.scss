@@ -49,7 +49,7 @@
 }
 
 .hdfs-panel .panel-top .right .operations .icon-list {
-    padding: 0 10px;
+    padding: 0 10px 0 0;
     li {
         width: auto;
     }
@@ -74,6 +74,8 @@
     }
     .ps {
         margin: 0 5px;
+        position: relative;
+        top: 1px;
     }
 }
 
