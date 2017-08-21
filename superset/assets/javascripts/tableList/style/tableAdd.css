@@ -22,6 +22,8 @@ a{text-decoration:none;}
 .data-detail>.title{
     color:#1d2531;
     font:18px/52px Miscrosoft YaHei;
+    display: flex;
+    align-items: center;
 }
 .data-detail>.title>.icon{
     width:15px;

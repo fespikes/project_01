@@ -236,12 +236,14 @@ class Popup extends React.Component {
                                             ref="sqlalchemyUri"
                                             name="sqlalchemy_uri"
                                             type="text"
-                                            defaultValue="inceptor://username:password@172.0.0.1:10000/default"
+                                            defaultValue=""
                                             required="required"
                                             className="tp-input dialog-input"
                                         />
                                         <Tooltip placement="topRight" title={tipMsg}>
-                                            <i className="icon icon-infor icon-infor-ps"/>
+                                            <i
+                                                className="icon icon-infor"
+                                                style={{position: 'absolute', top: '10px', right: '-20px'}}/>
                                         </Tooltip>
                                     </div>
                                 </div>
@@ -275,7 +277,7 @@ class Popup extends React.Component {
                                             <i className="icon icon-connect-test"/>
                                             <span>测试连接</span>
                                         </button>
-                                        <div ref="testConnectTip" style={{position: 'absolute', right: 50}}></div>
+                                        <div ref="testConnectTip" style={{position: 'absolute', right: 0, top: 2}}></div>
                                     </div>
                                 </div>
                             </div>
