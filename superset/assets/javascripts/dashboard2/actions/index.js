@@ -2,7 +2,7 @@
  * Created by haitao on 17-5-18.
  */
 import fetch from 'isomorphic-fetch';
-import {getOnOfflineInfoUrl} from '../../../utils/utils'
+import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
 
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
@@ -137,6 +137,12 @@ export function setTableLoadingStatus(loading) {
 }
 
 export function switchFetchingState(isFetching) {
+    const loadingModal = renderLoadingModal();
+    if(isFetching) {
+        loadingModal.show();
+    }else {
+        loadingModal.hide();
+    }
     return {
         type: CONFIG_PARAMS.SWITCH_FETCHING_STATE,
         isFetching: isFetching

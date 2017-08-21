@@ -8,7 +8,7 @@ import * as actionCreators from '../actions';
 import { Table, Input, Button, Icon, Select, Alert } from 'antd';
 import * as datasetModule from '../module';
 import { DetailType } from '../popup';
-import {renderAlertTip, renderLoadingModal} from '../../../utils/utils';
+import {renderAlertTip} from '../../../utils/utils';
 
 class SubPreview extends Component {
 
@@ -47,14 +47,6 @@ class SubPreview extends Component {
                 this.doFetchInceptorPreviewData(nextProps.datasetId);
             }else if(datasetType === "HDFS" || datasetType === "UPLOAD FILE") {
                 this.doFetchHDFSPreviewData();
-            }
-        }
-        if(isFetching !== nextProps.isFetching) {
-            const loadingModal = renderLoadingModal();
-            if(nextProps.isFetching) {
-                loadingModal.show();
-            }else {
-                loadingModal.hide();
             }
         }
     }

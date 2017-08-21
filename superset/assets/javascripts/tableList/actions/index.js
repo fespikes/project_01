@@ -1,7 +1,7 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishTableUrl} from '../utils';
 import {constructHDFSPreviewUrl} from '../module';
-import {getOnOfflineInfoUrl} from '../../../utils/utils'
+import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -855,6 +855,12 @@ export function switchOperationType (operationType) {
 }
 
 export function switchFetchingState(isFetching) {
+    const loadingModal = renderLoadingModal();
+    if(isFetching) {
+        loadingModal.show();
+    }else {
+        loadingModal.hide();
+    }
     return {
         type: actionTypes.switchFetchingState,
         isFetching: isFetching

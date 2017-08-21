@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishConnectionUrl} from '../utils';
-import {getOnOfflineInfoUrl} from '../../../utils/utils'
+import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -122,6 +122,7 @@ export function clearRows () {
 
 export function testConnectionInEditConnectPopup(database, callback) {
     return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
         const URL = origin + '/pilot/testconn';
         return fetch(URL, {
             credentials: 'include',
@@ -131,9 +132,11 @@ export function testConnectionInEditConnectPopup(database, callback) {
         .then(
             response => {
                 if(response.ok) {
-                    dispatch(fetchIfNeeded());
+                    dispatch(switchFetchingState(false));
                     callback(true);
+
                 }else {
+                    dispatch(switchFetchingState(false));
                     callback(false);
                 }
             }
@@ -200,6 +203,12 @@ export function fetchOnOfflineInfo(connectionId, published, callback) {
 }
 
 export function switchFetchingState(isFetching) {
+    const loadingModal = renderLoadingModal();
+    if(isFetching) {
+        loadingModal.show();
+    }else {
+        loadingModal.hide();
+    }
     return {
         type: actionTypes.switchFetchingState,
         isFetching: isFetching
@@ -254,19 +263,15 @@ export function applyAdd (callback) {
             };
         }
         return fetch(URL+'add', paramObj)
-        .then(
-            response => response.ok?
-                response.json() : ((response)=>errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            if (json.success) {
-                dispatch(fetchIfNeeded());
-                callback(true, json);
-            } else {
-                callback(false, json);
+        .then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchIfNeeded());
+                }
             }
-        });
+        );
     }
 }
 
@@ -337,25 +342,20 @@ export function fetchUpdateConnection(database, callback) {
     return (dispatch, getState) => {
         const URL = getURLBase(database.connectionType, 'edit/') + database.id;
         const db = getParamDB(database);
-
+        dispatch(switchFetchingState(true));
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(db)
-        })
-        .then(
-            response => response.ok?
-                response.json() : ((response)=>errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            if(json.success) {
-                dispatch(fetchIfNeeded());
-                callback(true);
-            }else {
-                callback(false, json);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchIfNeeded());
+                }
             }
-        });
+        );
     }
 }
 

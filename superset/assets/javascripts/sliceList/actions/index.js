@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-fetch';
-import {getOnOfflineInfoUrl} from '../../../utils/utils'
+import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
 
 export const SHOW_ALL = 'showAll';
 export const SHOW_FAVORITE = 'showFavorite';
@@ -255,6 +255,12 @@ export function fetchUpdateSlice(state, slice, callback) {
 }
 
 export function switchFetchingState(isFetching) {
+    const loadingModal = renderLoadingModal();
+    if(isFetching) {
+        loadingModal.show();
+    }else {
+        loadingModal.hide();
+    }
     return {
         type: LISTS.SWITCH_FETCHING_STATE,
         isFetching: isFetching
