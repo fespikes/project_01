@@ -244,17 +244,33 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.associated_objects(id)
-        info = "Deleting dataset [{}] will make these slices unusable: {}"\
+        objects = self.associated_objects([id,])
+        info = "Deleting dataset {} will make these and others' offline slices unusable: {}"\
             .format(objects.get('dataset'), objects.get('slice'))
         return json_response(data=info)
 
-    def associated_objects(self, id):
-        dataset = db.session.query(Dataset).filter_by(id=id).first()
-        if not dataset:
-            raise SupersetException(
-                '{}: Dataset.id={}'.format(OBJECT_NOT_FOUND, id))
-        slices = db.session.query(Slice).filter_by(datasource_id=id).all()
+    @catch_exception
+    @expose("/muldelete_info/", methods=['POST'])
+    def muldelete_info(self):
+        json_data = self.get_request_data()
+        ids = json_data.get('ids')
+        objects = self.associated_objects(ids)
+        info = "Deleting datasets {} will make these and others' offline slices unusable: {}" \
+            .format(objects.get('dataset'), objects.get('slice'))
+        return json_response(data=info)
+
+    def associated_objects(self, ids):
+        dataset = db.session.query(Dataset).filter(Dataset.id.in_(ids)).all()
+        if len(dataset) != len(ids):
+            raise SupersetException('Not found all datasets by ids: {}'.format(ids))
+        slices = (
+            db.session.query(Slice)
+            .filter(Slice.datasource_id.in_(ids),
+                    or_(Slice.created_by_fk == get_user_id(),
+                        Slice.online == 1)
+                    )
+            .all()
+        )
         return {'dataset': dataset, 'slice': slices}
 
     @catch_exception
@@ -530,7 +546,7 @@ class HDFSTableModelView(SupersetModelView):
         httpfs = get_httpfs(hdfs_conn_id)
         server = app.config.get('FILE_ROBOT_SERVER')
         username = g.user.username
-        password = AuthDBView.mock_user.get(username)
+        password = g.user.password2
         if not server:
             raise SupersetException(NO_FILEROBOT_SERVER)
         if not password:

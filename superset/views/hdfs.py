@@ -7,10 +7,9 @@ import logging
 import json
 import functools
 import requests
-from flask import g, request, Response
+from flask import g, request
 from flask_babel import gettext as __
 from flask_appbuilder import BaseView, expose
-from flask_appbuilder.security.views import AuthDBView
 
 from fileRobot_client.FileRobotClientFactory import fileRobotClientFactory
 from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
@@ -66,8 +65,8 @@ def ensure_logined(f):
     return the response in the JSON format
     """
     def wraps(self, *args, **kwargs):
-        if self.client is None:
-            self.re_login()
+        if self.client is None or self.logined_user != g.user.username:
+            self.do_login(self.hdfs_conn_id)
         return f(self, *args, **kwargs)
     return functools.update_wrapper(wraps, f)
 
@@ -79,6 +78,7 @@ class HDFSBrowser(BaseView):
         super(HDFSBrowser, self).__init__()
         self.client = None
         self.hdfs_conn_id = None
+        self.logined_user = ''
 
     @catch_exception
     @expose('/')
@@ -88,10 +88,8 @@ class HDFSBrowser(BaseView):
     @catch_hdfs_exception
     @expose('/login/', methods=['GET'])
     def login(self):
-        id = request.args.get('hdfs_conn_id')
-        self.hdfs_conn_id = int(id) if id else self.hdfs_conn_id
-        args = self.get_login_args(self.hdfs_conn_id)
-        self.client, response = self.do_login(**args)
+        hdfs_conn_id = request.args.get('hdfs_conn_id')
+        response = self.do_login(hdfs_conn_id)
         return json_response(message=LOGIN_FILEROBOT_SUCCESS,
                              status=response.status_code)
 
@@ -220,12 +218,30 @@ class HDFSBrowser(BaseView):
     def get_request_data(self):
         return json.loads(str(request.data, encoding='utf-8'))
 
-    def re_login(self):
-        args = self.get_login_args(self.hdfs_conn_id)
-        self.client, response = self.do_login(**args)
+    def do_login(self, hdfs_conn_id=None):
+        def login_filerobot(server='', username='', password='', httpfs=''):
+            if not server:
+                raise SupersetException(NO_FILEROBOT_SERVER)
+            if not password:
+                raise SupersetException(NEED_PASSWORD_FOR_FILEROBOT)
+            conf = FileRobotConfiguartion()
+            conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
+            client = fileRobotClientFactory.getInstance(conf)
+            response = client.login(username, password, httpfs)
+            return client, response
+
+        args = self.get_login_args(hdfs_conn_id)
+        client, response = login_filerobot(**args)
         if response.status_code == requests.codes.ok:
-            return True
-        raise SupersetException(LOGIN_FILEROBOT_FAILED)
+            self.client = client
+            self.logined_user = g.user.username
+            self.hdfs_conn_id = hdfs_conn_id
+            return response
+        else:
+            self.client = None
+            self.logined_user = ''
+            self.hdfs_conn_id = None
+            raise SupersetException(LOGIN_FILEROBOT_FAILED)
 
     @staticmethod
     def get_login_args(hdfs_conn_id=None):
@@ -241,25 +257,10 @@ class HDFSBrowser(BaseView):
             return conn.httpfs
 
         httpfs = get_httpfs(hdfs_conn_id)
-        server = app.config.get('FILE_ROBOT_SERVER')
-        username = g.user.username
-        password = AuthDBView.mock_user.get(username)
-        return {'server': server,
-                'username': username,
-                'password': password,
+        return {'server': app.config.get('FILE_ROBOT_SERVER'),
+                'username': g.user.username,
+                'password': g.user.password2,
                 'httpfs': httpfs}
-
-    @classmethod
-    def do_login(cls, server='', username='', password='', httpfs=''):
-        if not server:
-            raise SupersetException(NO_FILEROBOT_SERVER)
-        if not password:
-            raise SupersetException(NEED_PASSWORD_FOR_FILEROBOT)
-        conf = FileRobotConfiguartion()
-        conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
-        client = fileRobotClientFactory.getInstance(conf)
-        response = client.login(username, password, httpfs)
-        return client, response
 
 
 appbuilder.add_view_no_menu(HDFSBrowser)

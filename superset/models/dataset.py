@@ -657,7 +657,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     @classmethod
     def temp_dataset(cls, database_id, full_tb_name, need_columns=True):
         """A temp dataset for slice"""
-        dataset = cls(id=0, online=True, filter_select_enabled=True)
+        dataset = cls(id=0,
+                      dataset_type='INCEPTOR',
+                      online=True,
+                      filter_select_enabled=True)
         if '.' in full_tb_name:
             dataset.schema, dataset.table_name = full_tb_name.split('.')
         else:
@@ -870,10 +873,11 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             else:
                 return False
         # hdfs_connection
-        if dataset.dataset_type.lower() == 'hdfs' \
-            and dataset.hdfs_table \
-            and dataset.hdfs_table.hdfs_connection \
-            and check(dataset.hdfs_table.hdfs_connection, user_id) is False:
+        if dataset.dataset_type \
+                and dataset.dataset_type.lower() == 'hdfs' \
+                and dataset.hdfs_table \
+                and dataset.hdfs_table.hdfs_connection \
+                and check(dataset.hdfs_table.hdfs_connection, user_id) is False:
             if raise_if_false:
                 raise SupersetException(
                     "Dependent someone's hdfs connection: [{}] is offline, "
@@ -931,7 +935,7 @@ class HDFSTable(Model, AuditMixinNullable):
     nrows = Column(Integer)             # the rows of data readed
     charset = Column(String(32))
     hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection.id'))
-    hdfsconnection = relationship(
+    hdfs_connection = relationship(
         'HDFSConnection',
         backref=backref('hdfs_table', lazy='joined'),
         foreign_keys=[hdfs_connection_id]
