@@ -321,7 +321,7 @@ function nvd3Vis(slice) {
           }
         }
         if (vizType !== 'bullet') {
-          chart.color((d) => category21(d[colorKey]));
+          chart.color((d) => category21(d[colorKey], vizType));
         }
 
         if (fd.x_axis_label && fd.x_axis_label !== '' && chart.xAxis) {

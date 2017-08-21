@@ -33,7 +33,6 @@ class DashboardAdd extends React.Component {
             selectedSlices: [],
             enableConfirm: false
         });
-        this.refs.popupDashboardAdd.style.display = "none";
         ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
@@ -71,7 +70,6 @@ class DashboardAdd extends React.Component {
                     selectedSlices: [],
                     enableConfirm: false
                 });
-                self.refs.popupDashboardAdd.style.display = "none";
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
 
@@ -111,7 +109,7 @@ class DashboardAdd extends React.Component {
                                     <span>标题：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.dashboard.dashboard_title}
+                                    <input className="tp-input dialog-input" value={this.props.dashboard.dashboard_title}
                                            onChange={this.handleTitleChange} />
                                 </div>
                             </div>
@@ -120,7 +118,7 @@ class DashboardAdd extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" value={this.props.dashboard.description}
+                                    <textarea className="tp-textarea dialog-area" value={this.props.dashboard.description}
                                               onChange={this.handleDescriptionChange} autofocus/>
                                 </div>
                             </div>
@@ -145,7 +143,7 @@ class DashboardAdd extends React.Component {
                                     <span>数据集：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" disabled />
+                                    <input className="tp-input dialog-input" disabled />
                                 </div>
                             </div>
                         </div>

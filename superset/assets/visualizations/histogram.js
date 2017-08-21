@@ -77,7 +77,7 @@ function histogram(slice) {
     .attr('x', (d) => x(d.x))
     .attr('y', (d) => y(d.y))
     .attr('height', (d) => y.range()[0] - y(d.y))
-    .style('fill', (d) => category21(d.length))
+    .style('fill', (d) => category21(d.length, 'bar'))
     .order();
 
     // Find maximum length to position the ticks on top of the bar correctly

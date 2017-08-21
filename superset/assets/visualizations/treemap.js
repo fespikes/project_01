@@ -184,7 +184,7 @@ function treemap(slice) {
           .text(function (d) { return formatNumber(d.value); });
       t.call(text);
       g.selectAll('rect')
-          .style('fill', function (d) { return category21(d.name); });
+          .style('fill', function (d) { return category21(d.name, 'treemap'); });
 
       return g;
     };

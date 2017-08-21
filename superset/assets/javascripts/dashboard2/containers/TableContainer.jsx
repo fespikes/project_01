@@ -4,7 +4,7 @@ import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fetchPosts } from '../actions';
 import { Operations, Tables, Paginations } from '../components';
-import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
+import { renderAlertTip } from '../../../utils/utils';
 
 class TableContainer extends React.Component {
     constructor(props) {
@@ -15,18 +15,6 @@ class TableContainer extends React.Component {
     componentDidMount() {
         const { dispatch } = this.props;
         dispatch(fetchPosts());
-    }
-
-    componentWillReceiveProps(nextProps) {
-        const { posts } = this.props;
-        if(posts.isFetching !== nextProps.posts.isFetching) {
-            const loadingModal = renderLoadingModal();
-            if(nextProps.posts.isFetching) {
-                loadingModal.show();
-            }else {
-                loadingModal.hide();
-            }
-        }
     }
 
     render() {

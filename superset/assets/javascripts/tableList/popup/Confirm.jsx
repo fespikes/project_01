@@ -31,7 +31,7 @@ class Confirm extends React.Component {
 
         return (
             <div className="popup" ref="popupConfirm">
-                <div className="popup-dialog popup-sm">
+                <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">

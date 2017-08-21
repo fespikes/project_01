@@ -182,9 +182,6 @@ class Operate extends React.Component {
     }
 
     render() {
-
-        const {tableType, selectType, search, fetchOperation} = this.props;
-
         return (
             <div className="operations">
                 <div className="popupContainer">
@@ -207,7 +204,7 @@ class Operate extends React.Component {
             className="li-upload"
             onClick={this.upload}
             >
-                        <i className="icon icon-upload ps"></i>上传
+                        <i className="icon icon-upload ps"/>上传
                     </li>
                     <li
             className="li-plus"
@@ -224,7 +221,7 @@ class Operate extends React.Component {
             className="li-trash  bolder-right-none"
             onClick={this.onRemove}
             >
-                        <i className="icon icon-trash ps"></i>删除
+                        <i className="icon icon-trash ps"/>删除
                     </li>
                 </ul>
                 <div className="search-input" style={{
@@ -233,8 +230,9 @@ class Operate extends React.Component {
                     <input
             onChange={this.searchOnChange}
             ref="searchField"
+            className="tp-input"
             placeholder="search file name" />
-                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"></i>
+                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"/>
                 </div>
             </div>
         );

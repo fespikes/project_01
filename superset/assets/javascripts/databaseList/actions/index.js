@@ -1,5 +1,6 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishConnectionUrl} from '../utils';
+import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -34,6 +35,20 @@ const baseURL = origin + '/database/';
 const connBaseURL = origin + '/connection/';
 const INCEPTORConnectionBaseURL = origin + '/database/';
 const HDFSConnectionBaseURL = origin + '/hdfsconnection/';
+
+const callbackHandler = (response, callback) => {
+    if(response.status === 200) {
+        callback && callback(true, response.data);
+    }else if(response.status === 500) {
+        callback && callback(false, response.message);
+    }
+};
+const always = (response) => {
+    return Promise.resolve(response);
+};
+const json = (response) => {
+    return response.json();
+};
 
 const errorHandler = (error) => {
     return error;
@@ -107,6 +122,7 @@ export function clearRows () {
 
 export function testConnectionInEditConnectPopup(database, callback) {
     return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
         const URL = origin + '/pilot/testconn';
         return fetch(URL, {
             credentials: 'include',
@@ -116,9 +132,11 @@ export function testConnectionInEditConnectPopup(database, callback) {
         .then(
             response => {
                 if(response.ok) {
-                    dispatch(fetchIfNeeded());
+                    dispatch(switchFetchingState(false));
                     callback(true);
+
                 }else {
+                    dispatch(switchFetchingState(false));
                     callback(false);
                 }
             }
@@ -151,26 +169,46 @@ export function fetchInceptorConnectAdd(connect, callback) {
     }
 }
 
-export function fetchPublishConnection(record) {
+export function fetchPublishConnection(record, callback) {
     const url = getPublishConnectionUrl(record);
     return (dispatch) => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: "same-origin"
-        }).then(function(response) {
-            if(response.ok) {
-                response.json().then(() => {
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
                     dispatch(fetchIfNeeded());
-                    dispatch(switchFetchingState(false));
-                });
-            }else {
+                }
+            }
+        );
+    }
+}
+
+export function fetchOnOfflineInfo(connectionId, published, callback) {
+    const url = getOnOfflineInfoUrl(connectionId, 'database', published);
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
             }
-        })
+        );
     }
 }
 
 export function switchFetchingState(isFetching) {
+    const loadingModal = renderLoadingModal();
+    if(isFetching) {
+        loadingModal.show();
+    }else {
+        loadingModal.hide();
+    }
     return {
         type: actionTypes.switchFetchingState,
         isFetching: isFetching
@@ -225,19 +263,15 @@ export function applyAdd (callback) {
             };
         }
         return fetch(URL+'add', paramObj)
-        .then(
-            response => response.ok?
-                response.json() : ((response)=>errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            if (json.success) {
-                dispatch(fetchIfNeeded());
-                callback(true, json);
-            } else {
-                callback(false, json);
+        .then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchIfNeeded());
+                }
             }
-        });
+        );
     }
 }
 
@@ -308,25 +342,20 @@ export function fetchUpdateConnection(database, callback) {
     return (dispatch, getState) => {
         const URL = getURLBase(database.connectionType, 'edit/') + database.id;
         const db = getParamDB(database);
-
+        dispatch(switchFetchingState(true));
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(db)
-        })
-        .then(
-            response => response.ok?
-                response.json() : ((response)=>errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            if(json.success) {
-                dispatch(fetchIfNeeded());
-                callback(true);
-            }else {
-                callback(false, json);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchIfNeeded());
+                }
             }
-        });
+        );
     }
 }
 
@@ -413,8 +442,6 @@ function applyFetch (condition) {
         .then(json => {
             dispatch(receiveData(condition, dataMatch(json)));
         });
-//        const json = require('./d40cb439062601b83de7.json');
-//        dispatch(receiveData(condition, dataMatch(json)));
     };
 }
 

@@ -1,46 +1,3 @@
-$borderRadius:4px;
-.tp-btn{
-    border-radius:$borderRadius;
-    text-align:center;
-    color:#fff;
-}
-.tp-btn-middle{
-    width:120px;
-    height:34px;
-    font:16px/34px;
-}
-.tp-btn-primary{
-    background-color:#2acc28;
-}
-.none{
-    display: none;
-}
-
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-button.test-connect {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 36px;
-    width: 104px;
-    border-radius: 4px;
-    background-color: #c5d0de;
-    span {
-        color: #fff;
-        font-size: 14px;
-        margin-left: 5px;
-    }
-}
-.item-connect-test {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
 /** for custom popup and react-bootstrap modal header css style **/
 .popup-header {
     width: 100%;
@@ -52,6 +9,8 @@ button.test-connect {
     justify-content: space-between;
     font-size: 16px;
     color: #fff;
+    border-top-left-radius: $borderRadius;
+    border-top-right-radius: $borderRadius;
     .header-left{
         display:flex;
         align-items:center;
@@ -113,6 +72,8 @@ button.test-connect {
         justify-content: center;
         align-items: center;
         font-size: 16px;
+        border-bottom-left-radius: $borderRadius;
+        border-bottom-right-radius: $borderRadius;
     }
     .dialog-item {
         padding-bottom: 10px;
@@ -128,12 +89,12 @@ button.test-connect {
         }
         .item-right {
             width: 420px;
+            margin-left: 0;
+            border: none;
             .dialog-area{
+
                 width:100%;
                 height:79px;
-                border:$borderStyle;
-                border-radius:4px;
-                padding:10px;
             }
 
             .after-textarea-icon {
@@ -165,11 +126,6 @@ button.test-connect {
         }
     }
 
-    input.dialog-input, textarea.dialog-area {
-        color: #333333;
-        font-size: 12px;
-    }
-
     input.dialog-input {
         height: 32px;
         padding: 10px;
@@ -182,13 +138,7 @@ button.test-connect {
     input.inline {
         display: inline;
     }
-    textarea.dialog-area {
-        resize: none;
-        &:focus {
-            outline: 1px solid #66afe9;
-            box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
-        }
-    }
+
     .ant-select-selection__rendered {
         margin-left: 10px;
     }
@@ -202,86 +152,6 @@ button.test-connect {
 }
 /* single dialog css style end  */
 
-/* multiple dialog css style start  */
-
-.popup {
-    left: 0;
-    top: 0;
-    .data-detail-item{
-        margin-bottom:10px;
-        align-items: center;
-        display:flex;
-        position: relative;
-    }
-    .data-detail-checkbox{
-        display: flex;
-        align-items: center;
-    }
-    .data-detail-checkbox>p{
-        font-size:12px;
-        color:#1d2531;
-        padding-left:10px;
-    }
-    .data-detail-item>.infor-icon{
-        width:16px;
-        height:16px;
-        background-position:-290px -251px;
-        margin-left:5px;
-    }
-    .data-detail-item>span{
-        color:#7c8ca5;
-        font-size:12px;
-        display:block;
-        width:120px;
-        text-align:right;
-        margin-right:10px;
-    }
-    .data-detail-item>input{
-        width:420px;
-        height:34px;
-        border-radius: 4px;
-        border:1px solid #dfe3e9;
-        padding-left:10px;
-        box-sizing: border-box;
-    }
-    .data-detail-item>textarea{
-        width:782px;
-        height:89px;
-        border-radius: 4px;
-        border:1px solid #dfe3e9;
-        box-sizing: border-box;
-        padding:10px;
-        resize: none;
-    }
-    .data-detail-item>dl{
-        display: flex;
-        align-items: center;
-        padding-right:38px;
-    }
-    .data-detail-item dd{
-        margin-left:10px;
-        color:#7f8fa4;
-        font-size:12px;
-    }
-    .data-detail-item>dl>.active{
-        color:#1d2531;
-    }
-    .data-detail-item
-    .ant-select-selection.ant-select-selection--single{
-        border:1px #ddd solid;
-    }
-    .icon-infor-ps{
-        margin-left:10px;
-    }
-    .alert-wrapper{
-        border: 1px #ddd solid;
-        margin: 0 0 20px;
-        height: 40px;
-    }
-}
-
-/* multiple dialog css style end  */
-
 /*  overlay modal-dialog css start */
 .popup-modal-add-slice .modal-dialog {
     width: 900px;
@@ -291,9 +161,6 @@ button.test-connect {
         input {
             width:243px;
             height:30px;
-            border:$borderStyle;
-            border-radius: 4px;
-            padding-left:10px;
         }
         i {
             position:absolute;
@@ -311,15 +178,18 @@ button.test-connect {
     height: 100%;
     .modal-content {
         width: 100%;
+        border-radius: 4px;
         .modal-header {
             height: 40px;
             color: #fff;
             padding: 0;
             background-color: #0067a6;
+            border-top-left-radius: $borderRadius;
+            border-top-right-radius: $borderRadius;
         }
 
         .modal-body {
-            padding: 20px 40px;
+            padding: 20px 0;
             .form-group .radio {
                 width: 100%;
                 height: 20px;
@@ -333,22 +203,14 @@ button.test-connect {
                 .item-left {
                     width: 120px;
                     text-align:right;
-
                 }
                 .item-right {
                     width: 420px;
                     .dialog-area{
                         width:100%;
                         height:79px;
-                        border:$borderStyle;
-                        border-radius:4px;
-                        padding:10px;
                     }
                 }
-            }
-            input.dialog-input {
-                height: 32px;
-                padding: 10px;
             }
         }
 
@@ -359,19 +221,49 @@ button.test-connect {
             align-items: center;
             height: 50px;
             padding: 0;
-            button {
-                color:#fff;
-                width:120px;
-                height:34px;
-                padding: 0;
-                text-align:center;
-                font-size:16px;
-                background-color:#2acc28;
-                border-radius:$borderRadius;
-            }
+            border-bottom-left-radius: $borderRadius;
+            border-bottom-right-radius: $borderRadius;
         }
     }
 }
 /*  overlay modal-dialog css start */
+
+/* hdfs change auth */
+.recursive-perm {
+    display: flex;
+    height: 50px;
+    align-items: center;
+    .perm-name {
+        color: #7f8fa4;
+        font-size: 14px;
+        padding-left: 18px;
+    }
+    .perm-value {
+        display: flex;
+        justify-content: flex-start;
+        padding-left: 3px;
+    }
+}
+
+/* test inceptor connect */
+.item-connect-test {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+button.test-connect {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 36px;
+    width: 104px;
+    border-radius: 4px;
+    background-color: #c5d0de;
+    span {
+        color: #fff;
+        font-size: 14px;
+        margin-left: 5px;
+    }
+}
 
 

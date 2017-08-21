@@ -28,18 +28,16 @@ class ConnectionEdit extends React.Component {
 
     componentDidMount () {
         this.fetchConnectionNames();
-
-        const database = {
-            ...this.state.database,
-            connectionType: this.props.connectionType
-        };
-        this.setState({
-            database: database
-        });
-
         if(this.props.connectionType === "INCEPTOR") {
             let connectParams = JSON.stringify(JSON.parse(this.state.database.args), undefined, 4);
             document.getElementById('connectParams').value = connectParams;
+            const database = {
+                ...this.state.database,
+                databaseArgs: connectParams
+            };
+            this.setState({
+                database: database
+            });
         }
     }
 
@@ -58,7 +56,11 @@ class ConnectionEdit extends React.Component {
 
     testConnection(testCallBack) {
         const me = this;
-        const { dispatch } = me.props;
+        const { dispatch, connectionType } = me.props;
+        const database = {
+            ...this.state.database,
+            connectionType: connectionType
+        };
         dispatch(testConnectionInEditConnectPopup(
             {
                 database_name: me.state.database.database_name,
@@ -81,7 +83,8 @@ class ConnectionEdit extends React.Component {
             }
             me.setState({
                 exception: exception,
-                connected: connected
+                connected: connected,
+                database: database
             });
             render(
                 <Alert
@@ -136,7 +139,7 @@ class ConnectionEdit extends React.Component {
                     <Alert
                         message="Error"
                         type="error"
-                        description={message.message}
+                        description={message}
                         onClose={me.closeAlert('edit-connect-tip')}
                         closable={true}
                         showIcon
@@ -202,7 +205,7 @@ class ConnectionEdit extends React.Component {
                                     <div className="item-right">
                                         <input
                                             name="database_name"
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                             value={database.database_name}
                                             onChange={this.handleInputChange}/>
                                     </div>
@@ -215,7 +218,7 @@ class ConnectionEdit extends React.Component {
                                     <div className="item-right">
                                     <textarea
                                         name = "description"
-                                        className="dialog-area"
+                                        className="tp-textarea dialog-area"
                                         value={database.description||' '}
                                         onChange={this.handleInputChange}
                                     />
@@ -229,10 +232,13 @@ class ConnectionEdit extends React.Component {
                                     <div className="item-right">
                                         <input
                                             name = "sqlalchemy_uri"
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                             value={database.sqlalchemy_uri}
                                             onChange={this.handleInputChange}/>
                                     </div>
+                                    <Tooltip title="structure your URL" placement="bottom">
+                                        <i className="icon icon-info" style={{ position: 'relative', top: '3px', left: '5px' }} />
+                                    </Tooltip>
                                 </div>
                                 
                                 <label className="dialog-item">
@@ -243,7 +249,7 @@ class ConnectionEdit extends React.Component {
                                     <textarea
                                         id="connectParams"
                                         name="databaseArgs"
-                                        className="dialog-area"
+                                        className="tp-textarea dialog-area"
                                         onChange={this.handleInputChange}
                                     >
                                     </textarea>
@@ -259,9 +265,6 @@ class ConnectionEdit extends React.Component {
                                         </button>
                                         <div id="test-connect-tip"></div>
                                     </div>
-                                    <Tooltip title="structure your URL" placement="bottom">
-                                        <i className="icon icon-info" style={{ position: 'absolute', top: '-32px', right: '-23px' }} />
-                                    </Tooltip>
                                 </div>
                                 <div className="dialog-item">
                                     <div className="sub-item">
@@ -318,7 +321,7 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                     <div className="item-right">
                                         <input
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                             name="connection_name"
                                             value={database.connection_name}
                                             onChange={this.handleInputChange}/>
@@ -330,7 +333,7 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                     <div className="item-right">
                                     <textarea
-                                        className="dialog-area"
+                                        className="tp-textarea dialog-area"
                                         name="description"
                                         value={database.description||' '}
                                         onChange={this.handleInputChange}
@@ -343,7 +346,7 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                     <div className="item-right">
                                         <input
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                             name="httpfs"
                                             value={database.httpfs}
                                             onChange={this.handleInputChange}/>
@@ -390,7 +393,6 @@ class ConnectionEdit extends React.Component {
                         </div>
                     </div>
                 </div>
-
             </div>
         );
     }
