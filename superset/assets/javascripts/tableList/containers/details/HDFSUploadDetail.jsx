@@ -312,12 +312,12 @@ class HDFSUploadDetail extends Component {
             <div className="data-detail-centent hdfs-detail">
                 <div className="data-detail-item">
                     <span>数据集名称：</span>
-                    <input type="text" name="dataset_name" value={dsHDFS.dataset_name}
+                    <input type="text" name="dataset_name" className="tp-input" value={dsHDFS.dataset_name}
                            required="required" onChange={this.handleChange}/>
                 </div>
                 <div className="data-detail-item">
                     <span>描述：</span>
-                    <textarea name="description" value={dsHDFS.description}
+                    <textarea name="description" value={dsHDFS.description} className="tp-textarea"
                           required="required" onChange={this.handleChange}/>
                 </div>
                 <div className={datasetType==='UPLOAD FILE'?'data-detail-item':'none'}>
@@ -346,7 +346,7 @@ class HDFSUploadDetail extends Component {
                     </div>
                     <div className="data-detail-item">
                         <span>描述：</span>
-                        <textarea name="" id="" cols="30" rows="10"/>
+                        <textarea className="tp-textarea" name="" id="" cols="30" rows="10"/>
                     </div>
                 </div>
                 <div className={HDFSConnected===true?'':'none'}>

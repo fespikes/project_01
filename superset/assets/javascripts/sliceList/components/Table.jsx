@@ -2,8 +2,9 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
+import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail, fetchOnOfflineInfo } from '../actions';
 import { SliceDelete, SliceEdit } from '../popup';
+import { ConfirmModal } from '../../common/components';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -59,7 +60,36 @@ class SliceTable extends React.Component {
 
     publishSlice(record) {
         const { dispatch } = this.props;
-        dispatch(fetchStateChange(record, "publish"));
+        const self = this;
+        dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
+        function callback(success, data) {
+            if(success) {
+                render(
+                    <ConfirmModal
+                        dispatch={dispatch}
+                        record={record}
+                        needCallback={true}
+                        confirmCallback={self.onOfflineSlice}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
+    }
+
+    onOfflineSlice() {
+        const {dispatch, record} = this;
+        dispatch(fetchStateChange(record, callback, "publish"));
+        function callback(success, data) {
+            if(!success) {
+                render(
+                    <ConfirmModal
+                        needCallback={false}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
     }
 
     favoriteSlice(record) {

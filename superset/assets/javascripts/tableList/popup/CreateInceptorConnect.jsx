@@ -129,7 +129,7 @@ class CreateInceptorConnect extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <input
-                                        className="form-control dialog-input"
+                                        className="tp-input dialog-input"
                                         defaultValue=""
                                         ref="connectionName"
                                     />
@@ -141,7 +141,7 @@ class CreateInceptorConnect extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <textarea
-                                        className="dialog-area"
+                                        className="tp-textarea dialog-area"
                                         defaultValue=""
                                         ref="connectionDes"
                                     />
@@ -153,7 +153,7 @@ class CreateInceptorConnect extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <textarea
-                                        className="dialog-area"
+                                        className="tp-textarea dialog-area"
                                         rows="5"
                                         required="required"
                                         ref="databaseArgs"
@@ -167,7 +167,7 @@ class CreateInceptorConnect extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <input
-                                        className="form-control dialog-input"
+                                        className="tp-input dialog-input"
                                         defaultValue=""
                                         ref="connectionUri"
                                     />

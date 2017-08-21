@@ -205,7 +205,7 @@ class ConnectionEdit extends React.Component {
                                     <div className="item-right">
                                         <input
                                             name="database_name"
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                             value={database.database_name}
                                             onChange={this.handleInputChange}/>
                                     </div>
@@ -218,7 +218,7 @@ class ConnectionEdit extends React.Component {
                                     <div className="item-right">
                                     <textarea
                                         name = "description"
-                                        className="dialog-area"
+                                        className="tp-textarea dialog-area"
                                         value={database.description||' '}
                                         onChange={this.handleInputChange}
                                     />
@@ -232,7 +232,7 @@ class ConnectionEdit extends React.Component {
                                     <div className="item-right">
                                         <input
                                             name = "sqlalchemy_uri"
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                             value={database.sqlalchemy_uri}
                                             onChange={this.handleInputChange}/>
                                     </div>
@@ -249,7 +249,7 @@ class ConnectionEdit extends React.Component {
                                     <textarea
                                         id="connectParams"
                                         name="databaseArgs"
-                                        className="dialog-area"
+                                        className="tp-textarea dialog-area"
                                         onChange={this.handleInputChange}
                                     >
                                     </textarea>
@@ -321,7 +321,7 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                     <div className="item-right">
                                         <input
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                             name="connection_name"
                                             value={database.connection_name}
                                             onChange={this.handleInputChange}/>
@@ -333,7 +333,7 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                     <div className="item-right">
                                     <textarea
-                                        className="dialog-area"
+                                        className="tp-textarea dialog-area"
                                         name="description"
                                         value={database.description||' '}
                                         onChange={this.handleInputChange}
@@ -346,7 +346,7 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                     <div className="item-right">
                                         <input
-                                            className="form-control dialog-input"
+                                            className="tp-input dialog-input"
                                             name="httpfs"
                                             value={database.httpfs}
                                             onChange={this.handleInputChange}/>

@@ -3,9 +3,10 @@ import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable } from '../actions';
+import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable, fetchOnOfflineInfo } from '../actions';
 import { TableDelete } from '../popup';
 import style from '../style/table.scss'
+import { ConfirmModal } from '../../common/components';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -34,7 +35,35 @@ class SliceTable extends React.Component {
         }
 
         function publishTable(record) {
-            dispatch(fetchPublishTable(record));
+            dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
+            function callback(success, data) {
+                if(success) {
+                    render(
+                        <ConfirmModal
+                            dispatch={dispatch}
+                            record={record}
+                            needCallback={true}
+                            confirmCallback={onOfflineTable}
+                            confirmMessage={data} />,
+                        document.getElementById('popup_root')
+                    );
+                }
+            }
+        }
+
+        function onOfflineTable() {
+            const {dispatch, record} = this;
+            dispatch(fetchPublishTable(record, callback));
+            function callback(success, data) {
+                if(!success) {
+                    render(
+                        <ConfirmModal
+                            needCallback={false}
+                            confirmMessage={data} />,
+                        document.getElementById('popup_root')
+                    );
+                }
+            }
         }
 
         function deleteTable(record) {

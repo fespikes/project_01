@@ -47,7 +47,7 @@ function wordCloudChart(slice) {
         .append('text')
         .style('font-size', (d) => d.size + 'px')
         .style('font-family', 'Impact')
-        .style('fill', (d) => category21(d.text))
+        .style('fill', (d) => category21(d.text, 'wordCloudChart'))
         .attr('text-anchor', 'middle')
         .attr('transform', (d) => `translate(${d.x}, ${d.y}) rotate(${d.rotate})`)
         .text((d) => d.text);

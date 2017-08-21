@@ -271,12 +271,12 @@ class InceptorDetail extends Component {
             <div className="inceptor-detail">
                 <div className="data-detail-item">
                     <span>数据集名称：</span>
-                    <input type="text" name="dataset_name" value={dsInceptor.dataset_name}
+                    <input type="text" name="dataset_name" className="tp-input" value={dsInceptor.dataset_name}
                           required="required" onChange={this.handleChange}/>
                 </div>
                 <div className="data-detail-item">
                     <span>描述：</span>
-                    <textarea name="description" value={dsInceptor.description}
+                    <textarea name="description" className="tp-textarea" value={dsInceptor.description}
                           required="required" onChange={this.handleChange}/>
                 </div>
                 <div className="data-detail-item">
@@ -313,7 +313,7 @@ class InceptorDetail extends Component {
                 </div>
                 <div className="data-detail-item">
                     <span>SQL：</span>
-                    <textarea cols="30" rows="10" value={dsInceptor.sql}
+                    <textarea className="tp-textarea" cols="30" rows="10" value={dsInceptor.sql}
                               name="sql" onChange={this.handleChange}/>
                     <a href={ window.location.origin + '/pilot/sqllab' } target="_blank">
                         切换至SQL LAB编辑

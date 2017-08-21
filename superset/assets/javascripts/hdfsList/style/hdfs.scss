@@ -5,7 +5,6 @@
     }
 }
 
-$borderStyle: solid 1px #e9eaed;
 .bread-crumb{
     position: relative;
 
@@ -50,7 +49,7 @@ $borderStyle: solid 1px #e9eaed;
 }
 
 .hdfs-panel .panel-top .right .operations .icon-list {
-    padding: 0 10px;
+    padding: 0 10px 0 0;
     li {
         width: auto;
     }
@@ -75,22 +74,8 @@ $borderStyle: solid 1px #e9eaed;
     }
     .ps {
         margin: 0 5px;
-    }
-}
-
-.recursive-perm {
-    display: flex;
-    height: 50px;
-    align-items: center;
-    .perm-name {
-        color: #7f8fa4;
-        font-size: 14px;
-        padding-left: 18px;
-    }
-    .perm-value {
-        display: flex;
-        justify-content: flex-start;
-        padding-left: 3px;
+        position: relative;
+        top: 1px;
     }
 }
 

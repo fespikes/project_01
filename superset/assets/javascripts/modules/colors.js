@@ -3,27 +3,27 @@ const d3 = require('d3');
 
 // Color related utility functions go in this object
 export const bnbColors = [
-  '#ff5a5f', // rausch
-  '#7b0051', // hackb
-  '#007A87', // kazan
-  '#00d1c1', // babu
-  '#8ce071', // lima
-  '#ffb400', // beach
-  '#b4a76c', // barol
-  '#ff8083',
-  '#cc0086',
-  '#00a1b3',
-  '#00ffeb',
-  '#bbedab',
-  '#ffd266',
-  '#cbc29a',
-  '#ff3339',
-  '#ff1ab1',
-  '#005c66',
-  '#00b3a5',
-  '#55d12e',
-  '#b37e00',
-  '#988b4e',
+    '#78e067',
+    '#289df5',
+    '#8ed0c7',
+    '#5d8dc0',
+    '#40557d',
+    '#ffd733',
+    '#f7e9e0',
+    '#6495ed',
+    '#f4eebb',
+    '#3471b0',
+    '#b9cbfd',
+    '#f3c3ad',
+    '#66cdaa',
+    '#00c5cd',
+    '#5cacee',
+    '#f08080',
+    '#258ddc',
+    '#53b1f7',
+    '#cd96cd',
+    '#667797',
+    '#00ffeb',
 ];
 
 const spectrums = {
@@ -35,7 +35,7 @@ const spectrums = {
   fire: [
     'white',
     'yellow',
-    'red',
+    '#f3c3ad',
     'black',
   ],
   white_black: [
@@ -50,10 +50,18 @@ const spectrums = {
 
 export const category21 = (function () {
   // Color factory
-  const seen = {};
-  return function (s) {
+  let seen = {};
+  let lastType = undefined;
+  return function (s, currentType) {
     if (!s) {
       return;
+    }
+    if(!lastType) {//for first step into
+      lastType = currentType;
+    }
+    if(lastType !== currentType) {
+      seen = {};
+      lastType = currentType;
     }
     let stringifyS = String(s);
     // next line is for superset series that should have the same color
