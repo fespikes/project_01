@@ -163,8 +163,8 @@ class DatabaseView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.associated_objects(id)
-        info = "Changing inceptor connection [{}] to be offline will make these unusable:\n" \
+        objects = self.associated_objects([id, ])
+        info = "Changing inceptor connection {} to offline will make these unusable:\n" \
                "Dataset: {},\nSlice: {}."\
             .format(objects.get('database'),
                     objects.get('dataset'),
@@ -281,8 +281,8 @@ class HDFSConnectionModelView(SupersetModelView):
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.associated_objects(id)
-        info = "Changing hdfs connection [{}] to be offline will make these unusable:\n" \
+        objects = self.associated_objects([id, ])
+        info = "Changing hdfs connection {} to offline will make these unusable:\n" \
                "Dataset: {},\n Slice: {}."\
             .format(objects.get('hdfs_connection'),
                     objects.get('dataset'),

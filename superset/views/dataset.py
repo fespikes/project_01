@@ -236,15 +236,15 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.associated_objects(id)
-        info = "Changing dataset [{}] to be offline will make these slices " \
+        objects = self.associated_objects([id, ])
+        info = "Changing dataset {} to offline will make these slices " \
                "unusable: {}".format(objects.get('dataset'), objects.get('slice'))
         return json_response(data=info)
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.associated_objects([id,])
+        objects = self.associated_objects([id, ])
         info = "Deleting dataset {} will make these and others' offline slices unusable: {}"\
             .format(objects.get('dataset'), objects.get('slice'))
         return json_response(data=info)
