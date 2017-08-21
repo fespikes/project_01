@@ -154,18 +154,36 @@ class SliceModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.associated_objects(id)
+        objects = self.associated_objects([id, ])
         info = "Deleting slice [{}] will remove it from these dashboards: {}"\
             .format(objects.get('slice'), objects.get('dashboard'))
         return json_response(data=info)
 
-    def associated_objects(self, id):
-        slice = db.session.query(Slice).filter_by(id=id).first()
-        if not slice:
-            raise SupersetException(
-                '{}: Slice.id={}'.format(OBJECT_NOT_FOUND, id))
-        dashs = slice.dashboards
-        return {'slice': slice, 'dashboard': dashs}
+    @catch_exception
+    @expose("/muldelete_info/", methods=['POST'])
+    def muldelete_info(self):
+        json_data = self.get_request_data()
+        ids = json_data.get('ids')
+        objects = self.associated_objects(ids)
+
+        dashs = [d.dashboard_title for d in objects.get('dashboard')]
+        dashs = list(set(dashs))
+        info = "Deleting slices {} will remove it from these and others' offline " \
+               "dashboards: {}" \
+            .format(objects.get('slice'), dashs)
+        return json_response(data=info)
+
+    def associated_objects(self, ids):
+        slices = db.session.query(Slice).filter(Slice.id.in_(ids)).all()
+        if len(slices) != len(ids):
+            raise SupersetException('Not found all slices by ids: {}'.format(ids))
+        dashs = []
+        user_id = get_user_id()
+        for s in slices:
+            for d in s.dashboards:
+                if d.created_by_fk == user_id or d.online == 1:
+                    dashs.append(d)
+        return {'slice': slices, 'dashboard': dashs}
 
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
@@ -432,6 +450,13 @@ class DashboardModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
+        return json_response(data='')
+
+    @catch_exception
+    @expose("/muldelete_info/", methods=['POST'])
+    def muldelete_info(self):
+        # json_data = self.get_request_data()
+        # ids = json_data.get('ids')
         return json_response(data='')
 
     @catch_exception
@@ -974,150 +999,6 @@ class Superset(BaseSupersetView):
                             mimetype="application/json")
 
     @catch_exception
-    @expose("/recent_activity/<user_id>/", methods=['GET'])
-    def recent_activity(self, user_id):
-        """Recent activity (actions) for a given user"""
-        M = models  # noqa
-        qry = (
-            db.session.query(M.Log, M.Dashboard, M.Slice)
-            .outerjoin(M.Dashboard, M.Dashboard.id == M.Log.dashboard_id)
-            .outerjoin(M.Slice, M.Slice.id == M.Log.slice_id)
-            .filter(
-                sqla.and_(
-                    ~M.Log.action.in_(('queries', 'shortner', 'sql_json')),
-                    M.Log.user_id == user_id))
-            .order_by(M.Log.dttm.desc())
-            .limit(1000)
-        )
-        payload = []
-        for log in qry.all():
-            item_url = None
-            item_title = None
-            if log.Dashboard:
-                item_url = log.Dashboard.url
-                item_title = log.Dashboard.dashboard_title
-            elif log.Slice:
-                item_url = log.Slice.slice_url
-                item_title = log.Slice.slice_name
-
-            payload.append({
-                'action': log.Log.action,
-                'item_url': item_url,
-                'item_title': item_title,
-                'time': log.Log.dttm,
-            })
-        return Response(
-            json.dumps(payload, default=utils.json_int_dttm_ser),
-            mimetype="application/json")
-
-    @catch_exception
-    @expose("/fave_dashboards/<user_id>/", methods=['GET'])
-    def fave_dashboards(self, user_id):
-        qry = (
-            db.session.query(Dashboard, FavStar.dttm)
-            .join(FavStar,
-                  sqla.and_(
-                      FavStar.user_id == int(user_id),
-                      FavStar.class_name == 'Dashboard',
-                      Dashboard.id == FavStar.obj_id))
-            .order_by(FavStar.dttm.desc())
-        )
-        payload = []
-        for o in qry.all():
-            d = {
-                'id': o.Dashboard.id,
-                'dashboard': o.Dashboard.dashboard_link(),
-                'title': o.Dashboard.dashboard_title,
-                'url': o.Dashboard.url,
-                'dttm': o.dttm,
-            }
-            if o.Dashboard.created_by:
-                user = o.Dashboard.created_by
-                d['creator'] = str(user)
-                d['creator_url'] = '/pilot/profile/{}/'.format(
-                    user.username)
-            payload.append(d)
-        return Response(
-            json.dumps(payload, default=utils.json_int_dttm_ser),
-            mimetype="application/json")
-
-    @catch_exception
-    @expose("/created_dashboards/<user_id>/", methods=['GET'])
-    def created_dashboards(self, user_id):
-        Dash = Dashboard  # noqa
-        qry = (
-            db.session.query(Dash)
-            .filter(
-                sqla.or_(
-                    Dash.created_by_fk == user_id,
-                    Dash.changed_by_fk == user_id,))
-            .order_by(Dash.changed_on.desc())
-        )
-        payload = [{
-            'id': o.id,
-            'dashboard': o.dashboard_link(),
-            'title': o.dashboard_title,
-            'url': o.url,
-            'dttm': o.changed_on,
-        } for o in qry.all()]
-        return Response(
-            json.dumps(payload, default=utils.json_int_dttm_ser),
-            mimetype="application/json")
-
-    @catch_exception
-    @expose("/created_slices/<user_id>/", methods=['GET'])
-    def created_slices(self, user_id):
-        """List of slices created by this user"""
-        qry = (
-            db.session.query(Slice)
-            .filter(
-                sqla.or_(
-                    Slice.created_by_fk == user_id,
-                    Slice.changed_by_fk == user_id))
-            .order_by(Slice.changed_on.desc())
-        )
-        payload = [{
-            'id': o.id,
-            'title': o.slice_name,
-            'url': o.slice_url,
-            'dttm': o.changed_on,
-        } for o in qry.all()]
-        return Response(
-            json.dumps(payload, default=utils.json_int_dttm_ser),
-            mimetype="application/json")
-
-    @catch_exception
-    @expose("/fave_slices/<user_id>/", methods=['GET'])
-    def fave_slices(self, user_id):
-        """Favorite slices for a user"""
-        qry = (
-            db.session.query(Slice, FavStar.dttm)
-            .join(FavStar,
-                  sqla.and_(
-                      FavStar.user_id == int(user_id),
-                      FavStar.class_name == 'slice',
-                      Slice.id == FavStar.obj_id))
-            .order_by(FavStar.dttm.desc())
-        )
-        payload = []
-        for o in qry.all():
-            d = {
-                'id': o.Slice.id,
-                'title': o.Slice.slice_name,
-                'url': o.Slice.slice_url,
-                'dttm': o.dttm,
-            }
-            if o.Slice.created_by:
-                user = o.Slice.created_by
-                d['creator'] = str(user)
-                d['creator_url'] = '/pilot/profile/{}/'.format(
-                    user.username)
-            payload.append(d)
-        return Response(
-            json.dumps(payload, default=utils.json_int_dttm_ser),
-            mimetype="application/json")
-
-    @catch_exception
     @expose("/favstar/<class_name>/<obj_id>/<action>/")
     def favstar(self, class_name, obj_id, action):
         """Toggle favorite stars on Slices and Dashboard"""
@@ -1639,57 +1520,6 @@ class Superset(BaseSupersetView):
         ), 500
 
     @catch_exception
-    @expose("/welcome/")
-    def welcome(self):
-        """Personalized welcome page"""
-        if not g.user or not g.user.get_id():
-            return redirect(appbuilder.get_url_for_login)
-        return self.render_template('superset/welcome.html', utils=utils)
-
-    @catch_exception
-    @has_access
-    @expose("/profile/<username>/")
-    def profile(self, username):
-        """User profile page"""
-        if not username and g.user:
-            username = g.user.username
-        user = db.session.query(User).filter_by(username=username).one()
-        roles = {}
-        from collections import defaultdict
-        permissions = defaultdict(set)
-        for role in user.roles:
-            perms = set()
-            for perm in role.permissions:
-                perms.add(
-                    (perm.permission.name, perm.view_menu.name)
-                )
-                if perm.permission.name in ('datasource_access', 'database_access'):
-                    permissions[perm.permission.name].add(perm.view_menu.name)
-            roles[role.name] = [
-                [perm.permission.name, perm.view_menu.name]
-                for perm in role.permissions
-            ]
-        payload = {
-            'user': {
-                'username': user.username,
-                'firstName': user.first_name,
-                'lastName': user.last_name,
-                'userId': user.id,
-                'isActive': user.is_active(),
-                'createdOn': user.created_on.isoformat(),
-                'email': user.email,
-                'roles': roles,
-                'permissions': permissions,
-            }
-        }
-        return self.render_template(
-            'superset/profile.html',
-            title=user.username + "'s profile",
-            navbar_container=True,
-            bootstrap_data=json.dumps(payload, default=utils.json_iso_dttm_ser)
-        )
-
-    @catch_exception
     @expose("/sqllab/")
     def sqllab(self):
         """SQL Editor"""
@@ -1709,11 +1539,11 @@ appbuilder.add_view(
     label=__("Dashboards"),
     icon="fa-dashboard",
     category='',
-    category_icon='',)
+    category_icon='')
 appbuilder.add_view(
     SliceModelView,
     "Slices",
     label=__("Slices"),
     icon="fa-bar-chart",
     category="",
-    category_icon='',)
+    category_icon='')

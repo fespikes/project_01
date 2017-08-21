@@ -299,7 +299,7 @@ class Database(Model, AuditMixinNullable):
             dir = config.get('KETTAB_TMP_DIR', '/tmp/keytab')
             server = config.get('GUARDIAN_SERVER')
             username = g.user.username
-            password = AuthDBView.mock_user.get(g.user.username)
+            password = g.user.password2
             if not password:
                 raise SupersetException(NEED_PASSWORD_FOR_KEYTAB)
             connect_args['keytab'] = cls.get_keytab(username, password, server, dir)
