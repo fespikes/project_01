@@ -110,7 +110,7 @@ function sunburstVis(slice) {
       entering.append('svg:polygon')
           .attr('points', breadcrumbPoints)
           .style('fill', function (d) {
-            return colorByCategory ? category21(d.name) : colorScale(d.m2 / d.m1);
+            return category21(d.name, 'sunburstVis');
           });
 
       entering.append('svg:text')
@@ -119,7 +119,7 @@ function sunburstVis(slice) {
           .attr('dy', '0.35em')
           .style('fill', function (d) {
             // Make text white or black based on the lightness of the background
-            const col = d3.hsl(colorByCategory ? category21(d.name) : colorScale(d.m2 / d.m1));
+            const col = d3.hsl(category21(d.name, 'sunburstVis'));
             return col.l < 0.5 ? 'white' : 'black';
           })
           .attr('class', 'step-label')
@@ -359,7 +359,7 @@ function sunburstVis(slice) {
         })
         .attr('d', arc)
         .attr('fill-rule', 'evenodd')
-        .style('fill', (d) => colorByCategory ? category21(d.name) : colorScale(d.m2 / d.m1))
+        .style('fill', (d) => category21(d.name, 'sunburstVis'))
         .style('opacity', 1)
         .on('mouseenter', mouseenter);
 

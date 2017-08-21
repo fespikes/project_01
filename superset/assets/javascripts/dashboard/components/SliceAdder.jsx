@@ -17,7 +17,7 @@ class SliceAdder extends React.Component {
             slices: [],
             slicesLoaded: false,
             selectedSliceIds: [],
-            pageSize: 10,
+            pageSize: 10000,
             totalPage: 0,
             pageNumber: 1
         };
@@ -156,7 +156,7 @@ class SliceAdder extends React.Component {
         const modalTitle = "添加工作表";
         const modalIcon = "icon icon-plus";
         const modalContent = (
-            <div>
+            <div className="table-add-slice">
                 <img
                     src="/static/assets/images/loading.gif"
                     className={'loading ' + (hideLoad ? 'hidden' : '')}
@@ -176,14 +176,14 @@ class SliceAdder extends React.Component {
                         columns={columns}
                         pagination={false}
                     />
-                    <Pagination
+                    {/*<Pagination
                         size="small"
                         style={{textAlign: 'right', marginTop: 10}}
                         pageSize={this.state.pageSize}
                         total={this.state.totalPage}
                         current={this.state.pageNumber}
                         onChange={this.onPageChange}
-                    />
+                    />*/}
                 </div>
             </div>
         );

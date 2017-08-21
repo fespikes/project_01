@@ -145,7 +145,7 @@ function sankeyVis(slice) {
         })
         .attr('width', sankey.nodeWidth())
         .style('fill', function (d) {
-          d.color = category21(d.name.replace(/ .*/, ''));
+          d.color = category21(d.name.replace(/ .*/, ''), 'sankeyVis');
           return d.color;
         })
         .style('stroke', function (d) {
