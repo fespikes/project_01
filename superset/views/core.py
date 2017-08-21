@@ -163,7 +163,7 @@ class SliceModelView(SupersetModelView):  # noqa
     @expose("/muldelete_info/", methods=['POST'])
     def muldelete_info(self):
         json_data = self.get_request_data()
-        ids = json_data.get('ids')
+        ids = json_data.get('selectedRowKeys')
         objects = self.associated_objects(ids)
 
         dashs = [d.dashboard_title for d in objects.get('dashboard')]
@@ -456,7 +456,7 @@ class DashboardModelView(SupersetModelView):  # noqa
     @expose("/muldelete_info/", methods=['POST'])
     def muldelete_info(self):
         # json_data = self.get_request_data()
-        # ids = json_data.get('ids')
+        # ids = json_data.get('selectedRowKeys')
         return json_response(data='')
 
     @catch_exception

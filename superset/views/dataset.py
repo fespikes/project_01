@@ -253,7 +253,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     @expose("/muldelete_info/", methods=['POST'])
     def muldelete_info(self):
         json_data = self.get_request_data()
-        ids = json_data.get('ids')
+        ids = json_data.get('selectedRowKeys')
         objects = self.associated_objects(ids)
         info = "Deleting datasets {} will make these and others' offline slices unusable: {}" \
             .format(objects.get('dataset'), objects.get('slice'))
