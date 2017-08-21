@@ -86,7 +86,7 @@ class ComponentSelect extends React.Component {
                 <div id="selectionToggle" className="selection-toggle" onClick={this.onToggle}>
                     <i className={iconClass}/>
                     <span>{this.state.selected || "请选择"}</span>
-                    <i className={this.state.opened?'icon icon-open':'icon icon-close'}/>
+                    <i className={this.state.opened?'icon icon-open-sign':'icon icon-close-sign'}/>
                 </div>
                 <div className={this.state.opened===true?'selection-section':'none'}>
                     <ul>{typeOptions}</ul>
