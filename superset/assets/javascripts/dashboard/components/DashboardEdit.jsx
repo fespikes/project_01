@@ -110,7 +110,7 @@ class DashboardEdit extends React.Component {
                         <span>标题：</span>
                     </div>
                     <div className="item-right">
-                        <input className="form-control dialog-input" value={this.state.dashboard.dashboard_title}
+                        <input className="tp-input dialog-input" value={this.state.dashboard.dashboard_title}
                                onChange={this.handleTitleChange}/>
                     </div>
                 </div>
@@ -120,7 +120,7 @@ class DashboardEdit extends React.Component {
                     </div>
                     <div className="item-right">
                         <textarea
-                            className="dialog-area"
+                            className="tp-textarea dialog-area"
                             value={this.state.dashboard.description}
                             onChange={this.handleDescriptionChange}
                         />
@@ -149,7 +149,7 @@ class DashboardEdit extends React.Component {
                         <span>数据集：</span>
                     </div>
                     <div className="item-right">
-                        <input className="form-control dialog-input" value={this.state.dashboard.table_names} disabled />
+                        <input className="tp-input dialog-input" value={this.state.dashboard.table_names} disabled />
                     </div>
                 </div>
             </div>
@@ -158,7 +158,7 @@ class DashboardEdit extends React.Component {
             <div>
                 <button
                     type="button"
-                    className="btn btn-default"
+                    className="tp-btn tp-btn-middle tp-btn-primary"
                     data-dismiss="modal"
                     onClick={this.editDashboard}
                 >

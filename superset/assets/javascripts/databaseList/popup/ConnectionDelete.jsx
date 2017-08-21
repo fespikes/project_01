@@ -41,7 +41,7 @@ class ConnectionDelete extends React.Component {
                 ref="popupDatabaseDelete"
                 style={{display:'flex'}}
             >
-                <div className="popup-dialog popup-sm">
+                <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">

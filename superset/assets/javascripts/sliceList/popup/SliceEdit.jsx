@@ -120,8 +120,11 @@ class SliceEdit extends React.Component {
                                     <span>名称：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.sliceDetail.slice_name}
-                                       onChange={this.handleTitleChange}/>
+                                    <input
+                                        className="tp-input dialog-input"
+                                        value={this.props.sliceDetail.slice_name}
+                                        onChange={this.handleTitleChange}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -129,8 +132,11 @@ class SliceEdit extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" value={this.props.sliceDetail.description}
-                                          onChange={this.handleDescriptionChange} />
+                                    <textarea
+                                        className="tp-textarea dialog-area"
+                                        value={this.props.sliceDetail.description}
+                                        onChange={this.handleDescriptionChange}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">
