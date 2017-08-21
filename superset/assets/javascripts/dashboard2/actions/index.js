@@ -2,6 +2,7 @@
  * Created by haitao on 17-5-18.
  */
 import fetch from 'isomorphic-fetch';
+import {getOnOfflineInfoUrl} from '../../../utils/utils'
 
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
@@ -19,6 +20,20 @@ export const CONFIG_PARAMS = {
     VIEW_MODE: 'VIEW_MODE',
     TABLE_LOADING: 'TABLE_LOADING',
     SWITCH_FETCHING_STATE: 'SWITCH_FETCHING_STATE'
+};
+
+const callbackHandler = (response, callback) => {
+    if(response.status === 200) {
+        callback && callback(true, response.data);
+    }else if(response.status === 500) {
+        callback && callback(false, response.message);
+    }
+};
+const always = (response) => {
+    return Promise.resolve(response);
+};
+const json = (response) => {
+    return response.json();
 };
 
 export function requestPosts() {
@@ -244,20 +259,36 @@ export function fetchAddDashboard(state, availableSlices, callback) {
     }
 }
 
-export function fetchStateChange(record, type) {
+export function fetchStateChange(record, callback, type) {
     const url = getStateChangeUrl(record, type);
     return dispatch => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: "same-origin",
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchPosts());
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
-            }else {
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
+                }
+            }
+        );
+    }
+}
+
+export function fetchOnOfflineInfo(dashboardId, published, callback) {
+    const url = getOnOfflineInfoUrl(dashboardId, 'dashboard', published);
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
             }
-        })
+        );
     }
 }
 
@@ -292,7 +323,6 @@ export function fetchPosts() {
             })
     }
 }
-
 
 function getDashboardListUrl(state) {
     let url = window.location.origin + "/dashboard/listdata?page=" + (state.configs.pageNumber - 1) +

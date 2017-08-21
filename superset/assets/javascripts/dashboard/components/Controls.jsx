@@ -1,5 +1,6 @@
 const $ = window.$ = require('jquery');
 import React from 'react';
+import { render, ReactDOM } from 'react-dom';
 import { ButtonGroup } from 'react-bootstrap';
 import Button from '../../components/Button';
 import CssEditor from './CssEditor';
@@ -8,6 +9,7 @@ import SaveModal from './SaveModal';
 import CodeModal from './CodeModal';
 import SliceAdder from './SliceAdder';
 import DashboardEdit from './DashboardEdit';
+import { ConfirmModal } from '../../common/components';
 import { renderLoadingModal } from '../../../utils/utils';
 
 const propTypes = {
@@ -31,25 +33,75 @@ class Controls extends React.PureComponent {
     publish() {
         const self = this;
         const { dashboard } = self.props;
-        let url = '/pilot/release/dashboard/';
-        if(this.state.published) {
-            url += 'offline/' + dashboard.id;
-        }else {
-            url += 'online/' + dashboard.id;
-        }
+        const loadingModel = renderLoadingModal();
+        loadingModel.show();
+        let url = this.getOnOfflineUrl(dashboard.id, this.state.published, 'check');
+        $.get(url, (data) => {
+            loadingModel.hide();
+            if(data.status === 200) {
+                render(
+                    <ConfirmModal
+                        self={self}
+                        dashboardId={dashboard.id}
+                        published={this.state.published}
+                        dashboardStateChange={self.dashboardStateChange}
+                        needCallback={true}
+                        confirmCallback={self.dashboardOnOffline}
+                        confirmMessage={data.data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        });
+    }
+
+    dashboardOnOffline() {
+        const self = this.self;
+        const url = self.getOnOfflineUrl(this.dashboardId, this.published, 'release');
+        this.dashboardStateChange(url, this.dashboardId, self);
+    }
+
+    dashboardStateChange(url, dashboardId, _this) {
         const loadingModel = renderLoadingModal();
         loadingModel.show();
         $.get(url, (data) => {
-            if($.parseJSON(data).success) {
-                let url = '/pilot/if_online/dashboard/' + dashboard.id;
+            if(data.status === 200) {
+                let url = '/pilot/if_online/dashboard/' + dashboardId;
                 $.get(url, (data) => {
-                    self.setState({
+                    _this.setState({
                         published: $.parseJSON(data).online
                     });
                     loadingModel.hide();
                 });
+            }else {
+                render(
+                    <ConfirmModal
+                        needCallback={false}
+                        confirmMessage={data.message}
+                    />,
+                    document.getElementById('popup_root')
+                );
             }
         });
+    }
+
+    getOnOfflineUrl(dashboardId, published, type) {
+        let url = "";
+        if(type === 'check') {
+            url = '/dashboard/';
+            if(published) {
+                url += 'offline_info/' + dashboardId;
+            }else {
+                url += 'online_info/' + dashboardId;
+            }
+        }else if(type === "release") {
+            url = '/pilot/release/dashboard/';
+            if(published) {
+                url += 'offline/' + dashboardId;
+            }else {
+                url += 'online/' + dashboardId;
+            }
+        }
+        return url;
     }
 
     componentDidMount() {

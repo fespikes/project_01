@@ -1,5 +1,6 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishConnectionUrl} from '../utils';
+import {getOnOfflineInfoUrl} from '../../../utils/utils'
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -34,6 +35,20 @@ const baseURL = origin + '/database/';
 const connBaseURL = origin + '/connection/';
 const INCEPTORConnectionBaseURL = origin + '/database/';
 const HDFSConnectionBaseURL = origin + '/hdfsconnection/';
+
+const callbackHandler = (response, callback) => {
+    if(response.status === 200) {
+        callback && callback(true, response.data);
+    }else if(response.status === 500) {
+        callback && callback(false, response.message);
+    }
+};
+const always = (response) => {
+    return Promise.resolve(response);
+};
+const json = (response) => {
+    return response.json();
+};
 
 const errorHandler = (error) => {
     return error;
@@ -151,22 +166,36 @@ export function fetchInceptorConnectAdd(connect, callback) {
     }
 }
 
-export function fetchPublishConnection(record) {
+export function fetchPublishConnection(record, callback) {
     const url = getPublishConnectionUrl(record);
     return (dispatch) => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: "same-origin"
-        }).then(function(response) {
-            if(response.ok) {
-                response.json().then(() => {
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
                     dispatch(fetchIfNeeded());
-                    dispatch(switchFetchingState(false));
-                });
-            }else {
+                }
+            }
+        );
+    }
+}
+
+export function fetchOnOfflineInfo(connectionId, published, callback) {
+    const url = getOnOfflineInfoUrl(connectionId, 'database', published);
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
             }
-        })
+        );
     }
 }
 
@@ -413,8 +442,6 @@ function applyFetch (condition) {
         .then(json => {
             dispatch(receiveData(condition, dataMatch(json)));
         });
-//        const json = require('./d40cb439062601b83de7.json');
-//        dispatch(receiveData(condition, dataMatch(json)));
     };
 }
 

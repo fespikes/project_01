@@ -1,4 +1,5 @@
 import fetch from 'isomorphic-fetch';
+import {getOnOfflineInfoUrl} from '../../../utils/utils'
 
 export const SHOW_ALL = 'showAll';
 export const SHOW_FAVORITE = 'showFavorite';
@@ -22,6 +23,20 @@ export const CONDITION_PARAMS = {
     CLEAR_ROWS: 'CLEAR_ROWS',
     SELECTED_ROWS: 'SELECTED_ROWS',
     TABLE_LOADING: 'TABLE_LOADING'
+};
+
+const callbackHandler = (response, callback) => {
+    if(response.status === 200) {
+        callback && callback(true, response.data);
+    }else if(response.status === 500) {
+        callback && callback(false, response.message);
+    }
+};
+const always = (response) => {
+    return Promise.resolve(response);
+};
+const json = (response) => {
+    return response.json();
 };
 
 const baseURL = window.location.origin + '/slice/';
@@ -97,14 +112,30 @@ export function fetchStateChange(record, type) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchLists());
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
-            }else {
+                if(response.status === 200) {
+                    dispatch(fetchLists());
+                }
+            }
+        );
+    }
+}
+
+export function fetchOnOfflineInfo(sliceId, published, callback) {
+    const url = getOnOfflineInfoUrl(sliceId, 'slice', published);
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
             }
-        });
+        );
     }
 }
 

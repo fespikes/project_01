@@ -72,3 +72,13 @@ export function getUrlParam(name, url) {
         return '';
     }
 }
+
+export function getOnOfflineInfoUrl(id, moudleType, published) {
+    let url = window.location.origin + '/' + moudleType;
+    if(published) {
+        url += '/offline_info/' + id;
+    }else {
+        url += '/online_info/' + id;
+    }
+    return url;
+}

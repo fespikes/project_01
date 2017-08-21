@@ -2,9 +2,10 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection } from '../actions';
+import { fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection, fetchOnOfflineInfo } from '../actions';
 import { ConnectionDelete, ConnectionEdit } from '../popup';
 import style from '../style/database.scss'
+import { ConfirmModal } from '../../common/components';
 
 class SliceTable extends React.Component {
     constructor(props, context) {
@@ -52,7 +53,36 @@ class SliceTable extends React.Component {
 
     publishConnection(record) {
         const dispatch = this.dispatch;
-        dispatch(fetchPublishConnection(record));
+        const self = this;
+        dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
+        function callback(success, data) {
+            if(success) {
+                render(
+                    <ConfirmModal
+                        dispatch={dispatch}
+                        record={record}
+                        needCallback={true}
+                        confirmCallback={self.onOfflineConnection}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
+    }
+
+    onOfflineConnection() {
+        const {dispatch, record} = this;
+        dispatch(fetchPublishConnection(record, callback));
+        function callback(success, data) {
+            if(!success) {
+                render(
+                    <ConfirmModal
+                        needCallback={false}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
     }
 
     //delete one of them
