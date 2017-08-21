@@ -19,12 +19,16 @@ class CheckLicense(object):
                 logging.error("Can't find the jar for license checking: {}"
                               .format(jar))
                 raise IOError
+            logging.info("=== Begin to start JVM ...")
             startJVM(get_default_jvm_path(), '-ea', '-Djava.class.path={}'
                      .format(jar))
+            logging.info("=== Finish to start JVM.")
 
     @classmethod
     def shutdown_jvm(cls):
+        logging.info("=== Begin to shutdown JVM ...")
         shutdownJVM()
+        logging.info("=== Finish to shutdown JVM.")
 
     @classmethod
     def check(cls, server_location, license_jar=None):
@@ -33,11 +37,10 @@ class CheckLicense(object):
             Check = JClass('io.transwarp.pilot.license.CheckLicense')
             check = Check()
             check.checkLicense(server_location)
+            logging.info("License check succeed")
         except JavaException as ex:
-            logging.error(ex.message())
             msg = "License check failed with check server: {}".format(server_location)
             logging.error(msg)
             raise Exception(msg)
         finally:
             cls.shutdown_jvm()
-            logging.info("License check succeed")
