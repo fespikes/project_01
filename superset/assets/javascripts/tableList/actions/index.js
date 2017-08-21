@@ -318,48 +318,79 @@ export function getSQLMetric(dataset_id) {
 
 export function fetchTableDelete(tableId, callback) {
     const url = baseURL + "delete/" + tableId;
-    const errorHandler = error => alert(error);
     return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(selectRows([], []));
-                dispatch(applyFetch(getState().condition));
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                switchFetchingState(false);
+                if(response.status === 200) {
+                    dispatch(selectRows([], []));
+                    dispatch(applyFetch(getState().condition));
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchTableDelInfo(tableId, callback) {
+    const url = baseURL + "delete_info/" + tableId;
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
 export function fetchTableDeleteMul(callback) {
     const url = baseURL + "muldelete";
     return (dispatch, getState) => {
+
+        dispatch(switchFetchingState(true));
         const selectedRowKeys = getState().condition.selectedRowKeys;
         let data = {selectedRowKeys: selectedRowKeys};
         return fetch(url, {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(data)
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(applyFetch(getState().condition));
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callback(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(applyFetch(getState().condition));
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchTableDelMulInfo(callback) {
+    const url = baseURL + "muldelete_info/";
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        const selectedRowKeys = getState().condition.selectedRowKeys;
+        let data = {selectedRowKeys: selectedRowKeys};
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(data)
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 

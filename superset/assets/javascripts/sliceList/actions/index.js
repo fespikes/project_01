@@ -167,18 +167,14 @@ export function fetchSliceDelete(sliceId, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchLists());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchLists());
                 }
             }
-        });
+        );
     }
 }
 
@@ -207,18 +203,14 @@ export function fetchSliceDeleteMul(callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(data)
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchLists());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchLists());
                 }
             }
-        });
+        );
     }
 }
 

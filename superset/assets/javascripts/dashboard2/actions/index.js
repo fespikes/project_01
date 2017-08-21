@@ -154,18 +154,14 @@ export function fetchDashboardDelete(dashboardId, callback) {
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin"
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchPosts());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
                 }
             }
-        });
+        );
     }
 }
 
@@ -193,18 +189,14 @@ export function fetchDashboardDeleteMul(callback) {
             credentials: "same-origin",
             method: "POST",
             body: JSON.stringify(data)
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchPosts());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
                 }
             }
-        });
+        );
     }
 }
 

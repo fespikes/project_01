@@ -48,10 +48,8 @@ class SliceTable extends React.Component {
         const { dispatch } = this.props;
         dispatch(fetchSliceDelInfo(record.id, callback));
         function callback(success, data) {
-            console.log(success);
-            console.log(data);
             if(success) {
-                const deleteTips = data.length===0 ? "确定删除" + record.slice_name + "?" : data;
+                const deleteTips = data;
                 render(
                     <SliceDelete
                         dispatch={dispatch}

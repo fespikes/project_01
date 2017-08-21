@@ -23,8 +23,6 @@ class ConnectionDelete extends React.Component {
             if(success) {
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }
-            console.log('TODO: API not ready - http://172.16.1.168:8090/display/TRAN/Pilot+api+-+CRUD - /connection/muldelete/');
-            console.log('json.message:', json.message );
         }
 
         if(deleteType === "none") {

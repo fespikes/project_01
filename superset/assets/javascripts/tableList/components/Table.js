@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable, fetchOnOfflineInfo } from '../actions';
+import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable, fetchOnOfflineInfo, fetchTableDelInfo } from '../actions';
 import { TableDelete } from '../popup';
 import style from '../style/table.scss'
 import { ConfirmModal } from '../../common/components';
@@ -67,16 +67,22 @@ class SliceTable extends React.Component {
         }
 
         function deleteTable(record) {
-
-            let deleteTips = "确定删除" + record.dataset_name+ "?";
-            render(
-                <TableDelete
-                    dispatch={dispatch}
-                    deleteType={'single'}
-                    deleteTips={deleteTips}
-                    table={record} />,
-                document.getElementById('popup_root')
-            );
+            dispatch(fetchTableDelInfo(record.id, callback));
+            function callback(success, data) {
+                if(success) {
+                    let deleteTips = data;
+                    render(
+                        <TableDelete
+                            dispatch={dispatch}
+                            deleteType={'single'}
+                            deleteTips={deleteTips}
+                            table={record} />,
+                        document.getElementById('popup_root')
+                    );
+                }else {
+                    message.error(data, 5);
+                }
+            }
         }
 
         const rowSelection = {

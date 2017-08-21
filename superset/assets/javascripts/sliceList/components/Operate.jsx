@@ -39,7 +39,7 @@ class SliceOperate extends React.Component {
         function callback(success, data) {
             if(success) {
                 let deleteType = 'multiple';
-                let deleteTips = data.length===0 ? '确定删除' + selectedRowNames + '?' : data;
+                let deleteTips = data;
                 if(selectedRowNames.length === 0) {
                     deleteType = 'none';
                     deleteTips = '没有选择任何将要删除的记录，请选择！';
