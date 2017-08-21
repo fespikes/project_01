@@ -36,7 +36,7 @@ def catch_hdfs_exception(f):
         except FileRobotException as fe:
             if fe.status == 401:
                 try:
-                    self.re_login()
+                    self.do_login()
                     return f(self, *args, **kwargs)
                 except FileRobotException as fe2:
                     return json_response(status=fe2.status,
