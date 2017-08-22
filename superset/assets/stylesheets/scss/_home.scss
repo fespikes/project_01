@@ -1,28 +1,41 @@
 
 .dashboard-icon {
-    background-position: -250px -50px;
+    background-position: -53px -685px;
+}
+.slice-icon {
+    background-position: -93px -685px;
+}
+.connection-icon {
+    background-position: -132px -685px;
+}
+.dataset-icon {
+    background-position: -171px -685px;
+}
+
+.selected {
+    .dashboard-icon {
+        background-position: -250px -50px;
+    }
+    .slice-icon {
+        background-position: -290px -50px;
+    }
+    .connection-icon {
+        background-position: -8px -90px;
+    }
+    .dataset-icon {
+        background-position: -47px -90px;
+    }
 }
 
 .hdfsconnection-icon {
     background-position: -8px -90px;
 }
-
-.connection-icon {
-    background-position: -8px -90px;
-}
-
-.dataset-icon {
-    background-position: -47px -90px;
-}
-
-.slice-icon {
-    background-position: -290px -50px;
-}
-
 .user-icon {
     background-position: -130px -90px;
 }
-
+/**
+ dashboard-icon slice-icon connection-icon dataset-icon
+**/
 .margin-left-20px {
     margin-left:-20px;
 }
@@ -68,10 +81,11 @@
     .data-title{
         display:flex;
         justify-content:center;
-        padding:5px 0;
+        margin:0 -20px;
+        background: #f5f8fa;
         h2{
-            border-right: 1px solid #edf1f5;
-            padding:0 45px;
+            border-top: 3px solid #f5f8fa;
+            padding:5px 45px 10px;
             text-align:center;
             dl {
                 display: flex;
@@ -110,8 +124,10 @@
             }
         }
         h2.selected {
-            background-color: rgba(46, 161, 248, 0.1);
-            border-radius: 4px;
+            background-color: #fff;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            border-top:3px #279cf2 solid;
         }
     }
     .dashboard-linechart{
