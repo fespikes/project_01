@@ -102,8 +102,6 @@ class Tables extends React.Component {
                         confirmMessage={data} />,
                     document.getElementById('popup_root')
                 );
-            }else {
-                message.error(data, 5);
             }
         }
     }
