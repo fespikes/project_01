@@ -154,18 +154,29 @@ export function fetchDashboardDelete(dashboardId, callback) {
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin"
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchPosts());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchDashbaordDelInfo(dashboardId, callback) {
+    const url = window.location.origin + "/dashboard/delete_info/" + dashboardId;
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
@@ -178,18 +189,33 @@ export function fetchDashboardDeleteMul(callback) {
             credentials: "same-origin",
             method: "POST",
             body: JSON.stringify(data)
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchPosts());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchDashboardMulDelInfo(callback) {
+    const url = window.location.origin + "/dashboard/muldelete_info/";
+    return (dispatch, getState) => {
+        const selectedRowKeys = getState().configs.selectedRowKeys;
+        let data = {selectedRowKeys: selectedRowKeys};
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+            method: "POST",
+            body: JSON.stringify(data)
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 

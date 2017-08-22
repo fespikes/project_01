@@ -4,8 +4,9 @@ import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { DashboardAdd, DashboardDelete } from '../popup';
+import { message } from 'antd';
 import { fetchAvailableSlices, fetchPosts, fetchDashboardDeleteMul, setShowType, setKeyword,
-    setPageNumber, setViewMode } from '../actions';
+    setPageNumber, setViewMode, fetchDashboardMulDelInfo } from '../actions';
 
 class Operations extends React.Component {
     constructor(props) {
@@ -14,8 +15,6 @@ class Operations extends React.Component {
         // bindings
         this.addDashboard = this.addDashboard.bind(this);
         this.deleteDashboardMul = this.deleteDashboardMul.bind(this);
-        this.importDashboard = this.importDashboard.bind(this);
-        this.exportDashboard = this.exportDashboard.bind(this);
         this.showAll = this.showAll.bind(this);
         this.showFavorite = this.showFavorite.bind(this);
         this.searchDashboard = this.searchDashboard.bind(this);
@@ -48,29 +47,27 @@ class Operations extends React.Component {
 
     deleteDashboardMul() {
         const { dispatch, selectedRowNames } = this.props;
-        let deleteType = "multiple";
-        let deleteTips = '确定删除' + selectedRowNames + '?';
-        if(selectedRowNames.length === 0) {
-            deleteType = 'none';
-            deleteTips = '没有选择任何将要删除的记录，请选择！';
+        dispatch(fetchDashboardMulDelInfo(callback));
+        function callback(success, data) {
+            if(success) {
+                let deleteType = "multiple";
+                let deleteTips = data.length===0 ? '确定删除' + selectedRowNames + '?' : data;
+                if(selectedRowNames.length === 0) {
+                    deleteType = 'none';
+                    deleteTips = '没有选择任何将要删除的记录，请选择！';
+                }
+                render(
+                    <DashboardDelete
+                        dispatch={dispatch}
+                        deleteType={deleteType}
+                        deleteTips={deleteTips}
+                    />,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message.error(data, 5);
+            }
         }
-        var deleteDashboardPopup = render(
-            <DashboardDelete
-                dispatch={dispatch}
-                deleteType={deleteType}
-                deleteTips={deleteTips} />,
-            document.getElementById('popup_root'));
-        if(deleteDashboardPopup) {
-            deleteDashboardPopup.showDialog();
-        }
-    }
-
-    importDashboard() {
-
-    }
-
-    exportDashboard() {
-
     }
 
     switchTableMode() {
@@ -133,10 +130,6 @@ class Operations extends React.Component {
                 <ul className="icon-list">
                     <li onClick={this.addDashboard}><i className="icon icon-plus"/></li>
                     <li onClick={this.deleteDashboardMul}><i className="icon icon-trash"/></li>
-                    {/*
-                    <li onClick={this.importDashboard}><i className="icon icon-export"></i></li>
-                    <li onClick={this.exportDashboard}><i className="icon icon-import"></i></li>
-                    */}
                 </ul>
                 <div className="tab-btn">
                     <button className={typeName === 'show_all' ? 'active' : ''} onClick={this.showAll}>全部</button>

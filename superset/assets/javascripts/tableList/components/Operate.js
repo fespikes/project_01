@@ -1,9 +1,9 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
-import { Select } from 'antd';
+import { Select, message } from 'antd';
 import { ComponentSelect } from '../../databaseList/components';
-import { switchDatasetType, fetchAddTypeList, fetchFilterTypeList } from '../actions';
+import { switchDatasetType, fetchAddTypeList, fetchFilterTypeList, fetchTableDelMulInfo } from '../actions';
 import PropTypes from 'prop-types';
 import {
     selectType,
@@ -42,20 +42,25 @@ class SliceOperate extends React.Component {
 
     onDelete () {//TODO:
         const { dispatch, selectedRowNames } = this.props;
-        let deleteType = 'multiple';
-        let deleteTips = '确定删除' + selectedRowNames + '?';
-        if(selectedRowNames.length === 0) {
-            deleteType = 'none';
-            deleteTips = '没有选择任何将要删除的记录，请选择！';
-        }
-        let deleteTablePopup = render(
-            <TableDelete
-                dispatch={dispatch}
-                deleteType={deleteType}
-                deleteTips={deleteTips} />,
-            document.getElementById('popup_root'));
-        if(deleteTablePopup) {
-            deleteTablePopup.showDialog();
+        dispatch(fetchTableDelMulInfo(callback));
+        function callback(success, data) {
+            if(success) {
+                let deleteType = 'multiple';
+                let deleteTips = data;
+                if(selectedRowNames.length === 0) {
+                    deleteType = 'none';
+                    deleteTips = '没有选择任何将要删除的记录，请选择！';
+                }
+                render(
+                    <TableDelete
+                        dispatch={dispatch}
+                        deleteType={deleteType}
+                        deleteTips={deleteTips} />,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message.error(data, 5);
+            }
         }
     }
 

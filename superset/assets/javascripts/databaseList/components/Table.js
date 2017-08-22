@@ -2,7 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection, fetchOnOfflineInfo } from '../actions';
+import { fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection, fetchOnOfflineInfo,
+    fetchConnectDelInfo } from '../actions';
 import { ConnectionDelete, ConnectionEdit } from '../popup';
 import style from '../style/database.scss'
 import { ConfirmModal } from '../../common/components';
@@ -88,18 +89,25 @@ class SliceTable extends React.Component {
     //delete one of them
     deleteConnection(record) {
         const dispatch = this.dispatch;
-        let deleteTips = "确定删除: " + record.name + "?";      //i18n
-        let connToBeDeleted = {};
-        connToBeDeleted[record.connection_type] = [record.id];
-        this.dispatch(selectRows([record.elementId], connToBeDeleted, [record.name]));
+        dispatch(fetchConnectDelInfo(record.id, callback));
+        function callback(success, data) {
+            if(success) {
+                let deleteTips = data;
+                let connToBeDeleted = {};
+                connToBeDeleted[record.connection_type] = [record.id];
+                dispatch(selectRows([record.elementId], connToBeDeleted, [record.name]));
 
-        render(
-            <ConnectionDelete
-                dispatch={dispatch}
-                deleteTips={deleteTips}
-                connection={record}/>,
-            document.getElementById('popup_root')
-        );
+                render(
+                    <ConnectionDelete
+                        dispatch={dispatch}
+                        deleteTips={deleteTips}
+                        connection={record}/>,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message.error(data, 5);
+            }
+        }
     }
 
     render() {

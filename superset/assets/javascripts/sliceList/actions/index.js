@@ -167,18 +167,30 @@ export function fetchSliceDelete(sliceId, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchLists());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchLists());
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchSliceDelInfo(sliceId, callback) {
+    const url = baseURL + "delete_info/" + sliceId;
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
@@ -191,18 +203,33 @@ export function fetchSliceDeleteMul(callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(data)
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchLists());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchLists());
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchSliceDelMulInfo(callback) {
+    const url = baseURL + "muldelete_info/";
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        const selectedRowKeys = getState().conditions.selectedRowKeys;
+        let data = {selectedRowKeys: selectedRowKeys};
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(data)
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 

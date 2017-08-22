@@ -2,10 +2,11 @@ import React from 'react';
 import { render, ReactDOM } from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange, setSelectedRow, fetchOnOfflineInfo } from '../actions';
+import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange, setSelectedRow, fetchOnOfflineInfo,
+    fetchDashbaordDelInfo } from '../actions';
 import { DashboardEdit, DashboardDelete } from '../popup';
 import { ConfirmModal } from '../../common/components';
-import { Table } from 'antd';
+import { Table, message } from 'antd';
 import 'antd/lib/table/style';
 
 class Tables extends React.Component {
@@ -33,31 +34,39 @@ class Tables extends React.Component {
         dispatch(fetchDashboardDetail(record.id, callback));
         function callback(success, data) {
             if(success) {
-                let editDashboardPopup = render(
+                render(
                     <DashboardEdit
                         dispatch={dispatch}
                         dashboardDetail={data}
-                        editable={true}/>,
-                    document.getElementById('popup_root'));
-                if(editDashboardPopup) {
-                    editDashboardPopup.showDialog();
-                }
+                        editable={true}
+                    />,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message.error(data, 5);
             }
         }
     }
 
     deleteDashboard(record) {
+
         const { dispatch } = this.props;
-        const deleteTips = "确定删除" + record.dashboard_title + "?";
-        let deleteDashboardPopup = render(
-            <DashboardDelete
-                dispatch={dispatch}
-                deleteType={'single'}
-                deleteTips={deleteTips}
-                dashboard={record}/>,
-            document.getElementById('popup_root'));
-        if(deleteDashboardPopup) {
-            deleteDashboardPopup.showDialog();
+        dispatch(fetchDashbaordDelInfo(record.id, callback));
+        function callback(success, data) {
+            if(success) {
+                let deleteTips = data + "确定删除" + record.dashboard_title + "?";
+                render(
+                    <DashboardDelete
+                        dispatch={dispatch}
+                        deleteType={'single'}
+                        deleteTips={deleteTips}
+                        dashboard={record}
+                    />,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message.error(data, 5);
+            }
         }
     }
 
@@ -76,6 +85,8 @@ class Tables extends React.Component {
                         confirmMessage={data} />,
                     document.getElementById('popup_root')
                 );
+            }else {
+                message.error(data, 5);
             }
         }
     }
@@ -91,6 +102,8 @@ class Tables extends React.Component {
                         confirmMessage={data} />,
                     document.getElementById('popup_root')
                 );
+            }else {
+                message.error(data, 5);
             }
         }
     }

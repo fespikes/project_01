@@ -2,7 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import { message, Table, Icon } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail, fetchOnOfflineInfo } from '../actions';
+import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail,
+    fetchOnOfflineInfo, fetchSliceDelInfo } from '../actions';
 import { SliceDelete, SliceEdit } from '../popup';
 import { ConfirmModal } from '../../common/components';
 
@@ -45,16 +46,22 @@ class SliceTable extends React.Component {
 
     deleteSlice(record) {
         const { dispatch } = this.props;
-        let deleteTips = "确定删除" + record.slice_name + "?";
-        let deleteSlicePopup = render(
-            <SliceDelete
-                dispatch={dispatch}
-                deleteType={'single'}
-                deleteTips={deleteTips}
-                slice={record}/>,
-            document.getElementById('popup_root'));
-        if(deleteSlicePopup) {
-            deleteSlicePopup.showDialog();
+        dispatch(fetchSliceDelInfo(record.id, callback));
+        function callback(success, data) {
+            if(success) {
+                const deleteTips = data;
+                render(
+                    <SliceDelete
+                        dispatch={dispatch}
+                        deleteType={'single'}
+                        deleteTips={deleteTips}
+                        slice={record}
+                    />,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message.error(data, 5);
+            }
         }
     }
 

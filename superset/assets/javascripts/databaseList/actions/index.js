@@ -279,25 +279,54 @@ export function applyDelete (callback) {
     return (dispatch, getState) => {
         const URL = connBaseURL + 'muldelete';
         const connToBeDeleted = getState().paramOfDelete.connToBeDeleted;
-
+        dispatch(switchFetchingState(true));
         return fetch(URL, {
             credentials: 'include',
             method: 'post',
             body: JSON.stringify(connToBeDeleted)
-        })
-        .then(
-            response => response.ok?
-                response.json() : ((response)=>errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            if (json.success) {
-                callback(true, json);
-                dispatch(fetchIfNeeded(getState().condition));
-            } else {
-                callback(false, json);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if (response.status === 200) {
+                    dispatch(fetchIfNeeded(getState().condition));
+                }
             }
-        });
+        );
+    }
+}
+
+export function fetchConnectDelInfo(connectId, callback) {
+
+    const url = INCEPTORConnectionBaseURL + "delete_info/" + connectId;
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
+    }
+}
+
+export function fetchConnectDelMulInfo(callback) {
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        const url = connBaseURL + 'muldelete_info/';
+        const connToBeDeleted = getState().paramOfDelete.connToBeDeleted;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'post',
+            body: JSON.stringify(connToBeDeleted)
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
