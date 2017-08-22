@@ -42,7 +42,7 @@ export default class EditList extends Component {
             sorter: (a, b) => a.name.localeCompare(b.name),
             render: (text, record) => (
                 <Tooltip placement="topLeft" title={text} arrowPointAtCenter>
-                    <a href={record.link} style={{display: 'inline'}}>{text}</a>
+                    <a href={record.link} >{text}</a>
                 </Tooltip>)
         }, {
             title: '操作',

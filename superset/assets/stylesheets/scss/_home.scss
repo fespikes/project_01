@@ -180,6 +180,7 @@
     .recentedit{
         flex:1;
         margin-right:18px;
+        @include border();
 
         .edit-list{
             .ant-table table {
@@ -189,9 +190,9 @@
                     padding-left: 20px;
                 }
 
-                .time-column, .action-column {
+                /* .time-column, .action-column {
                     padding: 16px 8px 16px 0px;
-                }
+                } */
 
                 th {
                     span {
@@ -216,14 +217,15 @@
 
                     .name-column {
                         width: 200px;
-                        text-overflow: ellipsis;
-                        overflow: hidden;
-                        white-space: nowrap;
                         padding-left: 20px;
                         font-weight: bold;
 
                         a {
-                            width: 180px;
+                            text-overflow: ellipsis;
+                            overflow: hidden;
+                            white-space: nowrap;
+                            display: inline-block;
+                            width: 140px;
                         }
                     }
 
@@ -245,7 +247,6 @@
                         white-space: nowrap;
                         font-size: 14px;
                         padding: 6px 8px;
-                        height: 40px;
 
                         span {
                             font-weight: 500;
@@ -269,6 +270,7 @@
     }
     .event{
         flex:1;
+        @include border();
         .event-list{
             .ant-table table {
                 border-collapse: collapse !important;
