@@ -118,7 +118,7 @@ class SliceTable extends React.Component {
                 title: '',
                 dataIndex: 'favorite',
                 key: 'favorite',
-                width: '5%',
+                width: '2%',
                 render: (text, record) => {
                     return (
                         <i className={record.favorite ? 'icon icon-star-fav' : 'icon icon-star'}
@@ -130,7 +130,7 @@ class SliceTable extends React.Component {
                 title: '名称',  //TODO: title need to i18n
                 key: 'slice_name',
                 dataIndex: 'slice_name',
-                width: '25%',
+                width: '28%',
                 render: (text, record) => {
                     return (
                         <div className="entity-name">

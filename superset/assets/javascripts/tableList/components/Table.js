@@ -92,7 +92,7 @@ class SliceTable extends React.Component {
 
         const columns = [
             {
-                width: '5%',
+                width: '2%',
                 render: (text, record) => {
                     const datasetType = record.dataset_type;
                     return (
@@ -104,7 +104,7 @@ class SliceTable extends React.Component {
                 title: '名称',  //TODO: title need to i18n
                 key: 'datasetName',
                 dataIndex: 'dataset_name',
-                width: '30%',
+                width: '33%',
                 render: (text, record) => {
                     return (
                         <div className="entity-name">
