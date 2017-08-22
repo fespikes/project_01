@@ -49,13 +49,13 @@
             justify-content: space-between;
             &.selected {
                 background-color: #337ab7;
-                > a {
+                > a, > span {
                     color: #fff;
                 }
             }
             &:hover {
                 background-color: #337ab7;
-                > a {
+                > a, > span {
                     color: #fff;
                 }
             }

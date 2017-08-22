@@ -170,7 +170,7 @@ class SliceTable extends React.Component {
                             />
                             <i
                                 style={{marginLeft: 20}}
-                                className={record.online ? 'icon icon-online' : 'icon icon-offline'}
+                                className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
                                 onClick={() => this.publishConnection(record)}
                             />
                             <i

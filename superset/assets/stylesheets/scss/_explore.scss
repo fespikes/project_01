@@ -125,6 +125,9 @@
                 }
             }
 		}
+        .panel-default .panel-title {
+            border-bottom: $borderStyleNormal;
+        }
 	}
 }
 
@@ -138,7 +141,7 @@
 #view-tab-container {
     .ant-radio-button-wrapper {
         width: 80px;
-        padding: 0;
+        padding: 2px 0 0 0;
         text-align: center;
     }
 }

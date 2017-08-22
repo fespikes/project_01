@@ -72,3 +72,31 @@ div.ant-select-dropdown {
         }
     }
 }
+
+/* select2 css overlay */
+.select2-container .select2-choice .select2-arrow {
+    top: 30% !important;
+    right: 8px !important;
+    width: 9px !important;
+    height: 9px !important;
+    font-size: 9px !important;
+    color: rgba(0, 0, 0, 0.65) !important;
+    > b {
+        font-weight: normal;
+        background-image: none;
+    }
+}
+
+.select2-container .select2-choice .select2-chosen {
+    padding: 8px 12px;
+}
+
+.select2-container .select2-choice .select2-arrow b:before {
+    content: '\E61D';
+    display: block;
+    font-family: "anticon";
+}
+
+.select2-dropdown-open .select2-choice .select2-arrow b:before {
+    transform: rotate(180deg);
+}

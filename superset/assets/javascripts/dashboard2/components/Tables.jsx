@@ -122,7 +122,7 @@ class Tables extends React.Component {
             title: '',
             dataIndex: 'favorite',
             key: 'favorite',
-            width: '5%',
+            width: '2%',
             render: (text, record) => {
                 return (
                     <i className={record.favorite ? 'icon icon-star-fav' : 'icon icon-star'}
@@ -133,7 +133,7 @@ class Tables extends React.Component {
             title: '名称',
             dataIndex: 'dashboard_title',
             key: 'dashboard_title',
-            width: '35%',
+            width: '38%',
             render: (text, record) => {
                 return (
                     <div className="entity-name">
@@ -192,7 +192,7 @@ class Tables extends React.Component {
                 return (
                     <div className="icon-group">
                         <i className="icon icon-edit" onClick={() => this.editDashboard(record)}/>
-                        <i className={record.online ? 'icon icon-online' : 'icon icon-offline'}
+                        <i className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
                            onClick={() => this.publishDashboard(record)}/>
                         <i className="icon icon-delete" onClick={() => this.deleteDashboard(record)}/>
                     </div>
