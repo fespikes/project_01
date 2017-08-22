@@ -39,7 +39,7 @@ CUSTOM_SECURITY_MANAGER = None
 # ---------------------------------------------------------
 
 # The Community Edition will abandon guardian module, and embed user management module
-COMMUNITY_EDITION = False
+COMMUNITY_EDITION = True
 
 # License check
 LICENSE_CHECK = True
