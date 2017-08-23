@@ -53,7 +53,10 @@ class App extends Component {
                 </div>
                 <div className="panel-top">
                     <div className="left">
-                        <i className="icon icon-database-list"/>
+                        <i
+                            className="icon icon-database-list"
+                            style={{zoom: 0.8}}
+                        />
                         <span>连接</span>
                         <span>记录</span>
                         <span>{count}条</span>

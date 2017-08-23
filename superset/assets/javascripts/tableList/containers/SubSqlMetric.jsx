@@ -113,12 +113,12 @@ class SubSqlMetric extends Component {
             width: '15%',
             render: (text, record, index) => {
                 return (
-                    <div className="icon-group">
-                        <i className="icon edit" onClick={() => me.editMetric(record)}></i>&nbsp;
-                        <i className="icon remove"
+                    <div className="icon-group" style={{display: 'flex'}}>
+                        <i className="icon icon-edit" onClick={() => me.editMetric(record)}/>&nbsp;
+                        <i className="icon icon-delete"
                             onClick={() => me.removeMetric(record)}
                             style={{marginLeft:'30px'}}
-                        ></i>
+                        />
                     </div>
                 )
             }

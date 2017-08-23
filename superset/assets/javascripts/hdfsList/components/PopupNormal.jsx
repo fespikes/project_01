@@ -263,14 +263,16 @@ class Popup extends React.Component {
                             pagination={false}
                         />
                         <div className="recursive-perm">
-                            <div className="col-20 perm-name">递归</div>
-                            <div className="col-60"></div>
-                            <div className="col-20 perm-value">
-                                <input
-                                    type="checkbox"
-                                    onClick={this.onRecursivePermChange}
-                                    ref="recursivePermRef"
-                                    className="tp-input dialog-input"/>
+                            <div>
+                                <div className="col-20 perm-name">递归</div>
+                                <div className="col-55"></div>
+                                <div className="col-25 perm-value">
+                                    <input
+                                        type="checkbox"
+                                        onClick={this.onRecursivePermChange}
+                                        ref="recursivePermRef"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>

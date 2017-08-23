@@ -40,7 +40,7 @@ class App extends Component {
                     <div className="left">
                         <i
                             className="icon icon-table"
-                            style={{marginBottom:'-3px'}}
+                            style={{zoom: 0.8}}
                         />
                         <span>数据集</span>
                         <span>记录条目</span>

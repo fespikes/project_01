@@ -110,6 +110,7 @@ class SaveModal extends React.PureComponent {
                 isButton
                 modalTitle="保存仪表盘"
                 modalIcon="icon icon-save"
+                className="popup-modal-save-dashboard"
                 modalBody={
                     <FormGroup>
                         <Radio
@@ -135,7 +136,9 @@ class SaveModal extends React.PureComponent {
                 modalFooter={
                     <div>
                         <Button
-                            bsStyle="primary"
+                            type="button"
+                            className="tp-btn tp-btn-middle tp-btn-primary"
+                            data-dismiss="modal"
                             onClick={() => { this.saveDashboard(this.state.saveType, this.state.newDashName); }}
                             >
                             保存

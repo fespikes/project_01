@@ -135,10 +135,9 @@ class Operate extends React.Component {
 
     upload() {
         const {fetchOperation, popupNormalParam, setPopupNormalParams, condition} = this.props;
-        let normalPopupParam = {};
 
         let obj = this.cleanNormalParamState(popupNormalParam);
-        normalPopupParam = {
+        let normalPopupParam = {
             ...obj,
             popupType: CONSTANT.upload,
             submit: fetchOperation,
@@ -150,25 +149,15 @@ class Operate extends React.Component {
 
     onRemove() {
         const {fetchOperation, popupNormalParam, setPopupNormalParams, condition} = this.props;
-        let normalPopupParam = {};
 
-        if (condition.selectedRows.length === 0) {
-            normalPopupParam = {
-                ...popupNormalParam,
-                popupType: CONSTANT.noSelect,
-                submit: fetchOperation,
-                status: 'flex'
-            };
-        } else {
-            let deleteTips = deleteTips = '确定删除' + condition.selectedRowNames.join(' ') + '?';
-            normalPopupParam = {
-                ...popupNormalParam,
-                popupType: CONSTANT.remove,
-                submit: fetchOperation,
-                status: 'flex',
-                deleteTips: deleteTips
-            };
-        }
+        let deleteTips = deleteTips = '确定删除' + condition.selectedRowNames.join(' ') + '?';
+        let normalPopupParam = {
+            ...popupNormalParam,
+            popupType: CONSTANT.remove,
+            submit: fetchOperation,
+            status: 'flex',
+            deleteTips: deleteTips
+        };
         setPopupNormalParams(normalPopupParam);
     }
 
