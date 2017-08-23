@@ -3,6 +3,7 @@
     height: 100vh;
     display: flex;
     justify-content: center;
+    background-size: cover;
     background-image: url(../../images/icon-img/login.png);
     .login-navbar {
         position: fixed;
@@ -36,10 +37,10 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 70px;
+        height: 65px;
         width: 300px;
         .logo-icon {
-            height:70px;
+            height:65px;
             width:300px;
             background-size: 300px 65px;
             background-image: url(../../images/icon-img/pilot-red.png);

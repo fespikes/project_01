@@ -1,13 +1,28 @@
-/** refine select component css style **/
-.ant-select {
-    .ant-select-selection {
-        min-height: 32px; // min-height 为了适应多选框
-        border-radius: 4px;
+/** refine ant select component css style **/
+.ant-select .ant-select-selection {
+    min-height: 32px; // min-height 为了适应多选框
+    border-radius: 4px;
+    &:hover {
+        border: $borderStyleNormal;
+        box-shadow: none;
     }
-    .ant-select-selection .ant-select-selection__rendered {
-        line-height: 32px;
-        color: rgba(0, 0, 0, 0.65);
+    &:focus {
+        border: $borderStyleFocus;
     }
+    transition-duration: 0s;
+}
+
+.ant-select-open .ant-select-selection {
+    &:hover {
+        border: $borderStyleFocus;
+        box-shadow: none;
+    }
+    transition-duration: 0s;
+}
+
+.ant-select .ant-select-selection .ant-select-selection__rendered {
+    line-height: 32px;
+    color: rgba(0, 0, 0, 0.65);
 }
 
 li.ant-select-dropdown-menu-item > a {
@@ -71,4 +86,43 @@ div.ant-select-dropdown {
             background-color: #fff;
         }
     }
+}
+
+
+/* refine select2 css style */
+.select2-container .select2-choice {
+    border: $borderStyleNormal !important;
+    &:focus {
+        border: $borderStyleFocus !important;
+    }
+    .select2-arrow {
+        top: 30% !important;
+        right: 8px !important;
+        width: 9px !important;
+        height: 9px !important;
+        font-size: 9px !important;
+        color: rgba(0, 0, 0, 0.65) !important;
+        > b {
+            font-weight: normal;
+            background-image: none;
+        }
+    }
+}
+
+.select2-container-active .select2-choice {
+    border: $borderStyleFocus !important;
+}
+
+.select2-container .select2-choice .select2-chosen {
+    padding: 8px 12px;
+}
+
+.select2-container .select2-choice .select2-arrow b:before {
+    content: '\E61D';
+    display: block;
+    font-family: "anticon";
+}
+
+.select2-dropdown-open .select2-choice .select2-arrow b:before {
+    transform: rotate(180deg);
 }

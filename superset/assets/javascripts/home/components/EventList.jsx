@@ -12,8 +12,8 @@ function EventList(props) {
         sorter: (a, b) => a.user.localeCompare(b.user),
         render: (text, record) => (
             <Tooltip placement="topLeft" title={text} arrowPointAtCenter>
-                <a className="user-td"  style={{display: 'inline'}} href={record.link}>
-                    <i className="icon user-icon" />
+                <a className="user-td"  style={{display: 'inline-block'}} href={record.link}>
+                    {/*<i className="icon user-icon" />*/}
                     <span>{text}</span>
                 </a>
             </Tooltip>

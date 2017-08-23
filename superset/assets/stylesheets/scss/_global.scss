@@ -1,15 +1,12 @@
-.icon{
-    background-image:url(../../images/icon-img/icon.png);
-    display:block;
-}
-
 //global variable
-$borderStyleNormal: solid 1px #e9eaed;
+$borderStyleNormal: solid 1px #dfe3e9;
 $borderStyleFocus: solid 1px #66afe9;
 $borderRadius: 4px;
 $smFontSize: 12px;
 $mdFontSize: 14px;
 $lgFontSize: 16px;
+
+$btnGreen: #2acc28;
 
 .tp-btn{
     border-radius:$borderRadius;
@@ -23,7 +20,7 @@ $lgFontSize: 16px;
     font-size: $lgFontSize;
 }
 .tp-btn-primary{
-    background-color:#2acc28;
+    background-color: $btnGreen;
 }
 button:disabled {
     opacity: 0.5;
@@ -38,7 +35,8 @@ button:disabled {
     border-radius: $borderRadius;
     font-size: $smFontSize;
     &:focus {
-        outline: $borderStyleFocus;
+        outline: none;
+        border: $borderStyleFocus;
         border-radius: $borderRadius;
         box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
     }

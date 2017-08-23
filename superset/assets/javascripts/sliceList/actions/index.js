@@ -105,7 +105,7 @@ export function receiveLists(json) {
     };
 }
 
-export function fetchStateChange(record, type) {
+export function fetchStateChange(record, callback, type) {
     const url = getStateChangeUrl(record, type);
     return dispatch => {
         dispatch(switchFetchingState(true));

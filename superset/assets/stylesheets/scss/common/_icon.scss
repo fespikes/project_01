@@ -2,6 +2,8 @@
     width: 16px;//default size
     height: 16px;
     cursor: pointer;
+    background-image:url(../../images/icon-img/icon.png);
+    display:block;
 }
 
 .edit{
@@ -22,7 +24,6 @@
 }
 
 .icon-caret {
-    background-image: url(../../images/icon-img/icon.png);
     background-position: -296px -657px;
     width: 16px;
     height: 6px;
