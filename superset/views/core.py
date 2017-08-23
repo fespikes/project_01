@@ -1351,17 +1351,17 @@ class Superset(BaseSupersetView):
         query_id = query.id
 
         # Async request.
-        if async:
-            # Ignore the celery future object and the request may time out.
-            sql_lab.get_sql_results.delay(
-                query_id, return_results=False,
-                store_results=not query.select_as_cta)
-            return Response(
-                json.dumps({'query': query.to_dict()},
-                           default=utils.json_int_dttm_ser,
-                           allow_nan=False),
-                status=202,  # Accepted
-                mimetype="application/json")
+        # if async:
+        #     # Ignore the celery future object and the request may time out.
+        #     sql_lab.get_sql_results.delay(
+        #         query_id, return_results=False,
+        #         store_results=not query.select_as_cta)
+        #     return Response(
+        #         json.dumps({'query': query.to_dict()},
+        #                    default=utils.json_int_dttm_ser,
+        #                    allow_nan=False),
+        #         status=202,  # Accepted
+        #         mimetype="application/json")
 
         # Sync request.
         try:
