@@ -575,6 +575,7 @@ class Superset(BaseSupersetView):
         """render the chart of slice"""
         database_id = request.args.get('database_id')
         full_tb_name = request.args.get('full_tb_name')
+        slice_id = request.args.get('slice_id')
         try:
             viz_obj = self.get_viz(
                 datasource_type=datasource_type,
@@ -582,6 +583,7 @@ class Superset(BaseSupersetView):
                 database_id=database_id,
                 full_tb_name=full_tb_name,
                 args=request.args)
+            Slice.check_online(slice_id)
             Dataset.check_online(viz_obj.datasource)
         except Exception as e:
             logging.exception(e)
