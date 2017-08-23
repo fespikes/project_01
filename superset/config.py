@@ -157,7 +157,7 @@ IMG_UPLOAD_URL = '/static/uploads/'
 # Setup image size default is (300, 200, True)
 # IMG_SIZE = (300, 200, True)
 
-CACHE_DEFAULT_TIMEOUT = 60 * 60
+CACHE_DEFAULT_TIMEOUT = 86400
 CACHE_CONFIG = {'CACHE_TYPE': 'filesystem',
                 'CACHE_THRESHOLD': 500,
                 'CACHE_DIR': '/tmp/pilot_cache'}
