@@ -28,17 +28,25 @@ class ConnectionEdit extends React.Component {
 
     componentDidMount () {
         this.fetchConnectionNames();
+        let database = {};
         if(this.props.connectionType === "INCEPTOR") {
             let connectParams = JSON.stringify(JSON.parse(this.state.database.args), undefined, 4);
             document.getElementById('connectParams').value = connectParams;
-            const database = {
+            database = {
                 ...this.state.database,
-                databaseArgs: connectParams
+                databaseArgs: connectParams,
+                connectionType: this.props.connectionType
             };
-            this.setState({
-                database: database
-            });
+
+        }else if(this.props.connectionType === "HDFS") {
+            database = {
+                ...this.state.database,
+                connectionType: this.props.connectionType
+            }
         }
+        this.setState({
+            database: database
+        });
     }
 
     fetchConnectionNames () {
@@ -56,11 +64,7 @@ class ConnectionEdit extends React.Component {
 
     testConnection(testCallBack) {
         const me = this;
-        const { dispatch, connectionType } = me.props;
-        const database = {
-            ...this.state.database,
-            connectionType: connectionType
-        };
+        const { dispatch } = me.props;
         dispatch(testConnectionInEditConnectPopup(
             {
                 database_name: me.state.database.database_name,
@@ -83,8 +87,7 @@ class ConnectionEdit extends React.Component {
             }
             me.setState({
                 exception: exception,
-                connected: connected,
-                database: database
+                connected: connected
             });
             render(
                 <Alert

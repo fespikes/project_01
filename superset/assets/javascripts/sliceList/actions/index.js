@@ -28,7 +28,7 @@ export const CONDITION_PARAMS = {
 const callbackHandler = (response, callback) => {
     if(response.status === 200) {
         callback && callback(true, response.data);
-    }else if(response.status === 500) {
+    }else {
         callback && callback(false, response.message);
     }
 };
@@ -260,24 +260,15 @@ export function fetchUpdateSlice(state, slice, callback) {
             credentials: "include",
             method: "POST",
             body: JSON.stringify(newSlice)
-        }).then(function(response) {
-            if(response.ok) {
-                response.json().then(
-                    data => {
-                        console.log('data=', data);
-                        if(data.success) {
-                            dispatch(fetchLists());
-                            callback(true);
-                        }else {
-                            callback(false, data.message);
-                        }
-                    }
-                );
-            }else {
-                const message = '服务器响应错误!';
-                callback(false, message);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchLists());
+                }
             }
-        });
+        );
     }
 }
 
