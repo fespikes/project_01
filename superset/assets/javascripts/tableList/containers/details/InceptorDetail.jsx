@@ -119,14 +119,7 @@ class InceptorDetail extends Component {
     }
 
     onSave() {
-        const {
-            history,
-            datasetType,
-            createDataset,
-            saveDatasetId,
-            editDataset,
-            saveInceptorDataset
-        } = this.props;
+        const {history, datasetType, createDataset, saveDatasetId, editDataset, saveInceptorDataset} = this.props;
         const opeType = extractOpeType(window.location.hash);
         const datasetId = getDatasetId(opeType, window.location.hash);
         const dsInceptor = constructInceptorDataset(this.state.dsInceptor);

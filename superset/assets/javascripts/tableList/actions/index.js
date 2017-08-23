@@ -54,6 +54,8 @@ const errorHandler = (response, dispatch) => {
     dispatch(switchFetchingState(false));
 };
 
+let fetchingStatus = [];
+
 /**
 @deprecated
 */
@@ -888,9 +890,17 @@ export function switchOperationType (operationType) {
 export function switchFetchingState(isFetching) {
     const loadingModal = renderLoadingModal();
     if(isFetching) {
-        loadingModal.show();
+        fetchingStatus.push(true);
     }else {
+        let index = fetchingStatus.indexOf(true);
+        if(index > -1) {
+            fetchingStatus.splice(index, 1);
+        }
+    }
+    if(fetchingStatus.indexOf(true) === -1) {
         loadingModal.hide();
+    }else {
+        loadingModal.show();
     }
     return {
         type: actionTypes.switchFetchingState,
