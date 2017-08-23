@@ -19,6 +19,24 @@
                 background-color: #fff;
                 border: solid 1px #e6eaee;
             }
+            .item:hover .item-img-wrapper {
+                border: solid 2px #279cf2;
+                .item-img {
+                    transform: scale(1.2);
+
+                    a {
+                        display: flex;
+                    }
+
+                    &:before {
+                        display: block;
+                    }
+                }
+            }
+            .item:hover .item-operation .name {
+                color: #279cf2;
+                font-weight: bold;
+            }
             .item-img-wrapper {
                 height: 200px;
                 border: solid 2px #e6eaee;
@@ -54,22 +72,6 @@
                         align-items: center;
                         cursor: pointer;
                         z-index: 1000;
-                    }
-                }
-
-                &:hover {
-                    border-color: #6699FF;
-                    
-                    .item-img {
-                        transform: scale(1.2);
-
-                        a {
-                            display: flex;
-                        }
-
-                        &:before {
-                            display: block;
-                        }
                     }
                 }
             }

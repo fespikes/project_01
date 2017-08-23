@@ -183,7 +183,7 @@ class CreateInceptorConnect extends React.Component {
                                     <div id="test-connect-tip"></div>
                                 </div>
                                 <Tooltip title="structure your URL" placement="bottom">
-                                    <i className="icon icon-info" style={{ position: 'absolute', top: '-32px', right: '-23px' }} />
+                                    <i className="icon icon-info" style={{ position: 'relative', top: '-43px', left: '5px' }} />
                                 </Tooltip>
                             </div>
                         </div>
