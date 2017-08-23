@@ -171,9 +171,9 @@ class SubColumns extends Component {
             width: '12%',
             render: (text, record, index) => {
                 return (
-                    <div className="icon-group">
-                        <i className="icon edit" onClick={() => this.editTableColumn(record)}></i>&nbsp;
-                        <i className="icon remove"
+                    <div className="icon-group" style={{display: 'flex'}}>
+                        <i className="icon icon-edit" onClick={() => this.editTableColumn(record)}/>&nbsp;
+                        <i className="icon icon-delete"
                             onClick={() => this.deleteTableColumn(record)}
                             style={{marginLeft:'30px'}}
                         />
