@@ -248,23 +248,15 @@ export function fetchUpdateDashboard(state, dashboard, callback) {
             credentials: "same-origin",
             method: "POST",
             body: JSON.stringify(newDashboard)
-        }).then(function(response) {
-            if(response.ok) {
-                response.json().then(
-                    data => {
-                        if(data.success) {
-                            dispatch(fetchPosts());
-                            callback(true);
-                        }else {
-                            callback(false, data.message);
-                        }
-                    }
-                );
-            }else {
-                const message = '服务器响应错误!';
-                callback(false, message);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
+                }
             }
-        });
+        );
     }
 }
 

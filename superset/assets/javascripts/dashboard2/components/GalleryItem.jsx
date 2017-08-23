@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Checkbox } from 'antd';
+import { Checkbox, message } from 'antd';
 import { render } from 'react-dom';
-import { fetchStateChange, fetchDashboardDetail, appendRow, removeRow } from '../actions';
+import { fetchStateChange, fetchDashboardDetail, appendRow, removeRow, fetchOnOfflineInfo } from '../actions';
 import { DashboardEdit, DashboardDelete } from '../popup';
+import { ConfirmModal } from '../../common/components';
 
 class GalleryItem extends React.Component {
     constructor(props) {
@@ -22,37 +23,64 @@ class GalleryItem extends React.Component {
         dispatch(fetchDashboardDetail(dashboard.id, callback));
         function callback(success, data) {
             if(success) {
-                var editDashboardPopup = render(
+                render(
                     <DashboardEdit
                         dispatch={dispatch}
                         dashboardDetail={data}
                         editable={true}/>,
-                    document.getElementById('popup_root'));
-                if(editDashboardPopup) {
-                    editDashboardPopup.showDialog();
-                }
+                    document.getElementById('popup_root')
+                );
             }
         }
     }
 
     publishDashboard() {
         const { dispatch, dashboard } = this.props;
-        dispatch(fetchStateChange(dashboard, "publish"));
+        const self = this;
+        dispatch(fetchOnOfflineInfo(dashboard.id, dashboard.online, callback));
+        function callback(success, data) {
+            if(success) {
+                render(
+                    <ConfirmModal
+                        dispatch={dispatch}
+                        record={dashboard}
+                        needCallback={true}
+                        confirmCallback={self.onOfflineDashboard}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message.error(data, 5);
+            }
+        }
+    }
+
+    onOfflineDashboard() {
+        const {dispatch, record} = this;
+        dispatch(fetchStateChange(record, callback,"publish"));
+        function callback(success, data) {
+            if(!success) {
+                render(
+                    <ConfirmModal
+                        needCallback={false}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
     }
 
     deleteDashboard() {
         const { dispatch, dashboard } = this.props;
         const deleteTips = "确定删除" + dashboard.dashboard_title + "?";
-        var deleteDashboardPopup = render(
+        render(
             <DashboardDelete
                 dispatch={dispatch}
                 deleteType={'single'}
                 deleteTips={deleteTips}
                 dashboard={dashboard}/>,
-            document.getElementById('popup_root'));
-        if(deleteDashboardPopup) {
-            deleteDashboardPopup.showDialog();
-        }
+            document.getElementById('popup_root')
+        );
     }
 
     render() {
