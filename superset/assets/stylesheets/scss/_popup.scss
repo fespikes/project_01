@@ -229,20 +229,70 @@
 }
 /*  overlay modal-dialog css start */
 
-/* hdfs change auth */
-.recursive-perm {
-    display: flex;
-    height: 50px;
-    align-items: center;
-    .perm-name {
-        color: #7f8fa4;
-        font-size: 14px;
-        padding-left: 18px;
+.popup-modal-save-dashboard .modal-dialog .modal-content {
+    .modal-body {
+        padding: 20px;
+        .form-group input[type="text"] {
+            padding: 10px;
+            height: 32px;
+            color: rgba(0, 0, 0, 0.65);
+            border: $borderStyleNormal;
+            border-radius: $borderRadius;
+            font-size: $smFontSize;
+            &:focus {
+                outline: none;
+                border: $borderStyleFocus;
+                border-radius: $borderRadius;
+                box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+            }
+        }
     }
-    .perm-value {
-        display: flex;
-        justify-content: flex-start;
-        padding-left: 3px;
+    .modal-footer {
+        button {
+            padding: 0;
+        }
+        button:hover {
+            background-color: #2acc28;
+            color: #fff;
+        }
+    }
+}
+
+/* hdfs change auth */
+.popup-body {
+    .ant-table-small {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    .recursive-perm {
+        height: 50px;
+        border: $borderStyleNormal;
+        border-radius: 0 0 4px 4px;
+        border-top: none;
+        &:hover {
+            background-color: #e7f3ff;
+            border-left: 2px solid #249af1;
+            > div {
+                border-left: solid 0 transparent;
+            }
+        }
+        > div {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            border-left: solid 1px transparent;
+            .perm-name {
+                color: #7f8fa4;
+                font-size: 14px;
+                padding-left: 10px;
+            }
+            .perm-value {
+                display: flex;
+                justify-content: flex-start;
+                padding-left: 10px;
+            }
+        }
     }
 }
 

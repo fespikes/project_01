@@ -66,3 +66,8 @@ table {
         overflow: auto;
     }
 }
+
+/* checkbox table css style */
+.ant-table-small .ant-table-header > table, .ant-table-small .ant-table-body > table {
+    padding: 0 !important;
+}

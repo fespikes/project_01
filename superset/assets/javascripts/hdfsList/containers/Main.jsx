@@ -37,27 +37,18 @@ class Main extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        const {condition, popupNormalParam, emitFetch} = nextProps;
+        const {condition, popupNormalParam} = nextProps;
 
         this.setState({
             breadCrumbText: condition.path
         });
 
         if (condition.filter !== this.props.condition.filter ||
-            popupNormalParam && popupNormalParam.status === 'none' && this.props.popupNormalParam.status === 'flex' ||
             condition.path !== this.props.condition.path ||
             condition.page_num !== this.props.condition.page_num ||
             condition.page_size !== this.props.condition.page_size
         ) {
             this.props.fetchIfNeeded(condition);
-        }
-        if (emitFetch.isFetching !== this.props.emitFetch.isFetching) {
-            const loadingModal = renderLoadingModal();
-            if (emitFetch.isFetching) {
-                loadingModal.show();
-            } else {
-                loadingModal.hide();
-            }
         }
     }
 

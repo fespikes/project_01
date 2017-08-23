@@ -2,6 +2,7 @@ import fetch from 'isomorphic-fetch';
 
 import { constructFileBrowserData, appendTreeChildren, findTreeNode } from '../../tableList/module';
 import { getSelectedPath } from '../module';
+import { renderLoadingModal} from '../../../utils/utils'
 import { message } from 'antd';
 
 export const actionTypes = {
@@ -56,7 +57,7 @@ const always = (response) => {
 const json = (response) => {
     return response.json();
 };
-const popupHandler = (response, popupNormalParam, dispatch) => {
+const popupHandler = (response, popupNormalParam, dispatch, condition) => {
     let obj = {};
     if (response.status === 200) {
         obj = {
@@ -66,7 +67,7 @@ const popupHandler = (response, popupNormalParam, dispatch) => {
             alertMsg: response.message,
             alertType: 'success'
         };
-    } else if (response.status === 500) {
+    } else {
         obj = {
             ...popupNormalParam,
             status: 'flex',
@@ -78,6 +79,9 @@ const popupHandler = (response, popupNormalParam, dispatch) => {
     dispatch(setPopupNormalParams(obj));
     dispatch(setSelectedRows([], [], []));
     dispatch(switchFetchingStatus(false));
+    if(popupNormalParam.popupType !== "noSelect") {
+        dispatch(fetchIfNeeded(condition));
+    }
 };
 
 /**
@@ -147,7 +151,7 @@ function fetchMove() {
             body: JSON.stringify(params)
         }).then(always).then(json).then(
             response => {
-                popupHandler(response, popupNormalParam, dispatch);
+                popupHandler(response, popupNormalParam, dispatch, condition);
             }
         );
     }
@@ -172,7 +176,7 @@ function fetchCopy() {
         })
             .then(always).then(json).then(
             response => {
-                popupHandler(response, popupNormalParam, dispatch);
+                popupHandler(response, popupNormalParam, dispatch, condition);
             }
         );
     }
@@ -196,7 +200,7 @@ function fetchAuth() {
             body: JSON.stringify(params)
         }).then(always).then(json).then(
             response => {
-                popupHandler(response, popupNormalParam, dispatch);
+                popupHandler(response, popupNormalParam, dispatch, state.condition);
             }
         );
     }
@@ -216,7 +220,7 @@ function fetchUpload() {
             body: binaryFile
         }).then(always).then(json).then(
             response => {
-                popupHandler(response, popupNormalParam, dispatch);
+                popupHandler(response, popupNormalParam, dispatch, getState().condition);
             }
         );
     }
@@ -238,7 +242,7 @@ function fetchMakedir() {
             method: 'GET'
         }).then(always).then(json).then(
             response => {
-                popupHandler(response, popupNormalParam, dispatch);
+                popupHandler(response, popupNormalParam, dispatch, getState().condition);
             }
         );
     }
@@ -259,7 +263,7 @@ function fetchMakeFile() {
             method: 'GET'
         }).then(always).then(json).then(
             response => {
-                popupHandler(response, popupNormalParam, dispatch);
+                popupHandler(response, popupNormalParam, dispatch, getState().condition);
             }
         );
     }
@@ -284,7 +288,7 @@ function fetchRemove() {
             })
         }).then(always).then(json).then(
             response => {
-                popupHandler(response, popupNormalParam, dispatch);
+                popupHandler(response, popupNormalParam, dispatch, state.condition);
             }
         );
     }
@@ -332,7 +336,7 @@ function fetchNoSelection() {
             status: 200,
             message: ''
         };
-        popupHandler(response, popupNormalParam, dispatch);
+        popupHandler(response, popupNormalParam, dispatch, getState().condition);
     }
 }
 
@@ -474,10 +478,16 @@ export function swapResponse(json) {
     };
 }
 
-export function switchFetchingStatus(status) {
+export function switchFetchingStatus(isFetching) {
+    const loadingModal = renderLoadingModal();
+    if(isFetching) {
+        loadingModal.show();
+    }else {
+        loadingModal.hide();
+    }
     return {
         type: actionTypes.switchFetchingStatus,
-        isFetching: status
+        isFetching: isFetching
     }
 }
 
