@@ -23,6 +23,7 @@ from sqlalchemy.orm.session import make_transient
 from superset import app, db, utils
 from superset.source_registry import SourceRegistry
 from superset.viz import viz_types
+from superset.utils import SupersetException
 from .base import AuditMixinNullable, ImportMixin
 from .dataset import Dataset
 
@@ -226,6 +227,26 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         if str(slice.created_by_fk) == str(g.user.get_id()):
             slice.online = True
             db.session.commit()
+
+    @classmethod
+    def check_online(cls, slice_id, raise_if_false=True):
+        def check(obj, user_id):
+            user_id = int(user_id)
+            if (hasattr(obj, 'online') and obj.online is True) or \
+                            obj.created_by_fk == user_id:
+                return True
+            return False
+
+        user_id = g.user.get_id()
+        slice = db.session.query(Slice).filter_by(id=slice_id).first()
+        if not slice:
+            raise SupersetException("Not found slice by id: [{}]".format(slice_id))
+        if check(slice, user_id) is False:
+            if raise_if_false:
+                raise SupersetException(
+                    "Slice: [{}] is offline.".format(slice.slice_name))
+            else:
+                return False
 
 
 dashboard_slices = Table(
