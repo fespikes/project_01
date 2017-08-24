@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import { getUrlParam } from '../../utils/utils';
+import { getUrlParam, PILOT_PREFIX } from '../../utils/utils';
 const Mustache = require('mustache');
 const utils = require('./utils');
 // vis sources
@@ -17,7 +17,7 @@ const px = function () {
         return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
     function initFavStars() {
-        const baseUrl = '/p/favstar/';
+        const baseUrl = PILOT_PREFIX + 'favstar/';
         // Init star behavihor for favorite
         function show() {
             if ($(this).hasClass('selected')) {

@@ -10,7 +10,7 @@ import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
 import { fetchSchemaList } from '../../actions';
 import { constructInceptorDataset, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
 import { appendTreeData, constructTreeData } from '../../../../utils/common2';
-import { renderLoadingModal, renderAlertTip } from '../../../../utils/utils';
+import { renderLoadingModal, renderAlertTip, PILOT_PREFIX } from '../../../../utils/utils';
 
 const $ = window.$ = require('jquery');
 
@@ -308,7 +308,7 @@ class InceptorDetail extends Component {
                     <span>SQL：</span>
                     <textarea className="tp-textarea" cols="30" rows="10" value={dsInceptor.sql}
                               name="sql" onChange={this.handleChange}/>
-                    <a href={ window.location.origin + '/p/sqllab' } target="_blank">
+                    <a href={ window.location.origin + PILOT_PREFIX + 'sqllab' } target="_blank">
                         切换至SQL LAB编辑
                     </a>
                 </div>

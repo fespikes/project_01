@@ -7,6 +7,7 @@ import { now, epochTimeXHoursAgo,
   epochTimeXDaysAgo, epochTimeXYearsAgo } from '../../modules/dates';
 import { STATUS_OPTIONS, TIME_OPTIONS } from '../constants';
 import AsyncSelect from '../../components/AsyncSelect';
+import {PILOT_PREFIX} from '../../../utils/utils'
 
 const propTypes = {
   actions: React.PropTypes.object.isRequired,
@@ -115,7 +116,7 @@ class QuerySearch extends React.PureComponent {
       this.state.to ? `to=${this.getTimeFromSelection(this.state.to)}` : '',
     ];
 
-    const url = this.insertParams('/p/search_queries', params);
+    const url = this.insertParams(PILOT_PREFIX + 'search_queries', params);
     $.getJSON(url, (data, status) => {
       if (status === 'success') {       
         this.setState({ queriesArray: data, queriesLoading: false });

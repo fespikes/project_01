@@ -1,5 +1,6 @@
 import {actionTypes} from './';
 import {switchFetchingState} from './index';
+import {renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
 
 const baseURL = window.location.origin + '/database/';
 const errorHandler = error => console.log(error);
@@ -100,7 +101,7 @@ function receiveConnectionNames (connectionNames) {
 export const testConnection = (callback) => {
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
-        const URL = window.location.origin + '/p/testconn';
+        const URL = window.location.origin + PILOT_PREFIX + 'testconn';
         const {
             databaseName,
             sqlalchemyUri,

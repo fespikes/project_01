@@ -143,9 +143,9 @@ class BaseViz(object):
             for item in v:
                 od.add(key, item)
 
-        base_endpoint = '/pilot/explore'
+        base_endpoint = '/p/explore'
         if json_endpoint:
-            base_endpoint = '/pilot/explore_json'
+            base_endpoint = '/p/explore_json'
 
         href = Href(
             '{base_endpoint}/{self.datasource.type}/'
@@ -178,7 +178,7 @@ class BaseViz(object):
             for item in v:
                 ordered_data.add(key, item)
         href = Href(
-            '/caravel/filter/{self.datasource.type}/'
+            '/p/filter/{self.datasource.type}/'
             '{self.datasource.id}/'.format(**locals()))
         return href(ordered_data)
 

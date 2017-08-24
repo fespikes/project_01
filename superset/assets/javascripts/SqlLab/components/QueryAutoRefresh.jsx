@@ -2,6 +2,7 @@ import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as Actions from '../actions';
+import {PILOT_PREFIX} from '../../../utils/utils'
 
 const $ = require('jquery');
 const QUERY_UPDATE_FREQ = 1000;
@@ -24,7 +25,7 @@ class QueryAutoRefresh extends React.PureComponent {
     this.timer = null;
   }
   stopwatch() {
-    const url = '/p/queries/' + (this.props.queriesLastUpdate - QUERY_UPDATE_BUFFER_MS);
+    const url = PILOT_PREFIX + 'queries/' + (this.props.queriesLastUpdate - QUERY_UPDATE_BUFFER_MS);
     // No updates in case of failure.
     $.getJSON(url, (data) => {
       if (Object.keys(data).length > 0) {

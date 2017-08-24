@@ -6,6 +6,8 @@ import { Table } from 'reactable';
 import shortid from 'shortid';
 import $ from 'jquery';
 
+import {PILOT_PREFIX} from '../../../utils/utils'
+
 const CHART_TYPES = [
   { value: 'dist_bar', label: 'Distribution - Bar Chart', requiresTime: false },
   { value: 'pie', label: 'Pie Chart', requiresTime: false },
@@ -108,7 +110,7 @@ class VisualizeModal extends React.PureComponent {
     };
     $.ajax({
       type: 'POST',
-      url: '/p/sqllab_viz/',
+      url: PILOT_PREFIX + 'sqllab_viz/',
       async: false,
       data: {
         data: JSON.stringify(vizOptions),

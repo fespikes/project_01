@@ -11,6 +11,7 @@ import { render } from 'react-dom';
 import GridLayout from './components/GridLayout';
 import Header from './components/Header';
 import { getNewDashboard } from '../../utils/common2';
+import { PILOT_PREFIX } from '../../utils/utils';
 
 require('bootstrap');
 require('../../stylesheets/dashboard.css');
@@ -306,9 +307,10 @@ export function dashboardContainer(dashboard) {
         },
         addSlicesToDashboard(sliceIds) {
             const getAjaxErrorMsg = this.getAjaxErrorMsg;
+            const url = PILOT_PREFIX + `add_slices/${dashboard.id}/`;
             $.ajax({
                 type: 'POST',
-                url: `/p/add_slices/${dashboard.id}/`,
+                url: url,
                 data: {
                     data: JSON.stringify({ slice_ids: sliceIds }),
                 },

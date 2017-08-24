@@ -1,6 +1,7 @@
 import shortid from 'shortid';
 import { now } from '../modules/dates';
 const $ = require('jquery');
+import {PILOT_PREFIX} from '../../utils/utils'
 
 export const RESET_STATE = 'RESET_STATE';
 export const ADD_QUERY_EDITOR = 'ADD_QUERY_EDITOR';
@@ -77,7 +78,7 @@ export function requestQueryResults(query) {
 export function fetchQueryResults(query) {
   return function (dispatch) {
     dispatch(requestQueryResults(query));
-    const sqlJsonUrl = `/p/results/${query.resultsKey}/`;
+    const sqlJsonUrl = `${PILOT_PREFIX}results/${query.resultsKey}/`;
     $.ajax({
       type: 'GET',
       dataType: 'json',
@@ -99,7 +100,7 @@ export function fetchQueryResults(query) {
 export function runQuery(query) {
   return function (dispatch) {
     dispatch(startQuery(query));
-    const sqlJsonUrl = '/p/sql_json/';
+    const sqlJsonUrl = PILOT_PREFIX + 'sql_json/';
     const sqlJsonRequest = {
       client_id: query.id,
       database_id: query.dbId,
@@ -215,7 +216,7 @@ export function mergeTable(table, query) {
 
 export function addTable(query, tableName) {
   return function (dispatch) {
-    let url = `/p/table/${query.dbId}/${tableName}/${query.schema}/`;
+    let url = `${PILOT_PREFIX}table/${query.dbId}/${tableName}/${query.schema}/`;
     $.get(url, (data) => {
       const dataPreviewQuery = {
         id: shortid.generate(),
@@ -248,7 +249,7 @@ export function addTable(query, tableName) {
       );
     });
 
-    url = `/p/extra_table_metadata/${query.dbId}/${tableName}/${query.schema}/`;
+    url = `${PILOT_PREFIX}extra_table_metadata/${query.dbId}/${tableName}/${query.schema}/`;
     $.get(url, (data) => {
       const table = {
         dbId: query.dbId,

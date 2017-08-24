@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishConnectionUrl} from '../utils';
-import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
+import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -123,7 +123,7 @@ export function clearRows () {
 export function testConnectionInEditConnectPopup(database, callback) {
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
-        const URL = origin + '/p/testconn';
+        const URL = origin + PILOT_PREFIX + 'testconn';
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',

@@ -7,6 +7,8 @@ import { Input } from 'antd';
 import VisualizeModal from './VisualizeModal';
 import HighlightedSql from './HighlightedSql';
 
+import {PILOT_PREFIX} from '../../../utils/utils'
+
 const propTypes = {
   actions: React.PropTypes.object,
   csv: React.PropTypes.bool,
@@ -53,7 +55,7 @@ class ResultSet extends React.PureComponent {
       let csvButton;
       if (this.props.csv) {
         csvButton = (
-          <Button bsSize="small" href={'/p/csv/' + this.props.query.id}>
+          <Button bsSize="small" href={PILOT_PREFIX + 'csv/' + this.props.query.id}>
             <i className="fa fa-file-text-o" /> .CSV
           </Button>
         );
