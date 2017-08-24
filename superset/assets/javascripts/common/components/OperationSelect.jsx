@@ -9,11 +9,12 @@ import { getEleOffsetLeft, getEleOffsetTop } from '../../../utils/utils'
 
 const $ = window.$ = require('jquery');
 
-class ComponentSelect extends React.Component {
+class OperationSelect extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            opened: false
+            opened: false,
+            selected: props.defaultValue
         };
         this.onToggle = this.onToggle.bind(this);
     }
@@ -21,6 +22,7 @@ class ComponentSelect extends React.Component {
     onToggle(event) {
         event.stopPropagation();
         let opened = this.state.opened;
+        const opeType = this.props.opeType;
         this.setState({
             opened: !opened
         });
@@ -28,7 +30,7 @@ class ComponentSelect extends React.Component {
         const self = this;
         let flag = true;
         $(document).bind("click",function(e){
-            let targetEl = document.getElementById('selectionToggle');
+            let targetEl = document.getElementById(opeType);
             if(targetEl) {
                 let x = e.clientX;
                 let y = e.clientY;
@@ -79,11 +81,18 @@ class ComponentSelect extends React.Component {
                     <span>{opt.name}</span>
                 </li>
             });
+        }else if(opeType === "filterDataset") {
+            typeOptions = options.map((opt, index) => {
+                return <li className={this.state.selected===opt?'selected':''}
+                           key={opt} onClick={self.onSelect.bind(opt, self)}>
+                    <span>{opt}</span>
+                </li>
+            });
         }
 
         return (
-            <div className="component-select">
-                <div id="selectionToggle" className="selection-toggle" onClick={this.onToggle}>
+            <div className="common-select">
+                <div id={opeType} className="selection-toggle" onClick={this.onToggle}>
                     <i className={iconClass}/>
                     <span>{this.state.selected || "请选择"}</span>
                     <i className={this.state.opened?'icon icon-open-sign':'icon icon-close-sign'}/>
@@ -96,6 +105,6 @@ class ComponentSelect extends React.Component {
     }
 }
 
-ComponentSelect.propTypes = {};
+OperationSelect.propTypes = {};
 
-export default ComponentSelect;
+export default OperationSelect;
