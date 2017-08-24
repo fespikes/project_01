@@ -308,7 +308,7 @@ export function dashboardContainer(dashboard) {
             const getAjaxErrorMsg = this.getAjaxErrorMsg;
             $.ajax({
                 type: 'POST',
-                url: `/pilot/add_slices/${dashboard.id}/`,
+                url: `/p/add_slices/${dashboard.id}/`,
                 data: {
                     data: JSON.stringify({ slice_ids: sliceIds }),
                 },

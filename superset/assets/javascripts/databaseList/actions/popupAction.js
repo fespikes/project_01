@@ -100,7 +100,7 @@ function receiveConnectionNames (connectionNames) {
 export const testConnection = (callback) => {
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
-        const URL = window.location.origin + '/pilot/testconn';
+        const URL = window.location.origin + '/p/testconn';
         const {
             databaseName,
             sqlalchemyUri,

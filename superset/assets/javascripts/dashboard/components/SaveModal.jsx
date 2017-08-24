@@ -50,7 +50,7 @@ class SaveModal extends React.PureComponent {
                 saveModal.close();
                 dashboard.onSave();
                 if (saveType === 'newDashboard') {
-                    window.location = '/pilot/dashboard/' + resp.id + '/';
+                    window.location = '/p/dashboard/' + resp.id + '/';
                 } else {
                     showModal({
                         title: 'Success',
@@ -86,7 +86,7 @@ class SaveModal extends React.PureComponent {
         };
         let url = null;
         if (saveType === 'overwrite') {
-            url = '/pilot/save_dash/' + dashboard.id + '/';
+            url = '/p/save_dash/' + dashboard.id + '/';
             this.saveDashboardRequest(data, url, saveType);
         } else if (saveType === 'newDashboard') {
             if (!newDashboardTitle) {
@@ -97,7 +97,7 @@ class SaveModal extends React.PureComponent {
                 });
             } else {
                 data.dashboard_title = newDashboardTitle;
-                url = '/pilot/copy_dash/' + dashboard.id + '/';
+                url = '/p/copy_dash/' + dashboard.id + '/';
                 this.saveDashboardRequest(data, url, saveType);
             }
         }

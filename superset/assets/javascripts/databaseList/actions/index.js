@@ -123,7 +123,7 @@ export function clearRows () {
 export function testConnectionInEditConnectPopup(database, callback) {
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
-        const URL = origin + '/pilot/testconn';
+        const URL = origin + '/p/testconn';
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',

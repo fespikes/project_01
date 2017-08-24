@@ -17,7 +17,7 @@ const px = function () {
         return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
     function initFavStars() {
-        const baseUrl = '/pilot/favstar/';
+        const baseUrl = '/p/favstar/';
         // Init star behavihor for favorite
         function show() {
             if ($(this).hasClass('selected')) {

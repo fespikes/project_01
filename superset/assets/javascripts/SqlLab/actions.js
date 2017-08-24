@@ -77,7 +77,7 @@ export function requestQueryResults(query) {
 export function fetchQueryResults(query) {
   return function (dispatch) {
     dispatch(requestQueryResults(query));
-    const sqlJsonUrl = `/pilot/results/${query.resultsKey}/`;
+    const sqlJsonUrl = `/p/results/${query.resultsKey}/`;
     $.ajax({
       type: 'GET',
       dataType: 'json',
@@ -99,7 +99,7 @@ export function fetchQueryResults(query) {
 export function runQuery(query) {
   return function (dispatch) {
     dispatch(startQuery(query));
-    const sqlJsonUrl = '/pilot/sql_json/';
+    const sqlJsonUrl = '/p/sql_json/';
     const sqlJsonRequest = {
       client_id: query.id,
       database_id: query.dbId,
@@ -215,7 +215,7 @@ export function mergeTable(table, query) {
 
 export function addTable(query, tableName) {
   return function (dispatch) {
-    let url = `/pilot/table/${query.dbId}/${tableName}/${query.schema}/`;
+    let url = `/p/table/${query.dbId}/${tableName}/${query.schema}/`;
     $.get(url, (data) => {
       const dataPreviewQuery = {
         id: shortid.generate(),
@@ -248,7 +248,7 @@ export function addTable(query, tableName) {
       );
     });
 
-    url = `/pilot/extra_table_metadata/${query.dbId}/${tableName}/${query.schema}/`;
+    url = `/p/extra_table_metadata/${query.dbId}/${tableName}/${query.schema}/`;
     $.get(url, (data) => {
       const table = {
         dbId: query.dbId,

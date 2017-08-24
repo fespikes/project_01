@@ -3,7 +3,7 @@ export default {
 }
 
 export function getPublishTableUrl(record) {
-    let url = window.location.origin + "/pilot/release/dataset/";
+    let url = window.location.origin + "/p/release/dataset/";
     if(record.online) {
         url += "offline/" + record.id;
     }else {

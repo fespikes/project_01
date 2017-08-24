@@ -32,7 +32,7 @@ class DisplayOriginalTable extends React.Component {
             this.setState({
                 tableName: value
             });
-            window.location = window.location.origin + '/pilot/explore/table/0?database_id=' + this.state.currentDbId +
+            window.location = window.location.origin + '/p/explore/table/0?database_id=' + this.state.currentDbId +
                 '&full_tb_name=' + this.state.currentSchema + '.' + value + '&slice_id=' + sliceId + '&viz_type=' + vizType;
         }
     }
