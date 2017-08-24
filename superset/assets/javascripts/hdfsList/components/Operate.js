@@ -8,7 +8,7 @@ import * as actions from '../actions';
 import { CONSTANT } from '../actions';
 
 import { Select, PopupNormal } from './';
-import { ComponentSelect } from '../../databaseList/components';
+import { OperationSelect } from '../../common/components';
 import { getPermData, updatePermMode, getPopupType } from '../module';
 
 const manipulateOptions = [
@@ -181,13 +181,13 @@ class Operate extends React.Component {
                     <li
             className="li-setting"
             >
-                        <ComponentSelect
+                        <OperationSelect
             opeType="hdfsOperation"
             iconClass="icon icon-setting ps"
             options={manipulateOptions}
             selectChange={(argus) => this.manipulate(argus)}
             >
-                        </ComponentSelect>
+                        </OperationSelect>
                     </li>
                     <li
             className="li-upload"
@@ -198,13 +198,13 @@ class Operate extends React.Component {
                     <li
             className="li-plus"
             >
-                        <ComponentSelect
+                        <OperationSelect
             opeType="addFolder"
             iconClass="icon icon-plus ps"
             options={createOptions}
             selectChange={(argus) => this.manipulate(argus)}
             >
-                        </ComponentSelect>
+                        </OperationSelect>
                     </li>
                     <li
             className="li-trash  bolder-right-none"

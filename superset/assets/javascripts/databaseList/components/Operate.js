@@ -21,7 +21,8 @@ import {
 } from '../actions';
 
 import { message } from 'antd';
-import { Select, ComponentSelect }  from './';
+import { Select }  from './';
+import { OperationSelect } from '../../common/components';
 import { transformObjectToArray } from '../utils';
 
 class Operate extends React.Component {
@@ -134,13 +135,13 @@ class Operate extends React.Component {
                     <li
                         style={{width:'130px', textAlign:'left'}}
                     >
-                        <ComponentSelect
+                        <OperationSelect
                             opeType='addDataset'
                             iconClass='icon icon-plus'
                             options={typeArray}
                             selectChange={(argus)=>this.onAdd(argus)}
                         >
-                        </ComponentSelect>
+                        </OperationSelect>
                     </li>
                     <li onClick={this.onDelete}>
                         <i className="icon icon-trash"/>

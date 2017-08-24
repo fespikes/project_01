@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { Select, message } from 'antd';
-import { ComponentSelect } from '../../databaseList/components';
+import { OperationSelect } from '../../common/components';
 import { switchDatasetType, fetchAddTypeList, fetchFilterTypeList, fetchTableDelMulInfo } from '../actions';
 import PropTypes from 'prop-types';
 import {
@@ -107,36 +107,34 @@ class SliceOperate extends React.Component {
     }
 
     render() {
-        const Option = Select.Option;
-        const filterOptions = this.state.filterDatasetTypes.map(dataset => {
-            return <Option key={dataset} value={dataset}>{dataset}</Option>
-        });
         return (
             <div className="operations">
                 <ul className="icon-list">
                     <li style={{ width: '130px', textAlign: 'left' }}>
-                        <ComponentSelect
+                        <OperationSelect
                             opeType='addConnect'
                             iconClass='icon icon-plus'
                             options={this.state.addDatasetTypes}
                             selectChange={this.selectChange}
                         >
-                        </ComponentSelect>
+                        </OperationSelect>
                     </li>
                     <li onClick={this.onDelete}>
                         <i className="icon icon-trash" />
                     </li>
                 </ul>
-                <div className="tab-btn">
-                    <Select
-                        ref="tableType"
-                        defaultValue='ALL'
-                        style={{ width: 120 }}
-                        onChange={this.handleSelectChange}
-                    >
-                        {filterOptions}
-                    </Select>
-                </div>
+                <ul className="icon-list" style={{ marginLeft: 0 }}>
+                    <li style={{ width: '130px' }}>
+                        <OperationSelect
+                            opeType='filterDataset'
+                            iconClass=''
+                            defaultValue='ALL'
+                            options={this.state.filterDatasetTypes}
+                            selectChange={this.handleSelectChange}
+                        >
+                        </OperationSelect>
+                    </li>
+                </ul>
                 <div className="search-input" style={{marginRight: 0}}>
                     <input onKeyUp={this.onEnterSearch} onChange={this.onChange} className="tp-input" ref="searchField" placeholder="search..." />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon" />
