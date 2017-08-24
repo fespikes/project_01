@@ -25,6 +25,12 @@
         }
         &:hover {
             border: none;
+            i.icon-setting {
+                background-position: -212px -411px;
+            }
+            i.icon-plus {
+                background-position: -212px -172px;
+            }
         }
     }
     .selection-section {

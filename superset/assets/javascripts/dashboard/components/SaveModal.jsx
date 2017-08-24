@@ -3,7 +3,7 @@ const $ = window.$ = require('jquery');
 import React from 'react';
 import { Button, FormControl, FormGroup, Radio } from 'react-bootstrap';
 import { getAjaxErrorMsg, showModal } from '../../modules/utils';
-
+import { PILOT_PREFIX } from '../../../utils/utils';
 import ModalTrigger from '../../components/ModalTrigger';
 
 const propTypes = {
@@ -50,7 +50,7 @@ class SaveModal extends React.PureComponent {
                 saveModal.close();
                 dashboard.onSave();
                 if (saveType === 'newDashboard') {
-                    window.location = '/pilot/dashboard/' + resp.id + '/';
+                    window.location = PILOT_PREFIX + 'dashboard/' + resp.id + '/';
                 } else {
                     showModal({
                         title: 'Success',
@@ -86,7 +86,7 @@ class SaveModal extends React.PureComponent {
         };
         let url = null;
         if (saveType === 'overwrite') {
-            url = '/pilot/save_dash/' + dashboard.id + '/';
+            url = PILOT_PREFIX + 'save_dash/' + dashboard.id + '/';
             this.saveDashboardRequest(data, url, saveType);
         } else if (saveType === 'newDashboard') {
             if (!newDashboardTitle) {
@@ -97,7 +97,7 @@ class SaveModal extends React.PureComponent {
                 });
             } else {
                 data.dashboard_title = newDashboardTitle;
-                url = '/pilot/copy_dash/' + dashboard.id + '/';
+                url = PILOT_PREFIX + 'copy_dash/' + dashboard.id + '/';
                 this.saveDashboardRequest(data, url, saveType);
             }
         }

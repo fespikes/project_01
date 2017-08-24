@@ -36,6 +36,10 @@ export const actionTypes = {
 
 const baseURL = window.location.origin + '/table/';
 
+const _fetch = () => {
+
+}
+
 const callbackHandler = (response, callback) => {
     if(response.status === 200) {
         callback && callback(true, response.data);

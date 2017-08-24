@@ -10,7 +10,7 @@ import CodeModal from './CodeModal';
 import SliceAdder from './SliceAdder';
 import DashboardEdit from './DashboardEdit';
 import { ConfirmModal } from '../../common/components';
-import { renderLoadingModal } from '../../../utils/utils';
+import { renderLoadingModal, PILOT_PREFIX } from '../../../utils/utils';
 
 const propTypes = {
     dashboard: React.PropTypes.object.isRequired,
@@ -65,7 +65,7 @@ class Controls extends React.PureComponent {
         loadingModel.show();
         $.get(url, (data) => {
             if(data.status === 200) {
-                let url = '/pilot/if_online/dashboard/' + dashboardId;
+                let url = PILOT_PREFIX + 'if_online/dashboard/' + dashboardId;
                 $.get(url, (data) => {
                     _this.setState({
                         published: $.parseJSON(data).online
@@ -94,7 +94,7 @@ class Controls extends React.PureComponent {
                 url += 'online_info/' + dashboardId;
             }
         }else if(type === "release") {
-            url = '/pilot/release/dashboard/';
+            url = PILOT_PREFIX + 'release/dashboard/';
             if(published) {
                 url += 'offline/' + dashboardId;
             }else {
@@ -107,7 +107,7 @@ class Controls extends React.PureComponent {
     componentDidMount() {
         const self = this;
         const { dashboard } = self.props;
-        let url = '/pilot/if_online/dashboard/' + dashboard.id;
+        let url = PILOT_PREFIX + 'if_online/dashboard/' + dashboard.id;
         $.get(url, (data) => {
             self.setState({
                 published: $.parseJSON(data).online

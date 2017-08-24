@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-fetch';
-import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
+import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
 
 export const SHOW_ALL = 'showAll';
 export const SHOW_FAVORITE = 'showFavorite';
@@ -296,7 +296,7 @@ function getSliceListUrl(state) {
 
 function getStateChangeUrl(record, type) {
     if(type === "favorite") {
-        let url_favorite = window.location.origin + "/pilot/favstar/Slice/" + record.id;
+        let url_favorite = window.location.origin + PILOT_PREFIX + "favstar/Slice/" + record.id;
         if(record.favorite) {
             url_favorite += "/unselect";
         }else {
@@ -304,7 +304,7 @@ function getStateChangeUrl(record, type) {
         }
         return url_favorite;
     }else if(type === "publish") {
-        let url_publish = window.location.origin + "/pilot/release/slice/";
+        let url_publish = window.location.origin + PILOT_PREFIX + "release/slice/";
         if(record.online) {
             url_publish += "offline/" + record.id;
         }else {

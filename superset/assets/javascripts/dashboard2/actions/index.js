@@ -2,7 +2,7 @@
  * Created by haitao on 17-5-18.
  */
 import fetch from 'isomorphic-fetch';
-import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
+import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
 
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
@@ -359,7 +359,7 @@ function getDashboardListUrl(state) {
 
 function getStateChangeUrl(record, type) {
     if(type === "favorite") {
-        let url_favorite = window.location.origin + "/pilot/favstar/Dashboard/" + record.id;
+        let url_favorite = window.location.origin + PILOT_PREFIX + "favstar/Dashboard/" + record.id;
         if(record.favorite) {
             url_favorite += "/unselect";
         }else {
@@ -367,7 +367,7 @@ function getStateChangeUrl(record, type) {
         }
         return url_favorite;
     }else if(type === "publish") {
-        let url_publish = window.location.origin + "/pilot/release/dashboard/";
+        let url_publish = window.location.origin + PILOT_PREFIX + "release/dashboard/";
         if(record.online) {
             url_publish += "offline/" + record.id;
         }else {

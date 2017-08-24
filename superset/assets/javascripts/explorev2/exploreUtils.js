@@ -1,4 +1,6 @@
 /* eslint camelcase: 0 */
+import {PILOT_PREFIX} from '../../utils/utils'
+
 const $ = require('jquery');
 function formatFilters(filters) {
   // outputs an object of url params of filters
@@ -39,14 +41,14 @@ export function getExploreUrl(form_data, datasource_type, endpoint = 'base') {
     `${form_data.datasource}/?${$.param(data, true)}`;
   switch (endpoint) {
     case 'base':
-      return `/pilot/explore/${params}`;
+      return `${PILOT_PREFIX}explore/${params}`;
     case 'json':
-      return `/pilot/explore_json/${params}`;
+      return `${PILOT_PREFIX}explore_json/${params}`;
     case 'csv':
-      return `/pilot/explore/${params}&csv=true`;
+      return `${PILOT_PREFIX}explore/${params}&csv=true`;
     case 'standalone':
-      return `/pilot/explore/${params}&standalone=true`;
+      return `${PILOT_PREFIX}explore/${params}&standalone=true`;
     default:
-      return `/pilot/explore/${params}`;
+      return `${PILOT_PREFIX}explore/${params}`;
   }
 }

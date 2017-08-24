@@ -3,6 +3,8 @@ import React from 'react';
 import { Alert } from 'antd';
 import { LoadingModal } from '../javascripts/common/components';
 
+export const PILOT_PREFIX = '/p/';
+
 export function renderLoadingModal() {
     const loadingModal = render(
         <LoadingModal />,
