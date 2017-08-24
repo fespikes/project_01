@@ -19,14 +19,14 @@ class QueryView(SupersetModelView):
 appbuilder.add_view_no_menu(QueryView)
 appbuilder.add_link(
     'SQL Editor',
-    href='/pilot/sqllab',
+    href='/p/sqllab',
     category_icon="fa-flask",
     icon="fa-flask",
     category='SQL Lab',
     category_label=__("SQL Lab"),)
 appbuilder.add_link(
     'Query Search',
-    href='/pilot/sqllab#search',
+    href='/p/sqllab#search',
     icon="fa-search",
     category_icon="fa-flask",
     category='SQL Lab',

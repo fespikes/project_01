@@ -285,7 +285,7 @@ class Database(Model, AuditMixinNullable):
 
     @property
     def sql_url(self):
-        return '/pilot/sql/{}/'.format(self.id)
+        return '/p/sql/{}/'.format(self.id)
 
     @classmethod
     def release(cls, database):

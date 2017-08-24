@@ -199,7 +199,7 @@ class SliceModelView(SupersetModelView):  # noqa
             redirect_url = '{}?datasource_type=table&datasource_id={}'\
                 .format(dataset.explore_url, dataset.id)
         else:
-            redirect_url = '/pilot/explore/table/0/?datasource_id='
+            redirect_url = '/p/explore/table/0/?datasource_id='
         return redirect(redirect_url)
 
     def get_object_list_data(self, **kwargs):
@@ -507,7 +507,7 @@ class DashboardModelView(SupersetModelView):  # noqa
 
 
 class Superset(BaseSupersetView):
-    route_base = '/pilot'
+    route_base = '/p'
 
     def get_viz(self, slice_id=None, args=None,
                 datasource_type=None, datasource_id=None,
@@ -1155,7 +1155,7 @@ class Superset(BaseSupersetView):
             'limit': '0',
         }
         params = "&".join([k + '=' + v for k, v in params.items() if v])
-        return '/pilot/explore/table/{table.id}/?{params}'.format(**locals())
+        return '/p/explore/table/{table.id}/?{params}'.format(**locals())
 
     @catch_exception
     @expose("/table/<database_id>/<table_name>/<schema>/")

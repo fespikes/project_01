@@ -87,7 +87,7 @@ class AuditMixinNullable(AuditMixin):
     def _user_link(self, user):
         if not user:
             return ''
-        url = '/pilot/profile/{}/'.format(user.username)
+        url = '/p/profile/{}/'.format(user.username)
         return Markup('<a href="{}">{}</a>'.format(url, escape(user) or ''))
 
     @renders('created_by')
@@ -153,7 +153,7 @@ class Queryable(object):
         if self.default_endpoint:
             return self.default_endpoint
         else:
-            return "/pilot/explore/{obj.type}/{obj.id}/".format(obj=self)
+            return "/p/explore/{obj.type}/{obj.id}/".format(obj=self)
 
     @property
     def data(self):
