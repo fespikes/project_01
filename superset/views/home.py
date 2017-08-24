@@ -25,7 +25,7 @@ class Home(BaseSupersetView):
     default_types['actions'] could be: ['online', 'offline', 'add', 'edit', 'delete'...]
     """
     default_view = 'home'
-    route_base = '/pilot/home'
+    route_base = '/home'
 
     page = 0
     page_size = 10

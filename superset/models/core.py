@@ -129,14 +129,14 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         slice_params['slice_name'] = self.slice_name
         from werkzeug.urls import Href
         href = Href(
-            "/pilot/explore/{obj.datasource_type}/"
+            "/p/explore/{obj.datasource_type}/"
             "{obj.datasource_id}/".format(obj=self))
         return href(slice_params)
 
     @property
     def source_table_url(self):
         if self.database_id and self.full_table_name:
-            return "/pilot/explore/table/0/?database_id={}&full_tb_name={}"\
+            return "/p/explore/table/0/?database_id={}&full_tb_name={}"\
                 .format(self.database_id, self.full_table_name)
         else:
             return None
@@ -144,7 +144,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     @property
     def slice_id_url(self):
         return (
-            "/pilot/{slc.datasource_type}/{slc.datasource_id}/{slc.id}/"
+            "/p/{slc.datasource_type}/{slc.datasource_id}/{slc.id}/"
         ).format(slc=self)
 
     @property
@@ -291,7 +291,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
     @property
     def url(self):
-        return "/pilot/dashboard/{}/".format(self.id)
+        return "/p/dashboard/{}/".format(self.id)
 
     @property
     def datasources(self):
