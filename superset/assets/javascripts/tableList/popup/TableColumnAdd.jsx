@@ -163,11 +163,11 @@ class TableColumnAdd extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon icon-dataset"></i>
+                                <i className="icon icon-dataset"/>
                                 <span className="item-label">Add Table Column</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog}/>
                             </div>
                         </div>
                         <div className="popup-body">
@@ -176,7 +176,7 @@ class TableColumnAdd extends React.Component {
                                     <span className="item-label">列：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input dialog-input-sm" name="column_name" value={column.column_name} onChange={this.handleInputChange}/>
+                                    <input className="tp-input dialog-input dialog-input-sm" name="column_name" value={column.column_name} onChange={this.handleInputChange}/>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -184,7 +184,7 @@ class TableColumnAdd extends React.Component {
                                     <span className="item-label">描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" name="description" value={column.description} onChange={this.handleInputChange}></textarea>
+                                    <textarea className="tp-textarea dialog-area" name="description" value={column.description} onChange={this.handleInputChange}/>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -203,9 +203,12 @@ class TableColumnAdd extends React.Component {
                                     <span className="item-label">表达式：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" name="expression" value={column.expression} onChange={this.handleInputChange}></textarea>
+                                    <textarea className="tp-textarea dialog-area" name="expression" value={column.expression} onChange={this.handleInputChange}/>
                                     <Tooltip placement="top" title="表达式">
-                                        <i className="icon icon-info after-textarea-icon"></i>
+                                        <i
+                                            className="icon icon-info after-textarea-icon"
+                                            style={{position: 'absolute', top: 0, right: -20}}
+                                        />
                                     </Tooltip>
                                 </div>
                             </div>

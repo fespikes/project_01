@@ -23,7 +23,7 @@ class App extends Component {
             <div className="pilot-panel slice-panel">
                 <div className="panel-top">
                     <div className="left">
-                        <i className="icon icon-slice"></i>
+                        <i className="icon icon-slice" style={{zoom: 0.9}}/>
                         <span>工作表</span>
                         <span>记录</span>
                         <span>{lists.items.count +''}条</span>
