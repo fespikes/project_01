@@ -237,6 +237,9 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
                 return True
             return False
 
+        if not slice_id:
+            logging.info("No slice_id is passed to check if slice is available")
+            return True
         user_id = g.user.get_id()
         slice = db.session.query(Slice).filter_by(id=slice_id).first()
         if not slice:
