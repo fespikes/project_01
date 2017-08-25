@@ -1,4 +1,3 @@
-/home/jiajie/project/superset/mySuperset/superset/static/assets# Chinese translations for PROJECT.
 # Copyright (C) 2016 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
@@ -1445,7 +1444,7 @@ msgstr "刷新Druid元数据"
 
 #: superset/viz.py:367
 msgid "Table View"
-msgstr "表视图"
+msgstr "二维表"
 
 #: superset/viz.py:370
 msgid "GROUP BY"
@@ -1475,6 +1474,12 @@ msgstr "透视表"
 msgid "Markup"
 msgstr "标记"
 
+
+#: superset/viz.py:491
+msgid "Separator"
+msgstr "Separator"
+
+
 #: superset/viz.py:519
 msgid "Word Cloud"
 msgstr "词汇云"
@@ -1501,6 +1506,10 @@ msgstr "箱线图"
 msgid "Bubble Chart"
 msgstr "气泡图"
 
+#: superset/viz.py:773
+msgid "Bullet Chart"
+msgstr "子弹图"
+
 #: superset/viz.py:842
 msgid "Big Number with Trendline"
 msgstr "数字和趋势线"
@@ -1512,6 +1521,10 @@ msgstr "数字"
 #: superset/viz.py:938
 msgid "Time Series - Line Chart"
 msgstr "时间序列-折线图"
+
+#: superset/viz.py:938
+msgid "Time Series - Dual Axis Line Chart"
+msgstr "时间序列-双轴线图"
 
 #: superset/viz.py:958
 msgid "Advanced Analytics"
@@ -1538,6 +1551,10 @@ msgstr "时间序列-堆积图"
 #: superset/viz.py:1138
 msgid "Distribution - NVD3 - Pie Chart"
 msgstr "分布-饼图"
+
+#: superset/viz.py:1138
+msgid "Histogram"
+msgstr "直方图"
 
 #: superset/viz.py:1174
 msgid "Distribution - Bar Chart"
@@ -1647,7 +1664,7 @@ msgstr "筛选字段"
 
 #: superset/viz.py:1555
 msgid "iFrame"
-msgstr ""
+msgstr "视频"
 
 #: superset/viz.py:1573
 msgid "Parallel Coordinates"
