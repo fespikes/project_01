@@ -20,7 +20,7 @@ class SubDetail extends Component {
     }
 
     initDatasetCache(props) {
-        const {saveDatasetId} = props;
+        const {saveDatasetId, clearDatasetData} = props;
         const opeType = extractOpeType(window.location.hash);
         if(opeType === 'edit') {
             let datasetId = getDatasetId("edit", window.location.hash);

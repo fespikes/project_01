@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { fetchIfNeeded, invalidateCondition } from '../actions';
+import { fetchIfNeeded, invalidateCondition, saveDatasetId, clearDatasetData } from '../actions';
 import { Pagination, Table, Operate } from '../components';
 import PropTypes from 'prop-types';
 import { renderAlertTip } from '../../../utils/utils';
@@ -52,6 +52,8 @@ class App extends Component {
                             tableType={condition.tableType}
                             selectedRowKeys={condition.selectedRowKeys}
                             selectedRowNames={condition.selectedRowNames}
+                            saveDatasetId={saveDatasetId}
+                            clearDatasetData={clearDatasetData}
                         />
                     </div>
                 </div>

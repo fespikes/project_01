@@ -65,7 +65,9 @@ class SliceOperate extends React.Component {
     }
 
     selectChange(value) {
-        const { dispatch } = this.props;
+        const { dispatch, saveDatasetId, clearDatasetData } = this.props;
+        dispatch(saveDatasetId(''));
+        dispatch(clearDatasetData());
         dispatch(switchDatasetType(value));
     }
 

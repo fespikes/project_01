@@ -51,9 +51,9 @@ export default function subDetail(state = {
         case actionTypes.switchFetchingState:
             return {...state, isFetching: action.isFetching};
             break;
-        //case REHYDRATE:
-        //    return {...state, ...action.payload.subDetail};
-        //    break;
+        case REHYDRATE:
+            return {...state, ...action.payload.subDetail};
+            break;
         case actionTypes.clearDatasetData:
             return {
                 ...state,
