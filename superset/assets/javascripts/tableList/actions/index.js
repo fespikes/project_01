@@ -24,6 +24,7 @@ export const actionTypes = {
     switchFetchingState: 'SWITCH_FETCHING_STATE',
 
     saveDatasetId: 'SAVE_DATASET_ID',
+    saveInceptorPreviewData: 'SAVE_INCEPTOR_PREVIEW_DATA',
     saveHDFSDataset: 'SAVE_HDFS_DATASET',
     saveInceptorDataset: 'SAVE_INCEPTOR_DATASET',
 
@@ -542,6 +543,13 @@ export function editDataset(dataset, id, callback) {
                 callbackHandler(response, callback);
             }
         );
+    }
+}
+
+export function saveInceptorPreviewData(data) {
+    return {
+        type: actionTypes.saveInceptorPreviewData,
+        inceptorPreviewData: data
     }
 }
 

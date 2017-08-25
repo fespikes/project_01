@@ -30,10 +30,14 @@ class SubPreview extends Component {
     }
 
     componentDidMount() {
-        const { datasetId } = this.props;
+        const { datasetId, inceptorPreviewData } = this.props;
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
         if(datasetType === "INCEPTOR") {
-            this.doFetchInceptorPreviewData(datasetId);
+            if(JSON.stringify(inceptorPreviewData) === "{}") {
+                this.doFetchInceptorPreviewData(datasetId);
+            }else {
+                this.doConstructTableData(datasetType, inceptorPreviewData);
+            }
         }else if(datasetType === "HDFS" || datasetType === "UPLOAD FILE") {
             this.doFetchHDFSPreviewData();
         }
@@ -66,11 +70,12 @@ class SubPreview extends Component {
 
     doFetchInceptorPreviewData(datasetId) {
         const me = this;
-        const {fetchInceptorPreviewData} = this.props;
+        const {fetchInceptorPreviewData, saveInceptorPreviewData} = this.props;
         fetchInceptorPreviewData(datasetId, callback);
         function callback(success, data) {
             if(success) {
                 let width = datasetModule.getTableWidth(data.columns.length);
+                saveInceptorPreviewData(data);
                 me.setState({
                     tableWidth: width,
                     data: data
@@ -85,7 +90,6 @@ class SubPreview extends Component {
     doFetchHDFSPreviewData() {
         const me = this;
         const {fetchHDFSPreviewData} = this.props;
-        console.log('this.state.dsHDFS=', this.state.dsHDFS);
         fetchHDFSPreviewData(this.state.dsHDFS, callback);
         function callback(success, data) {
             if(success) {
@@ -315,7 +319,8 @@ function mapStateToProps (state) {
     return {
         datasetId: subDetail.datasetId,
         dsHDFS: subDetail.dsHDFS,
-        isFetching: subDetail.isFetching
+        isFetching: subDetail.isFetching,
+        inceptorPreviewData: subDetail.inceptorPreviewData
     };
 }
 
@@ -326,6 +331,7 @@ function mapDispatchToProps (dispatch) {
         createDataset,
         editDataset,
         saveHDFSDataset,
+        saveInceptorPreviewData,
         fetchInceptorPreviewData,
         fetchHDFSPreviewData
     } = bindActionCreators(actionCreators, dispatch);
@@ -334,6 +340,7 @@ function mapDispatchToProps (dispatch) {
         createDataset,
         editDataset,
         saveHDFSDataset,
+        saveInceptorPreviewData,
         fetchInceptorPreviewData,
         fetchHDFSPreviewData
     };

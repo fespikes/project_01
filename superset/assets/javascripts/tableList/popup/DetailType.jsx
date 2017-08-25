@@ -45,13 +45,13 @@ class DetailType extends React.Component {
                                 <i className="icon icon-close" onClick={this.closeDialog} />
                             </div>
                         </div>
-                        <div className="popup-body">
+                        <div className="popup-body" style={{padding: 20}}>
                             <div className={dataType.indexOf('varchar')>-1?'':'none'}>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>最大字符串长度：</span>
+                                        <span style={{display: 'inline-block'}}>最大字符串长度：</span>
                                     </div>
-                                    <div className="item-right">
+                                    <div className="item-right" style={{width: 300}}>
                                         <input className="form-control dialog-input" defaultValue="20" ref="maxLen"/>
                                     </div>
                                 </div>
