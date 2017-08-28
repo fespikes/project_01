@@ -15,7 +15,6 @@ from collections import OrderedDict
 
 from flask_appbuilder import Model
 from flask_appbuilder.security.sqla.models import User
-from flask_appbuilder.security.views import AuthDBView
 
 import sqlalchemy as sqla
 from sqlalchemy.orm import backref, relationship
@@ -34,7 +33,7 @@ from guardian_common_python.conf.GuardianVars import GuardianVars
 
 from superset import db, app, db_engine_specs
 from superset.utils import SupersetException
-from superset.message import NEED_PASSWORD_FOR_KEYTAB
+from superset.message import MISS_PASSWORD_FOR_GUARDIAN
 from .base import AuditMixinNullable
 
 config = app.config
@@ -301,7 +300,7 @@ class Database(Model, AuditMixinNullable):
             username = g.user.username
             password = g.user.password2
             if not password:
-                raise SupersetException(NEED_PASSWORD_FOR_KEYTAB)
+                raise SupersetException(MISS_PASSWORD_FOR_GUARDIAN)
             connect_args['keytab'] = cls.get_keytab(username, password, server, dir)
         return connect_args
 

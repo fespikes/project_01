@@ -13,6 +13,7 @@ import zlib
 from datetime import datetime, timedelta
 
 from flask import g, request, redirect, flash, Response, render_template
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
@@ -558,7 +559,7 @@ class Superset(BaseSupersetView):
                 log_number(model, True, None)
                 return json_response(message=OFFLINE_SUCCESS)
         else:
-            msg = ERROR_URL + ': {}'.format(request.url)
+            msg = _('Error request url: [{url}]').format(url=request.url)
             return json_response(status=400, message=msg)
 
     @catch_exception

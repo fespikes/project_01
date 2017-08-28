@@ -12,6 +12,7 @@ from distutils.util import strtobool
 import functools
 
 from flask import g, request, Response
+from flask_babel.speaklater import LazyString
 from flask_appbuilder import ModelView, BaseView, expose
 from flask_appbuilder.security.sqla.models import User
 import sqlalchemy as sqla
@@ -73,7 +74,7 @@ def check_ownership(obj, raise_if_false=True):
         return False
 
     security_exception = utils.SupersetSecurityException(
-        "You don't have the rights to alter [{}]".format(obj))
+        _("You don't have the rights to update [{obj}]").format(obj))
 
     if g.user.is_anonymous():
         if raise_if_false:
@@ -108,6 +109,8 @@ def get_user_id():
 
 
 def json_response(message='', status=200, data='', code=0):
+    if isinstance(message, LazyString):
+        message = str(message)  # py3
     resp = {'status': status,
             'code': code,
             'message': message,
@@ -326,8 +329,8 @@ class SupersetModelView(ModelView, PageMixin):
         attributes = {}
         for col in self.show_columns:
             if not hasattr(obj, col):
-                msg = "Class: \'{}\' does not have the attribute: \'{}\'" \
-                    .format(obj.__class__.__name__, col)
+                msg = _("Class [{cls}] does not have the attribute [{attribute}]") \
+                    .format(cls=obj.__class__.__name__, attribute=col)
                 self.handle_exception(500, KeyError, msg)
             if col in self.str_columns:
                 attributes[col] = str(getattr(obj, col, None))
@@ -352,8 +355,8 @@ class SupersetModelView(ModelView, PageMixin):
         attributes = {}
         for col in self.add_columns:
             if col not in data:
-                msg = "The needed attribute: \'{}\' not in attributes: \'{}\'" \
-                    .format(col, ','.join(data.keys()))
+                msg = _("The needed attribute [{attribute}] is not in attributes [{attributes}]") \
+                    .format(attribute=col, attributes=','.join(data.keys()))
                 self.handle_exception(404, KeyError, msg)
             value = data.get(col)
             if col in self.bool_columns and not isinstance(value, bool):
@@ -368,8 +371,8 @@ class SupersetModelView(ModelView, PageMixin):
         attributes = {}
         for col in self.edit_columns:
             if col not in data:
-                msg = "The needed attribute: \'{}\' not in attributes: \'{}\'" \
-                    .format(col, ','.join(data.keys()))
+                msg = _("The needed attribute [{attribute}] is not in attributes [{attributes}]") \
+                    .format(attribute=col, attributes=','.join(data.keys()))
                 self.handle_exception(404, KeyError, msg)
             value = data.get(col)
             if col in self.bool_columns and not isinstance(value, bool):
@@ -486,7 +489,8 @@ class SupersetModelView(ModelView, PageMixin):
         try:
             obj = db.session.query(self.model).filter_by(id=obj_id).one()
         except sqla.orm.exc.NoResultFound:
-            msg = "{}. model:{} id:{}".format(OBJECT_NOT_FOUND, self.model.__name__, obj_id)
+            msg = _("Not found the object: model={model}, id={id}")\
+                .format(model=self.model.__name__, id=obj_id)
             self.handle_exception(500, sqla.orm.exc.NoResultFound, msg)
         else:
             return obj

@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import json
 import requests
 from flask import request
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
@@ -213,8 +214,9 @@ class DatasetModelView(SupersetModelView):  # noqa
                                          need_columns=False)
             data = dataset.preview_data(limit=rows)
         else:
-            raise SupersetException('{}: {}'.format(ERROR_REQUEST_PARAM,
-                                                    request.args.to_dict()))
+            json_response(status=400,
+                          message=_("Error request parameters: [{params}]")
+                          .format(params=request.args.to_dict()))
         return json_response(data=data)
 
     @catch_exception
@@ -305,7 +307,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             hdfs_table_view._add(hdfs_table)
             return json_response(message=ADD_SUCCESS, data={'object_id': dataset.id})
         else:
-            raise Exception('{}: [{}]'.format(ERROR_DATASET_TYPE, dataset_type))
+            raise Exception(_("Error dataset type: [{type_}]").format(type_=dataset_type))
 
     @catch_exception
     @expose('/show/<pk>/', methods=['GET'])
@@ -353,7 +355,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             self._edit(dataset)
             return json_response(message=UPDATE_SUCCESS)
         else:
-            raise Exception('{}: [{}]'.format(ERROR_DATASET_TYPE, dataset_type))
+            raise Exception(_("Error dataset type: [{type_}]").format(type_=dataset_type))
 
     def get_object_list_data(self, **kwargs):
         """Return the table list"""
