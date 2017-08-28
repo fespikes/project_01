@@ -8,7 +8,6 @@ import json
 import functools
 import requests
 from flask import g, request
-from flask_babel import gettext as __
 from flask_appbuilder import BaseView, expose
 
 from fileRobot_client.FileRobotClientFactory import fileRobotClientFactory
@@ -16,7 +15,7 @@ from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
 from fileRobot_common.conf.FileRobotVars import FileRobotVars
 from fileRobot_common.exception.FileRobotException import FileRobotException
 
-from superset import app, db, appbuilder
+from superset import app, db
 from superset.message import *
 from superset.utils import SupersetException
 from superset.models import HDFSConnection
@@ -34,22 +33,10 @@ def catch_hdfs_exception(f):
         try:
             return f(self, *args, **kwargs)
         except FileRobotException as fe:
-            if fe.status == 401:
-                try:
-                    self.do_login()
-                    return f(self, *args, **kwargs)
-                except FileRobotException as fe2:
-                    return json_response(status=fe2.status,
-                                         code=fe2.returnCode,
-                                         message=fe2.message)
-                except Exception as e:
-                    logging.exception(e)
-                    return json_response(status=500, message=str(e))
-            else:
-                return json_response(status=fe.status,
-                                     code=fe.returnCode,
-                                     message=fe.message)
-
+            logging.exception(fe)
+            return json_response(status=fe.status,
+                                 code=fe.returnCode,
+                                 message=fe.message)
         except SupersetException as se:
             logging.exception(se)
             return json_response(status=500, message=str(se))
@@ -61,13 +48,21 @@ def catch_hdfs_exception(f):
 
 def ensure_logined(f):
     """
-    A decorator to label an endpoint as an API. Catches uncaught exceptions and
-    return the response in the JSON format
+    A decorator to label an endpoint as an API. Make ensure user has logined
+    filerobot, and re_login if session is timeout.
     """
     def wraps(self, *args, **kwargs):
         if self.client is None or self.logined_user != g.user.username:
-            self.do_login(self.hdfs_conn_id)
-        return f(self, *args, **kwargs)
+            self.client, response = self.login_filerobot(self.hdfs_conn_id)
+
+        try:
+            return f(self, *args, **kwargs)
+        except FileRobotException as fe:
+            if fe.status == 401:
+                self.client, response = self.login_filerobot(self.hdfs_conn_id)
+                return f(self, *args, **kwargs)
+            else:
+                raise fe
     return functools.update_wrapper(wraps, f)
 
 
@@ -88,8 +83,17 @@ class HDFSBrowser(BaseView):
     @catch_hdfs_exception
     @expose('/login/', methods=['GET'])
     def login(self):
-        hdfs_conn_id = request.args.get('hdfs_conn_id')
-        response = self.do_login(hdfs_conn_id)
+        hdfs_conn_id = request.args.get('hdfs_conn_id', self.hdfs_conn_id)
+        client, response = self.login_filerobot(hdfs_conn_id)
+        if response.status_code == requests.codes.ok:
+            self.client = client
+            self.logined_user = g.user.username
+            self.hdfs_conn_id = hdfs_conn_id
+        else:
+            self.client = None
+            self.logined_user = ''
+            self.hdfs_conn_id = None
+            raise SupersetException(LOGIN_FILEROBOT_FAILED)
         return json_response(message=LOGIN_FILEROBOT_SUCCESS,
                              status=response.status_code)
 
@@ -218,8 +222,26 @@ class HDFSBrowser(BaseView):
     def get_request_data(self):
         return json.loads(str(request.data, encoding='utf-8'))
 
-    def do_login(self, hdfs_conn_id=None):
-        def login_filerobot(server='', username='', password='', httpfs=''):
+    def login_filerobot(self, hdfs_conn_id=None):
+        def get_login_args(hdfs_conn_id=None):
+            def get_httpfs(hdfs_conn_id=None):
+                if hdfs_conn_id:
+                    conn = db.session.query(HDFSConnection) \
+                        .filter_by(id=hdfs_conn_id).first()
+                else:
+                    conn = db.session.query(HDFSConnection) \
+                        .order_by(HDFSConnection.id).first()
+                if not conn:
+                    raise SupersetException(NO_HDFS_CONNECTION)
+                return conn.httpfs
+
+            httpfs = get_httpfs(hdfs_conn_id)
+            return {'server': app.config.get('FILE_ROBOT_SERVER'),
+                    'username': g.user.username,
+                    'password': g.user.password2,
+                    'httpfs': httpfs}
+
+        def do_login(server='', username='', password='', httpfs=''):
             if not server:
                 raise SupersetException(NO_FILEROBOT_SERVER)
             if not password:
@@ -230,44 +252,5 @@ class HDFSBrowser(BaseView):
             response = client.login(username, password, httpfs)
             return client, response
 
-        args = self.get_login_args(hdfs_conn_id)
-        client, response = login_filerobot(**args)
-        if response.status_code == requests.codes.ok:
-            self.client = client
-            self.logined_user = g.user.username
-            self.hdfs_conn_id = hdfs_conn_id
-            return response
-        else:
-            self.client = None
-            self.logined_user = ''
-            self.hdfs_conn_id = None
-            raise SupersetException(LOGIN_FILEROBOT_FAILED)
-
-    @staticmethod
-    def get_login_args(hdfs_conn_id=None):
-        def get_httpfs(hdfs_conn_id=None):
-            if hdfs_conn_id:
-                conn = db.session.query(HDFSConnection) \
-                    .filter_by(id=hdfs_conn_id).first()
-            else:
-                conn = db.session.query(HDFSConnection) \
-                    .order_by(HDFSConnection.id).first()
-            if not conn:
-                raise SupersetException(NO_HDFS_CONNECTION)
-            return conn.httpfs
-
-        httpfs = get_httpfs(hdfs_conn_id)
-        return {'server': app.config.get('FILE_ROBOT_SERVER'),
-                'username': g.user.username,
-                'password': g.user.password2,
-                'httpfs': httpfs}
-
-
-appbuilder.add_view_no_menu(HDFSBrowser)
-appbuilder.add_link(
-    'HDFS Browser',
-    href='/hdfs/',
-    label=__("HDFS Browser"),
-    icon="fa-flask",
-    category='',
-    category_icon='')
+        args = get_login_args(hdfs_conn_id)
+        return do_login(**args)

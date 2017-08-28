@@ -7,7 +7,6 @@ from datetime import timedelta, date
 import json
 import re
 from flask import g, request, redirect, Response
-from flask_babel import gettext as __
 from flask_appbuilder import expose
 from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import func, and_, or_
@@ -556,11 +555,3 @@ class Home(BaseSupersetView):
             status=status_,
             mimetype="application/json")
 
-
-appbuilder.add_view(
-    Home,
-    "Home",
-    label=__("Home"),
-    category='',
-    category_label='',
-    icon="fa-list-ol")

@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 
 import json
 from flask import g, request
-from flask_babel import gettext as __
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
@@ -14,7 +13,7 @@ from flask_appbuilder.security.sqla.models import User
 import sqlalchemy as sqla
 from sqlalchemy import select, literal, cast, or_, and_
 
-from superset import app, db, models, appbuilder
+from superset import app, db, models
 from superset.models import Database, HDFSConnection, Slice
 from superset.utils import SupersetException
 from superset.message import *
@@ -503,15 +502,3 @@ class ConnectionView(BaseSupersetView, PageMixin):
             'connection_type': query.c.connection_type,
             'owner': User.username
         }
-
-
-appbuilder.add_view_no_menu(ConnectionView)
-appbuilder.add_view_no_menu(HDFSConnectionModelView)
-appbuilder.add_view(
-    DatabaseView,
-    "Databases",
-    label=__("Databases"),
-    icon="fa-database",
-    category="Sources",
-    category_label=__("Sources"),
-    category_icon='fa-database',)

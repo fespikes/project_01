@@ -13,18 +13,14 @@ import zlib
 from datetime import datetime, timedelta
 
 from flask import g, request, redirect, flash, Response, render_template
-from flask_babel import gettext as __
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
-from flask_appbuilder.security.decorators import has_access
 from flask_appbuilder.security.sqla.models import User
 
-import sqlalchemy as sqla
 from sqlalchemy import create_engine, or_
 
 from superset import (
-    app, appbuilder, cache, db, models, sql_lab, sql_parse,
-    results_backend, viz, utils
+    app, cache, db, sql_lab, sql_parse, results_backend, viz, utils
 )
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
@@ -1534,20 +1530,3 @@ class Superset(BaseSupersetView):
             'superset/sqllab.html',
             bootstrap_data=json.dumps(d, default=utils.json_iso_dttm_ser)
         )
-
-
-appbuilder.add_view_no_menu(Superset)
-appbuilder.add_view(
-    DashboardModelView,
-    "Dashboards",
-    label=__("Dashboards"),
-    icon="fa-dashboard",
-    category='',
-    category_icon='')
-appbuilder.add_view(
-    SliceModelView,
-    "Slices",
-    label=__("Slices"),
-    icon="fa-bar-chart",
-    category="",
-    category_icon='')

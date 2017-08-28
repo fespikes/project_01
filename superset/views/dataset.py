@@ -6,24 +6,19 @@ from __future__ import unicode_literals
 
 import json
 import requests
-from flask import g, request, Response
-from flask_babel import gettext as __
+from flask import request
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
-from flask_appbuilder.security.views import AuthDBView
 from flask_appbuilder.security.sqla.models import User
 
-from fileRobot_client.FileRobotClientFactory import fileRobotClientFactory
-from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
-from fileRobot_common.conf.FileRobotVars import FileRobotVars
-
 from sqlalchemy import or_
-from superset import app, db, appbuilder
+from superset import app, db
 from superset.utils import SupersetException
 from superset.models import (
-    Database, Dataset, HDFSTable, HDFSConnection, Log, DailyNumber,
+    Database, Dataset, HDFSTable, Log, DailyNumber,
     TableColumn, SqlMetric, Slice
 )
+from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
 from .base import (
     SupersetModelView, catch_exception, get_user_id, check_ownership,
@@ -484,17 +479,17 @@ class HDFSTableModelView(SupersetModelView):
     show_columns = add_columns
     edit_columns = add_columns
 
-    @catch_exception
+    @catch_hdfs_exception
     @expose('/files/', methods=['GET'])
     def list_hdfs_files(self):
         path = request.args.get('path', '/')
         page_size = request.args.get('page_size', 1000)
         hdfs_connection_id = request.args.get('hdfs_connection_id')
-        client = self.login_file_robot(hdfs_connection_id)
+        client, _ = HDFSBrowser.login_filerobot(hdfs_connection_id)
         response = client.list(path, page_size=page_size)
         return json_response(data=json.loads(response.text))
 
-    @catch_exception
+    @catch_hdfs_exception
     @expose('/preview/', methods=['GET'])
     def preview_hdfs_file(self):
         """
@@ -508,9 +503,8 @@ class HDFSTableModelView(SupersetModelView):
         cache_key = '{}-{}'.format(hdfs_conn_id, path)
         file = HDFSTable.cached_file.get(cache_key)
         if not file:
-            client = self.login_file_robot(hdfs_conn_id)
+            client, _ = HDFSBrowser.login_filerobot(hdfs_conn_id)
             files = self.list_files(client, path, size)
-            files = json.loads(files)
             file_path = self.choice_one_file_path(files)
             file = self.download_file(client, file_path, size)
             HDFSTable.cached_file[cache_key] = file
@@ -519,44 +513,17 @@ class HDFSTableModelView(SupersetModelView):
                                        columns=list(df.columns))
                              )
 
-    @catch_exception
+    @catch_hdfs_exception
     @expose('/upload/', methods=['POST'])
     def upload(self):
         f = request.data
         dest_path = request.args.get('dest_path')
         file_name = request.args.get('file_name')
         hdfs_connection_id = request.args.get('hdfs_connection_id')
-        client = self.login_file_robot(hdfs_connection_id)
+
+        client, _ = HDFSBrowser.login_filerobot(hdfs_connection_id)
         response = client.upload(dest_path, {'files': (file_name, f)})
         return json_response(message=response.text)
-
-    @classmethod
-    def login_file_robot(cls, hdfs_conn_id=None):
-        def get_httpfs(hdfs_conn_id=None):
-            if hdfs_conn_id:
-                conn = db.session.query(HDFSConnection) \
-                    .filter_by(id=hdfs_conn_id).first()
-            else:
-                conn = db.session.query(HDFSConnection) \
-                    .order_by(HDFSConnection.id).first()
-            if not conn:
-                raise SupersetException(NO_HDFS_CONNECTION)
-            return conn.httpfs
-
-        httpfs = get_httpfs(hdfs_conn_id)
-        server = app.config.get('FILE_ROBOT_SERVER')
-        username = g.user.username
-        password = g.user.password2
-        if not server:
-            raise SupersetException(NO_FILEROBOT_SERVER)
-        if not password:
-            raise SupersetException(NEED_PASSWORD_FOR_FILEROBOT)
-
-        conf = FileRobotConfiguartion()
-        conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
-        client = fileRobotClientFactory.getInstance(conf)
-        client.login(username, password, httpfs)
-        return client
 
     @classmethod
     def list_files(cls, client, path, size):
@@ -565,6 +532,8 @@ class HDFSTableModelView(SupersetModelView):
 
     @classmethod
     def choice_one_file_path(cls, files_json):
+        if not isinstance(files_json, dict):
+            files_json = json.loads(files_json)
         files = files_json.get('files')
         file_path = ''
         for file in files:
@@ -573,16 +542,17 @@ class HDFSTableModelView(SupersetModelView):
             if name == '.' or name == '..':
                 pass
             elif type == 'dir':
-                raise SupersetException('Should not exist folder [{}] in '
-                                        'selected path [{}] to create external table'
-                                        .format(file.get('path'), files_json.get('path')))
+                raise SupersetException(
+                    'Should not exist folder: [{}] in selected path: [{}] '
+                    'to create external table'
+                    .format(file.get('path'), files_json.get('path')))
             elif type == 'file':
                 file_path = file.get('path')
             else:
                 raise SupersetException('Error file type: [{}]'.format(type))
         if not file_path:
-            raise SupersetException('No files in selected path: [{}]'
-                                    .format(files_json.get('path')))
+            raise SupersetException(
+                'No files in selected path: [{}]'.format(files_json.get('path')))
         return file_path
 
     @classmethod
@@ -600,14 +570,3 @@ class HDFSTableModelView(SupersetModelView):
             size = size * 2
         raise SupersetException("Fetched {} bytes file, but still not a complete line")
 
-
-appbuilder.add_view_no_menu(HDFSTableModelView)
-appbuilder.add_view_no_menu(TableColumnInlineView)
-appbuilder.add_view_no_menu(SqlMetricInlineView)
-appbuilder.add_view(
-    DatasetModelView,
-    "Dataset",
-    label=__("Dataset"),
-    category="Sources",
-    category_label=__("Sources"),
-    icon='fa-table',)

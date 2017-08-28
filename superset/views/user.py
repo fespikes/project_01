@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import json
 from flask import g, request, Response
 from flask_appbuilder import BaseView, expose
-from superset import sm, appbuilder
 from superset.utils import SupersetException
 from superset.message import *
 from .base import catch_exception, json_response
@@ -129,6 +128,3 @@ class PresentUserView(BaseView):
                 'login_count': user.login_count,
                 'last_login': str(user.last_login)}
         return json_response(data=data)
-
-
-appbuilder.add_view_no_menu(PresentUserView)
