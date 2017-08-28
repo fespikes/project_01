@@ -44,7 +44,7 @@ class SubPreview extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        const { datasetId, isFetching } = this.props;
+        const { datasetId } = this.props;
         if(nextProps.datasetId !== datasetId && nextProps.datasetId) {
             const datasetType = datasetModule.extractDatasetType(window.location.hash);
             if(datasetType === "INCEPTOR") {
@@ -113,7 +113,7 @@ class SubPreview extends Component {
         if(datasetType === 'INCEPTOR') {
             tbType = datasetModule.getTbType(data);
             tbTitle = datasetModule.getTbTitleInceptor(JSON.parse(JSON.stringify(tbTitleOnly)));
-        }else if(datasetType === 'HDFS') {
+        }else if(datasetType === 'HDFS' || datasetType === "UPLOAD FILE") {
             tbTitle = datasetModule.getTbTitleHDFS(JSON.parse(JSON.stringify(tbTitleOnly)), this);
             tbContentHDFS = [{
                 key: '1'
@@ -230,7 +230,7 @@ class SubPreview extends Component {
                             pagination={false}
                         />
                     </div>
-                    <div className={datasetType==='HDFS'?'table-header':'none'} style={{width: tableWidth}}>
+                    <div className={(datasetType==='HDFS' || datasetType==='UPLOAD FILE')?'table-header':'none'} style={{width: tableWidth}}>
                         <Table
                             columns={this.state.tbTitle}
                             dataSource={this.state.tbContentHDFS}

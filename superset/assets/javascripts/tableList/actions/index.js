@@ -492,22 +492,18 @@ export function fetchHDFSFileBrowser(path, callback) {
 
 export function fetchUploadFile(data, fileName, path, callback) {
     const url = window.location.origin + '/hdfs/upload/?dest_path=' + path + '&file_name=' + fileName;
-    return () => {
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: 'include',
             method: "POST",
             body: data
-        }).then(response => {
-            if(response.ok) {
-                response.json().then(
-                    () => {
-                        callback(true);
-                    }
-                )
-            }else {
-                callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
-        });
+        );
     }
 }
 
