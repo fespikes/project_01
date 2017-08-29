@@ -347,8 +347,10 @@ class Home(BaseSupersetView):
 
         if len(types) < 1 or page_size < 0:
             self.status = 401 if str(self.status)[0] < '4' else self.status
-            self.message.append('Error request parameters: types={},page_size={}'
-                                .format(types, page_size))
+            self.message.append(_("Error request parameters: [{params}]")
+                                .format(params={'types': types,
+                                                'page_size': page_size})
+                                )
             return {}
 
         query = (
@@ -416,7 +418,8 @@ class Home(BaseSupersetView):
         kwargs['types'] = request.args.get('types', self.default_types.get('actions'))
 
         if not isinstance(kwargs['types'], list) or len(kwargs['types']) < 1:
-            message_ = 'Error request parameters: [{}]'.format(request.args)
+            message_ = _("Error request parameters: [{params}]")\
+                .format(params=request.args)
             return Response(json.dumps(message_),
                             status=400,
                             mimetype='application/json')
