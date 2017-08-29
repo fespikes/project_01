@@ -250,7 +250,7 @@ class SliceModelView(SupersetModelView):  # noqa
                     line[col] = getattr(obj, col, None)
 
             viz_type = line.get('viz_type', None)
-            line['viz_type'] = viz.viz_type_to_cn(viz_type) if viz_type else viz_type
+            line['viz_type'] = str(_(viz_type)) if viz_type else viz_type
             line['explore_url'] = obj.datasource.explore_url \
                 if obj.datasource else None
             if not obj.datasource and obj.full_table_name:

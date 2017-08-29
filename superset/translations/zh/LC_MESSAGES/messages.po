@@ -893,6 +893,9 @@ msgstr "本视图需要`访问所有数据`的权限"
 msgid "Table View"
 msgstr "二维表"
 
+msgid "table"
+msgstr "二维表"
+
 msgid "GROUP BY"
 msgstr "分组"
 
@@ -911,16 +914,31 @@ msgstr "选项"
 msgid "Pivot Table"
 msgstr "透视表"
 
+msgid "pivot_table"
+msgstr "透视表"
+
 msgid "Markup"
+msgstr "标记"
+
+msgid "markup"
 msgstr "标记"
 
 msgid "Separator"
 msgstr "Separator"
 
+msgid "separator"
+msgstr "Separator"
+
 msgid "Word Cloud"
 msgstr "词汇云"
 
+msgid "word_cloud"
+msgstr "词汇云"
+
 msgid "Treemap"
+msgstr "树状图"
+
+msgid "treemap"
 msgstr "树状图"
 
 msgid "Chart Options"
@@ -929,25 +947,49 @@ msgstr "图表选项"
 msgid "Calendar Heatmap"
 msgstr "时间热力图"
 
+msgid "cal_heatmap"
+msgstr "时间热力图"
+
 msgid "Box Plot"
+msgstr "箱线图"
+
+msgid "box_plot"
 msgstr "箱线图"
 
 msgid "Bubble Chart"
 msgstr "气泡图"
 
+msgid "bubble"
+msgstr "气泡图"
+
 msgid "Bullet Chart"
+msgstr "子弹图"
+
+msgid "bullet"
 msgstr "子弹图"
 
 msgid "Big Number with Trendline"
 msgstr "数字和趋势线"
 
+msgid "big_number"
+msgstr "数字和趋势线"
+
 msgid "Big Number"
+msgstr "数字"
+
+msgid "big_number_total"
 msgstr "数字"
 
 msgid "Time Series - Line Chart"
 msgstr "时间序列-折线图"
 
+msgid "line"
+msgstr "时间序列-折线图"
+
 msgid "Time Series - Dual Axis Line Chart"
+msgstr "时间序列-双轴线图"
+
+msgid "dual_line"
 msgstr "时间序列-双轴线图"
 
 msgid "Advanced Analytics"
@@ -961,19 +1003,37 @@ msgstr "使用高级分析选项"
 msgid "Time Series - Bar Chart"
 msgstr "时间序列-柱状图"
 
+msgid "bar"
+msgstr "时间序列-柱状图"
+
 msgid "Time Series - Percent Change"
+msgstr "时间序列-百分比变化"
+
+msgid "compare"
 msgstr "时间序列-百分比变化"
 
 msgid "Time Series - Stacked"
 msgstr "时间序列-堆积图"
 
+msgid "area"
+msgstr "时间序列-堆积图"
+
 msgid "Distribution - NVD3 - Pie Chart"
+msgstr "分布-饼图"
+
+msgid "pie"
 msgstr "分布-饼图"
 
 msgid "Histogram"
 msgstr "直方图"
 
+msgid "histogram"
+msgstr "直方图"
+
 msgid "Distribution - Bar Chart"
+msgstr "分布-柱状图"
+
+msgid "dist_bar"
 msgstr "分布-柱状图"
 
 msgid "Breakdowns"
@@ -983,6 +1043,9 @@ msgid "Defines how each series is broken down"
 msgstr "项目的拆分方式"
 
 msgid "Sunburst"
+msgstr "环状层次图"
+
+msgid "sunburst"
 msgstr "环状层次图"
 
 msgid "Primary Metric"
@@ -1008,6 +1071,9 @@ msgstr "定义层次"
 msgid "Sankey"
 msgstr "蛇形图"
 
+msgid "sankey"
+msgstr "蛇形图"
+
 msgid "Source / Target"
 msgstr "数据源/目标"
 
@@ -1017,10 +1083,16 @@ msgstr "选择数据源和目标"
 msgid "Directed Force Layout"
 msgstr "有向图"
 
+msgid "directed_force"
+msgstr "有向图"
+
 msgid "Force Layout"
 msgstr "有向图"
 
 msgid "World Map"
+msgstr "世界地图"
+
+msgid "world_map"
 msgstr "世界地图"
 
 msgid "Bubbles"
@@ -1048,6 +1120,9 @@ msgstr "气泡大小表示的度量项"
 msgid "Filters"
 msgstr "筛选"
 
+msgid "filter_box"
+msgstr "筛选"
+
 msgid "Filter fields"
 msgstr "筛选条件"
 
@@ -1057,10 +1132,19 @@ msgstr "筛选字段"
 msgid "iFrame"
 msgstr "视频"
 
+msgid "iframe"
+msgstr "视频"
+
 msgid "Parallel Coordinates"
 msgstr "平行坐标"
 
+msgid "para"
+msgstr "平行坐标"
+
 msgid "Heatmap"
+msgstr "热力图"
+
+msgid "heatmap"
 msgstr "热力图"
 
 msgid "Heatmap Options"
@@ -1069,7 +1153,13 @@ msgstr "热力图选项"
 msgid "Horizon Charts"
 msgstr "水平图"
 
+msgid "horizon"
+msgstr "水平图"
+
 msgid "Mapbox"
+msgstr "箱图"
+
+msgid "mapbox"
 msgstr "箱图"
 
 msgid "Points"
