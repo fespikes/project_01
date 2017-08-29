@@ -209,7 +209,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         if int(dataset_id) > 0:
             data = self.get_object(dataset_id).preview_data(limit=rows)
         elif database_id and full_tb_name:
-            dataset = Dataset.temp_table(database_id, full_tb_name,
+            dataset = Dataset.temp_dataset(database_id, full_tb_name,
                                          need_columns=False)
             data = dataset.preview_data(limit=rows)
         else:

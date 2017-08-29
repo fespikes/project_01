@@ -96,7 +96,7 @@ function Bar(props) {
         },
         tooltip: {
             valueSuffix: '',
-            enabled: true
+            enabled: false
         },
         legend: {
             enabled: false

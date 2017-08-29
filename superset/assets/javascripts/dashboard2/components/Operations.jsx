@@ -138,7 +138,7 @@ class Operations extends React.Component {
                     </button>
                 </div>
                 <div className="search-input">
-                    <input onKeyUp={this.searchDashboard} onChange={this.keywordChange} className="tp-input" placeholder="search..." />
+                    <input onKeyUp={this.searchDashboard} onChange={this.keywordChange} className="tp-input" placeholder="搜索..." />
                     <i className="icon icon-search" onClick={this.clickSearchDashboard}/>
                 </div>
                 <div className="view-btn">

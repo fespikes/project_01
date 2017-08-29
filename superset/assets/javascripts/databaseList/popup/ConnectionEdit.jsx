@@ -252,6 +252,7 @@ class ConnectionEdit extends React.Component {
                                     <textarea
                                         id="connectParams"
                                         name="databaseArgs"
+                                        style={{height:'120px'}}
                                         className="tp-textarea dialog-area"
                                         onChange={this.handleInputChange}
                                     >

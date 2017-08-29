@@ -217,12 +217,12 @@ class Popup extends React.Component {
                                         <span>描述：</span>
                                     </div>
                                     <div className="item-right">
-                                        <input
+                                        <textarea
                                             type="text"
                                             defaultValue=""
                                             ref="descriptionInceptor"
                                             name="description"
-                                            className="tp-input dialog-input"
+                                            className="tp-textarea dialog-area"
                                         />
                                     </div>
                                 </div>
@@ -236,7 +236,7 @@ class Popup extends React.Component {
                                             ref="sqlalchemyUri"
                                             name="sqlalchemy_uri"
                                             type="text"
-                                            defaultValue=""
+                                            defaultValue="inceptor://username:password@172.0.0.1:10000/default"
                                             required="required"
                                             className="tp-input dialog-input"
                                         />

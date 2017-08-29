@@ -220,7 +220,7 @@ class Operate extends React.Component {
             onChange={this.searchOnChange}
             ref="searchField"
             className="tp-input"
-            placeholder="search file name" />
+            placeholder="搜索..." />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"/>
                 </div>
             </div>

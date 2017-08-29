@@ -148,7 +148,7 @@ class Operate extends React.Component {
                     </li>
                 </ul>
                 <div className="search-input" style={{ marginRight: 0 }}>
-                    <input  onKeyUp={this.onEnterSearch} onChange={this.onChange} className="tp-input" ref="searchField" placeholder="search..." />
+                    <input  onKeyUp={this.onEnterSearch} onChange={this.onChange} className="tp-input" ref="searchField" placeholder="搜索..." />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"/>
 
                 </div>

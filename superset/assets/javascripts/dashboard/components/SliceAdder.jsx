@@ -167,7 +167,7 @@ class SliceAdder extends React.Component {
                 </div>
                 <div className={this.state.slicesLoaded ? '' : 'hidden'}>
                     <div className="search-input">
-                        <input onChange={this.keywordChange} placeholder="search..." />
+                        <input className="tp-input" onChange={this.keywordChange} placeholder="搜索..." />
                         <i className="icon icon-search"/>
                     </div>
                     <Table
