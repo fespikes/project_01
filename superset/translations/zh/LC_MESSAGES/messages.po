@@ -1540,7 +1540,7 @@ msgid "Miss parameter [dataset_id] to query metrics"
 msgstr "查询度量时缺少参数[dataset_id]"
 
 msgid "Not found dataset by id [{id}]"
-msgstr "通过id[{id}]没有查询到数据集"
+msgstr "没有找到id为[{id}]的数据集"
 
 msgid "Releasing dataset [{dataset}] will release connection [{connection}]"
 msgstr "上线数据集[{dataset}]会同时上线连接[{connection}]"
@@ -1619,3 +1619,13 @@ msgstr "依赖的HDFS连接[{conn}]已被其他用户下线"
 
 msgid "Parse file error: {msg}"
 msgstr "解析文件错误：{msg}"
+
+
+#========================
+# models/core.py
+#========================
+msgid "Not found slice by id [{id}]"
+msgstr "没有找到id为[{id}]的工作表"
+
+msgid "Slice [{slice}] is offline"
+msgstr "工作表[{slice}]已被其他用户下线"
