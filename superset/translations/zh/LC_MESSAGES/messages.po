@@ -839,29 +839,23 @@ msgstr "时间相关的属性"
 msgid "quarter"
 msgstr "季度"
 
-#: superset/models.py:410
 msgid "week_ending_saturday"
 msgstr "周日为一周开始"
 
-#: superset/models.py:412
 msgid "week_start_sunday"
 msgstr "周日为一周结束"
 
-#: superset/models.py:433
 msgid "second"
 msgstr "秒"
 
-#: superset/models.py:434
 msgid "minute"
 msgstr "分"
 
-#: superset/models.py:620
 msgid ""
 "Datetime column not provided as part table configuration and is required "
 "by this type of chart"
 msgstr "缺少时间字段"
 
-#: superset/models.py:1328
 msgid "No data was returned."
 msgstr "没有数据"
 
@@ -1590,3 +1584,38 @@ msgstr "不存在HDFS连接，请先创建一个"
 
 msgid "Failed to get FileRobot server from config"
 msgstr "从配置文件获取FileRobot服务地址失败"
+
+
+#========================
+# models/connection.py
+#========================
+msgid "You do not have account for connection [{conn}]"
+msgstr "你没有连接[{conn}]的帐号和密码"
+
+msgid "Test connection failed, maybe need to modify your account for connection [{conn}]"
+msgstr "测试连接失败，你可能需要修改该连接[{conn}]的帐号和密码"
+
+
+#========================
+# models/connection.py
+#========================
+msgid "Metric [{m}] is not valid"
+msgstr "无效的度量[{m}]"
+
+msgid "Drop or create temporary view by sql failed: {msg}"
+msgstr "创建或删除临时试图失败：{msg}"
+
+msgid "Couldn't fetch table [{table}]'s information in the specified database [{schema}]"
+msgstr "获取不到数据库[{schema}]中表[{table}]的元数据"
+
+msgid "Dependent someone's dataset [{dataset}] is offline, so it's unavailable"
+msgstr "依赖的数据集[{dataset}]已被其他用户下线"
+
+msgid "Dependent someone's Inceptor connection [{conn}] is offline, so it's unavailable"
+msgstr "依赖的Inceptor连接[{conn}]已被其他用户下线"
+
+msgid "Dependent someone's HDFS connection [{conn}] is offline, so it's unavailable"
+msgstr "依赖的HDFS连接[{conn}]已被其他用户下线"
+
+msgid "Parse file error: {msg}"
+msgstr "解析文件错误：{msg}"
