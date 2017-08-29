@@ -2250,8 +2250,8 @@ viz_types_list = [
     CalHeatmapViz,
     HorizonViz,
     MapboxViz,
-    HistogramViz,
-    SeparatorViz,
+    # HistogramViz,
+    # SeparatorViz,
 ]
 
 viz_types = OrderedDict([(v.viz_type, v) for v in viz_types_list
