@@ -1415,15 +1415,14 @@ msgstr "错误的数据集类型：[{type_}]"
 msgid "Error connection type: [{type_}]"
 msgstr "错误的连接类型：[{type_}]"
 
-msgid "Miss password to access guardian"
+msgid "Miss password to access Guardian"
 msgstr "缺少密码访问Guardian"
 
-msgid "Miss password to login Filerobot"
-msgstr "缺少密码登陆Filerobot"
 
-###
-###: views/base.py
-###
+
+#========================
+# views/base.py
+#========================
 msgid "You don't have the rights to update [{obj}]"
 msgstr "没有权限修改[{obj}]"
 
@@ -1436,9 +1435,10 @@ msgstr "[{attributes}]缺少需要的字段[{attribute}]"
 msgid "Not found the object: model={model}, id={id}"
 msgstr "没有找到对象：类名={model}, id={id}"
 
-###
-###: views/connection.py
-###
+
+#========================
+# views/connection.py
+#========================
 msgid "Error order column name: [{name}]"
 msgstr "错误的排序字段：[{name}]"
 
@@ -1486,9 +1486,9 @@ msgstr ""
 "数据集：{dataset}，\n工作表：{slice}"
 
 
-###
-###: views/core.py
-###
+#========================
+# views/core.py
+#========================
 msgid "Error parameter ids: {ids}, queried {num} dashboard(s)"
 msgstr "根据参数ids：{ids}查询到{num}个仪表板"
 
@@ -1535,9 +1535,10 @@ msgid ""
 "your query as a `CREATE TABLE AS` to prevent timeouts."
 msgstr "查询时间超过了设置的[{SQLLAB_TIMEOUT}]秒"
 
-###
-### views/dataset.py
-###
+
+#========================
+# views/dataset.py
+#========================
 msgid "Miss parameter [dataset_id] to query columns"
 msgstr "查询列时缺少参数[dataset_id]"
 
@@ -1567,3 +1568,25 @@ msgstr "路径[{path}]下没有文件"
 
 msgid "Fetched [{size}] bytes file, but still not a complete line"
 msgstr "下载了[{size}]字节的文件内容，仍然不是完整的一行"
+
+
+#========================
+# views/hdfs.py
+#========================
+msgid "Failed to login FileRobot"
+msgstr "登陆FileRobot失败"
+
+msgid "Success to login FileRobot"
+msgstr "登陆FileRobot成功"
+
+msgid "Success to logout FileRobot"
+msgstr "登出FileRobot失败"
+
+msgid "Miss password to login FileRobot"
+msgstr "需要密码登陆FileRobot"
+
+msgid "No HDFS connection, please create one"
+msgstr "不存在HDFS连接，请先创建一个"
+
+msgid "Failed to get FileRobot server from config"
+msgstr "从配置文件获取FileRobot服务地址失败"

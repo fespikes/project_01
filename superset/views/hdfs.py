@@ -245,7 +245,7 @@ class HDFSBrowser(BaseView):
             if not server:
                 raise SupersetException(NO_FILEROBOT_SERVER)
             if not password:
-                raise SupersetException(NEED_PASSWORD_FOR_FILEROBOT)
+                raise SupersetException(MISS_PASSWORD_FOR_FILEROBOT)
             conf = FileRobotConfiguartion()
             conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
             client = fileRobotClientFactory.getInstance(conf)

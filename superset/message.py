@@ -21,8 +21,15 @@ UPDATE_FAILED = _("Failed to update, may cased by unique restriction")
 DELETE_SUCCESS = _("Success to delete")
 DELETE_FAILED = _("Failed to delete")
 
-MISS_PASSWORD_FOR_GUARDIAN = _("Miss password to access guardian")
-MISS_PASSWORD_FOR_FILEROBOT = _("Miss password to login Filerobot")
+MISS_PASSWORD_FOR_GUARDIAN = _("Miss password to access Guardian")
 
 COLUMN_MISS_DATASET = _("Miss parameter [dataset_id] to query columns")
 METRIC_MISS_DATASET = _("Miss parameter [dataset_id] to query metrics")
+
+# filerobot
+LOGIN_FILEROBOT_FAILED = _("Failed to login FileRobot")
+LOGIN_FILEROBOT_SUCCESS = _("Success to login FileRobot")
+LOGOUT_FILEROBOT_SUCCESS = _("Success to logout FileRobot")
+MISS_PASSWORD_FOR_FILEROBOT = _("Miss password to login FileRobot")
+NO_HDFS_CONNECTION = _("No HDFS connection, please create one")
+NO_FILEROBOT_SERVER = _("Failed to get FileRobot server from config")
