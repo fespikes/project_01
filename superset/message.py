@@ -23,3 +23,6 @@ DELETE_FAILED = _("Failed to delete")
 
 MISS_PASSWORD_FOR_GUARDIAN = _("Miss password to access guardian")
 MISS_PASSWORD_FOR_FILEROBOT = _("Miss password to login Filerobot")
+
+COLUMN_MISS_DATASET = _("Miss parameter [dataset_id] to query columns")
+METRIC_MISS_DATASET = _("Miss parameter [dataset_id] to query metrics")

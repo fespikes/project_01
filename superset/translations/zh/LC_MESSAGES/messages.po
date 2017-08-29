@@ -1534,3 +1534,36 @@ msgid ""
 "The query exceeded the {SQLLAB_TIMEOUT} seconds timeout. You may want to run "
 "your query as a `CREATE TABLE AS` to prevent timeouts."
 msgstr "查询时间超过了设置的[{SQLLAB_TIMEOUT}]秒"
+
+###
+### views/dataset.py
+###
+msgid "Miss parameter [dataset_id] to query columns"
+msgstr "查询列时缺少参数[dataset_id]"
+
+msgid "Miss parameter [dataset_id] to query metrics"
+msgstr "查询度量时缺少参数[dataset_id]"
+
+msgid "Not found dataset by id [{id}]"
+msgstr "通过id[{id}]没有查询到数据集"
+
+msgid "Releasing dataset [{dataset}] will release connection [{connection}]"
+msgstr "上线数据集[{dataset}]会同时上线连接[{connection}]"
+
+msgid "Changing dataset {dataset} to offline will make these slices unusable: {slice}"
+msgstr "下线数据集{dataset}会使这些工作表不可用：{slice}"
+
+msgid "Deleting datasets {dataset} will make these slices unusable: {slice}"
+msgstr "删除数据集{dataset}会使这些工作表不可用：{slice}"
+
+msgid "Should not exist folder [{folder}] in selected path [{path}] to create external table'"
+msgstr "为了创建外表，路径[{path}]下不能存在文件夹[{folder}]"
+
+msgid "Error file type: [{type_}]"
+msgstr "错误的文件类型：[{type_}]"
+
+msgid "No files in selected path: [{path}]"
+msgstr "路径[{path}]下没有文件"
+
+msgid "Fetched [{size}] bytes file, but still not a complete line"
+msgstr "下载了[{size}]字节的文件内容，仍然不是完整的一行"
