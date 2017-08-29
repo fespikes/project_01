@@ -1386,13 +1386,13 @@ msgid "Success to add"
 msgstr "添加成功"
 
 msgid "Sailed to add, may cased by unique restriction"
-msgstr "添加失败，可能是因为SQL唯一限制"
+msgstr "添加失败，可能是因为同名了"
 
 msgid "Success to update"
 msgstr "修改成功"
 
 msgid "Failed to update, may cased by unique restriction"
-msgstr "修改失败，可能是因为SQL唯一限制"
+msgstr "修改失败，可能是因为同名了"
 
 msgid "Success to delete"
 msgstr "删除成功"
@@ -1431,7 +1431,56 @@ msgid "Class [{cls}] does not have the attribute [{attribute}]"
 msgstr "类[{cls}]没有属性[{attribute}]"
 
 msgid "The needed attribute [{attribute}] is not in attributes [{attributes}]"
-msgstr "[{attributes}]缺少需要的字段 [{attribute}]"
+msgstr "[{attributes}]缺少需要的字段[{attribute}]"
 
 msgid "Not found the object: model={model}, id={id}"
 msgstr "没有找到对象：类名={model}, id={id}"
+
+###
+###: views/connection.py
+###
+msgid "Error order column name: [{name}]"
+msgstr "错误的排序字段：[{name}]"
+
+msgid ""
+"Releasing inceptor connection {conn} will make these usable: "
+"\nDataset: {dataset}, \nSlice: {slice}"
+msgstr "上线Inceptor连接{conn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
+
+msgid ""
+"Changing inceptor connection {conn} to offline will make "
+"these unusable: \nDataset: {dataset}, \nSlice: {slice}"
+msgstr "下线Inceptor连接{conn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
+
+msgid ""
+"Deleting inceptor connection {conn} will make these unusable: "
+"\nDataset: {dataset}, \nSlice: {slice}"
+msgstr "删除Inceptor连接{conn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
+
+msgid "Error parameter ids: {ids}, queried {num} inceptor connection(s)"
+msgstr "根据参数ids：{ids}查询到{num}个Inceptor连接"
+
+msgid ""
+"Releasing hdfs connection {hconn} will make these usable: \n"
+"Dataset: {dataset},\nSlice: {slice}"
+msgstr "上线HDFS连接{hconn}会使以下对象可用：\n数据集：{dataset}，\n工作表：{slice}"
+
+msgid ""
+"Changing hdfs connection {hconn} to offline will make these unusable: \n"
+"Dataset: {dataset},\n Slice: {slice}"
+msgstr "下线HDFS连接{hconn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
+
+msgid ""
+"Deleting hdfs connection {hconn} will make these unusable: \n"
+"Dataset: {dataset},\nSlice: {slice}
+msgstr "删除HDFS连接{hconn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
+
+msgid "Error parameter ids: {ids}, queried {num} hdfs connection(s)"
+msgstr "根据参数ids：{ids}查询到{num}个HDFS连接"
+
+msgid ""
+"Deleting inceptor connections {dbs} and hdfs connections {hconns} will make these "
+"unusable: \nDataset: {dataset}, \nSlice: {slice}"
+msgstr ""
+"删除Inceptor连接{dbs}和HDFS连接{hconns}会使以下对象不可用：\n"
+"数据集：{dataset}，\n工作表：{slice}"
