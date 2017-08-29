@@ -4,7 +4,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from datetime import datetime
-import re
 import json
 import logging
 import traceback
@@ -12,6 +11,7 @@ from distutils.util import strtobool
 import functools
 
 from flask import g, request, Response
+from flask_babel import lazy_gettext as _
 from flask_babel.speaklater import LazyString
 from flask_appbuilder import ModelView, BaseView, expose
 from flask_appbuilder.security.sqla.models import User
@@ -74,7 +74,7 @@ def check_ownership(obj, raise_if_false=True):
         return False
 
     security_exception = utils.SupersetSecurityException(
-        _("You don't have the rights to update [{obj}]").format(obj))
+        _("You don't have the rights to update [{obj}]").format(obj=obj))
 
     if g.user.is_anonymous():
         if raise_if_false:

@@ -1484,3 +1484,53 @@ msgid ""
 msgstr ""
 "删除Inceptor连接{dbs}和HDFS连接{hconns}会使以下对象不可用：\n"
 "数据集：{dataset}，\n工作表：{slice}"
+
+
+###
+###: views/core.py
+###
+msgid "Error parameter ids: {ids}, queried {num} dashboard(s)"
+msgstr "根据参数ids：{ids}查询到{num}个仪表板"
+
+msgid "Releasing slice [{slice}] will release these too: \nDataset: [{dataset}], \nConnection: [{conn}]"
+msgstr "上线工作表[{slice}]会同时上线：\n数据集：[{dataset}]，\n连接：[{slice}]"
+
+msgid "Changing slice {slice} to offline will make it invisible in these dashboards: {dashboard}"
+msgstr "下线工作表{slice}会使其在以下仪表板中不可见：{dashboard}"
+
+msgid "Deleting slice {slice} will remove from these dashboards too: {dashboard}"
+msgstr "删除工作表{slice}会同时从以下仪表板中移除：{dashboard}"
+
+msgid "Error parameter ids: {ids}, queried {num} slice(s)"
+msgstr "根据参数ids：{ids}查询到{num}个工作表"
+
+msgid ""
+"Releasing dashboard [{dashboard}] will release these too: "
+"\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}"
+msgstr "上线仪表板[{dashboard}]会同时上线：\n工作表：{slice}，\n数据集：{dataset}，\n连接：{slice}"
+
+msgid "Changing dashboard [{dashboard}] to offline will make it invisible for other users"
+msgstr "下线仪表板[{dashboard}]会使其对其他用户不可见"
+
+msgid "Slice [{slice}] was added to dashboard [{dashboard}]"
+msgstr "工作表[{slice}]已被添加到仪表板[{dashboard}]"
+
+msgid "Dashboard [{dashboard}] just got created and slice [{slice}] was added to it"
+msgstr "成功创建仪表板[{dashboard}]，并且添加了工作表[{slice}]"
+
+msgid "Slice [{slice}] has been saved"
+msgstr "成功保存工作表[{slice}]"
+
+msgid "You cannot overwrite [{slice}]"
+msgstr "你没有权限修改工作表[{slice}]"
+
+msgid "Slice [{slice}] has been overwritten"
+msgstr "成功修改工作表[{slice}]"
+
+msgid "Test connection failed! \n{msg}"
+msgstr "测试连接失败：\n{msg}"
+
+msgid ""
+"The query exceeded the {SQLLAB_TIMEOUT} seconds timeout. You may want to run "
+"your query as a `CREATE TABLE AS` to prevent timeouts."
+msgstr "查询时间超过了设置的[{SQLLAB_TIMEOUT}]秒"
