@@ -102,11 +102,8 @@ class Main extends Component {
     //E:Path
 
     render() {
-        const {changePath, giveDetail, condition, emitFetch, fetchIfNeeded, popupChangeStatus, setSelectedRows} = this.props;
-
+        const {giveDetail, condition, emitFetch, setSelectedRows} = this.props;
         const editable = this.state.breadCrumbEditable;
-        //TODO: what does edit folder path mean here???
-
         const response = emitFetch.response;
 
         let count = 0,
@@ -159,55 +156,48 @@ class Main extends Component {
                 <div className="panel-top">
                     <div className="bread-crumb">
                         <span className="f16">路径:</span>
-                        { /*<textarea rows="1" contentEditable={editable}
-            className={(editable ? 'editing' : '') + ' f16'}
-            name="pathName"
-            onBlur={e => this.onPathBlur(e)}
-            onChange={e => this.onPathChange(e)}
-            value={breadCrumbText}
-            disabled={editable ? '' : 'disabled'}></textarea>*/ }
                         <span
-            className="anchor"
-            onClick={ag => this.navigation(ag)}
-            >{breadCrumbChildren}</span>
+                            className="anchor"
+                            onClick={ag => this.navigation(ag)}
+                        >{breadCrumbChildren}</span>
                         <input
-            id="breadCrumbText"
-            className="editing"
-            type="text"
-            value={breadCrumbText}
-            style={{
-                display: (editable ? 'inline-block' : 'none')
-            }}
-            onBlur={e => this.onPathBlur(e)}
-            onChange={e => this.onPathChange(e)}
-            autoComplete="off" />
+                            id="breadCrumbText"
+                            className="editing"
+                            type="text"
+                            value={breadCrumbText}
+                            style={{
+                                display: (editable ? 'inline-block' : 'none')
+                            }}
+                            onBlur={e => this.onPathBlur(e)}
+                            onChange={e => this.onPathChange(e)}
+                            autoComplete="off" />
                         <i
-            className="icon icon-edit ps-edit-icon"
-            onClick={() => this.breadCrumbEditable()} />
+                            className="icon icon-edit ps-edit-icon"
+                            onClick={() => this.breadCrumbEditable()} />
                     </div>
                     <div className="right">
                         <Operate
-            tableType={condition.tableType}
-            selectedRowKeys={condition.selectedRowKeys}
-            selectedRowNames={condition.selectedRowNames}
-            />
+                            tableType={condition.tableType}
+                            selectedRowKeys={condition.selectedRowKeys}
+                            selectedRowNames={condition.selectedRowNames}
+                        />
                     </div>
                 </div>
                 <div className="panel-middle">
                     <Table
-            {...response}
-            giveDetail={giveDetail}
-            condition={condition}
-            linkToPath={(e) => this.linkToPath(e)}
-            setSelectedRows={setSelectedRows}
-            />
+                        {...response}
+                        giveDetail={giveDetail}
+                        condition={condition}
+                        linkToPath={(e) => this.linkToPath(e)}
+                        setSelectedRows={setSelectedRows}
+                    />
                 </div>
                 <div className="panel-bottom">
                     <Pagination
-            count={count}
-            pageSize={condition.page_size}
-            pageNumber={condition.page_num}
-            />
+                        count={count}
+                        pageSize={condition.page_size}
+                        pageNumber={condition.page_num}
+                    />
                 </div>
             </div>
         );

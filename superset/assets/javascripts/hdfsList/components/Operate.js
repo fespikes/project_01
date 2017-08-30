@@ -71,8 +71,8 @@ class Operate extends React.Component {
 
     manipulate(ag) {
         const popupType = getPopupType(ag, manipulateOptions.concat(createOptions));
-        const {fetchOperation, popupNormalParam, setPopupNormalParams, setPermData, setPermMode, setHDFSPath, fetchHDFSList, condition, } = this.props;
-
+        const {fetchOperation, popupNormalParam, setPopupNormalParams, setPermData, setPermMode, setHDFSPath, fetchHDFSList, condition } = this.props;
+        console.log('condition.path=', condition.path);
         let obj = this.cleanNormalParamState(popupNormalParam);
 
         let normalPopupParam = {};
@@ -83,7 +83,6 @@ class Operate extends React.Component {
                 submit: fetchOperation,
                 status: 'flex'
             };
-            setPopupNormalParams(normalPopupParam);
             if (popupType === CONSTANT.auth) {
                 const permData = getPermData(condition.selectedRows);
                 const permMode = updatePermMode(permData);
@@ -92,7 +91,16 @@ class Operate extends React.Component {
                 setHDFSPath(condition.selectedRows[0].path);
             } else if (popupType === CONSTANT.copy || popupType === CONSTANT.move) {
                 fetchHDFSList('/', true);
+            } else if (popupType === CONSTANT.mkdir || popupType === CONSTANT.touch) {
+                normalPopupParam = {
+                    ...obj,
+                    path: condition.path,
+                    popupType: popupType,
+                    submit: fetchOperation,
+                    status: 'flex'
+                };
             }
+            setPopupNormalParams(normalPopupParam);
         } else {
             normalPopupParam = {
                 ...obj,
@@ -179,37 +187,39 @@ class Operate extends React.Component {
 
                 <ul className="icon-list">
                     <li
-            className="li-setting"
-            >
+                        className="li-setting"
+                    >
                         <OperationSelect
-            opeType="hdfsOperation"
-            iconClass="icon icon-setting ps"
-            options={manipulateOptions}
-            selectChange={(argus) => this.manipulate(argus)}
-            >
+                            opeType="hdfsOperation"
+                            iconClass="icon icon-setting ps"
+                            options={manipulateOptions}
+                            placeholder="编辑"
+                            selectChange={(argus) => this.manipulate(argus)}
+                        >
                         </OperationSelect>
                     </li>
                     <li
-            className="li-upload"
-            onClick={this.upload}
-            >
+                        className="li-upload"
+                        onClick={this.upload}
+                    >
                         <i className="icon icon-upload ps"/>上传
                     </li>
                     <li
-            className="li-plus"
-            >
+                        className="li-plus"
+                    >
                         <OperationSelect
-            opeType="addFolder"
-            iconClass="icon icon-plus ps"
-            options={createOptions}
-            selectChange={(argus) => this.manipulate(argus)}
-            >
+                            opeType="addFolder"
+                            iconClass="icon icon-plus ps"
+                            options={createOptions}
+                            placeholder="添加"
+                            selectChange={(argus) => this.manipulate(argus)}
+                        >
                         </OperationSelect>
                     </li>
                     <li
-            className="li-trash  bolder-right-none"
-            onClick={this.onRemove}
-            >
+                        className="li-trash  bolder-right-none"
+                        onClick={this.onRemove}
+                    >
                         <i className="icon icon-trash ps"/>删除
                     </li>
                 </ul>
@@ -217,10 +227,10 @@ class Operate extends React.Component {
                 marginRight: 0
             }}>
                     <input
-            onChange={this.searchOnChange}
-            ref="searchField"
-            className="tp-input"
-            placeholder="搜索..." />
+                        onChange={this.searchOnChange}
+                        ref="searchField"
+                        className="tp-input"
+                        placeholder="搜索..." />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"/>
                 </div>
             </div>

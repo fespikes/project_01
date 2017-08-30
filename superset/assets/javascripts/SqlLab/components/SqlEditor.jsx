@@ -149,7 +149,7 @@ class SqlEditor extends React.PureComponent {
     const editorTopBar = (
       <div className="sql-toolbar editor-top-bar clearfix">
         <div className="sql-toolbar-title">
-          <span>建立数据集</span>
+          <span>编辑SQL</span>
         </div>
         <div className="operation-button">
           <Form inline>

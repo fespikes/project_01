@@ -175,8 +175,15 @@
     }
 }
 
-.popup-modal-add-slice .modal-dialog .modal-body {
-    padding-bottom: 0 !important;
+.popup-modal-add-slice .modal-dialog .modal-content .modal-body {
+    padding-bottom: 0;
+}
+
+.popup-modal-SQL .modal-dialog .modal-content .modal-body {
+    padding: 20px;
+    pre {
+        padding: 20px;
+    }
 }
 
 .modal-dialog{

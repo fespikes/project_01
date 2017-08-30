@@ -118,7 +118,7 @@ class QuerySearch extends React.PureComponent {
 
     const url = this.insertParams(PILOT_PREFIX + 'search_queries', params);
     $.getJSON(url, (data, status) => {
-      if (status === 'success') {       
+      if (status === 'success') {
         this.setState({ queriesArray: data, queriesLoading: false });
       }
     });

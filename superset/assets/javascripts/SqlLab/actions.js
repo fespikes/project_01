@@ -119,9 +119,9 @@ export function runQuery(query) {
       url: sqlJsonUrl,
       data: sqlJsonRequest,
       success(results) {
-        if (!query.runAsync) {
+        //if (!query.runAsync) {
           dispatch(querySuccess(query, results));
-        }
+        //}
       },
       error(err, textStatus, errorThrown) {
         let msg;
