@@ -106,10 +106,10 @@ class SubPreview extends Component {
     }
 
     doConstructTableData(datasetType, data) {
-        let tbTitle=[], tbTitleOnly=[], tbContent=[], tbType=[], tbContentHDFS=[];
+        let tbTitle=[], tbType=[], tbContentHDFS=[];
         let width = datasetModule.getColumnWidth(data.columns.length);
-        tbTitleOnly = datasetModule.getTbTitle(data, width);
-        tbContent = datasetModule.getTbContent(data);
+        let tbTitleOnly = datasetModule.getTbTitle(data, width);
+        let tbContent = datasetModule.getTbContent(data);
         if(datasetType === 'INCEPTOR') {
             tbType = datasetModule.getTbType(data);
             tbTitle = datasetModule.getTbTitleInceptor(JSON.parse(JSON.stringify(tbTitleOnly)));
@@ -182,7 +182,6 @@ class SubPreview extends Component {
             function callback(success, data) {
                 let response = {};
                 if(success) {
-                    saveHDFSDataset({});
                     let url = '/' + opeType + '/columns/HDFS';
                     me.props.history.push(url);
                 }else {
@@ -197,8 +196,7 @@ class SubPreview extends Component {
             function callback(success, data) {
                 let response = {};
                 if(success) {
-                    saveHDFSDataset({});
-                    let url = '/' + opeType + '/columns/HDFS';
+                    let url = '/' + opeType + '/columns/HDFS/' + hdfsId;
                     me.props.history.push(url);
                 }else {
                     response.type = 'error';
