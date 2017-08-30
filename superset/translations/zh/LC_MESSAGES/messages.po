@@ -1270,7 +1270,7 @@ msgstr "工作表"
 msgid "SQL Lab"
 msgstr "SQL Lab"
 
-msgid "SQL Editer"
+msgid "SQL Editor"
 msgstr "SQL编辑器"
 
 msgid "HDFS Browser"
@@ -1597,7 +1597,7 @@ msgstr "测试连接失败，你可能需要修改该连接[{conn}]的帐号和�
 
 
 #========================
-# models/connection.py
+# models/dataset.py
 #========================
 msgid "Metric [{m}] is not valid"
 msgstr "无效的度量[{m}]"
