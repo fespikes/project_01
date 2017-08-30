@@ -158,6 +158,7 @@
 /*  overlay modal-dialog css start */
 .popup-modal-add-slice .modal-dialog {
     width: 900px;
+    padding-bottom: 0;
     .search-input{
         text-align: right;
         position:relative;
@@ -172,6 +173,10 @@
             right:15px;
         }
     }
+}
+
+.popup-modal-add-slice .modal-dialog .modal-body {
+    padding-bottom: 0 !important;
 }
 
 .modal-dialog{
