@@ -425,8 +425,9 @@ export function fetchDatabaseList(callback) {
 }
 
 export function fetchSchemaList(dbId, callback) {
-    return () => {
+    return (dispatch) => {
         const url = baseURL + 'schemas/' + dbId;
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
@@ -435,9 +436,11 @@ export function fetchSchemaList(dbId, callback) {
                 if(response.ok) {
                     response.json().then(response => {
                         callback(true, response);
+                        dispatch(switchFetchingState(false));
                     });
                 }else {
                     callback(false);
+                    dispatch(switchFetchingState(false));
                 }
             }
         );
@@ -518,8 +521,11 @@ export function createDataset(dataset, callback) {
         }).then(always).then(json).then(
             response => {
                 callbackHandler(response, callback);
-                dispatch(saveInceptorDataset(dataset));
                 dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(saveDatasetId(response.data.object_id));
+                    dispatch(saveInceptorDataset(dataset));
+                }
             }
         );
     }

@@ -164,19 +164,25 @@ class SliceTable extends React.Component {
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <i
-                                className="icon icon-edit"
-                                onClick={() => this.editConnection(record)}
-                            />
-                            <i
-                                style={{marginLeft: 20}}
-                                className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
-                                onClick={() => this.publishConnection(record)}
-                            />
-                            <i
-                                className="icon icon-delete"
-                                onClick={() => this.deleteConnection(record)}
-                            />
+                            <Tooltip placement="top" title="编辑" arrowPointAtCenter>
+                                <i
+                                    className="icon icon-edit"
+                                    onClick={() => this.editConnection(record)}
+                                />
+                            </Tooltip>
+                            <Tooltip placement="top" title="发布/下线" arrowPointAtCenter>
+                                <i
+                                    style={{marginLeft: 20}}
+                                    className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
+                                    onClick={() => this.publishConnection(record)}
+                                />
+                            </Tooltip>
+                            <Tooltip placement="top" title="删除" arrowPointAtCenter>
+                                <i
+                                    className="icon icon-delete"
+                                    onClick={() => this.deleteConnection(record)}
+                                />
+                            </Tooltip>
                         </div>
                     )
                 }

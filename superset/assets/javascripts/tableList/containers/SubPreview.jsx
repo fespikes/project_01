@@ -30,27 +30,31 @@ class SubPreview extends Component {
     }
 
     componentDidMount() {
-        const { datasetId, inceptorPreviewData } = this.props;
+        const { datasetId, inceptorPreviewData, dsHDFS } = this.props;
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
         if(datasetType === "INCEPTOR") {
             if(JSON.stringify(inceptorPreviewData) === "{}") {
-                this.doFetchInceptorPreviewData(datasetId);
+                if(datasetId && datasetId.length > 0) {
+                    this.doFetchInceptorPreviewData(datasetId);
+                }
             }else {
                 this.doConstructTableData(datasetType, inceptorPreviewData);
             }
-        }else if(datasetType === "HDFS" || datasetType === "UPLOAD FILE") {
-            this.doFetchHDFSPreviewData();
+        } else if(datasetType === "HDFS" || datasetType === "UPLOAD FILE") {
+            if(dsHDFS && dsHDFS.hdfsConnectId) {
+                this.doFetchHDFSPreviewData(dsHDFS);
+            }
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        const { datasetId } = this.props;
-        if(nextProps.datasetId !== datasetId && nextProps.datasetId) {
-            const datasetType = datasetModule.extractDatasetType(window.location.hash);
+
+        const datasetType = datasetModule.extractDatasetType(window.location.hash);
+        if(nextProps.datasetId !== this.props.datasetId && nextProps.datasetId) {
             if(datasetType === "INCEPTOR") {
                 this.doFetchInceptorPreviewData(nextProps.datasetId);
-            }else if(datasetType === "HDFS" || datasetType === "UPLOAD FILE") {
-                this.doFetchHDFSPreviewData();
+            } else if(datasetType === "HDFS" || datasetType === "UPLOAD FILE") {
+                this.doFetchHDFSPreviewData(nextProps.dsHDFS);
             }
         }
     }
@@ -87,10 +91,10 @@ class SubPreview extends Component {
         }
     }
 
-    doFetchHDFSPreviewData() {
+    doFetchHDFSPreviewData(dsHDFS) {
         const me = this;
         const {fetchHDFSPreviewData} = this.props;
-        fetchHDFSPreviewData(this.state.dsHDFS, callback);
+        fetchHDFSPreviewData(dsHDFS, callback);
         function callback(success, data) {
             if(success) {
                 let width = datasetModule.getTableWidth(data.columns.length);
@@ -182,7 +186,7 @@ class SubPreview extends Component {
             function callback(success, data) {
                 let response = {};
                 if(success) {
-                    let url = '/' + opeType + '/columns/HDFS';
+                    let url = '/' + opeType + '/columns/HDFS/';
                     me.props.history.push(url);
                 }else {
                     response.type = 'error';
@@ -208,7 +212,8 @@ class SubPreview extends Component {
     }
 
     previewHDFSDataset() {
-        this.doFetchHDFSPreviewData();
+        const dsHDFS = this.state.dsHDFS;
+        this.doFetchHDFSPreviewData(dsHDFS);
     }
 
     render() {
