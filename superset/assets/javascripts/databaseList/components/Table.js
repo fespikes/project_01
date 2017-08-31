@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { message, Table, Icon } from 'antd';
+import { message, Table, Icon, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
 import { fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection, fetchOnOfflineInfo,
     fetchConnectDelInfo } from '../actions';
