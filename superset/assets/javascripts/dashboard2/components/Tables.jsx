@@ -6,7 +6,7 @@ import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChang
     fetchDashbaordDelInfo } from '../actions';
 import { DashboardEdit, DashboardDelete } from '../popup';
 import { ConfirmModal } from '../../common/components';
-import { Table, message } from 'antd';
+import { Table, message, Tooltip } from 'antd';
 import 'antd/lib/table/style';
 
 class Tables extends React.Component {
@@ -189,10 +189,24 @@ class Tables extends React.Component {
             render: (record) => {
                 return (
                     <div className="icon-group">
-                        <i className="icon icon-edit" onClick={() => this.editDashboard(record)}/>
-                        <i className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
-                           onClick={() => this.publishDashboard(record)}/>
-                        <i className="icon icon-delete" onClick={() => this.deleteDashboard(record)}/>
+                        <Tooltip placement="top" title="编辑" arrowPointAtCenter>
+                            <i
+                                className="icon icon-edit"
+                                onClick={() => this.editDashboard(record)}
+                            />
+                        </Tooltip>
+                        <Tooltip placement="top" title="发布/下线" arrowPointAtCenter>
+                            <i
+                                className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
+                                onClick={() => this.publishDashboard(record)}
+                            />
+                        </Tooltip>
+                        <Tooltip placement="top" title="删除" arrowPointAtCenter>
+                            <i
+                                className="icon icon-delete"
+                                onClick={() => this.deleteDashboard(record)}
+                            />
+                        </Tooltip>
                     </div>
                 )
             }
