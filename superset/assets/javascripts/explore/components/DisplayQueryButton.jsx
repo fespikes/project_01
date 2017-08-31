@@ -14,8 +14,9 @@ export default function DisplayQueryButton({ query }) {
   return (
     <ModalTrigger
       isButton
-      triggerNode={<span>Query</span>}
+      triggerNode={<span>SQL</span>}
       modalTitle="Query"
+      className="popup-modal-SQL"
       modalBody={modalBody}
     />
   );

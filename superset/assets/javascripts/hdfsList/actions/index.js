@@ -232,11 +232,8 @@ function fetchMakedir() {
         const popupNormalParam = getState().popupNormalParam;
         const path = popupNormalParam.path;
         const dir_name = popupNormalParam.dir_name;
-
-        const URL = baseURL + `mkdir/?` +
-        (path ? ('path=' + path + '&') : '') +
-        (dir_name ? 'dir_name=' + dir_name : '');
-
+        const URL = baseURL + 'mkdir/?path=' + path + '&dir_name=' + dir_name;
+        dispatch(switchFetchingStatus(true));
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
@@ -253,11 +250,8 @@ function fetchMakeFile() {
         const popupNormalParam = getState().popupNormalParam;
         const path = popupNormalParam.path;
         const filename = popupNormalParam.filename;
-
-        const URL = baseURL + `touch/?` +
-        (path ? ('path=' + path + '&') : '') +
-        (filename ? 'filename=' + filename : '');
-
+        const URL = baseURL + 'touch/?path=' + path + '&filename=' + filename;
+        dispatch(switchFetchingStatus(true));
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'

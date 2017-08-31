@@ -8,6 +8,7 @@ export default function subDetail(state = {
     HDFSConnected: true,
     HDFSConfigured: false,
     datasetId: '',
+    inceptorPreviewData: {},
     dsHDFS: {
         dataset_name: '',
         description: '',
@@ -42,6 +43,9 @@ export default function subDetail(state = {
         case actionTypes.saveDatasetId:
             return {...state, datasetId: action.datasetId};
             break;
+        case actionTypes.saveInceptorPreviewData:
+            return {...state, inceptorPreviewData: action.inceptorPreviewData};
+            break;
         case actionTypes.saveInceptorDataset:
             return {...state, dsInceptor: action.dsInceptor};
             break;
@@ -51,9 +55,9 @@ export default function subDetail(state = {
         case actionTypes.switchFetchingState:
             return {...state, isFetching: action.isFetching};
             break;
-        //case REHYDRATE:
-        //    return {...state, ...action.payload.subDetail};
-        //    break;
+        case REHYDRATE:
+            return {...state, ...action.payload.subDetail};
+            break;
         case actionTypes.clearDatasetData:
             return {
                 ...state,

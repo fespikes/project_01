@@ -162,3 +162,24 @@ export function getPopupType(name, options) {
     });
     return popupType;
 }
+
+export function sortHDFSFiles(files) {
+
+    if(!files) {
+        return [];
+    }
+    files.map((file,index) => {
+        if(file.name === '.') {
+            files.splice(index, 1);
+            files.splice(0, 0, file)
+        }
+    });
+    files.map((file,index) => {
+        if(file.name === '..') {
+            files.splice(index, 1);
+            files.splice(0, 0, file)
+        }
+    });
+
+    return files;
+}

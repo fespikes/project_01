@@ -130,7 +130,7 @@ class SliceTable extends React.Component {
                 title: '名称',  //TODO: title need to i18n
                 key: 'slice_name',
                 dataIndex: 'slice_name',
-                width: '28%',
+                width: '25%',
                 render: (text, record) => {
                     return (
                         <div className="entity-name">
@@ -151,7 +151,7 @@ class SliceTable extends React.Component {
                 title: '图表类型',
                 dataIndex: 'viz_type',
                 key: 'viz_type',
-                width: '10%',
+                width: '13%',
                 sorter(a, b) {
                     return a.viz_type.substring(0, 1).charCodeAt() - b.viz_type.substring(0, 1).charCodeAt();
                 }

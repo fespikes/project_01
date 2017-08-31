@@ -91,7 +91,7 @@ class SliceOperate extends React.Component {
                     </button>
                 </div>
                 <div className="search-input">
-                    <input onKeyUp={this.onEnterSearch} onChange={this.onChange} className="tp-input" ref="searchField" placeholder="search..." />
+                    <input onKeyUp={this.onEnterSearch} onChange={this.onChange} className="tp-input" ref="searchField" placeholder="搜索..." />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"/>
                 </div>
             </div>

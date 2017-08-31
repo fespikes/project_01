@@ -60,9 +60,10 @@ table {
 }
 
 .table-add-slice {
-
+    padding-left: 20px;
+    padding-right: 20px;
     .ant-table-content .ant-table-body {
-        max-height: 500px;
+        max-height: 450px;
         overflow: auto;
     }
 }

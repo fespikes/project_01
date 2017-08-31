@@ -58,7 +58,7 @@ class OperationSelect extends React.Component {
 
     render () {
         const self = this;
-        const { options, opeType, iconClass } = self.props;
+        const { options, opeType, iconClass, placeholder } = self.props;
         let typeOptions = [];
         if(opeType === "addConnect") {
             typeOptions = options.map((opt, index) => {
@@ -94,7 +94,7 @@ class OperationSelect extends React.Component {
             <div className="common-select">
                 <div id={opeType} className="selection-toggle" onClick={this.onToggle}>
                     <i className={iconClass}/>
-                    <span>{this.state.selected || "请选择"}</span>
+                    <span>{this.state.selected ||  placeholder || "请选择"}</span>
                     <i className={this.state.opened?'icon icon-open-sign':'icon icon-close-sign'}/>
                 </div>
                 <div className={this.state.opened===true?'selection-section':'none'}>

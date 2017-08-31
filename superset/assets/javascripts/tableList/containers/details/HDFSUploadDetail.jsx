@@ -10,6 +10,9 @@ import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
 import { constructFileBrowserData, appendTreeChildren, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
 import { renderLoadingModal, renderAlertTip } from '../../../../utils/utils';
 
+const HDFS = "HDFS";
+const UPLOAD_FILE = "UPLOAD FILE";
+
 class HDFSUploadDetail extends Component {
 
     constructor (props) {
@@ -77,8 +80,13 @@ class HDFSUploadDetail extends Component {
             ...this.state.dsHDFS,
             hdfsPath: node.props.hdfs_path
         };
+        let disabled = 'disabled';
+        if(objHDFS.uploadFileName && objHDFS.uploadFileName.length > 0) {
+            disabled = null;
+        }
         this.setState({
-            dsHDFS: objHDFS
+            dsHDFS: objHDFS,
+            disabledUpload: disabled
         });
     }
 
@@ -116,7 +124,7 @@ class HDFSUploadDetail extends Component {
                 binaryFile: e.target.result
             };
             let disabled = 'disabled';
-            if(me.state.dsHDFS.hdfsPath.length > 0) {
+            if(me.state.dsHDFS.hdfsPath && me.state.dsHDFS.hdfsPath.length > 0) {
                 disabled = null;
             }
             me.setState({
@@ -127,13 +135,12 @@ class HDFSUploadDetail extends Component {
     }
 
     uploadFile() {//only upload one file
+        const me = this;
         if(this.state.dsHDFS.uploadFileName === '') {
-            let confirmPopup = render(
+            render(
                 <Confirm />,
-                document.getElementById('popup_root'));
-            if(confirmPopup) {
-                confirmPopup.showDialog();
-            }
+                document.getElementById('popup_root')
+            );
             return;
         }
         const { fetchUploadFile } = this.props;
@@ -145,13 +152,19 @@ class HDFSUploadDetail extends Component {
         );
         function callback(success) {
             let response = {};
+            let fileUploaded = false;
             if(success) {
                 response.type = 'success';
+                fileUploaded = true;
                 response.message = '上传成功';
             }else {
                 response.type = 'error';
+                fileUploaded = false;
                 response.message = '上传失败';
             }
+            me.setState({
+                fileUploaded: fileUploaded
+            });
             renderAlertTip(response, 'showAlertDetail');
         }
     }
@@ -165,6 +178,7 @@ class HDFSUploadDetail extends Component {
     }
 
     checkIfSubmit() {
+        const datasetType = extractDatasetType(window.location.hash);
         var fields = $(".hdfs-detail input[required]");
         let disabled = null;
 
@@ -174,6 +188,10 @@ class HDFSUploadDetail extends Component {
                 return;
             }
         });
+
+        if(datasetType === UPLOAD_FILE && !this.state.fileUploaded) {
+           disabled = 'disabled';
+        }
         if(disabled === this.state.disabledConfig) {
             return;
         }
@@ -188,7 +206,7 @@ class HDFSUploadDetail extends Component {
 
     componentDidMount() {
         const datasetType = extractDatasetType(window.location.hash);
-        if(datasetType === "HDFS" || datasetType === "UPLOAD FILE") {
+        if(datasetType === HDFS || datasetType === UPLOAD_FILE) {
             this.doFetchInceptorList();
             this.doFetchHDFSList();
             this.doFetchHDFSFileData('/');
@@ -272,7 +290,7 @@ class HDFSUploadDetail extends Component {
                             inceptorConnectId: dbData.id
                         };
                         me.setState({
-                            dsHDFS: initDatasetData('HDFS', data, objHDFS)
+                            dsHDFS: initDatasetData(HDFS, data, objHDFS)
                         });
                     }
                 }
@@ -284,7 +302,7 @@ class HDFSUploadDetail extends Component {
                             hdfsConnectId: hdfsData.id
                         };
                         me.setState({
-                            dsHDFS: initDatasetData('HDFS', data, objHDFS)
+                            dsHDFS: initDatasetData(HDFS, data, objHDFS)
                         });
                     }
                 }
@@ -320,7 +338,7 @@ class HDFSUploadDetail extends Component {
                     <textarea name="description" value={dsHDFS.description} className="tp-textarea"
                           required="required" onChange={this.handleChange}/>
                 </div>
-                <div className={datasetType==='UPLOAD FILE'?'data-detail-item':'none'}>
+                <div className={datasetType===UPLOAD_FILE?'data-detail-item':'none'}>
                     <span></span>
                     <div>
                         <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
@@ -393,7 +411,7 @@ class HDFSUploadDetail extends Component {
                     <input type="hidden" required="required" value={dsHDFS.inceptorConnectName}/>
                 </div>
                 <div className="sub-btn">
-                    <button className={datasetType==='UPLOAD FILE'?'':'none'} onClick={this.uploadFile}
+                    <button className={datasetType===UPLOAD_FILE?'':'none'} onClick={this.uploadFile}
                             style={{marginRight: 20}} disabled={this.state.disabledUpload}>
                         上传文件
                     </button>

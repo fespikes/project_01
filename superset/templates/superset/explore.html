@@ -57,7 +57,7 @@
                     <span>数据来源</span>
                     <div class="radio-item">
                         <input type="radio" id="existed_dataset_radio" name="optionsRadios" value="datasource">
-                        <span>已建数据集</span>
+                        <span>数据集</span>
                     </div>
                     <div class="radio-item">
                         <input type="radio" id="original_table_radio" name="optionsRadios" value="sourcetable">
@@ -317,7 +317,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 20px">
               {% if slice %}
                 <input
                     type="radio"
@@ -345,13 +345,13 @@
               <input type="hidden" id="save_as_full_tb_name" name="full_tb_name" value="">
             </div>
             <div class="modal-footer">
-              <button type="button" id="btn_modal_save" class="btn pull-left">
+              <button type="button" id="btn_modal_save" class="tp-btn tp-btn-small tp-btn-grey">
                 {{ _("Save") }}
               </button>
-              <button type="button" id="btn_modal_save_goto_dash" class="btn btn-primary pull-left gotodash" disabled>
+              <button type="button" id="btn_modal_save_goto_dash" class="tp-btn tp-btn-middle tp-btn-primary" style="margin: 0 15px" disabled>
                 保存并跳转
               </button>
-              <button type="button" class="btn btn-default pull-right" data-dismiss="modal">
+              <button type="button" class="tp-btn tp-btn-small tp-btn-white" data-dismiss="modal">
                 {{ _("Cancel") }}
               </button>
             </div>

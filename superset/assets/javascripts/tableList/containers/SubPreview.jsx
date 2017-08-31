@@ -30,17 +30,21 @@ class SubPreview extends Component {
     }
 
     componentDidMount() {
-        const { datasetId } = this.props;
+        const { datasetId, inceptorPreviewData } = this.props;
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
         if(datasetType === "INCEPTOR") {
-            this.doFetchInceptorPreviewData(datasetId);
+            if(JSON.stringify(inceptorPreviewData) === "{}") {
+                this.doFetchInceptorPreviewData(datasetId);
+            }else {
+                this.doConstructTableData(datasetType, inceptorPreviewData);
+            }
         }else if(datasetType === "HDFS" || datasetType === "UPLOAD FILE") {
             this.doFetchHDFSPreviewData();
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        const { datasetId, isFetching } = this.props;
+        const { datasetId } = this.props;
         if(nextProps.datasetId !== datasetId && nextProps.datasetId) {
             const datasetType = datasetModule.extractDatasetType(window.location.hash);
             if(datasetType === "INCEPTOR") {
@@ -66,11 +70,12 @@ class SubPreview extends Component {
 
     doFetchInceptorPreviewData(datasetId) {
         const me = this;
-        const {fetchInceptorPreviewData} = this.props;
+        const {fetchInceptorPreviewData, saveInceptorPreviewData} = this.props;
         fetchInceptorPreviewData(datasetId, callback);
         function callback(success, data) {
             if(success) {
                 let width = datasetModule.getTableWidth(data.columns.length);
+                saveInceptorPreviewData(data);
                 me.setState({
                     tableWidth: width,
                     data: data
@@ -85,7 +90,6 @@ class SubPreview extends Component {
     doFetchHDFSPreviewData() {
         const me = this;
         const {fetchHDFSPreviewData} = this.props;
-        console.log('this.state.dsHDFS=', this.state.dsHDFS);
         fetchHDFSPreviewData(this.state.dsHDFS, callback);
         function callback(success, data) {
             if(success) {
@@ -102,14 +106,14 @@ class SubPreview extends Component {
     }
 
     doConstructTableData(datasetType, data) {
-        let tbTitle=[], tbTitleOnly=[], tbContent=[], tbType=[], tbContentHDFS=[];
+        let tbTitle=[], tbType=[], tbContentHDFS=[];
         let width = datasetModule.getColumnWidth(data.columns.length);
-        tbTitleOnly = datasetModule.getTbTitle(data, width);
-        tbContent = datasetModule.getTbContent(data);
+        let tbTitleOnly = datasetModule.getTbTitle(data, width);
+        let tbContent = datasetModule.getTbContent(data);
         if(datasetType === 'INCEPTOR') {
             tbType = datasetModule.getTbType(data);
             tbTitle = datasetModule.getTbTitleInceptor(JSON.parse(JSON.stringify(tbTitleOnly)));
-        }else if(datasetType === 'HDFS') {
+        }else if(datasetType === 'HDFS' || datasetType === "UPLOAD FILE") {
             tbTitle = datasetModule.getTbTitleHDFS(JSON.parse(JSON.stringify(tbTitleOnly)), this);
             tbContentHDFS = [{
                 key: '1'
@@ -178,7 +182,6 @@ class SubPreview extends Component {
             function callback(success, data) {
                 let response = {};
                 if(success) {
-                    saveHDFSDataset({});
                     let url = '/' + opeType + '/columns/HDFS';
                     me.props.history.push(url);
                 }else {
@@ -193,8 +196,7 @@ class SubPreview extends Component {
             function callback(success, data) {
                 let response = {};
                 if(success) {
-                    saveHDFSDataset({});
-                    let url = '/' + opeType + '/columns/HDFS';
+                    let url = '/' + opeType + '/columns/HDFS/' + hdfsId;
                     me.props.history.push(url);
                 }else {
                     response.type = 'error';
@@ -226,7 +228,7 @@ class SubPreview extends Component {
                             pagination={false}
                         />
                     </div>
-                    <div className={datasetType==='HDFS'?'table-header':'none'} style={{width: tableWidth}}>
+                    <div className={(datasetType==='HDFS' || datasetType==='UPLOAD FILE')?'table-header':'none'} style={{width: tableWidth}}>
                         <Table
                             columns={this.state.tbTitle}
                             dataSource={this.state.tbContentHDFS}
@@ -315,7 +317,8 @@ function mapStateToProps (state) {
     return {
         datasetId: subDetail.datasetId,
         dsHDFS: subDetail.dsHDFS,
-        isFetching: subDetail.isFetching
+        isFetching: subDetail.isFetching,
+        inceptorPreviewData: subDetail.inceptorPreviewData
     };
 }
 
@@ -326,6 +329,7 @@ function mapDispatchToProps (dispatch) {
         createDataset,
         editDataset,
         saveHDFSDataset,
+        saveInceptorPreviewData,
         fetchInceptorPreviewData,
         fetchHDFSPreviewData
     } = bindActionCreators(actionCreators, dispatch);
@@ -334,6 +338,7 @@ function mapDispatchToProps (dispatch) {
         createDataset,
         editDataset,
         saveHDFSDataset,
+        saveInceptorPreviewData,
         fetchInceptorPreviewData,
         fetchHDFSPreviewData
     };

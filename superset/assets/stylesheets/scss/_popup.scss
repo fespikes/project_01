@@ -97,7 +97,7 @@
             .dialog-area{
 
                 width:100%;
-                height:79px;
+                height:80px;
             }
 
             .after-textarea-icon {
@@ -158,9 +158,11 @@
 /*  overlay modal-dialog css start */
 .popup-modal-add-slice .modal-dialog {
     width: 900px;
+    padding-bottom: 0;
     .search-input{
         text-align: right;
         position:relative;
+        margin-bottom: 10px;
         input {
             width:243px;
             height:30px;
@@ -170,6 +172,17 @@
             top:10px;
             right:15px;
         }
+    }
+}
+
+.popup-modal-add-slice .modal-dialog .modal-content .modal-body {
+    padding-bottom: 0;
+}
+
+.popup-modal-SQL .modal-dialog .modal-content .modal-body {
+    padding: 20px;
+    pre {
+        padding: 20px;
     }
 }
 
@@ -211,7 +224,7 @@
                     width: 420px;
                     .dialog-area{
                         width:100%;
-                        height:79px;
+                        height:80px;
                     }
                 }
             }

@@ -24,6 +24,7 @@ export const actionTypes = {
     switchFetchingState: 'SWITCH_FETCHING_STATE',
 
     saveDatasetId: 'SAVE_DATASET_ID',
+    saveInceptorPreviewData: 'SAVE_INCEPTOR_PREVIEW_DATA',
     saveHDFSDataset: 'SAVE_HDFS_DATASET',
     saveInceptorDataset: 'SAVE_INCEPTOR_DATASET',
 
@@ -491,22 +492,18 @@ export function fetchHDFSFileBrowser(path, callback) {
 
 export function fetchUploadFile(data, fileName, path, callback) {
     const url = window.location.origin + '/hdfs/upload/?dest_path=' + path + '&file_name=' + fileName;
-    return () => {
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: 'include',
             method: "POST",
             body: data
-        }).then(response => {
-            if(response.ok) {
-                response.json().then(
-                    () => {
-                        callback(true);
-                    }
-                )
-            }else {
-                callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
-        });
+        );
     }
 }
 
@@ -542,6 +539,13 @@ export function editDataset(dataset, id, callback) {
                 callbackHandler(response, callback);
             }
         );
+    }
+}
+
+export function saveInceptorPreviewData(data) {
+    return {
+        type: actionTypes.saveInceptorPreviewData,
+        inceptorPreviewData: data
     }
 }
 

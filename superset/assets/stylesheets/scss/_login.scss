@@ -71,7 +71,13 @@
             height: 36px;
             margin-bottom: 40px;
             border-radius: $borderRadius;
+            border: none;
+            outline: none;
             background-color: rgb(39, 156, 242);
+            &:hover, &:focus, &:active {
+                border: none;
+                outline: none;
+            }
         }
         .copyright {
             margin-top: 30px;

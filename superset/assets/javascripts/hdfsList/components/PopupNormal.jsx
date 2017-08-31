@@ -186,7 +186,7 @@ class Popup extends React.Component {
                         <div id="hdfs-tree-select" className="hdfs-tree-select"></div>
                         <div className="dialog-item">
                             <div className="item-left">
-                                <span>请选择:</span>
+                                <span>移动至:</span>
                             </div>
                             <div className="item-right">
                                 <div id="edit_pop_select">
@@ -197,20 +197,6 @@ class Popup extends React.Component {
                                         setPopupNormalParams={setPopupNormalParams}
                                     />
                                 </div>
-                            </div>
-                        </div>
-                        <div className="dialog-item">
-                            <div className="item-left">
-                                <span>移动至:</span>
-                            </div>
-                            <div className="item-right">
-                                <input
-                                    type="text"
-                                    disabled="disabled"
-                                    required="required"
-                                    value={dest_path}
-                                    className="tp-input dialog-input"
-                                />
                             </div>
                         </div>
                     </div>
@@ -225,7 +211,7 @@ class Popup extends React.Component {
                         <div id="hdfs-tree-select" className="hdfs-tree-select"></div>
                         <div className="dialog-item">
                             <div className="item-left">
-                                <span>请选择:</span>
+                                <span>复制至:</span>
                             </div>
                             <div className="item-right">
                                 <div id="edit_pop_select">
@@ -236,20 +222,6 @@ class Popup extends React.Component {
                                         setPopupNormalParams={setPopupNormalParams}
                                     />
                                 </div>
-                            </div>
-                        </div>
-                        <div className="dialog-item">
-                            <div className="item-left">
-                                <span>复制至:</span>
-                            </div>
-                            <div className="item-right">
-                                <input
-                                    type="text"
-                                    disabled="disabled"
-                                    required="required"
-                                    value={dest_path}
-                                    className="tp-input dialog-input"
-                                />
                             </div>
                         </div>
                     </div>
@@ -325,21 +297,6 @@ class Popup extends React.Component {
                     return <div className="popup-body">
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>目录名称：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <input
-                                            required="required"
-                                            type="text"
-                                            value={path}
-                                            name="path"
-                                            onChange={this.onInputChange}
-                                            className="tp-input dialog-input"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="dialog-item">
-                                    <div className="item-left">
                                         <span>文件夹名称：</span>
                                     </div>
                                     <div className="item-right">
@@ -359,21 +316,6 @@ class Popup extends React.Component {
                     return <div className="popup-body">
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>目录名称：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <input
-                                            required="required"
-                                            type="text"
-                                            value={path}
-                                            name="path"
-                                            onChange={this.onInputChange}
-                                            className="tp-input dialog-input"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="dialog-item">
-                                    <div className="item-left">
                                         <span>文件名称：</span>
                                     </div>
                                     <div className="item-right">
@@ -383,6 +325,7 @@ class Popup extends React.Component {
                                             value={filename}
                                             name="filename"
                                             onChange={this.onInputChange}
+                                            className="tp-input dialog-input"
                                         />
                                     </div>
                                 </div>
