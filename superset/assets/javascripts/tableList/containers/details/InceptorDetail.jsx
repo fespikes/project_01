@@ -240,14 +240,11 @@ class InceptorDetail extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        const { isFetching } = this.props;
-        if(isFetching !== nextProps.isFetching) {
-            const loadingModal = renderLoadingModal();
-            if(nextProps.isFetching) {
-                loadingModal.show();
-            }else {
-                loadingModal.hide();
-            }
+        if(nextProps.dsInceptor.dataset_name &&
+            nextProps.dsInceptor.dataset_name !== this.props.dsInceptor.dataset_name) {
+            this.setState({
+                dsInceptor: nextProps.dsInceptor
+            });
         }
     };
 
@@ -264,13 +261,24 @@ class InceptorDetail extends Component {
             <div className="inceptor-detail">
                 <div className="data-detail-item">
                     <span>数据集名称：</span>
-                    <input type="text" name="dataset_name" className="tp-input" value={dsInceptor.dataset_name}
-                          required="required" onChange={this.handleChange}/>
+                    <input
+                        type="text"
+                        name="dataset_name"
+                        className="tp-input"
+                        value={dsInceptor.dataset_name}
+                        required="required"
+                        onChange={this.handleChange}
+                    />
                 </div>
                 <div className="data-detail-item">
                     <span>描述：</span>
-                    <textarea name="description" className="tp-textarea" value={dsInceptor.description}
-                          required="required" onChange={this.handleChange}/>
+                    <textarea
+                        name="description"
+                        className="tp-textarea"
+                        value={dsInceptor.description}
+                        required="required"
+                        onChange={this.handleChange}
+                    />
                 </div>
                 <div className="data-detail-item">
                     <span>选择连接：</span>
@@ -282,9 +290,13 @@ class InceptorDetail extends Component {
                         {dbOptions}
                     </Select>
                     <div className="connect-success">
-                        &nbsp;<button onClick={this.createInceptorConnect}>新建连接</button>
+                        <button onClick={this.createInceptorConnect}>新建连接</button>
                     </div>
-                    <input type="hidden" required="required" value={dsInceptor.db_name}/>
+                    <input
+                        type="hidden"
+                        required="required"
+                        value={dsInceptor.db_name}
+                    />
                 </div>
                 <div className="data-detail-item">
                     <span>选择表：</span>
@@ -302,12 +314,22 @@ class InceptorDetail extends Component {
                     <Tooltip title="选择表">
                         <i className="icon icon-info"/>
                     </Tooltip>
-                    <input type="hidden" required="required" value={dsInceptor.table_name}/>
+                    <input
+                        type="hidden"
+                        required="required"
+                        value={dsInceptor.table_name}
+                    />
                 </div>
                 <div className="data-detail-item">
                     <span>SQL：</span>
-                    <textarea className="tp-textarea" cols="30" rows="10" value={dsInceptor.sql}
-                              name="sql" onChange={this.handleChange}/>
+                    <textarea
+                        className="tp-textarea"
+                        cols="30"
+                        rows="10"
+                        value={dsInceptor.sql}
+                        name="sql"
+                        onChange={this.handleChange}
+                    />
                     <a href={ window.location.origin + PILOT_PREFIX + 'sqllab' } target="_blank">
                         切换至SQL LAB编辑
                     </a>

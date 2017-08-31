@@ -12,6 +12,7 @@ export default function subDetail(state = {
     dsHDFS: {
         dataset_name: '',
         description: '',
+        hdfsConnectId: '',
         hdfsConnectName: '',
         inceptorConnectName: '',
         hdfsPath: '',

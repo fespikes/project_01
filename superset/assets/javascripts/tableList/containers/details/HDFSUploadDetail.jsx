@@ -216,6 +216,15 @@ class HDFSUploadDetail extends Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        if(nextProps.dsHDFS.dataset_name &&
+            nextProps.dsHDFS.dataset_name !== this.props.dsHDFS.dataset_name) {
+            this.setState({
+                dsHDFS: nextProps.dsHDFS
+            });
+        }
+    };
+
     doFetchInceptorList() {
         const me = this;
         const { fetchInceptorConnectList } = me.props;
@@ -312,8 +321,7 @@ class HDFSUploadDetail extends Component {
 
     render () {
         const dsHDFS = this.state.dsHDFS;
-        const {HDFSConnected, datasetType, datasetId} = this.props;
-        const opeType = extractOpeType(window.location.hash);
+        const {HDFSConnected, datasetType} = this.props;
         const Option = Select.Option;
         let hdfsOptions = [], inceptorOptions = [];
         if(this.state.dsHDFS.hdfsConnections) {
@@ -330,13 +338,24 @@ class HDFSUploadDetail extends Component {
             <div className="data-detail-centent hdfs-detail">
                 <div className="data-detail-item">
                     <span>数据集名称：</span>
-                    <input type="text" name="dataset_name" className="tp-input" value={dsHDFS.dataset_name}
-                           required="required" onChange={this.handleChange}/>
+                    <input
+                        type="text"
+                        name="dataset_name"
+                        className="tp-input"
+                        value={dsHDFS.dataset_name}
+                        required="required"
+                        onChange={this.handleChange}
+                    />
                 </div>
                 <div className="data-detail-item">
                     <span>描述：</span>
-                    <textarea name="description" value={dsHDFS.description} className="tp-textarea"
-                          required="required" onChange={this.handleChange}/>
+                    <textarea
+                        name="description"
+                        value={dsHDFS.description || ''}
+                        className="tp-textarea"
+                        required="required"
+                        onChange={this.handleChange}
+                    />
                 </div>
                 <div className={datasetType===UPLOAD_FILE?'data-detail-item':'none'}>
                     <span></span>
@@ -349,8 +368,13 @@ class HDFSUploadDetail extends Component {
                             <span ref="fileName">{dsHDFS.uploadFileName}</span>
                         </div>
                         <div className="file-upload" style={{display: 'none'}}>
-                            <input type="file" id="xFile" className="file-select" onChange={this.handleFile}
-                                   ref="fileSelect"/>
+                            <input
+                                type="file"
+                                id="xFile"
+                                className="file-select"
+                                onChange={this.handleFile}
+                                ref="fileSelect"
+                            />
                         </div>
                     </div>
                 </div>
@@ -364,7 +388,7 @@ class HDFSUploadDetail extends Component {
                     </div>
                     <div className="data-detail-item">
                         <span>描述：</span>
-                        <textarea className="tp-textarea" name="" id="" cols="30" rows="10"/>
+                        <textarea className="tp-textarea" cols="30" rows="10"/>
                     </div>
                 </div>
                 <div className={HDFSConnected===true?'':'none'}>
@@ -377,7 +401,11 @@ class HDFSUploadDetail extends Component {
                         >
                             {hdfsOptions}
                         </Select>
-                        <input type="hidden" required="required" value={dsHDFS.hdfsConnectName}/>
+                        <input
+                            type="hidden"
+                            required="required"
+                            value={dsHDFS.hdfsConnectName}
+                        />
                     </div>
                 </div>
                 <div className="data-detail-item">
@@ -408,11 +436,19 @@ class HDFSUploadDetail extends Component {
                     >
                         {inceptorOptions}
                     </Select>
-                    <input type="hidden" required="required" value={dsHDFS.inceptorConnectName}/>
+                    <input
+                        type="hidden"
+                        required="required"
+                        value={dsHDFS.inceptorConnectName}
+                    />
                 </div>
                 <div className="sub-btn">
-                    <button className={datasetType===UPLOAD_FILE?'':'none'} onClick={this.uploadFile}
-                            style={{marginRight: 20}} disabled={this.state.disabledUpload}>
+                    <button
+                        className={datasetType===UPLOAD_FILE?'':'none'}
+                        onClick={this.uploadFile}
+                        style={{marginRight: 20}}
+                        disabled={this.state.disabledUpload}
+                    >
                         上传文件
                     </button>
                     <button onClick={this.onConfig}
