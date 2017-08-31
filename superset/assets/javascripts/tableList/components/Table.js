@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
-import { message, Table, Icon } from 'antd';
+import { message, Table, Icon, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
 import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable, fetchOnOfflineInfo, fetchTableDelInfo } from '../actions';
 import { TableDelete } from '../popup';
