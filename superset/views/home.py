@@ -7,6 +7,7 @@ from datetime import timedelta, date
 import json
 import re
 from flask import g, request, redirect, Response
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import func, and_, or_
@@ -72,7 +73,7 @@ class Home(BaseSupersetView):
             model = str_to_model[type_.lower()]
         except KeyError:
             self.status = 400 if str(self.status)[0] < '4' else self.status
-            self.message.append('{}: {}'.format(ERROR_CLASS_TYPE, type_))
+            self.message.append(_("Error model type: [{type_}]").format(type_=type_))
             return False, None
         else:
             return True, model
@@ -346,8 +347,10 @@ class Home(BaseSupersetView):
 
         if len(types) < 1 or page_size < 0:
             self.status = 401 if str(self.status)[0] < '4' else self.status
-            self.message.append('{}: {},{} are passed to {}'
-                                .format(ERROR_REQUEST_PARAM, types, page_size, 'get_user_actions()'))
+            self.message.append(_("Error request parameters: [{params}]")
+                                .format(params={'types': types,
+                                                'page_size': page_size})
+                                )
             return {}
 
         query = (
@@ -415,7 +418,8 @@ class Home(BaseSupersetView):
         kwargs['types'] = request.args.get('types', self.default_types.get('actions'))
 
         if not isinstance(kwargs['types'], list) or len(kwargs['types']) < 1:
-            message_ = '{}: {} '.format(ERROR_REQUEST_PARAM, request.args)
+            message_ = _("Error request parameters: [{params}]")\
+                .format(params=request.args)
             return Response(json.dumps(message_),
                             status=400,
                             mimetype='application/json')

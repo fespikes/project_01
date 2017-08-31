@@ -13,6 +13,7 @@ import zlib
 from datetime import datetime, timedelta
 
 from flask import g, request, redirect, flash, Response, render_template
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
@@ -98,7 +99,8 @@ class SliceModelView(SupersetModelView):  # noqa
         objs = db.session.query(Dashboard) \
             .filter(Dashboard.id.in_(ids)).all()
         if len(ids) != len(objs):
-            msg = "Some dashboards are not found by ids: {}".format(ids)
+            msg = _("Error parameter ids: {ids}, queried {num} dashboard(s)")\
+                .format(ids=ids, num=len(objs))
             self.handle_exception(404, Exception, msg)
         return objs
 
@@ -130,29 +132,31 @@ class SliceModelView(SupersetModelView):  # noqa
         slice = db.session.query(Slice).filter_by(id=id).first()
         if not slice:
             raise SupersetException(
-                '{}: Slice.id={}'.format(OBJECT_NOT_FOUND, id))
+                _('Error parameter ids: {ids}, queried {num} slice(s)')
+                    .format(ids=[id, ], num=0)
+            )
         dataset = slice.datasource
         conn = dataset.database if dataset else None
-        info = "Releasing slice [{}] will release all associated objects too:\n" \
-               "Dataset: [{}],\n" \
-               "Connection: [{}].".format(slice, dataset, conn)
+        info = _("Releasing slice [{slice}] will release these too: "
+               "\nDataset: [{dataset}], \nConnection: [{conn}]")\
+            .format(slice=slice, dataset=dataset, conn=conn)
         return json_response(data=info)
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         objects = self.associated_objects([id, ])
-        info = "Changing slice {} to offline will make it invisible " \
-               "in these dashboards: {}"\
-            .format(objects.get('slice'), objects.get('dashboard'))
+        info = _("Changing slice {slice} to offline will make it invisible "
+               "in these dashboards: {dashboard}")\
+            .format(slice=objects.get('slice'), dashboard=objects.get('dashboard'))
         return json_response(data=info)
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         objects = self.associated_objects([id, ])
-        info = "Deleting slice [{}] will remove it from these dashboards: {}"\
-            .format(objects.get('slice'), objects.get('dashboard'))
+        info = _("Deleting slice {slice} will remove from these dashboards too: {dashboard}")\
+            .format(slice=objects.get('slice'), dashboard=objects.get('dashboard'))
         return json_response(data=info)
 
     @catch_exception
@@ -164,15 +168,17 @@ class SliceModelView(SupersetModelView):  # noqa
 
         dashs = [d.dashboard_title for d in objects.get('dashboard')]
         dashs = list(set(dashs))
-        info = "Deleting slices {} will remove it from these and others' offline " \
-               "dashboards: {}" \
-            .format(objects.get('slice'), dashs)
+        info = _("Deleting slice {slice} will remove from these dashboards too: {dashboard}") \
+            .format(slice=objects.get('slice'), dashboard=dashs)
         return json_response(data=info)
 
     def associated_objects(self, ids):
         slices = db.session.query(Slice).filter(Slice.id.in_(ids)).all()
         if len(slices) != len(ids):
-            raise SupersetException('Not found all slices by ids: {}'.format(ids))
+            raise SupersetException(
+                _('Error parameter ids: {ids}, queried {num} slice(s)')
+                    .format(ids=ids, num=len(slices))
+            )
         dashs = []
         user_id = get_user_id()
         for s in slices:
@@ -249,7 +255,7 @@ class SliceModelView(SupersetModelView):  # noqa
                     line[col] = getattr(obj, col, None)
 
             viz_type = line.get('viz_type', None)
-            line['viz_type'] = viz.viz_type_to_cn(viz_type) if viz_type else viz_type
+            line['viz_type'] = str(_(viz_type)) if viz_type else viz_type
             line['explore_url'] = obj.datasource.explore_url \
                 if obj.datasource else None
             if not obj.datasource and obj.full_table_name:
@@ -358,7 +364,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             try:
                 column = self.str_to_column.get(order_column)
             except KeyError:
-                msg = 'Error order column name: \'{}\''.format(order_column)
+                msg = _('Error order column name: [{name}]').format(name=order_column)
                 self.handle_exception(404, KeyError, msg)
             else:
                 if order_direction == 'desc':
@@ -414,7 +420,8 @@ class DashboardModelView(SupersetModelView):  # noqa
         objs = db.session.query(Slice) \
             .filter(Slice.id.in_(ids)).all()
         if len(ids) != len(objs):
-            msg = "Some slices are not found by ids: {}".format(ids)
+            msg = _("Error parameter ids: {ids}, queried {num} slice(s)")\
+                .format(ids=ids, num=len(objs))
             self.handle_exception(404, Exception, msg)
         return objs
 
@@ -424,14 +431,18 @@ class DashboardModelView(SupersetModelView):  # noqa
         dash = db.session.query(Dashboard).filter_by(id=id).first()
         if not dash:
             raise SupersetException(
-                '{}: Dashboard.id={}'.format(OBJECT_NOT_FOUND, id))
+                _("Error parameter ids: {ids}, queried {num} dashboard(s)")
+                    .format(ids=[id, ], num=0)
+            )
         slices = dash.slices
         dataset = list(set([s.datasource for s in slices]))
         conns = list(set([d.database for d in dataset]))
-        info = "Releasing dashboard [{}] will release all associated objects too:\n" \
-               "Slice: {},\n" \
-               "Dataset: {},\n" \
-               "Connection: {}.".format(dash.dashboard_title, slices, dataset, conns)
+        info = _("Releasing dashboard [{dashboard}] will release these too: "
+               "\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}")\
+            .format(dashboard=dash.dashboard_title,
+                    slice=slices,
+                    dataset=dataset,
+                    connection=conns)
         return json_response(data=info)
 
     @catch_exception
@@ -440,9 +451,11 @@ class DashboardModelView(SupersetModelView):  # noqa
         dash = db.session.query(Dashboard).filter_by(id=id).first()
         if not dash:
             raise SupersetException(
-                '{}: Dashboard.id={}'.format(OBJECT_NOT_FOUND, id))
-        info = "Changing dashboard [{}] to offline will make it invisible " \
-               "for other users.".format(dash)
+                _("Error parameter ids: {ids}, queried {num} dashboard(s)")
+                    .format(ids=[id, ], num=0)
+            )
+        info = _("Changing dashboard [{dashboard}] to offline will make it invisible "
+               "for other users").format(dashboard=dash)
         return json_response(data=info)
 
     @catch_exception
@@ -533,7 +546,8 @@ class Superset(BaseSupersetView):
         cls = str_to_model.get(model)
         obj = db.session.query(cls).filter_by(id=id).first()
         if not obj:
-            msg = '{}. Model:{} Id:{}'.format(OBJECT_NOT_FOUND, cls.__name__, id)
+            msg = _("Not found the object: model={model}, id={id}")\
+                .format(model=cls.__name__, id=id)
             logging.error(msg)
             return json_response(status=400, message=msg)
         check_ownership(obj, raise_if_false=True)
@@ -558,7 +572,7 @@ class Superset(BaseSupersetView):
                 log_number(model, True, None)
                 return json_response(message=OFFLINE_SUCCESS)
         else:
-            msg = ERROR_URL + ': {}'.format(request.url)
+            msg = _('Error request url: [{url}]').format(url=request.url)
             return json_response(status=400, message=msg)
 
     @catch_exception
@@ -804,17 +818,17 @@ class Superset(BaseSupersetView):
                     .one()
             )
             flash(
-                "Slice [{}] was added to dashboard [{}]".format(
+                _("Slice [{slice}] was added to dashboard [{dashboard}]").format(
                     slc.slice_name,
                     dash.dashboard_title),
                 "info")
         elif request.args.get('add_to_dash') == 'new':
             dash = Dashboard(dashboard_title=request.args.get('new_dashboard_name'))
             flash(
-                "Dashboard [{}] just got created and slice [{}] was added "
-                "to it".format(
-                    dash.dashboard_title,
-                    slc.slice_name),
+                _("Dashboard [{dashboard}] just got created and slice [{slice}] "
+                "was added to it").format(
+                    dashboard=dash.dashboard_title,
+                    slice=slc.slice_name),
                 "info")
 
         if dash and slc not in dash.slices:
@@ -835,7 +849,7 @@ class Superset(BaseSupersetView):
     def save_slice(self, slc):
         db.session.add(slc)
         db.session.commit()
-        flash("Slice [{}] has been saved".format(slc.slice_name), "info")
+        flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         action_str = 'Add slice: [{}]'.format(slc.slice_name)
         log_action('add', action_str, 'slice', slc.id)
         log_number('slice', slc.online, get_user_id())
@@ -843,11 +857,13 @@ class Superset(BaseSupersetView):
     def overwrite_slice(self, slc):
         can_update = check_ownership(slc, raise_if_false=False)
         if not can_update:
-            flash("You cannot overwrite [{}]".format(slc), "danger")
+            flash(_("You cannot overwrite [{slice}]").format(slice=slc), "danger")
         else:
             db.session.merge(slc)
             db.session.commit()
-            flash("Slice [{}] has been overwritten".format(slc.slice_name), "info")
+            flash(_("Slice [{slice}] has been overwritten")
+                  .format(slice=slc.slice_name),
+                  "info")
             action_str = 'Edit slice: [{}]'.format(slc.slice_name)
             log_action('edit', action_str, 'slice', slc.id)
 
@@ -992,9 +1008,7 @@ class Superset(BaseSupersetView):
             engine.connect()
             return json.dumps(engine.table_names(), indent=4)
         except Exception as e:
-            return Response((
-                            "Connection failed!\n\n"
-                            "The error message returned was:\n{}").format(e),
+            return Response(_("Test connection failed! \n{msg}").format(msg=e),
                             status=500,
                             mimetype="application/json")
 
@@ -1369,9 +1383,9 @@ class Superset(BaseSupersetView):
             with utils.timeout(
                     seconds=SQLLAB_TIMEOUT,
                     error_message=(
-                            "The query exceeded the {SQLLAB_TIMEOUT} seconds "
+                            _("The query exceeded the {SQLLAB_TIMEOUT} seconds "
                             "timeout. You may want to run your query as a "
-                            "`CREATE TABLE AS` to prevent timeouts."
+                            "`CREATE TABLE AS` to prevent timeouts.")
                     ).format(**locals())):
                 data = sql_lab.get_sql_results(query_id, return_results=True)
         except Exception as e:

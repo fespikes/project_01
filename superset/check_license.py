@@ -23,6 +23,8 @@ class CheckLicense(object):
             startJVM(get_default_jvm_path(), '-ea', '-Djava.class.path={}'
                      .format(jar))
             logging.info("=== Finish to start JVM.")
+            if not isThreadAttachedToJVM():
+                attachThreadToJVM()
 
     @classmethod
     def shutdown_jvm(cls):
@@ -31,16 +33,23 @@ class CheckLicense(object):
         logging.info("=== Finish to shutdown JVM.")
 
     @classmethod
-    def check(cls, server_location, license_jar=None):
+    def do_check(cls, server_location, license_jar=None):
         cls.start_jvm(license_jar)
         try:
             Check = JClass('io.transwarp.pilot.license.CheckLicense')
             check = Check()
             check.checkLicense(server_location)
             logging.info("License check succeed")
+            return True
         except JavaException as ex:
             msg = "License check failed with check server: {}".format(server_location)
             logging.error(msg)
-            raise Exception(msg)
+            return False
         finally:
             cls.shutdown_jvm()
+
+    @classmethod
+    def check(cls, server_location, license_jar=None):
+        success = cls.do_check(server_location, license_jar)
+        if not success:
+            raise Exception("License check failed")

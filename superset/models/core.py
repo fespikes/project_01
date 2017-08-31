@@ -243,11 +243,12 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         user_id = g.user.get_id()
         slice = db.session.query(Slice).filter_by(id=slice_id).first()
         if not slice:
-            raise SupersetException("Not found slice by id: [{}]".format(slice_id))
+            raise SupersetException(
+                _("Not found slice by id [{id}]").format(id=slice_id))
         if check(slice, user_id) is False:
             if raise_if_false:
                 raise SupersetException(
-                    "Slice: [{}] is offline.".format(slice.slice_name))
+                    _("Slice [{slice}] is offline").format(slice=slice.slice_name))
             else:
                 return False
 

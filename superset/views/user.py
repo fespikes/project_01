@@ -7,6 +7,7 @@ import json
 from flask import g, request, Response
 from flask_appbuilder import BaseView, expose
 from superset.utils import SupersetException
+from superset import sm
 from superset.message import *
 from .base import catch_exception, json_response
 

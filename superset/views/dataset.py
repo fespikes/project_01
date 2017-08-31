@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import json
 import requests
 from flask import request
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
@@ -53,8 +54,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     def get_object_list_data(self, **kwargs):
         dataset_id = kwargs.get('dataset_id')
         if not dataset_id:
-            msg = "Need parameter 'dataset_id' to query columns"
-            self.handle_exception(404, Exception, msg)
+            self.handle_exception(404, Exception, COLUMN_MISS_DATASET)
         rows = db.session.query(self.model) \
             .filter_by(dataset_id=dataset_id).all()
         data = []
@@ -104,8 +104,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     def get_object_list_data(self, **kwargs):
         dataset_id = kwargs.get('dataset_id')
         if not dataset_id:
-            msg = "Need parameter 'dataset_id' to query metrics"
-            self.handle_exception(404, Exception, msg)
+            self.handle_exception(404, Exception, METRIC_MISS_DATASET)
         rows = (
             db.session.query(self.model)
                 .filter_by(dataset_id=dataset_id)
@@ -213,8 +212,9 @@ class DatasetModelView(SupersetModelView):  # noqa
                                          need_columns=False)
             data = dataset.preview_data(limit=rows)
         else:
-            raise SupersetException('{}: {}'.format(ERROR_REQUEST_PARAM,
-                                                    request.args.to_dict()))
+            json_response(status=400,
+                          message=_("Error request parameters: [{params}]")
+                          .format(params=request.args.to_dict()))
         return json_response(data=data)
 
     @catch_exception
@@ -223,25 +223,27 @@ class DatasetModelView(SupersetModelView):  # noqa
         dataset = db.session.query(Dataset).filter_by(id=id).first()
         if not dataset:
             raise SupersetException(
-                '{}: Dataset.id={}'.format(OBJECT_NOT_FOUND, id))
-        info = "Releasing dataset [{}] will release all associated objects too:\n" \
-               "Connection: [{}].".format(dataset, dataset.database)
+                _("Not found dataset by id [{id}]").format(id=id)
+            )
+        info = _("Releasing dataset [{dataset}] will release connection [{connection}]")\
+            .format(dataset=dataset, connection=dataset.database)
         return json_response(data=info)
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         objects = self.associated_objects([id, ])
-        info = "Changing dataset {} to offline will make these slices " \
-               "unusable: {}".format(objects.get('dataset'), objects.get('slice'))
+        info = _("Changing dataset {dataset} to offline will make these "
+               "slices unusable: {slice}")\
+            .format(dataset=objects.get('dataset'), slice=objects.get('slice'))
         return json_response(data=info)
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         objects = self.associated_objects([id, ])
-        info = "Deleting dataset {} will make these and others' offline slices unusable: {}"\
-            .format(objects.get('dataset'), objects.get('slice'))
+        info = _("Deleting datasets {dataset} will make these slices unusable: {slice}")\
+            .format(dataset=objects.get('dataset'), slice=objects.get('slice'))
         return json_response(data=info)
 
     @catch_exception
@@ -250,8 +252,8 @@ class DatasetModelView(SupersetModelView):  # noqa
         json_data = self.get_request_data()
         ids = json_data.get('selectedRowKeys')
         objects = self.associated_objects(ids)
-        info = "Deleting datasets {} will make these and others' offline slices unusable: {}" \
-            .format(objects.get('dataset'), objects.get('slice'))
+        info = _("Deleting datasets {dataset} will make these slices unusable: {slice}") \
+            .format(dataset=objects.get('dataset'), slice=objects.get('slice'))
         return json_response(data=info)
 
     def associated_objects(self, ids):
@@ -305,7 +307,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             hdfs_table_view._add(hdfs_table)
             return json_response(message=ADD_SUCCESS, data={'object_id': dataset.id})
         else:
-            raise Exception('{}: [{}]'.format(ERROR_DATASET_TYPE, dataset_type))
+            raise Exception(_("Error dataset type: [{type_}]").format(type_=dataset_type))
 
     @catch_exception
     @expose('/show/<pk>/', methods=['GET'])
@@ -353,7 +355,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             self._edit(dataset)
             return json_response(message=UPDATE_SUCCESS)
         else:
-            raise Exception('{}: [{}]'.format(ERROR_DATASET_TYPE, dataset_type))
+            raise Exception(_("Error dataset type: [{type_}]").format(type_=dataset_type))
 
     def get_object_list_data(self, **kwargs):
         """Return the table list"""
@@ -388,7 +390,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             try:
                 column = self.str_to_column.get(order_column)
             except KeyError:
-                msg = 'Error order column name: \'{}\''.format(order_column)
+                msg = _("Error order column name: [{name}]").format(name=order_column)
                 self.handle_exception(404, KeyError, msg)
             else:
                 if order_direction == 'desc':
@@ -537,22 +539,24 @@ class HDFSTableModelView(SupersetModelView):
         files = files_json.get('files')
         file_path = ''
         for file in files:
-            type = file.get('type')
+            type_ = file.get('type')
             name = file.get('name')
             if name == '.' or name == '..':
                 pass
-            elif type == 'dir':
+            elif type_ == 'dir':
                 raise SupersetException(
-                    'Should not exist folder: [{}] in selected path: [{}] '
-                    'to create external table'
-                    .format(file.get('path'), files_json.get('path')))
-            elif type == 'file':
+                    _('Should not exist folder [{folder}] in selected path [{path}] '
+                    'to create external table')
+                    .format(folder=file.get('path'), path=files_json.get('path')))
+            elif type_ == 'file':
                 file_path = file.get('path')
             else:
-                raise SupersetException('Error file type: [{}]'.format(type))
+                raise SupersetException(
+                    _('Error file type: [{type_}]').format(type_=type_))
         if not file_path:
             raise SupersetException(
-                'No files in selected path: [{}]'.format(files_json.get('path')))
+                _('No files in selected path: [{path}]').format(path=files_json.get('path'))
+            )
         return file_path
 
     @classmethod
@@ -568,5 +572,8 @@ class HDFSTableModelView(SupersetModelView):
                 file = file[:index]
                 return file
             size = size * 2
-        raise SupersetException("Fetched {} bytes file, but still not a complete line")
+        raise SupersetException(
+            _("Fetched {size} bytes file, but still not a complete line")
+                .format(size=size)
+        )
 
