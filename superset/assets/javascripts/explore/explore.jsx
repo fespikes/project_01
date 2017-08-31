@@ -15,6 +15,7 @@ import ExploreActionButtons from './components/ExploreActionButtons.jsx';
 import DisplayOriginalTable from './components/DisplayOriginalTable.jsx';
 import { Radio, Table } from 'antd';
 import { renderLoadingModal, getUrlParam } from '../../utils/utils';
+import { getTableWidth } from '../tableList/module';
 
 require('jquery-ui');
 $.widget.bridge('uitooltip', $.ui.tooltip); // Shutting down jq-ui tooltips
@@ -415,7 +416,15 @@ function generateTableView(previewData) {
         dataSource.push(dataItem);
     });
 
-    return <Table columns={columns} dataSource={dataSource} className="slice-detail-table"/>;
+    let width = getTableWidth(previewData.columns.length);
+
+    return <div style={{width: width}}>
+               <Table
+                   columns={columns}
+                   dataSource={dataSource}
+                   className="slice-detail-table"
+               />
+           </div>;
 }
 
 
