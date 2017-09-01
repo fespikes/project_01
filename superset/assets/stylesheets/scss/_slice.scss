@@ -38,9 +38,11 @@
     .btn-group {
         a, > span, button {
             height: 32px;
+            color: $commonFontColor;
+            border: $borderStyleNormal;
         }
         a:hover, > span:hover, button:hover {
-            border: 1px solid #279cf2;
+            //border: 1px solid #279cf2;
             background-color: #fff;
         }
         a:first-child {
