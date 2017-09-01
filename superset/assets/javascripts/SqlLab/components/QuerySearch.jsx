@@ -159,8 +159,7 @@ class QuerySearch extends React.PureComponent {
                         <Select
                             name="select-from"
                             placeholder="[From]-"
-                            options={TIME_OPTIONS.
-                slice(1, TIME_OPTIONS.length).map((t) => ({ value: t, label: t }))}
+                            options={TIME_OPTIONS.slice(1, TIME_OPTIONS.length).map((t) => ({ value: t, label: t }))}
                             value={this.state.from}
                             autosize={false}
                             onChange={this.changeFrom.bind(this)}
@@ -202,9 +201,9 @@ class QuerySearch extends React.PureComponent {
                             <div className="scrollbar-content">
                                 <QueryTable
                                     columns={[
-                  'state', 'db', 'user', 'time',
-                  'progress', 'rows', 'sql', 'querylink',
-                ]}
+                                        'state', 'db', 'user', 'time',
+                                        'progress', 'rows', 'sql', 'querylink',
+                                    ]}
                                     onUserClicked={this.onUserClicked.bind(this)}
                                     onDbClicked={this.onDbClicked.bind(this)}
                                     queries={this.state.queriesArray}

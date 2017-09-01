@@ -170,6 +170,7 @@ class DashboardEdit extends React.Component {
         return (
             <ModalTrigger
                 triggerNode={this.props.triggerNode}
+                className='popup-modal-edit-dashboard'
                 isButton
                 modalTitle={modalTitle}
                 modalIcon={modalIcon}
