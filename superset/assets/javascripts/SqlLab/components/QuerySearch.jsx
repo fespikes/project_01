@@ -95,16 +95,20 @@ class QuerySearch extends React.PureComponent {
         return options;
     }
     dbMutator(data) {
-        data = JSON.parse(data).data;
-        const options = data.map((db) => ({ value: db.id, label: db.database_name }));
-        this.props.actions.setDatabases(data);
-        if (data.length === 0) {
-            this.props.actions.addAlert({
-                bsStyle: 'danger',
-                msg: "It seems you don't have access to any database",
-            });
+        try {
+            data = JSON.parse(data).data;
+            const options = data.map((db) => ({ value: db.id, label: db.database_name }));
+            this.props.actions.setDatabases(data);
+            if (data.length === 0) {
+                this.props.actions.addAlert({
+                    bsStyle: 'danger',
+                    msg: "It seems you don't have access to any database",
+                });
+            }
+            return options;
+        }catch (e) {
+            console.log(e);
         }
-        return options;
     }
     refreshQueries() {
         this.setState({ queriesLoading: true });
