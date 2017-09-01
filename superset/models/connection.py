@@ -13,9 +13,8 @@ from flask import g
 from itertools import groupby
 from collections import OrderedDict
 
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import Model
-from flask_appbuilder.security.sqla.models import User
-from flask_appbuilder.security.views import AuthDBView
 
 import sqlalchemy as sqla
 from sqlalchemy.orm import backref, relationship
@@ -34,7 +33,7 @@ from guardian_common_python.conf.GuardianVars import GuardianVars
 
 from superset import db, app, db_engine_specs
 from superset.utils import SupersetException
-from superset.message import NEED_PASSWORD_FOR_KEYTAB
+from superset.message import MISS_PASSWORD_FOR_GUARDIAN, NO_USER
 from .base import AuditMixinNullable
 
 config = app.config
@@ -98,10 +97,9 @@ class Database(Model, AuditMixinNullable):
             if not user_id:
                 user_id = g.user.get_id()
         except Exception:
-            msg = "Unable to get user's id when fill sqlalchmy uri"
-            logging.error(msg)
+            logging.error(NO_USER)
             # todo show in the frontend
-            raise Exception(msg)
+            raise Exception(NO_USER)
         url = make_url(self.sqlalchemy_uri)
         account = (
             db.session.query(DatabaseAccount)
@@ -110,17 +108,17 @@ class Database(Model, AuditMixinNullable):
             .first()
         )
         if not account:
-            user = db.session.query(User).filter(User.id == user_id).first()
-            msg = "User:{} do not have account for connection:{}" \
-                .format(user.username, self.database_name)
+            msg = _("You do not have account for connection [{conn}]") \
+                .format(conn=self.database_name)
             logging.error(msg)
             # todo the frontend need to mention user to add account
             raise Exception(msg)
         url.username = account.username
         url.password = account.password
         if not self.test_uri(str(url)):
-            msg = "Test connection failed, maybe need to modify your " \
-                  "account for connection:{}".format(self.database_name)
+            msg = _("Test connection failed, maybe need to modify your "
+                  "account for connection:{conn}")\
+                .format(conn=self.database_name)
             logging.error(msg)
             # todo the frontend need to mention user to add account
             raise Exception(msg)
@@ -285,7 +283,7 @@ class Database(Model, AuditMixinNullable):
 
     @property
     def sql_url(self):
-        return '/pilot/sql/{}/'.format(self.id)
+        return '/p/sql/{}/'.format(self.id)
 
     @classmethod
     def release(cls, database):
@@ -299,9 +297,9 @@ class Database(Model, AuditMixinNullable):
             dir = config.get('KETTAB_TMP_DIR', '/tmp/keytab')
             server = config.get('GUARDIAN_SERVER')
             username = g.user.username
-            password = AuthDBView.mock_user.get(g.user.username)
+            password = g.user.password2
             if not password:
-                raise SupersetException(NEED_PASSWORD_FOR_KEYTAB)
+                raise SupersetException(MISS_PASSWORD_FOR_GUARDIAN)
             connect_args['keytab'] = cls.get_keytab(username, password, server, dir)
         return connect_args
 

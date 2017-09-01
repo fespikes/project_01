@@ -15,6 +15,7 @@ import ExploreActionButtons from './components/ExploreActionButtons.jsx';
 import DisplayOriginalTable from './components/DisplayOriginalTable.jsx';
 import { Radio, Table } from 'antd';
 import { renderLoadingModal, getUrlParam } from '../../utils/utils';
+import { getTableWidth } from '../tableList/module';
 
 require('jquery-ui');
 $.widget.bridge('uitooltip', $.ui.tooltip); // Shutting down jq-ui tooltips
@@ -415,7 +416,15 @@ function generateTableView(previewData) {
         dataSource.push(dataItem);
     });
 
-    return <Table columns={columns} dataSource={dataSource} className="slice-detail-table"/>;
+    let width = getTableWidth(previewData.columns.length);
+
+    return <div style={{width: width}}>
+               <Table
+                   columns={columns}
+                   dataSource={dataSource}
+                   className="slice-detail-table"
+               />
+           </div>;
 }
 
 
@@ -430,11 +439,15 @@ function renderViewTab() {
             $('.original-view').css('display', 'none');
         }else if(event.target.value === "original") {
             const datasourceId = viewTabEl.getAttribute('datasourceId');
+            const databaseId = getUrlParam('database_id', slice.data.json_endpoint);
+            const fullTbName = getUrlParam('full_tb_name', slice.data.json_endpoint);
 
-            if (datasourceId===localStorage.getItem('explore:datasourceId')){
+            if (datasourceId===localStorage.getItem('explore:datasourceId') && databaseId===localStorage.getItem('explore:databaseId')
+                && fullTbName===localStorage.getItem('explore:fullTbName')){
                 renderPreviewOriginalData(JSON.parse(localStorage.getItem('explore:previewData')));
             } else {
-                const url = window.location.origin + "/table/preview_data?dataset_id=" + datasourceId;
+                const url = window.location.origin + "/table/preview_data?dataset_id=" + datasourceId +
+                    '&database_id=' + databaseId + '&full_tb_name=' + fullTbName;
                 const loadingModal = renderLoadingModal();
                 loadingModal.show();
                 $.ajax({
@@ -443,6 +456,8 @@ function renderViewTab() {
                     success: response => {
                         let previewData = response.data;
                         localStorage.setItem('explore:datasourceId', datasourceId);
+                        localStorage.setItem('explore:databaseId', databaseId);
+                        localStorage.setItem('explore:fullTbName', fullTbName);
                         localStorage.setItem('explore:previewData', JSON.stringify(previewData));
                         renderPreviewOriginalData(previewData);
                     },

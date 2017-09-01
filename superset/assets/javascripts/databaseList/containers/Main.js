@@ -33,19 +33,8 @@ class App extends Component {
             nextProps.condition.onlyFavorite !== this.props.condition.onlyFavorite ||
             nextProps.condition.tableType !== this.props.condition.tableType ||
             nextProps.condition.page !== this.props.condition.page
-//            nextProps.paramOfDelete.connToBeDeleted !== this.props.paramOfDelete.connToBeDeleted
         ) {
             dispatch(fetchIfNeeded(nextProps.condition));
-        }
-
-        const { isFetching } = this.props;
-        if(isFetching !== nextProps.isFetching) {
-            const loadingModal = renderLoadingModal();
-            if(nextProps.isFetching) {
-                loadingModal.show();
-            }else {
-                loadingModal.hide();
-            }
         }
     }
 
@@ -64,7 +53,10 @@ class App extends Component {
                 </div>
                 <div className="panel-top">
                     <div className="left">
-                        <i className="icon icon-database-list"/>
+                        <i
+                            className="icon icon-database-list"
+                            style={{zoom: 0.8}}
+                        />
                         <span>连接</span>
                         <span>记录</span>
                         <span>{count}条</span>

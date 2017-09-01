@@ -1,40 +1,35 @@
-from flask_babel import gettext as __
+from flask_babel import lazy_gettext as _
 
-
-ALL_DATASOURCE_ACCESS_ERR = __(
+ALL_DATASOURCE_ACCESS_ERR = _(
     "This endpoint requires the `all_datasource_access` permission")
-DATASOURCE_MISSING_ERR = __("The datasource seems to have been deleted")
-ACCESS_REQUEST_MISSING_ERR = __(
-    "The access requests seem to have been deleted")
-USER_MISSING_ERR = __("The user seems to have been deleted")
-DATASOURCE_ACCESS_ERR = __("You don't have access to this datasource")
-OBJECT_NOT_FOUND = __("Not found this object")
+DATASOURCE_MISSING_ERR = _("The datasource seems to have been deleted")
+DATASOURCE_ACCESS_ERR = _("You don't have access to this datasource")
 
-ONLINE_SUCCESS = __("Change to online success")
-OFFLINE_SUCCESS = __("Change to offline success")
-OBJECT_IS_ONLINE = __("This object is already online")
-OBJECT_IS_OFFLINE = __("This object is already offline")
+OBJECT_NOT_FOUND = _("Not found this object")
+NO_USER = _("Can't get user's information")
 
-ERROR_URL = __("Error request url")
-ERROR_REQUEST_PARAM = __("Error request parameter")
-ERROR_CLASS_TYPE = __("Error model type")
-NO_USER = __("Can't get user, session may be timeout, try login again")
-NO_ONLINE_PERMISSION = __("No permission for 'online' and 'offline'")
+ONLINE_SUCCESS = _("Success to be online")
+OFFLINE_SUCCESS = _("Success to be offline")
+OBJECT_IS_ONLINE = _("This object is already online")
+OBJECT_IS_OFFLINE = _("This object is already offline")
+NO_ONLINE_PERMISSION = _("No permission for 'online' and 'offline'")
 
-ADD_SUCCESS = __("Added success")
-ADD_FAILED = __("Added failed. May cased by unique restriction")
-UPDATE_SUCCESS = __("Updated success")
-UPDATE_FAILED = __("Updated failed. May cased by unique restriction")
-DELETE_SUCCESS = __("Deleted success")
-DELETE_FAILED = __("Deleted failed")
+ADD_SUCCESS = _("Success to add")
+ADD_FAILED = _("Failed to add, may cased by unique restriction")
+UPDATE_SUCCESS = _("Success to update")
+UPDATE_FAILED = _("Failed to update, may cased by unique restriction")
+DELETE_SUCCESS = _("Success to delete")
+DELETE_FAILED = _("Failed to delete")
 
-ERROR_DATASET_TYPE = "Error dataset type"
-ERROR_CONNECTION_TYPE = "Error connection type"
-NEED_PASSWORD_FOR_KEYTAB = "Need password to get keytab file from guardian, try login again"
+MISS_PASSWORD_FOR_GUARDIAN = _("Miss password to access Guardian")
 
-NO_HDFS_CONNECTION = "No hdfs connections, you can add a default hdfs connection"
-NO_FILEROBOT_SERVER = "Cannot get FILE_ROBOT_SERVER from config"
-NEED_PASSWORD_FOR_FILEROBOT = "Need password to access FileRobot, try login again"
-LOGIN_FILEROBOT_SUCCESS = "Login FileRobot success"
-LOGIN_FILEROBOT_FAILED = "Login FileRobot failed"
-LOGOUT_FILEROBOT_SUCCESS = "Logout FileRobot success"
+COLUMN_MISS_DATASET = _("Miss parameter [dataset_id] to query columns")
+METRIC_MISS_DATASET = _("Miss parameter [dataset_id] to query metrics")
+
+# filerobot
+LOGIN_FILEROBOT_FAILED = _("Failed to login FileRobot")
+LOGIN_FILEROBOT_SUCCESS = _("Success to login FileRobot")
+LOGOUT_FILEROBOT_SUCCESS = _("Success to logout FileRobot")
+MISS_PASSWORD_FOR_FILEROBOT = _("Miss password to login FileRobot")
+NO_HDFS_CONNECTION = _("No HDFS connection, please create one")
+NO_FILEROBOT_SERVER = _("Failed to get FileRobot server from config")

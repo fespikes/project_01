@@ -78,7 +78,7 @@ ENABLE_PROXY_FIX = False
 # GLOBALS FOR APP Builder
 # ------------------------------
 # Uncomment to setup Your App name
-APP_NAME = "Pilot"
+APP_NAME = "PILOT"
 
 # Uncomment to setup an App icon
 APP_ICON = "/static/assets/images/superset-logo@2x.png"
@@ -140,7 +140,7 @@ BABEL_DEFAULT_LOCALE = 'zh'
 BABEL_DEFAULT_FOLDER = 'babel/translations'
 # The allowed translation for you app
 LANGUAGES = {
-    'en': {'flag': 'us', 'name': 'English'},
+    #'en': {'flag': 'us', 'name': 'English'},
      'zh': {'flag': 'cn', 'name': 'Chinese'},
 }
 # ---------------------------------------------------
@@ -157,7 +157,7 @@ IMG_UPLOAD_URL = '/static/uploads/'
 # Setup image size default is (300, 200, True)
 # IMG_SIZE = (300, 200, True)
 
-CACHE_DEFAULT_TIMEOUT = 60 * 60
+CACHE_DEFAULT_TIMEOUT = 86400
 CACHE_CONFIG = {'CACHE_TYPE': 'filesystem',
                 'CACHE_THRESHOLD': 500,
                 'CACHE_DIR': '/tmp/pilot_cache'}

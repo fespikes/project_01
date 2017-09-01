@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 import json
 from flask import g, request
-from flask_babel import gettext as __
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
@@ -14,7 +14,7 @@ from flask_appbuilder.security.sqla.models import User
 import sqlalchemy as sqla
 from sqlalchemy import select, literal, cast, or_, and_
 
-from superset import app, db, models, appbuilder
+from superset import app, db, models
 from superset.models import Database, HDFSConnection, Slice
 from superset.utils import SupersetException
 from superset.message import *
@@ -116,7 +116,7 @@ class DatabaseView(SupersetModelView):  # noqa
             try:
                 column = self.str_to_column.get(order_column)
             except KeyError:
-                msg = 'Error order column name: \'{}\''.format(order_column)
+                msg = _('Error order column name: [{name}]').format(name=order_column)
                 self.handle_exception(404, KeyError, msg)
             else:
                 if order_direction == 'desc':
@@ -152,50 +152,60 @@ class DatabaseView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        database = db.session.query(Database).filter_by(id=id).first()
-        if not database:
-            raise SupersetException(
-                '{}: Database.id={}'.format(OBJECT_NOT_FOUND, id))
-        info = "Releasing inceptor connection [{}] will not release associated objects."\
-            .format(database)
+        objects = self.associated_objects([id, ])
+        info = _("Releasing inceptor connection {conn} will make these usable: "
+                 "\nDataset: {dataset}, \nSlice: {slice}")\
+            .format(conn=objects.get('database'),
+                    dataset=objects.get('dataset'),
+                    slice=objects.get('slice'))
         return json_response(data=info)
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.associated_objects(id)
-        info = "Changing inceptor connection [{}] to be offline will make these unusable:\n" \
-               "Dataset: {},\nSlice: {}."\
-            .format(objects.get('database'),
-                    objects.get('dataset'),
-                    objects.get('slice'))
+        objects = self.associated_objects([id, ])
+        info = _("Changing inceptor connection {conn} to offline will make "
+                 "these unusable: \nDataset: {dataset}, \nSlice: {slice}")\
+            .format(conn=objects.get('database'),
+                    dataset=objects.get('dataset'),
+                    slice=objects.get('slice'))
         return json_response(data=info)
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.associated_objects(id)
-        info = "Deleting inceptor connection [{}] will make these unusable:\n" \
-               "Dataset: {},\nSlice: {}."\
-            .format(objects.get('database'),
-                    objects.get('dataset'),
-                    objects.get('slice'))
+        objects = self.associated_objects([id, ])
+        info = _("Deleting inceptor connection {conn} will make these unusable: "
+               "\nDataset: {dataset}, \nSlice: {slice}")\
+            .format(conn=objects.get('database'),
+                    dataset=objects.get('dataset'),
+                    slice=objects.get('slice'))
         return json_response(data=info)
 
-    def associated_objects(self, db_id):
-        database = db.session.query(Database).filter_by(id=db_id).first()
-        if not database:
+    @classmethod
+    def associated_objects(cls, ids):
+        dbs = db.session.query(Database).filter(Database.id.in_(ids)).all()
+        if len(dbs) != len(ids):
             raise SupersetException(
-                '{}: Database.id={}'.format(OBJECT_NOT_FOUND, db_id))
-        dataset = database.dataset
-        dataset_ids = [d.id for d in dataset]
+                _("Error parameter ids: {ids}, queried {num} inceptor connection(s)")
+                    .format(ids=ids, num=len(dbs))
+            )
+
+        datasets = []
+        for d in dbs:
+            datasets.extend(d.dataset)
+        dataset_ids = [dataset.id for dataset in datasets]
+
+        user_id = get_user_id()
         slices = db.session.query(Slice) \
             .filter(
                 or_(Slice.datasource_id.in_(dataset_ids),
-                    Slice.database_id == db_id)
+                    Slice.database_id.in_(ids)),
+                or_(Slice.created_by_fk == user_id,
+                    Slice.online == 1)
             ) \
             .all()
-        return {'database': database, 'slice': slices, 'dataset': dataset}
+        return {'database': dbs, 'slice': slices, 'dataset': datasets}
 
 
 class HDFSConnectionModelView(SupersetModelView):
@@ -262,48 +272,62 @@ class HDFSConnectionModelView(SupersetModelView):
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        hconn = db.session.query(HDFSConnection).filter_by(id=id).first()
-        if not hconn:
-            raise SupersetException(
-                '{}: HDFSConnection.id={}'.format(OBJECT_NOT_FOUND, id))
-        info = "Releasing hdfs connection [{}] will not release associated objects." \
-            .format(hconn)
+        objects = self.associated_objects([id, ])
+        info = _("Releasing hdfs connection {hconn} will make these usable: "
+                 "\nDataset: {dataset},\nSlice: {slice}") \
+            .format(hconn=objects.get('hdfs_connection'),
+                    dataset=objects.get('dataset'),
+                    slice=objects.get('slice'))
         return json_response(data=info)
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.associated_objects(id)
-        info = "Changing hdfs connection [{}] to be offline will make these unusable:\n" \
-               "Dataset: {},\n Slice: {}."\
-            .format(objects.get('hdfs_connection'),
-                    objects.get('dataset'),
-                    objects.get('slice'))
+        objects = self.associated_objects([id, ])
+        info = _("Changing hdfs connection {hconn} to offline will make these unusable: "
+               "\nDataset: {dataset},\n Slice: {slice}")\
+            .format(hconn=objects.get('hdfs_connection'),
+                    dataset=objects.get('dataset'),
+                    slice=objects.get('slice'))
         return json_response(data=info)
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.associated_objects(id)
-        info = "Deleting hdfs connection [{}] will make these unusable:\n" \
-               "Dataset: {},\nSlice: {}."\
-            .format(objects.get('hdfs_connection'),
-                    objects.get('dataset'),
-                    objects.get('slice'))
+        objects = self.associated_objects([id, ])
+        info = _("Deleting hdfs connection {hconn} will make these unusable: "
+               "\nDataset: {dataset},\nSlice: {slice}")\
+            .format(hconn=objects.get('hdfs_connection'),
+                    dataset=objects.get('dataset'),
+                    slice=objects.get('slice'))
         return json_response(data=info)
 
-    def associated_objects(self, id):
-        hconn = db.session.query(HDFSConnection).filter_by(id=id).first()
-        if not hconn:
-            raise SupersetException(
-                '{}: HDFSConnection.id={}'.format(OBJECT_NOT_FOUND, id))
-        hdfs_tables = hconn.hdfs_table
-        dataset = [t.dataset for t in hdfs_tables]
-        dataset_ids = [d.id for d in dataset]
-        slices = db.session.query(Slice) \
-            .filter(Slice.datasource_id.in_(dataset_ids)) \
+    @classmethod
+    def associated_objects(cls, ids):
+        hconns = db.session.query(HDFSConnection)\
+            .filter(HDFSConnection.id.in_(ids))\
             .all()
-        return {'hdfs_connection': hconn, 'dataset': dataset, 'slice': slices}
+        if len(hconns) != len(ids):
+            raise SupersetException(
+                _("Error parameter ids: {ids}, queried {num} hdfs connection(s)")
+                    .format(ids=ids, num=len(hconns))
+            )
+
+        hdfs_tables = []
+        for hconn in hconns:
+            hdfs_tables.extend(hconn.hdfs_table)
+
+        datasets = [t.dataset for t in hdfs_tables]
+        dataset_ids = [d.id for d in datasets]
+        user_id = get_user_id()
+        slices = (
+            db.session.query(Slice)
+            .filter(Slice.datasource_id.in_(dataset_ids),
+                    or_(Slice.created_by_fk == user_id,
+                        Slice.online == 1))
+            .all()
+        )
+        return {'hdfs_connection': hconns, 'dataset': datasets, 'slice': slices}
 
 
 class ConnectionView(BaseSupersetView, PageMixin):
@@ -337,9 +361,10 @@ class ConnectionView(BaseSupersetView, PageMixin):
             objs = db.session.query(Database) \
                 .filter(Database.id.in_(db_ids)).all()
             if len(db_ids) != len(objs):
-                raise Exception("Error parameter ids: {}, get {} inceptor "
-                                "connection(s) in database"
-                                .format(db_ids, len(objs)))
+                raise Exception(
+                    _("Error parameter ids: {ids}, queried {num} inceptor connection(s)")
+                    .format(ids=db_ids, num=len(objs))
+                )
             for obj in objs:
                 all_user = True if obj.online else all_user
                 check_ownership(obj)
@@ -350,9 +375,10 @@ class ConnectionView(BaseSupersetView, PageMixin):
             objs = db.session.query(HDFSConnection) \
                 .filter(HDFSConnection.id.in_(hdfs_conn_ids)).all()
             if len(hdfs_conn_ids) != len(objs):
-                raise Exception("Error parameter ids: {}, get {} hdfs "
-                                "connection(s) in database"
-                                .format(hdfs_conn_ids, len(objs)))
+                raise Exception(
+                    _("Error parameter ids: {ids}, queried {num} hdfs connection(s)")
+                    .format(ids=hdfs_conn_ids, num=len(objs))
+                )
             for obj in objs:
                 all_user = True if obj.online else all_user
                 check_ownership(obj)
@@ -360,6 +386,39 @@ class ConnectionView(BaseSupersetView, PageMixin):
         db.session.commit()
         log_number('connection', all_user, get_user_id())
         return json_response(message=DELETE_SUCCESS)
+
+    @catch_exception
+    @expose("/muldelete_info/", methods=['POST'])
+    def muldelete_info(self):
+        json_data = json.loads(str(request.data, encoding='utf-8'))
+        json_data = {k.lower(): v for k, v in json_data.items()}
+        db_ids = json_data.get('inceptor')
+        hdfs_conn_ids = json_data.get('hdfs')
+
+        dbs, hconns, datasets, slices = [], [], [], []
+        if db_ids:
+            objects = DatabaseView.associated_objects(db_ids)
+            dbs = objects.get('database')
+            datasets.extend(objects.get('dataset'))
+            slices.extend(objects.get('slice'))
+        if hdfs_conn_ids:
+            objects = HDFSConnectionModelView.associated_objects(hdfs_conn_ids)
+            hconns = objects.get('hdfs_connection')
+            datasets.extend(objects.get('dataset'))
+            slices.extend(objects.get('slice'))
+
+        dataset_names = [d.dataset_name for d in datasets]
+        slice_names = [s.slice_name for s in slices]
+        dataset_names = list(set(dataset_names))
+        slice_names = list(set(slice_names))
+        info = _("Deleting inceptor connections {dbs} and hdfs connections {hconns} "
+                 "will make these objects unusable: "
+                 "\nDataset: {dataset}, \nSlice: {slice}") \
+            .format(dbs=dbs,
+                    hconns=hconns,
+                    dataset=dataset_names,
+                    slice=slice_names)
+        return json_response(data=info)
 
     def get_object_list_data(self, **kwargs):
         order_column = kwargs.get('order_column')
@@ -417,7 +476,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
                 else:
                     query = query.order_by(column)
             except KeyError:
-                msg = 'Error order column name: \'{}\''.format(order_column)
+                msg = _('Error order column name: [{name}]').format(name=order_column)
                 raise KeyError(msg)
 
         if page is not None and page >= 0 and page_size and page_size > 0:
@@ -453,15 +512,3 @@ class ConnectionView(BaseSupersetView, PageMixin):
             'connection_type': query.c.connection_type,
             'owner': User.username
         }
-
-
-appbuilder.add_view_no_menu(ConnectionView)
-appbuilder.add_view_no_menu(HDFSConnectionModelView)
-appbuilder.add_view(
-    DatabaseView,
-    "Databases",
-    label=__("Databases"),
-    icon="fa-database",
-    category="Sources",
-    category_label=__("Sources"),
-    category_icon='fa-database',)

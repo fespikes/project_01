@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 
 import re
-import json
 import random
 import string
 import logging
@@ -462,7 +461,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 "and is required by this type of chart"))
         for m in metrics:
             if m not in metrics_dict:
-                raise Exception(_("Metric '{}' is not valid".format(m)))
+                raise Exception(_("Metric [{m}] is not valid".format(m)))
         metrics_exprs = [metrics_dict.get(m).sqla_col for m in metrics]
         timeseries_limit_metric = metrics_dict.get(timeseries_limit_metric)
         timeseries_limit_metric_expr = None
@@ -647,17 +646,22 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             else:
                 return self.database.get_table(self.table_name, schema=self.schema)
         except sqla.exc.DBAPIError as e:
-            logging.error("Drop or create temporary view by sql failed. " + str(e))
-            raise Exception("Drop or create temporary view by sql failed.")
+            err = _("Drop or create temporary view by sql failed: {msg}")\
+                .format(msg=str(e))
+            logging.error(err)
+            raise Exception(err)
         except Exception:
-            raise Exception("Couldn't fetch table: [{}]'s information "
-                            "in the specified database: [{}]"
-                            .format(self.table_name, self.schema))
+            raise Exception(_("Couldn't fetch table [{table}]'s information "
+                            "in the specified database [{schema}]")
+                            .format(table=self.table_name, schema=self.schema))
 
     @classmethod
     def temp_dataset(cls, database_id, full_tb_name, need_columns=True):
         """A temp dataset for slice"""
-        dataset = cls(id=0, online=True, filter_select_enabled=True)
+        dataset = cls(id=0,
+                      dataset_type='INCEPTOR',
+                      online=True,
+                      filter_select_enabled=True)
         if '.' in full_tb_name:
             dataset.schema, dataset.table_name = full_tb_name.split('.')
         else:
@@ -702,46 +706,52 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             quoted = "{}".format(
                 column(new_col.column_name).compile(dialect=db.engine.dialect))
             if new_col.sum:
-                new_metric = SqlMetric(temp_dataset=self,
-                                       metric_name='sum__' + new_col.column_name,
-                                       verbose_name='sum__' + new_col.column_name,
-                                       metric_type='sum',
-                                       expression='SUM({})'.format(quoted))
+                new_metric = SqlMetric(
+                    temp_dataset=self,
+                    metric_name='sum__' + new_col.column_name,
+                    verbose_name='sum__' + new_col.column_name,
+                    metric_type='sum',
+                    expression='SUM({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
             if new_col.avg:
-                new_metric = SqlMetric(temp_dataset=self,
-                                       metric_name='avg__' + new_col.column_name,
-                                       verbose_name='avg__' + new_col.column_name,
-                                       metric_type='avg',
-                                       expression='AVG({})'.format(quoted))
+                new_metric = SqlMetric(
+                    temp_dataset=self,
+                    metric_name='avg__' + new_col.column_name,
+                    verbose_name='avg__' + new_col.column_name,
+                    metric_type='avg',
+                    expression='AVG({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
             if new_col.max:
-                new_metric = SqlMetric(temp_dataset=self,
-                                       metric_name='max__' + new_col.column_name,
-                                       verbose_name='max__' + new_col.column_name,
-                                       metric_type='max',
-                                       expression='MAX({})'.format(quoted))
+                new_metric = SqlMetric(
+                    temp_dataset=self,
+                    metric_name='max__' + new_col.column_name,
+                    verbose_name='max__' + new_col.column_name,
+                    metric_type='max',
+                    expression='MAX({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
             if new_col.min:
-                new_metric = SqlMetric(temp_dataset=self,
-                                       metric_name='min__' + new_col.column_name,
-                                       verbose_name='min__' + new_col.column_name,
-                                       metric_type='min',
-                                       expression='MIN({})'.format(quoted))
+                new_metric = SqlMetric(
+                    temp_dataset=self,
+                    metric_name='min__' + new_col.column_name,
+                    verbose_name='min__' + new_col.column_name,
+                    metric_type='min',
+                    expression='MIN({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
             if new_col.count_distinct:
-                new_metric = SqlMetric(temp_dataset=self,
-                                       metric_name='count_distinct__' + new_col.column_name,
-                                       verbose_name='count_distinct__' + new_col.column_name,
-                                       metric_type='count_distinct',
-                                       expression='COUNT(DISTINCT {})'.format(quoted))
+                new_metric = SqlMetric(
+                    temp_dataset=self,
+                    metric_name='count_distinct__' + new_col.column_name,
+                    verbose_name='count_distinct__' + new_col.column_name,
+                    metric_type='count_distinct',
+                    expression='COUNT(DISTINCT {})'.format(quoted))
                 self.temp_metrics.append(new_metric)
 
-        new_metric = SqlMetric(temp_dataset=self,
-                               metric_name='count',
-                               verbose_name='COUNT(*)',
-                               metric_type='count',
-                               expression='COUNT(*)')
+        new_metric = SqlMetric(
+            temp_dataset=self,
+            metric_name='count',
+            verbose_name='COUNT(*)',
+            metric_type='count',
+            expression='COUNT(*)')
         self.temp_metrics.append(new_metric)
         if not self.main_dttm_col:
             self.main_dttm_col = any_date_col
@@ -857,27 +867,28 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         if check(dataset, user_id) is False:
             if raise_if_false:
                 raise SupersetException(
-                    "Dependent someone's dataset: [{}] is offline, "
-                    "so it's unavailable.".format(dataset))
+                    _("Dependent someone's dataset [{dataset}] is offline, "
+                    "so it's unavailable").format(dataset=dataset))
             else:
                 return False
         # database
         if dataset.database and check(dataset.database, user_id) is False:
             if raise_if_false:
                 raise SupersetException(
-                    "Dependent someone's inceptor connection: [{}] is offline, "
-                    "so it's unavailable.".format(dataset.database))
+                    _("Dependent someone's Inceptor connection [{conn}] is offline, "
+                    "so it's unavailable").format(conn=dataset.database))
             else:
                 return False
         # hdfs_connection
-        if dataset.dataset_type.lower() == 'hdfs' \
-            and dataset.hdfs_table \
-            and dataset.hdfs_table.hdfs_connection \
-            and check(dataset.hdfs_table.hdfs_connection, user_id) is False:
+        if dataset.dataset_type \
+                and dataset.dataset_type.lower() == 'hdfs' \
+                and dataset.hdfs_table \
+                and dataset.hdfs_table.hdfs_connection \
+                and check(dataset.hdfs_table.hdfs_connection, user_id) is False:
             if raise_if_false:
                 raise SupersetException(
-                    "Dependent someone's hdfs connection: [{}] is offline, "
-                    "so it's unavailable.".format(dataset.hdfs_table.hdfs_connection))
+                    _("Dependent someone's HDFS connection [{conn}] is offline, "
+                    "so it's unavailable").format(conn=dataset.hdfs_table.hdfs_connection))
             else:
                 return False
         return True
@@ -931,7 +942,7 @@ class HDFSTable(Model, AuditMixinNullable):
     nrows = Column(Integer)             # the rows of data readed
     charset = Column(String(32))
     hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection.id'))
-    hdfsconnection = relationship(
+    hdfs_connection = relationship(
         'HDFSConnection',
         backref=backref('hdfs_table', lazy='joined'),
         foreign_keys=[hdfs_connection_id]
@@ -983,6 +994,5 @@ class HDFSTable(Model, AuditMixinNullable):
                                skiprows=skiprows, header=None, names=names,
                                prefix='C', nrows=nrows, encoding=charset)
         except Exception as e:
-            msg = "Parse hdfs file error: {}".format(str(e))
-            raise Exception(msg)
+            raise Exception(_("Parse file error: {msg}").format(msg=str(e)))
 

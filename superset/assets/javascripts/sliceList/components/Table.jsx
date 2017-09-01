@@ -1,9 +1,11 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { message, Table, Icon } from 'antd';
+import { message, Table, Icon, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
+import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail,
+    fetchOnOfflineInfo, fetchSliceDelInfo } from '../actions';
 import { SliceDelete, SliceEdit } from '../popup';
+import { ConfirmModal } from '../../common/components';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -44,22 +46,57 @@ class SliceTable extends React.Component {
 
     deleteSlice(record) {
         const { dispatch } = this.props;
-        let deleteTips = "确定删除" + record.slice_name + "?";
-        let deleteSlicePopup = render(
-            <SliceDelete
-                dispatch={dispatch}
-                deleteType={'single'}
-                deleteTips={deleteTips}
-                slice={record}/>,
-            document.getElementById('popup_root'));
-        if(deleteSlicePopup) {
-            deleteSlicePopup.showDialog();
+        dispatch(fetchSliceDelInfo(record.id, callback));
+        function callback(success, data) {
+            if(success) {
+                const deleteTips = data;
+                render(
+                    <SliceDelete
+                        dispatch={dispatch}
+                        deleteType={'single'}
+                        deleteTips={deleteTips}
+                        slice={record}
+                    />,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message.error(data, 5);
+            }
         }
     }
 
     publishSlice(record) {
         const { dispatch } = this.props;
-        dispatch(fetchStateChange(record, "publish"));
+        const self = this;
+        dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
+        function callback(success, data) {
+            if(success) {
+                render(
+                    <ConfirmModal
+                        dispatch={dispatch}
+                        record={record}
+                        needCallback={true}
+                        confirmCallback={self.onOfflineSlice}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
+    }
+
+    onOfflineSlice() {
+        const {dispatch, record} = this;
+        dispatch(fetchStateChange(record, callback, "publish"));
+        function callback(success, data) {
+            if(!success) {
+                render(
+                    <ConfirmModal
+                        needCallback={false}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
     }
 
     favoriteSlice(record) {
@@ -81,7 +118,7 @@ class SliceTable extends React.Component {
                 title: '',
                 dataIndex: 'favorite',
                 key: 'favorite',
-                width: '5%',
+                width: '2%',
                 render: (text, record) => {
                     return (
                         <i className={record.favorite ? 'icon icon-star-fav' : 'icon icon-star'}
@@ -114,7 +151,7 @@ class SliceTable extends React.Component {
                 title: '图表类型',
                 dataIndex: 'viz_type',
                 key: 'viz_type',
-                width: '10%',
+                width: '13%',
                 sorter(a, b) {
                     return a.viz_type.substring(0, 1).charCodeAt() - b.viz_type.substring(0, 1).charCodeAt();
                 }
@@ -166,10 +203,24 @@ class SliceTable extends React.Component {
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <i className="icon icon-edit" onClick={() => this.editSlice(record)}/>
-                            <i className={record.online ? 'icon icon-online' : 'icon icon-offline'}
-                               onClick={() => this.publishSlice(record)}/>
-                            <i className="icon icon-delete" onClick={() => this.deleteSlice(record)}/>
+                            <Tooltip placement="top" title="编辑" arrowPointAtCenter>
+                                <i
+                                    className="icon icon-edit"
+                                    onClick={() => this.editSlice(record)}
+                                />
+                            </Tooltip>
+                            <Tooltip placement="top" title="发布/下线" arrowPointAtCenter>
+                                <i
+                                    className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
+                                    onClick={() => this.publishSlice(record)}
+                                />
+                            </Tooltip>
+                            <Tooltip placement="top" title="删除" arrowPointAtCenter>
+                                <i
+                                    className="icon icon-delete"
+                                    onClick={() => this.deleteSlice(record)}
+                                />
+                            </Tooltip>
                         </div>
                     )
                 }

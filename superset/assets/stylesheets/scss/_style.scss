@@ -1,10 +1,11 @@
+@import './global';
+@import './reset';
+@import './common';
 @import './common/table';
 @import './common/icon';
 @import './common/select';
-@import './common/componentSelect';
-@import './golbal';
-@import './reset';
-@import './common';
+@import './common/pagination';
+@import './common/commonSelect';
 @import './home';
 @import './compileWork';
 @import './recentlyCompile';
@@ -18,4 +19,5 @@
 @import './sqlEditor';
 @import './sqlSearch';
 @import './navbar';
+@import './login';
 

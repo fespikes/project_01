@@ -1,10 +1,12 @@
 import React from 'react';
 import { render } from 'react-dom';
-import { message, Table, Icon } from 'antd';
+import { message, Table, Icon, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
-import { fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection } from '../actions';
+import { fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection, fetchOnOfflineInfo,
+    fetchConnectDelInfo } from '../actions';
 import { ConnectionDelete, ConnectionEdit } from '../popup';
 import style from '../style/database.scss'
+import { ConfirmModal } from '../../common/components';
 
 class SliceTable extends React.Component {
     constructor(props, context) {
@@ -52,24 +54,60 @@ class SliceTable extends React.Component {
 
     publishConnection(record) {
         const dispatch = this.dispatch;
-        dispatch(fetchPublishConnection(record));
+        const self = this;
+        dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
+        function callback(success, data) {
+            if(success) {
+                render(
+                    <ConfirmModal
+                        dispatch={dispatch}
+                        record={record}
+                        needCallback={true}
+                        confirmCallback={self.onOfflineConnection}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
+    }
+
+    onOfflineConnection() {
+        const {dispatch, record} = this;
+        dispatch(fetchPublishConnection(record, callback));
+        function callback(success, data) {
+            if(!success) {
+                render(
+                    <ConfirmModal
+                        needCallback={false}
+                        confirmMessage={data} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
     }
 
     //delete one of them
     deleteConnection(record) {
         const dispatch = this.dispatch;
-        let deleteTips = "确定删除: " + record.name + "?";      //i18n
-        let connToBeDeleted = {};
-        connToBeDeleted[record.connection_type] = [record.id];
-        this.dispatch(selectRows([record.elementId], connToBeDeleted, [record.name]));
+        dispatch(fetchConnectDelInfo(record.id, callback));
+        function callback(success, data) {
+            if(success) {
+                let deleteTips = data;
+                let connToBeDeleted = {};
+                connToBeDeleted[record.connection_type] = [record.id];
+                dispatch(selectRows([record.elementId], connToBeDeleted, [record.name]));
 
-        render(
-            <ConnectionDelete
-                dispatch={dispatch}
-                deleteTips={deleteTips}
-                connection={record}/>,
-            document.getElementById('popup_root')
-        );
+                render(
+                    <ConnectionDelete
+                        dispatch={dispatch}
+                        deleteTips={deleteTips}
+                        connection={record}/>,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message.error(data, 5);
+            }
+        }
     }
 
     render() {
@@ -126,19 +164,25 @@ class SliceTable extends React.Component {
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <i
-                                className="icon icon-edit"
-                                onClick={() => this.editConnection(record)}
-                            />
-                            <i
-                                style={{marginLeft: 20}}
-                                className={record.online ? 'icon icon-online' : 'icon icon-offline'}
-                                onClick={() => this.publishConnection(record)}
-                            />
-                            <i
-                                className="icon icon-delete"
-                                onClick={() => this.deleteConnection(record)}
-                            />
+                            <Tooltip placement="top" title="编辑" arrowPointAtCenter>
+                                <i
+                                    className="icon icon-edit"
+                                    onClick={() => this.editConnection(record)}
+                                />
+                            </Tooltip>
+                            <Tooltip placement="top" title="发布/下线" arrowPointAtCenter>
+                                <i
+                                    style={{marginLeft: 20}}
+                                    className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
+                                    onClick={() => this.publishConnection(record)}
+                                />
+                            </Tooltip>
+                            <Tooltip placement="top" title="删除" arrowPointAtCenter>
+                                <i
+                                    className="icon icon-delete"
+                                    onClick={() => this.deleteConnection(record)}
+                                />
+                            </Tooltip>
                         </div>
                     )
                 }

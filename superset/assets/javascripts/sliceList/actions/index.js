@@ -1,4 +1,5 @@
 import fetch from 'isomorphic-fetch';
+import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
 
 export const SHOW_ALL = 'showAll';
 export const SHOW_FAVORITE = 'showFavorite';
@@ -22,6 +23,20 @@ export const CONDITION_PARAMS = {
     CLEAR_ROWS: 'CLEAR_ROWS',
     SELECTED_ROWS: 'SELECTED_ROWS',
     TABLE_LOADING: 'TABLE_LOADING'
+};
+
+const callbackHandler = (response, callback) => {
+    if(response.status === 200) {
+        callback && callback(true, response.data);
+    }else {
+        callback && callback(false, response.message);
+    }
+};
+const always = (response) => {
+    return Promise.resolve(response);
+};
+const json = (response) => {
+    return response.json();
 };
 
 const baseURL = window.location.origin + '/slice/';
@@ -90,21 +105,37 @@ export function receiveLists(json) {
     };
 }
 
-export function fetchStateChange(record, type) {
+export function fetchStateChange(record, callback, type) {
     const url = getStateChangeUrl(record, type);
     return dispatch => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchLists());
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
-            }else {
+                if(response.status === 200) {
+                    dispatch(fetchLists());
+                }
+            }
+        );
+    }
+}
+
+export function fetchOnOfflineInfo(sliceId, published, callback) {
+    const url = getOnOfflineInfoUrl(sliceId, 'slice', published);
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
             }
-        });
+        );
     }
 }
 
@@ -136,18 +167,30 @@ export function fetchSliceDelete(sliceId, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchLists());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchLists());
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchSliceDelInfo(sliceId, callback) {
+    const url = baseURL + "delete_info/" + sliceId;
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
@@ -160,18 +203,33 @@ export function fetchSliceDeleteMul(callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(data)
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchLists());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchLists());
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchSliceDelMulInfo(callback) {
+    const url = baseURL + "muldelete_info/";
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        const selectedRowKeys = getState().conditions.selectedRowKeys;
+        let data = {selectedRowKeys: selectedRowKeys};
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(data)
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
@@ -202,28 +260,25 @@ export function fetchUpdateSlice(state, slice, callback) {
             credentials: "include",
             method: "POST",
             body: JSON.stringify(newSlice)
-        }).then(function(response) {
-            if(response.ok) {
-                response.json().then(
-                    data => {
-                        console.log('data=', data);
-                        if(data.success) {
-                            dispatch(fetchLists());
-                            callback(true);
-                        }else {
-                            callback(false, data.message);
-                        }
-                    }
-                );
-            }else {
-                const message = '服务器响应错误!';
-                callback(false, message);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchLists());
+                }
             }
-        });
+        );
     }
 }
 
 export function switchFetchingState(isFetching) {
+    const loadingModal = renderLoadingModal();
+    if(isFetching) {
+        loadingModal.show();
+    }else {
+        loadingModal.hide();
+    }
     return {
         type: LISTS.SWITCH_FETCHING_STATE,
         isFetching: isFetching
@@ -241,7 +296,7 @@ function getSliceListUrl(state) {
 
 function getStateChangeUrl(record, type) {
     if(type === "favorite") {
-        let url_favorite = window.location.origin + "/pilot/favstar/Slice/" + record.id;
+        let url_favorite = window.location.origin + PILOT_PREFIX + "favstar/Slice/" + record.id;
         if(record.favorite) {
             url_favorite += "/unselect";
         }else {
@@ -249,7 +304,7 @@ function getStateChangeUrl(record, type) {
         }
         return url_favorite;
     }else if(type === "publish") {
-        let url_publish = window.location.origin + "/pilot/release/slice/";
+        let url_publish = window.location.origin + PILOT_PREFIX + "release/slice/";
         if(record.online) {
             url_publish += "offline/" + record.id;
         }else {

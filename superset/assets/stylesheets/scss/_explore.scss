@@ -74,10 +74,13 @@
                         height:26px;
                         background-color:#279cf2;
                         text-align:center;
-                        line-height:26px;
                         color:#fff;
                         font-size:24px;
                         border-radius:4px;
+                    }
+                    button span {
+                        position: relative;
+                        top: -5px;
                     }
                 }
             }
@@ -125,6 +128,16 @@
                 }
             }
 		}
+        .panel-default .panel-title {
+            border-bottom: $borderStyleNormal;
+        }
+        form input.form-control {
+            border: $borderStyleNormal;
+            &:focus {
+                outline: none;
+                border: $borderStyleFocus;
+            }
+        }
 	}
 }
 
@@ -138,8 +151,8 @@
 #view-tab-container {
     .ant-radio-button-wrapper {
         width: 80px;
-        padding: 0;
         text-align: center;
+        line-height: 32px;
     }
 }
 

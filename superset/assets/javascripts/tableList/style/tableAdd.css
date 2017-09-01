@@ -22,6 +22,8 @@ a{text-decoration:none;}
 .data-detail>.title{
     color:#1d2531;
     font:18px/52px Miscrosoft YaHei;
+    display: flex;
+    align-items: center;
 }
 .data-detail>.title>.icon{
     width:15px;
@@ -123,7 +125,7 @@ a{text-decoration:none;}
 .sub-btn>input, .sub-btn>button{
     width:160px;
     height:40px;
-    background-color:#4bd44a;
+    background-color:#2acc28;
     border-radius: 4px;
     color:#fff;
     text-align:center;
@@ -276,7 +278,7 @@ a{text-decoration:none;}
 .connect-success>button{
     width:84px;
     height:30px;
-    background-color:#4bd44a;
+    background-color:#2acc28;
     border-radius: 4px;
     text-align: center;
     font:14px/30px Miscrosoft YaHei;
@@ -302,7 +304,7 @@ a{text-decoration:none;}
     font:14px/40px Miscrosoft YaHei;
     color:#fff;
     border-radius: 4px;
-    background-color:#4bd44a;
+    background-color:#2acc28;
     margin-left: 25px;
     cursor: pointer;
 }

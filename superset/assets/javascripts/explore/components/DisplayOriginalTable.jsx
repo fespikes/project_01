@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { Select, TreeSelect } from 'antd';
 import PropTypes from 'prop-types';
 import { appendTreeData, constructTreeData } from '../../../utils/common2';
-import { renderLoadingModal, renderAlertTip} from '../../../utils/utils';
+import { renderLoadingModal, renderAlertTip, PILOT_PREFIX } from '../../../utils/utils';
 
 class DisplayOriginalTable extends React.Component {
     constructor(props) {
@@ -32,7 +32,7 @@ class DisplayOriginalTable extends React.Component {
             this.setState({
                 tableName: value
             });
-            window.location = window.location.origin + '/pilot/explore/table/0?database_id=' + this.state.currentDbId +
+            window.location = window.location.origin + PILOT_PREFIX + 'explore/table/0?database_id=' + this.state.currentDbId +
                 '&full_tb_name=' + this.state.currentSchema + '.' + value + '&slice_id=' + sliceId + '&viz_type=' + vizType;
         }
     }

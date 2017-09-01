@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { fetchLists } from '../actions';
 import { Pagination, Table, Operate } from '../components';
 import PropTypes from 'prop-types';
-import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
+import { renderAlertTip } from '../../../utils/utils';
 
 class App extends Component {
     constructor(props) {
@@ -16,18 +16,6 @@ class App extends Component {
         dispatch(fetchLists());
     }
 
-    componentWillReceiveProps(nextProps) {
-        const { lists } = this.props;
-        if(lists.isFetching !== nextProps.lists.isFetching) {
-            const loadingModal = renderLoadingModal();
-            if(nextProps.lists.isFetching) {
-                loadingModal.show();
-            }else {
-                loadingModal.hide();
-            }
-        }
-    }
-
     render() {
         const {dispatch, lists, conditions} = this.props;
 
@@ -35,7 +23,7 @@ class App extends Component {
             <div className="pilot-panel slice-panel">
                 <div className="panel-top">
                     <div className="left">
-                        <i className="icon icon-slice"></i>
+                        <i className="icon icon-slice" style={{zoom: 0.9}}/>
                         <span>工作表</span>
                         <span>记录</span>
                         <span>{lists.items.count +''}条</span>

@@ -18,9 +18,9 @@ function Line(props) {
 
     const config = {
         chart: {
-            backgroundColor: 'rgba(46, 161, 248, 0.1)',
+            // backgroundColor: 'rgba(46, 161, 248, 0.1)',
             type: 'area',
-            height: '240'
+            height: '250'
         },
         lang: {
             noData: "暂无数据"
@@ -71,18 +71,16 @@ function Line(props) {
                 result += '<div class="tooltip-body">'
                 if (this.point.index > 1) {
                     result += '<div class="yesterday"><span class="key">昨日变动</span><span class="value">' + (this.series.data[this.point.index - 1].y - this.series.data[this.point.index - 2].y) + "</span></div>";
-                }
-                else {
+                } else {
                     result += '<div class="yesterday"><span class="key">昨日变动</span><span class="value">' + 0 + "</span></div>";
                 }
 
                 if (this.point.index > 0) {
                     result += '<div class="today"><span class="key">今日变动</span><span class="value">' + (this.series.data[this.point.index].y - this.series.data[this.point.index - 1].y) + "</span></div>";
-                }
-                else {
+                } else {
                     result += '<div class="today"><span class="key">今日变动</span><span class="value">' + 0 + "</span></div>";
                 }
-                
+
                 result += '</div>';
                 return result;
             }
@@ -112,7 +110,7 @@ function Line(props) {
 }
 
 Line.propTypes = {
-  statistic: PropTypes.any
+    statistic: PropTypes.any
 };
 
 export default Line;

@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import React, { PropTypes } from 'react';
+import ReactDOM from 'react-dom';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import ModalTrigger from '../../components/ModalTrigger';
 import { Table, Pagination } from 'antd';
@@ -15,11 +16,11 @@ class SliceAdder extends React.Component {
         super(props);
         this.state = {
             slices: [],
+            pageSize: 10000,
+            pageNumber: 1,
             slicesLoaded: false,
-            selectedSliceIds: [],
-            pageSize: 10,
-            totalPage: 0,
-            pageNumber: 1
+            selectedRowKeys: {},
+            selectedRows: {}
         };
 
         this.addSlices = this.addSlices.bind(this);
@@ -33,12 +34,13 @@ class SliceAdder extends React.Component {
     }
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
-        let selectedSliceIds = [];
-        selectedRows.forEach(function(row) {
-            selectedSliceIds.push(row.id);
-        });
+        let _selectedKeys = {...this.state.selectedRowKeys};
+        let _selectedRows = {...this.state.selectedRows};
+        _selectedKeys[this.state.pageNumber] = selectedRowKeys;
+        _selectedRows[this.state.pageNumber] = selectedRows;
         this.setState({
-            selectedSliceIds: selectedSliceIds
+            selectedRowKeys: _selectedKeys,
+            selectedRows: _selectedRows
         });
     };
 
@@ -46,11 +48,18 @@ class SliceAdder extends React.Component {
         this.setState({
             pageNumber: page
         });
-        this.getSliceList(page, '');
     }
 
     addSlices() {
-        this.props.dashboard.addSlicesToDashboard(this.state.selectedSliceIds);
+        let selectedSliceIds = [];
+        const selectedRows = this.state.selectedRows;
+        for(let row in selectedRows) {
+            let rowArray = selectedRows[row];
+            for(let i=0; i<rowArray.length; i++) {
+                selectedSliceIds.push(rowArray[i].id);
+            }
+        }
+        this.props.dashboard.addSlicesToDashboard(selectedSliceIds);
     }
 
     getSliceList(pageNumber, keyword) {
@@ -63,18 +72,17 @@ class SliceAdder extends React.Component {
                 const slices = $.parseJSON(response).data;
                 const sliceCount = $.parseJSON(response).count;
                 const totalPage = Math.ceil(sliceCount/self.state.pageSize);
-                this.setState({
+                self.setState({
                     slices,
-                    selectedSliceIds: [],
                     totalPage: totalPage,
                     pageNumber: pageNumber,
                     slicesLoaded: true
                 });
             },
             error: error => {
-                this.errored = true;
-                this.setState({
-                    errorMsg: this.props.dashboard.getAjaxErrorMsg(error),
+                self.errored = true;
+                self.setState({
+                    errorMsg: self.props.dashboard.getAjaxErrorMsg(error),
                 });
             }
         });
@@ -90,10 +98,12 @@ class SliceAdder extends React.Component {
     }
 
     render() {
+        const { selectedRowKeys, pageNumber } = this.state;
         const hideLoad = this.state.slicesLoaded || this.errored;
         const enableAddSlice = this.state.selectedSliceIds && this.state.selectedSliceIds.length > 0;
 
         const rowSelection = {
+            selectedRowKeys: selectedRowKeys[pageNumber],
             onChange: this.onSelectChange
         };
 
@@ -156,7 +166,7 @@ class SliceAdder extends React.Component {
         const modalTitle = "添加工作表";
         const modalIcon = "icon icon-plus";
         const modalContent = (
-            <div>
+            <div className="table-add-slice">
                 <img
                     src="/static/assets/images/loading.gif"
                     className={'loading ' + (hideLoad ? 'hidden' : '')}
@@ -167,22 +177,17 @@ class SliceAdder extends React.Component {
                 </div>
                 <div className={this.state.slicesLoaded ? '' : 'hidden'}>
                     <div className="search-input">
-                        <input onChange={this.keywordChange} placeholder="search..." />
+                        <input className="tp-input" onChange={this.keywordChange} placeholder="搜索..." />
                         <i className="icon icon-search"/>
                     </div>
                     <Table
                         rowSelection={rowSelection}
                         dataSource={this.state.slices}
                         columns={columns}
-                        pagination={false}
-                    />
-                    <Pagination
-                        size="small"
-                        style={{textAlign: 'right', marginTop: 10}}
-                        pageSize={this.state.pageSize}
-                        total={this.state.totalPage}
-                        current={this.state.pageNumber}
-                        onChange={this.onPageChange}
+                        pagination={{
+                            pageSize: 8,
+                            onChange: this.onPageChange
+                        }}
                     />
                 </div>
             </div>
@@ -191,7 +196,7 @@ class SliceAdder extends React.Component {
             <div>
                 <button
                     type="button"
-                    className="btn btn-default"
+                    className="tp-btn tp-btn-middle tp-btn-primary"
                     data-dismiss="modal"
                     onClick={this.addSlices}
                     disabled={!enableAddSlice}

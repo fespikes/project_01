@@ -1,8 +1,9 @@
 import React from 'react';
 import { render } from 'react-dom';
 import PropTypes from 'prop-types';
-import { fetchLists, switchFavorite, setKeyword, navigateTo,  } from '../actions';
+import { fetchLists, switchFavorite, setKeyword, navigateTo, fetchSliceDelMulInfo } from '../actions';
 import { SliceDelete } from '../popup';
+import { message } from 'antd';
 
 const SHOW_ALL = "showAll";
 const SHOW_FAVORITE = "showFavorite";
@@ -34,20 +35,25 @@ class SliceOperate extends React.Component {
 
     onDelete() {
         const { dispatch, selectedRowNames } = this.props;
-        let deleteType = 'multiple';
-        let deleteTips = '确定删除' + selectedRowNames + '?';
-        if(selectedRowNames.length === 0) {
-            deleteType = 'none';
-            deleteTips = '没有选择任何将要删除的记录，请选择！';
-        }
-        let deleteSlicePopup = render(
-            <SliceDelete
-                dispatch={dispatch}
-                deleteType={deleteType}
-                deleteTips={deleteTips} />,
-            document.getElementById('popup_root'));
-        if(deleteSlicePopup) {
-            deleteSlicePopup.showDialog();
+        dispatch(fetchSliceDelMulInfo(callback));
+        function callback(success, data) {
+            if(success) {
+                let deleteType = 'multiple';
+                let deleteTips = data;
+                if(selectedRowNames.length === 0) {
+                    deleteType = 'none';
+                    deleteTips = '没有选择任何将要删除的记录，请选择！';
+                }
+                render(
+                    <SliceDelete
+                        dispatch={dispatch}
+                        deleteType={deleteType}
+                        deleteTips={deleteTips} />,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message.error(data, 5);
+            }
         }
     }
 
@@ -85,7 +91,7 @@ class SliceOperate extends React.Component {
                     </button>
                 </div>
                 <div className="search-input">
-                    <input onKeyUp={this.onEnterSearch} onChange={this.onChange} ref="searchField" placeholder="search..." />
+                    <input onKeyUp={this.onEnterSearch} onChange={this.onChange} className="tp-input" ref="searchField" placeholder="搜索..." />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"/>
                 </div>
             </div>

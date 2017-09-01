@@ -1,10 +1,13 @@
 const $ = window.$ = require('jquery');
 
 import React from 'react';
+import ReactDOM from 'react-dom';
+import { render } from 'react-dom';
 import { Button, FormControl, FormGroup, Radio } from 'react-bootstrap';
-import { getAjaxErrorMsg, showModal } from '../../modules/utils';
-
+import { getAjaxErrorMsg } from '../../modules/utils';
+import { PILOT_PREFIX } from '../../../utils/utils';
 import ModalTrigger from '../../components/ModalTrigger';
+import Confirm from './Confirm';
 
 const propTypes = {
     css: React.PropTypes.string,
@@ -50,21 +53,28 @@ class SaveModal extends React.PureComponent {
                 saveModal.close();
                 dashboard.onSave();
                 if (saveType === 'newDashboard') {
-                    window.location = '/pilot/dashboard/' + resp.id + '/';
+                    window.location = PILOT_PREFIX + 'dashboard/' + resp.id + '/';
                 } else {
-                    showModal({
-                        title: 'Success',
-                        body: 'This dashboard was saved successfully.',
-                    });
+                    render(
+                        <Confirm
+                            confirmType='success'
+                            confirmMessage='仪表板保存成功'
+                        />,
+                        document.getElementById('popup_root')
+                    );
                 }
             },
             error(error) {
                 saveModal.close();
                 const errorMsg = getAjaxErrorMsg(error);
-                showModal({
-                    title: 'Error',
-                    body: 'Sorry, there was an error saving this dashboard: </ br>' + errorMsg,
-                });
+                const confirmMessage = '仪表板保存失败' +'  '+ errorMsg;
+                render(
+                    <Confirm
+                        confirmType='error'
+                        confirmMessage={confirmMessage}
+                    />,
+                    document.getElementById('popup_root')
+                );
             },
         });
     }
@@ -86,18 +96,21 @@ class SaveModal extends React.PureComponent {
         };
         let url = null;
         if (saveType === 'overwrite') {
-            url = '/pilot/save_dash/' + dashboard.id + '/';
+            url = PILOT_PREFIX + 'save_dash/' + dashboard.id + '/';
             this.saveDashboardRequest(data, url, saveType);
         } else if (saveType === 'newDashboard') {
             if (!newDashboardTitle) {
                 this.modal.close();
-                showModal({
-                    title: 'Error',
-                    body: 'You must pick a name for the new dashboard',
-                });
+                render(
+                    <Confirm
+                        confirmType='warning'
+                        confirmMessage='必须为新的仪表盘选择一个名字'
+                    />,
+                    document.getElementById('popup_root')
+                );
             } else {
                 data.dashboard_title = newDashboardTitle;
-                url = '/pilot/copy_dash/' + dashboard.id + '/';
+                url = PILOT_PREFIX + 'copy_dash/' + dashboard.id + '/';
                 this.saveDashboardRequest(data, url, saveType);
             }
         }
@@ -110,6 +123,7 @@ class SaveModal extends React.PureComponent {
                 isButton
                 modalTitle="保存仪表盘"
                 modalIcon="icon icon-save"
+                className="popup-modal-save-dashboard"
                 modalBody={
                     <FormGroup>
                         <Radio
@@ -135,7 +149,9 @@ class SaveModal extends React.PureComponent {
                 modalFooter={
                     <div>
                         <Button
-                            bsStyle="primary"
+                            type="button"
+                            className="tp-btn tp-btn-middle tp-btn-primary"
+                            data-dismiss="modal"
                             onClick={() => { this.saveDashboard(this.state.saveType, this.state.newDashName); }}
                             >
                             保存

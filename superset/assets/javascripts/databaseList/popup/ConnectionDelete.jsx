@@ -23,8 +23,6 @@ class ConnectionDelete extends React.Component {
             if(success) {
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }
-            console.log('TODO: API not ready - http://172.16.1.168:8090/display/TRAN/Pilot+api+-+CRUD - /connection/muldelete/');
-            console.log('json.message:', json.message );
         }
 
         if(deleteType === "none") {
@@ -41,7 +39,7 @@ class ConnectionDelete extends React.Component {
                 ref="popupDatabaseDelete"
                 style={{display:'flex'}}
             >
-                <div className="popup-dialog popup-sm">
+                <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">

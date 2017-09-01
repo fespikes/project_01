@@ -13,18 +13,15 @@ import zlib
 from datetime import datetime, timedelta
 
 from flask import g, request, redirect, flash, Response, render_template
-from flask_babel import gettext as __
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
-from flask_appbuilder.security.decorators import has_access
 from flask_appbuilder.security.sqla.models import User
 
-import sqlalchemy as sqla
 from sqlalchemy import create_engine, or_
 
 from superset import (
-    app, appbuilder, cache, db, models, sql_lab, sql_parse,
-    results_backend, viz, utils
+    app, cache, db, sql_lab, sql_parse, results_backend, viz, utils
 )
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
@@ -102,7 +99,8 @@ class SliceModelView(SupersetModelView):  # noqa
         objs = db.session.query(Dashboard) \
             .filter(Dashboard.id.in_(ids)).all()
         if len(ids) != len(objs):
-            msg = "Some dashboards are not found by ids: {}".format(ids)
+            msg = _("Error parameter ids: {ids}, queried {num} dashboard(s)")\
+                .format(ids=ids, num=len(objs))
             self.handle_exception(404, Exception, msg)
         return objs
 
@@ -134,38 +132,60 @@ class SliceModelView(SupersetModelView):  # noqa
         slice = db.session.query(Slice).filter_by(id=id).first()
         if not slice:
             raise SupersetException(
-                '{}: Slice.id={}'.format(OBJECT_NOT_FOUND, id))
+                _('Error parameter ids: {ids}, queried {num} slice(s)')
+                    .format(ids=[id, ], num=0)
+            )
         dataset = slice.datasource
         conn = dataset.database if dataset else None
-        info = "Releasing slice [{}] will release all associated objects too:\n" \
-               "Dataset: [{}],\n" \
-               "Connection: [{}].".format(slice, dataset, conn)
+        info = _("Releasing slice [{slice}] will release these too: "
+               "\nDataset: [{dataset}], \nConnection: [{conn}]")\
+            .format(slice=slice, dataset=dataset, conn=conn)
         return json_response(data=info)
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.associated_objects(id)
-        info = "Changing slice [{}] to be offline will make it invisible " \
-               "in these dashboards: {}"\
-            .format(objects.get('slice'), objects.get('dashboard'))
+        objects = self.associated_objects([id, ])
+        info = _("Changing slice {slice} to offline will make it invisible "
+               "in these dashboards: {dashboard}")\
+            .format(slice=objects.get('slice'), dashboard=objects.get('dashboard'))
         return json_response(data=info)
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.associated_objects(id)
-        info = "Deleting slice [{}] will remove it from these dashboards: {}"\
-            .format(objects.get('slice'), objects.get('dashboard'))
+        objects = self.associated_objects([id, ])
+        info = _("Deleting slice {slice} will remove from these dashboards too: {dashboard}")\
+            .format(slice=objects.get('slice'), dashboard=objects.get('dashboard'))
         return json_response(data=info)
 
-    def associated_objects(self, id):
-        slice = db.session.query(Slice).filter_by(id=id).first()
-        if not slice:
+    @catch_exception
+    @expose("/muldelete_info/", methods=['POST'])
+    def muldelete_info(self):
+        json_data = self.get_request_data()
+        ids = json_data.get('selectedRowKeys')
+        objects = self.associated_objects(ids)
+
+        dashs = [d.dashboard_title for d in objects.get('dashboard')]
+        dashs = list(set(dashs))
+        info = _("Deleting slice {slice} will remove from these dashboards too: {dashboard}") \
+            .format(slice=objects.get('slice'), dashboard=dashs)
+        return json_response(data=info)
+
+    def associated_objects(self, ids):
+        slices = db.session.query(Slice).filter(Slice.id.in_(ids)).all()
+        if len(slices) != len(ids):
             raise SupersetException(
-                '{}: Slice.id={}'.format(OBJECT_NOT_FOUND, id))
-        dashs = slice.dashboards
-        return {'slice': slice, 'dashboard': dashs}
+                _('Error parameter ids: {ids}, queried {num} slice(s)')
+                    .format(ids=ids, num=len(slices))
+            )
+        dashs = []
+        user_id = get_user_id()
+        for s in slices:
+            for d in s.dashboards:
+                if d.created_by_fk == user_id or d.online == 1:
+                    dashs.append(d)
+        return {'slice': slices, 'dashboard': dashs}
 
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
@@ -181,7 +201,7 @@ class SliceModelView(SupersetModelView):  # noqa
             redirect_url = '{}?datasource_type=table&datasource_id={}'\
                 .format(dataset.explore_url, dataset.id)
         else:
-            redirect_url = '/pilot/explore/table/0/?datasource_id='
+            redirect_url = '/p/explore/table/0/?datasource_id='
         return redirect(redirect_url)
 
     def get_object_list_data(self, **kwargs):
@@ -234,6 +254,8 @@ class SliceModelView(SupersetModelView):  # noqa
                 else:
                     line[col] = getattr(obj, col, None)
 
+            viz_type = line.get('viz_type', None)
+            line['viz_type'] = str(_(viz_type)) if viz_type else viz_type
             line['explore_url'] = obj.datasource.explore_url \
                 if obj.datasource else None
             if not obj.datasource and obj.full_table_name:
@@ -342,7 +364,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             try:
                 column = self.str_to_column.get(order_column)
             except KeyError:
-                msg = 'Error order column name: \'{}\''.format(order_column)
+                msg = _('Error order column name: [{name}]').format(name=order_column)
                 self.handle_exception(404, KeyError, msg)
             else:
                 if order_direction == 'desc':
@@ -398,7 +420,8 @@ class DashboardModelView(SupersetModelView):  # noqa
         objs = db.session.query(Slice) \
             .filter(Slice.id.in_(ids)).all()
         if len(ids) != len(objs):
-            msg = "Some slices are not found by ids: {}".format(ids)
+            msg = _("Error parameter ids: {ids}, queried {num} slice(s)")\
+                .format(ids=ids, num=len(objs))
             self.handle_exception(404, Exception, msg)
         return objs
 
@@ -408,14 +431,18 @@ class DashboardModelView(SupersetModelView):  # noqa
         dash = db.session.query(Dashboard).filter_by(id=id).first()
         if not dash:
             raise SupersetException(
-                '{}: Dashboard.id={}'.format(OBJECT_NOT_FOUND, id))
+                _("Error parameter ids: {ids}, queried {num} dashboard(s)")
+                    .format(ids=[id, ], num=0)
+            )
         slices = dash.slices
         dataset = list(set([s.datasource for s in slices]))
         conns = list(set([d.database for d in dataset]))
-        info = "Releasing dashboard [{}] will release all associated objects too:\n" \
-               "Slice: {},\n" \
-               "Dataset: {},\n" \
-               "Connection: {}.".format(dash.dashboard_title, slices, dataset, conns)
+        info = _("Releasing dashboard [{dashboard}] will release these too: "
+               "\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}")\
+            .format(dashboard=dash.dashboard_title,
+                    slice=slices,
+                    dataset=dataset,
+                    connection=conns)
         return json_response(data=info)
 
     @catch_exception
@@ -424,14 +451,23 @@ class DashboardModelView(SupersetModelView):  # noqa
         dash = db.session.query(Dashboard).filter_by(id=id).first()
         if not dash:
             raise SupersetException(
-                '{}: Dashboard.id={}'.format(OBJECT_NOT_FOUND, id))
-        info = "Changing dashboard [{}] to be offline will make it invisible " \
-               "for other users.".format(dash)
+                _("Error parameter ids: {ids}, queried {num} dashboard(s)")
+                    .format(ids=[id, ], num=0)
+            )
+        info = _("Changing dashboard [{dashboard}] to offline will make it invisible "
+               "for other users").format(dashboard=dash)
         return json_response(data=info)
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
+        return json_response(data='')
+
+    @catch_exception
+    @expose("/muldelete_info/", methods=['POST'])
+    def muldelete_info(self):
+        # json_data = self.get_request_data()
+        # ids = json_data.get('selectedRowKeys')
         return json_response(data='')
 
     @catch_exception
@@ -482,7 +518,7 @@ class DashboardModelView(SupersetModelView):  # noqa
 
 
 class Superset(BaseSupersetView):
-    route_base = '/pilot'
+    route_base = '/p'
 
     def get_viz(self, slice_id=None, args=None,
                 datasource_type=None, datasource_id=None,
@@ -510,7 +546,8 @@ class Superset(BaseSupersetView):
         cls = str_to_model.get(model)
         obj = db.session.query(cls).filter_by(id=id).first()
         if not obj:
-            msg = '{}. Model:{} Id:{}'.format(OBJECT_NOT_FOUND, cls.__name__, id)
+            msg = _("Not found the object: model={model}, id={id}")\
+                .format(model=cls.__name__, id=id)
             logging.error(msg)
             return json_response(status=400, message=msg)
         check_ownership(obj, raise_if_false=True)
@@ -535,7 +572,7 @@ class Superset(BaseSupersetView):
                 log_number(model, True, None)
                 return json_response(message=OFFLINE_SUCCESS)
         else:
-            msg = ERROR_URL + ': {}'.format(request.url)
+            msg = _('Error request url: [{url}]').format(url=request.url)
             return json_response(status=400, message=msg)
 
     @catch_exception
@@ -550,6 +587,7 @@ class Superset(BaseSupersetView):
         """render the chart of slice"""
         database_id = request.args.get('database_id')
         full_tb_name = request.args.get('full_tb_name')
+        slice_id = request.args.get('slice_id')
         try:
             viz_obj = self.get_viz(
                 datasource_type=datasource_type,
@@ -557,6 +595,7 @@ class Superset(BaseSupersetView):
                 database_id=database_id,
                 full_tb_name=full_tb_name,
                 args=request.args)
+            Slice.check_online(slice_id)
             Dataset.check_online(viz_obj.datasource)
         except Exception as e:
             logging.exception(e)
@@ -779,17 +818,17 @@ class Superset(BaseSupersetView):
                     .one()
             )
             flash(
-                "Slice [{}] was added to dashboard [{}]".format(
+                _("Slice [{slice}] was added to dashboard [{dashboard}]").format(
                     slc.slice_name,
                     dash.dashboard_title),
                 "info")
         elif request.args.get('add_to_dash') == 'new':
             dash = Dashboard(dashboard_title=request.args.get('new_dashboard_name'))
             flash(
-                "Dashboard [{}] just got created and slice [{}] was added "
-                "to it".format(
-                    dash.dashboard_title,
-                    slc.slice_name),
+                _("Dashboard [{dashboard}] just got created and slice [{slice}] "
+                "was added to it").format(
+                    dashboard=dash.dashboard_title,
+                    slice=slc.slice_name),
                 "info")
 
         if dash and slc not in dash.slices:
@@ -810,7 +849,7 @@ class Superset(BaseSupersetView):
     def save_slice(self, slc):
         db.session.add(slc)
         db.session.commit()
-        flash("Slice [{}] has been saved".format(slc.slice_name), "info")
+        flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         action_str = 'Add slice: [{}]'.format(slc.slice_name)
         log_action('add', action_str, 'slice', slc.id)
         log_number('slice', slc.online, get_user_id())
@@ -818,11 +857,13 @@ class Superset(BaseSupersetView):
     def overwrite_slice(self, slc):
         can_update = check_ownership(slc, raise_if_false=False)
         if not can_update:
-            flash("You cannot overwrite [{}]".format(slc), "danger")
+            flash(_("You cannot overwrite [{slice}]").format(slice=slc), "danger")
         else:
             db.session.merge(slc)
             db.session.commit()
-            flash("Slice [{}] has been overwritten".format(slc.slice_name), "info")
+            flash(_("Slice [{slice}] has been overwritten")
+                  .format(slice=slc.slice_name),
+                  "info")
             action_str = 'Edit slice: [{}]'.format(slc.slice_name)
             log_action('edit', action_str, 'slice', slc.id)
 
@@ -967,155 +1008,9 @@ class Superset(BaseSupersetView):
             engine.connect()
             return json.dumps(engine.table_names(), indent=4)
         except Exception as e:
-            return Response((
-                            "Connection failed!\n\n"
-                            "The error message returned was:\n{}").format(e),
+            return Response(_("Test connection failed! \n{msg}").format(msg=e),
                             status=500,
                             mimetype="application/json")
-
-    @catch_exception
-    @expose("/recent_activity/<user_id>/", methods=['GET'])
-    def recent_activity(self, user_id):
-        """Recent activity (actions) for a given user"""
-        M = models  # noqa
-        qry = (
-            db.session.query(M.Log, M.Dashboard, M.Slice)
-            .outerjoin(M.Dashboard, M.Dashboard.id == M.Log.dashboard_id)
-            .outerjoin(M.Slice, M.Slice.id == M.Log.slice_id)
-            .filter(
-                sqla.and_(
-                    ~M.Log.action.in_(('queries', 'shortner', 'sql_json')),
-                    M.Log.user_id == user_id))
-            .order_by(M.Log.dttm.desc())
-            .limit(1000)
-        )
-        payload = []
-        for log in qry.all():
-            item_url = None
-            item_title = None
-            if log.Dashboard:
-                item_url = log.Dashboard.url
-                item_title = log.Dashboard.dashboard_title
-            elif log.Slice:
-                item_url = log.Slice.slice_url
-                item_title = log.Slice.slice_name
-
-            payload.append({
-                'action': log.Log.action,
-                'item_url': item_url,
-                'item_title': item_title,
-                'time': log.Log.dttm,
-            })
-        return Response(
-            json.dumps(payload, default=utils.json_int_dttm_ser),
-            mimetype="application/json")
-
-    @catch_exception
-    @expose("/fave_dashboards/<user_id>/", methods=['GET'])
-    def fave_dashboards(self, user_id):
-        qry = (
-            db.session.query(Dashboard, FavStar.dttm)
-            .join(FavStar,
-                  sqla.and_(
-                      FavStar.user_id == int(user_id),
-                      FavStar.class_name == 'Dashboard',
-                      Dashboard.id == FavStar.obj_id))
-            .order_by(FavStar.dttm.desc())
-        )
-        payload = []
-        for o in qry.all():
-            d = {
-                'id': o.Dashboard.id,
-                'dashboard': o.Dashboard.dashboard_link(),
-                'title': o.Dashboard.dashboard_title,
-                'url': o.Dashboard.url,
-                'dttm': o.dttm,
-            }
-            if o.Dashboard.created_by:
-                user = o.Dashboard.created_by
-                d['creator'] = str(user)
-                d['creator_url'] = '/pilot/profile/{}/'.format(
-                    user.username)
-            payload.append(d)
-        return Response(
-            json.dumps(payload, default=utils.json_int_dttm_ser),
-            mimetype="application/json")
-
-    @catch_exception
-    @expose("/created_dashboards/<user_id>/", methods=['GET'])
-    def created_dashboards(self, user_id):
-        Dash = Dashboard  # noqa
-        qry = (
-            db.session.query(Dash)
-            .filter(
-                sqla.or_(
-                    Dash.created_by_fk == user_id,
-                    Dash.changed_by_fk == user_id,))
-            .order_by(Dash.changed_on.desc())
-        )
-        payload = [{
-            'id': o.id,
-            'dashboard': o.dashboard_link(),
-            'title': o.dashboard_title,
-            'url': o.url,
-            'dttm': o.changed_on,
-        } for o in qry.all()]
-        return Response(
-            json.dumps(payload, default=utils.json_int_dttm_ser),
-            mimetype="application/json")
-
-    @catch_exception
-    @expose("/created_slices/<user_id>/", methods=['GET'])
-    def created_slices(self, user_id):
-        """List of slices created by this user"""
-        qry = (
-            db.session.query(Slice)
-            .filter(
-                sqla.or_(
-                    Slice.created_by_fk == user_id,
-                    Slice.changed_by_fk == user_id))
-            .order_by(Slice.changed_on.desc())
-        )
-        payload = [{
-            'id': o.id,
-            'title': o.slice_name,
-            'url': o.slice_url,
-            'dttm': o.changed_on,
-        } for o in qry.all()]
-        return Response(
-            json.dumps(payload, default=utils.json_int_dttm_ser),
-            mimetype="application/json")
-
-    @catch_exception
-    @expose("/fave_slices/<user_id>/", methods=['GET'])
-    def fave_slices(self, user_id):
-        """Favorite slices for a user"""
-        qry = (
-            db.session.query(Slice, FavStar.dttm)
-            .join(FavStar,
-                  sqla.and_(
-                      FavStar.user_id == int(user_id),
-                      FavStar.class_name == 'slice',
-                      Slice.id == FavStar.obj_id))
-            .order_by(FavStar.dttm.desc())
-        )
-        payload = []
-        for o in qry.all():
-            d = {
-                'id': o.Slice.id,
-                'title': o.Slice.slice_name,
-                'url': o.Slice.slice_url,
-                'dttm': o.dttm,
-            }
-            if o.Slice.created_by:
-                user = o.Slice.created_by
-                d['creator'] = str(user)
-                d['creator_url'] = '/pilot/profile/{}/'.format(
-                    user.username)
-            payload.append(d)
-        return Response(
-            json.dumps(payload, default=utils.json_int_dttm_ser),
-            mimetype="application/json")
 
     @catch_exception
     @expose("/favstar/<class_name>/<obj_id>/<action>/")
@@ -1272,7 +1167,7 @@ class Superset(BaseSupersetView):
             'limit': '0',
         }
         params = "&".join([k + '=' + v for k, v in params.items() if v])
-        return '/pilot/explore/table/{table.id}/?{params}'.format(**locals())
+        return '/p/explore/table/{table.id}/?{params}'.format(**locals())
 
     @catch_exception
     @expose("/table/<database_id>/<table_name>/<schema>/")
@@ -1470,17 +1365,17 @@ class Superset(BaseSupersetView):
         query_id = query.id
 
         # Async request.
-        if async:
-            # Ignore the celery future object and the request may time out.
-            sql_lab.get_sql_results.delay(
-                query_id, return_results=False,
-                store_results=not query.select_as_cta)
-            return Response(
-                json.dumps({'query': query.to_dict()},
-                           default=utils.json_int_dttm_ser,
-                           allow_nan=False),
-                status=202,  # Accepted
-                mimetype="application/json")
+        # if async:
+        #     # Ignore the celery future object and the request may time out.
+        #     sql_lab.get_sql_results.delay(
+        #         query_id, return_results=False,
+        #         store_results=not query.select_as_cta)
+        #     return Response(
+        #         json.dumps({'query': query.to_dict()},
+        #                    default=utils.json_int_dttm_ser,
+        #                    allow_nan=False),
+        #         status=202,  # Accepted
+        #         mimetype="application/json")
 
         # Sync request.
         try:
@@ -1488,9 +1383,9 @@ class Superset(BaseSupersetView):
             with utils.timeout(
                     seconds=SQLLAB_TIMEOUT,
                     error_message=(
-                            "The query exceeded the {SQLLAB_TIMEOUT} seconds "
+                            _("The query exceeded the {SQLLAB_TIMEOUT} seconds "
                             "timeout. You may want to run your query as a "
-                            "`CREATE TABLE AS` to prevent timeouts."
+                            "`CREATE TABLE AS` to prevent timeouts.")
                     ).format(**locals())):
                 data = sql_lab.get_sql_results(query_id, return_results=True)
         except Exception as e:
@@ -1639,57 +1534,6 @@ class Superset(BaseSupersetView):
         ), 500
 
     @catch_exception
-    @expose("/welcome/")
-    def welcome(self):
-        """Personalized welcome page"""
-        if not g.user or not g.user.get_id():
-            return redirect(appbuilder.get_url_for_login)
-        return self.render_template('superset/welcome.html', utils=utils)
-
-    @catch_exception
-    @has_access
-    @expose("/profile/<username>/")
-    def profile(self, username):
-        """User profile page"""
-        if not username and g.user:
-            username = g.user.username
-        user = db.session.query(User).filter_by(username=username).one()
-        roles = {}
-        from collections import defaultdict
-        permissions = defaultdict(set)
-        for role in user.roles:
-            perms = set()
-            for perm in role.permissions:
-                perms.add(
-                    (perm.permission.name, perm.view_menu.name)
-                )
-                if perm.permission.name in ('datasource_access', 'database_access'):
-                    permissions[perm.permission.name].add(perm.view_menu.name)
-            roles[role.name] = [
-                [perm.permission.name, perm.view_menu.name]
-                for perm in role.permissions
-            ]
-        payload = {
-            'user': {
-                'username': user.username,
-                'firstName': user.first_name,
-                'lastName': user.last_name,
-                'userId': user.id,
-                'isActive': user.is_active(),
-                'createdOn': user.created_on.isoformat(),
-                'email': user.email,
-                'roles': roles,
-                'permissions': permissions,
-            }
-        }
-        return self.render_template(
-            'superset/profile.html',
-            title=user.username + "'s profile",
-            navbar_container=True,
-            bootstrap_data=json.dumps(payload, default=utils.json_iso_dttm_ser)
-        )
-
-    @catch_exception
     @expose("/sqllab/")
     def sqllab(self):
         """SQL Editor"""
@@ -1700,20 +1544,3 @@ class Superset(BaseSupersetView):
             'superset/sqllab.html',
             bootstrap_data=json.dumps(d, default=utils.json_iso_dttm_ser)
         )
-
-
-appbuilder.add_view_no_menu(Superset)
-appbuilder.add_view(
-    DashboardModelView,
-    "Dashboards",
-    label=__("Dashboards"),
-    icon="fa-dashboard",
-    category='',
-    category_icon='',)
-appbuilder.add_view(
-    SliceModelView,
-    "Slices",
-    label=__("Slices"),
-    icon="fa-bar-chart",
-    category="",
-    category_icon='',)

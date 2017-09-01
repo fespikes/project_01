@@ -1,3 +1,5 @@
+import {PILOT_PREFIX} from '../../utils/utils'
+
 export default {
 	getAbsUrl: relativePath => window.location.origin + relativePath
 }
@@ -11,7 +13,7 @@ export function transformObjectToArray(objectArray, attr) {
 }
 
 export function getPublishConnectionUrl(record) {
-    let url = window.location.origin + "/pilot/release/";
+    let url = window.location.origin + PILOT_PREFIX + "release/";
     if(record.connection_type === "INCEPTOR") {
         url += 'database/';
     }else if(record.connection_type === "HDFS") {

@@ -1,12 +1,6 @@
 import React, { Component } from 'react';
 import { TreeSelect } from 'antd';
 import PropTypes from 'prop-types';
-const TreeNode = TreeSelect.TreeNode;
-
-import '../style/treeSelect.scss';
-
-// import { render, unmountComponentAtNode } from 'react-dom';
-// import { Tooltip, Alert } from 'antd';
 
 class TreeSelector extends Component {
 

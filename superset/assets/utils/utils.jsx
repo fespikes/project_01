@@ -3,6 +3,8 @@ import React from 'react';
 import { Alert } from 'antd';
 import { LoadingModal } from '../javascripts/common/components';
 
+export const PILOT_PREFIX = '/p/';
+
 export function renderLoadingModal() {
     const loadingModal = render(
         <LoadingModal />,
@@ -71,4 +73,14 @@ export function getUrlParam(name, url) {
     }else {
         return '';
     }
+}
+
+export function getOnOfflineInfoUrl(id, moudleType, published) {
+    let url = window.location.origin + '/' + moudleType;
+    if(published) {
+        url += '/offline_info/' + id;
+    }else {
+        url += '/online_info/' + id;
+    }
+    return url;
 }

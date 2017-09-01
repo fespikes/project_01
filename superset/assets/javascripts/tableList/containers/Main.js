@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { fetchIfNeeded, invalidateCondition } from '../actions';
+import { fetchIfNeeded, invalidateCondition, saveDatasetId, clearDatasetData } from '../actions';
 import { Pagination, Table, Operate } from '../components';
 import PropTypes from 'prop-types';
-import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
+import { renderAlertTip } from '../../../utils/utils';
 
 class App extends Component {
     constructor(props) {
@@ -28,16 +28,6 @@ class App extends Component {
             dispatch(invalidateCondition(condition));
             dispatch(fetchIfNeeded(condition));
         }
-
-        const { isFetching } = this.props;
-        if(isFetching !== nextProps.isFetching) {
-            const loadingModal = renderLoadingModal();
-            if(nextProps.isFetching) {
-                loadingModal.show();
-            }else {
-                loadingModal.hide();
-            }
-        }
     }
 
     render() {
@@ -50,7 +40,7 @@ class App extends Component {
                     <div className="left">
                         <i
                             className="icon icon-table"
-                            style={{marginBottom:'-3px'}}
+                            style={{zoom: 0.8}}
                         />
                         <span>数据集</span>
                         <span>记录条目</span>
@@ -62,6 +52,8 @@ class App extends Component {
                             tableType={condition.tableType}
                             selectedRowKeys={condition.selectedRowKeys}
                             selectedRowNames={condition.selectedRowNames}
+                            saveDatasetId={saveDatasetId}
+                            clearDatasetData={clearDatasetData}
                         />
                     </div>
                 </div>

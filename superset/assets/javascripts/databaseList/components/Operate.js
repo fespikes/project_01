@@ -15,10 +15,14 @@ import {
 
     setPopupParam,
     applyDelete,
-    popupActions
+    popupActions,
+
+    fetchConnectDelMulInfo
 } from '../actions';
 
-import { Select, ComponentSelect }  from './';
+import { message } from 'antd';
+import { Select }  from './';
+import { OperationSelect } from '../../common/components';
 import { transformObjectToArray } from '../utils';
 
 class Operate extends React.Component {
@@ -86,20 +90,29 @@ class Operate extends React.Component {
 
     //multi delete
     onDelete () {
+        const dispatch = this.dispatch;
         const { selectedRowNames } = this.props;
-        let deleteType;
-        let deleteTips = '确定删除: ' + selectedRowNames + '?';
-        if(selectedRowNames.length === 0) {
-            deleteType = 'none';
-            deleteTips = '没有选择任何将要删除的记录，请选择！';
+        dispatch(fetchConnectDelMulInfo(callback));
+        function callback(success, data) {
+            if(success) {
+                let deleteType;
+                let deleteTips = data;
+                if(selectedRowNames.length === 0) {
+                    deleteType = 'none';
+                    deleteTips = '没有选择任何将要删除的记录，请选择！';
+                }
+                render(
+                    <ConnectionDelete
+                        dispatch={dispatch}
+                        deleteTips={deleteTips}
+                        deleteType={deleteType}
+                    />,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message(data, 5);
+            }
         }
-        let deleteConnectionPopup = render(
-            <ConnectionDelete
-                dispatch={this.dispatch}
-                deleteTips={deleteTips}
-                deleteType={deleteType}
-            />,
-            document.getElementById('popup_root'));
     }
 
     onSearch () {
@@ -122,20 +135,20 @@ class Operate extends React.Component {
                     <li
                         style={{width:'130px', textAlign:'left'}}
                     >
-                        <ComponentSelect
+                        <OperationSelect
                             opeType='addDataset'
                             iconClass='icon icon-plus'
                             options={typeArray}
                             selectChange={(argus)=>this.onAdd(argus)}
                         >
-                        </ComponentSelect>
+                        </OperationSelect>
                     </li>
                     <li onClick={this.onDelete}>
                         <i className="icon icon-trash"/>
                     </li>
                 </ul>
                 <div className="search-input" style={{ marginRight: 0 }}>
-                    <input  onKeyUp={this.onEnterSearch} onChange={this.onChange} ref="searchField" placeholder="search..." />
+                    <input  onKeyUp={this.onEnterSearch} onChange={this.onChange} className="tp-input" ref="searchField" placeholder="搜索..." />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"/>
 
                 </div>

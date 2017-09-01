@@ -109,11 +109,11 @@ class SQLMetricAdd extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon icon-dataset"></i>
+                                <i className="icon icon-dataset"/>
                                 <span className="item-label">添加SQL度量</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}></i>
+                                <i className="icon icon-close" onClick={this.closeDialog}/>
                             </div>
                         </div>
                         <div className="popup-body">
@@ -122,7 +122,7 @@ class SQLMetricAdd extends React.Component {
                                     <span className="item-label">度量：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input dialog-input-sm" value={metric.metric_name} name="metric_name" onChange={this.handleInputChange}/>
+                                    <input className="tp-input dialog-input dialog-input-sm" value={metric.metric_name} name="metric_name" onChange={this.handleInputChange}/>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -130,7 +130,7 @@ class SQLMetricAdd extends React.Component {
                                     <span className="item-label">描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" name="description" value={metric.description} onChange={this.handleInputChange}></textarea>
+                                    <textarea className="tp-textarea dialog-area" name="description" value={metric.description} onChange={this.handleInputChange}/>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -138,7 +138,7 @@ class SQLMetricAdd extends React.Component {
                                     <span className="item-label">类型：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" name="metric_type" value={metric.metric_type} onChange={this.handleInputChange}/>
+                                    <input className="tp-input dialog-input" name="metric_type" value={metric.metric_type} onChange={this.handleInputChange}/>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -146,9 +146,12 @@ class SQLMetricAdd extends React.Component {
                                     <span className="item-label">表达式：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="dialog-area" name="expression" value={metric.expression} onChange={this.handleInputChange}></textarea>
+                                    <textarea className="tp-textarea dialog-area" name="expression" value={metric.expression} onChange={this.handleInputChange}/>
                                     <Tooltip placement="top" title="表达式">
-                                        <i className="icon icon-info after-textarea-icon"></i>
+                                        <i
+                                            className="icon icon-info after-textarea-icon"
+                                            style={{position: 'absolute', top: 0, right: -20}}
+                                        />
                                     </Tooltip>
                                 </div>
                             </div>

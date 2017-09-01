@@ -5,7 +5,7 @@ import thunk from 'redux-thunk';
 import PropTypes from 'prop-types';
 import { fetchPosts, setViewMode } from '../actions';
 import { Operations, Tables, Paginations, Gallery } from '../components';
-import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
+import { renderAlertTip } from '../../../utils/utils';
 
 class GraphContainer extends React.Component {
     constructor(props) {
@@ -19,25 +19,13 @@ class GraphContainer extends React.Component {
         dispatch(setViewMode('graph'));//for refresh browser
     }
 
-    componentWillReceiveProps(nextProps) {
-        const { posts } = this.props;
-        if(posts.isFetching !== nextProps.posts.isFetching) {
-            const loadingModal = renderLoadingModal();
-            if(nextProps.posts.isFetching) {
-                loadingModal.show();
-            }else {
-                loadingModal.hide();
-            }
-        }
-    }
-
     render() {
         const { dispatch, posts, configs } = this.props;
         return (
             <div className="pilot-panel dashboard-panel">
                 <div className="panel-top">
                     <div className="left">
-                        <i className="icon"></i>
+                        <i className="icon icon-dashboard"/>
                         <span>仪表盘</span>
                         <span>记录条目</span>
                         <span>{posts.params.count}</span>

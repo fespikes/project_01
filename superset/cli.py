@@ -29,33 +29,33 @@ def init():
 
 
 def create_default_user():
-    if config.get('COMMUNITY_EDITION') is False \
-            or sm.find_user(username='admin'):
-        return
-    logging.info("Start to add default admin user ...")
+    logging.info("Begin to create default admin user ...")
     user = sm.add_user(
         'admin', 'admin', 'admin', 'admin@email.com', sm.find_role('Admin'),
         password='123456')
     if not user:
-        logging.error("Failed to add default admin user.")
-    logging.info("Finished to add default admin user.")
+        logging.error("Failed to create default admin user.")
+    user.password2 = '123456'
+    sm.get_session.commit()
+    logging.info("Finish to add default admin user.")
 
 
 def init_pilot():
     rs = db.session.execute('show tables like "alembic_version";')
     if rs.rowcount == 0:
-        logging.info("Start to create metadata tables...")
+        logging.info("Start to create metadata tables ...")
         BASE_DIR = os.path.abspath(os.path.dirname(__file__))
         migration_dir = os.path.join(BASE_DIR, 'migrations')
         upgrade(directory=migration_dir)
         db.session.commit()
-        logging.info("Finished to create metadata tables.")
+        logging.info("Finish to create metadata tables.")
 
-        logging.info("Start to initialize permissions and roles...")
+        logging.info("Start to initialize permissions and roles ...")
         init()
-        logging.info("Finished to initialize permissions and roles.")
+        logging.info("Finish to initialize permissions and roles.")
 
-    create_default_user()
+    if config.get('COMMUNITY_EDITION') and sm.find_user(username='admin') is None:
+        create_default_user()
 
 
 @manager.option(

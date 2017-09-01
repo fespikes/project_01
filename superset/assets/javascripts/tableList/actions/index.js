@@ -1,6 +1,7 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishTableUrl} from '../utils';
 import {constructHDFSPreviewUrl} from '../module';
+import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -23,6 +24,7 @@ export const actionTypes = {
     switchFetchingState: 'SWITCH_FETCHING_STATE',
 
     saveDatasetId: 'SAVE_DATASET_ID',
+    saveInceptorPreviewData: 'SAVE_INCEPTOR_PREVIEW_DATA',
     saveHDFSDataset: 'SAVE_HDFS_DATASET',
     saveInceptorDataset: 'SAVE_INCEPTOR_DATASET',
 
@@ -34,6 +36,10 @@ export const actionTypes = {
 
 
 const baseURL = window.location.origin + '/table/';
+
+const _fetch = () => {
+
+}
 
 const callbackHandler = (response, callback) => {
     if(response.status === 200) {
@@ -52,6 +58,8 @@ const json = (response) => {
 const errorHandler = (response, dispatch) => {
     dispatch(switchFetchingState(false));
 };
+
+let fetchingStatus = [];
 
 /**
 @deprecated
@@ -317,48 +325,79 @@ export function getSQLMetric(dataset_id) {
 
 export function fetchTableDelete(tableId, callback) {
     const url = baseURL + "delete/" + tableId;
-    const errorHandler = error => alert(error);
     return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(selectRows([], []));
-                dispatch(applyFetch(getState().condition));
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                switchFetchingState(false);
+                if(response.status === 200) {
+                    dispatch(selectRows([], []));
+                    dispatch(applyFetch(getState().condition));
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchTableDelInfo(tableId, callback) {
+    const url = baseURL + "delete_info/" + tableId;
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
 export function fetchTableDeleteMul(callback) {
     const url = baseURL + "muldelete";
     return (dispatch, getState) => {
+
+        dispatch(switchFetchingState(true));
         const selectedRowKeys = getState().condition.selectedRowKeys;
         let data = {selectedRowKeys: selectedRowKeys};
         return fetch(url, {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(data)
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(applyFetch(getState().condition));
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callback(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(applyFetch(getState().condition));
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchTableDelMulInfo(callback) {
+    const url = baseURL + "muldelete_info/";
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        const selectedRowKeys = getState().condition.selectedRowKeys;
+        let data = {selectedRowKeys: selectedRowKeys};
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(data)
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
@@ -386,8 +425,9 @@ export function fetchDatabaseList(callback) {
 }
 
 export function fetchSchemaList(dbId, callback) {
-    return () => {
+    return (dispatch) => {
         const url = baseURL + 'schemas/' + dbId;
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
@@ -396,9 +436,11 @@ export function fetchSchemaList(dbId, callback) {
                 if(response.ok) {
                     response.json().then(response => {
                         callback(true, response);
+                        dispatch(switchFetchingState(false));
                     });
                 }else {
                     callback(false);
+                    dispatch(switchFetchingState(false));
                 }
             }
         );
@@ -453,22 +495,18 @@ export function fetchHDFSFileBrowser(path, callback) {
 
 export function fetchUploadFile(data, fileName, path, callback) {
     const url = window.location.origin + '/hdfs/upload/?dest_path=' + path + '&file_name=' + fileName;
-    return () => {
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: 'include',
             method: "POST",
             body: data
-        }).then(response => {
-            if(response.ok) {
-                response.json().then(
-                    () => {
-                        callback(true);
-                    }
-                )
-            }else {
-                callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
-        });
+        );
     }
 }
 
@@ -483,8 +521,11 @@ export function createDataset(dataset, callback) {
         }).then(always).then(json).then(
             response => {
                 callbackHandler(response, callback);
-                dispatch(saveInceptorDataset(dataset));
                 dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(saveDatasetId(response.data.object_id));
+                    dispatch(saveInceptorDataset(dataset));
+                }
             }
         );
     }
@@ -504,6 +545,13 @@ export function editDataset(dataset, id, callback) {
                 callbackHandler(response, callback);
             }
         );
+    }
+}
+
+export function saveInceptorPreviewData(data) {
+    return {
+        type: actionTypes.saveInceptorPreviewData,
+        inceptorPreviewData: data
     }
 }
 
@@ -721,22 +769,36 @@ export function fetchHDFSDetail(id, callback) {
     }
 }
 
-export function fetchPublishTable(record) {
+export function fetchPublishTable(record, callback) {
     const url = getPublishTableUrl(record);
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: "same-origin"
-        }).then(function(response) {
-            if(response.ok) {
-                response.json().then(() => {
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
                     dispatch(applyFetch(getState().condition));
-                    dispatch(switchFetchingState(false));
-                });
-            }else {
+                }
+            }
+        );
+    }
+}
+
+export function fetchOnOfflineInfo(datasetId, published, callback) {
+    const url = getOnOfflineInfoUrl(datasetId, 'table', published);
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
             }
-        })
+        );
     }
 }
 
@@ -840,6 +902,20 @@ export function switchOperationType (operationType) {
 }
 
 export function switchFetchingState(isFetching) {
+    const loadingModal = renderLoadingModal();
+    if(isFetching) {
+        fetchingStatus.push(true);
+    }else {
+        let index = fetchingStatus.indexOf(true);
+        if(index > -1) {
+            fetchingStatus.splice(index, 1);
+        }
+    }
+    if(fetchingStatus.indexOf(true) === -1) {
+        loadingModal.hide();
+    }else {
+        loadingModal.show();
+    }
     return {
         type: actionTypes.switchFetchingState,
         isFetching: isFetching

@@ -2,6 +2,8 @@
     width: 16px;//default size
     height: 16px;
     cursor: pointer;
+    background-image:url(../../images/icon-img/icon.png);
+    display:block;
 }
 
 .edit{
@@ -22,7 +24,6 @@
 }
 
 .icon-caret {
-    background-image: url(../../images/icon-img/icon.png);
     background-position: -296px -657px;
     width: 16px;
     height: 6px;
@@ -81,7 +82,7 @@
 }
 .icon-setting {
     width: 16px;
-    height: 14px;
+    height: 16px;
     background-position: -212px -331px;
     &:hover {
         background-position: -212px -411px;
@@ -249,6 +250,17 @@
     height: 22px;
     background-position: -170px -490px;
 }
+.icon-open-sign {
+    width: 7px;
+    height: 4px;
+    transform:rotate(180deg);
+    background-position: -251px -695px;
+}
+.icon-close-sign {
+    width: 7px;
+    height: 4px;
+    background-position: -251px -695px;
+}
 /***** popup icon end ******/
 
 /*S: file browser*/
@@ -328,4 +340,10 @@
     height:18px;
 }
 /*E: file browser*/
+
+.icon-internationalization {
+    background-position:-10px -685px;
+    width:17px;
+    height:17px;
+}
 

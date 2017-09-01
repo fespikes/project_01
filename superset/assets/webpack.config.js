@@ -87,7 +87,7 @@ const config = {
       /* for css linking images */
       {
         test: /\.png$/,
-        loader: 'url-loader?limit=100000',
+        loader: 'url-loader?limit=5000000',
       },
       {
         test: /\.jpg$/,

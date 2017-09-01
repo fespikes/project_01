@@ -1,9 +1,7 @@
 import React from 'react';
 import { Select } from 'antd';
 const Option = Select.Option;
-
 import PropTypes from 'prop-types';
-import './Select.scss';
 
 class ConnectionNameSelect extends React.Component {
 

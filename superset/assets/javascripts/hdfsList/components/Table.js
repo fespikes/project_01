@@ -4,6 +4,7 @@ import { message, Table, Icon } from 'antd';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
+import { sortHDFSFiles } from '../module';
 import style from '../style/hdfs.scss'
 
 class InnerTable extends React.Component {
@@ -45,7 +46,7 @@ class InnerTable extends React.Component {
     render() {
         const {selectedRowKeys} = this.props.condition;
         const {files, giveDetail, linkToPath} = this.props;
-        const dispatch = this.dispatch;
+        let hdfsFiles = sortHDFSFiles(files);
 
         const rowSelection = {
             selectedRowKeys,
@@ -91,7 +92,6 @@ class InnerTable extends React.Component {
                         break;
                     }
 
-                    //datasetType = 'icon-disabledfile-info';
                     return (
                         <i className={'icon ' + datasetType}></i>
                     )
@@ -178,7 +178,7 @@ class InnerTable extends React.Component {
         return (
             <Table
             rowSelection={rowSelection}
-            dataSource={files}
+            dataSource={hdfsFiles}
             columns={columns}
             pagination={false}
             rowKey={record => record.key}

@@ -1,9 +1,9 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
-import { Select } from 'antd';
-import { ComponentSelect } from '../../databaseList/components';
-import { switchDatasetType, fetchAddTypeList, fetchFilterTypeList } from '../actions';
+import { Select, message } from 'antd';
+import { OperationSelect } from '../../common/components';
+import { switchDatasetType, fetchAddTypeList, fetchFilterTypeList, fetchTableDelMulInfo } from '../actions';
 import PropTypes from 'prop-types';
 import {
     selectType,
@@ -42,25 +42,32 @@ class SliceOperate extends React.Component {
 
     onDelete () {//TODO:
         const { dispatch, selectedRowNames } = this.props;
-        let deleteType = 'multiple';
-        let deleteTips = '确定删除' + selectedRowNames + '?';
-        if(selectedRowNames.length === 0) {
-            deleteType = 'none';
-            deleteTips = '没有选择任何将要删除的记录，请选择！';
-        }
-        let deleteTablePopup = render(
-            <TableDelete
-                dispatch={dispatch}
-                deleteType={deleteType}
-                deleteTips={deleteTips} />,
-            document.getElementById('popup_root'));
-        if(deleteTablePopup) {
-            deleteTablePopup.showDialog();
+        dispatch(fetchTableDelMulInfo(callback));
+        function callback(success, data) {
+            if(success) {
+                let deleteType = 'multiple';
+                let deleteTips = data;
+                if(selectedRowNames.length === 0) {
+                    deleteType = 'none';
+                    deleteTips = '没有选择任何将要删除的记录，请选择！';
+                }
+                render(
+                    <TableDelete
+                        dispatch={dispatch}
+                        deleteType={deleteType}
+                        deleteTips={deleteTips} />,
+                    document.getElementById('popup_root')
+                );
+            }else {
+                message.error(data, 5);
+            }
         }
     }
 
     selectChange(value) {
-        const { dispatch } = this.props;
+        const { dispatch, saveDatasetId, clearDatasetData } = this.props;
+        dispatch(saveDatasetId(''));
+        dispatch(clearDatasetData());
         dispatch(switchDatasetType(value));
     }
 
@@ -102,38 +109,36 @@ class SliceOperate extends React.Component {
     }
 
     render() {
-        const Option = Select.Option;
-        const filterOptions = this.state.filterDatasetTypes.map(dataset => {
-            return <Option key={dataset} value={dataset}>{dataset}</Option>
-        });
         return (
             <div className="operations">
                 <ul className="icon-list">
                     <li style={{ width: '130px', textAlign: 'left' }}>
-                        <ComponentSelect
+                        <OperationSelect
                             opeType='addConnect'
                             iconClass='icon icon-plus'
                             options={this.state.addDatasetTypes}
                             selectChange={this.selectChange}
                         >
-                        </ComponentSelect>
+                        </OperationSelect>
                     </li>
                     <li onClick={this.onDelete}>
                         <i className="icon icon-trash" />
                     </li>
                 </ul>
-                <div className="tab-btn">
-                    <Select
-                        ref="tableType"
-                        defaultValue='ALL'
-                        style={{ width: 120 }}
-                        onChange={this.handleSelectChange}
-                    >
-                        {filterOptions}
-                    </Select>
-                </div>
+                <ul className="icon-list" style={{ marginLeft: 0 }}>
+                    <li style={{ width: '130px' }}>
+                        <OperationSelect
+                            opeType='filterDataset'
+                            iconClass=''
+                            defaultValue='ALL'
+                            options={this.state.filterDatasetTypes}
+                            selectChange={this.handleSelectChange}
+                        >
+                        </OperationSelect>
+                    </li>
+                </ul>
                 <div className="search-input" style={{marginRight: 0}}>
-                    <input onKeyUp={this.onEnterSearch} onChange={this.onChange} ref="searchField" placeholder="search..." />
+                    <input onKeyUp={this.onEnterSearch} onChange={this.onChange} className="tp-input" ref="searchField" placeholder="搜索..." />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon" />
 
                 </div>

@@ -23,6 +23,7 @@ from sqlalchemy.orm.session import make_transient
 from superset import app, db, utils
 from superset.source_registry import SourceRegistry
 from superset.viz import viz_types
+from superset.utils import SupersetException
 from .base import AuditMixinNullable, ImportMixin
 from .dataset import Dataset
 
@@ -128,14 +129,14 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         slice_params['slice_name'] = self.slice_name
         from werkzeug.urls import Href
         href = Href(
-            "/pilot/explore/{obj.datasource_type}/"
+            "/p/explore/{obj.datasource_type}/"
             "{obj.datasource_id}/".format(obj=self))
         return href(slice_params)
 
     @property
     def source_table_url(self):
         if self.database_id and self.full_table_name:
-            return "/pilot/explore/table/0/?database_id={}&full_tb_name={}"\
+            return "/p/explore/table/0/?database_id={}&full_tb_name={}"\
                 .format(self.database_id, self.full_table_name)
         else:
             return None
@@ -143,7 +144,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     @property
     def slice_id_url(self):
         return (
-            "/pilot/{slc.datasource_type}/{slc.datasource_id}/{slc.id}/"
+            "/p/{slc.datasource_type}/{slc.datasource_id}/{slc.id}/"
         ).format(slc=self)
 
     @property
@@ -227,6 +228,30 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
             slice.online = True
             db.session.commit()
 
+    @classmethod
+    def check_online(cls, slice_id, raise_if_false=True):
+        def check(obj, user_id):
+            user_id = int(user_id)
+            if (hasattr(obj, 'online') and obj.online is True) or \
+                            obj.created_by_fk == user_id:
+                return True
+            return False
+
+        if not slice_id:
+            logging.info("No slice_id is passed to check if slice is available")
+            return True
+        user_id = g.user.get_id()
+        slice = db.session.query(Slice).filter_by(id=slice_id).first()
+        if not slice:
+            raise SupersetException(
+                _("Not found slice by id [{id}]").format(id=slice_id))
+        if check(slice, user_id) is False:
+            if raise_if_false:
+                raise SupersetException(
+                    _("Slice [{slice}] is offline").format(slice=slice.slice_name))
+            else:
+                return False
+
 
 dashboard_slices = Table(
     'dashboard_slices', Model.metadata,
@@ -270,7 +295,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
     @property
     def url(self):
-        return "/pilot/dashboard/{}/".format(self.id)
+        return "/p/dashboard/{}/".format(self.id)
 
     @property
     def datasources(self):

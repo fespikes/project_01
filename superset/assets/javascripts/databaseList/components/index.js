@@ -4,5 +4,3 @@ export Pagination from './Pagination';
 
 export Popup from './Popup';
 export Select from './Select';
-
-export ComponentSelect from './ComponentSelect';

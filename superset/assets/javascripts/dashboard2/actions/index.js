@@ -2,6 +2,7 @@
  * Created by haitao on 17-5-18.
  */
 import fetch from 'isomorphic-fetch';
+import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
 
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
@@ -19,6 +20,20 @@ export const CONFIG_PARAMS = {
     VIEW_MODE: 'VIEW_MODE',
     TABLE_LOADING: 'TABLE_LOADING',
     SWITCH_FETCHING_STATE: 'SWITCH_FETCHING_STATE'
+};
+
+const callbackHandler = (response, callback) => {
+    if(response.status === 200) {
+        callback && callback(true, response.data);
+    }else if(response.status === 500) {
+        callback && callback(false, response.message);
+    }
+};
+const always = (response) => {
+    return Promise.resolve(response);
+};
+const json = (response) => {
+    return response.json();
 };
 
 export function requestPosts() {
@@ -122,6 +137,12 @@ export function setTableLoadingStatus(loading) {
 }
 
 export function switchFetchingState(isFetching) {
+    const loadingModal = renderLoadingModal();
+    if(isFetching) {
+        loadingModal.show();
+    }else {
+        loadingModal.hide();
+    }
     return {
         type: CONFIG_PARAMS.SWITCH_FETCHING_STATE,
         isFetching: isFetching
@@ -133,18 +154,29 @@ export function fetchDashboardDelete(dashboardId, callback) {
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin"
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchPosts());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchDashbaordDelInfo(dashboardId, callback) {
+    const url = window.location.origin + "/dashboard/delete_info/" + dashboardId;
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
@@ -157,18 +189,33 @@ export function fetchDashboardDeleteMul(callback) {
             credentials: "same-origin",
             method: "POST",
             body: JSON.stringify(data)
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchPosts());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
                 }
             }
-        });
+        );
+    }
+}
+
+export function fetchDashboardMulDelInfo(callback) {
+    const url = window.location.origin + "/dashboard/muldelete_info/";
+    return (dispatch, getState) => {
+        const selectedRowKeys = getState().configs.selectedRowKeys;
+        let data = {selectedRowKeys: selectedRowKeys};
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+            method: "POST",
+            body: JSON.stringify(data)
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
@@ -201,23 +248,15 @@ export function fetchUpdateDashboard(state, dashboard, callback) {
             credentials: "same-origin",
             method: "POST",
             body: JSON.stringify(newDashboard)
-        }).then(function(response) {
-            if(response.ok) {
-                response.json().then(
-                    data => {
-                        if(data.success) {
-                            dispatch(fetchPosts());
-                            callback(true);
-                        }else {
-                            callback(false, data.message);
-                        }
-                    }
-                );
-            }else {
-                const message = '服务器响应错误!';
-                callback(false, message);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
+                }
             }
-        });
+        );
     }
 }
 
@@ -244,20 +283,36 @@ export function fetchAddDashboard(state, availableSlices, callback) {
     }
 }
 
-export function fetchStateChange(record, type) {
+export function fetchStateChange(record, callback, type) {
     const url = getStateChangeUrl(record, type);
     return dispatch => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: "same-origin",
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchPosts());
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
-            }else {
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
+                }
+            }
+        );
+    }
+}
+
+export function fetchOnOfflineInfo(dashboardId, published, callback) {
+    const url = getOnOfflineInfoUrl(dashboardId, 'dashboard', published);
+    return dispatch => {
+        dispatch(switchFetchingState(true));
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
             }
-        })
+        );
     }
 }
 
@@ -293,7 +348,6 @@ export function fetchPosts() {
     }
 }
 
-
 function getDashboardListUrl(state) {
     let url = window.location.origin + "/dashboard/listdata?page=" + (state.configs.pageNumber - 1) +
         "&page_size=" + state.configs.pageSize + "&filter=" + state.configs.keyword;
@@ -305,7 +359,7 @@ function getDashboardListUrl(state) {
 
 function getStateChangeUrl(record, type) {
     if(type === "favorite") {
-        let url_favorite = window.location.origin + "/pilot/favstar/Dashboard/" + record.id;
+        let url_favorite = window.location.origin + PILOT_PREFIX + "favstar/Dashboard/" + record.id;
         if(record.favorite) {
             url_favorite += "/unselect";
         }else {
@@ -313,7 +367,7 @@ function getStateChangeUrl(record, type) {
         }
         return url_favorite;
     }else if(type === "publish") {
-        let url_publish = window.location.origin + "/pilot/release/dashboard/";
+        let url_publish = window.location.origin + PILOT_PREFIX + "release/dashboard/";
         if(record.online) {
             url_publish += "offline/" + record.id;
         }else {
