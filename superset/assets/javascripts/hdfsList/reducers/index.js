@@ -76,6 +76,7 @@ function popupNormalParam(state = {
         path: '',
         dir_name: '',
         dest_path: '',
+        file_name: '',
 
         treeData: [],
         treeVal: '',

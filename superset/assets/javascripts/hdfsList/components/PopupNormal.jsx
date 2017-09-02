@@ -129,8 +129,7 @@ class Popup extends React.Component {
 
         const {popupNormalParam, setPopupNormalParams, fetchHDFSList} = this.props;
         const {popupType, disabled, treeData, treeVal, status, alertStatus, alertMsg,
-            alertType, permData, deleteTips, dir_name, dest_path, filename} = popupNormalParam;
-
+            alertType, permData, deleteTips, dir_name, dest_path, filename, file_name} = popupNormalParam;
         let btnTitle = "提交";
         if (popupType === CONSTANT.noSelect) {
             btnTitle = "确定";
@@ -259,7 +258,6 @@ class Popup extends React.Component {
                             <div className="item-right">
                                 <input
                                     type="text"
-                                    defaultValue=""
                                     value={dest_path}
                                     required="required"
                                     onChange={this.onInputChange}
@@ -274,20 +272,23 @@ class Popup extends React.Component {
                             </div>
 
                             <div className="item-right">
-                                <label className="file-browser" htmlFor="xFile" style={{
-                width: 200
-            }}>
+                                <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
                                     <span>选择文件</span>
                                 </label>
                                 <div className="file-name">
                                     <i className="icon icon-file"/>
-                                    <span ref="fileName"/>
+                                    <span ref="fileName">{file_name}</span>
+                                    <input type="hidden" required="required" value={file_name}/>
                                 </div>
-                                <div className="file-upload" style={{
-                display: 'none'
-            }}>
-                                    <input type="file" id="xFile" name="file_name" className="file-select"
-                                           required="required" onChange={this.handleFile} ref="fileSelect"/>
+                                <div className="file-upload" style={{display: 'none'}}>
+                                    <input
+                                        type="file"
+                                        id="xFile"
+                                        name="file_name"
+                                        className="file-select"
+                                        required="required"
+                                        onChange={this.handleFile}
+                                        ref="fileSelect"/>
                                 </div>
                             </div>
                         </div>
