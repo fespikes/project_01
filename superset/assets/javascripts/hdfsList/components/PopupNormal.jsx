@@ -127,9 +127,9 @@ class Popup extends React.Component {
     render() {
         const me = this;
 
-        const {condition, popupNormalParam, setPopupNormalParams, fetchHDFSList} = this.props;
-
-        const {popupType, disabled, treeData, treeVal, status, alertStatus, alertMsg, alertType, permData, deleteTips, path, dir_name, dest_path, filename} = popupNormalParam;
+        const {popupNormalParam, setPopupNormalParams, fetchHDFSList} = this.props;
+        const {popupType, disabled, treeData, treeVal, status, alertStatus, alertMsg,
+            alertType, permData, deleteTips, dir_name, dest_path, filename} = popupNormalParam;
 
         let btnTitle = "提交";
         if (popupType === CONSTANT.noSelect) {
@@ -396,8 +396,8 @@ class Popup extends React.Component {
     }
 }
 
-const mapStateToProps = function(state, props) {
-    const {popupNormalParam, emitFetch, condition} = state;
+const mapStateToProps = function(state) {
+    const {popupNormalParam, condition} = state;
     return {
         popupNormalParam,
         condition

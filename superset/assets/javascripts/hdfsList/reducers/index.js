@@ -4,8 +4,6 @@ import { actionTypes, popupActions, popupNormalActions } from '../actions';
 function condition(state = {
         page_num: 1,
         page_size: 10,
-        //order_column,：取值：'name','online','changed_on','connection_type', 'owner';默认：'changed_on'.
-        //order_direction: 取值：'desc' or 'asc', 默认：'desc'
         filter: '',
         path: '/user',
         paths: [],
@@ -14,7 +12,6 @@ function condition(state = {
         selectedRowKeys: [],
         selectedRowNames: [],
 
-        //    breadCrumbText: '',
         manipulate: '',
         upload: ''
     }, action) {
@@ -209,12 +206,6 @@ function fileReducer(state = {
         return {
             ...state,
             ...action.detail
-        // path: action.path,
-        // mtime: action.mtime, //last time modify
-        // size: action.size,
-        // user: action.user,
-        // group: action.group,
-        // mode: action.mode
         };
         break;
 
