@@ -416,8 +416,10 @@ function generateTableView(previewData) {
         dataSource.push(dataItem);
     });
 
-    let width = getTableWidth(previewData.columns.length);
-
+    let width = 'auto';
+    if(previewData && previewData.columns) {
+        width = getTableWidth(previewData.columns.length);
+    }
     return <div style={{width: width}}>
                <Table
                    columns={columns}
