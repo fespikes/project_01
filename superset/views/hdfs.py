@@ -53,7 +53,8 @@ def ensure_logined(f):
     """
     def wraps(self, *args, **kwargs):
         if self.client is None or self.logined_user != g.user.username:
-            self.client, response = self.login_filerobot(self.hdfs_conn_id)
+            client, response = self.login_filerobot(self.hdfs_conn_id)
+            self.handle_login_result(client, response, self.hdfs_conn_id)
 
         try:
             return f(self, *args, **kwargs)
@@ -85,15 +86,7 @@ class HDFSBrowser(BaseView):
     def login(self):
         hdfs_conn_id = request.args.get('hdfs_conn_id', self.hdfs_conn_id)
         client, response = self.login_filerobot(hdfs_conn_id)
-        if response.status_code == requests.codes.ok:
-            self.client = client
-            self.logined_user = g.user.username
-            self.hdfs_conn_id = hdfs_conn_id
-        else:
-            self.client = None
-            self.logined_user = ''
-            self.hdfs_conn_id = None
-            raise SupersetException(LOGIN_FILEROBOT_FAILED)
+        self.handle_login_result(client, response, hdfs_conn_id)
         return json_response(message=LOGIN_FILEROBOT_SUCCESS,
                              status=response.status_code)
 
@@ -254,3 +247,14 @@ class HDFSBrowser(BaseView):
 
         args = get_login_args(hdfs_conn_id)
         return do_login(**args)
+
+    def handle_login_result(self, client, response, hdfs_conn_id=None):
+        if response.status_code == requests.codes.ok:
+            self.client = client
+            self.logined_user = g.user.username
+            self.hdfs_conn_id = hdfs_conn_id
+        else:
+            self.client = None
+            self.logined_user = ''
+            self.hdfs_conn_id = None
+            raise SupersetException(LOGIN_FILEROBOT_FAILED)
