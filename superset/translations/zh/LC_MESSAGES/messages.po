@@ -127,11 +127,26 @@ msgstr "Y轴步长"
 msgid "Number of step to take between ticks when printing the y scale"
 msgstr "Y轴每个刻度的单位长度"
 
+msgid "Bar Values"
+msgstr "显示值"
+
+msgid "Show the value on top of the bars or not"
+msgstr "是否在柱状图上方显示数值"
+
 msgid "Stacked Bars"
 msgstr "堆积"
 
+msgid "Stack bars or not"
+msgstr "是否堆积"
+
 msgid "Extra Controls"
 msgstr "扩展控件"
+
+msgid "Sort Bars"
+msgstr "X轴排序"
+
+msgid "Sort bars by x labels."
+msgstr "根据X轴标记排序"
 
 msgid ""
 "Whether to show extra controls or not. Extra controls include things like"
