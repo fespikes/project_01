@@ -73,11 +73,20 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         data['available_dataset'] = self.get_available_tables()
         return data
 
+    def pre_add(self, column):
+        self.check_column_values(column)
+
     def pre_update(self, column):
         check_ownership(column)
+        self.pre_add(column)
 
     def pre_delete(self, column):
         check_ownership(column)
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.column_name:
+            raise SupersetException(NONE_COLUMN_NAME)
 
 
 class SqlMetricInlineView(SupersetModelView):  # noqa
@@ -122,11 +131,22 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             data.append(line)
         return {'data': data}
 
+    def pre_add(self, metric):
+        self.check_column_values(metric)
+
     def pre_update(self, metric):
         check_ownership(metric)
+        self.pre_add(metric)
 
     def pre_delete(self, metric):
         check_ownership(metric)
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.metric_name:
+            raise SupersetException(NONE_METRIC_NAME)
+        if not obj.expression:
+            raise SupersetException(NONE_METRIC_EXPRESSION)
 
 
 class DatasetModelView(SupersetModelView):  # noqa
@@ -434,6 +454,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         return attributes
 
     def pre_add(self, table):
+        self.check_column_values(table)
         table.get_sqla_table_object()
 
     def post_add(self, table):
@@ -470,6 +491,17 @@ class DatasetModelView(SupersetModelView):  # noqa
         log_action('delete', action_str, 'dataset', table.id)
         log_number('dataset', table.online, get_user_id())
 
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.dataset_name:
+            raise SupersetException(NONE_DATASET_NAME)
+        if not obj.dataset_type:
+            raise SupersetException(NONE_DATASET_TYPE)
+        if not obj.database_id:
+            raise SupersetException(NONE_CONNECTION)
+        if not obj.schema and not obj.table_namej and not obj.sql:
+            raise SupersetException(NONE_CONNECTION)
+
 
 class HDFSTableModelView(SupersetModelView):
     route_base = '/hdfstable'
@@ -480,6 +512,19 @@ class HDFSTableModelView(SupersetModelView):
                    'charset', 'hdfs_connection_id']
     show_columns = add_columns
     edit_columns = add_columns
+
+    def pre_add(self, obj):
+        self.check_column_values(obj)
+
+    def pre_update(self, obj):
+        self.pre_add(obj)
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.hdfs_path:
+            raise SupersetException(NONE_HDFS_PATH)
+        if not obj.hdfs_connection_id:
+            raise SupersetException(NONE_HDFS_CONNECTION)
 
     @catch_hdfs_exception
     @expose('/files/', methods=['GET'])
@@ -576,4 +621,3 @@ class HDFSTableModelView(SupersetModelView):
             _("Fetched {size} bytes file, but still not a complete line")
                 .format(size=size)
         )
-

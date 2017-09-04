@@ -57,10 +57,11 @@ class DatabaseView(SupersetModelView):  # noqa
     list_template = "superset/databaseList.html"
 
     def pre_add(self, obj):
+        self.check_column_values(obj)
         obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
 
     def post_add(self, obj):
-        self.add_or_edit_database_account(obj)
+        # self.add_or_edit_database_account(obj)
         action_str = 'Add connection: [{}]'.format(repr(obj))
         log_action('add', action_str, 'database', obj.id)
         log_number('connection', obj.online, get_user_id())
@@ -70,7 +71,7 @@ class DatabaseView(SupersetModelView):  # noqa
         self.pre_add(obj)
 
     def post_update(self, obj):
-        self.add_or_edit_database_account(obj)
+        # self.add_or_edit_database_account(obj)
         action_str = 'Edit connection: [{}]'.format(repr(obj))
         log_action('edit', action_str, 'database', obj.id)
 
@@ -88,6 +89,15 @@ class DatabaseView(SupersetModelView):  # noqa
         db_account = models.DatabaseAccount
         db_account.insert_or_update_account(
             user_id, obj.id, url.username, url.password)
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.database_name:
+            raise SupersetException(NONE_CONNECTION_NAME)
+        if not obj.sqlalchemy_uri:
+            raise SupersetException(NONE_SQLALCHEMY_URI)
+        if not obj.args:
+            raise SupersetException(NONE_CONNECTION_ARGS)
 
     def get_object_list_data(self, **kwargs):
         """Return the database(connection) list"""
@@ -253,6 +263,9 @@ class HDFSConnectionModelView(SupersetModelView):
         response['data'] = data
         return response
 
+    def pre_add(self, conn):
+        self.check_column_values(conn)
+
     def post_add(self, conn):
         action_str = 'Add hdfsconnection: [{}]'.format(repr(conn))
         log_action('add', action_str, 'hdfsconnection', conn.id)
@@ -260,6 +273,7 @@ class HDFSConnectionModelView(SupersetModelView):
 
     def pre_update(self, conn):
         check_ownership(conn)
+        self.pre_add(conn)
 
     def pre_delete(self, conn):
         check_ownership(conn)
@@ -268,6 +282,13 @@ class HDFSConnectionModelView(SupersetModelView):
         action_str = 'Delete hdfsconnection: [{}]'.format(repr(conn))
         log_action('delete', action_str, 'dataset', conn.id)
         log_number('connection', conn.online, get_user_id())
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.connection_name:
+            raise SupersetException(NONE_CONNECTION_NAME)
+        if not obj.httpfs:
+            raise SupersetException(NONE_HTTPFS)
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])

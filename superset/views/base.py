@@ -322,7 +322,10 @@ class SupersetModelView(ModelView, PageMixin):
             obj = self.model()
             attributes = self.get_add_attributes(data, user_id)
         for key, value in attributes.items():
-            setattr(obj, key, value)
+            if isinstance(value, str):
+                setattr(obj, key, value.strip())
+            else:
+                setattr(obj, key, value)
         return obj
 
     def get_show_attributes(self, obj, user_id=None):
