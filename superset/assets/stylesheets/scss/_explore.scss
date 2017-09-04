@@ -139,8 +139,15 @@
             }
         }
 	}
+
     div.widget .slice_container {
         overflow: visible;
+    }
+    input[type="checkbox"] {
+        float: left;
+        margin-right: 5px;
+        position: relative;
+        top: -2px;
     }
 }
 
