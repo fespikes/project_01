@@ -35,9 +35,7 @@ AXIS_FORMAT_CHOICES = [
     ('+,', '"+," | +12,345.4321'),
     ('$,.2f', '"$,.2f" | $12,345.43'),
 ]
-D3_FORMAT_DOCS = _(
-    "D3 format syntax "
-    "https://github.com/d3/d3-format")
+D3_FORMAT_DOCS = _("D3 format syntax https://github.com/d3/d3-format")
 
 
 class BetterBooleanField(BooleanField):
@@ -255,7 +253,7 @@ class FormFactory(object):
             'show_markers': (BetterBooleanField, {
                 "label": _("Show Markers"),
                 "default": False,
-                "description": (
+                "description": _(
                     "Show data points as circle markers on top of the lines "
                     "in the chart")
             }),
@@ -636,7 +634,7 @@ class FormFactory(object):
                     "The URL, this field is templated, so you can integrate "
                     "{{ width }} and/or {{ height }} in your URL string."
                 ),
-                "default": 'https: //www.youtube.com/embed/JkI5rg_VcQ4',
+                "default": 'http://transwarp.io/',
             }),
             'x_axis_label': (TextField, {
                 "label": _("X Axis Label"),
@@ -897,7 +895,7 @@ class FormFactory(object):
                     "Number")
             }),
             'mapbox_label': (SelectMultipleSortableField, {
-                "label": "Label",
+                "label": _("Label"),
                 "choices": self.choicify(["count"] + datasource.column_names),
                 "description": _(
                     "'count' is COUNT(*) if a group by is used. "
