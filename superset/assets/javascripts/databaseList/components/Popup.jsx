@@ -341,11 +341,13 @@ class Popup extends React.Component {
                                 </div>
                             </div>
                         </div>
-                        <Alert
-                            message={this.state.submitMsg}
-                            type={this.state.submitState}
-                            style={{display:(showAlert?'':'none')}}
-                        />
+                        <div className="error">
+                            <Alert
+                                message={this.state.submitMsg}
+                                type={this.state.submitState}
+                                style={{display:(showAlert?'':'none')}}
+                            />
+                        </div>
                         <div className="popup-footer">
                             <button
                                 disabled={datasetType==="INCEPTOR"&&!this.state.connected}

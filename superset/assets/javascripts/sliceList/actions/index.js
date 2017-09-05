@@ -116,9 +116,7 @@ export function fetchStateChange(record, callback, type) {
             response => {
                 callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
-                if(response.status === 200) {
-                    dispatch(fetchLists());
-                }
+                dispatch(fetchLists());
             }
         );
     }

@@ -90,11 +90,14 @@
         }
     }
 }
-
-#alert-container {
+.flash-wrapper-login #alert-container {
     position: absolute;
     z-index: 2;
     top: 50px;
     width: 100%;
     text-align: center;
+    button {
+        color: #000;
+    }
 }
+

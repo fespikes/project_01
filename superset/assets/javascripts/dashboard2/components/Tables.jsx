@@ -108,7 +108,7 @@ class Tables extends React.Component {
 
     favoriteSlice(record) {
         const { dispatch } = this.props;
-        dispatch(fetchStateChange(record, "favorite"));
+        dispatch(fetchStateChange(record, undefined, "favorite"));
     }
 
 

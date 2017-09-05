@@ -161,16 +161,17 @@
                 <div id="flt0" style="display: none;">
                   <span class="">{{ form.flt_col_0(class_="form-control inc") }}</span>
                   <div class="row">
-                    <span class="col col-sm-4">{{ form.flt_op_0(class_="form-control inc") }}</span>
-                    <span class="col col-sm-6">{{ form.flt_eq_0(class_="form-control inc") }}</span>
-                    <button type="button" class="btn btn-default btn-sm remove" aria-label="Delete filter">
+                    <span class="col col-sm-4">{{ form.flt_op_0(class_="form-control tp-input inc") }}</span>
+                    <span class="col col-sm-6">{{ form.flt_eq_0(class_="form-control tp-input inc") }}</span>
+                    <button type="button" class="btn btn-default btn-sm remove" aria-label="Delete filter"
+                            style="border-color: #dfe3e9">
                       <span class="fa fa-minus"  aria-hidden="true"></span>
-
                     </button>
                   </div>
                 </div>
                 <div id="filters"></div>
-                <button type="button" id="plus" class="btn btn-default btn-sm" aria-label="Add a filter">
+                <button type="button" id="plus" class="btn btn-default btn-sm"
+                        style="border-color: #dfe3e9" aria-label="Add a filter">
                   <span class="fa fa-plus" aria-hidden="true"></span>
                   <span>{{ _("Add filter") }}</span>
                 </button>
@@ -195,20 +196,19 @@
                   <div id="having0" style="display: none;">
                     <span class="">{{ form.having_col_0(class_="form-control inc") }}</span>
                     <div class="row">
-                      <span class="col col-sm-4">{{ form.having_op_0(class_="form-control inc") }}</span>
-                      <span class="col col-sm-6">{{ form.having_eq_0(class_="form-control inc") }}</span>
-                      <button type="button"
-                              class="btn btn-default btn-sm remove"
-                              aria-label="Delete filter">
-                                    <span class="fa fa-minus"
-                                          aria-hidden="true"></span>
+                      <span class="col col-sm-4">{{ form.having_op_0(class_="form-control tp-input inc") }}</span>
+                      <span class="col col-sm-6">{{ form.having_eq_0(class_="from-control tp-input inc") }}</span>
+                      <button type="button" class="btn btn-default btn-sm remove" aria-label="Delete filter"
+                              style="border-color: #dfe3e9">
+                            <span class="fa fa-minus" aria-hidden="true"></span>
                       </button>
                     </div>
                   </div>
                   <div id="filters"></div>
                   <button type="button" id="plus"
                           class="btn btn-default btn-sm"
-                          aria-label="Add a filter">
+                          aria-label="Add a filter"
+                          style="border-color: #dfe3e9">
                     <span class="fa fa-plus" aria-hidden="true"></span>
                     <span>Add filter</span>
                   </button>
