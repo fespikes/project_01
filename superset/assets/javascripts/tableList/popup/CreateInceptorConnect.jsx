@@ -122,7 +122,6 @@ class CreateInceptorConnect extends React.Component {
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div className="error" id="add-connect-tip"></div>
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <span>连接名称：</span>
@@ -186,6 +185,7 @@ class CreateInceptorConnect extends React.Component {
                                     <i className="icon icon-info" style={{ position: 'relative', top: '-43px', left: '5px' }} />
                                 </Tooltip>
                             </div>
+                            <div className="error" id="add-connect-tip"></div>
                         </div>
                         <div className="popup-footer">
                             <button

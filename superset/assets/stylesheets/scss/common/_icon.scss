@@ -6,23 +6,6 @@
     display:block;
 }
 
-.edit{
-    width: 15px;
-    height: 14px;
-    background-position: -253px -134px;
-    &:hover{
-        background-position: -212px -213px;
-    }
-}
-.remove{
-    width: 14px;
-    height: 16px;
-    background-position: -12px -172px;
-    &:hover{
-        background-position: -291px -212px;
-    }
-}
-
 .icon-caret {
     background-position: -296px -657px;
     width: 16px;

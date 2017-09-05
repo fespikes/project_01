@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Select, Checkbox, Tooltip } from 'antd';
+import { Select, Checkbox, Tooltip, Alert } from 'antd';
 import PropTypes from 'prop-types';
 const _ = require('lodash');
 
@@ -20,7 +20,8 @@ class TableColumnAdd extends React.Component {
                 dataset_id: '',
                 is_dttm: false,
                 min: false
-            }
+            },
+            exception: {}
         };
 
         // bindings
@@ -102,7 +103,7 @@ class TableColumnAdd extends React.Component {
             fetchTableColumnEdit(self.state.tableColumn, callback);
         }
         
-        function callback(success) {
+        function callback(success, message) {
             if(success) {
                 self.setState({
                     tableColumn: {},
@@ -111,7 +112,14 @@ class TableColumnAdd extends React.Component {
                 self.refs.popupTableColumnAdd.style.display = "none";
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
-
+                self.refs.alertRef.style.display = "block";
+                let exception = {};
+                exception.type = "error";
+                exception.message = "Error";
+                exception.description = message;
+                self.setState({
+                    exception: exception
+                });
             }
         }
     }
@@ -219,6 +227,15 @@ class TableColumnAdd extends React.Component {
                                 <div className="item-right space-between">
                                     <span style={{color: '#1d2531'}}>是否将此列作为（时间粒度）选项，列中的数据类型必须是DATETIME</span><Checkbox name="is_dttm" checked={is_dttm} onChange={this.handleCheckboxChange}></Checkbox>
                                 </div>
+                            </div>
+                            <div className="error" ref="alertRef" style={{display: 'none'}}>
+                                <Alert
+                                    message={this.state.exception.message}
+                                    description={this.state.exception.description}
+                                    type={this.state.exception.type}
+                                    closeText="close"
+                                    showIcon
+                                />
                             </div>
                         </div>
                         <div className="popup-footer">

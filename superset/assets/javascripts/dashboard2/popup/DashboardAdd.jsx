@@ -4,7 +4,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { fetchAddDashboard, setDashAddConfirmState } from '../actions';
-import { Select } from 'antd';
+import { Select, Alert } from 'antd';
 import PropTypes from 'prop-types';
 
 class DashboardAdd extends React.Component {
@@ -12,7 +12,8 @@ class DashboardAdd extends React.Component {
         super(props);
         this.state = {
             selectedSlices: [],
-            enableConfirm: false
+            enableConfirm: false,
+            exception: {}
         };
         // bindings
         this.confirm = this.confirm.bind(this);
@@ -63,7 +64,7 @@ class DashboardAdd extends React.Component {
         const self = this;
         const { dispatch, availableSlices } = self.props;
         dispatch(fetchAddDashboard(self.state, availableSlices, callback));
-        function callback(success) {
+        function callback(success, message) {
             if(success) {
                 self.setState({
                     dashboard: {},
@@ -72,7 +73,14 @@ class DashboardAdd extends React.Component {
                 });
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
-
+                self.refs.alertRef.style.display = "block";
+                let exception = {};
+                exception.type = "error";
+                exception.message = "Error";
+                exception.description = message;
+                self.setState({
+                    exception: exception
+                });
             }
         }
     }
@@ -109,8 +117,11 @@ class DashboardAdd extends React.Component {
                                     <span>标题：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="tp-input dialog-input" value={this.props.dashboard.dashboard_title}
-                                           onChange={this.handleTitleChange} />
+                                    <input
+                                        className="tp-input dialog-input"
+                                        value={this.props.dashboard.dashboard_title}
+                                        onChange={this.handleTitleChange}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -118,8 +129,11 @@ class DashboardAdd extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="tp-textarea dialog-area" value={this.props.dashboard.description}
-                                              onChange={this.handleDescriptionChange} autofocus/>
+                                    <textarea
+                                        className="tp-textarea dialog-area"
+                                        value={this.props.dashboard.description}
+                                        onChange={this.handleDescriptionChange}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -129,10 +143,10 @@ class DashboardAdd extends React.Component {
                                 <div className="item-right">
                                     <div id="edit_pop_select">
                                         <Select mode={'multiple'}
-                                                value={self.state.selectedSlices}
-                                                style={{ width: '100%' }}
-                                                placeholder="select the slices..."
-                                                onChange={onChange}>
+                                            value={self.state.selectedSlices}
+                                            style={{ width: '100%' }}
+                                            placeholder="select the slices..."
+                                            onChange={onChange}>
                                             {options}
                                         </Select>
                                     </div>
@@ -145,6 +159,15 @@ class DashboardAdd extends React.Component {
                                 <div className="item-right">
                                     <input className="tp-input dialog-input" disabled />
                                 </div>
+                            </div>
+                            <div className="error" ref="alertRef" style={{display: 'none'}}>
+                                <Alert
+                                    message={this.state.exception.message}
+                                    description={this.state.exception.description}
+                                    type={this.state.exception.type}
+                                    closeText="close"
+                                    showIcon
+                                />
                             </div>
                         </div>
                         <div className="popup-footer">
