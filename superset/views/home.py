@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from datetime import timedelta, date
+import logging
 import json
 import re
 from flask import g, request, redirect, Response
@@ -371,14 +372,15 @@ class Home(BaseSupersetView):
         )
         count = query.count()
 
-        if order_column:
-            column = self.str_to_column_in_actions.get(order_column)
-            if order_direction == 'desc':
-                query = query.order_by(column.desc())
-            else:
-                query = query.order_by(column)
-        else:
-            query = query.order_by(Log.dttm.desc())
+        # if order_column:
+        #     column = self.str_to_column_in_actions.get(order_column)
+        #     if order_direction == 'desc':
+        #         query = query.order_by(column.desc())
+        #     else:
+        #         query = query.order_by(column)
+        # else:
+        #     query = query.order_by(Log.dttm.desc())
+        query = query.order_by(Log.id.desc())
 
         if page_size and page_size > 0:
             query = query.limit(page_size)
@@ -478,6 +480,10 @@ class Home(BaseSupersetView):
         one_day = timedelta(days=1)
         for row in rows:
             if row.dt > date.today():
+                msg = _("Date [{date}] > today [{today}]")\
+                    .format(date=row.dt, today=date.today())
+                logging.error(msg)
+                self.message.append(msg)
                 return {}
             elif len(full_count) < 1:
                 full_count.append(int(row.count))
