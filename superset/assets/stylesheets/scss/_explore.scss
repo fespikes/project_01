@@ -1,9 +1,7 @@
 
 .explore-wrap{
-	.top{
-		.navbar-inverse{
-			margin:0;
-		}
+	.top .navbar-inverse{
+        margin:0;
 	}
 	.datasource{
 		.panel-top-header {
@@ -49,6 +47,10 @@
                 }
 			}
 		}
+        .col-md-3 {
+            height: calc(100vh - 118px);
+            overflow: auto;
+        }
 		.col-md-3 .panel-default .panel-body .body-left-area{
             .left-area-item{
                 font-size: 14px;
