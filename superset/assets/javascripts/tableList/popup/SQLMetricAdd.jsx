@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Select, Checkbox, Tooltip } from 'antd';
+import { Select, Checkbox, Tooltip, Alert } from 'antd';
 import PropTypes from 'prop-types';
 
 class SQLMetricAdd extends React.Component {
@@ -14,7 +14,8 @@ class SQLMetricAdd extends React.Component {
                 metric_type: "",
                 dataset_id: "",
                 description: ""
-            }
+            },
+            exception: {}
         };
         // bindings
         this.confirm = this.confirm.bind(this);
@@ -62,7 +63,7 @@ class SQLMetricAdd extends React.Component {
             fetchSQLMetricEdit(self.state.metric, callback);
         }
 
-        function callback(success) {
+        function callback(success, message) {
             if(success) {
                 self.setState({
                     metric: {},
@@ -71,7 +72,14 @@ class SQLMetricAdd extends React.Component {
                 self.refs.popupSQLMetricAdd.style.display = "none";
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
-
+                self.refs.alertRef.style.display = "block";
+                let exception = {};
+                exception.type = "error";
+                exception.message = "Error";
+                exception.description = message;
+                self.setState({
+                    exception: exception
+                });
             }
         }
     }
@@ -154,6 +162,15 @@ class SQLMetricAdd extends React.Component {
                                         />
                                     </Tooltip>
                                 </div>
+                            </div>
+                            <div className="error" ref="alertRef" style={{display: 'none'}}>
+                                <Alert
+                                    message={this.state.exception.message}
+                                    description={this.state.exception.description}
+                                    type={this.state.exception.type}
+                                    closeText="close"
+                                    showIcon
+                                />
                             </div>
                         </div>
                         <div className="popup-footer">

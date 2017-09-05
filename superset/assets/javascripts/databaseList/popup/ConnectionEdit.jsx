@@ -244,7 +244,7 @@ class ConnectionEdit extends React.Component {
                                     </Tooltip>
                                 </div>
                                 
-                                <label className="dialog-item">
+                                <div className="dialog-item">
                                     <div className="item-left">
                                         <span>连接参数：</span>
                                     </div>
@@ -258,7 +258,7 @@ class ConnectionEdit extends React.Component {
                                     >
                                     </textarea>
                                     </div>
-                                </label>
+                                </div>
 
                                 <div className="dialog-item" style={{ position: 'relative' }}>
                                     <div className="item-left"></div>

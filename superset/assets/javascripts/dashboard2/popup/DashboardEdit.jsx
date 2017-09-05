@@ -107,22 +107,17 @@ class DashboardEdit extends React.Component {
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div className="error" ref="alertRef" style={{display: 'none'}}>
-                                <Alert
-                                    message={this.state.exception.message}
-                                    description={this.state.exception.description}
-                                    type={this.state.exception.type}
-                                    closeText="close"
-                                    showIcon
-                                />
-                            </div>
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <span>标题：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="tp-input dialog-input" value={this.props.dashboardDetail.dashboard_title}
-                                      onChange={this.handleTitleChange} disabled={!self.props.editable}/>
+                                    <input
+                                        className="tp-input dialog-input"
+                                        value={this.props.dashboardDetail.dashboard_title}
+                                        onChange={this.handleTitleChange}
+                                        disabled={!self.props.editable}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -130,8 +125,12 @@ class DashboardEdit extends React.Component {
                                     <span>描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="tp-textarea dialog-area" value={this.props.dashboardDetail.description}
-                                        onChange={this.handleDescriptionChange} disabled={!self.props.editable} />
+                                    <textarea
+                                        className="tp-textarea dialog-area"
+                                        value={this.props.dashboardDetail.description}
+                                        onChange={this.handleDescriptionChange}
+                                        disabled={!self.props.editable}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -157,8 +156,21 @@ class DashboardEdit extends React.Component {
                                     <span>数据集：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="tp-input dialog-input" value={this.props.dashboardDetail.table_names} disabled />
+                                    <input
+                                        className="tp-input dialog-input"
+                                        value={this.props.dashboardDetail.table_names}
+                                        disabled
+                                    />
                                 </div>
+                            </div>
+                            <div className="error" ref="alertRef" style={{display: 'none'}}>
+                                <Alert
+                                    message={this.state.exception.message}
+                                    description={this.state.exception.description}
+                                    type={this.state.exception.type}
+                                    closeText="close"
+                                    showIcon
+                                />
                             </div>
                         </div>
                         <div className="popup-footer">

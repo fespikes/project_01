@@ -106,15 +106,6 @@ class SliceEdit extends React.Component {
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div className="error" ref="alertRef" style={{display: 'none'}}>
-                                <Alert
-                                    message={this.state.exception.message}
-                                    description={this.state.exception.description}
-                                    type={this.state.exception.type}
-                                    closeText="close"
-                                    showIcon
-                                />
-                            </div>
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <span>名称：</span>
@@ -191,6 +182,15 @@ class SliceEdit extends React.Component {
                                         <span>{this.props.sliceDetail.changed_on}</span>
                                     </div>
                                 </div>
+                            </div>
+                            <div className="error" ref="alertRef" style={{display: 'none'}}>
+                                <Alert
+                                    message={this.state.exception.message}
+                                    description={this.state.exception.description}
+                                    type={this.state.exception.type}
+                                    closeText="close"
+                                    showIcon
+                                />
                             </div>
                         </div>
                         <div className="popup-footer">

@@ -264,22 +264,20 @@ export function fetchAddDashboard(state, availableSlices, callback) {
     const url = window.location.origin + "/dashboard/add";
     const dashboard = getNewDashboard(state.dashboard, state.selectedSlices, availableSlices);
     return dispatch => {
+        dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: "same-origin",
             method: "POST",
             body: JSON.stringify(dashboard)
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(fetchPosts());
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback == "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchPosts());
                 }
             }
-        });
+        );
     }
 }
 
