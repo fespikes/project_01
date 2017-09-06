@@ -83,7 +83,7 @@ class DashboardEdit extends React.Component {
         const self = this;
         const Option = Select.Option;
         const options = self.props.dashboardDetail.available_slices.map(slice => {
-            return <Option key={slice.id}>{slice.slice_name}</Option>
+            return <Option key={slice.slice_name}>{slice.slice_name}</Option>
         });
         const defaultOptions = this.state.selectedSlices;
 
