@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import json
 import requests
+import copy
 from flask import request
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
@@ -211,12 +212,12 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/add_dataset_types/', methods=['GET'])
     def add_dataset_types(self):
-        return json.dumps(['INCEPTOR', 'HDFS', 'UPLOAD FILE'])
+        return json.dumps(self.model.dataset_addable_types)
 
     @catch_exception
     @expose('/filter_dataset_types/', methods=['GET'])
     def filter_dataset_types(self):
-        return json.dumps(['ALL', 'INCEPTOR', 'HDFS'])
+        return json.dumps(self.model.dataset_types)
 
     @catch_exception
     @expose('/preview_data/', methods=['GET', ])
@@ -294,13 +295,13 @@ class DatasetModelView(SupersetModelView):  # noqa
     @expose('/add', methods=['POST', ])
     def add(self):
         args = self.get_request_data()
-        dataset_type = args.get('dataset_type').lower()
-        if dataset_type == 'inceptor':
+        dataset_type = args.get('dataset_type')
+        if dataset_type in Dataset.dataset_types and dataset_type != 'HDFS':
             dataset = self.populate_object(None, get_user_id(), args)
             self._add(dataset)
             return json_response(
                 message=ADD_SUCCESS, data={'object_id': dataset.id})
-        elif dataset_type == 'hdfs':
+        elif dataset_type == 'HDFS':
             HDFSTable.cached_file.clear()
             # create hdfs_table
             hdfs_table_view = HDFSTableModelView()
@@ -314,7 +315,7 @@ class DatasetModelView(SupersetModelView):  # noqa
 
             # create dataset
             dataset = self.model(
-                dataset_type=self.model.dataset_type_dict.get('hdfs'),
+                dataset_type='HDFS',
                 dataset_name=args.get('dataset_name'),
                 table_name=args.get('dataset_name'),
                 description=args.get('description'),
@@ -347,12 +348,12 @@ class DatasetModelView(SupersetModelView):  # noqa
         # TODO rollback
         args = self.get_request_data()
         dataset = self.get_object(pk)
-        dataset_type = dataset.dataset_type.lower()
-        if dataset_type == 'inceptor':
+        dataset_type = dataset.dataset_type
+        if dataset_type in Dataset.dataset_types and dataset_type != 'HDFS':
             dataset = self.populate_object(pk, get_user_id(), args)
             self._edit(dataset)
             return json_response(message=UPDATE_SUCCESS)
-        elif dataset_type == 'hdfs':
+        elif dataset_type == 'HDFS':
             HDFSTable.cached_file.clear()
             # edit hdfs_table
             hdfs_table = dataset.hdfs_table
@@ -445,8 +446,6 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def get_add_attributes(self, data, user_id):
         attributes = super().get_add_attributes(data, user_id)
-        attributes['dataset_type'] = \
-            self.model.dataset_type_dict.get('inceptor')
         database = db.session.query(Database) \
             .filter_by(id=data['database_id']) \
             .first()
@@ -501,6 +500,9 @@ class DatasetModelView(SupersetModelView):  # noqa
             raise SupersetException(NONE_CONNECTION)
         if not obj.schema and not obj.table_namej and not obj.sql:
             raise SupersetException(NONE_CONNECTION)
+        if obj.dataset_type not in Dataset.dataset_types:
+            raise SupersetException(_("Not supported dataset type [{type_}]")
+                                    .format(type_=obj.database_type))
 
 
 class HDFSTableModelView(SupersetModelView):
@@ -512,6 +514,16 @@ class HDFSTableModelView(SupersetModelView):
                    'charset', 'hdfs_connection_id']
     show_columns = add_columns
     edit_columns = add_columns
+
+    def _add(self, hdfs_table):
+        self.pre_add(hdfs_table)
+        if not self.datamodel.add(hdfs_table):
+            db.session.query(Dataset) \
+                .filter(Dataset.id == hdfs_table.dataset_id) \
+                .delete(synchronize_session=False)
+            db.session.commit()
+            raise Exception(ADD_FAILED)
+        self.post_add(hdfs_table)
 
     def pre_add(self, obj):
         self.check_column_values(obj)

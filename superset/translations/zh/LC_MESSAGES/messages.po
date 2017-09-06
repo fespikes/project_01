@@ -1566,9 +1566,6 @@ msgstr "连接名字不能为空"
 msgid "Connection type can't be none"
 msgstr "连接类型不能为空"
 
-msgid "Not supported database type [{type_}]"
-msgstr "不支持的连接类型[{type_}]"
-
 msgid "Sqlalchemy uri can't be none"
 msgstr "Sqlalchemy连接串不能为空"
 
@@ -1628,6 +1625,9 @@ msgstr "没有找到对象：类名={model}, id={id}"
 #========================
 # views/connection.py
 #========================
+msgid "Not supported database type [{type_}]"
+msgstr "不支持的连接类型[{type_}]"
+
 msgid "Error order column name: [{name}]"
 msgstr "错误的排序字段：[{name}]"
 
@@ -1736,6 +1736,9 @@ msgstr "查询度量时缺少参数[dataset_id]"
 
 msgid "Not found dataset by id [{id}]"
 msgstr "没有找到id为[{id}]的数据集"
+
+msgid "Not supported dataset type [{type_}]"
+msgstr "不支持的数据集类型[{type_}]"
 
 msgid "Releasing dataset [{dataset}] will release connection [{connection}]"
 msgstr "上线数据集[{dataset}]会同时上线连接[{connection}]"

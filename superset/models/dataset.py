@@ -271,10 +271,8 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         'database_id', 'is_featured', 'offset', 'cache_timeout', 'schema',
         'sql', 'params')
 
-    dataset_type_dict = {
-        'inceptor': 'INCEPTOR',
-        'hdfs': 'HDFS',
-        'upload': 'INCEPTOR'}
+    dataset_types = ['INCEPTOR', 'MYSQL', 'HDFS']
+    dataset_addable_types = dataset_types + ['UPLOAD FILE']
 
     def __repr__(self):
         return self.dataset_name
@@ -624,13 +622,12 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             query=sql,
             error_message=error_message)
 
-    def drop_temp_view(self, engine, view_name, schema='default'):
-        drop_view = "DROP VIEW IF EXISTS {}.{}".format(schema, view_name)
+    def drop_temp_view(self, engine, view_name):
+        drop_view = "DROP VIEW {}".format(view_name)
         engine.execute(drop_view)
 
-    def create_temp_view(self, engine, view_name, sql, schema='default'):
-        self.drop_temp_view(engine, view_name)
-        create_view = "CREATE VIEW {}.{} AS {}".format(schema, view_name, sql)
+    def create_temp_view(self, engine, view_name, sql):
+        create_view = "CREATE VIEW {} AS {}".format(view_name, sql)
         engine.execute(create_view)
 
     def get_sqla_table_object(self):
@@ -640,7 +637,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 view_name = "pilot_view_{}" \
                     .format(''.join(random.sample(string.ascii_lowercase, 10)))
                 self.create_temp_view(engine, view_name, self.sql)
-                table = self.database.get_table(view_name, schema=self.schema)
+                table = self.database.get_table(view_name)
                 self.drop_temp_view(engine, view_name)
                 return table
             else:
