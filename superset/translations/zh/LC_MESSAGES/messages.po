@@ -1763,7 +1763,7 @@ msgid "Success to login FileRobot"
 msgstr "登陆FileRobot成功"
 
 msgid "Success to logout FileRobot"
-msgstr "登出FileRobot失败"
+msgstr "登出FileRobot成功"
 
 msgid "Miss password to login FileRobot"
 msgstr "需要密码登陆FileRobot"
@@ -1783,6 +1783,12 @@ msgstr "你没有连接[{conn}]的帐号和密码"
 
 msgid "Test connection failed, maybe need to modify your account for connection [{conn}]"
 msgstr "测试连接失败，你可能需要修改该连接[{conn}]的帐号和密码"
+
+msgid "Httpfs [{httpfs}] is available"
+msgstr "测试httpfs [{httpfs}]成功"
+
+msgid "Httpfs [{httpfs}] is unavailable"
+msgstr "测试httpfs [{httpfs}]失败"
 
 
 #========================

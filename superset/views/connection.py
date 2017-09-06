@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 
 import json
+import requests
 from flask import g, request
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
@@ -17,6 +18,7 @@ from sqlalchemy import select, literal, cast, or_, and_
 from superset import app, db, models
 from superset.models import Database, HDFSConnection, Slice
 from superset.utils import SupersetException
+from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
 from .base import (
     SupersetModelView, BaseSupersetView, PageMixin, catch_exception,
@@ -349,6 +351,21 @@ class HDFSConnectionModelView(SupersetModelView):
             .all()
         )
         return {'hdfs_connection': hconns, 'dataset': datasets, 'slice': slices}
+
+    @catch_hdfs_exception
+    @expose('/test/', methods=['GET'])
+    def test_hdfs_connection(self):
+        httpfs = request.args.get('httpfs')
+        client, response = HDFSBrowser.login_filerobot(httpfs=httpfs)
+        response = client.list('/', 1, 3)
+        print(json.loads(response.text))
+        if response.status_code == requests.codes.ok:
+            return json_response(
+                message=_('Httpfs [{httpfs}] is available').format(httpfs=httpfs))
+        else:
+            return json_response(
+                message=_('Httpfs [{httpfs}] is unavailable').format(httpfs=httpfs),
+                status=500)
 
 
 class ConnectionView(BaseSupersetView, PageMixin):

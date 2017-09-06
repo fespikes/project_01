@@ -94,6 +94,8 @@ class HDFSBrowser(BaseView):
     @expose('/logout/', methods=['GET'])
     def logout(self):
         self.client.logout()
+        self.client = None
+        self.logined_user = ''
         return json_response(message=LOGOUT_FILEROBOT_SUCCESS)
 
     @catch_hdfs_exception
@@ -215,9 +217,12 @@ class HDFSBrowser(BaseView):
     def get_request_data(self):
         return json.loads(str(request.data, encoding='utf-8'))
 
-    def login_filerobot(self, hdfs_conn_id=None):
-        def get_login_args(hdfs_conn_id=None):
-            def get_httpfs(hdfs_conn_id=None):
+    @staticmethod
+    def login_filerobot(hdfs_conn_id=None, httpfs=None):
+        def get_login_args(hdfs_conn_id=None, httpfs=None):
+            def get_httpfs(hdfs_conn_id=None, httpfs=None):
+                if httpfs:
+                    return httpfs
                 if hdfs_conn_id:
                     conn = db.session.query(HDFSConnection) \
                         .filter_by(id=hdfs_conn_id).first()
@@ -228,7 +233,7 @@ class HDFSBrowser(BaseView):
                     raise SupersetException(NO_HDFS_CONNECTION)
                 return conn.httpfs
 
-            httpfs = get_httpfs(hdfs_conn_id)
+            httpfs = get_httpfs(hdfs_conn_id, httpfs)
             return {'server': app.config.get('FILE_ROBOT_SERVER'),
                     'username': g.user.username,
                     'password': g.user.password2,
@@ -245,7 +250,7 @@ class HDFSBrowser(BaseView):
             response = client.login(username, password, httpfs)
             return client, response
 
-        args = get_login_args(hdfs_conn_id)
+        args = get_login_args(hdfs_conn_id, httpfs)
         return do_login(**args)
 
     def handle_login_result(self, client, response, hdfs_conn_id=None):
