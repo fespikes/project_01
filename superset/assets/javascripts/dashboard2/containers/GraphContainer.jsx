@@ -26,7 +26,7 @@ class GraphContainer extends React.Component {
                 <div className="panel-top">
                     <div className="left">
                         <i className="icon icon-dashboard"/>
-                        <span>仪表盘</span>
+                        <span>仪表板</span>
                         <span>记录条目</span>
                         <span>{posts.params.count}</span>
                     </div>
