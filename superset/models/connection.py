@@ -47,11 +47,12 @@ class Database(Model, AuditMixinNullable):
     database_name = Column(String(128), nullable=False)
     description = Column(Text)
     online = Column(Boolean, default=False)
+    database_type = Column(String(32), nullable=False)
     sqlalchemy_uri = Column(String(1024))
     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
     cache_timeout = Column(Integer)
     select_as_create_table_as = Column(Boolean, default=False)
-    expose_in_sqllab = Column(Boolean, default=True)
+    expose = Column(Boolean, default=True)
     allow_run_sync = Column(Boolean, default=True)
     allow_run_async = Column(Boolean, default=False)
     allow_ctas = Column(Boolean, default=False)
@@ -356,9 +357,12 @@ class HDFSConnection(Model, AuditMixinNullable):
 
 
 class Connection(object):
-    connection_type_dict = {
-        'inceptor': 'INCEPTOR',
-        'hdfs': 'HDFS'}
+    connection_type_dict = OrderedDict()
+    connection_type_dict['inceptor'] = 'INCEPTOR'
+    connection_type_dict['hdfs'] = 'HDFS'
+    connection_type_dict['mysql'] = 'MYSQL'
+    connection_type_dict['oracle'] = 'ORACLE'
+    connection_type_dict['mssql'] = 'MSSQL'
 
 
 class DatabaseAccount(Model):

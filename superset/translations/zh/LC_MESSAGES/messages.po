@@ -1563,6 +1563,12 @@ msgstr "缺少密码访问Guardian"
 msgid "Connection name can't be none"
 msgstr "连接名字不能为空"
 
+msgid "Connection type can't be none"
+msgstr "连接类型不能为空"
+
+msgid "Not supported database type [{type_}]"
+msgstr "不支持的连接类型[{type_}]"
+
 msgid "Sqlalchemy uri can't be none"
 msgstr "Sqlalchemy连接串不能为空"
 

@@ -16,7 +16,7 @@ import sqlalchemy as sqla
 from sqlalchemy import select, literal, cast, or_, and_
 
 from superset import app, db, models
-from superset.models import Database, HDFSConnection, Slice
+from superset.models import Database, HDFSConnection, Connection, Slice
 from superset.utils import SupersetException
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
@@ -37,7 +37,7 @@ class DatabaseView(SupersetModelView):  # noqa
     list_columns = ['id', 'database_name', 'description', 'backend', 'changed_on']
     show_columns = ['id', 'database_name', 'description', 'sqlalchemy_uri',
                     'args', 'backend',  'created_on', 'changed_on']
-    add_columns = ['database_name', 'description', 'sqlalchemy_uri', 'args']
+    add_columns = ['database_name', 'description', 'database_type', 'sqlalchemy_uri', 'args']
     edit_columns = add_columns
     readme_columns = ['sqlalchemy_uri']
     add_template = "superset/models/database/add.html"
@@ -53,7 +53,7 @@ class DatabaseView(SupersetModelView):  # noqa
     }
 
     int_columns = ['id']
-    bool_columns = ['expose_in_sqllab', 'allow_run_sync', 'allow_dml']
+    bool_columns = ['expose', 'allow_run_sync', 'allow_dml']
     str_columns = ['created_on', 'changed_on']
 
     list_template = "superset/databaseList.html"
@@ -100,6 +100,12 @@ class DatabaseView(SupersetModelView):  # noqa
             raise SupersetException(NONE_SQLALCHEMY_URI)
         if not obj.args:
             raise SupersetException(NONE_CONNECTION_ARGS)
+        if not obj.database_type:
+            raise SupersetException(NONE_CONNECTION_TYPE)
+        if obj.database_type not in Connection.connection_type_dict.values():
+            raise SupersetException(
+                _("Not supported database type [{type_}]")
+                    .format(type_=obj.database_type))
 
     def get_object_list_data(self, **kwargs):
         """Return the database(connection) list"""
@@ -471,13 +477,16 @@ class ConnectionView(BaseSupersetView, PageMixin):
                      Database.online.label('online'),
                      Database.created_by_fk.label('user_id'),
                      Database.changed_on.label('changed_on'),
-                     cast(literal('INCEPTOR'), type_=sqla.String).label('connection_type')])
+                     # cast(literal('INCEPTOR'), type_=sqla.String).label('connection_type'),
+                     Database.database_type.label('connection_type'),
+                     Database.expose.label('expose')])
         s2 = select([HDFSConnection.id.label('id'),
                      HDFSConnection.connection_name.label('name'),
                      HDFSConnection.online.label('online'),
                      HDFSConnection.created_by_fk.label('user_id'),
                      HDFSConnection.changed_on.label('changed_on'),
-                     cast(literal('HDFS'), type_=sqla.String).label('connection_type')])
+                     cast(literal('HDFS'), type_=sqla.String).label('connection_type'),
+                     cast(literal(True), type_=sqla.Boolean).label('expose')])
         union_q = s1.union_all(s2).alias('connection')
         query = (
             db.session.query(union_q, User.username)
@@ -485,14 +494,8 @@ class ConnectionView(BaseSupersetView, PageMixin):
             .filter(
                 or_(
                     union_q.c.user_id == user_id,
-                    union_q.c.online == 1),
-                or_(
-                    union_q.c.connection_type == 'HDFS',
-                    and_(union_q.c.connection_type == 'INCEPTOR',
-                         union_q.c.name != 'main')
-                ),
-
-            )
+                    union_q.c.online == 1,
+                    union_q.c.expose is True))
         )
 
         if filter:
@@ -529,7 +532,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
                 'online': row[2],
                 'changed_on': str(row[4]),
                 'connection_type': row[5],
-                'owner': row[6],
+                'owner': row[7],
             })
 
         response = {}

@@ -124,7 +124,7 @@ class HDFSBrowser(BaseView):
         f = request.data
         dest_path = request.args.get('dest_path')
         file_name = request.args.get('file_name')
-        response = self.client.upload(dest_path, {'files': (file_name, f)})
+        response = self.client.upload(dest_path, [('files', (file_name, f))])
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
