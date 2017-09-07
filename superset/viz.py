@@ -210,8 +210,7 @@ class BaseViz(object):
         # parsing logic.
         if df is None or df.empty:
             self.status = utils.QueryStatus.FAILED
-            self.error_message = "No data."
-            return pd.DataFrame(), {}
+            raise Exception("No data. " + self.error_message)
         else:
             if DTTM_ALIAS in df.columns:
                 if timestamp_format in ("epoch_s", "epoch_ms"):
