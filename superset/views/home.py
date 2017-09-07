@@ -102,7 +102,7 @@ class Home(BaseSupersetView):
 
     def get_fav_dashboards(self, user_id, limit=10):
         """Query the times of dashboard liked by users"""
-        query = db.session.query(func.count(FavStar.obj_id), Dashboard.dashboard_title) \
+        query = db.session.query(func.count(FavStar.obj_id), Dashboard) \
             .filter(
             and_(FavStar.class_name.ilike('dashboard'),
                  FavStar.obj_id == Dashboard.id)
@@ -119,13 +119,14 @@ class Home(BaseSupersetView):
         rs = query.all()
 
         rows = []
-        for count, name in rs:
-            rows.append({'name': name, 'count': count})
+        for count, dash in rs:
+            rows.append(
+                {'name': dash.dashboard_title, 'link': dash.url, 'count': count})
         return rows
 
     def get_fav_slices(self, user_id, limit=10):
         """Query the times of slice liked by users"""
-        query = db.session.query(func.count(FavStar.obj_id), Slice.slice_name) \
+        query = db.session.query(func.count(FavStar.obj_id), Slice) \
             .filter(
             and_(FavStar.class_name.ilike('slice'),
                  FavStar.obj_id == Slice.id)
@@ -142,8 +143,9 @@ class Home(BaseSupersetView):
         rs = query.all()
 
         rows = []
-        for count, name in rs:
-            rows.append({'name': name, 'count': count})
+        for count, slice in rs:
+            rows.append(
+                {'name': slice.slice_name, 'link': slice.slice_url, 'count': count})
         return rows
 
     def get_fav_objects(self, user_id, types, limit):
@@ -171,7 +173,7 @@ class Home(BaseSupersetView):
         rs = db.session.execute(sql)
         rows = []
         for row in rs:
-            rows.append({'name': row[0], 'count': row[1]})
+            rows.append({'name': row[0], 'link': None, 'count': row[1]})
         return rows
 
     def get_edited_slices(self, **kwargs):
