@@ -97,18 +97,16 @@ const getEventListData = createSelector(
         let result = [];
         let item = {};
         _.forEach(data, (obj, key) => {
-            if (key < 7) {
-                item = {
-                    'key': key + 1,
-                    'user': obj.user,
-                    'action': obj.action,
-                    'time': obj.time,
-                    'link': obj.link,
-                    'title': obj.title,
-                    'type': obj.obj_type
-                };
-                result.push(item);
-            }
+            item = {
+                'key': key + 1,
+                'user': obj.user,
+                'action': obj.action,
+                'time': obj.time,
+                'link': obj.link,
+                'title': obj.title,
+                'type': obj.obj_type
+            };
+            result.push(item);
         });
 
         return result;

@@ -89,7 +89,7 @@ class DashboardAdd extends React.Component {
         const self = this;
         const Option = Select.Option;
         const options = self.props.availableSlices.map(d => {
-            return <Option key={d.id}>{d.slice_name}</Option>
+            return <Option key={d.slice_name}>{d.slice_name}</Option>
         });
 
         function onChange(value) {

@@ -20,7 +20,8 @@ class SliceAdder extends React.Component {
             pageNumber: 1,
             slicesLoaded: false,
             selectedRowKeys: {},
-            selectedRows: {}
+            selectedRows: {},
+            enableAddSlice: false
         };
 
         this.addSlices = this.addSlices.bind(this);
@@ -38,11 +39,22 @@ class SliceAdder extends React.Component {
         let _selectedRows = {...this.state.selectedRows};
         _selectedKeys[this.state.pageNumber] = selectedRowKeys;
         _selectedRows[this.state.pageNumber] = selectedRows;
+        const enableAddSlice = this.judgeEnableAddSlice(_selectedKeys);
         this.setState({
             selectedRowKeys: _selectedKeys,
-            selectedRows: _selectedRows
+            selectedRows: _selectedRows,
+            enableAddSlice: enableAddSlice
         });
     };
+
+    judgeEnableAddSlice(selectedKeys) {
+        for(let attr in selectedKeys) {
+            if(selectedKeys[attr] && selectedKeys[attr].length > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     onPageChange(page) {
         this.setState({
@@ -98,9 +110,8 @@ class SliceAdder extends React.Component {
     }
 
     render() {
-        const { selectedRowKeys, pageNumber } = this.state;
+        const { selectedRowKeys, pageNumber, enableAddSlice } = this.state;
         const hideLoad = this.state.slicesLoaded || this.errored;
-        const enableAddSlice = this.state.selectedSliceIds && this.state.selectedSliceIds.length > 0;
 
         const rowSelection = {
             selectedRowKeys: selectedRowKeys[pageNumber],

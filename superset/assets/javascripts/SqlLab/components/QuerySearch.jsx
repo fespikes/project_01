@@ -191,7 +191,7 @@ class QuerySearch extends React.PureComponent {
                         />
                     </div>
                     <Button className="search-button" bsSize="small" bsStyle="primary" onClick={this.refreshQueries.bind(this)}>
-                        <i className="fa fa-search" aria-hidden="true"></i>Search
+                        <i className="fa fa-search" aria-hidden="true"></i>搜索
                     </Button>
                 </div>
                 {this.state.queriesLoading ?
@@ -205,8 +205,8 @@ class QuerySearch extends React.PureComponent {
                             <div className="scrollbar-content">
                                 <QueryTable
                                     columns={[
-                                        'state', 'db', 'user', 'time',
-                                        'progress', 'rows', 'sql', 'querylink',
+                                        '状态', '连接', '用户', '时间',
+                                        '进度', '行数', 'sql', '查询链接'
                                     ]}
                                     onUserClicked={this.onUserClicked.bind(this)}
                                     onDbClicked={this.onDbClicked.bind(this)}

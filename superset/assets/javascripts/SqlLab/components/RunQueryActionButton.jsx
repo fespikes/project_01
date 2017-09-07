@@ -11,7 +11,7 @@ const propTypes = {
 };
 
 export default function RunQueryActionButton(props) {
-  const runBtnText = props.selectedText ? 'Run Selected Query' : 'Run Query';
+  const runBtnText = props.selectedText ? '执行选择的查询' : '执行查询';
   const btnStyle = props.selectedText ? 'warning' : 'primary';
   const shouldShowStopBtn = ['running', 'pending'].indexOf(props.queryState) > -1;
   const asyncToolTip = 'Run query asynchronously';

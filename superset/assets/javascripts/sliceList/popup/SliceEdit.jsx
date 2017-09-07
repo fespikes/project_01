@@ -83,7 +83,7 @@ class SliceEdit extends React.Component {
         const Option = Select.Option;
         const defaultOptions = self.state.selectedDashboards;
         const options = self.props.sliceDetail.available_dashboards.map(dashboard => {
-            return <Option key={dashboard.id}>{dashboard.dashboard_title}</Option>
+            return <Option key={dashboard.dashboard_title}>{dashboard.dashboard_title}</Option>
         });
 
         function onChange(value) {

@@ -125,6 +125,10 @@
             &:last-child {
                 border-right: none;
             }
+
+            &:hover {
+                background-color: #fcfcfc;
+            }
         }
         h2.selected {
             background-color: #fff;
