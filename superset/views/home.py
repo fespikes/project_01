@@ -7,6 +7,7 @@ from datetime import timedelta, date
 import logging
 import json
 import re
+from werkzeug.urls import Href
 from flask import g, request, redirect, Response
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
@@ -159,7 +160,8 @@ class Home(BaseSupersetView):
     def get_refered_slices(self, user_id, limit=10):
         """Query the times of slice used by dashboards"""
         sql = """
-            SELECT slices.slice_name, count(slices.slice_name)
+            SELECT slices.slice_name, count(slices.slice_name), slices.params, 
+                   slices.id, slices.datasource_id
             FROM slices, dashboards, dashboard_slices
             WHERE slices.id = dashboard_slices.slice_id
             AND dashboards.id = dashboard_slices.dashboard_id
@@ -171,9 +173,19 @@ class Home(BaseSupersetView):
             ORDER BY count(slices.slice_name) DESC
             LIMIT {}""".format(user_id, limit)
         rs = db.session.execute(sql)
+        
         rows = []
         for row in rs:
-            rows.append({'name': row[0], 'link': None, 'count': row[1]})
+            try:
+                slice_params = json.loads(row[2])
+            except Exception as e:
+                logging.exception(e)
+                slice_params = {}
+            slice_params['slice_id'] = row[3]
+            slice_params['json'] = "false"
+            slice_params['slice_name'] = row[0]
+            href = Href("/p/explore/table/{}/".format(row[4]))
+            rows.append({'name': row[0], 'count': row[1], 'link': href(slice_params)})
         return rows
 
     def get_edited_slices(self, **kwargs):
