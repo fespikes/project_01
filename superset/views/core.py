@@ -203,10 +203,9 @@ class SliceModelView(SupersetModelView):  # noqa
             .first()
         )
         if dataset:
-            redirect_url = '{}?datasource_type=table&datasource_id={}'\
-                .format(dataset.explore_url, dataset.id)
+            redirect_url = dataset.explore_url
         else:
-            redirect_url = '/p/explore/table/0/?datasource_id='
+            redirect_url = '/p/explore/table/0/?datasource_id=datasource_type=table'
         return redirect(redirect_url)
 
     def get_object_list_data(self, **kwargs):
