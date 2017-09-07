@@ -55,7 +55,7 @@ class SliceTable extends React.Component {
     publishConnection(record) {
         const dispatch = this.dispatch;
         const self = this;
-        dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
+        dispatch(fetchOnOfflineInfo(record.id, record.online, record.connection_type, callback));
         function callback(success, data) {
             if(success) {
                 render(
