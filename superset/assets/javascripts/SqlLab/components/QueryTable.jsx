@@ -20,7 +20,7 @@ const propTypes = {
     onDbClicked: React.PropTypes.func,
 };
 const defaultProps = {
-    columns: ['started', 'duration', 'rows'],
+    columns: ['started', 'duration', '行数'],
     queries: [],
     onUserClicked: () => {},
     onDbClicked: () => {},
@@ -94,31 +94,31 @@ class QueryTable extends React.PureComponent {
                 q.duration = fDuration(q.startDttm, q.endDttm);
             }
             const time = moment(q.startDttm).format().split('T');
-            q.time = (
+            q.时间 = (
                 <div>
                     <span>
                       {time[0]} <br /> {time[1]}
                     </span>
                 </div>
             );
-            q.user = (
+            q.用户 = (
                 <span>
                     {q.user}
                 </span>
             );
-            q.db = (
+            q.连接 = (
                 <span>
                     {q.db}
                 </span>
             );
             q.started = moment(q.startDttm).format('HH:mm:ss');
-            q.querylink = (
+            q.查询链接 = (
                 <div style={{ width: '100px' }}>
                     <a
                         href={this.getQueryLink(q.dbId, q.sql)}
                         className="btn btn-primary btn-xs"
                     >
-                        <i className="fa fa-external-link" />Open in SQL Editor
+                        <i className="fa fa-external-link" />在SQL编辑器中打开
                     </a>
                 </div>
             );
@@ -152,7 +152,7 @@ class QueryTable extends React.PureComponent {
                 const schemaUsed = q.ctas && q.tempTable.includes('.') ? '' : q.schema;
                 q.output = [schemaUsed, q.tempTable].filter((v) => (v)).join('.');
             }
-            q.progress = (
+            q.进度 = (
                 <ProgressBar
                     style={{ width: '75px' }}
                     striped
@@ -168,7 +168,7 @@ class QueryTable extends React.PureComponent {
                     </Link>
                 );
             }
-            q.state = (
+            q.状态 = (
                 <div>
           <span className={'m-r-3 label label-' + STATE_BSSTYLE_MAP[q.state]}>
             {q.state.substr(0, 1).toUpperCase() + q.state.substr(1)}
