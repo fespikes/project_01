@@ -58,7 +58,9 @@ table {
         }
     }
 }
-
+.table-add-slice table tbody.ant-table-tbody > tr td {
+    height: 40px;
+}
 .table-add-slice .ant-table-content .ant-table-body {
     max-height: 450px;
     overflow: auto;
