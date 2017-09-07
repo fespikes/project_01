@@ -46,7 +46,7 @@ class App extends React.PureComponent {
     let content;
     if (this.state.hash) {
       content = (
-        <div className="container-fluid">
+        <div className="container-fluid" style={{paddingTop: 0}}>
           <div className="row">
             <div className="col-md-12">
               <QuerySearch height={this.state.contentHeight} actions={this.props.actions} />
