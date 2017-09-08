@@ -359,4 +359,5 @@ $(document).ready(() => {
     const dashboard = dashboardContainer(state.dashboard);
     initDashboardView(dashboard);
     dashboard.init();
+    $('.nav > li:nth-child(2)').addClass('active');
 });

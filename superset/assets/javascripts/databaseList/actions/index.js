@@ -187,8 +187,12 @@ export function fetchPublishConnection(record, callback) {
     }
 }
 
-export function fetchOnOfflineInfo(connectionId, published, callback) {
-    const url = getOnOfflineInfoUrl(connectionId, 'database', published);
+export function fetchOnOfflineInfo(connectionId, published, connectionType, callback) {
+    let prefix = "database";
+    if(connectionType === "HDFS") {
+        prefix = "hdfsconnection";
+    }
+    const url = getOnOfflineInfoUrl(connectionId, prefix, published);
     return dispatch => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
