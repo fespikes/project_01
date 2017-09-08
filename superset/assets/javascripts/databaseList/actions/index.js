@@ -57,6 +57,7 @@ const errorHandler = (error) => {
 const getParamDB = (database) => {
     let db = {};
     let connectionType = (database.connectionType||database.backend);
+    //todo: get other connection type params
     if (connectionType ===connectionTypes.inceptor) {
         db.database_name = database.database_name;
         db.sqlalchemy_uri = database.sqlalchemy_uri;
