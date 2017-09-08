@@ -57,11 +57,13 @@ const errorHandler = (error) => {
 const getParamDB = (database) => {
     let db = {};
     let connectionType = (database.connectionType||database.backend);
+    //todo: get other connection type params
     if (connectionType ===connectionTypes.inceptor) {
         db.database_name = database.database_name;
         db.sqlalchemy_uri = database.sqlalchemy_uri;
         db.description = database.description;
         db.args = database.databaseArgs;
+        db.database_type = connectionType;
     } else {
         db = {
             connection_name: database.connection_name,
@@ -251,6 +253,7 @@ export function applyAdd (callback) {
                     'database_name': databaseName,
                     'sqlalchemy_uri': sqlalchemyUri,
                     'description': descriptionInceptor,
+                    'database_type': connectionTypes.inceptor,
                     'args': databaseArgs
                 })
             };
