@@ -594,4 +594,5 @@ $(document).ready(function () {
     initComponents();
     initTitle();
     initDatasourceState();
+    $('.nav > li:nth-child(3)').addClass('active');
 });

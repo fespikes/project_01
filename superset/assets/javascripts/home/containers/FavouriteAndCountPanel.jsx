@@ -55,7 +55,8 @@ const getFavBarData = createSelector(
                 name: "个数",
                 data: []
             },
-            catagories: []
+            categories: [],
+            urls: []
         };
 
         if (!data) {
@@ -71,7 +72,8 @@ const getFavBarData = createSelector(
         }
         _.forEach(array, (obj, key) => {
             barData.series.data.push(obj.count);
-            barData.catagories.push(obj.name);
+            barData.categories.push(obj.name);
+            barData.urls.push(obj.link);
         });
 
         return barData;
@@ -86,7 +88,8 @@ const getRefBarData = createSelector(
                 name: "个数",
                 data: []
             },
-            catagories: []
+            categories: [],
+            urls: []
         }
 
         if (!data) {
@@ -95,7 +98,8 @@ const getRefBarData = createSelector(
 
         _.forEach(data, (obj, key) => {
             barData.series.data.push(obj.count);
-            barData.catagories.push(obj.name);
+            barData.categories.push(obj.name);
+            barData.urls.push(obj.link);
         });
 
         return barData;
