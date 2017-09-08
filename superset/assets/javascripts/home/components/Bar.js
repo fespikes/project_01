@@ -3,9 +3,18 @@ import ReactHighcharts from 'react-highcharts';
 import Highcharts from 'highcharts';
 import PropTypes from 'prop-types';
 import HighchartsNoData from 'highcharts-no-data-to-display';
+import { Tooltip } from 'antd';
 const _ = require('lodash');
 
 HighchartsNoData(Highcharts);
+
+function addLink(categories, urls) {
+    let categoryLinks = {};
+    _.forEach(categories, function(category, index) {
+        categoryLinks[category] = urls[index];
+    });
+    return categoryLinks;
+}
 
 function makeDummy(data, max) {
      var dummy = [];
@@ -20,20 +29,22 @@ function Bar(props) {
         return <p>数据异常</p>;
     }
 
-    const { catagories, series } = props.barData || {
-        catagories: [],
+    const { categories, series, urls } = props.barData || {
+        categories: [],
         series: {
             name: "",
             data: []
-        }
+        },
+        urls: []
     };
 
-    let height = 30 * catagories.length + 30;
+    let height = 30 * categories.length + 30;
 
     let maxs = [];
     maxs.push(Math.max.apply(null, series.data));
     let max = Math.round(Math.max.apply(null, maxs) * 1.1);
     let dummyData =  makeDummy(series.data, max);
+    let categoryLinks = addLink(categories, urls);
 
     const config = {
         chart: {
@@ -47,7 +58,7 @@ function Bar(props) {
             noData: "暂无数据"
         },
         xAxis: {
-            categories: catagories,
+            categories: categories,
             title: {
                 text: null
             },
@@ -66,6 +77,11 @@ function Bar(props) {
                     textOverflow: 'ellipsis',
                     maxWidth: "120px",
                     fontFamily: "'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB', 'Heiti SC', 'WenQuanYi Micro Hei', sans-serif",
+                },
+                formatter: function () {
+                    console.log(this.value);
+                    return '<a href="' + categoryLinks[this.value] + '" class="bar-item-link">'  +
+                        this.value + '</a>';
                 },
                 useHTML: true
             }
