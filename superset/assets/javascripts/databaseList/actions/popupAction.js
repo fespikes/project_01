@@ -1,18 +1,18 @@
-import {actionTypes} from './';
-import {switchFetchingState} from './index';
-import {renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
+import { actionTypes } from './';
+import { switchFetchingState } from './index';
+import { renderLoadingModal, PILOT_PREFIX } from '../../../utils/utils'
 
 const baseURL = window.location.origin + '/database/';
 const errorHandler = error => console.log(error);
 
-export function setPopupTitle (title) {
+export function setPopupTitle(title) {
     return {
         type: actionTypes.setPopupTitle,
         title
     };
 }
 
-export function setPopupParam (param) {
+export function setPopupParam(param) {
     return {
         type: actionTypes.setPopupParam,
         param
@@ -42,19 +42,19 @@ export function clearPopupParams() {
     }
 }
 
-export function changePopupStatus (status) {
+export function changePopupStatus(status) {
     return {
         type: actionTypes.changePopupStatus,
         status
     };
 }
 
-export function showPopup (param) {
+export function showPopup(param) {
     return (dispatch, getState) => {
         const title = param.popupTitle;
         dispatch(setPopupTitle(title));
 
-        dispatch(setPopupParam (param));
+        dispatch(setPopupParam(param));
 
         return dispatch(changePopupStatus('flex'));
     }
@@ -69,26 +69,26 @@ export const fetchConnectionNames = (callback) => {
             credentials: 'include',
             method: 'get'
         })
-        .then(
-            response => response.ok?
-                response.json() : ((response)=>errorHandler(response))(response),
-            error => errorHandler(error)
+            .then(
+                response => response.ok ?
+                    response.json() : ((response) => errorHandler(response))(response),
+                error => errorHandler(error)
         )
-        .then(json => {
-            json.data.map((obj, key) => {
-                connectionNames.push({
-                    id:obj.id,
-                    label:obj.database_name
+            .then(json => {
+                json.data.map((obj, key) => {
+                    connectionNames.push({
+                        id: obj.id,
+                        label: obj.database_name
+                    })
                 })
-            })
-            callback && callback(connectionNames);
-            dispatch(receiveConnectionNames(connectionNames));
-        });
+                callback && callback(connectionNames);
+                dispatch(receiveConnectionNames(connectionNames));
+            });
 
     }
 }
 
-function receiveConnectionNames (connectionNames) {
+function receiveConnectionNames(connectionNames) {
     return {
         type: actionTypes.receiveConnectionNames,
         connectionNames: connectionNames
@@ -101,27 +101,43 @@ function receiveConnectionNames (connectionNames) {
 export const testConnection = (callback) => {
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
-        const URL = window.location.origin + PILOT_PREFIX + 'testconn';
-        const {
-            databaseName,
-            sqlalchemyUri,
-            databaseArgs,
-        } = getState().popupParam;
+        let URL = window.location.origin + PILOT_PREFIX + 'testconn';
+
+        const {datasetType, httpfs, databaseName, sqlalchemyUri, databaseArgs, } = getState().popupParam;
+
+        if (datasetType.toUpperCase() === 'HDFS') {
+            URL = window.location.origin + '/hdfsconnection/test/?httpfs=' + httpfs;
+
+            return fetch(URL, {
+                credentials: 'include',
+                method: 'get'
+            }).then(
+                response => {
+                    if (response.ok) {
+                        dispatch(switchFetchingState(false));
+                        callback(true);
+                    } else {
+                        dispatch(switchFetchingState(false));
+                        callback(false);
+                    }
+                }
+            );
+        }
 
         return fetch(URL, {
             credentials: 'include',
             method: 'post',
             body: JSON.stringify({
                 'database_name': databaseName,
-                'sqlalchemy_uri':sqlalchemyUri,
+                'sqlalchemy_uri': sqlalchemyUri,
                 'args': databaseArgs
             })
         }).then(
             response => {
-                if(response.ok) {
+                if (response.ok) {
                     dispatch(switchFetchingState(false));
                     callback(true);
-                }else {
+                } else {
                     dispatch(switchFetchingState(false));
                     callback(false);
                 }

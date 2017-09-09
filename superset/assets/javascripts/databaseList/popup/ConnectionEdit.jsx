@@ -67,6 +67,8 @@ class ConnectionEdit extends React.Component {
         const { dispatch } = me.props;
         dispatch(testConnectionInEditConnectPopup(
             {
+                connectionType: me.props.connectionType,
+                httpfs: me.state.database.httpfs,
                 database_name: me.state.database.database_name,
                 sqlalchemy_uri: me.state.database.sqlalchemy_uri,
                 args: me.state.database.databaseArgs
@@ -93,12 +95,10 @@ class ConnectionEdit extends React.Component {
                 <Alert
                     message={me.state.exception.message}
                     type={me.state.exception.type}
-                    onClose={me.closeAlert('test-connect-tip')}
+                    onClose={ me.closeAlert('test-conn-tips')}
                     closable={true}
                     showIcon
-                />,
-                document.getElementById('test-connect-tip')
-            );
+                />, document.querySelector('#test-conn-tips') );
             if(typeof testCallBack === 'function') {
                 testCallBack(me.state.connected);
             }
@@ -106,7 +106,6 @@ class ConnectionEdit extends React.Component {
     }
 
     closeAlert(id) {
-
         ReactDOM.unmountComponentAtNode(document.getElementById(id));
     }
 
@@ -172,11 +171,235 @@ class ConnectionEdit extends React.Component {
     }
 
     render() {
+        const me = this;
         const connectionType = this.props.connectionType;
         const types = connectionTypes;
         const database = this.state.database;
         const {connectionNames}= this.state;
 
+        const getChildren = (popuptype) =>{
+
+            const connectionType = this.props.connectionType;
+            const types = connectionTypes;
+
+            switch (connectionType) {
+                case types.inceptor:
+                return <div>
+                    <div className="dialog-item">
+                        <div className="item-left">
+                            <span>连接类型：</span>
+                        </div>
+                        <div className="item-right">
+                            <span>{connectionType}</span>
+                        </div>
+                    </div>
+                    <div className="dialog-item">
+                        <div className="item-left">
+                            <span>连接名称：</span>
+                        </div>
+                        <div className="item-right">
+                            <input
+                                name="database_name"
+                                className="tp-input dialog-input"
+                                value={database.database_name}
+                                onChange={this.handleInputChange}/>
+                        </div>
+                    </div>
+
+                    <div className="dialog-item">
+                        <div className="item-left">
+                            <span>描述：</span>
+                        </div>
+                        <div className="item-right">
+                        <textarea
+                            name = "description"
+                            className="tp-textarea dialog-area"
+                            value={database.description||' '}
+                            onChange={this.handleInputChange}
+                        />
+                        </div>
+                    </div>
+
+                    <div className="dialog-item">
+                        <div className="item-left">
+                            <span>连接串：</span>
+                        </div>
+                        <div className="item-right">
+                            <input
+                                name = "sqlalchemy_uri"
+                                className="tp-input dialog-input"
+                                value={database.sqlalchemy_uri}
+                                onChange={this.handleInputChange}/>
+                        </div>
+                        <Tooltip title="structure your URL" placement="bottom">
+                            <i className="icon icon-info" style={{ position: 'relative', top: '3px', left: '5px' }} />
+                        </Tooltip>
+                    </div>
+                    
+                    <div className="dialog-item">
+                        <div className="item-left">
+                            <span>连接参数：</span>
+                        </div>
+                        <div className="item-right">
+                        <textarea
+                            id="connectParams"
+                            name="databaseArgs"
+                            style={{height:'120px'}}
+                            className="tp-textarea dialog-area"
+                            onChange={this.handleInputChange}
+                        >
+                        </textarea>
+                        </div>
+                    </div>
+
+                    <div className="dialog-item" style={{ position: 'relative' }}>
+                        <div className="item-left"></div>
+                        <div className="item-right item-connect-test">
+                            <button className="test-connect" onClick={this.testConnection}>
+                                <i className="icon icon-connect-test" />
+                                <span>测试连接：</span>
+                            </button>
+                            <div id="test-conn-tips"></div>
+                        </div>
+                    </div>
+                    <div className="dialog-item">
+                        <div className="sub-item">
+                            <div className="item-left">
+                                <span>创建者：</span>
+                            </div>
+                            <div className="item-right">
+                                <span>{database.created_by_user}</span>
+                            </div>
+                        </div>
+                        <div className="sub-item">
+                            <div className="item-left">
+                                <span>修改者：</span>
+                            </div>
+                            <div className="item-right">
+                                <span>{database.changed_by_user}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="dialog-item">
+                        <div className="sub-item">
+                            <div className="item-left">
+                                <span>创建日期：</span>
+                            </div>
+                            <div className="item-right">
+                                <span>{database.created_on}</span>
+                            </div>
+                        </div>
+                        <div className="sub-item">
+                            <div className="item-left">
+                                <span>修改时间：</span>
+                            </div>
+                            <div className="item-right">
+                                <span>{database.changed_on}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>;
+                {/*E: inceptor connection body*/}
+                break;
+
+                case types.HDFS:
+                return <div className={connectionType===types.HDFS?'':'none'} >
+                    <div className="dialog-item">
+                        <div className="item-left">
+                            <span>连接类型：</span>
+                        </div>
+                        <div className="item-right">
+                            <span>{connectionType}</span>
+                        </div>
+                    </div>
+                    <div className="dialog-item">
+                        <div className="item-left">
+                            <span>连接名称：</span>
+                        </div>
+                        <div className="item-right">
+                            <input
+                                className="tp-input dialog-input"
+                                name="connection_name"
+                                value={database.connection_name}
+                                onChange={this.handleInputChange}/>
+                        </div>
+                    </div>
+                    <div className="dialog-item">
+                        <div className="item-left">
+                            <span>描述：</span>
+                        </div>
+                        <div className="item-right">
+                        <textarea
+                            className="tp-textarea dialog-area"
+                            name="description"
+                            value={database.description||' '}
+                            onChange={this.handleInputChange}
+                        />
+                        </div>
+                    </div>
+                    <div className="dialog-item">
+                        <div className="item-left">
+                            <span>httpfs：</span>
+                        </div>
+                        <div className="item-right">
+                            <input
+                                className="tp-input dialog-input"
+                                name="httpfs"
+                                value={database.httpfs}
+                                onChange={this.handleInputChange}/>
+                        </div>
+                    </div>
+                    <div className="dialog-item">
+                        <div className="item-left">
+                            <span>inceptor连接：</span>{/*默认inceptor连接*/}
+                        </div>
+                        <Select
+                            options={connectionNames}
+                            value={database.database}
+                            width={420}
+                            handleSelect={(argus)=>this.setPopupState(argus)}
+                        />
+                    </div>
+
+                    <div className="dialog-item">
+                        <div className="item-left">
+                            <span>&nbsp;</span>
+                        </div>
+                        <div className="item-right item-connect-test">
+                            <button
+                                className="test-connect"
+                                onClick={ag=> me.testConnection(ag)}>
+                                <i className="icon icon-connect-test"/>
+                                <span>测试连接</span>
+                            </button>
+                            <div id="test-conn-tips"></div>
+                        </div>
+                    </div>
+
+                    <div className="dialog-item">
+                        <div className="sub-item">
+                            <div className="item-left">
+                                <span>创建者：</span>
+                            </div>
+                            <div className="item-right">
+                                <span>{database.created_by_user}</span>
+                            </div>
+                        </div>
+                        <div className="sub-item">
+                            <div className="item-left">
+                                <span>修改者：</span>
+                            </div>
+                            <div className="item-right">
+                                <span>{database.changed_by_user}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>;
+                break;
+                default:
+                return '';
+            }
+        }
         return (
             <div className="popup" ref="popupConnectionEdit" style={{display:'flex'}}>
                 <div className="popup-dialog popup-md">
@@ -192,201 +415,7 @@ class ConnectionEdit extends React.Component {
                         </div>
                         <div className="popup-body">
                             {/*S: inceptor connection body*/}
-                            <div className={connectionType===types.inceptor?'':'none'} >
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>连接类型：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <span>{connectionType}</span>
-                                    </div>
-                                </div>
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>连接名称：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <input
-                                            name="database_name"
-                                            className="tp-input dialog-input"
-                                            value={database.database_name}
-                                            onChange={this.handleInputChange}/>
-                                    </div>
-                                </div>
-
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>描述：</span>
-                                    </div>
-                                    <div className="item-right">
-                                    <textarea
-                                        name = "description"
-                                        className="tp-textarea dialog-area"
-                                        value={database.description||' '}
-                                        onChange={this.handleInputChange}
-                                    />
-                                    </div>
-                                </div>
-
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>连接串：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <input
-                                            name = "sqlalchemy_uri"
-                                            className="tp-input dialog-input"
-                                            value={database.sqlalchemy_uri}
-                                            onChange={this.handleInputChange}/>
-                                    </div>
-                                    <Tooltip title="structure your URL" placement="bottom">
-                                        <i className="icon icon-info" style={{ position: 'relative', top: '3px', left: '5px' }} />
-                                    </Tooltip>
-                                </div>
-                                
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>连接参数：</span>
-                                    </div>
-                                    <div className="item-right">
-                                    <textarea
-                                        id="connectParams"
-                                        name="databaseArgs"
-                                        style={{height:'120px'}}
-                                        className="tp-textarea dialog-area"
-                                        onChange={this.handleInputChange}
-                                    >
-                                    </textarea>
-                                    </div>
-                                </div>
-
-                                <div className="dialog-item" style={{ position: 'relative' }}>
-                                    <div className="item-left"></div>
-                                    <div className="item-right item-connect-test">
-                                        <button className="test-connect" onClick={this.testConnection}>
-                                            <i className="icon icon-connect-test" />
-                                            <span>测试连接</span>
-                                        </button>
-                                        <div id="test-connect-tip"></div>
-                                    </div>
-                                </div>
-                                <div className="dialog-item">
-                                    <div className="sub-item">
-                                        <div className="item-left">
-                                            <span>创建者：</span>
-                                        </div>
-                                        <div className="item-right">
-                                            <span>{database.created_by_user}</span>
-                                        </div>
-                                    </div>
-                                    <div className="sub-item">
-                                        <div className="item-left">
-                                            <span>修改者：</span>
-                                        </div>
-                                        <div className="item-right">
-                                            <span>{database.changed_by_user}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="dialog-item">
-                                    <div className="sub-item">
-                                        <div className="item-left">
-                                            <span>创建日期：</span>
-                                        </div>
-                                        <div className="item-right">
-                                            <span>{database.created_on}</span>
-                                        </div>
-                                    </div>
-                                    <div className="sub-item">
-                                        <div className="item-left">
-                                            <span>修改时间：</span>
-                                        </div>
-                                        <div className="item-right">
-                                            <span>{database.changed_on}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {/*E: inceptor connection body*/}
-
-                            {/*S: HDFS connection body*/}
-                            <div className={connectionType===types.HDFS?'':'none'} >
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>连接类型：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <span>{connectionType}</span>
-                                    </div>
-                                </div>
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>连接名称：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <input
-                                            className="tp-input dialog-input"
-                                            name="connection_name"
-                                            value={database.connection_name}
-                                            onChange={this.handleInputChange}/>
-                                    </div>
-                                </div>
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>描述：</span>
-                                    </div>
-                                    <div className="item-right">
-                                    <textarea
-                                        className="tp-textarea dialog-area"
-                                        name="description"
-                                        value={database.description||' '}
-                                        onChange={this.handleInputChange}
-                                    />
-                                    </div>
-                                </div>
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>httpfs：</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <input
-                                            className="tp-input dialog-input"
-                                            name="httpfs"
-                                            value={database.httpfs}
-                                            onChange={this.handleInputChange}/>
-                                    </div>
-                                </div>
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>inceptor连接：</span>{/*默认inceptor连接*/}
-                                    </div>
-                                    <Select
-                                        options={connectionNames}
-                                        value={database.database}
-                                        width={420}
-                                        handleSelect={(argus)=>this.setPopupState(argus)}
-                                    />
-                                </div>
-                                <div className="dialog-item">
-                                    <div className="sub-item">
-                                        <div className="item-left">
-                                            <span>创建者：</span>
-                                        </div>
-                                        <div className="item-right">
-                                            <span>{database.created_by_user}</span>
-                                        </div>
-                                    </div>
-                                    <div className="sub-item">
-                                        <div className="item-left">
-                                            <span>修改者：</span>
-                                        </div>
-                                        <div className="item-right">
-                                            <span>{database.changed_by_user}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {/*E: HDFS connection*/}
+                            {getChildren()}
                         </div>
                         <div className="error" id="edit-connect-tip"></div>
                         <div className="popup-footer">
