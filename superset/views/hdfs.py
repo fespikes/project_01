@@ -221,7 +221,7 @@ class HDFSBrowser(BaseView):
     def login_filerobot(hdfs_conn_id=None, httpfs=None):
         def get_login_args(hdfs_conn_id=None, httpfs=None):
             def get_httpfs(hdfs_conn_id=None, httpfs=None):
-                if httpfs:
+                if httpfs is not None:
                     return httpfs
                 if hdfs_conn_id:
                     conn = db.session.query(HDFSConnection) \

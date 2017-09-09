@@ -364,7 +364,6 @@ class HDFSConnectionModelView(SupersetModelView):
         httpfs = request.args.get('httpfs')
         client, response = HDFSBrowser.login_filerobot(httpfs=httpfs)
         response = client.list('/', 1, 3)
-        print(json.loads(response.text))
         if response.status_code == requests.codes.ok:
             return json_response(
                 message=_('Httpfs [{httpfs}] is available').format(httpfs=httpfs))
