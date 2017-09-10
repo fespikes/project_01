@@ -177,7 +177,8 @@ class Popup extends React.Component {
         const {connectionNames} = this.state;
 
         let iconClass = 'icon-connect';
-        let tipMsg = <span>Please modify this required field.</span>;
+        let tipMsgStr = "如果认证方式是LDAP，需要加上用户名和密码：Inceptor://username:password@172.0.0.1:10000/database";
+        let tipMsgParam = "ODBC连接串的参数。（1）keytab文件通过Guardian获取；（2）支持LDAP认证，连接串需要添加用户名和密码";
 
         let {submitState} = this.state;
         let showAlert = !(submitState==='error' || submitState==='succeed') && submitState ;
@@ -199,6 +200,7 @@ class Popup extends React.Component {
                             <div style={{ display: datasetType==='INCEPTOR'?'block':'none' }} >
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>连接名称：</span>
                                     </div>
                                     <div className="item-right">
@@ -229,6 +231,7 @@ class Popup extends React.Component {
 
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>连接串：</span>
                                     </div>
                                     <div className="item-right">
@@ -240,16 +243,15 @@ class Popup extends React.Component {
                                             required="required"
                                             className="tp-input dialog-input"
                                         />
-                                        <Tooltip placement="topRight" title={tipMsg}>
-                                            <i
-                                                className="icon icon-infor"
-                                                style={{position: 'absolute', top: '10px', right: '-20px'}}/>
+                                        <Tooltip placement="topRight" title={tipMsgStr}>
+                                            <i className="icon icon-infor after-icon"/>
                                         </Tooltip>
                                     </div>
                                 </div>
 
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>连接参数：</span>
                                     </div>
                                     <div className="item-right">
@@ -263,6 +265,9 @@ class Popup extends React.Component {
                                             className="tp-textarea dialog-area"
                                         >
                                         </textarea>
+                                        <Tooltip placement="topRight" title={tipMsgParam}>
+                                            <i className="icon icon-infor after-icon"/>
+                                        </Tooltip>
                                     </div>
                                 </div>
 
@@ -284,6 +289,7 @@ class Popup extends React.Component {
                             <div style={{ display: datasetType==='HDFS'?'block':'none' }} >
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>连接名称：</span>
                                     </div>
                                     <div className="item-right">
@@ -313,6 +319,7 @@ class Popup extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>httpfs地址：</span>
                                     </div>
                                     <div className="item-right">
@@ -324,10 +331,14 @@ class Popup extends React.Component {
                                             required="required"
                                             className="tp-input dialog-input"
                                         />
+                                        <Tooltip placement="topRight" title="HDFS httpf服务IP地址">
+                                            <i className="icon icon-infor after-icon"/>
+                                        </Tooltip>
                                     </div>
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>默认inceptor连接：</span>
                                     </div>
                                     <div className="item-right">
@@ -337,6 +348,9 @@ class Popup extends React.Component {
                                             width={420}
                                             handleSelect={(argus)=>this.setSelectConnection(argus)}
                                         />
+                                        <Tooltip placement="topRight" title="如果HDFS数据集没有选择Inceptor连接，则将使用该Inceptor连接。">
+                                            <i className="icon icon-infor after-icon"/>
+                                        </Tooltip>
                                     </div>
                                 </div>
                             </div>

@@ -203,6 +203,7 @@ class ConnectionEdit extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>连接名称：</span>
                                     </div>
                                     <div className="item-right">
@@ -230,6 +231,7 @@ class ConnectionEdit extends React.Component {
 
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>连接串：</span>
                                     </div>
                                     <div className="item-right">
@@ -237,26 +239,30 @@ class ConnectionEdit extends React.Component {
                                             name = "sqlalchemy_uri"
                                             className="tp-input dialog-input"
                                             value={database.sqlalchemy_uri}
-                                            onChange={this.handleInputChange}/>
+                                            onChange={this.handleInputChange}
+                                        />
+                                        <Tooltip title="如果认证方式是LDAP，需要加上用户名和密码：Inceptor://username:password@172.0.0.1:10000/database" placement="topRight">
+                                            <i className="icon icon-info after-icon" />
+                                        </Tooltip>
                                     </div>
-                                    <Tooltip title="structure your URL" placement="bottom">
-                                        <i className="icon icon-info" style={{ position: 'relative', top: '3px', left: '5px' }} />
-                                    </Tooltip>
                                 </div>
                                 
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>连接参数：</span>
                                     </div>
                                     <div className="item-right">
-                                    <textarea
-                                        id="connectParams"
-                                        name="databaseArgs"
-                                        style={{height:'120px'}}
-                                        className="tp-textarea dialog-area"
-                                        onChange={this.handleInputChange}
-                                    >
-                                    </textarea>
+                                        <textarea
+                                            id="connectParams"
+                                            name="databaseArgs"
+                                            style={{height:'120px'}}
+                                            className="tp-textarea dialog-area"
+                                            onChange={this.handleInputChange}
+                                        />
+                                        <Tooltip title="ODBC连接串的参数。（1）keytab文件通过Guardian获取；（2）支持LDAP认证，连接串需要添加用户名和密码" placement="topRight">
+                                            <i className="icon icon-info after-textarea-icon"/>
+                                        </Tooltip>
                                     </div>
                                 </div>
 
@@ -321,6 +327,7 @@ class ConnectionEdit extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>连接名称：</span>
                                     </div>
                                     <div className="item-right">
@@ -346,6 +353,7 @@ class ConnectionEdit extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>httpfs：</span>
                                     </div>
                                     <div className="item-right">
@@ -353,19 +361,29 @@ class ConnectionEdit extends React.Component {
                                             className="tp-input dialog-input"
                                             name="httpfs"
                                             value={database.httpfs}
-                                            onChange={this.handleInputChange}/>
+                                            onChange={this.handleInputChange}
+                                        />
+                                        <Tooltip title="HDFS httpf服务IP地址" placement="topRight">
+                                            <i className="icon icon-info after-icon" />
+                                        </Tooltip>
                                     </div>
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
+                                        <i>*</i>
                                         <span>inceptor连接：</span>{/*默认inceptor连接*/}
                                     </div>
-                                    <Select
-                                        options={connectionNames}
-                                        value={database.database}
-                                        width={420}
-                                        handleSelect={(argus)=>this.setPopupState(argus)}
-                                    />
+                                    <div className="item-right">
+                                        <Select
+                                            options={connectionNames}
+                                            value={database.database}
+                                            width={420}
+                                            handleSelect={(argus)=>this.setPopupState(argus)}
+                                        />
+                                        <Tooltip title="如果HDFS数据集没有选择Inceptor连接，则将使用该Inceptor连接。" placement="topRight">
+                                            <i className="icon icon-info after-icon" />
+                                        </Tooltip>
+                                    </div>
                                 </div>
                                 <div className="dialog-item">
                                     <div className="sub-item">

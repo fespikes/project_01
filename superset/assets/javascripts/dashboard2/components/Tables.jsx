@@ -38,7 +38,6 @@ class Tables extends React.Component {
                     <DashboardEdit
                         dispatch={dispatch}
                         dashboardDetail={data}
-                        editable={true}
                     />,
                     document.getElementById('popup_root')
                 );
