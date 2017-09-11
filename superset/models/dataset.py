@@ -438,7 +438,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         )
 
     def query(self, groupby, metrics, granularity, from_dttm, to_dttm,
-              filter=None, is_timeseries=True, timeseries_limit=15,
+              filter=None, is_timeseries=True, timeseries_limit=None,
               timeseries_limit_metric=None, row_limit=None, inner_from_dttm=None,
               inner_to_dttm=None, orderby=None, extras=None, columns=None):
         """Querying any sqla table from this common interface"""
@@ -571,6 +571,8 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 direction = asc if ascending else desc
                 qry = qry.order_by(direction(col))
 
+        if timeseries_limit and 0 < timeseries_limit < row_limit:
+            row_limit = timeseries_limit
         qry = qry.limit(row_limit)
 
         if is_timeseries and timeseries_limit and groupby:
