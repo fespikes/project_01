@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { render } from 'react-dom';
-import { fetchInceptorConnectAdd, testConnectionInEditConnectPopup } from '../../databaseList/actions';
+import { fetchInceptorConnectAdd, testConnection } from '../../databaseList/actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
 import { getDatabaseDefaultParams } from '../../../utils/utils';
@@ -39,7 +39,7 @@ class CreateInceptorConnect extends React.Component {
             sqlalchemy_uri: self.refs.connectionUri.value,
             args: self.refs.databaseArgs.value
         };
-        dispatch(testConnectionInEditConnectPopup(connectObj, callback));
+        dispatch(testConnection(connectObj, callback));
 
         function callback(success) {
             let exception = {};

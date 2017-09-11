@@ -122,7 +122,7 @@ export function clearRows () {
     }
 }
 
-export function testConnectionInEditConnectPopup(database, callback) {
+export function testConnection(database, callback) {
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
         const URL = origin + PILOT_PREFIX + 'testconn';
@@ -146,28 +146,45 @@ export function testConnectionInEditConnectPopup(database, callback) {
     }
 }
 
-export function fetchInceptorConnectAdd(connect, callback) {
+export function fetchInceptorConnectAdd(inceptor, callback) {
 
     return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
         const URL = baseURL + 'add';
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',
-            body: JSON.stringify(connect)
-        })
-        .then(
-            response => response.ok?
-                response.json() : ((response)=>errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            if(json.success) {
-                dispatch(fetchIfNeeded());
-                callback(true);
-            }else {
-                callback(false, json);
+            body: JSON.stringify(inceptor)
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchIfNeeded());
+                }
             }
-        });
+        );
+    }
+}
+
+export function fetchHDFSConnectAdd(hdfs, callback) {
+
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        const URL = HDFSConnectionBaseURL + 'add';
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify(hdfs)
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+                if(response.status === 200) {
+                    dispatch(fetchIfNeeded());
+                }
+            }
+        );
     }
 }
 
@@ -218,67 +235,6 @@ export function switchFetchingState(isFetching) {
     return {
         type: actionTypes.switchFetchingState,
         isFetching: isFetching
-    }
-}
-
-/**
-@description: add connection in database list
-
-*/
-export function applyAdd (callback) {
-    return (dispatch, getState) => {
-        const inceptorAddURL = baseURL;
-        const HDFSAddURL = origin + '/hdfsconnection/';
-        let URL;
-        const {
-            datasetType,
-
-            databaseName,
-            sqlalchemyUri,
-            databaseArgs,
-            descriptionInceptor,
-
-            connectionName,
-            databaseId,
-            httpfs,
-            descriptionHDFS,
-        } = getState().popupParam;
-
-        let paramObj = {credentials: 'include', method: 'post'};
-        if (datasetType==='INCEPTOR') {
-            URL = inceptorAddURL;
-            paramObj= {
-                ...paramObj,
-                body: JSON.stringify({
-                    'database_name': databaseName,
-                    'sqlalchemy_uri': sqlalchemyUri,
-                    'description': descriptionInceptor,
-                    'database_type': connectionTypes.inceptor,
-                    'args': databaseArgs
-                })
-            };
-        } else {
-            URL = HDFSAddURL;
-            paramObj= {
-                ...paramObj,
-                body: JSON.stringify({
-                    'connection_name': connectionName,
-                    'database_id':databaseId,
-                    'httpfs':httpfs,
-                    'description':descriptionHDFS
-                })
-            };
-        }
-        return fetch(URL+'add', paramObj)
-        .then(always).then(json).then(
-            response => {
-                callbackHandler(response, callback);
-                dispatch(switchFetchingState(false));
-                if(response.status === 200) {
-                    dispatch(fetchIfNeeded());
-                }
-            }
-        );
     }
 }
 
@@ -497,4 +453,30 @@ export function fetchIfNeeded (condition) {
     };
 }
 
-export * as popupActions from './popupAction';
+export const fetchConnectionNames = (callback) => {
+    return (dispatch, getState) => {
+        const URL = `${baseURL}listdata?page_size=1000`;
+        let connectionNames = [];
+
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'get'
+        })
+            .then(
+                response => response.ok?
+                    response.json() : ((response)=>errorHandler(response))(response),
+                error => errorHandler(error)
+            )
+            .then(json => {
+                json.data.map((obj, key) => {
+                    connectionNames.push({
+                        id:obj.id,
+                        label:obj.database_name
+                    })
+                })
+                callback && callback(connectionNames);
+            }
+            );
+
+    }
+};

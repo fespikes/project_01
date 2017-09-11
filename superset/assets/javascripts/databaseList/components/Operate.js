@@ -2,8 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 
 import { Link }  from 'react-router-dom';
-import { ConnectionDelete } from '../popup';
-
+import { ConnectionDelete, ConnectionAdd } from '../popup';
 import PropTypes from 'prop-types';
 import {
     selectType,
@@ -71,21 +70,13 @@ class Operate extends React.Component {
 
     onAdd (type) {
         const dispatch = this.dispatch;
-        let popupParam = {
-            popupTitle: `新建 ${type} 连接`,
-            datasetType: type,
-
-            submit: (callback) => {
-                dispatch(applyAdd(callback));
-            },
-            testConnection: (argus) => {
-                const callback = (argus) => {
-                    console.log('inside callback:', argus );
-                }
-                dispatch(testConnection(callback));
-            }
-        };
-        dispatch(popupActions.showPopup(popupParam));
+        render(
+            <ConnectionAdd
+                dispatch={dispatch}
+                connectionType={type}
+            />,
+            document.getElementById('popup_root')
+        );
     }
 
     //multi delete

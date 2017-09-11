@@ -16,7 +16,7 @@ function condition(state = {
             return {...state, page: action.pageNumber};
             break;
         case actionTypes.changePageSize:
-            return {...state, pageSize: action.pageSize};           //TODO
+            return {...state, pageSize: action.pageSize};
             break;
         case actionTypes.search:
             return {...state, filter: action.filter};
@@ -88,9 +88,7 @@ function requestByCondition (state = {}, action) {
 const rootReducer = combineReducers({
     condition,
     paramOfDelete,
-    requestByCondition,
-    popupParam
-//    ,router: routerReducer
+    requestByCondition
 });
 
 export default rootReducer;

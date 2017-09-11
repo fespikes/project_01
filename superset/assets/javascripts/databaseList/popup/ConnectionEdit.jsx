@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { render } from 'react-dom';
-import { connectionTypes, popupActions, fetchUpdateConnection, testConnectionInEditConnectPopup } from '../actions';
+import { connectionTypes, fetchUpdateConnection, testConnection, fetchConnectionNames } from '../actions';
 import { Alert, Tooltip } from 'antd';
 import {Select} from '../components';
 import PropTypes from 'prop-types';
@@ -11,6 +11,7 @@ class ConnectionEdit extends React.Component {
         super(props);
         this.state = {
             exception: {},
+            disabled: false,
             database: this.props.database,
             connected: false,
             connectionNames: [],
@@ -29,7 +30,7 @@ class ConnectionEdit extends React.Component {
     componentDidMount () {
         this.fetchConnectionNames();
         let database = {};
-        if(this.props.connectionType === "INCEPTOR") {
+        if(this.props.connectionType === connectionTypes.inceptor) {
             let connectParams = JSON.stringify(JSON.parse(this.state.database.args), undefined, 4);
             document.getElementById('connectParams').value = connectParams;
             database = {
@@ -38,7 +39,7 @@ class ConnectionEdit extends React.Component {
                 connectionType: this.props.connectionType
             };
 
-        }else if(this.props.connectionType === "HDFS") {
+        }else if(this.props.connectionType === connectionTypes.HDFS) {
             database = {
                 ...this.state.database,
                 connectionType: this.props.connectionType
@@ -54,8 +55,7 @@ class ConnectionEdit extends React.Component {
         const callback = (connectionNames) => {
             me.setState({connectionNames:connectionNames});
         }
-
-        this.props.dispatch(popupActions.fetchConnectionNames(callback));
+        this.props.dispatch(fetchConnectionNames(callback));
     }
 
     closeDialog() {
@@ -65,7 +65,7 @@ class ConnectionEdit extends React.Component {
     testConnection(testCallBack) {
         const me = this;
         const { dispatch } = me.props;
-        dispatch(testConnectionInEditConnectPopup(
+        dispatch(testConnection(
             {
                 database_name: me.state.database.database_name,
                 sqlalchemy_uri: me.state.database.sqlalchemy_uri,
@@ -118,6 +118,31 @@ class ConnectionEdit extends React.Component {
         this.setState({
             database: database
         });
+        this.formValidate(database);
+    }
+
+    formValidate(database) {
+        let disabled;
+        if(this.props.connectionType === connectionTypes.inceptor) {
+            if((database.database_name && database.database_name.length > 0) &&
+                (database.sqlalchemy_uri && database.sqlalchemy_uri.length > 0) &&
+                (database.databaseArgs && database.databaseArgs.length > 0)) {
+                disabled = false;
+            }else {
+                disabled = true;
+            }
+        }else if(this.props.connectionType === connectionTypes.HDFS) {
+            if((database.connection_name && database.connection_name.length > 0) &&
+                (database.httpfs && database.httpfs.length > 0)) {
+                disabled = false;
+            }else {
+                disabled = true;
+            }
+        }
+
+        this.setState({
+            disabled: disabled
+        });
     }
 
     setPopupState(databaseId) {
@@ -155,7 +180,7 @@ class ConnectionEdit extends React.Component {
 
     confirm() {
         const me = this;
-        if(this.props.connectionType === "INCEPTOR") {
+        if(this.props.connectionType === connectionTypes.inceptor) {
             if(this.state.connected) {
                 this.doUpdateConnection();
             }else {
@@ -166,14 +191,13 @@ class ConnectionEdit extends React.Component {
                     }
                 }
             }
-        }else if(this.props.connectionType === "HDFS") {
+        }else if(this.props.connectionType === connectionTypes.HDFS) {
             this.doUpdateConnection();
         }
     }
 
     render() {
         const connectionType = this.props.connectionType;
-        const types = connectionTypes;
         const database = this.state.database;
         const {connectionNames}= this.state;
 
@@ -192,7 +216,7 @@ class ConnectionEdit extends React.Component {
                         </div>
                         <div className="popup-body">
                             {/*S: inceptor connection body*/}
-                            <div className={connectionType===types.inceptor?'':'none'} >
+                            <div className={connectionType===connectionTypes.inceptor?'':'none'} >
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <span>连接类型：</span>
@@ -223,7 +247,7 @@ class ConnectionEdit extends React.Component {
                                     <textarea
                                         name = "description"
                                         className="tp-textarea dialog-area"
-                                        value={database.description||' '}
+                                        value={database.description||''}
                                         onChange={this.handleInputChange}
                                     />
                                     </div>
@@ -261,7 +285,10 @@ class ConnectionEdit extends React.Component {
                                             onChange={this.handleInputChange}
                                         />
                                         <Tooltip title="ODBC连接串的参数。（1）keytab文件通过Guardian获取；（2）支持LDAP认证，连接串需要添加用户名和密码" placement="topRight">
-                                            <i className="icon icon-info after-textarea-icon"/>
+                                            <i
+                                                className="icon icon-info after-textarea-icon"
+                                                style={{top: 50}}
+                                            />
                                         </Tooltip>
                                     </div>
                                 </div>
@@ -316,7 +343,7 @@ class ConnectionEdit extends React.Component {
                             {/*E: inceptor connection body*/}
 
                             {/*S: HDFS connection body*/}
-                            <div className={connectionType===types.HDFS?'':'none'} >
+                            <div className={connectionType===connectionTypes.HDFS?'':'none'} >
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <span>连接类型：</span>
@@ -370,7 +397,6 @@ class ConnectionEdit extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <i>*</i>
                                         <span>inceptor连接：</span>{/*默认inceptor连接*/}
                                     </div>
                                     <div className="item-right">
@@ -411,6 +437,7 @@ class ConnectionEdit extends React.Component {
                             <button
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.confirm}
+                                disabled={this.state.disabled}
                             >确定</button>
                         </div>
                     </div>

@@ -1,106 +1,61 @@
 import React from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
+import ReactDOM, { render, unmountComponentAtNode } from 'react-dom';
 import { Tooltip, Alert } from 'antd';
 
-import {Select} from './';
+import {Select} from '../components';
 import PropTypes from 'prop-types';
-
+import { fetchInceptorConnectAdd, fetchHDFSConnectAdd, testConnection, fetchConnectionNames, connectionTypes } from '../actions';
 import { getDatabaseDefaultParams } from '../../../utils/utils';
 
-const defaultParams = getDatabaseDefaultParams();
+const defaultParams = JSON.stringify(getDatabaseDefaultParams(), undefined, 4);
 
-class Popup extends React.Component {
+class ConnectionAdd extends React.Component {
     constructor (props, context) {
         super(props);
         this.state = {
-            databaseName: '',
-            sqlalchemyUri: '',
+            exception: {},
+            database: {
+                database_name: '',
+                database_type: '',
+                description: '',
+                sqlalchemy_uri: defaultParams,
+                args: '',
 
+                connection_name: '',
+                httpfs: '',
+                database_id:''
+            },
             connectionNames: [],
-            connectionName:'',
-            databaseId:'',
+            connected: false,
+            disabled: true
 
-            submitState:'',
-            submitMsg:'',
-
-            connected: false
         };
-        this.dispatch = context.dispatch;
 
         this.submit = this.submit.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
         this.setSelectConnection = this.setSelectConnection.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
 
     componentDidMount () {
-        this.fetchConnectionNames();
+        const { connectionType } = this.props;
+        if(connectionType === connectionTypes.HDFS) {
+            this.fetchConnectionNames();
+        }
     }
 
     closeDialog () {
-        const {changePopupStatus, clearPopupParams} = this.props;
-        this.clearDomParams();
-        this.dispatch(clearPopupParams());
-        this.dispatch(changePopupStatus('none'));
-    }
-
-    clearDomParams() {
-        const { datasetType } = this.props;
-        if(datasetType === "INCEPTOR") {
-            this.refs.databaseName.value = '';
-            this.refs.descriptionInceptor.value = '';
-            this.refs.httpfs.value = '';
-            this.refs.sqlalchemyUri.value = '';
-        }else if(datasetType === "HDFS") {
-            this.refs.connectionName.value = '';
-            this.refs.descriptionHDFS.value = '';
-            this.refs.httpfs.value = '';
-            this.refs.databaseId.value = '';
-        }
-    }
-
-    setSubmitParam () {
-        const {datasetType} = this.props;
-        const {databaseId} = this.state;
-        const setPopupParam = this.props.setPopupParam;
-
-        const databaseName = this.refs.databaseName.value;
-        const sqlalchemyUri = this.refs.sqlalchemyUri.value;
-        const databaseArgs = this.refs.databaseArgs.value;
-        const descriptionInceptor = this.refs.descriptionInceptor.value;
-
-        const connectionName = this.refs.connectionName.value;
-        const descriptionHDFS = this.refs.descriptionHDFS.value;
-        const httpfs = this.refs.httpfs.value;
-
-        if (datasetType==='INCEPTOR') {
-            this.dispatch(
-                setPopupParam({
-                    datasetType,
-                    databaseName,
-                    sqlalchemyUri,
-                    descriptionInceptor,
-                    databaseArgs
-                }
-            ));
-        } else if (datasetType==='HDFS') {
-            this.dispatch(
-                setPopupParam({
-                    datasetType,
-                    connectionName,
-                    databaseId,
-                    httpfs,
-                    descriptionHDFS
-                }
-            ));
-        }
+        ReactDOM.unmountComponentAtNode(document.getElementById('popup_root'));
     }
 
     testConnection() {
-        const me = this;
-        const testConnection = this.props.testConnection;
-        this.setSubmitParam();
-
-        this.dispatch(testConnection(callback));
+        const self = this;
+        const { dispatch } = this.props;
+        dispatch(testConnection({
+            database_name: this.state.database.database_name,
+            sqlalchemy_uri: this.state.database.sqlalchemy_uri,
+            args: this.state.database.args
+        }, callback));
 
         function callback(success) {
             let exception = {};
@@ -111,93 +66,146 @@ class Popup extends React.Component {
                 exception.type = "error";
                 exception.message = "该连接是一个不合法连接";
             }
-            const tipBox = me.refs['testConnectTip'];
-            me.setState({
-                connected: success
+            self.setState({
+                connected: true
             });
+            self.formValidate(self.state.database);
             render(
                 <Alert
                     message={exception.message}
                     type={exception.type}
-                    onClose={
-                        () => unmountComponentAtNode(tipBox)
-                    }
+                    onClose={self.closeAlert('test-add-connect-tip')}
                     closable={true}
                     showIcon
                 />,
-                tipBox
+                document.getElementById('test-add-connect-tip')
             );
         }
+    }
 
+    closeAlert(id) {
+        ReactDOM.unmountComponentAtNode(document.getElementById(id));
     }
 
     setSelectConnection(databaseId) {
+        const database = {
+            ...this.state.database,
+            database_id: databaseId
+        };
         this.setState({
-            databaseId: databaseId
+            database: database
+        });
+        this.formValidate(database);
+    }
+
+    handleChange(e) {
+        const target = e.currentTarget;
+        const name = target.name;
+        const val = target.value;
+        console.log('this.state.database=', this.state.database);
+        const database = {...this.state.database, [name]: val};
+        console.log('database=', database);
+        this.setState({
+            database: database
+        });
+        this.formValidate(database);
+    }
+
+    formValidate(database) {
+        console.log('database=', database);
+        let disabled;
+        if(this.props.connectionType === connectionTypes.inceptor) {
+            if((database.database_name && database.database_name.length > 0) &&
+                (database.sqlalchemy_uri && database.sqlalchemy_uri.length > 0) &&
+                (database.args && database.args.length > 0) && this.state.connected) {
+                disabled = false;
+            }else {
+                disabled = true;
+            }
+        }else if(this.props.connectionType === connectionTypes.HDFS) {
+            if((database.connection_name && database.connection_name.length > 0) &&
+                (database.httpfs && database.httpfs.length > 0)) {
+                disabled = false;
+            }else {
+                disabled = true;
+            }
+        }
+        this.setState({
+            disabled: disabled
         });
     }
 
     submit () {
-        const me = this;
+        const self = this;
+        const { connectionType, dispatch } = this.props;
 
-        me.setSubmitParam();
-
-        function callback(success, data) {
+        function callback(success, message) {
             if(success) {
-                me.setState({
-                    submitState:'',
-                    submitMsg:''
-                });
-                me.closeDialog();
+                self.closeDialog();
             }else {
-                me.setState({
-                    submitState:'error',
-                    submitMsg:data
-                });
+                render(
+                    <Alert
+                        message="Error"
+                        type="error"
+                        description={message}
+                        onClose={self.closeAlert('add-connect-tip')}
+                        closable={true}
+                        showIcon
+                    />,
+                    document.getElementById('add-connect-tip')
+                );
             }
         }
-        me.props.submit(callback);
+        if(connectionType === connectionTypes.inceptor) {
+            dispatch(fetchInceptorConnectAdd({
+                database_name: this.state.database.database_name,
+                database_type: connectionTypes.inceptor,
+                description: this.state.database.description,
+                sqlalchemy_uri: this.state.database.sqlalchemy_uri,
+                args: this.state.database.args
+            }, callback) );
+        }else if(connectionType === connectionTypes.HDFS) {
+            dispatch(fetchHDFSConnectAdd({
+                connection_name: this.state.database.connection_name,
+                description: this.state.database.description,
+                httpfs: this.state.database.httpfs,
+                database_id: this.state.database.database_id
+            }, callback))
+        }
     }
 
-
-
     fetchConnectionNames () {
-        const me = this;
-        const fetchConnectionNames = this.props.fetchConnectionNames;
-
+        const self = this;
+        const { dispatch } = this.props;
         const callback = (connectionNames) => {
-            me.setState({connectionNames:connectionNames});
-        }
-        this.dispatch(fetchConnectionNames(callback));
+            self.setState({connectionNames:connectionNames});
+        };
+        dispatch(fetchConnectionNames(callback));
     }
 
     render () {
-        const me = this;
-        const { title, datasetType, status } = this.props;
-        const {connectionNames} = this.state;
+        const self = this;
+        const { connectionType } = this.props;
 
         let iconClass = 'icon-connect';
         let tipMsgStr = "如果认证方式是LDAP，需要加上用户名和密码：Inceptor://username:password@172.0.0.1:10000/database";
         let tipMsgParam = "ODBC连接串的参数。（1）keytab文件通过Guardian获取；（2）支持LDAP认证，连接串需要添加用户名和密码";
 
-        let {submitState} = this.state;
-        let showAlert = !(submitState==='error' || submitState==='succeed') && submitState ;
-
         return (
-            <div className="popup" ref="popupContainer" style={{display: status}}>
+            <div className="popup" ref="popupContainer">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className={'icon '+ iconClass}/>
-                                <span>{title}</span>
+                                <span>添加{connectionType}连接</span>
                             </div>
                             <div className="header-right">
                                 <i className="icon icon-close" onClick={this.closeDialog}/>
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div style={{ display: datasetType==='INCEPTOR'?'block':'none' }} >
+                            <div style={{ display: connectionType === connectionTypes.inceptor?'block':'none' }} >
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
@@ -205,12 +213,10 @@ class Popup extends React.Component {
                                     </div>
                                     <div className="item-right">
                                         <input
-                                            type="text"
-                                            defaultValue=""
                                             required="required"
                                             name="database_name"
-                                            ref="databaseName"
                                             className="tp-input dialog-input"
+                                            onChange={this.handleChange}
                                         />
                                     </div>
                                 </div>
@@ -220,11 +226,9 @@ class Popup extends React.Component {
                                     </div>
                                     <div className="item-right">
                                         <textarea
-                                            type="text"
-                                            defaultValue=""
-                                            ref="descriptionInceptor"
                                             name="description"
                                             className="tp-textarea dialog-area"
+                                            onChange={this.handleChange}
                                         />
                                     </div>
                                 </div>
@@ -236,12 +240,11 @@ class Popup extends React.Component {
                                     </div>
                                     <div className="item-right">
                                         <input
-                                            ref="sqlalchemyUri"
-                                            name="sqlalchemy_uri"
-                                            type="text"
                                             defaultValue="inceptor://username:password@172.0.0.1:10000/default"
                                             required="required"
+                                            name="sqlalchemy_uri"
                                             className="tp-input dialog-input"
+                                            onChange={this.handleChange}
                                         />
                                         <Tooltip placement="topRight" title={tipMsgStr}>
                                             <i className="icon icon-infor after-icon"/>
@@ -256,17 +259,20 @@ class Popup extends React.Component {
                                     </div>
                                     <div className="item-right">
                                         <textarea
-                                            id="connectParams"
                                             rows="5"
                                             style={{width:'420px', height:'120px'}}
                                             required="required"
-                                            ref="databaseArgs"
-                                            defaultValue={JSON.stringify(defaultParams, undefined, 4)}
+                                            name="args"
+                                            defaultValue={defaultParams}
                                             className="tp-textarea dialog-area"
+                                            onChange={this.handleChange}
                                         >
                                         </textarea>
                                         <Tooltip placement="topRight" title={tipMsgParam}>
-                                            <i className="icon icon-infor after-icon"/>
+                                            <i
+                                                className="icon icon-infor after-textarea-icon"
+                                                style={{top: 50}}
+                                            />
                                         </Tooltip>
                                     </div>
                                 </div>
@@ -278,15 +284,19 @@ class Popup extends React.Component {
                                     <div className="item-right">
                                         <button
                                             className="test-connect"
-                                            onClick={ag=> me.testConnection(ag)}>
+                                            onClick={ag=> self.testConnection(ag)}>
                                             <i className="icon icon-connect-test"/>
                                             <span>测试连接</span>
                                         </button>
-                                        <div ref="testConnectTip" style={{position: 'absolute', right: 0, top: 2}}></div>
+                                        <div
+                                            id="test-add-connect-tip"
+                                            style={{position: 'absolute', right: 0, top: 2}}>
+
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ display: datasetType==='HDFS'?'block':'none' }} >
+                            <div style={{ display: connectionType === connectionTypes.HDFS?'block':'none' }} >
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
@@ -294,11 +304,11 @@ class Popup extends React.Component {
                                     </div>
                                     <div className="item-right">
                                         <input
-                                            type="text"
                                             defaultValue=''
                                             required="required"
-                                            ref="connectionName"
+                                            name="connection_name"
                                             className="tp-input dialog-input"
+                                            onChange={this.handleChange}
                                         />
                                     </div>
                                 </div>
@@ -312,8 +322,9 @@ class Popup extends React.Component {
                                             defaultValue=''
                                             style={{width:'420px'}}
                                             required="required"
-                                            ref="descriptionHDFS"
+                                            name="description"
                                             className="tp-textarea dialog-area"
+                                            onChange={this.handleChange}
                                         />
                                     </div>
                                 </div>
@@ -324,12 +335,12 @@ class Popup extends React.Component {
                                     </div>
                                     <div className="item-right">
                                         <input
-                                            ref="httpfs"
-                                            type="text"
                                             defaultValue=''
                                             placeholder="httpfs地址"
                                             required="required"
+                                            name="httpfs"
                                             className="tp-input dialog-input"
+                                            onChange={this.handleChange}
                                         />
                                         <Tooltip placement="topRight" title="HDFS httpf服务IP地址">
                                             <i className="icon icon-infor after-icon"/>
@@ -338,13 +349,11 @@ class Popup extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <i>*</i>
                                         <span>默认inceptor连接：</span>
                                     </div>
                                     <div className="item-right">
                                         <Select
-                                            ref="databaseId"
-                                            options={connectionNames}
+                                            options={this.state.connectionNames}
                                             width={420}
                                             handleSelect={(argus)=>this.setSelectConnection(argus)}
                                         />
@@ -355,16 +364,10 @@ class Popup extends React.Component {
                                 </div>
                             </div>
                         </div>
-                        <div className="error">
-                            <Alert
-                                message={this.state.submitMsg}
-                                type={this.state.submitState}
-                                style={{display:(showAlert?'':'none')}}
-                            />
-                        </div>
+                        <div className="error" id="add-connect-tip"></div>
                         <div className="popup-footer">
                             <button
-                                disabled={datasetType==="INCEPTOR"&&!this.state.connected}
+                                disabled={this.state.disabled}
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.submit}>
                                 确定
@@ -378,13 +381,9 @@ class Popup extends React.Component {
 }
 
 const propTypes = {};
-const defaultProps = {
-    dialogType: 'database'
-};
+const defaultProps = {};
 
-Popup.propTypes = propTypes;
-Popup.defaultProps = defaultProps;
-Popup.contextTypes = {
-    dispatch: PropTypes.func.isRequired
-};
-export default Popup;
+ConnectionAdd.propTypes = propTypes;
+ConnectionAdd.defaultProps = defaultProps;
+
+export default ConnectionAdd;
