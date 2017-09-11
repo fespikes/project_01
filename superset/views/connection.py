@@ -297,6 +297,8 @@ class HDFSConnectionModelView(SupersetModelView):
             raise SupersetException(NONE_CONNECTION_NAME)
         if not obj.httpfs:
             raise SupersetException(NONE_HTTPFS)
+        if not obj.database_id:
+            obj.database_id = None
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
