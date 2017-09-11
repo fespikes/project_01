@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { render } from 'react-dom';
-import { connectionTypes, fetchUpdateConnection, testConnection, fetchConnectionNames } from '../actions';
+import { connectionTypes, fetchUpdateConnection, testConnection, testHDFSConnection, fetchConnectionNames } from '../actions';
 import { Alert, Tooltip } from 'antd';
 import {Select} from '../components';
 import PropTypes from 'prop-types';
@@ -64,15 +64,18 @@ class ConnectionEdit extends React.Component {
 
     testConnection(testCallBack) {
         const me = this;
-        const { dispatch } = me.props;
-        dispatch(testConnection(
-            {
-                database_name: me.state.database.database_name,
-                sqlalchemy_uri: me.state.database.sqlalchemy_uri,
-                args: me.state.database.databaseArgs
-            }, callback)
-        );
-
+        const { dispatch, connectionType } = me.props;
+        if(connectionType === connectionTypes.inceptor) {
+            dispatch(testConnection(
+                {
+                    database_name: me.state.database.database_name,
+                    sqlalchemy_uri: me.state.database.sqlalchemy_uri,
+                    args: me.state.database.databaseArgs
+                }, callback)
+            );
+        }else if(connectionType === connectionTypes.HDFS) {
+            dispatch(testHDFSConnection(this.state.database.httpfs, callback));
+        }
         function callback(success) {
             let exception = {};
             let connected;
@@ -93,11 +96,11 @@ class ConnectionEdit extends React.Component {
                 <Alert
                     message={me.state.exception.message}
                     type={me.state.exception.type}
-                    onClose={me.closeAlert('test-connect-tip')}
+                    onClose={me.closeAlert('test-connect-tip-' + connectionType)}
                     closable={true}
                     showIcon
                 />,
-                document.getElementById('test-connect-tip')
+                document.getElementById('test-connect-tip-' + connectionType)
             );
             if(typeof testCallBack === 'function') {
                 testCallBack(me.state.connected);
@@ -179,27 +182,22 @@ class ConnectionEdit extends React.Component {
     }
 
     confirm() {
-        const me = this;
-        if(this.props.connectionType === connectionTypes.inceptor) {
-            if(this.state.connected) {
-                this.doUpdateConnection();
-            }else {
-                this.testConnection(testCallBack);
-                function testCallBack(success) {
-                    if(success) {
-                        me.doUpdateConnection();
-                    }
+        const self = this;
+        if(this.state.connected) {
+            this.doUpdateConnection();
+        }else {
+            this.testConnection(testCallBack);
+            function testCallBack(success) {
+                if(success) {
+                    self.doUpdateConnection();
                 }
             }
-        }else if(this.props.connectionType === connectionTypes.HDFS) {
-            this.doUpdateConnection();
         }
     }
 
     render() {
         const connectionType = this.props.connectionType;
-        const database = this.state.database;
-        const {connectionNames}= this.state;
+        const {connectionNames, database}= this.state;
 
         return (
             <div className="popup" ref="popupConnectionEdit" style={{display:'flex'}}>
@@ -292,7 +290,6 @@ class ConnectionEdit extends React.Component {
                                         </Tooltip>
                                     </div>
                                 </div>
-
                                 <div className="dialog-item" style={{ position: 'relative' }}>
                                     <div className="item-left"></div>
                                     <div className="item-right item-connect-test">
@@ -300,7 +297,7 @@ class ConnectionEdit extends React.Component {
                                             <i className="icon icon-connect-test" />
                                             <span>测试连接</span>
                                         </button>
-                                        <div id="test-connect-tip"></div>
+                                        <div id='test-connect-tip-INCEPTOR'></div>
                                     </div>
                                 </div>
                                 <div className="dialog-item">
@@ -373,7 +370,7 @@ class ConnectionEdit extends React.Component {
                                     <textarea
                                         className="tp-textarea dialog-area"
                                         name="description"
-                                        value={database.description||' '}
+                                        value={database.description||''}
                                         onChange={this.handleInputChange}
                                     />
                                     </div>
@@ -393,6 +390,16 @@ class ConnectionEdit extends React.Component {
                                         <Tooltip title="HDFS httpf服务IP地址" placement="topRight">
                                             <i className="icon icon-info after-icon" />
                                         </Tooltip>
+                                    </div>
+                                </div>
+                                <div className="dialog-item" style={{ position: 'relative' }}>
+                                    <div className="item-left"></div>
+                                    <div className="item-right item-connect-test">
+                                        <button className="test-connect" onClick={this.testConnection}>
+                                            <i className="icon icon-connect-test" />
+                                            <span>测试连接</span>
+                                        </button>
+                                        <div id='test-connect-tip-HDFS'></div>
                                     </div>
                                 </div>
                                 <div className="dialog-item">

@@ -146,6 +146,22 @@ export function testConnection(database, callback) {
     }
 }
 
+export function testHDFSConnection(link, callback) {
+    return (dispatch, getState) => {
+        dispatch(switchFetchingState(true));
+        const URL = HDFSConnectionBaseURL + 'test/?httpfs=' + link;
+        return fetch(URL, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        );
+    }
+}
+
 export function fetchInceptorConnectAdd(inceptor, callback) {
 
     return (dispatch, getState) => {

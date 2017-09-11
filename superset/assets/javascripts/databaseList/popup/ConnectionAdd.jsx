@@ -4,7 +4,7 @@ import { Tooltip, Alert } from 'antd';
 
 import {Select} from '../components';
 import PropTypes from 'prop-types';
-import { fetchInceptorConnectAdd, fetchHDFSConnectAdd, testConnection, fetchConnectionNames, connectionTypes } from '../actions';
+import { fetchInceptorConnectAdd, fetchHDFSConnectAdd, testConnection, testHDFSConnection, fetchConnectionNames, connectionTypes } from '../actions';
 import { getDatabaseDefaultParams } from '../../../utils/utils';
 
 const defaultParams = JSON.stringify(getDatabaseDefaultParams(), undefined, 4);
@@ -18,8 +18,8 @@ class ConnectionAdd extends React.Component {
                 database_name: '',
                 database_type: '',
                 description: '',
-                sqlalchemy_uri: defaultParams,
-                args: '',
+                sqlalchemy_uri: '',
+                args: defaultParams,
 
                 connection_name: '',
                 httpfs: '',
@@ -50,13 +50,16 @@ class ConnectionAdd extends React.Component {
 
     testConnection() {
         const self = this;
-        const { dispatch } = this.props;
-        dispatch(testConnection({
-            database_name: this.state.database.database_name,
-            sqlalchemy_uri: this.state.database.sqlalchemy_uri,
-            args: this.state.database.args
-        }, callback));
-
+        const { dispatch, connectionType } = this.props;
+        if(connectionType === connectionTypes.inceptor) {
+            dispatch(testConnection({
+                database_name: this.state.database.database_name,
+                sqlalchemy_uri: this.state.database.sqlalchemy_uri,
+                args: this.state.database.args
+            }, callback));
+        }else if(connectionType === connectionTypes.HDFS) {
+            dispatch(testHDFSConnection(this.state.database.httpfs, callback));
+        }
         function callback(success) {
             let exception = {};
             if(success) {
@@ -102,9 +105,7 @@ class ConnectionAdd extends React.Component {
         const target = e.currentTarget;
         const name = target.name;
         const val = target.value;
-        console.log('this.state.database=', this.state.database);
         const database = {...this.state.database, [name]: val};
-        console.log('database=', database);
         this.setState({
             database: database
         });
@@ -112,7 +113,6 @@ class ConnectionAdd extends React.Component {
     }
 
     formValidate(database) {
-        console.log('database=', database);
         let disabled;
         if(this.props.connectionType === connectionTypes.inceptor) {
             if((database.database_name && database.database_name.length > 0) &&
@@ -276,25 +276,6 @@ class ConnectionAdd extends React.Component {
                                         </Tooltip>
                                     </div>
                                 </div>
-
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>&nbsp;</span>
-                                    </div>
-                                    <div className="item-right">
-                                        <button
-                                            className="test-connect"
-                                            onClick={ag=> self.testConnection(ag)}>
-                                            <i className="icon icon-connect-test"/>
-                                            <span>测试连接</span>
-                                        </button>
-                                        <div
-                                            id="test-add-connect-tip"
-                                            style={{position: 'absolute', right: 0, top: 2}}>
-
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                             <div style={{ display: connectionType === connectionTypes.HDFS?'block':'none' }} >
                                 <div className="dialog-item">
@@ -362,21 +343,24 @@ class ConnectionAdd extends React.Component {
                                         </Tooltip>
                                     </div>
                                 </div>
-
-                                <div className="dialog-item">
-                                    <div className="item-left">
-                                        <span>&nbsp;</span>
+                            </div>
+                            <div className="dialog-item">
+                                <div className="item-left">
+                                    <span>&nbsp;</span>
+                                </div>
+                                <div className="item-right">
+                                    <button
+                                        className="test-connect"
+                                        onClick={ag=> self.testConnection(ag)}>
+                                        <i className="icon icon-connect-test"/>
+                                        <span>测试连接</span>
+                                    </button>
+                                    <div
+                                        id="test-add-connect-tip"
+                                        style={{position: 'absolute', right: 0, top: 2}}>
                                     </div>
-                                    <div className="item-right">
-                                        <button
-                                            className="test-connect"
-                                            onClick={ag=> me.testConnection(ag)}>
-                                            <i className="icon icon-connect-test"/>
-                                            <span>测试连接</span>
-                                        </button>
-                                        <div ref="testConnectTip" style={{position: 'absolute', right: 0, top: 2}}></div>
-                                    </div>
-                                </div>                            </div>
+                                </div>
+                            </div>
                         </div>
                         <div className="error" id="add-connect-tip"></div>
                         <div className="popup-footer">

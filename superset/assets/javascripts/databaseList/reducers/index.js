@@ -2,7 +2,6 @@ import { combineReducers } from 'redux';
 import {routerReducer } from 'react-router-redux';
 
 import { actionTypes  } from '../actions';
-import popupParam from './popupParam';
 
 function condition(state = {
     page: 1,
