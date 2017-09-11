@@ -70,3 +70,17 @@ table {
 .ant-table-small .ant-table-header > table, .ant-table-small .ant-table-body > table {
     padding: 0 !important;
 }
+
+/* slice table */
+.slice_container .dataTables_scrollBody {
+    width: 100% !important;
+    table {
+        width: 100% !important;
+    }
+}
+.slice_container .dataTables_scrollHeadInner {
+    width: 100% !important;
+    table {
+        width: 100% !important;
+    }
+}

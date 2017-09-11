@@ -84,9 +84,10 @@ function initDashboardView(dashboard) {
         const $target = $(e.target);
 
         if ($target.hasClass('slice_info')) {
-            $this.find('.slice_description').slideToggle(0, function () {
-                $this.find('.refresh').click();
-            });
+            return;
+            //$this.find('.slice_description').slideToggle(0, function () {
+            //    $this.find('.refresh').click();
+            //});
         } else if ($target.hasClass('controls-toggle')) {
             $this.find('.chart-controls').toggle();
         }
