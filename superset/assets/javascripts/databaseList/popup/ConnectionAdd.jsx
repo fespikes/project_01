@@ -362,7 +362,21 @@ class ConnectionAdd extends React.Component {
                                         </Tooltip>
                                     </div>
                                 </div>
-                            </div>
+
+                                <div className="dialog-item">
+                                    <div className="item-left">
+                                        <span>&nbsp;</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <button
+                                            className="test-connect"
+                                            onClick={ag=> me.testConnection(ag)}>
+                                            <i className="icon icon-connect-test"/>
+                                            <span>测试连接</span>
+                                        </button>
+                                        <div ref="testConnectTip" style={{position: 'absolute', right: 0, top: 2}}></div>
+                                    </div>
+                                </div>                            </div>
                         </div>
                         <div className="error" id="add-connect-tip"></div>
                         <div className="popup-footer">
