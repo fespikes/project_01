@@ -271,8 +271,9 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         'database_id', 'is_featured', 'offset', 'cache_timeout', 'schema',
         'sql', 'params')
 
-    dataset_types = ['DATABASE' 'HDFS']
-    dataset_addable_types = dataset_types + ['UPLOAD FILE']
+    dataset_types = Database.database_types
+    filter_types = dataset_types
+    addable_types = ['DATABASE']
 
     def __repr__(self):
         return self.dataset_name
@@ -935,7 +936,9 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 class HDFSTable(Model, AuditMixinNullable):
     __tablename__ = "hdfs_table"
     type = 'table'
-    dataset_type = 'HDFS'
+    hdfs_table_types = ['HDFS', ]
+    filter_types = hdfs_table_types
+    addable_types = hdfs_table_types + ['UPLOAD FILE']
 
     id = Column(Integer, primary_key=True)
     hdfs_path = Column(String(256), nullable=False)

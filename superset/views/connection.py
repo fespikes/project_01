@@ -380,7 +380,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
     @catch_exception
     @expose('/connection_types/', methods=['GET', ])
     def connection_types(self):
-        return json.dumps(list(self.model.connection_type_dict.values()))
+        return json.dumps(list(Connection.connection_types))
 
     @catch_exception
     @expose('/listdata/', methods=['GET', ])

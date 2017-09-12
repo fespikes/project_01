@@ -68,6 +68,9 @@ class Database(Model, AuditMixinNullable):
         UniqueConstraint('database_name', 'created_by_fk', name='database_name_owner_uc'),
     )
 
+    database_types = ['INCEPTOR', 'MYSQL', 'ORACLE', 'MSSQL']
+    addable_types = database_types
+
     def __repr__(self):
         return self.database_name
 
@@ -350,6 +353,9 @@ class HDFSConnection(Model, AuditMixinNullable):
         UniqueConstraint('connection_name', 'created_by_fk', name='connection_name_owner_uc'),
     )
 
+    connection_types = ['HDFS', ]
+    addable_types = connection_types
+
     def __repr__(self):
         return self.connection_name
 
@@ -361,12 +367,7 @@ class HDFSConnection(Model, AuditMixinNullable):
 
 
 class Connection(object):
-    connection_type_dict = OrderedDict()
-    connection_type_dict['inceptor'] = 'INCEPTOR'
-    connection_type_dict['hdfs'] = 'HDFS'
-    connection_type_dict['mysql'] = 'MYSQL'
-    connection_type_dict['oracle'] = 'ORACLE'
-    connection_type_dict['mssql'] = 'MSSQL'
+    connection_types = Database.database_types + HDFSConnection.connection_types
 
 
 class DatabaseAccount(Model):
