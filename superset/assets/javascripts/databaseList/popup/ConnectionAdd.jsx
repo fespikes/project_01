@@ -6,6 +6,7 @@ import {Select} from '../components';
 import PropTypes from 'prop-types';
 import { fetchInceptorConnectAdd, fetchHDFSConnectAdd, testConnection, testHDFSConnection, fetchConnectionNames, connectionTypes } from '../actions';
 import { getDatabaseDefaultParams } from '../../../utils/utils';
+import { isIncMysOraMssConnection } from '../utils';
 
 const defaultParams = JSON.stringify(getDatabaseDefaultParams(), undefined, 4);
 
@@ -39,7 +40,7 @@ class ConnectionAdd extends React.Component {
 
     componentDidMount () {
         const { connectionType } = this.props;
-        if(connectionType === connectionTypes.HDFS) {
+        if(connectionType === connectionTypes.hdfs) {
             this.fetchConnectionNames();
         }
     }
@@ -51,13 +52,13 @@ class ConnectionAdd extends React.Component {
     testConnection() {
         const self = this;
         const { dispatch, connectionType } = this.props;
-        if(connectionType === connectionTypes.inceptor) {
+        if(isIncMysOraMssConnection(connectionType, connectionTypes)) {
             dispatch(testConnection({
                 database_name: this.state.database.database_name,
                 sqlalchemy_uri: this.state.database.sqlalchemy_uri,
                 args: this.state.database.args
             }, callback));
-        }else if(connectionType === connectionTypes.HDFS) {
+        }else if(connectionType === connectionTypes.hdfs) {
             dispatch(testHDFSConnection(this.state.database.httpfs, callback));
         }
         function callback(success) {
@@ -114,7 +115,8 @@ class ConnectionAdd extends React.Component {
 
     formValidate(database) {
         let disabled;
-        if(this.props.connectionType === connectionTypes.inceptor) {
+        const { connectionType } = this.props;
+        if(isIncMysOraMssConnection(connectionType, connectionTypes)) {
             if((database.database_name && database.database_name.length > 0) &&
                 (database.sqlalchemy_uri && database.sqlalchemy_uri.length > 0) &&
                 (database.args && database.args.length > 0) && this.state.connected) {
@@ -122,7 +124,7 @@ class ConnectionAdd extends React.Component {
             }else {
                 disabled = true;
             }
-        }else if(this.props.connectionType === connectionTypes.HDFS) {
+        }else if(this.props.connectionType === connectionTypes.hdfs) {
             if((database.connection_name && database.connection_name.length > 0) &&
                 (database.httpfs && database.httpfs.length > 0)) {
                 disabled = false;
@@ -156,15 +158,15 @@ class ConnectionAdd extends React.Component {
                 );
             }
         }
-        if(connectionType === connectionTypes.inceptor) {
+        if(isIncMysOraMssConnection(connectionType, connectionTypes)) {
             dispatch(fetchInceptorConnectAdd({
                 database_name: this.state.database.database_name,
-                database_type: connectionTypes.inceptor,
+                database_type: connectionType,
                 description: this.state.database.description,
                 sqlalchemy_uri: this.state.database.sqlalchemy_uri,
                 args: this.state.database.args
             }, callback) );
-        }else if(connectionType === connectionTypes.HDFS) {
+        }else if(connectionType === connectionTypes.hdfs) {
             dispatch(fetchHDFSConnectAdd({
                 connection_name: this.state.database.connection_name,
                 description: this.state.database.description,
@@ -205,7 +207,7 @@ class ConnectionAdd extends React.Component {
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div style={{ display: connectionType === connectionTypes.inceptor?'block':'none' }} >
+                            <div style={{ display: isIncMysOraMssConnection(connectionType, connectionTypes)?'block':'none' }} >
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
@@ -277,7 +279,7 @@ class ConnectionAdd extends React.Component {
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ display: connectionType === connectionTypes.HDFS?'block':'none' }} >
+                            <div style={{ display: connectionType === connectionTypes.hdfs?'block':'none' }} >
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
