@@ -182,7 +182,6 @@ def upgrade():
         sa.Column('dataset_name', sa.String(length=128), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('online', sa.Boolean(), nullable=True, server_default="0"),
-        sa.Column('dataset_type', sa.String(length=32), nullable=True),
         sa.Column('database_id', sa.Integer(), nullable=False),
         sa.Column('schema', sa.String(length=128), nullable=True),
         sa.Column('table_name', sa.String(length=128), nullable=True),

@@ -233,7 +233,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     id = Column(Integer, primary_key=True)
     dataset_name = Column(String(128), nullable=False)
-    dataset_type = Column(String(32), nullable=False)
+    # dataset_type = Column(String(32), nullable=False)
     table_name = Column(String(128))
     schema = Column(String(128))
     sql = Column(Text)
@@ -271,11 +271,17 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         'database_id', 'is_featured', 'offset', 'cache_timeout', 'schema',
         'sql', 'params')
 
-    dataset_types = ['INCEPTOR', 'MYSQL', 'HDFS']
+    dataset_types = ['DATABASE' 'HDFS']
     dataset_addable_types = dataset_types + ['UPLOAD FILE']
 
     def __repr__(self):
         return self.dataset_name
+
+    @property
+    def dataset_type(self):
+        if self.hdfs_table:
+            return self.hdfs_table.dataset_type
+        return self.database.database_type
 
     @property
     def backend(self):
@@ -929,6 +935,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 class HDFSTable(Model, AuditMixinNullable):
     __tablename__ = "hdfs_table"
     type = 'table'
+    dataset_type = 'HDFS'
 
     id = Column(Integer, primary_key=True)
     hdfs_path = Column(String(256), nullable=False)

@@ -156,9 +156,9 @@ class DatasetModelView(SupersetModelView):  # noqa
     route_base = '/table'
     list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url',
                     'connection', 'changed_on', 'online']
-    add_columns = ['dataset_name', 'dataset_type', 'database_id', 'description',
+    add_columns = ['dataset_name', 'database_id', 'description',
                    'schema', 'table_name', 'sql']
-    show_columns = add_columns + ['id']
+    show_columns = add_columns + ['id', 'dataset_type']
     edit_columns = ['dataset_name', 'database_id', 'description', 'schema',
                     'table_name', 'sql']
     description_columns = {}
@@ -315,7 +315,6 @@ class DatasetModelView(SupersetModelView):  # noqa
 
             # create dataset
             dataset = self.model(
-                dataset_type='HDFS',
                 dataset_name=args.get('dataset_name'),
                 table_name=args.get('dataset_name'),
                 description=args.get('description'),
