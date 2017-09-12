@@ -125,6 +125,10 @@
             &:last-child {
                 border-right: none;
             }
+
+            &:hover {
+                background-color: #fcfcfc;
+            }
         }
         h2.selected {
             background-color: #fff;
@@ -470,6 +474,9 @@
 }
 .times-barchart{
     min-height: 300px;
+    .bar-item-link {
+        color: rgb(124, 140, 165);
+    }
 }
 
 .detail-page {

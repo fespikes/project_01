@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 
 import json
+import requests
 from flask import g, request
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
@@ -13,10 +14,12 @@ from flask_appbuilder.security.sqla.models import User
 
 import sqlalchemy as sqla
 from sqlalchemy import select, literal, cast, or_, and_
+from sqlalchemy.engine.url import make_url
 
 from superset import app, db, models
-from superset.models import Database, HDFSConnection, Slice
+from superset.models import Database, HDFSConnection, Connection, Slice
 from superset.utils import SupersetException
+from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
 from .base import (
     SupersetModelView, BaseSupersetView, PageMixin, catch_exception,
@@ -51,16 +54,17 @@ class DatabaseView(SupersetModelView):  # noqa
     }
 
     int_columns = ['id']
-    bool_columns = ['expose_in_sqllab', 'allow_run_sync', 'allow_dml']
+    bool_columns = ['expose', 'allow_run_sync', 'allow_dml']
     str_columns = ['created_on', 'changed_on']
 
     list_template = "superset/databaseList.html"
 
     def pre_add(self, obj):
+        self.check_column_values(obj)
         obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
 
     def post_add(self, obj):
-        self.add_or_edit_database_account(obj)
+        # self.add_or_edit_database_account(obj)
         action_str = 'Add connection: [{}]'.format(repr(obj))
         log_action('add', action_str, 'database', obj.id)
         log_number('connection', obj.online, get_user_id())
@@ -70,7 +74,7 @@ class DatabaseView(SupersetModelView):  # noqa
         self.pre_add(obj)
 
     def post_update(self, obj):
-        self.add_or_edit_database_account(obj)
+        # self.add_or_edit_database_account(obj)
         action_str = 'Edit connection: [{}]'.format(repr(obj))
         log_action('edit', action_str, 'database', obj.id)
 
@@ -88,6 +92,15 @@ class DatabaseView(SupersetModelView):  # noqa
         db_account = models.DatabaseAccount
         db_account.insert_or_update_account(
             user_id, obj.id, url.username, url.password)
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.database_name:
+            raise SupersetException(NONE_CONNECTION_NAME)
+        if not obj.sqlalchemy_uri:
+            raise SupersetException(NONE_SQLALCHEMY_URI)
+        if not obj.args:
+            raise SupersetException(NONE_CONNECTION_ARGS)
 
     def get_object_list_data(self, **kwargs):
         """Return the database(connection) list"""
@@ -253,6 +266,9 @@ class HDFSConnectionModelView(SupersetModelView):
         response['data'] = data
         return response
 
+    def pre_add(self, conn):
+        self.check_column_values(conn)
+
     def post_add(self, conn):
         action_str = 'Add hdfsconnection: [{}]'.format(repr(conn))
         log_action('add', action_str, 'hdfsconnection', conn.id)
@@ -260,6 +276,7 @@ class HDFSConnectionModelView(SupersetModelView):
 
     def pre_update(self, conn):
         check_ownership(conn)
+        self.pre_add(conn)
 
     def pre_delete(self, conn):
         check_ownership(conn)
@@ -268,6 +285,15 @@ class HDFSConnectionModelView(SupersetModelView):
         action_str = 'Delete hdfsconnection: [{}]'.format(repr(conn))
         log_action('delete', action_str, 'dataset', conn.id)
         log_number('connection', conn.online, get_user_id())
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.connection_name:
+            raise SupersetException(NONE_CONNECTION_NAME)
+        if not obj.httpfs:
+            raise SupersetException(NONE_HTTPFS)
+        if not obj.database_id:
+            obj.database_id = None
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
@@ -329,6 +355,20 @@ class HDFSConnectionModelView(SupersetModelView):
         )
         return {'hdfs_connection': hconns, 'dataset': datasets, 'slice': slices}
 
+    @catch_hdfs_exception
+    @expose('/test/', methods=['GET'])
+    def test_hdfs_connection(self):
+        httpfs = request.args.get('httpfs')
+        client, response = HDFSBrowser.login_filerobot(httpfs=httpfs)
+        response = client.list('/', 1, 3)
+        if response.status_code == requests.codes.ok:
+            return json_response(
+                message=_('Httpfs [{httpfs}] is available').format(httpfs=httpfs))
+        else:
+            return json_response(
+                message=_('Httpfs [{httpfs}] is unavailable').format(httpfs=httpfs),
+                status=500)
+
 
 class ConnectionView(BaseSupersetView, PageMixin):
     """Connection includes Database and HDFSConnection.
@@ -340,7 +380,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
     @catch_exception
     @expose('/connection_types/', methods=['GET', ])
     def connection_types(self):
-        return json.dumps(list(self.model.connection_type_dict.values()))
+        return json.dumps(list(Connection.connection_types))
 
     @catch_exception
     @expose('/listdata/', methods=['GET', ])
@@ -356,13 +396,13 @@ class ConnectionView(BaseSupersetView, PageMixin):
         json_data = {k.lower(): v for k, v in json_data.items()}
         #
         all_user = False
-        db_ids = json_data.get('inceptor')
+        db_ids = json_data.get('database')
         if db_ids:
             objs = db.session.query(Database) \
                 .filter(Database.id.in_(db_ids)).all()
             if len(db_ids) != len(objs):
                 raise Exception(
-                    _("Error parameter ids: {ids}, queried {num} inceptor connection(s)")
+                    _("Error parameter ids: {ids}, queried {num} database connection(s)")
                     .format(ids=db_ids, num=len(objs))
                 )
             for obj in objs:
@@ -392,7 +432,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
     def muldelete_info(self):
         json_data = json.loads(str(request.data, encoding='utf-8'))
         json_data = {k.lower(): v for k, v in json_data.items()}
-        db_ids = json_data.get('inceptor')
+        db_ids = json_data.get('database')
         hdfs_conn_ids = json_data.get('hdfs')
 
         dbs, hconns, datasets, slices = [], [], [], []
@@ -411,7 +451,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
         slice_names = [s.slice_name for s in slices]
         dataset_names = list(set(dataset_names))
         slice_names = list(set(slice_names))
-        info = _("Deleting inceptor connections {dbs} and hdfs connections {hconns} "
+        info = _("Deleting database connections {dbs} and hdfs connections {hconns} "
                  "will make these objects unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}") \
             .format(dbs=dbs,
@@ -433,13 +473,15 @@ class ConnectionView(BaseSupersetView, PageMixin):
                      Database.online.label('online'),
                      Database.created_by_fk.label('user_id'),
                      Database.changed_on.label('changed_on'),
-                     cast(literal('INCEPTOR'), type_=sqla.String).label('connection_type')])
+                     Database.sqlalchemy_uri.label('connection_type'),
+                     Database.expose.label('expose')])
         s2 = select([HDFSConnection.id.label('id'),
                      HDFSConnection.connection_name.label('name'),
                      HDFSConnection.online.label('online'),
                      HDFSConnection.created_by_fk.label('user_id'),
                      HDFSConnection.changed_on.label('changed_on'),
-                     cast(literal('HDFS'), type_=sqla.String).label('connection_type')])
+                     cast(literal('HDFS'), type_=sqla.String).label('connection_type'),
+                     cast(literal(True), type_=sqla.Boolean).label('expose')])
         union_q = s1.union_all(s2).alias('connection')
         query = (
             db.session.query(union_q, User.username)
@@ -447,14 +489,8 @@ class ConnectionView(BaseSupersetView, PageMixin):
             .filter(
                 or_(
                     union_q.c.user_id == user_id,
-                    union_q.c.online == 1),
-                or_(
-                    union_q.c.connection_type == 'HDFS',
-                    and_(union_q.c.connection_type == 'INCEPTOR',
-                         union_q.c.name != 'main')
-                ),
-
-            )
+                    union_q.c.online == 1,
+                    union_q.c.expose is True))
         )
 
         if filter:
@@ -485,13 +521,17 @@ class ConnectionView(BaseSupersetView, PageMixin):
         rs = query.all()
         data = []
         for row in rs:
+            type_ = row[5]
+            if type_ != 'HDFS':
+                url = make_url(type_)
+                type_ = url.get_backend_name().upper()
             data.append({
                 'id': row[0],
                 'name': row[1],
                 'online': row[2],
                 'changed_on': str(row[4]),
-                'connection_type': row[5],
-                'owner': row[6],
+                'connection_type': type_,
+                'owner': row[7],
             })
 
         response = {}

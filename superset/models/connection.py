@@ -47,11 +47,12 @@ class Database(Model, AuditMixinNullable):
     database_name = Column(String(128), nullable=False)
     description = Column(Text)
     online = Column(Boolean, default=False)
+    # database_type = Column(String(32), nullable=False)
     sqlalchemy_uri = Column(String(1024))
     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
     cache_timeout = Column(Integer)
     select_as_create_table_as = Column(Boolean, default=False)
-    expose_in_sqllab = Column(Boolean, default=True)
+    expose = Column(Boolean, default=True)
     allow_run_sync = Column(Boolean, default=True)
     allow_run_async = Column(Boolean, default=False)
     allow_ctas = Column(Boolean, default=False)
@@ -67,12 +68,19 @@ class Database(Model, AuditMixinNullable):
         UniqueConstraint('database_name', 'created_by_fk', name='database_name_owner_uc'),
     )
 
+    database_types = ['INCEPTOR', 'MYSQL', 'ORACLE', 'MSSQL']
+    addable_types = database_types
+
     def __repr__(self):
         return self.database_name
 
     @property
     def name(self):
         return self.database_name
+
+    @property
+    def database_type(self):
+        return self.backend.upper()
 
     @property
     def backend(self):
@@ -328,8 +336,8 @@ class HDFSConnection(Model, AuditMixinNullable):
     connection_name = Column(String(128), nullable=False)
     description = Column(Text)
     online = Column(Boolean, default=False)
-    database_id = Column(Integer, ForeignKey('dbs.id'))
-    httpfs = Column(String(64))
+    database_id = Column(Integer, ForeignKey('dbs.id'), nullable=True)
+    httpfs = Column(String(64), nullable=False)
     webhdfs_url = Column(String(64))
     fs_defaultfs = Column(String(64))
     logical_name = Column(String(64))
@@ -345,6 +353,9 @@ class HDFSConnection(Model, AuditMixinNullable):
         UniqueConstraint('connection_name', 'created_by_fk', name='connection_name_owner_uc'),
     )
 
+    connection_types = ['HDFS', ]
+    addable_types = connection_types
+
     def __repr__(self):
         return self.connection_name
 
@@ -356,9 +367,7 @@ class HDFSConnection(Model, AuditMixinNullable):
 
 
 class Connection(object):
-    connection_type_dict = {
-        'inceptor': 'INCEPTOR',
-        'hdfs': 'HDFS'}
+    connection_types = Database.database_types + HDFSConnection.connection_types
 
 
 class DatabaseAccount(Model):

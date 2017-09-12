@@ -65,12 +65,11 @@ function SliceCell({ expandedSlices, removeSlice, slice }) {
             <div
                 className="slice_description bs-callout bs-callout-default"
                 style={
-          expandedSlices &&
-          expandedSlices[String(slice.slice_id)] ? {} : { display: 'none' }
-        }
+                    expandedSlices &&
+                    expandedSlices[String(slice.slice_id)] ? {} : { display: 'none' }
+                }
                 dangerouslySetInnerHTML={{ __html: slice.description_markeddown }}
             >
-
             </div>
             <div className="row chart-container">
                 <input type="hidden" value="false" />

@@ -58,17 +58,29 @@ table {
         }
     }
 }
-
-.table-add-slice {
-    padding-left: 20px;
-    padding-right: 20px;
-    .ant-table-content .ant-table-body {
-        max-height: 450px;
-        overflow: auto;
-    }
+.table-add-slice table tbody.ant-table-tbody > tr td {
+    height: 40px;
+}
+.table-add-slice .ant-table-content .ant-table-body {
+    max-height: 450px;
+    overflow: auto;
 }
 
 /* checkbox table css style */
 .ant-table-small .ant-table-header > table, .ant-table-small .ant-table-body > table {
     padding: 0 !important;
+}
+
+/* slice table */
+.slice_container .dataTables_scrollBody {
+    width: 100% !important;
+    table {
+        width: 100% !important;
+    }
+}
+.slice_container .dataTables_scrollHeadInner {
+    width: 100% !important;
+    table {
+        width: 100% !important;
+    }
 }

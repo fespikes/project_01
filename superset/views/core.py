@@ -106,7 +106,7 @@ class SliceModelView(SupersetModelView):  # noqa
 
     def pre_update(self, obj):
         # check_ownership(obj)
-        pass
+        self.check_column_values(obj)
 
     def post_update(self, obj):
         # log user action
@@ -125,6 +125,11 @@ class SliceModelView(SupersetModelView):  # noqa
         action_str = 'Delete slice: [{}]'.format(repr(obj))
         log_action('delete', action_str, 'slice', obj.id)
         log_number('slice', obj.online, get_user_id())
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.slice_name:
+            raise SupersetException(NONE_SLICE_NAME)
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
@@ -198,10 +203,9 @@ class SliceModelView(SupersetModelView):  # noqa
             .first()
         )
         if dataset:
-            redirect_url = '{}?datasource_type=table&datasource_id={}'\
-                .format(dataset.explore_url, dataset.id)
+            redirect_url = dataset.explore_url
         else:
-            redirect_url = '/p/explore/table/0/?datasource_id='
+            redirect_url = '/p/explore/table/0/?datasource_id=datasource_type=table'
         return redirect(redirect_url)
 
     def get_object_list_data(self, **kwargs):
@@ -307,6 +311,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         return data
 
     def pre_add(self, obj):
+        self.check_column_values(obj)
         utils.validate_json(obj.json_metadata)
         utils.validate_json(obj.position_json)
 
@@ -336,6 +341,11 @@ class DashboardModelView(SupersetModelView):  # noqa
         action_str = 'Delete dashboard: [{}]'.format(repr(obj))
         log_action('delete', action_str, 'dashboard', obj.id)
         log_number('dashboard', obj.online, get_user_id())
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.dashboard_title:
+            raise SupersetException(NONE_DASHBOARD_NAME)
 
     def get_object_list_data(self, **kwargs):
         """Return the dashbaords with column 'favorite' and 'online'"""
@@ -803,6 +813,7 @@ class Superset(BaseSupersetView):
         slc.slice_name = slice_name
         slc.database_id = database_id
         slc.full_table_name = full_tb_name
+        SliceModelView.check_column_values(slc)
 
         if action in ('saveas') and slice_add_perm:
             self.save_slice(slc)
@@ -1114,7 +1125,6 @@ class Superset(BaseSupersetView):
         )
         if not table:
             table = Dataset(dataset_name=table_name)
-        table.dataset_type = Dataset.dataset_type_dict.get("inceptor")
         table.database_id = data.get('dbId')
         q = SupersetQuery(data.get('sql'))
         table.sql = q.stripped()

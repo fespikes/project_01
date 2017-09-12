@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Select, Checkbox, Tooltip } from 'antd';
+import { Select, Checkbox, Tooltip, Alert } from 'antd';
 import PropTypes from 'prop-types';
 const _ = require('lodash');
 
@@ -14,13 +14,15 @@ class TableColumnAdd extends React.Component {
                 filterable: false,
                 count_distinct: false,
                 expression: '',
+                description: '',
                 max: false,
                 sum: false,
                 groupby: false,
                 dataset_id: '',
                 is_dttm: false,
                 min: false
-            }
+            },
+            exception: {}
         };
 
         // bindings
@@ -80,7 +82,7 @@ class TableColumnAdd extends React.Component {
 
     formValidate () {
         const tc = this.state.tableColumn;
-        if (tc.column_name && tc.expression && tc.dataset_id) {
+        if (tc.column_name && tc.dataset_id) {
             this.setState({
                 enableConfirm: true
             });
@@ -102,7 +104,7 @@ class TableColumnAdd extends React.Component {
             fetchTableColumnEdit(self.state.tableColumn, callback);
         }
         
-        function callback(success) {
+        function callback(success, message) {
             if(success) {
                 self.setState({
                     tableColumn: {},
@@ -111,7 +113,14 @@ class TableColumnAdd extends React.Component {
                 self.refs.popupTableColumnAdd.style.display = "none";
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
-
+                self.refs.alertRef.style.display = "block";
+                let exception = {};
+                exception.type = "error";
+                exception.message = "Error";
+                exception.description = message;
+                self.setState({
+                    exception: exception
+                });
             }
         }
     }
@@ -173,6 +182,7 @@ class TableColumnAdd extends React.Component {
                         <div className="popup-body">
                             <div className="dialog-item">
                                 <div className="item-left">
+                                    <i>*</i>
                                     <span className="item-label">列：</span>
                                 </div>
                                 <div className="item-right">
@@ -204,10 +214,9 @@ class TableColumnAdd extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <textarea className="tp-textarea dialog-area" name="expression" value={column.expression} onChange={this.handleInputChange}/>
-                                    <Tooltip placement="top" title="表达式">
+                                    <Tooltip placement="topRight" title="生成新列的SQL语法，比如：col+1">
                                         <i
                                             className="icon icon-info after-textarea-icon"
-                                            style={{position: 'absolute', top: 0, right: -20}}
                                         />
                                     </Tooltip>
                                 </div>
@@ -219,6 +228,15 @@ class TableColumnAdd extends React.Component {
                                 <div className="item-right space-between">
                                     <span style={{color: '#1d2531'}}>是否将此列作为（时间粒度）选项，列中的数据类型必须是DATETIME</span><Checkbox name="is_dttm" checked={is_dttm} onChange={this.handleCheckboxChange}></Checkbox>
                                 </div>
+                            </div>
+                            <div className="error" ref="alertRef" style={{display: 'none'}}>
+                                <Alert
+                                    message={this.state.exception.message}
+                                    description={this.state.exception.description}
+                                    type={this.state.exception.type}
+                                    closeText="close"
+                                    showIcon
+                                />
                             </div>
                         </div>
                         <div className="popup-footer">

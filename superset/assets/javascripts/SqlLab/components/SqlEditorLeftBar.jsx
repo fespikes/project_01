@@ -116,7 +116,7 @@ class SqlEditorLeftBar extends React.PureComponent {
         <div className="clearfix sql-toolbar scrollbar-content">
           {networkAlert}
           <div>
-            <div className="select-title">Database</div>
+            <div className="select-title">连接</div>
             <AsyncSelect
               dataEndpoint="/table/databases"
               onChange={this.onChange.bind(this)}
@@ -127,14 +127,14 @@ class SqlEditorLeftBar extends React.PureComponent {
                 </div>
               )}
               mutator={this.dbMutator.bind(this)}
-              placeholder="Select a database"
+              placeholder=""
             />
           </div>
           <div className="m-t-5">
-            <div className="select-title">Schema ({this.state.schemaOptions.length})</div>
+            <div className="select-title">数据库 ({this.state.schemaOptions.length})</div>
             <Select
               name="select-schema"
-              placeholder={`Select a schema (${this.state.schemaOptions.length})`}
+              placeholder={`(${this.state.schemaOptions.length})`}
               options={this.state.schemaOptions}
               value={this.props.queryEditor.schema}
               valueRenderer={(o) => (
@@ -148,7 +148,7 @@ class SqlEditorLeftBar extends React.PureComponent {
             />
           </div>
           <div className="m-t-5">
-            <div className="select-title">Add a table ({this.state.tableOptions.length})</div>
+            <div className="select-title">表 ({this.state.tableOptions.length})</div>
             <Select
               name="select-table"
               ref="selectTable"

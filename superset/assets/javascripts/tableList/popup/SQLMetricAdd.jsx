@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Select, Checkbox, Tooltip } from 'antd';
+import { Select, Checkbox, Tooltip, Alert } from 'antd';
 import PropTypes from 'prop-types';
 
 class SQLMetricAdd extends React.Component {
@@ -14,7 +14,8 @@ class SQLMetricAdd extends React.Component {
                 metric_type: "",
                 dataset_id: "",
                 description: ""
-            }
+            },
+            exception: {}
         };
         // bindings
         this.confirm = this.confirm.bind(this);
@@ -62,7 +63,7 @@ class SQLMetricAdd extends React.Component {
             fetchSQLMetricEdit(self.state.metric, callback);
         }
 
-        function callback(success) {
+        function callback(success, message) {
             if(success) {
                 self.setState({
                     metric: {},
@@ -71,7 +72,14 @@ class SQLMetricAdd extends React.Component {
                 self.refs.popupSQLMetricAdd.style.display = "none";
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
-
+                self.refs.alertRef.style.display = "block";
+                let exception = {};
+                exception.type = "error";
+                exception.message = "Error";
+                exception.description = message;
+                self.setState({
+                    exception: exception
+                });
             }
         }
     }
@@ -87,7 +95,7 @@ class SQLMetricAdd extends React.Component {
 
     formValidate() {
         const mt = this.state.metric;
-        if (mt.metric_name && mt.expression && mt.dataset_id && mt.metric_type) {
+        if (mt.metric_name && mt.expression && mt.dataset_id) {
             this.setState({
                 enableConfirm: true
             });
@@ -119,6 +127,7 @@ class SQLMetricAdd extends React.Component {
                         <div className="popup-body">
                             <div className="dialog-item">
                                 <div className="item-left">
+                                    <i>*</i>
                                     <span className="item-label">度量：</span>
                                 </div>
                                 <div className="item-right">
@@ -139,21 +148,34 @@ class SQLMetricAdd extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <input className="tp-input dialog-input" name="metric_type" value={metric.metric_type} onChange={this.handleInputChange}/>
+                                    <Tooltip placement="topRight" title="比如：count, avg, sum, max, min">
+                                        <i className="icon icon-info after-icon"/>
+                                    </Tooltip>
                                 </div>
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
+                                    <i>*</i>
                                     <span className="item-label">表达式：</span>
                                 </div>
                                 <div className="item-right">
                                     <textarea className="tp-textarea dialog-area" name="expression" value={metric.expression} onChange={this.handleInputChange}/>
-                                    <Tooltip placement="top" title="表达式">
+                                    <Tooltip placement="topRight" title="SQL函数，比如：COUNT(col), AVG(col), SUM(col), MAX(col), MIN(col), COUNT(DISTINCT (col))">
                                         <i
-                                            className="icon icon-info after-textarea-icon"
-                                            style={{position: 'absolute', top: 0, right: -20}}
+                                            className="icon icon-info after-icon"
+                                            style={{top: 30}}
                                         />
                                     </Tooltip>
                                 </div>
+                            </div>
+                            <div className="error" ref="alertRef" style={{display: 'none'}}>
+                                <Alert
+                                    message={this.state.exception.message}
+                                    description={this.state.exception.description}
+                                    type={this.state.exception.type}
+                                    closeText="close"
+                                    showIcon
+                                />
                             </div>
                         </div>
                         <div className="popup-footer">

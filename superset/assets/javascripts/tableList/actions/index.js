@@ -179,18 +179,13 @@ export function fetchTableColumnAdd(column, callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(column)
-        }).then(function(response) {
-            if(response.ok) {
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(getTableColumn(column.dataset_id));
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                // if(typeof callback === "function") {
-                //     callback(false);
-                // }
+                dispatch(switchFetchingState(false));
             }
-        });
+        );
     }
 }
 
@@ -201,18 +196,13 @@ export function fetchTableColumnEdit(column, callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(column)
-        }).then(function(response) {
-            if(response.ok) {
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(getTableColumn(column.dataset_id));
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                // if(typeof callback === "function") {
-                //     callback(false);
-                // }
+                dispatch(switchFetchingState(false));
             }
-        });
+        );
     }
 }
 
@@ -245,18 +235,13 @@ export function fetchSQLMetricAdd(metric, callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(metric)
-        }).then(function(response) {
-            if(response.ok) {
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(getSQLMetric(metric.dataset_id));
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
-                }
+                dispatch(switchFetchingState(false));
             }
-        });
+        );
     }
 }
 
@@ -267,18 +252,13 @@ export function fetchSQLMetricEdit(metric, callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(metric)
-        }).then(function(response) {
-            if(response.ok) {
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
                 dispatch(getSQLMetric(metric.dataset_id));
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
-                }
+                dispatch(switchFetchingState(false));
             }
-        });
+        );
     }
 }
 
@@ -333,7 +313,7 @@ export function fetchTableDelete(tableId, callback) {
         }).then(always).then(json).then(
             response => {
                 callbackHandler(response, callback);
-                switchFetchingState(false);
+                dispatch(switchFetchingState(false));
                 if(response.status === 200) {
                     dispatch(selectRows([], []));
                     dispatch(applyFetch(getState().condition));

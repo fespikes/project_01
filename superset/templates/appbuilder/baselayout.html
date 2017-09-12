@@ -16,13 +16,18 @@
     {% block uncontained %}{% endblock %}
 
     <div>
-      <div>
-          {% block messages %}
-            {% include 'superset/flash_wrapper.html' %}
-          {% endblock %}
-          {% block content %}
-          {% endblock %}
-      </div>
+        {% block messages %}
+            {% if request.path != '/login/' %}
+                {% include 'superset/flash_wrapper.html' %}
+            {% endif %}
+            {% if request.path == '/login/' %}
+                <div class="flash-wrapper-login">
+                    {% include 'superset/flash_wrapper.html' %}
+                </div>
+            {% endif %}
+        {% endblock %}
+        {% block content %}
+        {% endblock %}
     </div>
     <div class="container-fluid">
         {% block content_fluid %}

@@ -89,13 +89,21 @@ a{text-decoration:none;}
     background-position:-290px -251px;
     margin-left:5px;
 }
-.data-detail-item>span{
+.data-detail-item>div:first-child, .data-detail-item>span{
     color:#7c8ca5;
     font-size:12px;
     display:block;
     width:200px;
     text-align:right;
     margin-right:10px;
+}
+.data-detail-item>div:first-child i{
+    color: #ff1111;
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 5px;
+    position: relative;
+    top: 3px;
 }
 .data-detail-item>input{
     width:312px;
@@ -321,7 +329,7 @@ a{text-decoration:none;}
 }
 .data-detail-item>a{
     position: relative;
-    left: -120px;
+    left: -135px;
     top: -20px;
 }
 .column-type {

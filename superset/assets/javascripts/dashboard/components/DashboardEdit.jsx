@@ -85,7 +85,7 @@ class DashboardEdit extends React.Component {
         const hideLoad = self.state.slicesLoaded || self.errored;
         const Option = Select.Option;
         const options = self.state.availableSlices.map(slice => {
-            return <Option key={slice.id}>{slice.slice_name}</Option>
+            return <Option key={slice.slice_name}>{slice.slice_name}</Option>
         });
 
         function onChange(value) {
@@ -170,6 +170,7 @@ class DashboardEdit extends React.Component {
         return (
             <ModalTrigger
                 triggerNode={this.props.triggerNode}
+                className='popup-modal-edit-dashboard'
                 isButton
                 modalTitle={modalTitle}
                 modalIcon={modalIcon}

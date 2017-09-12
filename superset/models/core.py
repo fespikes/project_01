@@ -10,7 +10,8 @@ import pickle
 from copy import copy
 from werkzeug.datastructures import ImmutableMultiDict
 
-from flask import escape, g, Markup
+from flask import g, escape, Markup
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import Model
 from flask_appbuilder.models.decorators import renders
 from sqlalchemy import (

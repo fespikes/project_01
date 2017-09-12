@@ -210,8 +210,7 @@ class BaseViz(object):
         # parsing logic.
         if df is None or df.empty:
             self.status = utils.QueryStatus.FAILED
-            self.error_message = "No data."
-            return pd.DataFrame(), {}
+            raise Exception("No data. " + self.error_message)
         else:
             if DTTM_ALIAS in df.columns:
                 if timestamp_format in ("epoch_s", "epoch_ms"):
@@ -1309,7 +1308,7 @@ class NVD3DualLineViz(NVD3Viz):
     form_overrides = {
         'y_axis_format': {
             'label': _('Left Axis Format'),
-            'description': _("Select the numeric column to draw the histogram"),
+            'description': _("D3 format syntax https://github.com/d3/d3-format"),
         },
         'metric': {
             'label': _("Left Axis Metric"),
@@ -2250,8 +2249,10 @@ viz_types_list = [
     CalHeatmapViz,
     HorizonViz,
     MapboxViz,
-    # HistogramViz,
-    # SeparatorViz,
+    HistogramViz,
+    SeparatorViz,
+    HistogramViz,
+    SeparatorViz,
 ]
 
 viz_types = OrderedDict([(v.viz_type, v) for v in viz_types_list

@@ -153,7 +153,8 @@ class Queryable(object):
         if self.default_endpoint:
             return self.default_endpoint
         else:
-            return "/p/explore/{obj.type}/{obj.id}/?datasource_id={obj.id}"\
+            return "/p/explore/{obj.type}/{obj.id}/" \
+                   "?datasource_id={obj.id}&datasource_type=table"\
                 .format(obj=self)
 
     @property

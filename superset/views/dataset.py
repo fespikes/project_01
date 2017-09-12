@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import json
 import requests
+import copy
 from flask import request
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
@@ -73,11 +74,20 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         data['available_dataset'] = self.get_available_tables()
         return data
 
+    def pre_add(self, column):
+        self.check_column_values(column)
+
     def pre_update(self, column):
         check_ownership(column)
+        self.pre_add(column)
 
     def pre_delete(self, column):
         check_ownership(column)
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.column_name:
+            raise SupersetException(NONE_COLUMN_NAME)
 
 
 class SqlMetricInlineView(SupersetModelView):  # noqa
@@ -122,11 +132,22 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             data.append(line)
         return {'data': data}
 
+    def pre_add(self, metric):
+        self.check_column_values(metric)
+
     def pre_update(self, metric):
         check_ownership(metric)
+        self.pre_add(metric)
 
     def pre_delete(self, metric):
         check_ownership(metric)
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.metric_name:
+            raise SupersetException(NONE_METRIC_NAME)
+        if not obj.expression:
+            raise SupersetException(NONE_METRIC_EXPRESSION)
 
 
 class DatasetModelView(SupersetModelView):  # noqa
@@ -135,9 +156,9 @@ class DatasetModelView(SupersetModelView):  # noqa
     route_base = '/table'
     list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url',
                     'connection', 'changed_on', 'online']
-    add_columns = ['dataset_name', 'dataset_type', 'database_id', 'description',
+    add_columns = ['dataset_name', 'database_id', 'description',
                    'schema', 'table_name', 'sql']
-    show_columns = add_columns + ['id']
+    show_columns = add_columns + ['id', 'dataset_type']
     edit_columns = ['dataset_name', 'database_id', 'description', 'schema',
                     'table_name', 'sql']
     description_columns = {}
@@ -191,12 +212,12 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/add_dataset_types/', methods=['GET'])
     def add_dataset_types(self):
-        return json.dumps(['INCEPTOR', 'HDFS', 'UPLOAD FILE'])
+        return json.dumps(Dataset.addable_types + HDFSTable.addable_types)
 
     @catch_exception
     @expose('/filter_dataset_types/', methods=['GET'])
     def filter_dataset_types(self):
-        return json.dumps(['ALL', 'INCEPTOR', 'HDFS'])
+        return json.dumps(Dataset.filter_types + HDFSTable.filter_types)
 
     @catch_exception
     @expose('/preview_data/', methods=['GET', ])
@@ -274,13 +295,13 @@ class DatasetModelView(SupersetModelView):  # noqa
     @expose('/add', methods=['POST', ])
     def add(self):
         args = self.get_request_data()
-        dataset_type = args.get('dataset_type').lower()
-        if dataset_type == 'inceptor':
+        dataset_type = args.get('dataset_type')
+        if dataset_type in Dataset.addable_types:
             dataset = self.populate_object(None, get_user_id(), args)
             self._add(dataset)
             return json_response(
                 message=ADD_SUCCESS, data={'object_id': dataset.id})
-        elif dataset_type == 'hdfs':
+        elif dataset_type in HDFSTable.addable_types:
             HDFSTable.cached_file.clear()
             # create hdfs_table
             hdfs_table_view = HDFSTableModelView()
@@ -294,7 +315,6 @@ class DatasetModelView(SupersetModelView):  # noqa
 
             # create dataset
             dataset = self.model(
-                dataset_type=self.model.dataset_type_dict.get('hdfs'),
                 dataset_name=args.get('dataset_name'),
                 table_name=args.get('dataset_name'),
                 description=args.get('description'),
@@ -327,12 +347,12 @@ class DatasetModelView(SupersetModelView):  # noqa
         # TODO rollback
         args = self.get_request_data()
         dataset = self.get_object(pk)
-        dataset_type = dataset.dataset_type.lower()
-        if dataset_type == 'inceptor':
+        dataset_type = dataset.dataset_type
+        if dataset_type in Dataset.dataset_types:
             dataset = self.populate_object(pk, get_user_id(), args)
             self._edit(dataset)
             return json_response(message=UPDATE_SUCCESS)
-        elif dataset_type == 'hdfs':
+        elif dataset_type in HDFSTable.hdfs_table_types:
             HDFSTable.cached_file.clear()
             # edit hdfs_table
             hdfs_table = dataset.hdfs_table
@@ -425,8 +445,6 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def get_add_attributes(self, data, user_id):
         attributes = super().get_add_attributes(data, user_id)
-        attributes['dataset_type'] = \
-            self.model.dataset_type_dict.get('inceptor')
         database = db.session.query(Database) \
             .filter_by(id=data['database_id']) \
             .first()
@@ -434,6 +452,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         return attributes
 
     def pre_add(self, table):
+        self.check_column_values(table)
         table.get_sqla_table_object()
 
     def post_add(self, table):
@@ -470,6 +489,20 @@ class DatasetModelView(SupersetModelView):  # noqa
         log_action('delete', action_str, 'dataset', table.id)
         log_number('dataset', table.online, get_user_id())
 
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.dataset_name:
+            raise SupersetException(NONE_DATASET_NAME)
+        if not obj.dataset_type:
+            raise SupersetException(NONE_DATASET_TYPE)
+        if not obj.database_id:
+            raise SupersetException(NONE_CONNECTION)
+        if not obj.schema and not obj.table_namej and not obj.sql:
+            raise SupersetException(NONE_CONNECTION)
+        if obj.dataset_type not in Dataset.dataset_types:
+            raise SupersetException(_("Not supported dataset type [{type_}]")
+                                    .format(type_=obj.database_type))
+
 
 class HDFSTableModelView(SupersetModelView):
     route_base = '/hdfstable'
@@ -480,6 +513,29 @@ class HDFSTableModelView(SupersetModelView):
                    'charset', 'hdfs_connection_id']
     show_columns = add_columns
     edit_columns = add_columns
+
+    def _add(self, hdfs_table):
+        self.pre_add(hdfs_table)
+        if not self.datamodel.add(hdfs_table):
+            db.session.query(Dataset) \
+                .filter(Dataset.id == hdfs_table.dataset_id) \
+                .delete(synchronize_session=False)
+            db.session.commit()
+            raise Exception(ADD_FAILED)
+        self.post_add(hdfs_table)
+
+    def pre_add(self, obj):
+        self.check_column_values(obj)
+
+    def pre_update(self, obj):
+        self.pre_add(obj)
+
+    @staticmethod
+    def check_column_values(obj):
+        if not obj.hdfs_path:
+            raise SupersetException(NONE_HDFS_PATH)
+        if not obj.hdfs_connection_id:
+            raise SupersetException(NONE_HDFS_CONNECTION)
 
     @catch_hdfs_exception
     @expose('/files/', methods=['GET'])
@@ -576,4 +632,3 @@ class HDFSTableModelView(SupersetModelView):
             _("Fetched {size} bytes file, but still not a complete line")
                 .format(size=size)
         )
-

@@ -184,6 +184,12 @@
             }
         }
     }
+    svg.cal-heatmap-container {
+        width: 100% !important;
+    }
+    .slice_container {
+        overflow: visible !important;
+    }
 }
 
 .react-bs-table {

@@ -61,7 +61,7 @@ class SouthPane extends React.PureComponent {
                     onSelect={this.switchTab.bind(this)}
                 >
                     <Tab
-                        title="Results"
+                        title="结果"
                         eventKey="Results"
                     >
                         <div style={{ overflow: 'auto' }}>
@@ -69,7 +69,7 @@ class SouthPane extends React.PureComponent {
                         </div>
                     </Tab>
                     <Tab
-                        title="Query History"
+                        title="查询历史"
                         eventKey="History"
                     >
                         <QueryHistory queries={props.editorQueries} actions={props.actions} />

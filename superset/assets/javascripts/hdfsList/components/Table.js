@@ -91,10 +91,18 @@ class InnerTable extends React.Component {
                         datasetType = 'icon-grayfile-info';
                         break;
                     }
-
-                    return (
-                        <i className={'icon ' + datasetType}></i>
-                    )
+                    if (record.type === 'file') {
+                        return (
+                            <Link onClick={() => flushDetail(record)} to="/filebrowser">
+                                <i className={'icon ' + datasetType}></i>
+                            </Link>
+                        );
+                    } else {
+                        return (
+                            <a onClick={argus => {linkToPath({path: record.path});}}>
+                                <i className={'icon ' + datasetType}></i>
+                            </a>);
+                    }
                 },
                 sorter(a, b) {
                     return a.name.substring(0, 1).charCodeAt() - b.name.substring(0, 1).charCodeAt();

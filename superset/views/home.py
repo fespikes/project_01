@@ -4,8 +4,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from datetime import timedelta, date
+import logging
 import json
 import re
+from werkzeug.urls import Href
 from flask import g, request, redirect, Response
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
@@ -101,7 +103,7 @@ class Home(BaseSupersetView):
 
     def get_fav_dashboards(self, user_id, limit=10):
         """Query the times of dashboard liked by users"""
-        query = db.session.query(func.count(FavStar.obj_id), Dashboard.dashboard_title) \
+        query = db.session.query(func.count(FavStar.obj_id), Dashboard) \
             .filter(
             and_(FavStar.class_name.ilike('dashboard'),
                  FavStar.obj_id == Dashboard.id)
@@ -118,13 +120,14 @@ class Home(BaseSupersetView):
         rs = query.all()
 
         rows = []
-        for count, name in rs:
-            rows.append({'name': name, 'count': count})
+        for count, dash in rs:
+            rows.append(
+                {'name': dash.dashboard_title, 'link': dash.url, 'count': count})
         return rows
 
     def get_fav_slices(self, user_id, limit=10):
         """Query the times of slice liked by users"""
-        query = db.session.query(func.count(FavStar.obj_id), Slice.slice_name) \
+        query = db.session.query(func.count(FavStar.obj_id), Slice) \
             .filter(
             and_(FavStar.class_name.ilike('slice'),
                  FavStar.obj_id == Slice.id)
@@ -141,8 +144,9 @@ class Home(BaseSupersetView):
         rs = query.all()
 
         rows = []
-        for count, name in rs:
-            rows.append({'name': name, 'count': count})
+        for count, slice in rs:
+            rows.append(
+                {'name': slice.slice_name, 'link': slice.slice_url, 'count': count})
         return rows
 
     def get_fav_objects(self, user_id, types, limit):
@@ -156,7 +160,8 @@ class Home(BaseSupersetView):
     def get_refered_slices(self, user_id, limit=10):
         """Query the times of slice used by dashboards"""
         sql = """
-            SELECT slices.slice_name, count(slices.slice_name)
+            SELECT slices.slice_name, count(slices.slice_name), slices.params, 
+                   slices.id, slices.datasource_id
             FROM slices, dashboards, dashboard_slices
             WHERE slices.id = dashboard_slices.slice_id
             AND dashboards.id = dashboard_slices.dashboard_id
@@ -168,9 +173,19 @@ class Home(BaseSupersetView):
             ORDER BY count(slices.slice_name) DESC
             LIMIT {}""".format(user_id, limit)
         rs = db.session.execute(sql)
+        
         rows = []
         for row in rs:
-            rows.append({'name': row[0], 'count': row[1]})
+            try:
+                slice_params = json.loads(row[2])
+            except Exception as e:
+                logging.exception(e)
+                slice_params = {}
+            slice_params['slice_id'] = row[3]
+            slice_params['json'] = "false"
+            slice_params['slice_name'] = row[0]
+            href = Href("/p/explore/table/{}/".format(row[4]))
+            rows.append({'name': row[0], 'count': row[1], 'link': href(slice_params)})
         return rows
 
     def get_edited_slices(self, **kwargs):
@@ -371,14 +386,15 @@ class Home(BaseSupersetView):
         )
         count = query.count()
 
-        if order_column:
-            column = self.str_to_column_in_actions.get(order_column)
-            if order_direction == 'desc':
-                query = query.order_by(column.desc())
-            else:
-                query = query.order_by(column)
-        else:
-            query = query.order_by(Log.dttm.desc())
+        # if order_column:
+        #     column = self.str_to_column_in_actions.get(order_column)
+        #     if order_direction == 'desc':
+        #         query = query.order_by(column.desc())
+        #     else:
+        #         query = query.order_by(column)
+        # else:
+        #     query = query.order_by(Log.dttm.desc())
+        query = query.order_by(Log.id.desc())
 
         if page_size and page_size > 0:
             query = query.limit(page_size)
@@ -478,6 +494,10 @@ class Home(BaseSupersetView):
         one_day = timedelta(days=1)
         for row in rows:
             if row.dt > date.today():
+                msg = _("Date [{date}] > today [{today}]")\
+                    .format(date=row.dt, today=date.today())
+                logging.error(msg)
+                self.message.append(msg)
                 return {}
             elif len(full_count) < 1:
                 full_count.append(int(row.count))

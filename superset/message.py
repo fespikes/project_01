@@ -33,3 +33,24 @@ LOGOUT_FILEROBOT_SUCCESS = _("Success to logout FileRobot")
 MISS_PASSWORD_FOR_FILEROBOT = _("Miss password to login FileRobot")
 NO_HDFS_CONNECTION = _("No HDFS connection, please create one")
 NO_FILEROBOT_SERVER = _("Failed to get FileRobot server from config")
+
+# views/connection.py
+NONE_CONNECTION_NAME = _("Connection name can't be none")
+NONE_CONNECTION_TYPE = _("Connection type can't be none")
+NONE_SQLALCHEMY_URI = _("Sqlalchemy uri can't be none")
+NONE_CONNECTION_ARGS = _("Connection args can't be none")
+NONE_HTTPFS = _("Httpfs can't be none")
+
+# views/dataset.py
+NONE_COLUMN_NAME = _("Column name can't be none")
+NONE_METRIC_NAME = _("Metric name can't be none")
+NONE_METRIC_EXPRESSION = _("Metric expression can't be none")
+NONE_DATASET_NAME = _("Dataset name can't be none")
+NONE_DATASET_TYPE = _("Dataset type can't be none")
+NONE_CONNECTION = _("Connection can't be none")
+NONE_HDFS_PATH = _("HDFS path can't be none")
+NONE_HDFS_CONNECTION = _("HDFS connection can't be none")
+
+# views/core.py
+NONE_SLICE_NAME = _("Slice name can't be none")
+NONE_DASHBOARD_NAME = _("Dashboard name can't be none")

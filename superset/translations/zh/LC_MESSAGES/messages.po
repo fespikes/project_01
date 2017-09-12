@@ -127,11 +127,32 @@ msgstr "Y轴步长"
 msgid "Number of step to take between ticks when printing the y scale"
 msgstr "Y轴每个刻度的单位长度"
 
+msgid "Bar Values"
+msgstr "显示值"
+
+msgid "Show the value on top of the bars or not"
+msgstr "是否在柱状图上方显示数值"
+
 msgid "Stacked Bars"
 msgstr "堆积"
 
+msgid "Stack bars or not"
+msgstr "是否堆积"
+
+msgid "Show Markers"
+msgstr "显示圆点"
+
+msgid "Show data points as circle markers on top of the lines in the chart"
+msgstr "显示数据实心圆点"
+
 msgid "Extra Controls"
 msgstr "扩展控件"
+
+msgid "Sort Bars"
+msgstr "X轴排序"
+
+msgid "Sort bars by x labels."
+msgstr "根据X轴标记排序"
 
 msgid ""
 "Whether to show extra controls or not. Extra controls include things like"
@@ -431,10 +452,11 @@ msgstr "树状图中方块的比例"
 msgid "Number format"
 msgstr "数字格式"
 
-msgid ""
-"D3 format syntax for numbers https: //github.com/mbostock/\n"
-"d3/wiki/Formatting"
+msgid D3 format syntax for numbers https://github.com/mbostock/d3/wiki/Formatting"
 msgstr "自定义格式请参考 https://github.com/mbostock/d3/wiki/Formatting"
+
+msgid "D3 format syntax https://github.com/d3/d3-format"
+msgstr "D3语法格式，请参考 https://github.com/d3/d3-format"
 
 msgid "Row limit"
 msgstr "行数上限"
@@ -443,7 +465,13 @@ msgid "Series limit"
 msgstr "项目上限"
 
 msgid "Limits the number of time series that get displayed"
-msgstr "设置显示项目的数量上限"
+msgstr "设置时间序列显示项目的数量上限"
+
+msgid "Sort By"
+msgstr ""
+
+msgid "Metric used to define the top series"
+msgstr ""
 
 msgid "Rolling"
 msgstr "滚动"
@@ -466,9 +494,9 @@ msgid "Series"
 msgstr "项目"
 
 msgid ""
-"Defines the grouping of entities. Each serie is shown as a specific color"
+"Defines the grouping of entities. Each series is shown as a specific color"
 " on the chart and has a legend toggle"
-msgstr "定义分组实体。每个项目有特定的颜色和图例。"
+msgstr "定义分组实体。每个项目有特定的颜色和图例"
 
 msgid "Entity"
 msgstr "实体"
@@ -492,12 +520,12 @@ msgid "Bubble Size"
 msgstr "气泡大小"
 
 msgid "URL"
-msgstr ""
+msgstr "网页链接"
 
 msgid ""
 "The URL, this field is templated, so you can integrate {{ width }} and/or"
 " {{ height }} in your URL string."
-msgstr ""
+msgstr "网页链接"
 
 msgid "X Axis Label"
 msgstr "X轴名称"
@@ -656,11 +684,23 @@ msgstr "明细表"
 msgid "Whether to display the interactive data table"
 msgstr "是否显示明细表"
 
+msgid "Page Length"
+msgstr "每页行数"
+
+msgid "Number of rows per page, 0 means no pagination"
+msgstr "每页显示的行数，0意味着不分页"
+
 msgid "Search Box"
 msgstr "搜索框"
 
 msgid "Whether to include a client side search box"
 msgstr "是否显示搜索框"
+
+msgid "Table Filter"
+msgstr ""
+
+msgid "Whether to apply filter when table cell is clicked"
+msgstr ""
 
 msgid "Show Bubbles"
 msgstr "显示气泡"
@@ -704,11 +744,32 @@ msgstr "X轴对数刻度"
 msgid "Use a log scale for the X axis"
 msgstr "X轴刻度值按照对数分布显示"
 
+msgid "Label Type"
+msgstr "标签类型"
+
+msgid "What should be shown on the label?"
+msgstr "显示哪种类型的标签？"
+
+msgid "Category Name"
+msgstr "分类名称"
+
+msgid "Value"
+msgstr "数值"
+
+msgid "Percentage"
+msgstr "百分比"
+
 msgid "Donut"
 msgstr "环形图"
 
 msgid "Do you want a donut or a pie?"
 msgstr "使用环形图替代饼图"
+
+msgid "Put labels outside"
+msgstr "标签置于外围"
+
+msgid "Put the labels outside the pie?"
+msgstr "是否把标签置于饼图外围"
 
 msgid "Contribution"
 msgstr "贡献值"
@@ -724,6 +785,12 @@ msgid ""
 "granularity selected"
 msgstr "[整数]要比较的周期数，和粒度有关"
 
+msgid "Period Ratio Type"
+msgstr "周期比类型"
+
+msgid "`factor` means (new/previous), `growth` is ((new/previous) - 1), `value` is (new-previous)"
+msgstr "factor=新值/旧值，growth=(新值/旧值)-1，value=新值-旧值"
+
 msgid "Time Shift"
 msgstr "时间飘移"
 
@@ -738,11 +805,14 @@ msgstr "子标题"
 msgid "Description text that shows up below your Big Number"
 msgstr "在数字下显示的文本"
 
+msgid "Label"
+msgstr ""
+
 msgid ""
 "'count' is COUNT(*) if a group by is used. Numerical columns will be "
 "aggregated with the aggregator. Non-numerical columns will be used to "
 "label points. Leave empty to get a count of points in each cluster."
-msgstr "对分组使用COUNT(*)。"
+msgstr "对分组使用COUNT(*)"
 
 msgid "Base layer map style"
 msgstr ""
@@ -859,27 +929,63 @@ msgstr "缺少时间字段"
 msgid "No data was returned."
 msgstr "没有数据"
 
-#: superset/views.py:203
+msgid "Ranges"
+msgstr "定性范围"
+
+msgid "Ranges to highlight with shading"
+msgstr "使用阴影标识的定性范围数值列表，使用英文逗号[,]分隔各数值"
+
+msgid "Range labels"
+msgstr "定性范围标签"
+
+msgid "Labels for the ranges"
+msgstr "定性范围标签，使用英文逗号[,]分隔各标签"
+
+msgid "Markers"
+msgstr "三角标注点"
+
+msgid "List of values to mark with triangles"
+msgstr "需要使用三角符号标注的数值列表，使用英文逗号[,]分隔各数值"
+
+msgid "Marker labels"
+msgstr "三角标注标签"
+
+msgid "Labels for the markers"
+msgstr "给三角标注符号添加标签，使用英文逗号[,]分隔各标签"
+
+msgid "Marker lines"
+msgstr "直线标注点"
+
+msgid "List of values to mark with lines"
+msgstr "需要使用直线标注的数值列表，使用英文逗号[,]分隔各数值"
+
+msgid "Marker line labels"
+msgstr "直线标注标签"
+
+msgid "Labels for the marker lines"
+msgstr "给直线标注符号添加标签，使用英文逗号[,]分隔各标签"
+
+
+###
+###: superset/views.py
+###
 msgid ""
 "Whether to make this column available as a [Time Granularity] option, "
 "column has to be DATETIME or DATETIME-like"
 msgstr "是否将此列作为[时间粒度]选项, 列中的数据类型必须是DATETIME"
 
-
-#: superset/views.py:544 superset/views.py:570
 msgid "Visualization Type"
 msgstr "图表类型"
 
-#: superset/views.py:586
 msgid ""
 "This json object describes the positioning of the widgets in the "
 "dashboard. It is dynamically generated when adjusting the widgets size "
 "and positions by using drag & drop in the dashboard view"
 msgstr "这个JSON对象描述了部件在看板中的位置。它是动态生成的，可以通过拖放，在看板中调整整部件的大小和位置。"
 
-#: superset/views.py:1176
 msgid "This view requires the `all_datasource_access` permission"
 msgstr "本视图需要`访问所有数据`的权限"
+
 
 ###
 ###: superset/viz.py:367
@@ -918,10 +1024,10 @@ msgid "markup"
 msgstr "标记"
 
 msgid "Separator"
-msgstr "Separator"
+msgstr "分割线"
 
 msgid "separator"
-msgstr "Separator"
+msgstr "分割线"
 
 msgid "Word Cloud"
 msgstr "词汇云"
@@ -1117,6 +1223,12 @@ msgstr "筛选"
 msgid "filter_box"
 msgstr "筛选"
 
+msgid "Date Filter"
+msgstr "日期筛选"
+
+msgid "Whether to include a time filter"
+msgstr "是否添加日期筛选器"
+
 msgid "Filter fields"
 msgstr "筛选条件"
 
@@ -1124,10 +1236,10 @@ msgid "The fields you want to filter on"
 msgstr "筛选字段"
 
 msgid "iFrame"
-msgstr "视频"
+msgstr "网页链接"
 
 msgid "iframe"
-msgstr "视频"
+msgstr "网页链接"
 
 msgid "Parallel Coordinates"
 msgstr "平行坐标"
@@ -1181,7 +1293,7 @@ msgid "Column containing latitude data"
 msgstr "表示纬度的列"
 
 msgid "Cluster label aggregator"
-msgstr ""
+msgstr "标签聚合函数"
 
 msgid ""
 "Aggregate function applied to the list of points in each cluster to "
@@ -1198,6 +1310,43 @@ msgid ""
 "One or many fields to group by. If grouping, latitude and longitude "
 "columns must be present."
 msgstr "按照一个或多个字段分组。必须指定经度和纬度。"
+
+msgid "Numeric Column"
+msgstr "数字列"
+
+msgid "Select the numeric column to draw the histogram"
+msgstr "选择值为数字的列画直方图"
+
+msgid "Histogram Options"
+msgstr "直方图选项"
+
+msgid "No of Bins"
+msgstr "箱子数量"
+
+msgid "Select number of bins for the histogram"
+msgstr "直方图中箱子的数量"
+
+msgid "Y Axis 1"
+msgstr "左轴"
+
+msgid "Left Axis Metric"
+msgstr "左轴度量"
+
+msgid "Left Axis Format"
+msgstr "左轴数值格式"
+
+msgid "Y Axis 2"
+msgstr "右轴"
+
+msgid "Right Axis Metric"
+msgstr "右轴度量"
+
+msgid "Right axis format"
+msgstr "右轴数值格式"
+
+msgid "Choose the metric for second y axis"
+msgstr "为右轴选择度量"
+
 
 #: superset/templates/appbuilder/navbar_right.html:36
 msgid "Profile"
@@ -1287,7 +1436,6 @@ msgstr "数据集"
 
 msgid "Dataset"
 msgstr "数据集"
-
 
 msgid "Queries"
 msgstr "查询"
@@ -1412,6 +1560,50 @@ msgstr "错误的连接类型：[{type_}]"
 msgid "Miss password to access Guardian"
 msgstr "缺少密码访问Guardian"
 
+msgid "Connection name can't be none"
+msgstr "连接名字不能为空"
+
+msgid "Connection type can't be none"
+msgstr "连接类型不能为空"
+
+msgid "Sqlalchemy uri can't be none"
+msgstr "Sqlalchemy连接串不能为空"
+
+msgid "Connection args can't be none"
+msgstr "连接参数不能为空"
+
+msgid "Httpfs can't be none"
+msgstr "Httpfs不能为空"
+
+msgid "Column name can't be none"
+msgstr "列名不能为空"
+
+msgid "Metric name can't be none"
+msgstr "度量名不能为空"
+
+msgid "Metric expression can't be none"
+msgstr "度量的表达式不能为空"
+
+msgid "Dataset name can't be none"
+msgstr "数据集名字不能为空"
+
+msgid "Dataset type can't be none"
+msgstr "数据集类型不能为空"
+
+msgid "Connection can't be none"
+msgstr "连接不能为空"
+
+msgid "HDFS path can't be none"
+msgstr "HDFS路径不能为空"
+
+msgid "HDFS connection can't be none"
+msgstr "HDFS连接不能为空"
+
+msgid "Slice name can't be none"
+msgstr "工作表名字不能为空"
+
+msgid "Dashboard name can't be none"
+msgstr "仪表板名字不能为空"
 
 
 #========================
@@ -1433,6 +1625,9 @@ msgstr "没有找到对象：类名={model}, id={id}"
 #========================
 # views/connection.py
 #========================
+msgid "Not supported database type [{type_}]"
+msgstr "不支持的连接类型[{type_}]"
+
 msgid "Error order column name: [{name}]"
 msgstr "错误的排序字段：[{name}]"
 
@@ -1451,8 +1646,8 @@ msgid ""
 "\nDataset: {dataset}, \nSlice: {slice}"
 msgstr "删除Inceptor连接{conn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
 
-msgid "Error parameter ids: {ids}, queried {num} inceptor connection(s)"
-msgstr "根据参数ids：{ids}查询到{num}个Inceptor连接"
+msgid "Error parameter ids: {ids}, queried {num} database connection(s)"
+msgstr "根据参数ids：{ids}查询到{num}个数据库连接"
 
 msgid ""
 "Releasing hdfs connection {hconn} will make these usable: \n"
@@ -1473,10 +1668,10 @@ msgid "Error parameter ids: {ids}, queried {num} hdfs connection(s)"
 msgstr "根据参数ids：{ids}查询到{num}个HDFS连接"
 
 msgid ""
-"Deleting inceptor connections {dbs} and hdfs connections {hconns} will make these "
+"Deleting database connections {dbs} and hdfs connections {hconns} will make these "
 "unusable: \nDataset: {dataset}, \nSlice: {slice}"
 msgstr ""
-"删除Inceptor连接{dbs}和HDFS连接{hconns}会使以下对象不可用：\n"
+"删除数据库连接{dbs}和HDFS连接{hconns}会使以下对象不可用：\n"
 "数据集：{dataset}，\n工作表：{slice}"
 
 
@@ -1542,6 +1737,9 @@ msgstr "查询度量时缺少参数[dataset_id]"
 msgid "Not found dataset by id [{id}]"
 msgstr "没有找到id为[{id}]的数据集"
 
+msgid "Not supported dataset type [{type_}]"
+msgstr "不支持的数据集类型[{type_}]"
+
 msgid "Releasing dataset [{dataset}] will release connection [{connection}]"
 msgstr "上线数据集[{dataset}]会同时上线连接[{connection}]"
 
@@ -1574,7 +1772,7 @@ msgid "Success to login FileRobot"
 msgstr "登陆FileRobot成功"
 
 msgid "Success to logout FileRobot"
-msgstr "登出FileRobot失败"
+msgstr "登出FileRobot成功"
 
 msgid "Miss password to login FileRobot"
 msgstr "需要密码登陆FileRobot"
@@ -1594,6 +1792,12 @@ msgstr "你没有连接[{conn}]的帐号和密码"
 
 msgid "Test connection failed, maybe need to modify your account for connection [{conn}]"
 msgstr "测试连接失败，你可能需要修改该连接[{conn}]的帐号和密码"
+
+msgid "Httpfs [{httpfs}] is available"
+msgstr "测试httpfs [{httpfs}]成功"
+
+msgid "Httpfs [{httpfs}] is unavailable"
+msgstr "测试httpfs [{httpfs}]失败"
 
 
 #========================
@@ -1629,3 +1833,10 @@ msgstr "没有找到id为[{id}]的工作表"
 
 msgid "Slice [{slice}] is offline"
 msgstr "工作表[{slice}]已被其他用户下线"
+
+
+#========================
+# models/home.py
+#========================
+msgid "Date [{date}] > today [{today}]"
+msgstr "日期[{date}]超过了今天[{today}]"

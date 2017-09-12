@@ -4,7 +4,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { fetchUpdateSlice } from '../actions';
-import { Select, Alert } from 'antd';
+import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
 
 class SliceEdit extends React.Component {
@@ -12,6 +12,7 @@ class SliceEdit extends React.Component {
         super(props);
         this.state = {
             exception: {},
+            enableConfirm: true,
             sliceDetail: {
                 description: ''
             },
@@ -43,8 +44,13 @@ class SliceEdit extends React.Component {
 
     handleTitleChange(e) {
         this.props.sliceDetail.slice_name = e.currentTarget.value;
+        let enableConfirm = false;
+        if(e.currentTarget.value && e.currentTarget.value.length > 0) {
+            enableConfirm = true;
+        }
         this.setState({
-            sliceDetail: this.props.sliceDetail
+            sliceDetail: this.props.sliceDetail,
+            enableConfirm: enableConfirm
         });
     }
 
@@ -83,7 +89,7 @@ class SliceEdit extends React.Component {
         const Option = Select.Option;
         const defaultOptions = self.state.selectedDashboards;
         const options = self.props.sliceDetail.available_dashboards.map(dashboard => {
-            return <Option key={dashboard.id}>{dashboard.dashboard_title}</Option>
+            return <Option key={dashboard.dashboard_title}>{dashboard.dashboard_title}</Option>
         });
 
         function onChange(value) {
@@ -106,17 +112,9 @@ class SliceEdit extends React.Component {
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div className="error" ref="alertRef" style={{display: 'none'}}>
-                                <Alert
-                                    message={this.state.exception.message}
-                                    description={this.state.exception.description}
-                                    type={this.state.exception.type}
-                                    closeText="close"
-                                    showIcon
-                                />
-                            </div>
                             <div className="dialog-item">
                                 <div className="item-left">
+                                    <i>*</i>
                                     <span>名称：</span>
                                 </div>
                                 <div className="item-right">
@@ -154,6 +152,9 @@ class SliceEdit extends React.Component {
                                             {options}
                                         </Select>
                                     </div>
+                                    <Tooltip title="添加该工作表到仪表板或从仪表板移除该工作表" placement="topRight">
+                                        <i className="icon icon-info after-icon"/>
+                                    </Tooltip>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -192,9 +193,22 @@ class SliceEdit extends React.Component {
                                     </div>
                                 </div>
                             </div>
+                            <div className="error" ref="alertRef" style={{display: 'none'}}>
+                                <Alert
+                                    message={this.state.exception.message}
+                                    description={this.state.exception.description}
+                                    type={this.state.exception.type}
+                                    closeText="close"
+                                    showIcon
+                                />
+                            </div>
                         </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}>
+                            <button
+                                className="tp-btn tp-btn-middle tp-btn-primary"
+                                onClick={this.confirm}
+                                disabled={!this.state.enableConfirm}
+                            >
                                 确定
                             </button>
                         </div>
