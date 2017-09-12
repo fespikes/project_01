@@ -260,7 +260,10 @@ class InceptorDetail extends Component {
         return (
             <div className="inceptor-detail">
                 <div className="data-detail-item">
-                    <span>数据集名称：</span>
+                    <div>
+                        <i>*</i>
+                        <span>数据集名称：</span>
+                    </div>
                     <input
                         type="text"
                         name="dataset_name"
@@ -281,7 +284,10 @@ class InceptorDetail extends Component {
                     />
                 </div>
                 <div className="data-detail-item">
-                    <span>选择连接：</span>
+                    <div>
+                        <i>*</i>
+                        <span>选择连接：</span>
+                    </div>
                     <Select
                         style={{ width: 230 }}
                         value={dsInceptor.db_name}
@@ -299,7 +305,10 @@ class InceptorDetail extends Component {
                     />
                 </div>
                 <div className="data-detail-item">
-                    <span>选择表：</span>
+                    <div>
+                        <i>*</i>
+                        <span>选择表：</span>
+                    </div>
                     <TreeSelect
                         showSearch
                         value={dsInceptor.table_name}
@@ -311,9 +320,6 @@ class InceptorDetail extends Component {
                         dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
                     >
                     </TreeSelect>
-                    <Tooltip title="选择表">
-                        <i className="icon icon-info"/>
-                    </Tooltip>
                     <input
                         type="hidden"
                         required="required"
@@ -330,6 +336,12 @@ class InceptorDetail extends Component {
                         name="sql"
                         onChange={this.handleChange}
                     />
+                    <Tooltip title="如果添加了SQL，则上面选择的表将失效，工作表的查询将作为该SQL的子查询">
+                        <i
+                            className="icon icon-info"
+                            style={{right: '-5px', position: 'relative'}}
+                        />
+                    </Tooltip>
                     <a href={ window.location.origin + PILOT_PREFIX + 'sqllab' } target="_blank">
                         切换至SQL LAB编辑
                     </a>

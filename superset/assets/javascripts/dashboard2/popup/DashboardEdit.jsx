@@ -4,7 +4,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { fetchAvailableSlices, fetchUpdateDashboard } from '../actions';
-import { Select, Alert } from 'antd';
+import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
 
 class DashboardEdit extends React.Component {
@@ -12,6 +12,7 @@ class DashboardEdit extends React.Component {
         super(props);
         this.state = {
             exception: {},
+            enableConfirm: true,
             dashboardDetail: {
                 description: ''
             },
@@ -44,8 +45,13 @@ class DashboardEdit extends React.Component {
 
     handleTitleChange(e) {
         this.props.dashboardDetail.dashboard_title = e.currentTarget.value;
+        let enableConfirm = false;
+        if(e.currentTarget.value && e.currentTarget.value.length > 0) {
+            enableConfirm = true;
+        }
         this.setState({
-            dashboardDetail: this.props.dashboardDetail
+            dashboardDetail: this.props.dashboardDetail,
+            enableConfirm: enableConfirm
         });
     }
 
@@ -109,6 +115,7 @@ class DashboardEdit extends React.Component {
                         <div className="popup-body">
                             <div className="dialog-item">
                                 <div className="item-left">
+                                    <i>*</i>
                                     <span>标题：</span>
                                 </div>
                                 <div className="item-right">
@@ -116,7 +123,6 @@ class DashboardEdit extends React.Component {
                                         className="tp-input dialog-input"
                                         value={this.props.dashboardDetail.dashboard_title}
                                         onChange={this.handleTitleChange}
-                                        disabled={!self.props.editable}
                                     />
                                 </div>
                             </div>
@@ -129,7 +135,6 @@ class DashboardEdit extends React.Component {
                                         className="tp-textarea dialog-area"
                                         value={this.props.dashboardDetail.description}
                                         onChange={this.handleDescriptionChange}
-                                        disabled={!self.props.editable}
                                     />
                                 </div>
                             </div>
@@ -144,11 +149,13 @@ class DashboardEdit extends React.Component {
                                             defaultValue={defaultOptions}
                                             placeholder="select the slices..."
                                             onChange={onChange}
-                                            disabled={!self.props.editable}
                                         >
                                             {options}
                                         </Select>
                                     </div>
+                                    <Tooltip title="添加或移除该仪表盘包含的工作表" placement="topRight">
+                                        <i className="icon icon-info after-icon" />
+                                    </Tooltip>
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -174,7 +181,11 @@ class DashboardEdit extends React.Component {
                             </div>
                         </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}>
+                            <button
+                                className="tp-btn tp-btn-middle tp-btn-primary"
+                                onClick={this.confirm}
+                                disabled={!this.state.enableConfirm}
+                            >
                                 确定
                             </button>
                         </div>

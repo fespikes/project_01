@@ -3,3 +3,4 @@
  */
 export ConnectionEdit from './ConnectionEdit';
 export ConnectionDelete from './ConnectionDelete';
+export ConnectionAdd from './ConnectionAdd';

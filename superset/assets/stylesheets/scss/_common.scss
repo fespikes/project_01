@@ -16,6 +16,15 @@ body{
     right:7px;
     border-color:#a8aab7;
 }
+@mixin redStar {
+    color: #ff1111;
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 5px;
+    position: relative;
+    top: 3px;
+}
+
 $borderStyle :1px solid #e7e9ed;
 
 //文字离两边屏幕的距离
