@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { message, Table, Icon, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
-import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable, fetchOnOfflineInfo, fetchTableDelInfo } from '../actions';
+import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable, fetchOnOfflineInfo, fetchTableDelInfo, datasetTypes } from '../actions';
 import { TableDelete } from '../popup';
 import style from '../style/table.scss'
 import { ConfirmModal } from '../../common/components';
@@ -142,7 +142,10 @@ class SliceTable extends React.Component {
                     return (
                         <div className="icon-group">
                             <Tooltip placement="top" title="编辑" arrowPointAtCenter>
-                                <Link onClick={() => editTable(record)} to={`/edit/detail/${record.dataset_type==='HDFS'?'HDFS':'DATABASE'}/${record.id}`}>
+                                <Link
+                                    onClick={() => editTable(record)}
+                                    to={`/edit/detail/${record.dataset_type===datasetTypes.hdfs?datasetTypes.hdfs:datasetTypes.database}/${record.id}`}
+                                >
                                     <i className="icon icon-edit"/>
                                 </Link>
                             </Tooltip>

@@ -6,7 +6,7 @@ import {Select} from '../components';
 import PropTypes from 'prop-types';
 import { fetchInceptorConnectAdd, fetchHDFSConnectAdd, testConnection, testHDFSConnection, fetchConnectionNames, connectionTypes } from '../actions';
 import { getDatabaseDefaultParams } from '../../../utils/utils';
-import { isIncMysOraMssConnection } from '../utils';
+import { isCorrectConnection } from '../utils';
 
 const defaultParams = JSON.stringify(getDatabaseDefaultParams(), undefined, 4);
 
@@ -52,7 +52,7 @@ class ConnectionAdd extends React.Component {
     testConnection() {
         const self = this;
         const { dispatch, connectionType } = this.props;
-        if(isIncMysOraMssConnection(connectionType, connectionTypes)) {
+        if(isCorrectConnection(connectionType, connectionTypes)) {
             dispatch(testConnection({
                 database_name: this.state.database.database_name,
                 sqlalchemy_uri: this.state.database.sqlalchemy_uri,
@@ -116,7 +116,7 @@ class ConnectionAdd extends React.Component {
     formValidate(database) {
         let disabled;
         const { connectionType } = this.props;
-        if(isIncMysOraMssConnection(connectionType, connectionTypes)) {
+        if(isCorrectConnection(connectionType, connectionTypes)) {
             if((database.database_name && database.database_name.length > 0) &&
                 (database.sqlalchemy_uri && database.sqlalchemy_uri.length > 0) &&
                 (database.args && database.args.length > 0) && this.state.connected) {
@@ -158,7 +158,7 @@ class ConnectionAdd extends React.Component {
                 );
             }
         }
-        if(isIncMysOraMssConnection(connectionType, connectionTypes)) {
+        if(isCorrectConnection(connectionType, connectionTypes)) {
             dispatch(fetchInceptorConnectAdd({
                 database_name: this.state.database.database_name,
                 database_type: connectionType,
@@ -207,7 +207,7 @@ class ConnectionAdd extends React.Component {
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div style={{ display: isIncMysOraMssConnection(connectionType, connectionTypes)?'block':'none' }} >
+                            <div style={{ display: isCorrectConnection(connectionType, connectionTypes)?'block':'none' }} >
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>

@@ -7,7 +7,7 @@ import { fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnectio
 import { ConnectionDelete, ConnectionEdit } from '../popup';
 import style from '../style/database.scss'
 import { ConfirmModal } from '../../common/components';
-import { isIncMysOraMssConnection } from '../utils';
+import { isCorrectConnection } from '../utils';
 
 class SliceTable extends React.Component {
     constructor(props, context) {
@@ -26,7 +26,7 @@ class SliceTable extends React.Component {
         let connToBeDeleted = {};
         selectedRows.map(function(row) {
             let connectionType = connectionTypes.hdfs;
-            if(isIncMysOraMssConnection(row.connection_type, connectionTypes)) {
+            if(isCorrectConnection(row.connection_type, connectionTypes)) {
                 connectionType = connectionTypes.database;
             }
             if (connToBeDeleted[connectionType]) {
@@ -100,7 +100,7 @@ class SliceTable extends React.Component {
                 let deleteTips = data;
                 let connToBeDeleted = {};
                 let connectionType = connectionTypes.hdfs;
-                if(isIncMysOraMssConnection(record.connection_type, connectionTypes)) {
+                if(isCorrectConnection(record.connection_type, connectionTypes)) {
                     connectionType = connectionTypes.database;
                 }
                 connToBeDeleted[connectionType] = [record.id];

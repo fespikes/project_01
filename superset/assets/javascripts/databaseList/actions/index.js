@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-fetch';
-import {getPublishConnectionUrl, isIncMysOraMssConnection} from '../utils';
+import {getPublishConnectionUrl, isCorrectConnection} from '../utils';
 import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
 
 export const actionTypes = {
@@ -62,7 +62,7 @@ const getParamDB = (database) => {
     let db = {};
     let connectionType = (database.connectionType||database.backend);
     //todo: get other connection type params
-    if (isIncMysOraMssConnection(connectionType, connectionTypes)) {
+    if (isCorrectConnection(connectionType, connectionTypes)) {
         db.database_name = database.database_name;
         db.sqlalchemy_uri = database.sqlalchemy_uri;
         db.description = database.description;

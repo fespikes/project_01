@@ -15,7 +15,7 @@ export function transformObjectToArray(objectArray, attr) {
 
 export function getPublishConnectionUrl(record) {
     let url = window.location.origin + PILOT_PREFIX + "release/";
-    if(isIncMysOraMssConnection(record.connection_type, connectionTypes)) {
+    if(isCorrectConnection(record.connection_type, connectionTypes)) {
         url += 'database/';
     }else if(record.connection_type === connectionTypes.hdfs) {
         url += 'hdfsconnection/';
@@ -28,7 +28,7 @@ export function getPublishConnectionUrl(record) {
     return url;
 }
 
-export function isIncMysOraMssConnection(connectionType, connectionTypes) {
+export function isCorrectConnection(connectionType, connectionTypes) {/* include inceptor,mysql,oracle,mssql connection */
     if(connectionType === connectionTypes.inceptor || connectionType === connectionTypes.mysql
         || connectionType === connectionTypes.oracle || connectionType === connectionTypes.mssql) {
         return true;
