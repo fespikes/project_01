@@ -102,7 +102,7 @@ class Main extends Component {
     //E:Path
 
     render() {
-        const {giveDetail, condition, emitFetch, setSelectedRows} = this.props;
+        const {giveDetail, condition, emitFetch, setSelectedRows, fetchIfNeeded} = this.props;
         const editable = this.state.breadCrumbEditable;
         const response = emitFetch.response;
 
@@ -190,6 +190,7 @@ class Main extends Component {
                         condition={condition}
                         linkToPath={(e) => this.linkToPath(e)}
                         setSelectedRows={setSelectedRows}
+                        fetchIfNeeded={fetchIfNeeded}
                     />
                 </div>
                 <div className="panel-bottom">
@@ -219,7 +220,7 @@ function mapStateToProps(state, pros) {
 }
 
 function mapDispatchToProps(dispatch) {
-    const {changePath, giveDetail, setPopupParam, fetchIfNeeded, popupChangeStatus, setSelectedRows} = bindActionCreators(actions, dispatch);
+    const {changePath, giveDetail, setPopupParam, popupChangeStatus, setSelectedRows, fetchIfNeeded} = bindActionCreators(actions, dispatch);
 
     return {
         changePath,
@@ -228,6 +229,7 @@ function mapDispatchToProps(dispatch) {
         fetchIfNeeded,
         popupChangeStatus,
         setSelectedRows,
+        fetchIfNeeded,
         dispatch
     };
 }
