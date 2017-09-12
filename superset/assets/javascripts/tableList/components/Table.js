@@ -142,7 +142,7 @@ class SliceTable extends React.Component {
                     return (
                         <div className="icon-group">
                             <Tooltip placement="top" title="编辑" arrowPointAtCenter>
-                                <Link onClick={() => editTable(record)} to={`/edit/detail/${record.dataset_type}/${record.id}`}>
+                                <Link onClick={() => editTable(record)} to={`/edit/detail/${record.dataset_type==='HDFS'?'HDFS':'DATABASE'}/${record.id}`}>
                                     <i className="icon icon-edit"/>
                                 </Link>
                             </Tooltip>
