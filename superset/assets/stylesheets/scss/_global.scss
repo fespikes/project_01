@@ -1,6 +1,7 @@
 //global variable
 $borderStyleNormal: solid 1px #dfe3e9;
 $borderStyleFocus: solid 1px #66afe9;
+$borderStyleWarning: solid 1px #ff1111;
 $borderRadius: 4px;
 $smFontSize: 12px;
 $mdFontSize: 14px;
@@ -59,6 +60,10 @@ button:disabled {
     height: 32px;
 }
 
+.tp-input-warning, .tp-textarea-warning {
+    border: $borderStyleWarning;
+}
+
 .tp-textarea {
     resize: none;
 }
@@ -69,4 +74,8 @@ button:disabled {
 
 .none{
     display: none;
+}
+
+.ant-tooltip-inner {
+    max-width: 330px !important;
 }

@@ -14,6 +14,7 @@ class TableColumnAdd extends React.Component {
                 filterable: false,
                 count_distinct: false,
                 expression: '',
+                description: '',
                 max: false,
                 sum: false,
                 groupby: false,
@@ -81,7 +82,7 @@ class TableColumnAdd extends React.Component {
 
     formValidate () {
         const tc = this.state.tableColumn;
-        if (tc.column_name && tc.expression && tc.dataset_id) {
+        if (tc.column_name && tc.dataset_id) {
             this.setState({
                 enableConfirm: true
             });
@@ -181,6 +182,7 @@ class TableColumnAdd extends React.Component {
                         <div className="popup-body">
                             <div className="dialog-item">
                                 <div className="item-left">
+                                    <i>*</i>
                                     <span className="item-label">列：</span>
                                 </div>
                                 <div className="item-right">
@@ -212,10 +214,9 @@ class TableColumnAdd extends React.Component {
                                 </div>
                                 <div className="item-right">
                                     <textarea className="tp-textarea dialog-area" name="expression" value={column.expression} onChange={this.handleInputChange}/>
-                                    <Tooltip placement="top" title="表达式">
+                                    <Tooltip placement="topRight" title="生成新列的SQL语法，比如：col+1">
                                         <i
                                             className="icon icon-info after-textarea-icon"
-                                            style={{position: 'absolute', top: 0, right: -20}}
                                         />
                                     </Tooltip>
                                 </div>

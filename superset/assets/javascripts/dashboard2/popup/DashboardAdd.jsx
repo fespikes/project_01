@@ -4,7 +4,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { fetchAddDashboard, setDashAddConfirmState } from '../actions';
-import { Select, Alert } from 'antd';
+import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
 
 class DashboardAdd extends React.Component {
@@ -114,6 +114,7 @@ class DashboardAdd extends React.Component {
                         <div className="popup-body">
                             <div className="dialog-item">
                                 <div className="item-left">
+                                    <i>*</i>
                                     <span>标题：</span>
                                 </div>
                                 <div className="item-right">
@@ -150,6 +151,9 @@ class DashboardAdd extends React.Component {
                                             {options}
                                         </Select>
                                     </div>
+                                    <Tooltip title="添加或移除该仪表盘包含的工作表" placement="topRight">
+                                        <i className="icon icon-info after-icon" />
+                                    </Tooltip>
                                 </div>
                             </div>
                             <div className="dialog-item">

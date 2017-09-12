@@ -337,7 +337,10 @@ class HDFSUploadDetail extends Component {
         return (
             <div className="data-detail-centent hdfs-detail">
                 <div className="data-detail-item">
-                    <span>数据集名称：</span>
+                    <div>
+                        <i>*</i>
+                        <span>数据集名称：</span>
+                    </div>
                     <input
                         type="text"
                         name="dataset_name"
@@ -358,7 +361,9 @@ class HDFSUploadDetail extends Component {
                     />
                 </div>
                 <div className={datasetType===UPLOAD_FILE?'data-detail-item':'none'}>
-                    <span></span>
+                    <div>
+                        <i>*</i>
+                    </div>
                     <div>
                         <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
                             <span>选择文件</span>
@@ -393,7 +398,10 @@ class HDFSUploadDetail extends Component {
                 </div>
                 <div className={HDFSConnected===true?'':'none'}>
                     <div className="data-detail-item">
-                        <span>HDFS连接：</span>
+                        <div>
+                            <i>*</i>
+                            <span>HDFS连接：</span>
+                        </div>
                         <Select
                             style={{ width: 300 }}
                             value={dsHDFS.hdfsConnectName}
@@ -409,7 +417,10 @@ class HDFSUploadDetail extends Component {
                     </div>
                 </div>
                 <div className="data-detail-item">
-                    <span>数据目录：</span>
+                    <div>
+                        <i>*</i>
+                        <span>数据目录：</span>
+                    </div>
                     <div className="dataset-detail" id="dataset-detail-tree-select">
                         <TreeSelect
                             showSearch
@@ -426,9 +437,18 @@ class HDFSUploadDetail extends Component {
                         </TreeSelect>
                         <input type="hidden" required="required" value={dsHDFS.hdfsPath}/>
                     </div>
+                    <Tooltip title="选择创建外表的文件目录">
+                        <i
+                            className="icon icon-info"
+                            style={{right: '-5px', position: 'relative'}}
+                        />
+                    </Tooltip>
                 </div>
                 <div className="data-detail-item">
-                    <span>关联inceptor连接：</span>
+                    <div>
+                        <i>*</i>
+                        <span>关联inceptor连接：</span>
+                    </div>
                     <Select
                         style={{ width: 300 }}
                         value={dsHDFS.inceptorConnectName}
@@ -436,6 +456,12 @@ class HDFSUploadDetail extends Component {
                     >
                         {inceptorOptions}
                     </Select>
+                    <Tooltip title="会在该连接下创建HDFS文件的外表">
+                        <i
+                            className="icon icon-info"
+                            style={{right: '-5px', position: 'relative'}}
+                        />
+                    </Tooltip>
                     <input
                         type="hidden"
                         required="required"

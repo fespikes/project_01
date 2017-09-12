@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { fetchIfNeeded, setPopupParam, popupActions } from '../actions';
+import { fetchIfNeeded } from '../actions';
 import { Pagination, Table, Operate } from '../components';
-import { Popup } from '../components';
 import PropTypes from 'prop-types';
 import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
 
@@ -22,12 +21,12 @@ class App extends Component {
     }
 
     componentDidMount () {
-        const { dispatch, condition } = this.props;
+        const { dispatch } = this.props;
         dispatch(fetchIfNeeded());
     }
 
     componentWillReceiveProps (nextProps) {
-        const { dispatch, condition } = nextProps;
+        const { dispatch } = nextProps;
 
         if (nextProps.condition.filter !== this.props.condition.filter ||
             nextProps.condition.onlyFavorite !== this.props.condition.onlyFavorite ||
@@ -39,18 +38,12 @@ class App extends Component {
     }
 
     render () {
-        const {dispatch, paramOfDelete, popupParam, response, condition} = this.props;
+        const {dispatch, paramOfDelete, response, condition} = this.props;
 
         const count = response&&response.count ||0;
 
         return (
             <div className="pilot-panel datasource-panel">
-                <div className="popupContainer">
-                    <Popup
-                        {...popupParam}
-                        {...popupActions}
-                    />
-                </div>
                 <div className="panel-top">
                     <div className="left">
                         <i
@@ -94,7 +87,7 @@ function mapStateToProps(state) {
 
     const {
         isFetching,
-        response        ///
+        response
     } = requestByCondition||{
         isFetching: false,
         response: {}
@@ -106,12 +99,6 @@ function mapStateToProps(state) {
         popupParam,
         response,
         isFetching
-    };
-}
-
-function mapDispatchToProps(dispatch) {
-    return {
-        actions: bindActionCreators(actions, dispatch),
     };
 }
 
