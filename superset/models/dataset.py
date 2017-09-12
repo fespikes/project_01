@@ -233,7 +233,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     id = Column(Integer, primary_key=True)
     dataset_name = Column(String(128), nullable=False)
-    dataset_type = Column(String(32), nullable=False)
+    # dataset_type = Column(String(32), nullable=False)
     table_name = Column(String(128))
     schema = Column(String(128))
     sql = Column(Text)
@@ -271,11 +271,18 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         'database_id', 'is_featured', 'offset', 'cache_timeout', 'schema',
         'sql', 'params')
 
-    dataset_types = ['INCEPTOR', 'MYSQL', 'HDFS']
-    dataset_addable_types = dataset_types + ['UPLOAD FILE']
+    dataset_types = Database.database_types
+    filter_types = dataset_types
+    addable_types = ['DATABASE']
 
     def __repr__(self):
         return self.dataset_name
+
+    @property
+    def dataset_type(self):
+        if self.hdfs_table:
+            return self.hdfs_table.dataset_type
+        return self.database.database_type
 
     @property
     def backend(self):
@@ -438,7 +445,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         )
 
     def query(self, groupby, metrics, granularity, from_dttm, to_dttm,
-              filter=None, is_timeseries=True, timeseries_limit=15,
+              filter=None, is_timeseries=True, timeseries_limit=None,
               timeseries_limit_metric=None, row_limit=None, inner_from_dttm=None,
               inner_to_dttm=None, orderby=None, extras=None, columns=None):
         """Querying any sqla table from this common interface"""
@@ -571,6 +578,8 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 direction = asc if ascending else desc
                 qry = qry.order_by(direction(col))
 
+        if timeseries_limit and 0 < timeseries_limit < row_limit:
+            row_limit = timeseries_limit
         qry = qry.limit(row_limit)
 
         if is_timeseries and timeseries_limit and groupby:
@@ -927,6 +936,9 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 class HDFSTable(Model, AuditMixinNullable):
     __tablename__ = "hdfs_table"
     type = 'table'
+    hdfs_table_types = ['HDFS', ]
+    filter_types = hdfs_table_types
+    addable_types = hdfs_table_types + ['UPLOAD FILE']
 
     id = Column(Integer, primary_key=True)
     hdfs_path = Column(String(256), nullable=False)

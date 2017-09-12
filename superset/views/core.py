@@ -1125,7 +1125,6 @@ class Superset(BaseSupersetView):
         )
         if not table:
             table = Dataset(dataset_name=table_name)
-        table.dataset_type = Dataset.dataset_type_dict.get("inceptor")
         table.database_id = data.get('dbId')
         q = SupersetQuery(data.get('sql'))
         table.sql = q.stripped()

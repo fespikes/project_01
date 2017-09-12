@@ -156,9 +156,9 @@ class DatasetModelView(SupersetModelView):  # noqa
     route_base = '/table'
     list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url',
                     'connection', 'changed_on', 'online']
-    add_columns = ['dataset_name', 'dataset_type', 'database_id', 'description',
+    add_columns = ['dataset_name', 'database_id', 'description',
                    'schema', 'table_name', 'sql']
-    show_columns = add_columns + ['id']
+    show_columns = add_columns + ['id', 'dataset_type']
     edit_columns = ['dataset_name', 'database_id', 'description', 'schema',
                     'table_name', 'sql']
     description_columns = {}
@@ -212,12 +212,12 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/add_dataset_types/', methods=['GET'])
     def add_dataset_types(self):
-        return json.dumps(self.model.dataset_addable_types)
+        return json.dumps(Dataset.addable_types + HDFSTable.addable_types)
 
     @catch_exception
     @expose('/filter_dataset_types/', methods=['GET'])
     def filter_dataset_types(self):
-        return json.dumps(self.model.dataset_types)
+        return json.dumps(Dataset.filter_types + HDFSTable.filter_types)
 
     @catch_exception
     @expose('/preview_data/', methods=['GET', ])
@@ -296,12 +296,12 @@ class DatasetModelView(SupersetModelView):  # noqa
     def add(self):
         args = self.get_request_data()
         dataset_type = args.get('dataset_type')
-        if dataset_type in Dataset.dataset_types and dataset_type != 'HDFS':
+        if dataset_type in Dataset.addable_types:
             dataset = self.populate_object(None, get_user_id(), args)
             self._add(dataset)
             return json_response(
                 message=ADD_SUCCESS, data={'object_id': dataset.id})
-        elif dataset_type == 'HDFS':
+        elif dataset_type in HDFSTable.addable_types:
             HDFSTable.cached_file.clear()
             # create hdfs_table
             hdfs_table_view = HDFSTableModelView()
@@ -315,7 +315,6 @@ class DatasetModelView(SupersetModelView):  # noqa
 
             # create dataset
             dataset = self.model(
-                dataset_type='HDFS',
                 dataset_name=args.get('dataset_name'),
                 table_name=args.get('dataset_name'),
                 description=args.get('description'),
@@ -349,11 +348,11 @@ class DatasetModelView(SupersetModelView):  # noqa
         args = self.get_request_data()
         dataset = self.get_object(pk)
         dataset_type = dataset.dataset_type
-        if dataset_type in Dataset.dataset_types and dataset_type != 'HDFS':
+        if dataset_type in Dataset.dataset_types:
             dataset = self.populate_object(pk, get_user_id(), args)
             self._edit(dataset)
             return json_response(message=UPDATE_SUCCESS)
-        elif dataset_type == 'HDFS':
+        elif dataset_type in HDFSTable.hdfs_table_types:
             HDFSTable.cached_file.clear()
             # edit hdfs_table
             hdfs_table = dataset.hdfs_table
