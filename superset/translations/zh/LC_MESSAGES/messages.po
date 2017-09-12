@@ -1646,8 +1646,8 @@ msgid ""
 "\nDataset: {dataset}, \nSlice: {slice}"
 msgstr "删除Inceptor连接{conn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
 
-msgid "Error parameter ids: {ids}, queried {num} inceptor connection(s)"
-msgstr "根据参数ids：{ids}查询到{num}个Inceptor连接"
+msgid "Error parameter ids: {ids}, queried {num} database connection(s)"
+msgstr "根据参数ids：{ids}查询到{num}个数据库连接"
 
 msgid ""
 "Releasing hdfs connection {hconn} will make these usable: \n"
@@ -1668,10 +1668,10 @@ msgid "Error parameter ids: {ids}, queried {num} hdfs connection(s)"
 msgstr "根据参数ids：{ids}查询到{num}个HDFS连接"
 
 msgid ""
-"Deleting inceptor connections {dbs} and hdfs connections {hconns} will make these "
+"Deleting database connections {dbs} and hdfs connections {hconns} will make these "
 "unusable: \nDataset: {dataset}, \nSlice: {slice}"
 msgstr ""
-"删除Inceptor连接{dbs}和HDFS连接{hconns}会使以下对象不可用：\n"
+"删除数据库连接{dbs}和HDFS连接{hconns}会使以下对象不可用：\n"
 "数据集：{dataset}，\n工作表：{slice}"
 
 

@@ -47,7 +47,7 @@ class Database(Model, AuditMixinNullable):
     database_name = Column(String(128), nullable=False)
     description = Column(Text)
     online = Column(Boolean, default=False)
-    database_type = Column(String(32), nullable=False)
+    # database_type = Column(String(32), nullable=False)
     sqlalchemy_uri = Column(String(1024))
     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
     cache_timeout = Column(Integer)
@@ -74,6 +74,10 @@ class Database(Model, AuditMixinNullable):
     @property
     def name(self):
         return self.database_name
+
+    @property
+    def database_type(self):
+        return self.backend.upper()
 
     @property
     def backend(self):

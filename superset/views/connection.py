@@ -14,6 +14,7 @@ from flask_appbuilder.security.sqla.models import User
 
 import sqlalchemy as sqla
 from sqlalchemy import select, literal, cast, or_, and_
+from sqlalchemy.engine.url import make_url
 
 from superset import app, db, models
 from superset.models import Database, HDFSConnection, Connection, Slice
@@ -37,7 +38,7 @@ class DatabaseView(SupersetModelView):  # noqa
     list_columns = ['id', 'database_name', 'description', 'backend', 'changed_on']
     show_columns = ['id', 'database_name', 'description', 'sqlalchemy_uri',
                     'args', 'backend',  'created_on', 'changed_on']
-    add_columns = ['database_name', 'description', 'database_type', 'sqlalchemy_uri', 'args']
+    add_columns = ['database_name', 'description', 'sqlalchemy_uri', 'args']
     edit_columns = add_columns
     readme_columns = ['sqlalchemy_uri']
     add_template = "superset/models/database/add.html"
@@ -100,12 +101,6 @@ class DatabaseView(SupersetModelView):  # noqa
             raise SupersetException(NONE_SQLALCHEMY_URI)
         if not obj.args:
             raise SupersetException(NONE_CONNECTION_ARGS)
-        if not obj.database_type:
-            raise SupersetException(NONE_CONNECTION_TYPE)
-        if obj.database_type not in Connection.connection_type_dict.values():
-            raise SupersetException(
-                _("Not supported database type [{type_}]")
-                    .format(type_=obj.database_type))
 
     def get_object_list_data(self, **kwargs):
         """Return the database(connection) list"""
@@ -401,13 +396,13 @@ class ConnectionView(BaseSupersetView, PageMixin):
         json_data = {k.lower(): v for k, v in json_data.items()}
         #
         all_user = False
-        db_ids = json_data.get('inceptor')
+        db_ids = json_data.get('database')
         if db_ids:
             objs = db.session.query(Database) \
                 .filter(Database.id.in_(db_ids)).all()
             if len(db_ids) != len(objs):
                 raise Exception(
-                    _("Error parameter ids: {ids}, queried {num} inceptor connection(s)")
+                    _("Error parameter ids: {ids}, queried {num} database connection(s)")
                     .format(ids=db_ids, num=len(objs))
                 )
             for obj in objs:
@@ -437,7 +432,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
     def muldelete_info(self):
         json_data = json.loads(str(request.data, encoding='utf-8'))
         json_data = {k.lower(): v for k, v in json_data.items()}
-        db_ids = json_data.get('inceptor')
+        db_ids = json_data.get('database')
         hdfs_conn_ids = json_data.get('hdfs')
 
         dbs, hconns, datasets, slices = [], [], [], []
@@ -456,7 +451,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
         slice_names = [s.slice_name for s in slices]
         dataset_names = list(set(dataset_names))
         slice_names = list(set(slice_names))
-        info = _("Deleting inceptor connections {dbs} and hdfs connections {hconns} "
+        info = _("Deleting database connections {dbs} and hdfs connections {hconns} "
                  "will make these objects unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}") \
             .format(dbs=dbs,
@@ -478,8 +473,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
                      Database.online.label('online'),
                      Database.created_by_fk.label('user_id'),
                      Database.changed_on.label('changed_on'),
-                     # cast(literal('INCEPTOR'), type_=sqla.String).label('connection_type'),
-                     Database.database_type.label('connection_type'),
+                     Database.sqlalchemy_uri.label('connection_type'),
                      Database.expose.label('expose')])
         s2 = select([HDFSConnection.id.label('id'),
                      HDFSConnection.connection_name.label('name'),
@@ -527,12 +521,16 @@ class ConnectionView(BaseSupersetView, PageMixin):
         rs = query.all()
         data = []
         for row in rs:
+            type_ = row[5]
+            if type_ != 'HDFS':
+                url = make_url(type_)
+                type_ = url.get_backend_name().upper()
             data.append({
                 'id': row[0],
                 'name': row[1],
                 'online': row[2],
                 'changed_on': str(row[4]),
-                'connection_type': row[5],
+                'connection_type': type_,
                 'owner': row[7],
             })
 

@@ -47,7 +47,6 @@ def upgrade():
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('database_name', sa.String(length=128), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
-        sa.Column('database_type', sa.String(length=32), nullable=False),
         sa.Column('online', sa.Boolean(), nullable=True, server_default="0"),
         sa.Column('sqlalchemy_uri', sa.String(length=1024), nullable=True),
         sa.Column('password', EncryptedType(), nullable=True),
