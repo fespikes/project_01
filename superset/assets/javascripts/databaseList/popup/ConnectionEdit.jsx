@@ -5,6 +5,7 @@ import { connectionTypes, fetchUpdateConnection, testConnection, testHDFSConnect
 import { Alert, Tooltip } from 'antd';
 import {Select} from '../components';
 import PropTypes from 'prop-types';
+import { isCorrectConnection } from '../utils';
 
 class ConnectionEdit extends React.Component {
     constructor(props) {
@@ -28,9 +29,8 @@ class ConnectionEdit extends React.Component {
     };
 
     componentDidMount () {
-        this.fetchConnectionNames();
         let database = {};
-        if(this.props.connectionType === connectionTypes.inceptor) {
+        if(isCorrectConnection(this.props.connectionType, connectionTypes)) {
             let connectParams = JSON.stringify(JSON.parse(this.state.database.args), undefined, 4);
             document.getElementById('connectParams').value = connectParams;
             database = {
@@ -39,11 +39,12 @@ class ConnectionEdit extends React.Component {
                 connectionType: this.props.connectionType
             };
 
-        }else if(this.props.connectionType === connectionTypes.HDFS) {
+        }else if(this.props.connectionType === connectionTypes.hdfs) {
             database = {
                 ...this.state.database,
                 connectionType: this.props.connectionType
             }
+            this.fetchConnectionNames();
         }
         this.setState({
             database: database
@@ -65,7 +66,7 @@ class ConnectionEdit extends React.Component {
     testConnection(testCallBack) {
         const me = this;
         const { dispatch, connectionType } = me.props;
-        if(connectionType === connectionTypes.inceptor) {
+        if(isCorrectConnection(connectionType, connectionTypes)) {
             dispatch(testConnection(
                 {
                     database_name: me.state.database.database_name,
@@ -73,7 +74,7 @@ class ConnectionEdit extends React.Component {
                     args: me.state.database.databaseArgs
                 }, callback)
             );
-        }else if(connectionType === connectionTypes.HDFS) {
+        }else if(connectionType === connectionTypes.hdfs) {
             dispatch(testHDFSConnection(this.state.database.httpfs, callback));
         }
         function callback(success) {
@@ -92,15 +93,19 @@ class ConnectionEdit extends React.Component {
                 exception: exception,
                 connected: connected
             });
+            let connectType = connectionTypes.hdfs;
+            if(isCorrectConnection(connectionType, connectionTypes)) {
+                connectType = connectionTypes.inceptor;
+            }
             render(
                 <Alert
                     message={me.state.exception.message}
                     type={me.state.exception.type}
-                    onClose={me.closeAlert('test-connect-tip-' + connectionType)}
+                    onClose={me.closeAlert('test-connect-tip-' + connectType)}
                     closable={true}
                     showIcon
                 />,
-                document.getElementById('test-connect-tip-' + connectionType)
+                document.getElementById('test-connect-tip-' + connectType)
             );
             if(typeof testCallBack === 'function') {
                 testCallBack(me.state.connected);
@@ -126,7 +131,7 @@ class ConnectionEdit extends React.Component {
 
     formValidate(database) {
         let disabled;
-        if(this.props.connectionType === connectionTypes.inceptor) {
+        if(isCorrectConnection(this.props.connectionType, connectionTypes)) {
             if((database.database_name && database.database_name.length > 0) &&
                 (database.sqlalchemy_uri && database.sqlalchemy_uri.length > 0) &&
                 (database.databaseArgs && database.databaseArgs.length > 0)) {
@@ -134,7 +139,7 @@ class ConnectionEdit extends React.Component {
             }else {
                 disabled = true;
             }
-        }else if(this.props.connectionType === connectionTypes.HDFS) {
+        }else if(this.props.connectionType === connectionTypes.hdfs) {
             if((database.connection_name && database.connection_name.length > 0) &&
                 (database.httpfs && database.httpfs.length > 0)) {
                 disabled = false;
@@ -214,7 +219,7 @@ class ConnectionEdit extends React.Component {
                         </div>
                         <div className="popup-body">
                             {/*S: inceptor connection body*/}
-                            <div className={connectionType===connectionTypes.inceptor?'':'none'} >
+                            <div className={isCorrectConnection(connectionType, connectionTypes)?'':'none'} >
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <span>连接类型：</span>
@@ -340,7 +345,7 @@ class ConnectionEdit extends React.Component {
                             {/*E: inceptor connection body*/}
 
                             {/*S: HDFS connection body*/}
-                            <div className={connectionType===connectionTypes.HDFS?'':'none'} >
+                            <div className={connectionType===connectionTypes.hdfs?'':'none'} >
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <span>连接类型：</span>

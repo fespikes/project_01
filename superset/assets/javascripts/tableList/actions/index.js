@@ -34,12 +34,17 @@ export const actionTypes = {
     clearDatasetData: 'CLEAR_DATASET_DATA'
 };
 
+export const datasetTypes = {
+    database: 'DATABASE',
+    hdfs: 'HDFS',
+    uploadFile: 'UPLOAD FILE',
+    inceptor: 'INCEPTOR',
+    mysql: 'MYSQL',
+    oracle: 'ORACLE',
+    mssql: 'MSSQL'
+};
 
 const baseURL = window.location.origin + '/table/';
-
-const _fetch = () => {
-
-}
 
 const callbackHandler = (response, callback) => {
     if(response.status === 200) {

@@ -5,6 +5,7 @@ import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
 import * as actionCreators from '../actions';
+import { datasetTypes } from '../actions';
 import {InceptorDetail, HDFSUploadDetail, UploadDetail} from './details';
 import {extractOpeType, getDatasetId, extractDatasetType} from '../module';
 
@@ -32,7 +33,6 @@ class SubDetail extends Component {
         const {
             dispatch,
             history,
-            datasetType,
             dsInceptor,
             dsHDFS,
             HDFSConnected,
@@ -57,12 +57,13 @@ class SubDetail extends Component {
             fetchInceptorConnectList,
             fetchUploadFile
         } = this.props;
+        const datasetType = this.state.datasetType;
         const opeType = extractOpeType(window.location.hash);
         const datasetId = getDatasetId(opeType, window.location.hash);
         return (
             <div className="data-detail-centent shallow">
                 <div className="data-detail-border">
-                    <div className={datasetType==='INCEPTOR'?'':'none'}>
+                    <div className={datasetType===datasetTypes.database?'':'none'}>
                         <InceptorDetail
                             dispatch={dispatch}
                             history={history}
@@ -82,7 +83,7 @@ class SubDetail extends Component {
                             editDataset={editDataset}
                         />
                     </div>
-                    <div className={(datasetType==='HDFS' || datasetType==='UPLOAD FILE')?'':'none'}>
+                    <div className={(datasetType===datasetTypes.hdfs ||datasetType===datasetTypes.uploadFile)?'':'none'}>
                         <HDFSUploadDetail
                             dispatch={dispatch}
                             history={history}

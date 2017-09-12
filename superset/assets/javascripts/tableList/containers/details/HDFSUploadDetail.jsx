@@ -388,7 +388,10 @@ class HDFSUploadDetail extends Component {
                         <span></span>
                         <div className="data-connect-status">
                             <span>尚未建立HDFS连接</span>
-                            <button onClick={this.createHDFSConnect}>建立HDFS连接</button>
+                            <Tooltip placement="top" title="需要到连接页面创建HDFS连接">
+                                <button>建立HDFS连接</button>
+                            </Tooltip>
+                            {/*<button onClick={this.createHDFSConnect}>建立HDFS连接</button>*/}
                         </div>
                     </div>
                     <div className="data-detail-item">
