@@ -43,6 +43,7 @@ setup(
     install_requires=[
         'celery==3.1.23',
         'cryptography==1.5.3',
+        'cx_Oracle==5.3',
         'fileRobot-client==0.0.1',
         'flask-appbuilder==1.8.1',
         'flask-cache==0.13.1',
