@@ -6,6 +6,7 @@ import {Select} from '../components';
 import PropTypes from 'prop-types';
 import { fetchInceptorConnectAdd, fetchHDFSConnectAdd, testConnection, testHDFSConnection, fetchConnectionNames, connectionTypes } from '../actions';
 import { isCorrectConnection, connectDefaultInfo} from '../utils';
+import { renderAlertErrorInfo, renderAlertTip } from '../../../utils/utils';
 
 class ConnectionAdd extends React.Component {
     constructor (props, context) {
@@ -61,7 +62,7 @@ class ConnectionAdd extends React.Component {
         }else if(connectionType === connectionTypes.hdfs) {
             dispatch(testHDFSConnection(this.state.database.httpfs, callback));
         }
-        function callback(success) {
+        function callback(success, message) {
             let exception = {};
             if(success) {
                 exception.type = "success";
@@ -69,21 +70,13 @@ class ConnectionAdd extends React.Component {
             }else {
                 exception.type = "error";
                 exception.message = "该连接是一个不合法连接";
+                renderAlertErrorInfo(message, 'add-connect-tip', '100%', self);
             }
             self.setState({
                 connected: true
             });
             self.formValidate(self.state.database);
-            render(
-                <Alert
-                    message={exception.message}
-                    type={exception.type}
-                    onClose={self.closeAlert('test-add-connect-tip')}
-                    closable={true}
-                    showIcon
-                />,
-                document.getElementById('test-add-connect-tip')
-            );
+            renderAlertTip(exception, 'test-add-connect-tip', '100%');
         }
     }
 
@@ -145,17 +138,7 @@ class ConnectionAdd extends React.Component {
             if(success) {
                 self.closeDialog();
             }else {
-                render(
-                    <Alert
-                        message="Error"
-                        type="error"
-                        description={message}
-                        onClose={self.closeAlert('add-connect-tip')}
-                        closable={true}
-                        showIcon
-                    />,
-                    document.getElementById('add-connect-tip')
-                );
+                renderAlertErrorInfo(message, 'add-connect-tip', '100%', self);
             }
         }
         if(isCorrectConnection(connectionType, connectionTypes)) {

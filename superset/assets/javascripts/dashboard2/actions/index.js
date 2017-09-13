@@ -25,7 +25,7 @@ export const CONFIG_PARAMS = {
 const callbackHandler = (response, callback) => {
     if(response.status === 200) {
         callback && callback(true, response.data);
-    }else if(response.status === 500) {
+    }else {
         callback && callback(false, response.message);
     }
 };
