@@ -71,13 +71,14 @@ def is_user_defined_permission(perm):
 
 def get_or_create_main_db():
     logging.info("Creating database reference")
+    main_conn_name = conf.get("METADATA_CONN_NAME")
     dbobj = (
         db.session.query(models.Database)
-        .filter_by(database_name='main')
+        .filter_by(database_name=main_conn_name)
         .first()
     )
     if not dbobj:
-        dbobj = models.Database(database_name="main")
+        dbobj = models.Database(database_name=main_conn_name)
     uri = conf.get("SQLALCHEMY_DATABASE_URI")
     logging.info(uri)
     dbobj.online = True

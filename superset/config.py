@@ -54,6 +54,9 @@ LICENSE_CHECK_SERVER = '172.16.2.41:2291'
 # Your App secret key
 SECRET_KEY = '=== Transwarp Studio Pilot ==='  # noqa
 
+
+METADATA_CONN_NAME = 'main'
+
 # The SQLAlchemy connection string.
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(DATA_DIR, 'pilot.db')
 

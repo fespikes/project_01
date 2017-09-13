@@ -432,7 +432,7 @@ class SupersetModelView(ModelView, PageMixin):
         """TODO just return connection_type=='inceptor'"""
         dbs = (
             db.session.query(Database)
-            .filter(Database.database_name != 'main',
+            .filter(Database.database_name != config.get('METADATA_CONN_NAME'),
                     or_(Database.created_by_fk == user_id,
                         Database.online == 1)
             )
