@@ -416,19 +416,24 @@ class SupersetModelView(ModelView, PageMixin):
 
         return query
 
-    def get_available_tables(self):
-        # TODO just return dataset_type=='inceptor'
-        tbs = db.session.query(Dataset).all()
-        tb_list = []
-        for t in tbs:
-            row = {'id': t.id, 'dataset_name': t.dataset_name}
-            tb_list.append(row)
-        return tb_list
+    @staticmethod
+    def get_available_datasets(user_id):
+        datasets = (
+            db.session.query(Dataset)
+            .filter(
+                or_(Dataset.created_by_fk == user_id,
+                    Dataset.online == 1)
+            )
+            .order_by(Dataset.changed_on.desc())
+            .all()
+        )
+        return datasets
 
     def get_available_connections(self, user_id):
         return self.get_available_databases(user_id)
 
-    def get_available_databases(self, user_id):
+    @staticmethod
+    def get_available_databases(user_id):
         """TODO just return connection_type=='inceptor'"""
         dbs = (
             db.session.query(Database)
@@ -447,7 +452,10 @@ class SupersetModelView(ModelView, PageMixin):
     def get_available_dashboards(user_id):
         dashs = (
             db.session.query(Dashboard)
-            .filter_by(created_by_fk=user_id)
+            .filter(
+                or_(Dashboard.created_by_fk == user_id,
+                    Dashboard.online == 1)
+            )
             .order_by(Dashboard.changed_on.desc())
             .all()
         )
