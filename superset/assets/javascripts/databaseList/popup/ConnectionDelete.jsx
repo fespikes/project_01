@@ -7,7 +7,9 @@ import { selectRows, applyDelete } from '../actions';
 class ConnectionDelete extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            exception: {}
+        };
         // bindings
         this.confirm = this.confirm.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
@@ -18,12 +20,22 @@ class ConnectionDelete extends React.Component {
     }
 
     confirm() {
+        const self = this;
         const {dispatch, deleteType} = this.props;
-        const callback = (success, json) => {
+        const callback = (success, message) => {
             if(success) {
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+            }else {
+                self.refs.alertRef.style.display = "block";
+                let exception = {};
+                exception.type = "error";
+                exception.message = "Error";
+                exception.description = message;
+                self.setState({
+                    exception: exception
+                });
             }
-        }
+        };
 
         if(deleteType === "none") {
             ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
@@ -56,6 +68,15 @@ class ConnectionDelete extends React.Component {
                                     message="Warning"
                                     description={this.props.deleteTips}
                                     type="warning"
+                                    showIcon
+                                />
+                            </div>
+                            <div className="error" ref="alertRef" style={{display: 'none'}}>
+                                <Alert
+                                    message={this.state.exception.message}
+                                    description={this.state.exception.description}
+                                    type={this.state.exception.type}
+                                    closeText="close"
                                     showIcon
                                 />
                             </div>

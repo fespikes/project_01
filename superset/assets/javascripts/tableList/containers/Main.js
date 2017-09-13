@@ -84,7 +84,7 @@ function mapStateToProps(state) {
 
     const {
         isFetching,
-        response        ///
+        response
     } = requestByCondition[condition.tableType]||{
         isFetching: false,
         response: {}

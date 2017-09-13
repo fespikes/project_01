@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-fetch';
-import {getPublishConnectionUrl} from '../utils';
+import {getPublishConnectionUrl, isCorrectConnection} from '../utils';
 import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
 
 export const actionTypes = {
@@ -27,8 +27,12 @@ export const actionTypes = {
 
 export const connectionTypes = {
     inceptor: 'INCEPTOR',
-    HDFS: 'HDFS'
-}
+    hdfs: 'HDFS',
+    mysql: 'MYSQL',
+    oracle: "ORACLE",
+    mssql: "MSSQL",
+    database: "DATABASE"
+};
 
 const origin = window.location.origin;
 const baseURL = origin + '/database/';
@@ -58,7 +62,7 @@ const getParamDB = (database) => {
     let db = {};
     let connectionType = (database.connectionType||database.backend);
     //todo: get other connection type params
-    if (connectionType ===connectionTypes.inceptor) {
+    if (isCorrectConnection(connectionType, connectionTypes)) {
         db.database_name = database.database_name;
         db.sqlalchemy_uri = database.sqlalchemy_uri;
         db.description = database.description;
@@ -224,7 +228,7 @@ export function fetchPublishConnection(record, callback) {
 
 export function fetchOnOfflineInfo(connectionId, published, connectionType, callback) {
     let prefix = "database";
-    if(connectionType === "HDFS") {
+    if(connectionType === connectionTypes.hdfs) {
         prefix = "hdfsconnection";
     }
     const url = getOnOfflineInfoUrl(connectionId, prefix, published);
@@ -313,10 +317,19 @@ const getURLBase = (type, subfix) => {
     if (!type) return;
     let URL = '';
     switch (type.toUpperCase()) {
-        case 'HDFS':
+        case connectionTypes.hdfs:
             URL = HDFSConnectionBaseURL;
             break;
-        case 'INCEPTOR':
+        case connectionTypes.inceptor:
+            URL = INCEPTORConnectionBaseURL;
+            break;
+        case connectionTypes.mysql:
+            URL = INCEPTORConnectionBaseURL;
+            break;
+        case connectionTypes.oracle:
+            URL = INCEPTORConnectionBaseURL;
+            break;
+        case connectionTypes.mssql:
             URL = INCEPTORConnectionBaseURL;
             break;
         default:

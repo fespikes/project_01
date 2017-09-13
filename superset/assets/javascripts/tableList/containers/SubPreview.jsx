@@ -5,7 +5,8 @@ import { render } from 'react-dom';
 import {bindActionCreators} from 'redux';
 import { Link, withRouter } from 'react-router-dom';
 import * as actionCreators from '../actions';
-import { Table, Input, Button, Icon, Select, Alert } from 'antd';
+import { datasetTypes } from '../actions';
+import { Table, Input, Button, Icon, Select, Alert, message } from 'antd';
 import * as datasetModule from '../module';
 import { DetailType } from '../popup';
 import {renderAlertTip} from '../../../utils/utils';
@@ -32,15 +33,15 @@ class SubPreview extends Component {
     componentDidMount() {
         const { datasetId, inceptorPreviewData, dsHDFS } = this.props;
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
-        if(datasetType === "INCEPTOR") {
+        if(datasetType === datasetTypes.database) {
             if(JSON.stringify(inceptorPreviewData) === "{}") {
-                if(datasetId && datasetId.length > 0) {
+                if(datasetId && datasetId.toString().length > 0) {
                     this.doFetchInceptorPreviewData(datasetId);
                 }
             }else {
                 this.doConstructTableData(datasetType, inceptorPreviewData);
             }
-        } else if(datasetType === "HDFS" || datasetType === "UPLOAD FILE") {
+        } else if(datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) {
             if(dsHDFS && dsHDFS.hdfsConnectId) {
                 this.doFetchHDFSPreviewData(dsHDFS);
             }
@@ -51,9 +52,9 @@ class SubPreview extends Component {
 
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
         if(nextProps.datasetId !== this.props.datasetId && nextProps.datasetId) {
-            if(datasetType === "INCEPTOR") {
+            if(datasetType === datasetTypes.database) {
                 this.doFetchInceptorPreviewData(nextProps.datasetId);
-            } else if(datasetType === "HDFS" || datasetType === "UPLOAD FILE") {
+            } else if(datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) {
                 this.doFetchHDFSPreviewData(nextProps.dsHDFS);
             }
         }
@@ -84,9 +85,9 @@ class SubPreview extends Component {
                     tableWidth: width,
                     data: data
                 });
-                me.doConstructTableData('INCEPTOR', data);
+                me.doConstructTableData(datasetTypes.database, data);
             }else {
-                console.log("error...");
+                message.error(data, 5);
             }
         }
     }
@@ -102,7 +103,7 @@ class SubPreview extends Component {
                     tableWidth: width,
                     data: data
                 });
-                me.doConstructTableData('HDFS', data);
+                me.doConstructTableData(datasetTypes.hdfs, data);
             }else {
                 console.log("error...");
             }
@@ -114,10 +115,10 @@ class SubPreview extends Component {
         let width = datasetModule.getColumnWidth(data.columns.length);
         let tbTitleOnly = datasetModule.getTbTitle(data, width);
         let tbContent = datasetModule.getTbContent(data);
-        if(datasetType === 'INCEPTOR') {
+        if(datasetType === datasetTypes.database) {
             tbType = datasetModule.getTbType(data);
             tbTitle = datasetModule.getTbTitleInceptor(JSON.parse(JSON.stringify(tbTitleOnly)));
-        }else if(datasetType === 'HDFS' || datasetType === "UPLOAD FILE") {
+        }else if(datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) {
             tbTitle = datasetModule.getTbTitleHDFS(JSON.parse(JSON.stringify(tbTitleOnly)), this);
             tbContentHDFS = [{
                 key: '1'
@@ -224,7 +225,8 @@ class SubPreview extends Component {
             <div>
                 <div style={{width:'100%', height:'30px', background:'#fff', marginTop:'-2px'}}> </div>
                 <div className="preview-table">
-                    <div className={datasetType==='INCEPTOR'?'table-header':'none'} style={{width: tableWidth}}>
+                    <div className={datasetType===datasetTypes.database?'table-header':'none'}
+                         style={{width: tableWidth}}>
                         <Table
                             className="data-preview"
                             columns={this.state.tbTitle}
@@ -233,7 +235,8 @@ class SubPreview extends Component {
                             pagination={false}
                         />
                     </div>
-                    <div className={(datasetType==='HDFS' || datasetType==='UPLOAD FILE')?'table-header':'none'} style={{width: tableWidth}}>
+                    <div className={(datasetType===datasetTypes.hdfs || datasetType===datasetTypes.uploadFile)?'table-header':'none'}
+                         style={{width: tableWidth}}>
                         <Table
                             columns={this.state.tbTitle}
                             dataSource={this.state.tbContentHDFS}
@@ -251,7 +254,7 @@ class SubPreview extends Component {
                         />
                     </div>
                 </div>
-                <div className={datasetType==='INCEPTOR'?'none':'data-detail-preview'}>
+                <div className={datasetType===datasetTypes.database?'none':'data-detail-preview'}>
                     <div className="data-detail-border">
                         <div className="data-detail-item">
                             <span>文件类型：</span>

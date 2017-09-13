@@ -3,10 +3,11 @@ import { render } from 'react-dom';
 import { message, Table, Icon, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
 import { fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection, fetchOnOfflineInfo,
-    fetchConnectDelInfo } from '../actions';
+    fetchConnectDelInfo, connectionTypes } from '../actions';
 import { ConnectionDelete, ConnectionEdit } from '../popup';
 import style from '../style/database.scss'
 import { ConfirmModal } from '../../common/components';
+import { isCorrectConnection } from '../utils';
 
 class SliceTable extends React.Component {
     constructor(props, context) {
@@ -24,10 +25,14 @@ class SliceTable extends React.Component {
         let selectedRowNames = [];
         let connToBeDeleted = {};
         selectedRows.map(function(row) {
-            if (connToBeDeleted[row.connection_type]) {
-                connToBeDeleted[row.connection_type].push(row.id);
+            let connectionType = connectionTypes.hdfs;
+            if(isCorrectConnection(row.connection_type, connectionTypes)) {
+                connectionType = connectionTypes.database;
+            }
+            if (connToBeDeleted[connectionType]) {
+                connToBeDeleted[connectionType].push(row.id);
             } else {
-                connToBeDeleted[row.connection_type] = [row.id];
+                connToBeDeleted[connectionType] = [row.id];
             }
             selectedRowNames.push(row.name);
         });
@@ -94,7 +99,11 @@ class SliceTable extends React.Component {
             if(success) {
                 let deleteTips = data;
                 let connToBeDeleted = {};
-                connToBeDeleted[record.connection_type] = [record.id];
+                let connectionType = connectionTypes.hdfs;
+                if(isCorrectConnection(record.connection_type, connectionTypes)) {
+                    connectionType = connectionTypes.database;
+                }
+                connToBeDeleted[connectionType] = [record.id];
                 dispatch(selectRows([record.elementId], connToBeDeleted, [record.name]));
 
                 render(

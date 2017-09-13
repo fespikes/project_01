@@ -1,5 +1,6 @@
 import React from 'react';
 import { Select, Popover } from 'antd';
+import { datasetTypes } from './actions';
 
 const MIN_WIDTH = 120;
 const MAX_COLUMNS = 10;
@@ -155,7 +156,7 @@ export function getTbType(data) {
 
 export function constructInceptorDataset(dataset) {
     let inceptorDataset = {};
-    inceptorDataset.dataset_type = "INCEPTOR";
+    inceptorDataset.dataset_type = datasetTypes.database;
     inceptorDataset.dataset_name = dataset.dataset_name;
     inceptorDataset.table_name = dataset.table_name;
     inceptorDataset.schema = dataset.schema;
@@ -170,7 +171,7 @@ export function constructInceptorDataset(dataset) {
 export function constructHDFSDataset(dataset, title) {
     let hdfsDataset = {};
     hdfsDataset.dataset_name = dataset.dataset_name;
-    hdfsDataset.dataset_type = 'HDFS';
+    hdfsDataset.dataset_type = datasetTypes.hdfs;
     hdfsDataset.database_id = dataset.inceptorConnectId;
     hdfsDataset.description = dataset.description;
     hdfsDataset.hdfs_path = dataset.hdfsPath;
@@ -264,7 +265,7 @@ export function getDatasetTitle(opeType, datasetType) {
 
 export function getDatasetTab2Name(datasetType) {
     let tab2Name = "配置";
-    if(datasetType === 'INCEPTOR') {
+    if(datasetType === datasetTypes.database) {
         tab2Name = '数据预览';
     }
     return tab2Name;
@@ -312,7 +313,7 @@ export function judgeEnableClickHDFSPreview(opeType, datasetType, datasetId, HDF
     if(datasetId && datasetId !== '') {
         return true;
     }
-    if((datasetType === 'HDFS' || datasetType === 'UPLOAD FILE') && HDFSConfigured) {
+    if((datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) && HDFSConfigured) {
         return true;
     }
 
@@ -322,10 +323,10 @@ export function judgeEnableClickHDFSPreview(opeType, datasetType, datasetId, HDF
 export function initDatasetData(type, newData, oldData) {
     let data = {};
     switch(type) {
-        case 'INCEPTOR':
+        case datasetTypes.database:
             data = initInceptorData(newData, oldData);
             break;
-        case 'HDFS':
+        case datasetTypes.hdfs:
             data = initHDFSData(newData, oldData);
             break;
         default:
@@ -336,7 +337,7 @@ export function initDatasetData(type, newData, oldData) {
 
 function initInceptorData(newData, oldData) {
     let inceptorData = {
-        dataset_type: 'INCEPTOR',
+        dataset_type: datasetTypes.database,
         dataset_name: newData.dataset_name,
         table_name: newData.table_name,
         schema: newData.schema,
@@ -352,7 +353,7 @@ function initInceptorData(newData, oldData) {
 
 function initHDFSData(newData, oldData) {
     let hdfsData = {
-        dataset_type: 'HDFS',
+        dataset_type: datasetTypes.hdfs,
         dataset_name: newData.dataset_name,
         description: newData.description,
         hdfsPath: newData.hdfs_path,
@@ -389,9 +390,9 @@ export function initHDFSPreviewData(data, opeType) {
 }
 
 export function isActive(type, location) {
-    return location.pathname.indexOf(`/${type}/INCEPTOR`) > -1 ||
-        location.pathname.indexOf(`/${type}/HDFS`) > -1 ||
-        location.pathname.indexOf(`/${type}/UPLOAD FILE`) > -1;
+    return location.pathname.indexOf(`/${type}/${datasetTypes.database}`) > -1 ||
+        location.pathname.indexOf(`/${type}/${datasetTypes.hdfs}`) > -1 ||
+        location.pathname.indexOf(`/${type}/${datasetTypes.uploadFile}`) > -1;
 }
 
 export function constructHDFSPreviewUrl(dataset) {
