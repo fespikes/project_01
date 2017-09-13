@@ -61,10 +61,10 @@ def load_energy():
         },
         index=False)
 
-    print("Creating table [wb_health_population] reference")
+    print("Creating table [energy_usage] reference")
     tbl = db.session.query(TBL).filter_by(table_name=tbl_name).first()
     if not tbl:
-        tbl = TBL(dataset_name=tbl_name,
+        tbl = TBL(dataset_name="能源消耗",
                   table_name=tbl_name)
     tbl.description = "Energy consumption"
     tbl.online = True
@@ -74,7 +74,7 @@ def load_energy():
     tbl.fetch_metadata()
 
     slc = Slice(
-        slice_name="Energy Sankey",
+        slice_name="能源使用的细分",
         viz_type='sankey',
         datasource_type='table',
         datasource_id=tbl.id,
@@ -105,7 +105,7 @@ def load_energy():
     merge_slice(slc)
 
     slc = Slice(
-        slice_name="Energy Force Layout",
+        slice_name="能源流动",
         viz_type='directed_force',
         datasource_type='table',
         datasource_id=tbl.id,
@@ -138,7 +138,7 @@ def load_energy():
     merge_slice(slc)
 
     slc = Slice(
-        slice_name="Heatmap",
+        slice_name="能源热力图",
         viz_type='heatmap',
         datasource_type='table',
         datasource_id=tbl.id,
@@ -194,7 +194,7 @@ def load_world_bank_health_n_pop():
     print("Creating table [wb_health_population] reference")
     tbl = db.session.query(TBL).filter_by(table_name=tbl_name).first()
     if not tbl:
-        tbl = TBL(dataset_name=tbl_name,
+        tbl = TBL(dataset_name='世界各国人口',
                   table_name=tbl_name)
     tbl.description = utils.readfile(os.path.join(DATA_FOLDER, 'countries.md'))
     tbl.main_dttm_col = 'year'
@@ -229,7 +229,7 @@ def load_world_bank_health_n_pop():
     print("Creating slices")
     slices = [
         Slice(
-            slice_name="Region Filter",
+            slice_name="筛选地区",
             viz_type='filter_box',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -239,7 +239,7 @@ def load_world_bank_health_n_pop():
                 groupby=['region', 'country_name']),
             online=True),
         Slice(
-            slice_name="World's Population",
+            slice_name="世界人口",
             viz_type='big_number',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -252,7 +252,7 @@ def load_world_bank_health_n_pop():
                 compare_suffix="over 10Y"),
             online=True),
         Slice(
-            slice_name="Most Populated Countries",
+            slice_name="人口数量排行",
             viz_type='table',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -263,7 +263,7 @@ def load_world_bank_health_n_pop():
                 groupby=['country_name']),
             online=True),
         Slice(
-            slice_name="Growth Rate",
+            slice_name="人口增长变化",
             viz_type='line',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -276,7 +276,7 @@ def load_world_bank_health_n_pop():
                 groupby=['country_name']),
             online=True),
         Slice(
-            slice_name="% Rural",
+            slice_name="各国人口",
             viz_type='world_map',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -287,7 +287,7 @@ def load_world_bank_health_n_pop():
                 num_period_compare="10"),
             online=True),
         Slice(
-            slice_name="Life Expectancy VS Rural %",
+            slice_name="各洲预期寿命",
             viz_type='bubble',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -309,7 +309,7 @@ def load_world_bank_health_n_pop():
                 num_period_compare="10",),
             online=True),
         Slice(
-            slice_name="Rural Breakdown",
+            slice_name="各洲与各国人口",
             viz_type='sunburst',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -322,7 +322,7 @@ def load_world_bank_health_n_pop():
                 until="2011-01-01",),
             online=True),
         Slice(
-            slice_name="World's Pop Growth",
+            slice_name="东亚人口变化趋势",
             viz_type='area',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -334,7 +334,7 @@ def load_world_bank_health_n_pop():
                 groupby=["region"],),
             online=True),
         Slice(
-            slice_name="Box plot",
+            slice_name="东亚人口数量箱线图",
             viz_type='box_plot',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -347,7 +347,7 @@ def load_world_bank_health_n_pop():
                 groupby=["region"],),
             online=True),
         Slice(
-            slice_name="Treemap",
+            slice_name="各洲人口树状图",
             viz_type='treemap',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -360,7 +360,7 @@ def load_world_bank_health_n_pop():
                 groupby=["region", "country_code"],),
             online=True),
         Slice(
-            slice_name="Parallel Coordinates",
+            slice_name="人口数量平行坐标图",
             viz_type='para',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -383,7 +383,7 @@ def load_world_bank_health_n_pop():
         merge_slice(slc)
 
     print("Creating a World's Health Bank dashboard")
-    dash_name = "World's Bank Data"
+    dash_name = "世界人口"
     slug = "world_health"
     dash = db.session.query(Dash).filter_by(slug=slug).first()
 
@@ -599,7 +599,7 @@ def load_birth_names():
     print("Creating table [birth_names] reference")
     obj = db.session.query(TBL).filter_by(table_name='birth_names').first()
     if not obj:
-        obj = TBL(dataset_name='birth_names',
+        obj = TBL(dataset_name='新生婴儿统计',
                   table_name='birth_names')
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
@@ -632,7 +632,7 @@ def load_birth_names():
     print("Creating some slices")
     slices = [
         Slice(
-            slice_name="Girls",
+            slice_name="女孩姓名数量",
             viz_type='table',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -643,7 +643,7 @@ def load_birth_names():
                 flt_eq_1="girl", row_limit=50),
             online=True),
         Slice(
-            slice_name="Boys",
+            slice_name="男孩姓名数量",
             viz_type='table',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -655,7 +655,7 @@ def load_birth_names():
                 row_limit=50),
             online=True),
         Slice(
-            slice_name="Participants",
+            slice_name="每年新生婴儿趋势图",
             viz_type='big_number',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -665,7 +665,7 @@ def load_birth_names():
                 compare_lag="5", compare_suffix="over 5Y"),
             online=True),
         Slice(
-            slice_name="Genders",
+            slice_name="性别比例",
             viz_type='pie',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -674,7 +674,7 @@ def load_birth_names():
                 viz_type="pie", groupby=['gender']),
             online=True),
         Slice(
-            slice_name="Genders by State",
+            slice_name="各州男女婴儿数量",
             viz_type='dist_bar',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -685,7 +685,7 @@ def load_birth_names():
                 groupby=['state'], flt_op_1='not in', flt_col_1='state'),
             online=True),
         Slice(
-            slice_name="Trends",
+            slice_name="每年名字数量趋势",
             viz_type='line',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -695,7 +695,7 @@ def load_birth_names():
                 granularity='ds', rich_tooltip='y', show_legend='y'),
             online=True),
         Slice(
-            slice_name="Average and Sum Trends",
+            slice_name="每年平均数量和总数的对比",
             viz_type='dual_line',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -705,7 +705,7 @@ def load_birth_names():
                 granularity='ds'),
             online=True),
         Slice(
-            slice_name="Title",
+            slice_name="标题",
             viz_type='markup',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -724,7 +724,7 @@ def load_birth_names():
 """),
             online=True),
         Slice(
-            slice_name="Name Cloud",
+            slice_name="热门名字",
             viz_type='word_cloud',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -735,7 +735,7 @@ def load_birth_names():
                 limit='100'),
             online=True),
         Slice(
-            slice_name="Pivot Table",
+            slice_name="各州名字统计",
             viz_type='pivot_table',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -745,7 +745,7 @@ def load_birth_names():
                 groupby=['name'], columns=['state']),
             online=True),
         Slice(
-            slice_name="Number of Girls",
+            slice_name="女孩总数",
             viz_type='big_number_total',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -834,7 +834,7 @@ def load_birth_names():
     l = json.loads(js)
     for i, pos in enumerate(l):
         pos['slice_id'] = str(slices[i].id)
-    dash.dashboard_title = "Births"
+    dash.dashboard_title = "新生婴儿"
     dash.position_json = json.dumps(l, indent=4)
     dash.online = True
     dash.slices = slices[:-1]
@@ -953,7 +953,7 @@ def load_random_time_series_data():
     print("Creating table [random_time_series] reference")
     obj = db.session.query(TBL).filter_by(table_name='random_time_series').first()
     if not obj:
-        obj = TBL(dataset_name='random_time_series',
+        obj = TBL(dataset_name='随机时间序列',
                   table_name='random_time_series')
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
@@ -979,7 +979,8 @@ def load_random_time_series_data():
 
     print("Creating a slice")
     slc = Slice(
-        slice_name="Calendar Heatmap",
+        slice_name='热力图',
+        description='基于随机时间序列数据',
         viz_type='cal_heatmap',
         datasource_type='table',
         datasource_id=tbl.id,
@@ -1023,7 +1024,7 @@ def load_long_lat_data():
     print("Creating table reference")
     obj = db.session.query(TBL).filter_by(table_name='long_lat').first()
     if not obj:
-        obj = TBL(dataset_name='long_lat',
+        obj = TBL(dataset_name='位置坐标',
                   table_name='long_lat')
     obj.main_dttm_col = 'date'
     obj.database = get_or_create_main_db()
@@ -1051,7 +1052,7 @@ def load_long_lat_data():
 
     print("Creating a slice")
     slc = Slice(
-        slice_name="Mapbox Long/Lat",
+        slice_name="地理区域数量统计",
         viz_type='mapbox',
         datasource_type='table',
         datasource_id=tbl.id,
@@ -1090,7 +1091,7 @@ def load_multiformat_time_series_data():
     print("Creating table [multiformat_time_series] reference")
     obj = db.session.query(TBL).filter_by(table_name='multiformat_time_series').first()
     if not obj:
-        obj = TBL(dataset_name='multiformat_time_series',
+        obj = TBL(dataset_name='多种格式的时间序列',
                   table_name='multiformat_time_series')
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
@@ -1133,7 +1134,8 @@ def load_multiformat_time_series_data():
         }
 
         slc = Slice(
-            slice_name="Calendar Heatmap multiformat " + str(i),
+            slice_name="时间热力图" + str(i),
+            description='时间列: ' + col.column_name,
             viz_type='cal_heatmap',
             datasource_type='table',
             datasource_id=tbl.id,
@@ -1210,7 +1212,7 @@ def load_misc_dashboard():
     slices = sorted(slices, key=lambda x: x.id)
     for i, pos in enumerate(l):
         pos['slice_id'] = str(slices[i].id)
-    dash.dashboard_title = "Misc Charts"
+    dash.dashboard_title = "其他类型的工作表"
     dash.position_json = json.dumps(l, indent=4)
     dash.online = True
     dash.slices = slices
