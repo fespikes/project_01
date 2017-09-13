@@ -192,7 +192,7 @@ class SubPreview extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlertPreview');
+                    renderAlertTip(response, 'showAlertPreview', 400);
                 }
             }
         }else if(opeType === 'edit') {
@@ -206,7 +206,7 @@ class SubPreview extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlertPreview');
+                    renderAlertTip(response, 'showAlertPreview', 400);
                 }
             }
         }

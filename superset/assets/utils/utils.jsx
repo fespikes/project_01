@@ -13,10 +13,10 @@ export function renderLoadingModal() {
     return loadingModal;
 }
 
-export function renderAlertTip(response, mountId) {
+export function renderAlertTip(response, mountId, width='100%') {
     render(
         <Alert
-            style={{ width: 400 }}
+            style={{ width: width }}
             type={response.type}
             message={response.message}
             closable={true}
@@ -27,6 +27,21 @@ export function renderAlertTip(response, mountId) {
     setTimeout(function() {
         ReactDOM.unmountComponentAtNode(document.getElementById(mountId));
     }, 5000);
+}
+
+export function renderAlertErrorInfo(description, mountId, width='100%', _this) {
+    render(
+        <Alert
+            style={{width: width}}
+            message='Error'
+            type='error'
+            description={description}
+            onClose={_this.closeAlert(mountId)}
+            closable={true}
+            showIcon
+        />,
+        document.getElementById(mountId)
+    );
 }
 
 export function getEleOffsetLeft(element) {

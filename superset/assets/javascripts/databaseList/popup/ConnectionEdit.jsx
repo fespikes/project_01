@@ -6,6 +6,7 @@ import { Alert, Tooltip } from 'antd';
 import {Select} from '../components';
 import PropTypes from 'prop-types';
 import { isCorrectConnection, connectDefaultInfo } from '../utils';
+import { renderAlertErrorInfo, renderAlertTip } from '../../../utils/utils';
 
 class ConnectionEdit extends React.Component {
     constructor(props) {
@@ -55,7 +56,7 @@ class ConnectionEdit extends React.Component {
         const me = this;
         const callback = (connectionNames) => {
             me.setState({connectionNames:connectionNames});
-        }
+        };
         this.props.dispatch(fetchConnectionNames(callback));
     }
 
@@ -77,7 +78,7 @@ class ConnectionEdit extends React.Component {
         }else if(connectionType === connectionTypes.hdfs) {
             dispatch(testHDFSConnection(this.state.database.httpfs, callback));
         }
-        function callback(success) {
+        function callback(success, message) {
             let exception = {};
             let connected;
             if(success) {
@@ -88,6 +89,7 @@ class ConnectionEdit extends React.Component {
                 exception.type = "error";
                 exception.message = "该连接是一个不合法连接";
                 connected = false;
+                renderAlertErrorInfo(message, 'edit-connect-tip', '100%', me);
             }
             me.setState({
                 exception: exception,
@@ -97,16 +99,7 @@ class ConnectionEdit extends React.Component {
             if(isCorrectConnection(connectionType, connectionTypes)) {
                 connectType = connectionTypes.inceptor;
             }
-            render(
-                <Alert
-                    message={me.state.exception.message}
-                    type={me.state.exception.type}
-                    onClose={me.closeAlert('test-connect-tip-' + connectType)}
-                    closable={true}
-                    showIcon
-                />,
-                document.getElementById('test-connect-tip-' + connectType)
-            );
+            renderAlertTip(exception, 'test-connect-tip-' + connectType, '100%');
             if(typeof testCallBack === 'function') {
                 testCallBack(me.state.connected);
             }
@@ -171,17 +164,7 @@ class ConnectionEdit extends React.Component {
             if(success) {
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
-                render(
-                    <Alert
-                        message="Error"
-                        type="error"
-                        description={message}
-                        onClose={me.closeAlert('edit-connect-tip')}
-                        closable={true}
-                        showIcon
-                    />,
-                    document.getElementById('edit-connect-tip')
-                );
+                renderAlertErrorInfo(message, 'edit-connect-tip', '100%', me);
             }
         }
     }

@@ -325,7 +325,7 @@ function getSelectedSlices(selectedDashboards, availableDashboards) {
     let array = [];
     selectedDashboards.forEach(function(selected) {
         availableDashboards.forEach(function(dashboard) {
-            if(selected === dashboard.id.toString()) {
+            if(selected === dashboard.dashboard_title) {
                 array.push(dashboard);
             }
         });

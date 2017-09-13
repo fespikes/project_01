@@ -165,7 +165,7 @@ class HDFSUploadDetail extends Component {
             me.setState({
                 fileUploaded: fileUploaded
             });
-            renderAlertTip(response, 'showAlertDetail');
+            renderAlertTip(response, 'showAlertDetail', 400);
         }
     }
 
