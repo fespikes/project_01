@@ -22,7 +22,7 @@ class DashboardEdit extends React.Component {
         function initDefaultOptions() {
             let defaultOptions = [];
             props.dashboardDetail.slices.map(slice => {
-                defaultOptions.push(slice.id.toString());
+                defaultOptions.push(slice.slice_name);
             });
             return defaultOptions;
         }

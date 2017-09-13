@@ -386,7 +386,7 @@ function getSelectedSlices(selectedSlices, availableSlices) {
     let array = [];
     selectedSlices.forEach(function(selected) {
         availableSlices.forEach(function(slice) {
-            if(selected === slice.id.toString()) {
+            if(selected === slice.slice_name.toString()) {
                 array.push(slice);
             }
         });
