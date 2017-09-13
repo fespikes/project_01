@@ -331,7 +331,7 @@ class SupersetModelView(ModelView, PageMixin):
     def get_show_attributes(self, obj, user_id=None):
         attributes = {}
         for col in self.show_columns:
-            if not hasattr(obj, col):
+            if not hasattr(obj, col) and not hasattr(obj, '"{}"'.format(col)):
                 msg = _("Class [{cls}] does not have the attribute [{attribute}]") \
                     .format(cls=obj.__class__.__name__, attribute=col)
                 self.handle_exception(500, KeyError, msg)
