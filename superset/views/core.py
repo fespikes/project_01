@@ -997,30 +997,20 @@ class Superset(BaseSupersetView):
     @expose("/testconn", methods=["POST", "GET"])
     def testconn(self):
         """Tests a sqla connection"""
-        try:
-            args = json.loads(str(request.data, encoding='utf-8'))
-            uri = args.get('sqlalchemy_uri')
-            db_name = args.get('database_name')
-            # uri, kerberos = Database.uri_append_keytab(uri)
-            if db_name:
-                database = (
-                    db.session.query(Database)
-                        .filter_by(database_name=db_name)
-                        .first()
-                )
-                if database and uri == database.safe_sqlalchemy_uri():
-                    # the password-masked uri was passed
-                    # use the URI associated with this database
-                    uri = database.sqlalchemy_uri_decrypted
-            connect_args = eval(args.get('args', {})).get('connect_args', {})
-            connect_args = Database.args_append_keytab(connect_args)
-            engine = create_engine(uri, connect_args=connect_args)
-            engine.connect()
-            return json.dumps(engine.table_names(), indent=4)
-        except Exception as e:
-            return Response(_("Test connection failed! \n{msg}").format(msg=e),
-                            status=500,
-                            mimetype="application/json")
+        args = json.loads(str(request.data, encoding='utf-8'))
+        uri = args.get('sqlalchemy_uri')
+        db_name = args.get('database_name')
+        if db_name:
+            database = (
+                db.session.query(Database).filter_by(database_name=db_name).first()
+            )
+            if database and uri == database.safe_sqlalchemy_uri():
+                uri = database.sqlalchemy_uri_decrypted
+        connect_args = eval(args.get('args', {})).get('connect_args', {})
+        connect_args = Database.args_append_keytab(connect_args)
+        engine = create_engine(uri, connect_args=connect_args)
+        engine.connect()
+        return json_response(data=engine.table_names())
 
     @catch_exception
     @expose("/favstar/<class_name>/<obj_id>/<action>/")
