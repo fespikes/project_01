@@ -166,7 +166,7 @@ class DatabaseView(SupersetModelView):  # noqa
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Releasing inceptor connection {conn} will make these usable: "
+        info = _("Releasing database connection {conn} will make these usable: "
                  "\nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
@@ -177,7 +177,7 @@ class DatabaseView(SupersetModelView):  # noqa
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Changing inceptor connection {conn} to offline will make "
+        info = _("Changing database connection {conn} to offline will make "
                  "these unusable: \nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
@@ -188,7 +188,7 @@ class DatabaseView(SupersetModelView):  # noqa
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Deleting inceptor connection {conn} will make these unusable: "
+        info = _("Deleting database connection {conn} will make these unusable: "
                "\nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
@@ -200,7 +200,7 @@ class DatabaseView(SupersetModelView):  # noqa
         dbs = db.session.query(Database).filter(Database.id.in_(ids)).all()
         if len(dbs) != len(ids):
             raise SupersetException(
-                _("Error parameter ids: {ids}, queried {num} inceptor connection(s)")
+                _("Error parameter ids: {ids}, queried {num} database connection(s)")
                     .format(ids=ids, num=len(dbs))
             )
 
