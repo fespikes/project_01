@@ -389,23 +389,25 @@ class SupersetModelView(ModelView, PageMixin):
     def query_own_or_online(self, class_name, user_id, only_favorite):
         query = (
             db.session.query(self.model, User.username, FavStar.obj_id)
-                .join(User, self.model.created_by_fk == User.id)
+                .outerjoin(User, self.model.created_by_fk == User.id)
         )
 
         if only_favorite:
-            query = query.join(FavStar,
-                               and_(
-                                   self.model.id == FavStar.obj_id,
-                                   FavStar.class_name.ilike(class_name),
-                                   FavStar.user_id == user_id)
-                               )
+            query = query.join(
+                FavStar,
+                and_(
+                    self.model.id == FavStar.obj_id,
+                    FavStar.class_name.ilike(class_name),
+                    FavStar.user_id == user_id)
+                )
         else:
-            query = query.outerjoin(FavStar,
-                                    and_(
-                                        self.model.id == FavStar.obj_id,
-                                        FavStar.class_name.ilike(class_name),
-                                        FavStar.user_id == user_id)
-                                    )
+            query = query.outerjoin(
+                FavStar,
+                and_(
+                    self.model.id == FavStar.obj_id,
+                    FavStar.class_name.ilike(class_name),
+                    FavStar.user_id == user_id)
+                )
 
         query = query.filter(
             or_(self.model.created_by_fk == user_id,

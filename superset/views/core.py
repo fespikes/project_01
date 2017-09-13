@@ -227,7 +227,6 @@ class SliceModelView(SupersetModelView):  # noqa
                     Slice.description.ilike(filter_str),
                     Slice.viz_type.ilike(filter_str),
                     Slice.datasource_name.ilike(filter_str),
-                    #str(Slice.changed_on).contains(filter_str),
                     User.username.ilike(filter_str)
                 )
             )

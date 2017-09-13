@@ -41,6 +41,9 @@ CUSTOM_SECURITY_MANAGER = None
 # The Community Edition will abandon guardian module, and embed user management module
 COMMUNITY_EDITION = False
 
+# if load examples data when start server
+LOAD_EXAMPLES = True
+
 # License check
 LICENSE_CHECK = True
 LICENSE_CHECK_SERVER = '172.16.2.41:2291'
@@ -202,7 +205,7 @@ LOG_LEVEL = 'DEBUG'
 # Enable Time Rotate Log Handler
 # ---------------------------------------------------
 # LOG_LEVEL = DEBUG, INFO, WARNING, ERROR, CRITICAL
-ENABLE_TIME_ROTATE = False
+ENABLE_TIME_ROTATE = True
 TIME_ROTATE_LOG_LEVEL = 'DEBUG'
 FILENAME = '/var/log/pilot/pilot.log'
 ROLLOVER = 'midnight'

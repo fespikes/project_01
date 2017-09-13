@@ -80,7 +80,7 @@ def get_or_create_main_db():
         dbobj = models.Database(database_name="main")
     uri = conf.get("SQLALCHEMY_DATABASE_URI")
     logging.info(uri)
-    dbobj.database_type = uri[:uri.find('://')].upper()
+    dbobj.online = True
     dbobj.expose = False
     dbobj.set_sqlalchemy_uri(uri)
     db.session.add(dbobj)

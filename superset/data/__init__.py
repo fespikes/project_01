@@ -67,7 +67,7 @@ def load_energy():
         tbl = TBL(dataset_name=tbl_name,
                   table_name=tbl_name)
     tbl.description = "Energy consumption"
-    tbl.is_featured = True
+    tbl.online = True
     tbl.database = get_or_create_main_db()
     db.session.merge(tbl)
     db.session.commit()
@@ -98,7 +98,8 @@ def load_energy():
             "viz_type": "sankey",
             "where": ""
         }
-        """)
+        """),
+        online=True
     )
     misc_dash_slices.append(slc.slice_name)
     merge_slice(slc)
@@ -130,7 +131,8 @@ def load_energy():
             "viz_type": "directed_force",
             "where": ""
         }
-        """)
+        """),
+        online=True
     )
     misc_dash_slices.append(slc.slice_name)
     merge_slice(slc)
@@ -162,7 +164,8 @@ def load_energy():
             "xscale_interval": "1",
             "yscale_interval": "1"
         }
-        """)
+        """),
+        online=True
     )
     misc_dash_slices.append(slc.slice_name)
     merge_slice(slc)
@@ -195,7 +198,7 @@ def load_world_bank_health_n_pop():
                   table_name=tbl_name)
     tbl.description = utils.readfile(os.path.join(DATA_FOLDER, 'countries.md'))
     tbl.main_dttm_col = 'year'
-    tbl.is_featured = True
+    tbl.online = True
     tbl.database = get_or_create_main_db()
     db.session.merge(tbl)
     db.session.commit()
@@ -233,7 +236,8 @@ def load_world_bank_health_n_pop():
             params=get_slice_json(
                 defaults,
                 viz_type='filter_box',
-                groupby=['region', 'country_name'])),
+                groupby=['region', 'country_name']),
+            online=True),
         Slice(
             slice_name="World's Population",
             viz_type='big_number',
@@ -245,7 +249,8 @@ def load_world_bank_health_n_pop():
                 viz_type='big_number',
                 compare_lag="10",
                 metric='sum__SP_POP_TOTL',
-                compare_suffix="over 10Y")),
+                compare_suffix="over 10Y"),
+            online=True),
         Slice(
             slice_name="Most Populated Countries",
             viz_type='table',
@@ -255,7 +260,8 @@ def load_world_bank_health_n_pop():
                 defaults,
                 viz_type='table',
                 metrics=["sum__SP_POP_TOTL"],
-                groupby=['country_name'])),
+                groupby=['country_name']),
+            online=True),
         Slice(
             slice_name="Growth Rate",
             viz_type='line',
@@ -267,7 +273,8 @@ def load_world_bank_health_n_pop():
                 since="1960-01-01",
                 metrics=["sum__SP_POP_TOTL"],
                 num_period_compare="10",
-                groupby=['country_name'])),
+                groupby=['country_name']),
+            online=True),
         Slice(
             slice_name="% Rural",
             viz_type='world_map',
@@ -277,7 +284,8 @@ def load_world_bank_health_n_pop():
                 defaults,
                 viz_type='world_map',
                 metric="sum__SP_RUR_TOTL_ZS",
-                num_period_compare="10")),
+                num_period_compare="10"),
+            online=True),
         Slice(
             slice_name="Life Expectancy VS Rural %",
             viz_type='bubble',
@@ -298,7 +306,8 @@ def load_world_bank_health_n_pop():
                 flt_col_1="country_code",
                 flt_op_1="not in",
                 flt_eq_1="TCA,MNP,DMA,MHL,MCO,SXM,CYM,TUV,IMY,KNA,ASM,ADO,AMA,PLW",
-                num_period_compare="10",)),
+                num_period_compare="10",),
+            online=True),
         Slice(
             slice_name="Rural Breakdown",
             viz_type='sunburst',
@@ -310,7 +319,8 @@ def load_world_bank_health_n_pop():
                 groupby=["region", "country_name"],
                 secondary_metric="sum__SP_RUR_TOTL",
                 since="2011-01-01",
-                until="2011-01-01",)),
+                until="2011-01-01",),
+            online=True),
         Slice(
             slice_name="World's Pop Growth",
             viz_type='area',
@@ -321,7 +331,8 @@ def load_world_bank_health_n_pop():
                 since="1960-01-01",
                 until="now",
                 viz_type='area',
-                groupby=["region"],)),
+                groupby=["region"],),
+            online=True),
         Slice(
             slice_name="Box plot",
             viz_type='box_plot',
@@ -333,7 +344,8 @@ def load_world_bank_health_n_pop():
                 until="now",
                 whisker_options="Min/max (no outliers)",
                 viz_type='box_plot',
-                groupby=["region"],)),
+                groupby=["region"],),
+            online=True),
         Slice(
             slice_name="Treemap",
             viz_type='treemap',
@@ -345,7 +357,8 @@ def load_world_bank_health_n_pop():
                 until="now",
                 viz_type='treemap',
                 metrics=["sum__SP_POP_TOTL"],
-                groupby=["region", "country_code"],)),
+                groupby=["region", "country_code"],),
+            online=True),
         Slice(
             slice_name="Parallel Coordinates",
             viz_type='para',
@@ -362,7 +375,8 @@ def load_world_bank_health_n_pop():
                     'sum__SP_RUR_TOTL_ZS',
                     'sum__SH_DYN_AIDS'],
                 secondary_metric='sum__SP_POP_TOTL',
-                series="country_name",)),
+                series="country_name",),
+            online=True),
     ]
     misc_dash_slices.append(slices[-1].slice_name)
     for slc in slices:
@@ -455,8 +469,7 @@ def load_world_bank_health_n_pop():
 
     dash.dashboard_title = dash_name
     dash.position_json = json.dumps(l, indent=4)
-    dash.slug = slug
-
+    dash.online = True
     dash.slices = slices[:-1]
     db.session.merge(dash)
     db.session.commit()
@@ -590,7 +603,7 @@ def load_birth_names():
                   table_name='birth_names')
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
-    obj.is_featured = True
+    obj.online = True
     db.session.merge(obj)
     db.session.commit()
     obj.fetch_metadata()
@@ -627,7 +640,8 @@ def load_birth_names():
                 defaults,
                 groupby=['name'],
                 flt_col_1='gender',
-                flt_eq_1="girl", row_limit=50)),
+                flt_eq_1="girl", row_limit=50),
+            online=True),
         Slice(
             slice_name="Boys",
             viz_type='table',
@@ -638,7 +652,8 @@ def load_birth_names():
                 groupby=['name'],
                 flt_col_1='gender',
                 flt_eq_1="boy",
-                row_limit=50)),
+                row_limit=50),
+            online=True),
         Slice(
             slice_name="Participants",
             viz_type='big_number',
@@ -647,7 +662,8 @@ def load_birth_names():
             params=get_slice_json(
                 defaults,
                 viz_type="big_number", granularity="ds",
-                compare_lag="5", compare_suffix="over 5Y")),
+                compare_lag="5", compare_suffix="over 5Y"),
+            online=True),
         Slice(
             slice_name="Genders",
             viz_type='pie',
@@ -655,7 +671,8 @@ def load_birth_names():
             datasource_id=tbl.id,
             params=get_slice_json(
                 defaults,
-                viz_type="pie", groupby=['gender'])),
+                viz_type="pie", groupby=['gender']),
+            online=True),
         Slice(
             slice_name="Genders by State",
             viz_type='dist_bar',
@@ -665,7 +682,8 @@ def load_birth_names():
                 defaults,
                 flt_eq_1="other", viz_type="dist_bar",
                 metrics=['sum__sum_girls', 'sum__sum_boys'],
-                groupby=['state'], flt_op_1='not in', flt_col_1='state')),
+                groupby=['state'], flt_op_1='not in', flt_col_1='state'),
+            online=True),
         Slice(
             slice_name="Trends",
             viz_type='line',
@@ -674,7 +692,8 @@ def load_birth_names():
             params=get_slice_json(
                 defaults,
                 viz_type="line", groupby=['name'],
-                granularity='ds', rich_tooltip='y', show_legend='y')),
+                granularity='ds', rich_tooltip='y', show_legend='y'),
+            online=True),
         Slice(
             slice_name="Average and Sum Trends",
             viz_type='dual_line',
@@ -683,7 +702,8 @@ def load_birth_names():
             params=get_slice_json(
                 defaults,
                 viz_type="dual_line", metric='avg__num', metric_2='sum__num',
-                granularity='ds')),
+                granularity='ds'),
+            online=True),
         Slice(
             slice_name="Title",
             viz_type='markup',
@@ -701,7 +721,8 @@ def load_birth_names():
     </p>
     <img src="/static/assets/images/babytux.jpg">
 </div>
-""")),
+"""),
+            online=True),
         Slice(
             slice_name="Name Cloud",
             viz_type='word_cloud',
@@ -711,7 +732,8 @@ def load_birth_names():
                 defaults,
                 viz_type="word_cloud", size_from="10",
                 series='name', size_to="70", rotation="square",
-                limit='100')),
+                limit='100'),
+            online=True),
         Slice(
             slice_name="Pivot Table",
             viz_type='pivot_table',
@@ -720,7 +742,8 @@ def load_birth_names():
             params=get_slice_json(
                 defaults,
                 viz_type="pivot_table", metrics=['sum__num'],
-                groupby=['name'], columns=['state'])),
+                groupby=['name'], columns=['state']),
+            online=True),
         Slice(
             slice_name="Number of Girls",
             viz_type='big_number_total',
@@ -730,7 +753,8 @@ def load_birth_names():
                 defaults,
                 viz_type="big_number_total", granularity="ds",
                 flt_col_1='gender', flt_eq_1='girl',
-                subheader='total female participants')),
+                subheader='total female participants'),
+            online=True),
     ]
     for slc in slices:
         merge_slice(slc)
@@ -812,7 +836,7 @@ def load_birth_names():
         pos['slice_id'] = str(slices[i].id)
     dash.dashboard_title = "Births"
     dash.position_json = json.dumps(l, indent=4)
-    dash.slug = "births"
+    dash.online = True
     dash.slices = slices[:-1]
     db.session.merge(dash)
     db.session.commit()
@@ -848,7 +872,7 @@ def load_unicode_test_data():
                   table_name='unicode_test')
     obj.main_dttm_col = 'date'
     obj.database = get_or_create_main_db()
-    obj.is_featured = False
+    obj.online = False
     db.session.merge(obj)
     db.session.commit()
     obj.fetch_metadata()
@@ -881,6 +905,7 @@ def load_unicode_test_data():
         datasource_type='table',
         datasource_id=tbl.id,
         params=get_slice_json(slice_data),
+        online=True
     )
     merge_slice(slc)
 
@@ -902,7 +927,7 @@ def load_unicode_test_data():
     }
     dash.dashboard_title = "Unicode Test"
     dash.position_json = json.dumps([pos], indent=4)
-    dash.slug = "unicode-test"
+    dash.online = True
     dash.slices = [slc]
     db.session.merge(dash)
     db.session.commit()
@@ -932,7 +957,7 @@ def load_random_time_series_data():
                   table_name='random_time_series')
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
-    obj.is_featured = False
+    obj.online = True
     db.session.merge(obj)
     db.session.commit()
     obj.fetch_metadata()
@@ -959,6 +984,7 @@ def load_random_time_series_data():
         datasource_type='table',
         datasource_id=tbl.id,
         params=get_slice_json(slice_data),
+        online=True
     )
     merge_slice(slc)
 
@@ -1001,7 +1027,7 @@ def load_long_lat_data():
                   table_name='long_lat')
     obj.main_dttm_col = 'date'
     obj.database = get_or_create_main_db()
-    obj.is_featured = False
+    obj.online = True
     db.session.merge(obj)
     db.session.commit()
     obj.fetch_metadata()
@@ -1030,6 +1056,7 @@ def load_long_lat_data():
         datasource_type='table',
         datasource_id=tbl.id,
         params=get_slice_json(slice_data),
+        online=True
     )
     misc_dash_slices.append(slc.slice_name)
     merge_slice(slc)
@@ -1067,7 +1094,7 @@ def load_multiformat_time_series_data():
                   table_name='multiformat_time_series')
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
-    obj.is_featured = False
+    obj.online = True
     dttm_and_expr_dict = {
         'ds': [None, None],
         'ds2': [None, None],
@@ -1111,6 +1138,7 @@ def load_multiformat_time_series_data():
             datasource_type='table',
             datasource_id=tbl.id,
             params=get_slice_json(slice_data),
+            online=True
         )
         merge_slice(slc)
     misc_dash_slices.append(slc.slice_name)
@@ -1184,7 +1212,7 @@ def load_misc_dashboard():
         pos['slice_id'] = str(slices[i].id)
     dash.dashboard_title = "Misc Charts"
     dash.position_json = json.dumps(l, indent=4)
-    dash.slug = DASH_SLUG
+    dash.online = True
     dash.slices = slices
     db.session.merge(dash)
     db.session.commit()
