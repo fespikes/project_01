@@ -13,10 +13,7 @@ export function renderLoadingModal() {
     return loadingModal;
 }
 
-export function renderAlertTip(response, mountId, width) {
-    if(!width) {
-        width = '100%';
-    }
+export function renderAlertTip(response, mountId, width='100%') {
     render(
         <Alert
             style={{ width: width }}
@@ -32,10 +29,7 @@ export function renderAlertTip(response, mountId, width) {
     }, 5000);
 }
 
-export function renderAlertErrorInfo(description, mountId, width, _this) {
-    if(!width) {
-        width = '100%';
-    }
+export function renderAlertErrorInfo(description, mountId, width='100%', _this) {
     render(
         <Alert
             style={{width: width}}
