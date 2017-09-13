@@ -29,16 +29,6 @@ export function renderAlertTip(response, mountId) {
     }, 5000);
 }
 
-export function getDatabaseDefaultParams() {
-    const defaultParams = {
-        "connect_args": {
-            "framed": 0,
-            "hive": "Hive Server 2",
-            "mech": "LDAP"
-        }
-    };
-    return defaultParams;
-}
 export function getEleOffsetLeft(element) {
     if(element === null || element === undefined) {
         return 0;
