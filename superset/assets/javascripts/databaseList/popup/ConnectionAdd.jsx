@@ -5,10 +5,7 @@ import { Tooltip, Alert } from 'antd';
 import {Select} from '../components';
 import PropTypes from 'prop-types';
 import { fetchInceptorConnectAdd, fetchHDFSConnectAdd, testConnection, testHDFSConnection, fetchConnectionNames, connectionTypes } from '../actions';
-import { getDatabaseDefaultParams } from '../../../utils/utils';
-import { isCorrectConnection } from '../utils';
-
-const defaultParams = JSON.stringify(getDatabaseDefaultParams(), undefined, 4);
+import { isCorrectConnection, connectDefaultInfo} from '../utils';
 
 class ConnectionAdd extends React.Component {
     constructor (props, context) {
@@ -19,9 +16,12 @@ class ConnectionAdd extends React.Component {
                 database_name: '',
                 database_type: '',
                 description: '',
-                sqlalchemy_uri: '',
-                args: defaultParams,
-
+                sqlalchemy_uri: connectDefaultInfo[props.connectionType].str.defaultValue,
+                args: JSON.stringify(
+                    connectDefaultInfo[props.connectionType].args.defaultValue,
+                    undefined,
+                    4
+                ),
                 connection_name: '',
                 httpfs: '',
                 database_id:''
@@ -189,17 +189,13 @@ class ConnectionAdd extends React.Component {
         const self = this;
         const { connectionType } = this.props;
 
-        let iconClass = 'icon-connect';
-        let tipMsgStr = "如果认证方式是LDAP，需要加上用户名和密码：Inceptor://username:password@172.0.0.1:10000/database";
-        let tipMsgParam = "ODBC连接串的参数。（1）keytab文件通过Guardian获取；（2）支持LDAP认证，连接串需要添加用户名和密码";
-
         return (
             <div className="popup" ref="popupContainer">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className={'icon '+ iconClass}/>
+                                <i className='icon icon-connect'/>
                                 <span>添加{connectionType}连接</span>
                             </div>
                             <div className="header-right">
@@ -242,13 +238,16 @@ class ConnectionAdd extends React.Component {
                                     </div>
                                     <div className="item-right">
                                         <input
-                                            defaultValue="inceptor://username:password@172.0.0.1:10000/default"
+                                            defaultValue={this.state.database.sqlalchemy_uri}
                                             required="required"
                                             name="sqlalchemy_uri"
                                             className="tp-input dialog-input"
                                             onChange={this.handleChange}
                                         />
-                                        <Tooltip placement="topRight" title={tipMsgStr}>
+                                        <Tooltip
+                                            placement="topRight"
+                                            title={connectDefaultInfo[connectionType].str.tip}
+                                        >
                                             <i className="icon icon-infor after-icon"/>
                                         </Tooltip>
                                     </div>
@@ -265,12 +264,16 @@ class ConnectionAdd extends React.Component {
                                             style={{width:'420px', height:'120px'}}
                                             required="required"
                                             name="args"
-                                            defaultValue={defaultParams}
+                                            defaultValue={this.state.database.args}
                                             className="tp-textarea dialog-area"
                                             onChange={this.handleChange}
+                                            disabled={connectionType===connectionTypes.inceptor?false:true}
                                         >
                                         </textarea>
-                                        <Tooltip placement="topRight" title={tipMsgParam}>
+                                        <Tooltip
+                                            placement="topRight"
+                                            title={connectDefaultInfo[connectionType].args.tip}
+                                        >
                                             <i
                                                 className="icon icon-infor after-textarea-icon"
                                                 style={{top: 50}}
@@ -325,7 +328,10 @@ class ConnectionAdd extends React.Component {
                                             className="tp-input dialog-input"
                                             onChange={this.handleChange}
                                         />
-                                        <Tooltip placement="topRight" title="HDFS httpf服务IP地址">
+                                        <Tooltip
+                                            placement="topRight"
+                                            title={connectDefaultInfo[connectionTypes.hdfs].httpfs.tip}
+                                        >
                                             <i className="icon icon-infor after-icon"/>
                                         </Tooltip>
                                     </div>
@@ -340,7 +346,10 @@ class ConnectionAdd extends React.Component {
                                             width={420}
                                             handleSelect={(argus)=>this.setSelectConnection(argus)}
                                         />
-                                        <Tooltip placement="topRight" title="如果HDFS数据集没有选择Inceptor连接，则将使用该Inceptor连接。">
+                                        <Tooltip
+                                            placement="topRight"
+                                            title={connectDefaultInfo[connectionTypes.hdfs].defaultIncConnect.tip}
+                                        >
                                             <i className="icon icon-infor after-icon"/>
                                         </Tooltip>
                                     </div>
