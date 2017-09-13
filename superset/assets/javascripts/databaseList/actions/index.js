@@ -43,7 +43,7 @@ const HDFSConnectionBaseURL = origin + '/hdfsconnection/';
 const callbackHandler = (response, callback) => {
     if(response.status === 200) {
         callback && callback(true, response.data);
-    }else if(response.status === 500) {
+    }else {
         callback && callback(false, response.message);
     }
 };
@@ -134,17 +134,10 @@ export function testConnection(database, callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(database)
-        })
-        .then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    dispatch(switchFetchingState(false));
-                    callback(true);
-
-                }else {
-                    dispatch(switchFetchingState(false));
-                    callback(false);
-                }
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
         );
     }

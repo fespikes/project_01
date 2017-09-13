@@ -22,7 +22,7 @@ class SliceEdit extends React.Component {
         function initDefaultOptions() {
             let defaultOptions = [];
             props.sliceDetail.dashboards.map(dashboard => {
-                defaultOptions.push(dashboard.id.toString());
+                defaultOptions.push(dashboard.dashboard_title);
             });
             return defaultOptions;
         }

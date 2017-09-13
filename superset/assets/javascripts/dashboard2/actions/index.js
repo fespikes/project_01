@@ -25,7 +25,7 @@ export const CONFIG_PARAMS = {
 const callbackHandler = (response, callback) => {
     if(response.status === 200) {
         callback && callback(true, response.data);
-    }else if(response.status === 500) {
+    }else {
         callback && callback(false, response.message);
     }
 };
@@ -386,7 +386,7 @@ function getSelectedSlices(selectedSlices, availableSlices) {
     let array = [];
     selectedSlices.forEach(function(selected) {
         availableSlices.forEach(function(slice) {
-            if(selected === slice.id.toString()) {
+            if(selected === slice.slice_name.toString()) {
                 array.push(slice);
             }
         });

@@ -134,7 +134,7 @@ class InceptorDetail extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlertDetail');
+                    renderAlertTip(response, 'showAlertDetail', 400);
                 }
             }
         }else {
@@ -148,7 +148,7 @@ class InceptorDetail extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlertDetail');
+                    renderAlertTip(response, 'showAlertDetail', 400);
                 }
             }
         }
