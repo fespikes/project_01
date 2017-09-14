@@ -65,6 +65,11 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(DATA_DIR, 'pilot.db')
 # and 'charset=utf8' should be in uri
 #SQLALCHEMY_DATABASE_URI = 'mysql://username:password@localhost:3306/db?charset=utf8'
 
+
+# hdfs
+DEFAULT_HTTPFS = '172.0.0.1'
+DEFAULT_HDFS_CONN_NAME = 'default_{}'.format(DEFAULT_HTTPFS)
+
 # The limit of queries fetched for query search
 QUERY_SEARCH_LIMIT = 1000
 

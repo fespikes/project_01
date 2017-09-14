@@ -499,16 +499,16 @@ class ConnectionView(BaseSupersetView, PageMixin):
                      HDFSConnection.created_by_fk.label('user_id'),
                      HDFSConnection.changed_on.label('changed_on'),
                      cast(literal('HDFS'), type_=sqla.String).label('connection_type'),
-                     cast(literal(True), type_=sqla.Boolean).label('expose')])
+                     cast(literal(1), type_=sqla.Integer).label('expose')])
         union_q = s1.union_all(s2).alias('connection')
         query = (
             db.session.query(union_q, User.username)
-            .join(User, User.id == union_q.c.user_id)
+            .outerjoin(User, User.id == union_q.c.user_id)
             .filter(
                 or_(
                     union_q.c.user_id == user_id,
-                    union_q.c.online == 1,
-                    union_q.c.expose is True))
+                    union_q.c.online == 1),
+                union_q.c.expose == 1)
         )
 
         if connection_type:
