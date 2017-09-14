@@ -102,6 +102,11 @@ class DatabaseView(SupersetModelView):  # noqa
         if not obj.args:
             raise SupersetException(NONE_CONNECTION_ARGS)
 
+    def get_list_args(self, args):
+        kwargs = super().get_list_args(args)
+        kwargs['database_type'] = args.get('database_type')
+        return kwargs
+
     def get_object_list_data(self, **kwargs):
         """Return the database(connection) list"""
         order_column = kwargs.get('order_column')
@@ -109,11 +114,18 @@ class DatabaseView(SupersetModelView):  # noqa
         page = kwargs.get('page')
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
+        database_type = kwargs.get('database_type')
         user_id = kwargs.get('user_id')
 
         query = db.session.query(Database, User) \
             .filter(Database.created_by_fk == User.id,
                     Database.created_by_fk == user_id)
+
+        if database_type:
+            match_str = '{}%'.format(database_type)
+            query = query.filter(
+                Database.sqlalchemy_uri.ilike(match_str)
+            )
 
         if filter:
             filter_str = '%{}%'.format(filter.lower())
