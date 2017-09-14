@@ -1783,6 +1783,9 @@ msgstr "不存在HDFS连接，请先创建一个"
 msgid "Failed to get FileRobot server from config"
 msgstr "从配置文件获取FileRobot服务地址失败"
 
+msgid "The default hdfs connection [{hconn}] is not exists"
+msgstr "不存在默认的HDFS连接[{hconn}]"
+
 
 #========================
 # models/connection.py
