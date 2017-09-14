@@ -377,6 +377,11 @@ class ConnectionView(BaseSupersetView, PageMixin):
     model = models.Connection
     route_base = '/connection'
 
+    def get_list_args(self, args):
+        kwargs = super().get_list_args(args)
+        kwargs['connection_type'] = args.get('connection_type')
+        return kwargs
+
     @catch_exception
     @expose('/connection_types/', methods=['GET', ])
     def connection_types(self):
@@ -467,6 +472,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
         user_id = kwargs.get('user_id')
+        connection_type = kwargs.get('connection_type')
 
         s1 = select([Database.id.label('id'),
                      Database.database_name.label('name'),
@@ -492,6 +498,12 @@ class ConnectionView(BaseSupersetView, PageMixin):
                     union_q.c.online == 1,
                     union_q.c.expose is True))
         )
+
+        if connection_type:
+            match_str = '{}%'.format(connection_type)
+            query = query.filter(
+                    union_q.c.connection_type.ilike(match_str)
+            )
 
         if filter:
             filter_str = '%{}%'.format(filter.lower())
