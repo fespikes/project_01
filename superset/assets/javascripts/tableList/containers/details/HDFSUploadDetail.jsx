@@ -7,11 +7,9 @@ import {bindActionCreators} from 'redux';
 import { Link, withRouter } from 'react-router-dom';
 import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
+import { datasetTypes } from '../../actions';
 import { constructFileBrowserData, appendTreeChildren, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
 import { renderLoadingModal, renderAlertTip } from '../../../../utils/utils';
-
-const HDFS = "HDFS";
-const UPLOAD_FILE = "UPLOAD FILE";
 
 class HDFSUploadDetail extends Component {
 
@@ -189,7 +187,7 @@ class HDFSUploadDetail extends Component {
             }
         });
 
-        if(datasetType === UPLOAD_FILE && !this.state.fileUploaded) {
+        if(datasetType === datasetTypes.uploadFile && !this.state.fileUploaded) {
            disabled = 'disabled';
         }
         if(disabled === this.state.disabledConfig) {
@@ -206,7 +204,7 @@ class HDFSUploadDetail extends Component {
 
     componentDidMount() {
         const datasetType = extractDatasetType(window.location.hash);
-        if(datasetType === HDFS || datasetType === UPLOAD_FILE) {
+        if(datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) {
             this.doFetchInceptorList();
             this.doFetchHDFSList();
             this.doFetchHDFSFileData('/');
@@ -299,7 +297,7 @@ class HDFSUploadDetail extends Component {
                             inceptorConnectId: dbData.id
                         };
                         me.setState({
-                            dsHDFS: initDatasetData(HDFS, data, objHDFS)
+                            dsHDFS: initDatasetData(datasetTypes.hdfs, data, objHDFS)
                         });
                     }
                 }
@@ -311,7 +309,7 @@ class HDFSUploadDetail extends Component {
                             hdfsConnectId: hdfsData.id
                         };
                         me.setState({
-                            dsHDFS: initDatasetData(HDFS, data, objHDFS)
+                            dsHDFS: initDatasetData(datasetTypes.hdfs, data, objHDFS)
                         });
                     }
                 }
@@ -360,7 +358,7 @@ class HDFSUploadDetail extends Component {
                         onChange={this.handleChange}
                     />
                 </div>
-                <div className={datasetType===UPLOAD_FILE?'data-detail-item':'none'}>
+                <div className={datasetType===datasetTypes.uploadFile?'data-detail-item':'none'}>
                     <div>
                         <i>*</i>
                     </div>
@@ -473,7 +471,7 @@ class HDFSUploadDetail extends Component {
                 </div>
                 <div className="sub-btn">
                     <button
-                        className={datasetType===UPLOAD_FILE?'':'none'}
+                        className={datasetType===datasetTypes.uploadFile?'':'none'}
                         onClick={this.uploadFile}
                         style={{marginRight: 20}}
                         disabled={this.state.disabledUpload}

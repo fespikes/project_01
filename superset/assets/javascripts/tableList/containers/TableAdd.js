@@ -22,7 +22,8 @@ class TableAdd extends Component {
         const title = getDatasetTitle(opeType, datasetType);
         const id = getDatasetId(opeType, path);
         const enableClick = judgeEnableClick(opeType, datasetId);
-        const enableClickHDFSPreview = judgeEnableClickHDFSPreview(opeType, datasetType, datasetId, HDFSConfigured);
+        const enableClickHDFSPreview = judgeEnableClickHDFSPreview(
+            opeType, datasetType, datasetId, HDFSConfigured);
         const isDetailActive = (match, location) => {
             return isActive('detail', location);
         };
