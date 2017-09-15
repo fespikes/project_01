@@ -14,7 +14,7 @@ function SliceCell({ expandedSlices, removeSlice, slice }) {
             <div className="chart-header">
                 <div className="row">
                     <div className="col-md-12 header">
-                        <span>{slice.slice_name}</span>
+                        <span className="text-overflow-style">{slice.slice_name}</span>
                     </div>
                     <div className="col-md-12 chart-controls">
                         <div className="pull-right">
