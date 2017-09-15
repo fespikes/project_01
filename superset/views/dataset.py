@@ -398,7 +398,9 @@ class DatasetModelView(SupersetModelView):  # noqa
                 pattern = '{}%'.format(dataset_type)
                 query = (
                     query.outerjoin(Database, Dataset.database_id == Database.id)
-                        .filter(Database.sqlalchemy_uri.ilike(pattern))
+                    .outerjoin(HDFSTable, Dataset.id == HDFSTable.dataset_id)
+                    .filter(Database.sqlalchemy_uri.ilike(pattern),
+                            HDFSTable.id == None)
                 )
 
         query = query.filter(
