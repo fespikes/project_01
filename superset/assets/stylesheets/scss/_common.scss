@@ -772,6 +772,12 @@ $borderStyle :1px solid #e7e9ed;
     }
 }
 
+.text-overflow-style {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .col-10 {
     width: 10%;
 }

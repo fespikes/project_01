@@ -135,7 +135,12 @@ class SliceTable extends React.Component {
                 render: (text, record) => {
                     return (
                         <div className="entity-name">
-                            <div className="entity-title">{record.name}</div>
+                            <div
+                                className="entity-title text-overflow-style"
+                                style={{maxWidth: 290}}
+                            >
+                                {record.name}
+                            </div>
                         </div>
                     )
                 },
@@ -146,7 +151,7 @@ class SliceTable extends React.Component {
                 title: '连接类型',
                 dataIndex: 'connection_type',
                 key: 'connection_type',
-                width: '15%',
+                width: '20%',
                 sorter(a, b) {
                     return a.connection_type.substring(0, 1).charCodeAt() - b.connection_type.substring(0, 1).charCodeAt();
                 }
@@ -154,7 +159,17 @@ class SliceTable extends React.Component {
                 title: '所有者',
                 dataIndex: 'owner',
                 key: 'owner',
-                width: '20%',
+                width: '15%',
+                render: (text, record) => {
+                    return (
+                        <div
+                            className="text-overflow-style"
+                            style={{maxWidth: 170}}
+                        >
+                            {record.owner}
+                        </div>
+                    )
+                },
                 sorter(a, b) {
                     return a.owner.substring(0, 1).charCodeAt() - b.owner.substring(0, 1).charCodeAt();
                 }
