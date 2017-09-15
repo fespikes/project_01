@@ -95,7 +95,17 @@ class SubColumns extends Component {
             title: '列',
             dataIndex: 'column_name',
             key: 'column_name',
-            width: '10%'
+            width: '16%',
+            render: (text, record) => {
+                return (
+                    <div
+                        className="text-overflow-style"
+                        style={{maxWidth: 180}}
+                    >
+                        {record.column_name}
+                    </div>
+                )
+            }
         }, {
             title: '类型',
             dataIndex: 'type',
@@ -141,7 +151,7 @@ class SubColumns extends Component {
             title: '可求最小值',
             dataIndex: 'minimumSeekAble',
             key: 'minimumSeekAble',
-            width: '12%',
+            width: '10%',
             className: 'checkb',
             render: (text, record) => {
                 return (<input type="checkbox" checked={record.min} readOnly />)
@@ -150,7 +160,7 @@ class SubColumns extends Component {
             title: '可求最大值',
             dataIndex: 'maximumSeekAble',
             key: 'maximumSeekAble',
-            width: '12%',
+            width: '10%',
             className: 'checkb',
             render: (text, record) => {
                 return (<input type="checkbox" checked={record.max} readOnly />)
@@ -159,7 +169,7 @@ class SubColumns extends Component {
             title: '可表示时间',
             dataIndex: 'timeExpressAble',
             key: 'timeExpressAble',
-            width: '12%',
+            width: '10%',
             className: 'checkb',
             render: (text, record) => {
                 return (<input type="checkbox" checked={record.is_dttm} readOnly />)

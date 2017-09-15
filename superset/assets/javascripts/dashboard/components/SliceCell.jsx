@@ -14,19 +14,21 @@ function SliceCell({ expandedSlices, removeSlice, slice }) {
             <div className="chart-header">
                 <div className="row">
                     <div className="col-md-12 header">
-                        <span>{slice.slice_name}</span>
+                        <span className="text-overflow-style">{slice.slice_name}</span>
                     </div>
                     <div className="col-md-12 chart-controls">
                         <div className="pull-right">
-                            <Tooltip title="Move chart" placement="top">
+                            <Tooltip title="拖动" placement="top">
                                 <a>
                                     <i className="fa fa-arrows drag" />
                                 </a>
                             </Tooltip>
- 
-                            <a className="refresh">
-                                <i className="fa fa-repeat" />
-                            </a>
+
+                            <Tooltip title="点击强制刷新" placement="top">
+                                <a className="refresh">
+                                    <i className="fa fa-repeat" />
+                                </a>
+                            </Tooltip>
 
                             {slice.description &&
                             <Tooltip title={slice.description} placement="top">
@@ -37,20 +39,14 @@ function SliceCell({ expandedSlices, removeSlice, slice }) {
                                 </a>
                             </Tooltip>
                             }
-                            
-                            {
-                                /*<Tooltip title="Edit chart" placement="top">
-                                    <a href={slice.edit_url}>
-                                        <i className="fa fa-pencil" />
-                                    </a>
-                                </Tooltip> */
-                            }
-                            <Tooltip title="Explore chart" placement="top">
+
+                            <Tooltip title="编辑工作表" placement="top">
                                 <a href={slice.slice_url}>
-                                    <i className="fa fa-share" />
+                                    <i className="fa fa-pencil" />
                                 </a>
                             </Tooltip>
-                            <Tooltip title="Remove chart from dashboard" placement="top">
+
+                            <Tooltip title="从该仪表盘移除" placement="top">
                                 <a className="remove-chart">
                                     <i
                                         className="fa fa-close"

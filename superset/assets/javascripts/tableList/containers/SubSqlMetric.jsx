@@ -94,7 +94,17 @@ class SubSqlMetric extends Component {
             title: '度量',
             dataIndex: 'metric_name',
             key: 'metric_name',
-            width: '25%'
+            width: '25%',
+            render: (text, record) => {
+                return (
+                    <div
+                        className="text-overflow-style"
+                        style={{maxWidth: 290}}
+                    >
+                        {record.metric_name}
+                    </div>
+                )
+            }
         }, {
             title: '类型',
             dataIndex: 'metric_type',

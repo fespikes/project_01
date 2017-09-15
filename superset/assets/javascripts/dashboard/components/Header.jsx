@@ -19,10 +19,15 @@ class Header extends React.PureComponent {
         return (
             <div className="title">
                 <div className="pull-left">
-                    <span>{dashboard.dashboard_title}</span>
+                    <span
+                        className="name text-overflow-style"
+                        style={{maxWidth: 260, display: 'inline-block'}}
+                    >
+                        {dashboard.dashboard_title}
+                    </span>
                     <span is class="favstar" class_name="Dashboard" obj_id={dashboard.id} />
                     <Tooltip title={dashboard.description} placement="bottom">
-                        <i className="icon icon-info"></i>
+                        <i className="icon icon-info"/>
                     </Tooltip>
                 </div>
                 <div className="pull-right">

@@ -27,7 +27,13 @@ require('./../superset-select2.js');
 require('../../vendor/pygments.css');
 require('../../stylesheets/explore.css');
 const _ = require('lodash');
+const viewTypes = {
+    graph: 'graph',
+    original: 'original',
+    result: 'result'
+};
 let slice;
+let currentViewType;
 
 const getPanelClass = function (fieldPrefix) {
     return (fieldPrefix === 'flt' ? 'filter' : 'having') + '_panel';
@@ -435,11 +441,13 @@ function renderViewTab() {
     const RadioButton = Radio.Button;
     const RadioGroup = Radio.Group;
     function onChange(event) {
-        if(event.target.value === "graph") {
+        if(event.target.value === viewTypes.graph) {
+            currentViewType = viewTypes.graph;
             $('.graph-view').css('display', 'block');
             $('.result-view').css('display', 'none');
             $('.original-view').css('display', 'none');
-        }else if(event.target.value === "original") {
+        }else if(event.target.value === viewTypes.original) {
+            currentViewType = viewTypes.original;
             const datasourceId = viewTabEl.getAttribute('datasourceId');
             const databaseId = getUrlParam('database_id', slice.data.json_endpoint);
             const fullTbName = getUrlParam('full_tb_name', slice.data.json_endpoint);
@@ -471,7 +479,8 @@ function renderViewTab() {
                     }
                 });
             }
-        }else if(event.target.value === "result") {
+        }else if(event.target.value === viewTypes.result) {
+            currentViewType = viewTypes.result;
             renderPreviewResultData(sliceResultData);
         }
     }
@@ -489,6 +498,11 @@ function renderViewTab() {
 function refreshPreviewData(slice) {
     if(slice.data && slice.data.dataframe) {
         sliceResultData = slice.data.dataframe;
+    }else {
+        sliceResultData = {};
+    }
+    if(currentViewType === viewTypes.result) {
+        renderPreviewResultData(sliceResultData);
     }
 }
 

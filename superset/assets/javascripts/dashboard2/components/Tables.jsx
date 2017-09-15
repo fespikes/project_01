@@ -134,13 +134,18 @@ class Tables extends React.Component {
             render: (text, record) => {
                 return (
                     <div className="entity-name">
-                        <div className="entity-title highlight">
+                        <div
+                            className="entity-title highlight text-overflow-style"
+                            style={{maxWidth: 430}}
+                        >
                             <a href={record.url}>{record.dashboard_title}</a>
                         </div>
                         <div
-                            className="entity-description"
-                            style={{textOverflow:'ellipsis', whiteSpace:'nowrap', overflow:'hidden', maxWidth:'270px'}}
-                        >{record.description}</div>
+                            className="entity-description text-overflow-style"
+                            style={{maxWidth: 430}}
+                        >
+                            {record.description}
+                        </div>
                     </div>
                 )
             },
@@ -167,7 +172,12 @@ class Tables extends React.Component {
             width: '15%',
             render: (text, record) => {
                 return (
-                    <span className="highlight">{record.created_by_user}</span>
+                    <div
+                        className="highlight text-overflow-style"
+                        style={{maxWidth: 160}}
+                    >
+                        {record.created_by_user}
+                    </div>
                 )
             },
             sorter(a, b) {
