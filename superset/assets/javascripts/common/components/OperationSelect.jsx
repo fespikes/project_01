@@ -62,9 +62,13 @@ class OperationSelect extends React.Component {
         let typeOptions = [];
         if(opeType === "addDataset") {
             typeOptions = options.map((opt, index) => {
+                let opted = opt;
+                if(opt === 'UPLOAD FILE') {
+                    opted = 'UPLOAD_FILE';
+                }
                 return <li className={this.state.selected===opt?'selected':''}
-                           key={index} onClick={self.onSelect.bind(opt, self)}>
-                    <Link to={`/add/detail/${opt}/`}>{opt}</Link>
+                           key={index} onClick={self.onSelect.bind(opted, self)}>
+                    <Link to={`/add/detail/${opted}/`}>{opt}</Link>
                 </li>
             });
         }else if(opeType === "addConnect") {

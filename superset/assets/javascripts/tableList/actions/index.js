@@ -37,7 +37,7 @@ export const actionTypes = {
 export const datasetTypes = {
     database: 'DATABASE',
     hdfs: 'HDFS',
-    uploadFile: 'UPLOAD FILE',
+    uploadFile: 'UPLOAD_FILE',
     inceptor: 'INCEPTOR',
     mysql: 'MYSQL',
     oracle: 'ORACLE',
