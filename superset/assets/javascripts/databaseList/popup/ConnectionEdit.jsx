@@ -272,6 +272,7 @@ class ConnectionEdit extends React.Component {
                                             style={{height:'120px'}}
                                             className="tp-textarea dialog-area"
                                             onChange={this.handleInputChange}
+                                            disabled={connectionType===connectionTypes.inceptor?false:true}
                                         />
                                         <Tooltip
                                             placement="topRight"
