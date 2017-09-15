@@ -217,7 +217,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/filter_dataset_types/', methods=['GET'])
     def filter_dataset_types(self):
-        return json.dumps(Dataset.filter_types + HDFSTable.filter_types)
+        return json.dumps(['ALL'] + Dataset.filter_types + HDFSTable.filter_types)
 
     @catch_exception
     @expose('/preview_data/', methods=['GET', ])
@@ -391,7 +391,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             db.session.query(Dataset, User)
             .outerjoin(User, Dataset.created_by_fk == User.id)
         )
-        if dataset_type:
+        if dataset_type and dataset_type != 'ALL':
             if dataset_type == HDFSTable.hdfs_table_type:
                 query = query.join(HDFSTable, HDFSTable.dataset_id == Dataset.id)
             else:
