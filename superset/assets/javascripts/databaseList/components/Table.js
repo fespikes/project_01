@@ -94,7 +94,7 @@ class SliceTable extends React.Component {
     //delete one of them
     deleteConnection(record) {
         const dispatch = this.dispatch;
-        dispatch(fetchConnectDelInfo(record.id, callback));
+        dispatch(fetchConnectDelInfo(record, callback));
         function callback(success, data) {
             if(success) {
                 let deleteTips = data;

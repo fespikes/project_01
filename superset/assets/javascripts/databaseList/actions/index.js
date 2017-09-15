@@ -272,9 +272,12 @@ export function applyDelete (callback) {
     }
 }
 
-export function fetchConnectDelInfo(connectId, callback) {
-
-    const url = INCEPTORConnectionBaseURL + "delete_info/" + connectId;
+export function fetchConnectDelInfo(connection, callback) {
+    let baseUrl = INCEPTORConnectionBaseURL;
+    if(connection.connection_type === connectionTypes.hdfs) {
+        baseUrl = HDFSConnectionBaseURL;
+    }
+    const url = baseUrl + "delete_info/" + connection.id;
     return dispatch => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
