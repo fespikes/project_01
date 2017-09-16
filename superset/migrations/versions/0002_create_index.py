@@ -14,16 +14,22 @@ from alembic import op
 
 
 def upgrade():
-    op.create_index('index_dashboards', 'dashboards', ['online'])
-    op.create_index('index_slices', 'slices', ['online'])
-    op.create_index('index_daily_number', 'daily_number', ['obj_type'])
-    op.create_index('index_favstar', 'favstar', ['class_name'])
-    op.create_index('index_logs', 'logs', ['action_type'])
+    op.create_index('index_online', 'dashboards', ['online'])
+    op.create_index('index_online', 'slices', ['online'])
+    op.create_index('index_online', 'dataset', ['online'])
+    op.create_index('index_online', 'dbs', ['online'])
+    op.create_index('index_online', 'hdfs_connection', ['online'])
+    op.create_index('index_obj_type', 'daily_number', ['obj_type'])
+    op.create_index('index_class_name', 'favstar', ['class_name'])
+    op.create_index('index_action_type', 'logs', ['action_type'])
 
 
 def downgrade():
-    op.drop_index('index_dashboards', 'dashboards')
-    op.drop_index('index_slices', 'slices')
-    op.drop_index('index_daily_number', 'daily_number')
-    op.drop_index('index_favstar', 'favstar')
-    op.drop_index('index_logs', 'logs')
+    op.drop_index('index_online', 'dashboards')
+    op.drop_index('index_online', 'slices')
+    op.drop_index('index_online', 'dataset')
+    op.drop_index('index_online', 'dbs')
+    op.drop_index('index_online', 'hdfs_connection')
+    op.drop_index('index_obj_type', 'daily_number')
+    op.drop_index('index_class_name', 'favstar')
+    op.drop_index('index_action_type', 'logs')
