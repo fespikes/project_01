@@ -468,10 +468,10 @@ msgid "Limits the number of time series that get displayed"
 msgstr "设置时间序列显示项目的数量上限"
 
 msgid "Sort By"
-msgstr ""
+msgstr "排序"
 
 msgid "Metric used to define the top series"
-msgstr ""
+msgstr "选择对时间序列排序的度量"
 
 msgid "Rolling"
 msgstr "滚动"
@@ -697,10 +697,10 @@ msgid "Whether to include a client side search box"
 msgstr "是否显示搜索框"
 
 msgid "Table Filter"
-msgstr ""
+msgstr "表格单元过滤"
 
 msgid "Whether to apply filter when table cell is clicked"
-msgstr ""
+msgstr "表格单元被选中时，会对同一仪表板的其他工作表进行过滤"
 
 msgid "Show Bubbles"
 msgstr "显示气泡"
