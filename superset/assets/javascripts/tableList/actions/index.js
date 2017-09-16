@@ -462,17 +462,10 @@ export function fetchHDFSFileBrowser(path, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        dispatch(switchFetchingState(false));
-                        callback(true, response);
-                    });
-                }else {
-                    dispatch(switchFetchingState(false));
-                    callback(false);
-                }
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
         );
     }
