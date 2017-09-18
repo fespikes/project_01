@@ -11,17 +11,20 @@ class TreeSelector extends Component {
     }
 
     onSelect(value, node)  {
+        if(node.props.category === 'file') {
+            return;
+        }
         const { setPopupNormalParams, popupNormalParam } = this.props;
         setPopupNormalParams({
             ...popupNormalParam,
-            dest_path: node.props.hdfs_path,
+            dest_path: node.props.path,
             treeVal: value
         });
     }
 
     onLoadData(node) {
         const { fetchHDFSList } = this.props;
-        const hdfsPath = node.props.hdfs_path;
+        const hdfsPath = node.props.path;
         return fetchHDFSList(hdfsPath, false);
     }
 
