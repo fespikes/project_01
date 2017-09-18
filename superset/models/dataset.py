@@ -332,8 +332,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     @property
     def full_name(self):
-        return utils.get_datasource_full_name(
-            self.database, self.table_name, schema=self.schema)
+        # return utils.get_datasource_full_name(
+        #     self.database, self.table_name, schema=self.schema)
+        user = self.created_by.username if self.created_by else None
+        return "[{}].[{}].[{}]".format(user, self.database, self.dataset_name)
 
     @property
     def dttm_cols(self):
