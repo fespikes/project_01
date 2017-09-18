@@ -26,7 +26,7 @@ class HDFSUploadDetail extends Component {
         this.createHDFSConnect = this.createHDFSConnect.bind(this);
         this.onHDFSConnectChange = this.onHDFSConnectChange.bind(this);
         this.onInceptorConnectChange = this.onInceptorConnectChange.bind(this);
-        this.onSelect = this.onSelect.bind(this);
+        this.onTreeNodeSelect = this.onTreeNodeSelect.bind(this);
         this.onLoadData = this.onLoadData.bind(this);
         this.uploadFile = this.uploadFile.bind(this);
         this.handleFile = this.handleFile.bind(this);
@@ -59,6 +59,7 @@ class HDFSUploadDetail extends Component {
         let objHDFS = {...this.state.dsHDFS};
         objHDFS.hdfsConnectId = value;
         objHDFS.hdfsConnectName = node.props.children;
+        this.doFetchHDFSFileData('/', value);
         this.setState({
             dsHDFS: objHDFS
         });
@@ -73,7 +74,7 @@ class HDFSUploadDetail extends Component {
         });
     }
 
-    onSelect(value, node) {
+    onTreeNodeSelect(value, node) {
         let objHDFS = {
             ...this.state.dsHDFS,
             hdfsPath: node.props.value
@@ -91,8 +92,9 @@ class HDFSUploadDetail extends Component {
     onLoadData(node) {
         const me = this;
         const hdfsPath = node.props.value;
+        const hdfsConnectId = this.state.dsHDFS.hdfsConnectId;
         const { fetchHDFSFileBrowser } = me.props;
-        return fetchHDFSFileBrowser(hdfsPath, callback);
+        return fetchHDFSFileBrowser(hdfsPath, hdfsConnectId, callback);
         function callback(success, data) {
             if(success) {
                 let treeData = appendTreeChildren(
@@ -209,7 +211,6 @@ class HDFSUploadDetail extends Component {
         if(datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) {
             this.doFetchInceptorList();
             this.doFetchHDFSList();
-            this.doFetchHDFSFileData('/');
             if(window.location.hash.indexOf('/edit') > 0) {
                 this.doDatasetEdit();
             }
@@ -264,10 +265,10 @@ class HDFSUploadDetail extends Component {
         }
     }
 
-    doFetchHDFSFileData(path) {
+    doFetchHDFSFileData(path, hdfsConnectId) {
         const me = this;
         const { fetchHDFSFileBrowser } = me.props;
-        fetchHDFSFileBrowser(path, fileCallback);
+        fetchHDFSFileBrowser(path, hdfsConnectId, fileCallback);
         function fileCallback(success, fileBrowserData) {
             if(success) {
                 const browserData = constructFileBrowserData(fileBrowserData);
@@ -432,7 +433,7 @@ class HDFSUploadDetail extends Component {
                             placeholder="please select"
                             treeCheckable={false}
                             treeData={dsHDFS.fileBrowserData}
-                            onSelect={this.onSelect}
+                            onSelect={this.onTreeNodeSelect}
                             loadData={this.onLoadData}
                             getPopupContainer={() => document.getElementById('dataset-detail-tree-select')}
                             dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}

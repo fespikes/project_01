@@ -455,10 +455,10 @@ export function fetchTableList(dbId, schema, callback) {
     }
 }
 
-export function fetchHDFSFileBrowser(path, callback) {
+export function fetchHDFSFileBrowser(path, hdfsConnectId, callback) {
     return (dispatch) => {
         dispatch(switchFetchingState(true));
-        const url = window.location.origin + '/hdfstable/files/?path=' + path;
+        const url = window.location.origin + '/hdfstable/files/?path=' + path + '&hdfs_connection_id=' + hdfsConnectId;
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
