@@ -212,7 +212,7 @@ export function constructFileBrowserData(data) {
                 value: file.name,
                 key: file.name,
                 category: file.type,
-                hdfs_path: file.path,
+                path: file.path,
                 isLeaf: file.type === 'file' ? true : false
             };
             fbData.push(node);
@@ -240,7 +240,7 @@ export function findTreeNode(treeNodes, path) {
     }
     while (stack.length) {
         item = stack.shift();
-        if(item.hdfs_path === path) {
+        if(item.path === path) {
             node = item;
             break;
         }
