@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
 import { Link, withRouter } from 'react-router-dom';
-import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
+import { Select, Tooltip, TreeSelect, Alert, message } from 'antd';
 import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
 import { datasetTypes } from '../../actions';
 import { constructFileBrowserData, appendTreeChildren, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
@@ -90,14 +90,14 @@ class HDFSUploadDetail extends Component {
 
     onLoadData(node) {
         const me = this;
-        const hdfsPath = node.props.hdfs_path;
+        const hdfsPath = '/' + node.props.eventKey;
         const { fetchHDFSFileBrowser } = me.props;
-        return fetchHDFSFileBrowser(node.props.hdfs_path, callback);
+        return fetchHDFSFileBrowser(hdfsPath, callback);
         function callback(success, data) {
             if(success) {
                 let treeData = appendTreeChildren(
                     hdfsPath,
-                    data.data,
+                    data,
                     JSON.parse(JSON.stringify(me.state.dsHDFS.fileBrowserData))
                 );
                 let objHDFS = {
@@ -107,6 +107,8 @@ class HDFSUploadDetail extends Component {
                 me.setState({
                     dsHDFS: objHDFS
                 });
+            }else {
+                message.error(data, 5);
             }
         }
     }
@@ -268,7 +270,7 @@ class HDFSUploadDetail extends Component {
         fetchHDFSFileBrowser(path, fileCallback);
         function fileCallback(success, fileBrowserData) {
             if(success) {
-                const browserData = constructFileBrowserData(fileBrowserData.data);
+                const browserData = constructFileBrowserData(fileBrowserData);
                 let objHDFS = {
                     ...me.state.dsHDFS,
                     fileBrowserData: browserData

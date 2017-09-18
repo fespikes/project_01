@@ -313,7 +313,7 @@ export function fetchDownload() {
                     aLink.download = name;
                     aLink.click();
                     window.URL.revokeObjectURL(url);
-                } else if (response.status === 500) {
+                } else {
                     message.error(response.message, 5);
                 }
                 dispatch(switchFetchingStatus(false));
