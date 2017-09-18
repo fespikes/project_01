@@ -642,11 +642,35 @@ export function fetchHDFSConnectList(callback) {
     }
 }
 
-export function fetchInceptorConnectList(callback) {
+export function fetchDatabaseConnectList(callback) {
     return (dispatch) => {
         dispatch(switchFetchingState(true));
         const MAX_PAGE_SIZE = 1000;
         const url = window.location.origin + '/database/listdata?page_size=' + MAX_PAGE_SIZE;
+        return fetch(url, {
+            credentials: 'include',
+            method: 'GET'
+        }).then(
+            response => {
+                if(response.ok) {
+                    response.json().then(response => {
+                        dispatch(switchFetchingState(false));
+                        callback(true, response.data);
+                    });
+                }else {
+                    dispatch(switchFetchingState(false));
+                    callback(false);
+                }
+            }
+        );
+    }
+}
+
+export function fetchInceptorConnectList(callback) {
+    return (dispatch) => {
+        dispatch(switchFetchingState(true));
+        const MAX_PAGE_SIZE = 1000;
+        const url = window.location.origin + '/database/listdata?page_size=' + MAX_PAGE_SIZE + '&database_type=inceptor';
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
