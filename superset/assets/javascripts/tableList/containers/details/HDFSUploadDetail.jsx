@@ -76,7 +76,7 @@ class HDFSUploadDetail extends Component {
     onSelect(value, node) {
         let objHDFS = {
             ...this.state.dsHDFS,
-            hdfsPath: node.props.path
+            hdfsPath: node.props.value
         };
         let disabled = 'disabled';
         if(objHDFS.uploadFileName && objHDFS.uploadFileName.length > 0) {
@@ -90,7 +90,7 @@ class HDFSUploadDetail extends Component {
 
     onLoadData(node) {
         const me = this;
-        const hdfsPath = node.props.path;
+        const hdfsPath = node.props.value;
         const { fetchHDFSFileBrowser } = me.props;
         return fetchHDFSFileBrowser(hdfsPath, callback);
         function callback(success, data) {
