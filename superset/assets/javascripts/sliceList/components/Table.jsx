@@ -160,7 +160,7 @@ class SliceTable extends React.Component {
                 render: (text, record) => {
                     return (
                         <div
-                            class="text-overflow-style"
+                            className="text-overflow-style"
                             style={{maxWidth: 140}}
                             >
                             {record.viz_type}
@@ -198,7 +198,7 @@ class SliceTable extends React.Component {
                 render: (text, record) => {
                     return (
                         <div
-                            class="text-overflow-style"
+                            className="text-overflow-style"
                             style={{maxWidth: 110}}
                         >
                             {record.created_by_user}
