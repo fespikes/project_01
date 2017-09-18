@@ -79,3 +79,7 @@ button:disabled {
 .ant-tooltip-inner {
     max-width: 330px !important;
 }
+
+.ant-alert-with-description .ant-alert-description {
+    word-break: break-all;
+}
