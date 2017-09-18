@@ -39,7 +39,9 @@ CUSTOM_SECURITY_MANAGER = None
 # ---------------------------------------------------------
 
 # The Community Edition will abandon guardian module, and embed user management module
-COMMUNITY_EDITION = True
+COMMUNITY_EDITION = False
+COMMUNITY_USERNAME = 'admin'
+COMMUNITY_PASSWORD = '123456'
 
 # if load examples data when start server
 LOAD_EXAMPLES = True

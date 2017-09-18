@@ -59,12 +59,14 @@ def create_default_user():
     if config.get('COMMUNITY_EDITION') is False or sm.find_user(username='admin'):
         return
     logging.info("Begin to create default admin user...")
+    username = config.get('COMMUNITY_USERNAME')
+    password = config.get('COMMUNITY_PASSWORD')
     user = sm.add_user(
-        'admin', 'admin', 'admin', 'admin@email.com', sm.find_role('Admin'),
-        password='123456')
+        username, username, username, '{}@email.com'.format(username), sm.find_role('Admin'),
+        password=password)
     if not user:
         logging.error("Failed to create default admin user.")
-    user.password2 = '123456'
+    user.password2 = password
     sm.get_session.commit()
     logging.info("Finish to add default admin user.")
 
