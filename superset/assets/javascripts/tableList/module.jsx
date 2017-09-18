@@ -209,10 +209,9 @@ export function constructFileBrowserData(data) {
         if(!(file.type==='dir'&&(file.name==='..'||file.name==='.'))) {
             let node = {
                 label: file.name,
-                value: file.name,
+                value: file.path,
                 key: file.name,
                 category: file.type,
-                path: file.path,
                 isLeaf: file.type === 'file' ? true : false
             };
             fbData.push(node);
@@ -240,7 +239,7 @@ export function findTreeNode(treeNodes, path) {
     }
     while (stack.length) {
         item = stack.shift();
-        if(item.path === path) {
+        if(item.value === path) {
             node = item;
             break;
         }
