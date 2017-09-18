@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-fetch';
-import {getPublishConnectionUrl} from '../utils';
+import {getPublishConnectionUrl, isCorrectConnection} from '../utils';
 import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
 
 export const actionTypes = {
@@ -27,8 +27,12 @@ export const actionTypes = {
 
 export const connectionTypes = {
     inceptor: 'INCEPTOR',
-    HDFS: 'HDFS'
-}
+    hdfs: 'HDFS',
+    mysql: 'MYSQL',
+    oracle: "ORACLE",
+    mssql: "MSSQL",
+    database: "DATABASE"
+};
 
 const origin = window.location.origin;
 const baseURL = origin + '/database/';
@@ -39,7 +43,7 @@ const HDFSConnectionBaseURL = origin + '/hdfsconnection/';
 const callbackHandler = (response, callback) => {
     if(response.status === 200) {
         callback && callback(true, response.data);
-    }else if(response.status === 500) {
+    }else {
         callback && callback(false, response.message);
     }
 };
@@ -58,7 +62,7 @@ const getParamDB = (database) => {
     let db = {};
     let connectionType = (database.connectionType||database.backend);
     //todo: get other connection type params
-    if (connectionType ===connectionTypes.inceptor) {
+    if (isCorrectConnection(connectionType, connectionTypes)) {
         db.database_name = database.database_name;
         db.sqlalchemy_uri = database.sqlalchemy_uri;
         db.description = database.description;
@@ -130,17 +134,10 @@ export function testConnection(database, callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(database)
-        })
-        .then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    dispatch(switchFetchingState(false));
-                    callback(true);
-
-                }else {
-                    dispatch(switchFetchingState(false));
-                    callback(false);
-                }
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
         );
     }
@@ -224,7 +221,7 @@ export function fetchPublishConnection(record, callback) {
 
 export function fetchOnOfflineInfo(connectionId, published, connectionType, callback) {
     let prefix = "database";
-    if(connectionType === "HDFS") {
+    if(connectionType === connectionTypes.hdfs) {
         prefix = "hdfsconnection";
     }
     const url = getOnOfflineInfoUrl(connectionId, prefix, published);
@@ -275,9 +272,12 @@ export function applyDelete (callback) {
     }
 }
 
-export function fetchConnectDelInfo(connectId, callback) {
-
-    const url = INCEPTORConnectionBaseURL + "delete_info/" + connectId;
+export function fetchConnectDelInfo(connection, callback) {
+    let baseUrl = INCEPTORConnectionBaseURL;
+    if(connection.connection_type === connectionTypes.hdfs) {
+        baseUrl = HDFSConnectionBaseURL;
+    }
+    const url = baseUrl + "delete_info/" + connection.id;
     return dispatch => {
         dispatch(switchFetchingState(true));
         return fetch(url, {
@@ -313,10 +313,19 @@ const getURLBase = (type, subfix) => {
     if (!type) return;
     let URL = '';
     switch (type.toUpperCase()) {
-        case 'HDFS':
+        case connectionTypes.hdfs:
             URL = HDFSConnectionBaseURL;
             break;
-        case 'INCEPTOR':
+        case connectionTypes.inceptor:
+            URL = INCEPTORConnectionBaseURL;
+            break;
+        case connectionTypes.mysql:
+            URL = INCEPTORConnectionBaseURL;
+            break;
+        case connectionTypes.oracle:
+            URL = INCEPTORConnectionBaseURL;
+            break;
+        case connectionTypes.mssql:
             URL = INCEPTORConnectionBaseURL;
             break;
         default:

@@ -134,13 +134,18 @@ class SliceTable extends React.Component {
                 render: (text, record) => {
                     return (
                         <div className="entity-name">
-                            <div className="entity-title highlight">
+                            <div
+                                className="entity-title highlight text-overflow-style"
+                                style={{maxWidth: 270}}
+                            >
                                 <a href={record.slice_url}>{record.slice_name}</a>
                             </div>
                             <div
-                                className="entity-description"
-                                style={{textOverflow:'ellipsis', whiteSpace:'nowrap', overflow:'hidden', maxWidth:'230px'}}
-                            >{record.description}</div>
+                                className="entity-description text-overflow-style"
+                                style={{maxWidth: 270}}
+                            >
+                                {record.description}
+                            </div>
                         </div>
                     )
                 },
@@ -152,6 +157,16 @@ class SliceTable extends React.Component {
                 dataIndex: 'viz_type',
                 key: 'viz_type',
                 width: '13%',
+                render: (text, record) => {
+                    return (
+                        <div
+                            class="text-overflow-style"
+                            style={{maxWidth: 140}}
+                            >
+                            {record.viz_type}
+                        </div>
+                    )
+                },
                 sorter(a, b) {
                     return a.viz_type.substring(0, 1).charCodeAt() - b.viz_type.substring(0, 1).charCodeAt();
                 }
@@ -163,7 +178,13 @@ class SliceTable extends React.Component {
                 width: '15%',
                 render: (text, record) => {
                     return (
-                        <a href={record.explore_url} className="highlight">{record.datasource}</a>
+                        <a
+                            href={record.explore_url}
+                            className="highlight text-overflow-style"
+                            style={{maxWidth: 160, display: 'inline-block'}}
+                        >
+                            {record.datasource}
+                        </a>
                     )
                 },
                 sorter(a, b) {
@@ -174,6 +195,16 @@ class SliceTable extends React.Component {
                 dataIndex: 'created_by_user',
                 key: 'created_by_user',
                 width: '10%',
+                render: (text, record) => {
+                    return (
+                        <div
+                            class="text-overflow-style"
+                            style={{maxWidth: 110}}
+                        >
+                            {record.created_by_user}
+                        </div>
+                    )
+                },
                 sorter(a, b) {
                     return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
                 }

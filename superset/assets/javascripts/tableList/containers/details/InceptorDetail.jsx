@@ -7,7 +7,7 @@ import {bindActionCreators} from 'redux';
 import { Link, withRouter } from 'react-router-dom';
 import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
 import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
-import { fetchSchemaList } from '../../actions';
+import { fetchSchemaList, datasetTypes } from '../../actions';
 import { constructInceptorDataset, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
 import { appendTreeData, constructTreeData } from '../../../../utils/common2';
 import { renderLoadingModal, renderAlertTip, PILOT_PREFIX } from '../../../../utils/utils';
@@ -134,7 +134,7 @@ class InceptorDetail extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlertDetail');
+                    renderAlertTip(response, 'showAlertDetail', 400);
                 }
             }
         }else {
@@ -148,7 +148,7 @@ class InceptorDetail extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlertDetail');
+                    renderAlertTip(response, 'showAlertDetail', 400);
                 }
             }
         }
@@ -174,7 +174,7 @@ class InceptorDetail extends Component {
 
     componentDidMount() {
         const datasetType = extractDatasetType(window.location.hash);
-        if(datasetType === "INCEPTOR") {
+        if(datasetType === datasetTypes.database) {
             this.doFetchDatabaseList();
             if(window.location.hash.indexOf('/edit') > 0) {
                 this.doDatasetEdit();
@@ -215,7 +215,7 @@ class InceptorDetail extends Component {
                             db_name: db.database_name
                         };
                         me.setState({
-                            dsInceptor: initDatasetData('INCEPTOR', data, objIncpetor)
+                            dsInceptor: initDatasetData(datasetTypes.database, data, objIncpetor)
                         });
                     }
                 }
@@ -295,9 +295,9 @@ class InceptorDetail extends Component {
                     >
                         {dbOptions}
                     </Select>
-                    <div className="connect-success">
+                    {/*<div className="connect-success">
                         <button onClick={this.createInceptorConnect}>新建连接</button>
-                    </div>
+                    </div>*/}
                     <input
                         type="hidden"
                         required="required"

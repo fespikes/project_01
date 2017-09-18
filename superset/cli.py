@@ -54,6 +54,15 @@ def init_pilot():
         init()
         logging.info("Finish to initialize permissions and roles.")
 
+    if config.get('LOAD_EXAMPLES'):
+        rs = db.session.execute('show tables like "birth_names";')
+        if rs.rowcount == 0:
+            logging.info("Start to load examples data ...")
+            load_examples(False)
+            logging.info("Finish to load examples data.")
+        else:
+            logging.info("Exists examples data (such as: birth_names).")
+
     if config.get('COMMUNITY_EDITION') and sm.find_user(username='admin') is None:
         create_default_user()
 

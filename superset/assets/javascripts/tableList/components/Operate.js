@@ -78,7 +78,6 @@ class SliceOperate extends React.Component {
     onSearch () {
         const filter = this.refs.searchField.value;
         this.props.dispatch(search(filter));
-        //TODO: not sure that componentWillReceiveProps be triggered
     }
 
     onEnterSearch(event) {
@@ -114,7 +113,7 @@ class SliceOperate extends React.Component {
                 <ul className="icon-list">
                     <li style={{ width: '130px', textAlign: 'left' }}>
                         <OperationSelect
-                            opeType='addConnect'
+                            opeType='addDataset'
                             iconClass='icon icon-plus'
                             options={this.state.addDatasetTypes}
                             selectChange={this.selectChange}

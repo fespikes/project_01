@@ -146,15 +146,15 @@ export function dashboardContainer(dashboard) {
             const data = slice.data;
             if (data !== undefined && data.is_cached) {
                 refresh
-                    .addClass('danger')
-                    .attr('title',
-                        'Served from data cached at ' + data.cached_dttm +
-                        '. Click to force refresh')
-                    .tooltip('fixTitle');
+                    .addClass('danger');
+                    //.attr('title',
+                    //    'Served from data cached at ' + data.cached_dttm +
+                    //    '. Click to force refresh')
+                    //.tooltip('fixTitle');
             } else {
                 refresh
                     .removeClass('danger')
-                    .attr('title', 'Click to force refresh')
+                    //.attr('title', '点击强制刷新')
                     .tooltip('fixTitle');
             }
         },

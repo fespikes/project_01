@@ -389,23 +389,25 @@ class SupersetModelView(ModelView, PageMixin):
     def query_own_or_online(self, class_name, user_id, only_favorite):
         query = (
             db.session.query(self.model, User.username, FavStar.obj_id)
-                .join(User, self.model.created_by_fk == User.id)
+                .outerjoin(User, self.model.created_by_fk == User.id)
         )
 
         if only_favorite:
-            query = query.join(FavStar,
-                               and_(
-                                   self.model.id == FavStar.obj_id,
-                                   FavStar.class_name.ilike(class_name),
-                                   FavStar.user_id == user_id)
-                               )
+            query = query.join(
+                FavStar,
+                and_(
+                    self.model.id == FavStar.obj_id,
+                    FavStar.class_name.ilike(class_name),
+                    FavStar.user_id == user_id)
+                )
         else:
-            query = query.outerjoin(FavStar,
-                                    and_(
-                                        self.model.id == FavStar.obj_id,
-                                        FavStar.class_name.ilike(class_name),
-                                        FavStar.user_id == user_id)
-                                    )
+            query = query.outerjoin(
+                FavStar,
+                and_(
+                    self.model.id == FavStar.obj_id,
+                    FavStar.class_name.ilike(class_name),
+                    FavStar.user_id == user_id)
+                )
 
         query = query.filter(
             or_(self.model.created_by_fk == user_id,
@@ -414,23 +416,28 @@ class SupersetModelView(ModelView, PageMixin):
 
         return query
 
-    def get_available_tables(self):
-        # TODO just return dataset_type=='inceptor'
-        tbs = db.session.query(Dataset).all()
-        tb_list = []
-        for t in tbs:
-            row = {'id': t.id, 'dataset_name': t.dataset_name}
-            tb_list.append(row)
-        return tb_list
+    @staticmethod
+    def get_available_datasets(user_id):
+        datasets = (
+            db.session.query(Dataset)
+            .filter(
+                or_(Dataset.created_by_fk == user_id,
+                    Dataset.online == 1)
+            )
+            .order_by(Dataset.changed_on.desc())
+            .all()
+        )
+        return datasets
 
     def get_available_connections(self, user_id):
         return self.get_available_databases(user_id)
 
-    def get_available_databases(self, user_id):
+    @staticmethod
+    def get_available_databases(user_id):
         """TODO just return connection_type=='inceptor'"""
         dbs = (
             db.session.query(Database)
-            .filter(Database.database_name != 'main',
+            .filter(Database.database_name != config.get('METADATA_CONN_NAME'),
                     or_(Database.created_by_fk == user_id,
                         Database.online == 1)
             )
@@ -445,7 +452,10 @@ class SupersetModelView(ModelView, PageMixin):
     def get_available_dashboards(user_id):
         dashs = (
             db.session.query(Dashboard)
-            .filter_by(created_by_fk=user_id)
+            .filter(
+                or_(Dashboard.created_by_fk == user_id,
+                    Dashboard.online == 1)
+            )
             .order_by(Dashboard.changed_on.desc())
             .all()
         )

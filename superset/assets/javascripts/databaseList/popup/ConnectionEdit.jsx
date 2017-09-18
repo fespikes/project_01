@@ -5,6 +5,8 @@ import { connectionTypes, fetchUpdateConnection, testConnection, testHDFSConnect
 import { Alert, Tooltip } from 'antd';
 import {Select} from '../components';
 import PropTypes from 'prop-types';
+import { isCorrectConnection, connectDefaultInfo } from '../utils';
+import { renderAlertErrorInfo, renderAlertTip } from '../../../utils/utils';
 
 class ConnectionEdit extends React.Component {
     constructor(props) {
@@ -28,9 +30,8 @@ class ConnectionEdit extends React.Component {
     };
 
     componentDidMount () {
-        this.fetchConnectionNames();
         let database = {};
-        if(this.props.connectionType === connectionTypes.inceptor) {
+        if(isCorrectConnection(this.props.connectionType, connectionTypes)) {
             let connectParams = JSON.stringify(JSON.parse(this.state.database.args), undefined, 4);
             document.getElementById('connectParams').value = connectParams;
             database = {
@@ -39,11 +40,12 @@ class ConnectionEdit extends React.Component {
                 connectionType: this.props.connectionType
             };
 
-        }else if(this.props.connectionType === connectionTypes.HDFS) {
+        }else if(this.props.connectionType === connectionTypes.hdfs) {
             database = {
                 ...this.state.database,
                 connectionType: this.props.connectionType
             }
+            this.fetchConnectionNames();
         }
         this.setState({
             database: database
@@ -54,7 +56,7 @@ class ConnectionEdit extends React.Component {
         const me = this;
         const callback = (connectionNames) => {
             me.setState({connectionNames:connectionNames});
-        }
+        };
         this.props.dispatch(fetchConnectionNames(callback));
     }
 
@@ -65,7 +67,7 @@ class ConnectionEdit extends React.Component {
     testConnection(testCallBack) {
         const me = this;
         const { dispatch, connectionType } = me.props;
-        if(connectionType === connectionTypes.inceptor) {
+        if(isCorrectConnection(connectionType, connectionTypes)) {
             dispatch(testConnection(
                 {
                     database_name: me.state.database.database_name,
@@ -73,10 +75,10 @@ class ConnectionEdit extends React.Component {
                     args: me.state.database.databaseArgs
                 }, callback)
             );
-        }else if(connectionType === connectionTypes.HDFS) {
+        }else if(connectionType === connectionTypes.hdfs) {
             dispatch(testHDFSConnection(this.state.database.httpfs, callback));
         }
-        function callback(success) {
+        function callback(success, message) {
             let exception = {};
             let connected;
             if(success) {
@@ -87,21 +89,17 @@ class ConnectionEdit extends React.Component {
                 exception.type = "error";
                 exception.message = "该连接是一个不合法连接";
                 connected = false;
+                renderAlertErrorInfo(message, 'edit-connect-tip', '100%', me);
             }
             me.setState({
                 exception: exception,
                 connected: connected
             });
-            render(
-                <Alert
-                    message={me.state.exception.message}
-                    type={me.state.exception.type}
-                    onClose={me.closeAlert('test-connect-tip-' + connectionType)}
-                    closable={true}
-                    showIcon
-                />,
-                document.getElementById('test-connect-tip-' + connectionType)
-            );
+            let connectType = connectionTypes.hdfs;
+            if(isCorrectConnection(connectionType, connectionTypes)) {
+                connectType = connectionTypes.inceptor;
+            }
+            renderAlertTip(exception, 'test-connect-tip-' + connectType, '100%');
             if(typeof testCallBack === 'function') {
                 testCallBack(me.state.connected);
             }
@@ -126,7 +124,7 @@ class ConnectionEdit extends React.Component {
 
     formValidate(database) {
         let disabled;
-        if(this.props.connectionType === connectionTypes.inceptor) {
+        if(isCorrectConnection(this.props.connectionType, connectionTypes)) {
             if((database.database_name && database.database_name.length > 0) &&
                 (database.sqlalchemy_uri && database.sqlalchemy_uri.length > 0) &&
                 (database.databaseArgs && database.databaseArgs.length > 0)) {
@@ -134,7 +132,7 @@ class ConnectionEdit extends React.Component {
             }else {
                 disabled = true;
             }
-        }else if(this.props.connectionType === connectionTypes.HDFS) {
+        }else if(this.props.connectionType === connectionTypes.hdfs) {
             if((database.connection_name && database.connection_name.length > 0) &&
                 (database.httpfs && database.httpfs.length > 0)) {
                 disabled = false;
@@ -166,17 +164,7 @@ class ConnectionEdit extends React.Component {
             if(success) {
                 ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
             }else {
-                render(
-                    <Alert
-                        message="Error"
-                        type="error"
-                        description={message}
-                        onClose={me.closeAlert('edit-connect-tip')}
-                        closable={true}
-                        showIcon
-                    />,
-                    document.getElementById('edit-connect-tip')
-                );
+                renderAlertErrorInfo(message, 'edit-connect-tip', '100%', me);
             }
         }
     }
@@ -214,7 +202,7 @@ class ConnectionEdit extends React.Component {
                         </div>
                         <div className="popup-body">
                             {/*S: inceptor connection body*/}
-                            <div className={connectionType===connectionTypes.inceptor?'':'none'} >
+                            <div className={isCorrectConnection(connectionType, connectionTypes)?'':'none'} >
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <span>连接类型：</span>
@@ -263,7 +251,10 @@ class ConnectionEdit extends React.Component {
                                             value={database.sqlalchemy_uri}
                                             onChange={this.handleInputChange}
                                         />
-                                        <Tooltip title="如果认证方式是LDAP，需要加上用户名和密码：Inceptor://username:password@172.0.0.1:10000/database" placement="topRight">
+                                        <Tooltip
+                                            placement="topRight"
+                                            title={connectDefaultInfo[connectionType].str.tip}
+                                        >
                                             <i className="icon icon-info after-icon" />
                                         </Tooltip>
                                     </div>
@@ -281,8 +272,12 @@ class ConnectionEdit extends React.Component {
                                             style={{height:'120px'}}
                                             className="tp-textarea dialog-area"
                                             onChange={this.handleInputChange}
+                                            disabled={connectionType===connectionTypes.inceptor?false:true}
                                         />
-                                        <Tooltip title="ODBC连接串的参数。（1）keytab文件通过Guardian获取；（2）支持LDAP认证，连接串需要添加用户名和密码" placement="topRight">
+                                        <Tooltip
+                                            placement="topRight"
+                                            title={connectDefaultInfo[connectionType].args.tip}
+                                         >
                                             <i
                                                 className="icon icon-info after-textarea-icon"
                                                 style={{top: 50}}
@@ -340,7 +335,7 @@ class ConnectionEdit extends React.Component {
                             {/*E: inceptor connection body*/}
 
                             {/*S: HDFS connection body*/}
-                            <div className={connectionType===connectionTypes.HDFS?'':'none'} >
+                            <div className={connectionType===connectionTypes.hdfs?'':'none'} >
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <span>连接类型：</span>
@@ -387,7 +382,10 @@ class ConnectionEdit extends React.Component {
                                             value={database.httpfs}
                                             onChange={this.handleInputChange}
                                         />
-                                        <Tooltip title="HDFS httpf服务IP地址" placement="topRight">
+                                        <Tooltip
+                                            placement="topRight"
+                                            title={connectDefaultInfo[connectionType].httpfs.tip}
+                                        >
                                             <i className="icon icon-info after-icon" />
                                         </Tooltip>
                                     </div>
@@ -413,7 +411,10 @@ class ConnectionEdit extends React.Component {
                                             width={420}
                                             handleSelect={(argus)=>this.setPopupState(argus)}
                                         />
-                                        <Tooltip title="如果HDFS数据集没有选择Inceptor连接，则将使用该Inceptor连接。" placement="topRight">
+                                        <Tooltip
+                                            placement="topRight"
+                                            title={connectDefaultInfo[connectionType].defaultIncConnect.tip}
+                                        >
                                             <i className="icon icon-info after-icon" />
                                         </Tooltip>
                                     </div>

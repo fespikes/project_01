@@ -45,7 +45,7 @@ class InnerTable extends React.Component {
 
     render() {
         const {selectedRowKeys} = this.props.condition;
-        const {files, giveDetail, linkToPath} = this.props;
+        const {files, giveDetail, linkToPath, fetchIfNeeded} = this.props;
         let hdfsFiles = sortHDFSFiles(files);
 
         const rowSelection = {
@@ -99,7 +99,11 @@ class InnerTable extends React.Component {
                         );
                     } else {
                         return (
-                            <a onClick={argus => {linkToPath({path: record.path});}}>
+                            <a onClick={argus => {
+                                linkToPath({
+                                    path: record.path
+                                });
+                            }}>
                                 <i className={'icon ' + datasetType}></i>
                             </a>);
                     }
@@ -124,10 +128,17 @@ class InnerTable extends React.Component {
                     } else { //send request.
                         return (<a onClick={
                             argus => {
+                                if (name === '.') {
+                                    fetchIfNeeded({
+                                        path: record.path
+                                    });
+                                    return;
+                                }
                                 linkToPath({
                                     path: record.path
                                 });
-                            }}>{name}</a>);
+                            }
+                            }>{name}</a>);
                     }
                 }
             }, {

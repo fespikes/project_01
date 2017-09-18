@@ -34,17 +34,22 @@ export const actionTypes = {
     clearDatasetData: 'CLEAR_DATASET_DATA'
 };
 
+export const datasetTypes = {
+    database: 'DATABASE',
+    hdfs: 'HDFS',
+    uploadFile: 'UPLOAD_FILE',
+    inceptor: 'INCEPTOR',
+    mysql: 'MYSQL',
+    oracle: 'ORACLE',
+    mssql: 'MSSQL'
+};
 
 const baseURL = window.location.origin + '/table/';
-
-const _fetch = () => {
-
-}
 
 const callbackHandler = (response, callback) => {
     if(response.status === 200) {
         callback && callback(true, response.data);
-    }else if(response.status === 500) {
+    }else {
         callback && callback(false, response.message);
     }
 };
@@ -457,17 +462,10 @@ export function fetchHDFSFileBrowser(path, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        dispatch(switchFetchingState(false));
-                        callback(true, response);
-                    });
-                }else {
-                    dispatch(switchFetchingState(false));
-                    callback(false);
-                }
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
         );
     }

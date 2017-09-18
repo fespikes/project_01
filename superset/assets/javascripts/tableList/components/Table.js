@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { message, Table, Icon, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
-import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable, fetchOnOfflineInfo, fetchTableDelInfo } from '../actions';
+import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable, fetchOnOfflineInfo, fetchTableDelInfo, datasetTypes } from '../actions';
 import { TableDelete } from '../popup';
 import style from '../style/table.scss'
 import { ConfirmModal } from '../../common/components';
@@ -108,10 +108,18 @@ class SliceTable extends React.Component {
                 render: (text, record) => {
                     return (
                         <div className="entity-name">
-                            <div className="entity-title highlight">
+                            <div
+                                className="entity-title highlight text-overflow-style"
+                                style={{maxWidth: 370}}
+                            >
                                 <a href={record.explore_url} target="_blank">{record.dataset_name}</a>
                             </div>
-                            <div className="entity-description">{record.dataset_type} | {record.connection}</div>
+                            <div
+                                className="entity-description text-overflow-style"
+                                style={{maxWidth: 370}}
+                            >
+                                {record.dataset_type} | {record.connection}
+                            </div>
                         </div>
                     )
                 },
@@ -123,6 +131,16 @@ class SliceTable extends React.Component {
                 dataIndex: 'created_by_user',
                 key: 'created_by_user',
                 width: '25%',
+                render: (text, record) => {
+                    return (
+                        <div
+                            className="text-overflow-style"
+                            style={{maxWidth: 270}}
+                        >
+                            {record.created_by_user}
+                        </div>
+                    )
+                },
                 sorter(a, b) {
                     return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
                 }
@@ -142,7 +160,10 @@ class SliceTable extends React.Component {
                     return (
                         <div className="icon-group">
                             <Tooltip placement="top" title="编辑" arrowPointAtCenter>
-                                <Link onClick={() => editTable(record)} to={`/edit/detail/${record.dataset_type}/${record.id}`}>
+                                <Link
+                                    onClick={() => editTable(record)}
+                                    to={`/edit/detail/${record.dataset_type===datasetTypes.hdfs?datasetTypes.hdfs:datasetTypes.database}/${record.id}`}
+                                >
                                     <i className="icon icon-edit"/>
                                 </Link>
                             </Tooltip>

@@ -238,7 +238,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     schema = Column(String(128))
     sql = Column(Text)
 
-    database_id = Column(Integer, ForeignKey('dbs.id'), nullable=False)
+    database_id = Column(Integer, ForeignKey('dbs.id'), nullable=True)
     database = relationship(
         'Database',
         backref=backref('dataset'),
