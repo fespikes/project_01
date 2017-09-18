@@ -14,6 +14,7 @@ from flask_migrate import MigrateCommand, upgrade
 from flask_script import Manager
 
 from superset import app, sm, db, data, security
+from superset.models import HDFSConnection
 
 
 config = app.config
@@ -28,8 +29,36 @@ def init():
     security.sync_role_definitions()
 
 
+def init_tables_and_roles():
+    rs = db.session.execute('show tables like "alembic_version";')
+    if rs.rowcount == 0:
+        logging.info("Start to create metadata tables...")
+        BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+        migration_dir = os.path.join(BASE_DIR, 'migrations')
+        upgrade(directory=migration_dir)
+        db.session.commit()
+        logging.info("Finish to create metadata tables.")
+
+        logging.info("Start to initialize permissions and roles...")
+        init()
+        logging.info("Finish to initialize permissions and roles.")
+
+
+def init_examples():
+    if config.get('LOAD_EXAMPLES'):
+        rs = db.session.execute('show tables like "birth_names";')
+        if rs.rowcount == 0:
+            logging.info("Start to load examples data...")
+            load_examples(False)
+            logging.info("Finish to load examples data.")
+        else:
+            logging.info("Exists examples data (such as: birth_names).")
+
+
 def create_default_user():
-    logging.info("Begin to create default admin user ...")
+    if config.get('COMMUNITY_EDITION') is False or sm.find_user(username='admin'):
+        return
+    logging.info("Begin to create default admin user...")
     user = sm.add_user(
         'admin', 'admin', 'admin', 'admin@email.com', sm.find_role('Admin'),
         password='123456')
@@ -40,31 +69,25 @@ def create_default_user():
     logging.info("Finish to add default admin user.")
 
 
-def init_pilot():
-    rs = db.session.execute('show tables like "alembic_version";')
-    if rs.rowcount == 0:
-        logging.info("Start to create metadata tables ...")
-        BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-        migration_dir = os.path.join(BASE_DIR, 'migrations')
-        upgrade(directory=migration_dir)
+def create_default_hdfs_conn():
+    name = config.get('DEFAULT_HDFS_CONN_NAME')
+    hconn = db.session.query(HDFSConnection).filter_by(connection_name=name).first()
+    if not hconn:
+        logging.info("Begin to add default hdfs connection: [{}]...".format(name))
+        hconn = HDFSConnection(connection_name=name,
+                               httpfs=config.get('DEFAULT_HTTPFS'),
+                               online=True,
+                               description='Default hdfs connection for hdfs file browser.')
+        db.session.add(hconn)
         db.session.commit()
-        logging.info("Finish to create metadata tables.")
+        logging.info("Finish to add default hdfs connection.")
 
-        logging.info("Start to initialize permissions and roles ...")
-        init()
-        logging.info("Finish to initialize permissions and roles.")
 
-    if config.get('LOAD_EXAMPLES'):
-        rs = db.session.execute('show tables like "birth_names";')
-        if rs.rowcount == 0:
-            logging.info("Start to load examples data ...")
-            load_examples(False)
-            logging.info("Finish to load examples data.")
-        else:
-            logging.info("Exists examples data (such as: birth_names).")
-
-    if config.get('COMMUNITY_EDITION') and sm.find_user(username='admin') is None:
-        create_default_user()
+def init_pilot():
+    init_tables_and_roles()
+    init_examples()
+    create_default_user()
+    create_default_hdfs_conn()
 
 
 @manager.option(

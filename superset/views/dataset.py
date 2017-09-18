@@ -13,7 +13,7 @@ from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
 
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from superset import app, db
 from superset.utils import SupersetException
 from superset.models import (
@@ -217,7 +217,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/filter_dataset_types/', methods=['GET'])
     def filter_dataset_types(self):
-        return json.dumps(Dataset.filter_types + HDFSTable.filter_types)
+        return json.dumps(['ALL'] + Dataset.filter_types + HDFSTable.filter_types)
 
     @catch_exception
     @expose('/preview_data/', methods=['GET', ])
@@ -390,20 +390,29 @@ class DatasetModelView(SupersetModelView):  # noqa
         query = (
             db.session.query(Dataset, User)
             .outerjoin(User, Dataset.created_by_fk == User.id)
-            .filter(
-                 or_(Dataset.created_by_fk == user_id,
-                     Dataset.online == 1)
-            )
+        )
+        if dataset_type and dataset_type != 'ALL':
+            if dataset_type == HDFSTable.hdfs_table_type:
+                query = query.join(HDFSTable, HDFSTable.dataset_id == Dataset.id)
+            else:
+                pattern = '{}%'.format(dataset_type)
+                query = (
+                    query.outerjoin(Database, Dataset.database_id == Database.id)
+                    .outerjoin(HDFSTable, Dataset.id == HDFSTable.dataset_id)
+                    .filter(Database.sqlalchemy_uri.ilike(pattern),
+                            HDFSTable.id == None)
+                )
+
+        query = query.filter(
+             or_(Dataset.created_by_fk == user_id,
+                 Dataset.online == 1)
         )
 
-        if dataset_type:
-            query = query.filter(Dataset.dataset_type.ilike(dataset_type))
         if filter:
             filter_str = '%{}%'.format(filter.lower())
             query = query.filter(
                 or_(
                     Dataset.dataset_name.ilike(filter_str),
-                    Dataset.dataset_type.ilike(filter_str),
                     User.username.ilike(filter_str)
                 )
             )
@@ -496,15 +505,10 @@ class DatasetModelView(SupersetModelView):  # noqa
     def check_column_values(obj):
         if not obj.dataset_name:
             raise SupersetException(NONE_DATASET_NAME)
-        if not obj.dataset_type:
-            raise SupersetException(NONE_DATASET_TYPE)
         if not obj.database_id:
             raise SupersetException(NONE_CONNECTION)
         if not obj.schema and not obj.table_namej and not obj.sql:
             raise SupersetException(NONE_CONNECTION)
-        if obj.dataset_type not in Dataset.dataset_types:
-            raise SupersetException(_("Not supported dataset type [{type_}]")
-                                    .format(type_=obj.database_type))
 
 
 class HDFSTableModelView(SupersetModelView):
