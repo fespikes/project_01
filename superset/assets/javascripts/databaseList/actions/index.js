@@ -480,7 +480,7 @@ export function fetchIfNeeded (condition) {
 
 export const fetchConnectionNames = (callback) => {
     return (dispatch, getState) => {
-        const URL = `${baseURL}listdata?page_size=1000`;
+        const URL = `${baseURL}listdata?page_size=1000&database_type=inceptor`;
         let connectionNames = [];
 
         return fetch(URL, {

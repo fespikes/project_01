@@ -58,8 +58,8 @@ export const connectDefaultInfo = {
     },
     'INCEPTOR': {
         'str': {
-            'defaultValue': 'Inceptor://172.0.0.1:10000/database',
-            'tip': '如果认证方式是LDAP，需要加上用户名和密码：Inceptor://username:password@172.0.0.1:10000/database'
+            'defaultValue': 'inceptor://172.0.0.1:10000/database',
+            'tip': '如果认证方式是LDAP，需要加上用户名和密码：inceptor://username:password@172.0.0.1:10000/database'
         },
         'args': {
             'defaultValue': {
@@ -107,7 +107,7 @@ export const connectDefaultInfo = {
     },
     'ORACLE': {
         'str': {
-            'defaultValue': 'oracle:///username:password@172.0.0.1:1521/sid',
+            'defaultValue': 'oracle://username:password@172.0.0.1:1521/sid',
             'tip': ''
         },
         'args': {
