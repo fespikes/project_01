@@ -116,11 +116,20 @@ const px = function () {
                 }
                 endpoint += '&json=true';
                 endpoint += '&force=' + this.force;
-                if(moduleType === 'slice' && endpoint.indexOf('database_id') === -1) {
-                    endpoint += '&database_id=' + databaseId + '&full_tb_name=' + tableName;
+                if(moduleType === 'slice') {
+                    if(endpoint.indexOf('database_id') === -1) {
+                        endpoint += '&database_id=' + databaseId + '&full_tb_name=' + tableName;
+                    }else if(getUrlParam('database_id', endpoint) === '') {
+                        endpoint = endpoint.replace(/database_id=/, 'database_id=' + databaseId);
+                        endpoint = endpoint.replace(/full_tb_name=/, 'full_tb_name=' + tableName);
+                    }
                 }
-                if(moduleType === 'dashboard' && endpoint.indexOf('slice_id') === -1) {
-                    endpoint += '&slice_id=' + data.slice_id;
+                if(moduleType === 'dashboard') {
+                    if(endpoint.indexOf('slice_id') === -1) {
+                        endpoint += '&slice_id=' + data.slice_id;
+                    }else if(getUrlParam('slice_id', endpoint) === '') {
+                        endpoint = endpoint.replace(/slice_id=/, 'slice_id=' + data.slice_id);
+                    }
                 }
                 return endpoint;
             },
