@@ -67,7 +67,7 @@ class ResultSet extends React.PureComponent {
                         bsSize="small"
                         onClick={this.showModal.bind(this)}
                     >
-                        <i className="fa fa-bar-chart m-l-1" /> Visualize
+                        <i className="fa fa-bar-chart m-l-1" /> 创建工作表
                     </Button>
                 );
             }
