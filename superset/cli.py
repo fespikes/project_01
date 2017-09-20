@@ -56,11 +56,11 @@ def init_examples():
 
 
 def create_default_user():
-    if config.get('COMMUNITY_EDITION') is False or sm.find_user(username='admin'):
-        return
-    logging.info("Begin to create default admin user...")
     username = config.get('COMMUNITY_USERNAME')
     password = config.get('COMMUNITY_PASSWORD')
+    if config.get('COMMUNITY_EDITION') is False or sm.find_user(username=username):
+        return
+    logging.info("Begin to create default admin user...")
     user = sm.add_user(
         username, username, username, '{}@email.com'.format(username), sm.find_role('Admin'),
         password=password)
