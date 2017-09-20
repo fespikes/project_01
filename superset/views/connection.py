@@ -178,8 +178,8 @@ class DatabaseView(SupersetModelView):  # noqa
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Releasing database connection {conn} will make these usable: "
-                 "\nDataset: {dataset}, \nSlice: {slice}")\
+        info = _("Releasing database connection {conn} will make these usable "
+                 "for other users: \nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -189,8 +189,8 @@ class DatabaseView(SupersetModelView):  # noqa
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Changing database connection {conn} to offline will make "
-                 "these unusable: \nDataset: {dataset}, \nSlice: {slice}")\
+        info = _("Changing database connection {conn} to offline will make these "
+                 "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -311,8 +311,8 @@ class HDFSConnectionModelView(SupersetModelView):
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Releasing hdfs connection {hconn} will make these usable: "
-                 "\nDataset: {dataset},\nSlice: {slice}") \
+        info = _("Releasing hdfs connection {hconn} will make these usable "
+                 "for other users: \nDataset: {dataset},\nSlice: {slice}") \
             .format(hconn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -322,8 +322,8 @@ class HDFSConnectionModelView(SupersetModelView):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Changing hdfs connection {hconn} to offline will make these unusable: "
-               "\nDataset: {dataset},\n Slice: {slice}")\
+        info = _("Changing hdfs connection {hconn} to offline will make these unusable "
+               "for other users: \nDataset: {dataset},\n Slice: {slice}")\
             .format(hconn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
