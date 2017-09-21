@@ -10,6 +10,7 @@ import os
 import textwrap
 import datetime
 import random
+import logging
 
 import pandas as pd
 from sqlalchemy import String, DateTime, Date, Float, BigInteger
@@ -61,7 +62,7 @@ def load_energy():
         },
         index=False)
 
-    print("Creating table [energy_usage] reference")
+    logging.info("Creating table [energy_usage] reference")
     tbl = db.session.query(TBL).filter_by(table_name=tbl_name).first()
     if not tbl:
         tbl = TBL(dataset_name="能源消耗",
@@ -191,7 +192,7 @@ def load_world_bank_health_n_pop():
         },
         index=False)
 
-    print("Creating table [wb_health_population] reference")
+    logging.info("Creating table [wb_health_population] reference")
     tbl = db.session.query(TBL).filter_by(table_name=tbl_name).first()
     if not tbl:
         tbl = TBL(dataset_name='世界各国人口',
@@ -226,7 +227,7 @@ def load_world_bank_health_n_pop():
         "show_bubbles": "y",
     }
 
-    print("Creating slices")
+    logging.info("Creating slices")
     slices = [
         Slice(
             slice_name="筛选地区",
@@ -382,7 +383,7 @@ def load_world_bank_health_n_pop():
     for slc in slices:
         merge_slice(slc)
 
-    print("Creating a World's Health Bank dashboard")
+    logging.info("Creating a World's Health Bank dashboard")
     dash_name = "世界人口"
     slug = "world_health"
     dash = db.session.query(Dash).filter_by(slug=slug).first()
@@ -477,7 +478,7 @@ def load_world_bank_health_n_pop():
 
 def load_css_templates():
     """Loads 2 css templates to demonstrate the feature"""
-    print('Creating default CSS templates')
+    logging.info('Creating default CSS templates')
     CSS = models.CssTemplate  # noqa
 
     obj = db.session.query(CSS).filter_by(template_name='Flat').first()
@@ -593,10 +594,10 @@ def load_birth_names():
         },
         index=False)
     l = []
-    print("Done loading table!")
-    print("-" * 80)
+    logging.info("Done loading table!")
+    logging.info("-" * 80)
 
-    print("Creating table [birth_names] reference")
+    logging.info("Creating table [birth_names] reference")
     obj = db.session.query(TBL).filter_by(table_name='birth_names').first()
     if not obj:
         obj = TBL(dataset_name='新生婴儿统计',
@@ -629,7 +630,7 @@ def load_birth_names():
         "markup_type": "markdown",
     }
 
-    print("Creating some slices")
+    logging.info("Creating some slices")
     slices = [
         Slice(
             slice_name="女孩姓名数量",
@@ -759,7 +760,7 @@ def load_birth_names():
     for slc in slices:
         merge_slice(slc)
 
-    print("Creating a dashboard")
+    logging.info("Creating a dashboard")
     dash = db.session.query(Dash).filter_by(dashboard_title="Births").first()
 
     if not dash:
@@ -862,10 +863,10 @@ def load_unicode_test_data():
             'value': Float(),
         },
         index=False)
-    print("Done loading table!")
-    print("-" * 80)
+    logging.info("Done loading table!")
+    logging.info("-" * 80)
 
-    print("Creating table [unicode_test] reference")
+    logging.info("Creating table [unicode_test] reference")
     obj = db.session.query(TBL).filter_by(table_name='unicode_test').first()
     if not obj:
         obj = TBL(dataset_name='unicode_test',
@@ -898,7 +899,7 @@ def load_unicode_test_data():
         "limit": "100",
     }
 
-    print("Creating a slice")
+    logging.info("Creating a slice")
     slc = Slice(
         slice_name="Unicode Cloud",
         viz_type='word_cloud',
@@ -909,7 +910,7 @@ def load_unicode_test_data():
     )
     merge_slice(slc)
 
-    print("Creating a dashboard")
+    logging.info("Creating a dashboard")
     dash = (
         db.session.query(Dash)
         .filter_by(dashboard_title="Unicode Test")
@@ -947,10 +948,10 @@ def load_random_time_series_data():
             'ds': DateTime,
         },
         index=False)
-    print("Done loading table!")
-    print("-" * 80)
+    logging.info("Done loading table!")
+    logging.info("-" * 80)
 
-    print("Creating table [random_time_series] reference")
+    logging.info("Creating table [random_time_series] reference")
     obj = db.session.query(TBL).filter_by(table_name='random_time_series').first()
     if not obj:
         obj = TBL(dataset_name='随机时间序列',
@@ -977,7 +978,7 @@ def load_random_time_series_data():
         "subdomain_granularity": "day",
     }
 
-    print("Creating a slice")
+    logging.info("Creating a slice")
     slc = Slice(
         slice_name='热力图',
         description='基于随机时间序列数据',
@@ -1018,10 +1019,10 @@ def load_long_lat_data():
             'radius_miles': Float(),
         },
         index=False)
-    print("Done loading table!")
-    print("-" * 80)
+    logging.info("Done loading table!")
+    logging.info("-" * 80)
 
-    print("Creating table reference")
+    logging.info("Creating table reference")
     obj = db.session.query(TBL).filter_by(table_name='long_lat').first()
     if not obj:
         obj = TBL(dataset_name='位置坐标',
@@ -1050,7 +1051,7 @@ def load_long_lat_data():
         "row_limit": 500000,
     }
 
-    print("Creating a slice")
+    logging.info("Creating a slice")
     slc = Slice(
         slice_name="地理区域数量统计",
         viz_type='mapbox',
@@ -1086,9 +1087,9 @@ def load_multiformat_time_series_data():
             "string3": String(100),
         },
         index=False)
-    print("Done loading table!")
-    print("-" * 80)
-    print("Creating table [multiformat_time_series] reference")
+    logging.info("Done loading table!")
+    logging.info("-" * 80)
+    logging.info("Creating table [multiformat_time_series] reference")
     obj = db.session.query(TBL).filter_by(table_name='multiformat_time_series').first()
     if not obj:
         obj = TBL(dataset_name='多种格式的时间序列',
@@ -1116,7 +1117,7 @@ def load_multiformat_time_series_data():
     obj.fetch_metadata()
     tbl = obj
 
-    print("Creating some slices")
+    logging.info("Creating some slices")
     for i, col in enumerate(tbl.columns):
         slice_data = {
             "granularity_sqla": col.column_name,
@@ -1149,7 +1150,7 @@ def load_multiformat_time_series_data():
 def load_misc_dashboard():
     """Loading a dasbhoard featuring misc charts"""
 
-    print("Creating the dashboard")
+    logging.info("Creating the dashboard")
     db.session.expunge_all()
     DASH_SLUG = "misc_charts"
     dash = db.session.query(Dash).filter_by(slug=DASH_SLUG).first()
