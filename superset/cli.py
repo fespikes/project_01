@@ -126,7 +126,7 @@ def runserver(debug, address, port, timeout, workers):
             "--limit-request-line 0 "
             "--limit-request-field_size 0 "
             "superset:app").format(**locals())
-        print("Starting server with command: " + cmd)
+        logging.info("Starting server with command: " + cmd)
         Popen(cmd, shell=True).wait()
 
 
@@ -150,33 +150,33 @@ def version(verbose):
     help="Load additional test data")
 def load_examples(load_test_data):
     """Loads a set of Slices and Dashboards and a supporting dataset """
-    print("Loading examples into {}".format(db))
+    logging.info("Loading examples into {}".format(db))
 
     #data.load_css_templates()
 
-    print("Loading energy related dataset")
+    logging.info("Loading energy related dataset")
     data.load_energy()
 
-    print("Loading [World Bank's Health Nutrition and Population Stats]")
+    logging.info("Loading [World Bank's Health Nutrition and Population Stats]")
     data.load_world_bank_health_n_pop()
 
-    print("Loading [Birth names]")
+    logging.info("Loading [Birth names]")
     data.load_birth_names()
 
-    print("Loading [Random time series data]")
+    logging.info("Loading [Random time series data]")
     data.load_random_time_series_data()
 
-    print("Loading [Random long/lat data]")
+    logging.info("Loading [Random long/lat data]")
     data.load_long_lat_data()
 
-    print("Loading [Multiformat time series]")
+    logging.info("Loading [Multiformat time series]")
     data.load_multiformat_time_series_data()
 
-    print("Loading [Misc Charts] dashboard")
+    logging.info("Loading [Misc Charts] dashboard")
     data.load_misc_dashboard()
 
     if load_test_data:
-        print("Loading [Unicode test data]")
+        logging.info("Loading [Unicode test data]")
         data.load_unicode_test_data()
 
 
@@ -184,10 +184,10 @@ def load_examples(load_test_data):
 def worker():
     """Starts a worker for async SQL query execution."""
     # celery -A tasks worker --loglevel=info
-    print("Starting SQL Celery worker.")
+    logging.info("Starting SQL Celery worker.")
     if config.get('CELERY_CONFIG'):
-        print("Celery broker url: ")
-        print(config.get('CELERY_CONFIG').BROKER_URL)
+        logging.info("Celery broker url: ")
+        logging.info(config.get('CELERY_CONFIG').BROKER_URL)
 
     application = celery.current_app._get_current_object()
     c_worker = celery_worker.worker(app=application)

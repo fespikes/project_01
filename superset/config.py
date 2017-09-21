@@ -208,15 +208,15 @@ ADDITIONAL_MIDDLEWARE = []
 
 # Console Log Settings
 
-LOG_FORMAT = '%(asctime)s:%(levelname)s:%(name)s:%(message)s'
-LOG_LEVEL = 'DEBUG'
+LOG_FORMAT = '%(asctime)s: %(levelname)-8s: %(name)s: %(filename)s: %(funcName)s(): %(message)s'
+LOG_LEVEL = 'INFO'
 
 # ---------------------------------------------------
 # Enable Time Rotate Log Handler
 # ---------------------------------------------------
 # LOG_LEVEL = DEBUG, INFO, WARNING, ERROR, CRITICAL
 ENABLE_TIME_ROTATE = True
-TIME_ROTATE_LOG_LEVEL = 'DEBUG'
+TIME_ROTATE_LOG_LEVEL = 'INFO'
 FILENAME = '/var/log/pilot/pilot.log'
 ROLLOVER = 'midnight'
 INTERVAL = 1
