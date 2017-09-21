@@ -70,7 +70,6 @@ def is_user_defined_permission(perm):
 
 
 def get_or_create_main_db():
-    logging.info("Creating database reference")
     main_conn_name = conf.get("METADATA_CONN_NAME")
     dbobj = (
         db.session.query(models.Database)
@@ -78,9 +77,9 @@ def get_or_create_main_db():
         .first()
     )
     if not dbobj:
+        logging.info("Creating database reference")
         dbobj = models.Database(database_name=main_conn_name)
     uri = conf.get("SQLALCHEMY_DATABASE_URI")
-    logging.info(uri)
     dbobj.online = True
     dbobj.expose = False
     dbobj.set_sqlalchemy_uri(uri)
@@ -205,9 +204,9 @@ def sync_role_definitions():
     #     set_role('Public', pvms, is_gamma_pvm)
 
     view_menu_set = db.session.query(models.Dataset).all()
-    create_missing_datasource_perms(view_menu_set)
-    create_missing_database_perms(view_menu_set)
-    create_missing_metrics_perm(view_menu_set)
+    # create_missing_datasource_perms(view_menu_set)
+    # create_missing_database_perms(view_menu_set)
+    # create_missing_metrics_perm(view_menu_set)
 
     # commit role and view menu updates
     sm.get_session.commit()
