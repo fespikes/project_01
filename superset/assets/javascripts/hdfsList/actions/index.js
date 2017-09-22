@@ -491,8 +491,8 @@ function applyFetch(condition) {
         dispatch(switchFetchingStatus(true));
         const URL = baseURL + `list/?` +
         (condition.path ? ('path=' + condition.path + '&') : '') +
-        (condition.page_num !== undefined ? ('page_num=' + condition.page_num + '&') : '') +
-        (condition.page_size ? 'page_size=' + condition.page_size : '');
+        (condition.page_num ? ('page_num=' + condition.page_num + '&') : 'page_num=1&') +
+        (condition.page_size ? ('page_size=' + condition.page_size) : 'page_size=10');
 
         const listDataMatch = json => {
             if (!json || !json.files) return json;
@@ -510,7 +510,7 @@ function applyFetch(condition) {
                 if (response.status === 200) {
                     const data = listDataMatch(response ? response.data : {});
                     dispatch(receiveData(data, condition));
-                } else if (response.status === 500) {
+                } else {
                     message.error(response.message, 5);
                 }
                 dispatch(switchFetchingStatus(false));
@@ -579,7 +579,7 @@ export function fetchPreview() {
     }
 }
 
-export function fetchHDFSList(path, isFirst, callback) {
+export function fetchHDFSList(path, isFirst) {
     return (dispatch, getState) => {
         dispatch(switchFetchingStatus(true));
         const url = baseURL + 'list/?path=' + path + '&page_num=1&page_size=1000';
@@ -598,7 +598,7 @@ export function fetchHDFSList(path, isFirst, callback) {
                             JSON.parse(JSON.stringify(getState().popupNormalParam.treeData))
                         )));
                     }
-                } else if (response.status === 500) {
+                } else {
                     message.error(response.message, 5);
                 }
                 dispatch(switchFetchingStatus(false));

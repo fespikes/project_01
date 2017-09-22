@@ -128,7 +128,7 @@ class Controls extends React.PureComponent {
             <ButtonGroup>
                 <Button
                     onClick={this.publish.bind(this)}
-                    tooltip="发布仪表盘"
+                    tooltip="发布/下线"
                     placement="bottom"
                     >
                     <i className={this.state.published ? 'icon icon-online' : 'icon icon-offline'}/>
