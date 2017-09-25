@@ -204,7 +204,7 @@ class Tables extends React.Component {
                                 onClick={() => this.editDashboard(record)}
                             />
                         </Tooltip>
-                        <Tooltip placement="top" title="发布/下线" arrowPointAtCenter>
+                        <Tooltip placement="top" title={record.online?'下线':'发布'} arrowPointAtCenter>
                             <i
                                 className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
                                 onClick={() => this.publishDashboard(record)}
