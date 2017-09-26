@@ -39,7 +39,10 @@ class SubSqlMetric extends Component {
     addSQLMetric (argus) {
         const { datasetId, fetchSQLMetricAdd } =  this.props;
         let addSQLMetricPopup = render(
-            <SQLMetricAdd datasetId={datasetId} fetchSQLMetricAdd={fetchSQLMetricAdd} />,
+            <SQLMetricAdd
+                title="添加SQL度量"
+                datasetId={datasetId}
+                fetchSQLMetricAdd={fetchSQLMetricAdd} />,
             document.getElementById('popup_root')
         );
 
@@ -53,6 +56,7 @@ class SubSqlMetric extends Component {
         metric.dataset_id = datasetId;
         let editSQLMetricPopup = render(
             <SQLMetricAdd
+                title="编辑SQL度量"
                 datasetId={datasetId}
                 editedMetric={metric}
                 fetchSQLMetricEdit={fetchSQLMetricEdit} />,
@@ -141,7 +145,7 @@ class SubSqlMetric extends Component {
                         className='btn-blue tab-btn-ps'
                         onClick={me.addSQLMetric}
                         disabled={me.props.datasetId === '' ? true : false}
-                    >+&nbsp; 添加列表</button>
+                    >+&nbsp; 添加</button>
                 </div>
                 <Table
                     columns={columns}
