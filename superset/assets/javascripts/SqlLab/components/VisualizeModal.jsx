@@ -159,7 +159,7 @@ class VisualizeModal extends React.PureComponent {
         }
         const tableData = this.props.query.results.columns.map((col) => ({
             列: col.name,
-            纬度: (
+            维度: (
                 <input
                     type="checkbox"
                     onChange={this.changeCheckbox.bind(this, 'is_dim', col.name)}
@@ -199,7 +199,7 @@ class VisualizeModal extends React.PureComponent {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-plus"/>
-                                <span>添加工作表</span>
+                                <span>创建工作表</span>
                             </div>
                             <div className="header-right">
                                 <i className="icon icon-close" onClick={this.props.onHide}/>
@@ -221,7 +221,7 @@ class VisualizeModal extends React.PureComponent {
                                 />
                             </Col>
                             <Col md={6}>
-                                数据集
+                                数据集名字
                                 <input
                                     type="text"
                                     className="form-control input-sm"
@@ -234,7 +234,7 @@ class VisualizeModal extends React.PureComponent {
                         <hr />
                         <Table
                             className="table table-condensed"
-                            columns={['列', '纬度', '日期', '聚合函数']}
+                            columns={['列', '维度', '日期', '聚合函数']}
                             data={tableData}
                         />
                         <div style={{textAlign: 'center'}}>
