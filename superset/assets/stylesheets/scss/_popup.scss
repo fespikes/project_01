@@ -117,6 +117,8 @@
         .space-between {
             display: flex;
             justify-content: space-between;
+            position: relative;
+            top: 4px;
         }
     }
     .sub-item {

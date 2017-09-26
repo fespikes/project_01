@@ -199,7 +199,7 @@ class SubColumns extends Component {
                         onClick={this.addTableColumn}
                         className='btn-blue tab-btn-ps'
                         disabled={this.props.datasetId === '' ? true : false}
-                    >+&nbsp; 添加列表</button>
+                    >+&nbsp; 添加</button>
                 </div>
                 <Table
                     columns={columns}
