@@ -40,6 +40,8 @@ CUSTOM_SECURITY_MANAGER = None
 
 # The Community Edition will abandon guardian module, and embed user management module
 COMMUNITY_EDITION = False
+COMMUNITY_USERNAME = 'admin'
+COMMUNITY_PASSWORD = '123456'
 
 # if load examples data when start server
 LOAD_EXAMPLES = True
@@ -64,6 +66,11 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(DATA_DIR, 'pilot.db')
 # 'create/alter database db character set utf8'
 # and 'charset=utf8' should be in uri
 #SQLALCHEMY_DATABASE_URI = 'mysql://username:password@localhost:3306/db?charset=utf8'
+
+
+# hdfs
+DEFAULT_HTTPFS = '172.0.0.1'
+DEFAULT_HDFS_CONN_NAME = 'default_{}'.format(DEFAULT_HTTPFS)
 
 # The limit of queries fetched for query search
 QUERY_SEARCH_LIMIT = 1000
@@ -201,15 +208,15 @@ ADDITIONAL_MIDDLEWARE = []
 
 # Console Log Settings
 
-LOG_FORMAT = '%(asctime)s:%(levelname)s:%(name)s:%(message)s'
-LOG_LEVEL = 'DEBUG'
+LOG_FORMAT = '%(asctime)s: %(levelname)-8s: %(name)s: %(filename)s: %(funcName)s(): %(message)s'
+LOG_LEVEL = 'INFO'
 
 # ---------------------------------------------------
 # Enable Time Rotate Log Handler
 # ---------------------------------------------------
 # LOG_LEVEL = DEBUG, INFO, WARNING, ERROR, CRITICAL
 ENABLE_TIME_ROTATE = True
-TIME_ROTATE_LOG_LEVEL = 'DEBUG'
+TIME_ROTATE_LOG_LEVEL = 'INFO'
 FILENAME = '/var/log/pilot/pilot.log'
 ROLLOVER = 'midnight'
 INTERVAL = 1

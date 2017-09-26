@@ -338,12 +338,6 @@ class HDFSConnection(Model, AuditMixinNullable):
     online = Column(Boolean, default=False)
     database_id = Column(Integer, ForeignKey('dbs.id'), nullable=True)
     httpfs = Column(String(64), nullable=False)
-    webhdfs_url = Column(String(64))
-    fs_defaultfs = Column(String(64))
-    logical_name = Column(String(64))
-    principal = Column(String(64))
-    hdfs_user = Column(String(64))
-    keytab_file = Column(LargeBinary)
     database = relationship(
         'Database',
         backref=backref('hdfs_connection', lazy='dynamic'),

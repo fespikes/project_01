@@ -281,7 +281,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     @property
     def dataset_type(self):
         if self.hdfs_table:
-            return self.hdfs_table.dataset_type
+            return self.hdfs_table.hdfs_table_type
         return self.database.database_type
 
     @property
@@ -290,7 +290,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     @property
     def connection(self):
-        if self.dataset_type.lower() == 'hdfs':
+        if self.hdfs_table:
             return self.hdfs_table.hdfs_path
         elif self.database:
             return str(self.database)
@@ -332,8 +332,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     @property
     def full_name(self):
-        return utils.get_datasource_full_name(
-            self.database, self.table_name, schema=self.schema)
+        # return utils.get_datasource_full_name(
+        #     self.database, self.table_name, schema=self.schema)
+        user = self.created_by.username if self.created_by else None
+        return "[{}].[{}].[{}]".format(user, self.database, self.dataset_name)
 
     @property
     def dttm_cols(self):
@@ -665,7 +667,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     def temp_dataset(cls, database_id, full_tb_name, need_columns=True):
         """A temp dataset for slice"""
         dataset = cls(id=0,
-                      dataset_type='INCEPTOR',
                       online=True,
                       filter_select_enabled=True)
         if '.' in full_tb_name:
@@ -886,9 +887,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             else:
                 return False
         # hdfs_connection
-        if dataset.dataset_type \
-                and dataset.dataset_type.lower() == 'hdfs' \
-                and dataset.hdfs_table \
+        if dataset.hdfs_table \
                 and dataset.hdfs_table.hdfs_connection \
                 and check(dataset.hdfs_table.hdfs_connection, user_id) is False:
             if raise_if_false:
@@ -923,10 +922,9 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     @classmethod
     def release(cls, dataset):
-        if dataset.dataset_type.lower() == 'inceptor' and dataset.database_id:
+        if dataset.database:
             Database.release(dataset.database)
-        elif dataset.dataset_type.lower() == 'hdfs' \
-                and dataset.hdfs_table.hdfs_connection_id:
+        elif dataset.hdfs_table and dataset.hdfs_table.hdfs_connection_id:
             HDFSConnection.release(dataset.hdfs_table.hdfs_connection)
         if str(dataset.created_by_fk) == str(g.user.get_id()):
             dataset.online = True
@@ -936,6 +934,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 class HDFSTable(Model, AuditMixinNullable):
     __tablename__ = "hdfs_table"
     type = 'table'
+    hdfs_table_type = 'HDFS'
     hdfs_table_types = ['HDFS', ]
     filter_types = hdfs_table_types
     addable_types = hdfs_table_types + ['UPLOAD FILE']

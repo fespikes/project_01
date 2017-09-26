@@ -102,6 +102,11 @@ class DatabaseView(SupersetModelView):  # noqa
         if not obj.args:
             raise SupersetException(NONE_CONNECTION_ARGS)
 
+    def get_list_args(self, args):
+        kwargs = super().get_list_args(args)
+        kwargs['database_type'] = args.get('database_type')
+        return kwargs
+
     def get_object_list_data(self, **kwargs):
         """Return the database(connection) list"""
         order_column = kwargs.get('order_column')
@@ -109,11 +114,18 @@ class DatabaseView(SupersetModelView):  # noqa
         page = kwargs.get('page')
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
+        database_type = kwargs.get('database_type')
         user_id = kwargs.get('user_id')
 
         query = db.session.query(Database, User) \
             .filter(Database.created_by_fk == User.id,
                     Database.created_by_fk == user_id)
+
+        if database_type:
+            match_str = '{}%'.format(database_type)
+            query = query.filter(
+                Database.sqlalchemy_uri.ilike(match_str)
+            )
 
         if filter:
             filter_str = '%{}%'.format(filter.lower())
@@ -166,8 +178,8 @@ class DatabaseView(SupersetModelView):  # noqa
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Releasing database connection {conn} will make these usable: "
-                 "\nDataset: {dataset}, \nSlice: {slice}")\
+        info = _("Releasing database connection {conn} will make these usable "
+                 "for other users: \nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -177,8 +189,8 @@ class DatabaseView(SupersetModelView):  # noqa
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Changing database connection {conn} to offline will make "
-                 "these unusable: \nDataset: {dataset}, \nSlice: {slice}")\
+        info = _("Changing database connection {conn} to offline will make these "
+                 "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -299,8 +311,8 @@ class HDFSConnectionModelView(SupersetModelView):
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Releasing hdfs connection {hconn} will make these usable: "
-                 "\nDataset: {dataset},\nSlice: {slice}") \
+        info = _("Releasing hdfs connection {hconn} will make these usable "
+                 "for other users: \nDataset: {dataset},\nSlice: {slice}") \
             .format(hconn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -310,8 +322,8 @@ class HDFSConnectionModelView(SupersetModelView):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Changing hdfs connection {hconn} to offline will make these unusable: "
-               "\nDataset: {dataset},\n Slice: {slice}")\
+        info = _("Changing hdfs connection {hconn} to offline will make these unusable "
+               "for other users: \nDataset: {dataset},\n Slice: {slice}")\
             .format(hconn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -376,6 +388,11 @@ class ConnectionView(BaseSupersetView, PageMixin):
     """
     model = models.Connection
     route_base = '/connection'
+
+    def get_list_args(self, args):
+        kwargs = super().get_list_args(args)
+        kwargs['connection_type'] = args.get('connection_type')
+        return kwargs
 
     @catch_exception
     @expose('/connection_types/', methods=['GET', ])
@@ -467,6 +484,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
         user_id = kwargs.get('user_id')
+        connection_type = kwargs.get('connection_type')
 
         s1 = select([Database.id.label('id'),
                      Database.database_name.label('name'),
@@ -481,17 +499,23 @@ class ConnectionView(BaseSupersetView, PageMixin):
                      HDFSConnection.created_by_fk.label('user_id'),
                      HDFSConnection.changed_on.label('changed_on'),
                      cast(literal('HDFS'), type_=sqla.String).label('connection_type'),
-                     cast(literal(True), type_=sqla.Boolean).label('expose')])
+                     cast(literal(1), type_=sqla.Integer).label('expose')])
         union_q = s1.union_all(s2).alias('connection')
         query = (
             db.session.query(union_q, User.username)
-            .join(User, User.id == union_q.c.user_id)
+            .outerjoin(User, User.id == union_q.c.user_id)
             .filter(
                 or_(
                     union_q.c.user_id == user_id,
-                    union_q.c.online == 1,
-                    union_q.c.expose is True))
+                    union_q.c.online == 1),
+                union_q.c.expose == 1)
         )
+
+        if connection_type:
+            match_str = '{}%'.format(connection_type)
+            query = query.filter(
+                    union_q.c.connection_type.ilike(match_str)
+            )
 
         if filter:
             filter_str = '%{}%'.format(filter.lower())

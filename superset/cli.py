@@ -14,6 +14,7 @@ from flask_migrate import MigrateCommand, upgrade
 from flask_script import Manager
 
 from superset import app, sm, db, data, security
+from superset.models import HDFSConnection
 
 
 config = app.config
@@ -28,43 +29,67 @@ def init():
     security.sync_role_definitions()
 
 
-def create_default_user():
-    logging.info("Begin to create default admin user ...")
-    user = sm.add_user(
-        'admin', 'admin', 'admin', 'admin@email.com', sm.find_role('Admin'),
-        password='123456')
-    if not user:
-        logging.error("Failed to create default admin user.")
-    user.password2 = '123456'
-    sm.get_session.commit()
-    logging.info("Finish to add default admin user.")
-
-
-def init_pilot():
+def init_tables_and_roles():
     rs = db.session.execute('show tables like "alembic_version";')
     if rs.rowcount == 0:
-        logging.info("Start to create metadata tables ...")
+        logging.info("Start to create metadata tables...")
         BASE_DIR = os.path.abspath(os.path.dirname(__file__))
         migration_dir = os.path.join(BASE_DIR, 'migrations')
         upgrade(directory=migration_dir)
         db.session.commit()
         logging.info("Finish to create metadata tables.")
 
-        logging.info("Start to initialize permissions and roles ...")
+        logging.info("Start to initialize permissions and roles...")
         init()
         logging.info("Finish to initialize permissions and roles.")
 
+
+def init_examples():
     if config.get('LOAD_EXAMPLES'):
         rs = db.session.execute('show tables like "birth_names";')
         if rs.rowcount == 0:
-            logging.info("Start to load examples data ...")
+            logging.info("Start to load examples data...")
             load_examples(False)
             logging.info("Finish to load examples data.")
         else:
             logging.info("Exists examples data (such as: birth_names).")
 
-    if config.get('COMMUNITY_EDITION') and sm.find_user(username='admin') is None:
-        create_default_user()
+
+def create_default_user():
+    username = config.get('COMMUNITY_USERNAME')
+    password = config.get('COMMUNITY_PASSWORD')
+    if config.get('COMMUNITY_EDITION') is False or sm.find_user(username=username):
+        return
+    logging.info("Begin to create default admin user...")
+    user = sm.add_user(
+        username, username, username, '{}@email.com'.format(username), sm.find_role('Admin'),
+        password=password)
+    if not user:
+        logging.error("Failed to create default admin user.")
+    user.password2 = password
+    sm.get_session.commit()
+    logging.info("Finish to add default admin user.")
+
+
+def create_default_hdfs_conn():
+    name = config.get('DEFAULT_HDFS_CONN_NAME')
+    hconn = db.session.query(HDFSConnection).filter_by(connection_name=name).first()
+    if not hconn:
+        logging.info("Begin to add default hdfs connection: [{}]...".format(name))
+        hconn = HDFSConnection(connection_name=name,
+                               httpfs=config.get('DEFAULT_HTTPFS'),
+                               online=True,
+                               description='Default hdfs connection for hdfs file browser.')
+        db.session.add(hconn)
+        db.session.commit()
+        logging.info("Finish to add default hdfs connection.")
+
+
+def init_pilot():
+    init_tables_and_roles()
+    init_examples()
+    create_default_user()
+    create_default_hdfs_conn()
 
 
 @manager.option(
@@ -101,7 +126,7 @@ def runserver(debug, address, port, timeout, workers):
             "--limit-request-line 0 "
             "--limit-request-field_size 0 "
             "superset:app").format(**locals())
-        print("Starting server with command: " + cmd)
+        logging.info("Starting server with command: " + cmd)
         Popen(cmd, shell=True).wait()
 
 
@@ -125,33 +150,33 @@ def version(verbose):
     help="Load additional test data")
 def load_examples(load_test_data):
     """Loads a set of Slices and Dashboards and a supporting dataset """
-    print("Loading examples into {}".format(db))
+    logging.info("Loading examples into {}".format(db))
 
     #data.load_css_templates()
 
-    print("Loading energy related dataset")
+    logging.info("Loading energy related dataset")
     data.load_energy()
 
-    print("Loading [World Bank's Health Nutrition and Population Stats]")
+    logging.info("Loading [World Bank's Health Nutrition and Population Stats]")
     data.load_world_bank_health_n_pop()
 
-    print("Loading [Birth names]")
+    logging.info("Loading [Birth names]")
     data.load_birth_names()
 
-    print("Loading [Random time series data]")
+    logging.info("Loading [Random time series data]")
     data.load_random_time_series_data()
 
-    print("Loading [Random long/lat data]")
+    logging.info("Loading [Random long/lat data]")
     data.load_long_lat_data()
 
-    print("Loading [Multiformat time series]")
+    logging.info("Loading [Multiformat time series]")
     data.load_multiformat_time_series_data()
 
-    print("Loading [Misc Charts] dashboard")
+    logging.info("Loading [Misc Charts] dashboard")
     data.load_misc_dashboard()
 
     if load_test_data:
-        print("Loading [Unicode test data]")
+        logging.info("Loading [Unicode test data]")
         data.load_unicode_test_data()
 
 
@@ -159,10 +184,10 @@ def load_examples(load_test_data):
 def worker():
     """Starts a worker for async SQL query execution."""
     # celery -A tasks worker --loglevel=info
-    print("Starting SQL Celery worker.")
+    logging.info("Starting SQL Celery worker.")
     if config.get('CELERY_CONFIG'):
-        print("Celery broker url: ")
-        print(config.get('CELERY_CONFIG').BROKER_URL)
+        logging.info("Celery broker url: ")
+        logging.info(config.get('CELERY_CONFIG').BROKER_URL)
 
     application = celery.current_app._get_current_object()
     c_worker = celery_worker.worker(app=application)

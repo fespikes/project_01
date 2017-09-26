@@ -1164,6 +1164,7 @@ class Superset(BaseSupersetView):
             'metric': metrics[0].metric_name if metrics else None,
             'since': '100 years ago',
             'limit': '0',
+            'datasource_id': '{}'.format(table.id),
         }
         params = "&".join([k + '=' + v for k, v in params.items() if v])
         return '/p/explore/table/{table.id}/?{params}'.format(**locals())

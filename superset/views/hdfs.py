@@ -8,6 +8,7 @@ import json
 import functools
 import requests
 from flask import g, request
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import BaseView, expose
 
 from fileRobot_client.FileRobotClientFactory import fileRobotClientFactory
@@ -226,12 +227,11 @@ class HDFSBrowser(BaseView):
                 if hdfs_conn_id:
                     conn = db.session.query(HDFSConnection) \
                         .filter_by(id=hdfs_conn_id).first()
+                    if not conn:
+                        raise SupersetException(NO_HDFS_CONNECTION)
+                    return conn.httpfs
                 else:
-                    conn = db.session.query(HDFSConnection) \
-                        .order_by(HDFSConnection.id).first()
-                if not conn:
-                    raise SupersetException(NO_HDFS_CONNECTION)
-                return conn.httpfs
+                    return HDFSBrowser.get_default_httpfs()
 
             httpfs = get_httpfs(hdfs_conn_id, httpfs)
             return {'server': app.config.get('FILE_ROBOT_SERVER'),
@@ -263,3 +263,14 @@ class HDFSBrowser(BaseView):
             self.logined_user = ''
             self.hdfs_conn_id = None
             raise SupersetException(LOGIN_FILEROBOT_FAILED)
+
+    @staticmethod
+    def get_default_httpfs():
+        name = config.get('DEFAULT_HDFS_CONN_NAME')
+        hconn = db.session.query(HDFSConnection)\
+            .filter_by(connection_name=name)\
+            .first()
+        if not hconn:
+            raise SupersetException(
+                _("The default hdfs connection [{hconn}] is not exists").format(hconn))
+        return hconn.httpfs

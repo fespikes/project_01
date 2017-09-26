@@ -468,10 +468,10 @@ msgid "Limits the number of time series that get displayed"
 msgstr "设置时间序列显示项目的数量上限"
 
 msgid "Sort By"
-msgstr ""
+msgstr "排序"
 
 msgid "Metric used to define the top series"
-msgstr ""
+msgstr "选择对时间序列排序的度量"
 
 msgid "Rolling"
 msgstr "滚动"
@@ -697,10 +697,10 @@ msgid "Whether to include a client side search box"
 msgstr "是否显示搜索框"
 
 msgid "Table Filter"
-msgstr ""
+msgstr "表格单元过滤"
 
 msgid "Whether to apply filter when table cell is clicked"
-msgstr ""
+msgstr "表格单元被选中时，会对同一仪表板的其他工作表进行过滤"
 
 msgid "Show Bubbles"
 msgstr "显示气泡"
@@ -1632,14 +1632,14 @@ msgid "Error order column name: [{name}]"
 msgstr "错误的排序字段：[{name}]"
 
 msgid ""
-"Releasing database connection {conn} will make these usable: "
-"\nDataset: {dataset}, \nSlice: {slice}"
-msgstr "上线数据库连接{conn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
+"Releasing database connection {conn} will make these usable "
+"for other users: \nDataset: {dataset}, \nSlice: {slice}"
+msgstr "上线数据库连接{conn}会使其他用户可用以下对象：\n数据集：{dataset}，\n工作表：{slice}"
 
 msgid ""
 "Changing database connection {conn} to offline will make "
-"these unusable: \nDataset: {dataset}, \nSlice: {slice}"
-msgstr "下线数据库连接{conn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
+"these unusable for other users: \nDataset: {dataset}, \nSlice: {slice}"
+msgstr "下线数据库连接{conn}会使其他用户不可用以下对象：\n数据集：{dataset}，\n工作表：{slice}"
 
 msgid ""
 "Deleting database connection {conn} will make these unusable: "
@@ -1650,14 +1650,14 @@ msgid "Error parameter ids: {ids}, queried {num} database connection(s)"
 msgstr "根据参数ids：{ids}查询到{num}个数据库连接"
 
 msgid ""
-"Releasing hdfs connection {hconn} will make these usable: \n"
-"Dataset: {dataset},\nSlice: {slice}"
-msgstr "上线HDFS连接{hconn}会使以下对象可用：\n数据集：{dataset}，\n工作表：{slice}"
+"Releasing hdfs connection {hconn} will make these usable "
+"for other users: \nDataset: {dataset},\nSlice: {slice}"
+msgstr "上线HDFS连接{hconn}会使其他用户可用以下对象：\n数据集：{dataset}，\n工作表：{slice}"
 
 msgid ""
-"Changing hdfs connection {hconn} to offline will make these unusable: \n"
-"Dataset: {dataset},\n Slice: {slice}"
-msgstr "下线HDFS连接{hconn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
+"Changing hdfs connection {hconn} to offline will make these unusable "
+"for other users: \nDataset: {dataset},\n Slice: {slice}"
+msgstr "下线HDFS连接{hconn}会使其他用户不可用以下对象：\n数据集：{dataset}，\n工作表：{slice}"
 
 msgid ""
 "Deleting hdfs connection {hconn} will make these unusable: \n"
@@ -1682,7 +1682,7 @@ msgid "Error parameter ids: {ids}, queried {num} dashboard(s)"
 msgstr "根据参数ids：{ids}查询到{num}个仪表板"
 
 msgid "Releasing slice [{slice}] will release these too: \nDataset: [{dataset}], \nConnection: [{conn}]"
-msgstr "上线工作表[{slice}]会同时上线：\n数据集：[{dataset}]，\n连接：[{slice}]"
+msgstr "上线工作表[{slice}]会同时上线：\n数据集：[{dataset}]，\n连接：[{conn}]"
 
 msgid "Changing slice {slice} to offline will make it invisible in these dashboards: {dashboard}"
 msgstr "下线工作表{slice}会使其在以下仪表板中不可见：{dashboard}"
@@ -1696,7 +1696,7 @@ msgstr "根据参数ids：{ids}查询到{num}个工作表"
 msgid ""
 "Releasing dashboard [{dashboard}] will release these too: "
 "\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}"
-msgstr "上线仪表板[{dashboard}]会同时上线：\n工作表：{slice}，\n数据集：{dataset}，\n连接：{slice}"
+msgstr "上线仪表板[{dashboard}]会同时上线：\n工作表：{slice}，\n数据集：{dataset}，\n连接：{connection}"
 
 msgid "Changing dashboard [{dashboard}] to offline will make it invisible for other users"
 msgstr "下线仪表板[{dashboard}]会使其对其他用户不可见"
@@ -1782,6 +1782,9 @@ msgstr "不存在HDFS连接，请先创建一个"
 
 msgid "Failed to get FileRobot server from config"
 msgstr "从配置文件获取FileRobot服务地址失败"
+
+msgid "The default hdfs connection [{hconn}] is not exists"
+msgstr "不存在默认的HDFS连接[{hconn}]"
 
 
 #========================
