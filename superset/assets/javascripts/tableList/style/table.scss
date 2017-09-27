@@ -86,3 +86,19 @@ ul > li .ant-select-selection {
     pointer-events: none;
 }
 
+.hdfs-table-header .ant-table-thead {
+    display: none;
+}
+
+.editable-table-header {
+    border-left: solid 2px #fff;
+    border-top: solid 1px #dfe3e9;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+}
+
+.hdfs-column-input {
+    margin: 0 8px;
+}
+

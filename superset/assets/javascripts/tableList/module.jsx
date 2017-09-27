@@ -40,6 +40,16 @@ export function getColumnWidth(number) {
     return width;
 }
 
+export function getHDFSInputColumnWidth(width, colNum) {
+    let colWidth = '';
+    if(width === '100%') {
+        colWidth = 100 / colNum + '%';
+    }else {
+        colWidth = width / colNum;
+    }
+    return colWidth;
+}
+
 export function getTbTitle(data, width) {
     let tbTitle = [];
     data.columns.map((column) => {
