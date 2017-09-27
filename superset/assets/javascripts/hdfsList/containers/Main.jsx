@@ -44,6 +44,7 @@ class Main extends Component {
         });
 
         if (condition.filter !== this.props.condition.filter ||
+            condition.path !== this.props.condition.path ||
             condition.page_num !== this.props.condition.page_num ||
             condition.page_size !== this.props.condition.page_size
         ) {
@@ -91,7 +92,9 @@ class Main extends Component {
     linkToPath(ag) {
         const { changePath, fetchIfNeeded, condition } = this.props;
         changePath(ag);
-        fetchIfNeeded(condition);
+        if(ag.path === condition.path) {
+            fetchIfNeeded(condition);
+        }
     }
 
     navigation(ag) {
