@@ -129,18 +129,12 @@ class InnerTable extends React.Component {
                             <a
                                 onClick={
                                     argus => {
-                                        if (name === '.') {
-                                            fetchIfNeeded({
-                                                path: record.path
-                                            });
-                                            return;
-                                        }
                                         linkToPath({
                                             path: record.path
                                         });
                                     }
                                 }
-                                className="folder-sign"
+                                className={record.name==='.'||record.name==='..'?'folder-sign':''}
                             >{name}</a>
                         );
                     }
