@@ -28,6 +28,7 @@ class SubPreview extends Component {
         this.saveHDFSDataset = this.saveHDFSDataset.bind(this);
         this.previewHDFSDataset = this.previewHDFSDataset.bind(this);
         this.onTypeSelect = this.onTypeSelect.bind(this);
+        this.hdfsColumnNameChange = this.hdfsColumnNameChange.bind(this);
     }
 
     componentDidMount() {
@@ -73,6 +74,26 @@ class SubPreview extends Component {
         });
     }
 
+    hdfsColumnNameChange(e) {
+        const target = e.currentTarget;
+        const val = target.value;
+        const key = target.name;
+        const tbTitleOnly = JSON.parse(JSON.stringify(this.state.tbTitle));
+        tbTitleOnly.map((column) => {
+            if(column.key === key) {
+                column.title = val;
+                column.dataIndex = val;
+            }
+        });
+        const tbTitle = datasetModule.getTbTitleHDFS(
+            JSON.parse(JSON.stringify(tbTitleOnly)),
+            this
+        );
+        this.setState({
+            tbTitle: tbTitle
+        });
+    }
+
     doFetchInceptorPreviewData(datasetId) {
         const me = this;
         const {fetchInceptorPreviewData, saveInceptorPreviewData} = this.props;
@@ -105,7 +126,7 @@ class SubPreview extends Component {
                 });
                 me.doConstructTableData(datasetTypes.hdfs, data);
             }else {
-                console.log("error...");
+                message.error(data, 5);
             }
         }
     }
@@ -221,10 +242,29 @@ class SubPreview extends Component {
         const dsHDFS = this.state.dsHDFS;
         const tableWidth = this.state.tableWidth;
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
+        let columnNames;
+        if(datasetType === datasetTypes.hdfs && this.state.tbTitle) {
+            let colWidth = datasetModule.getHDFSInputColumnWidth(tableWidth, this.state.tbTitle.length);
+            columnNames = this.state.tbTitle.map((column) => {
+                return <input
+                    type="text"
+                    className="tp-input hdfs-column-input"
+                    name={column.key}
+                    style={{width: colWidth}}
+                    value={column.title}
+                    onChange={this.hdfsColumnNameChange}
+                />
+            });
+        }
         return (
             <div>
                 <div style={{width:'100%', height:'30px', background:'#fff', marginTop:'-2px'}}> </div>
                 <div className="preview-table">
+                    <div
+                        className="editable-table-header"
+                        style={{width: tableWidth, height: 40}}>
+                        {columnNames}
+                    </div>
                     <div className={datasetType===datasetTypes.database?'table-header':'none'}
                          style={{width: tableWidth}}>
                         <Table
@@ -235,7 +275,7 @@ class SubPreview extends Component {
                             pagination={false}
                         />
                     </div>
-                    <div className={(datasetType===datasetTypes.hdfs || datasetType===datasetTypes.uploadFile)?'table-header':'none'}
+                    <div className={(datasetType===datasetTypes.hdfs || datasetType===datasetTypes.uploadFile)?'table-header hdfs-table-header':'none'}
                          style={{width: tableWidth}}>
                         <Table
                             columns={this.state.tbTitle}
