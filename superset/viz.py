@@ -2240,6 +2240,7 @@ viz_types_list = [
     DirectedForceViz,
     SankeyViz,
     WorldMapViz,
+    MapboxViz,
     FilterBoxViz,
     IFrameViz,
     ParallelCoordinatesViz,
@@ -2248,9 +2249,6 @@ viz_types_list = [
     TreemapViz,
     CalHeatmapViz,
     HorizonViz,
-    MapboxViz,
-    HistogramViz,
-    SeparatorViz,
     HistogramViz,
     SeparatorViz,
 ]

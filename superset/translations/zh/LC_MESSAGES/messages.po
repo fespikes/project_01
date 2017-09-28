@@ -1263,10 +1263,10 @@ msgid "horizon"
 msgstr "水平图"
 
 msgid "Mapbox"
-msgstr "箱图"
+msgstr "地图"
 
 msgid "mapbox"
-msgstr "箱图"
+msgstr "地图"
 
 msgid "Points"
 msgstr "点"
