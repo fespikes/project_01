@@ -55,7 +55,7 @@ class SubDetail extends Component {
             fetchInceptorConnectList,
             fetchHDFSDetail,
             fetchHDFSFileBrowser,
-            fetchDatabaseConnectList,
+            saveInceptorPreviewData,
             fetchUploadFile
         } = this.props;
         const datasetType = this.state.datasetType;
@@ -79,6 +79,7 @@ class SubDetail extends Component {
                             fetchDatabaseList={fetchDatabaseList}
                             saveDatasetId={saveDatasetId}
                             saveInceptorDataset={saveInceptorDataset}
+                            saveInceptorPreviewData={saveInceptorPreviewData}
                             switchDatasetType={switchDatasetType}
                             createDataset={createDataset}
                             editDataset={editDataset}
@@ -126,6 +127,7 @@ function mapDispatchToProps (dispatch) {
         saveHDFSDataset,
         saveInceptorDataset,
         saveUploadDataset,
+        saveInceptorPreviewData,
         fetchHDFSConnectList,
         fetchDatabaseConnectList,
         fetchInceptorConnectList,
@@ -148,6 +150,7 @@ function mapDispatchToProps (dispatch) {
         saveHDFSDataset,
         saveInceptorDataset,
         saveUploadDataset,
+        saveInceptorPreviewData,
         fetchHDFSConnectList,
         fetchDatabaseConnectList,
         fetchInceptorConnectList,

@@ -70,11 +70,12 @@ class InceptorDetail extends Component {
         if(node.props.isLeaf) {
             let dsInceptor = {
                 ...this.state.dsInceptor,
-                table_name: value
+                table_name: value,
             };
             this.setState({
                 dsInceptor: dsInceptor
             });
+            this.props.saveInceptorPreviewData({});
         }
     }
 
