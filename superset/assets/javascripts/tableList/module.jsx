@@ -57,19 +57,32 @@ export function getTbTitle(data, width) {
             title: column,
             dataIndex: column,
             key: column,
-            width: width
+            width: width,
+            render: (text, record) => {
+                return (<span
+                    className="preview-tb-cell"
+                    style={{width: width - 8}}
+                >
+                    {text}
+                </span>)
+            }
         };
         tbTitle.push(objTitle);
     });
     return tbTitle;
 }
 
-export function getTbTitleInceptor(commonTitle) {
+export function getTbTitleInceptor(commonTitle, width) {
     let tbTitle = commonTitle;
     tbTitle.map(column => {
         column.render = (text) => {
             return (
-                <span className="column-type">{text}</span>
+                <span
+                    style={{width: width-5}}
+                    className="column-type"
+                >
+                    {text}
+                </span>
             )
         }
     });
@@ -88,7 +101,7 @@ export function getTbTitleHDFS(commonTitle, _this) {
             return (
                 <Select
                     defaultValue='string'
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', paddingRight: 5, paddingLeft: 5 }}
                     onSelect={ (value)=>_this.onTypeSelect(value, column) }
                     placeholder='select the type'>
                     {options}
@@ -411,5 +424,10 @@ export function constructHDFSPreviewUrl(dataset) {
         '&next_as_header=' + dataset.next_as_header + '&skip_more_rows=' + parseInt(dataset.skip_more_rows) +
         '&charset=' + dataset.charset;
     return url;
+}
+
+export function constructInceptorPreviewUrl(baseUrl, datasetId, dsInceptor) {
+    return baseUrl + 'preview_data?dataset_id=' + datasetId + '&database_id=' + dsInceptor.database_id +
+        '&full_tb_name=' + dsInceptor.schema + '.' + dsInceptor.table_name;
 }
 

@@ -50,7 +50,6 @@ class SubPreview extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
         if(nextProps.datasetId !== this.props.datasetId && nextProps.datasetId) {
             if(datasetType === datasetTypes.database) {
@@ -138,7 +137,7 @@ class SubPreview extends Component {
         let tbContent = datasetModule.getTbContent(data);
         if(datasetType === datasetTypes.database) {
             tbType = datasetModule.getTbType(data);
-            tbTitle = datasetModule.getTbTitleInceptor(JSON.parse(JSON.stringify(tbTitleOnly)));
+            tbTitle = datasetModule.getTbTitleInceptor(JSON.parse(JSON.stringify(tbTitleOnly)), width);
         }else if(datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) {
             tbTitle = datasetModule.getTbTitleHDFS(JSON.parse(JSON.stringify(tbTitleOnly)), this);
             tbContentHDFS = [{
@@ -250,6 +249,7 @@ class SubPreview extends Component {
                     type="text"
                     className="tp-input hdfs-column-input"
                     name={column.key}
+                    key={column.key}
                     style={{width: colWidth}}
                     value={column.title}
                     onChange={this.hdfsColumnNameChange}
@@ -261,8 +261,9 @@ class SubPreview extends Component {
                 <div style={{width:'100%', height:'30px', background:'#fff', marginTop:'-2px'}}> </div>
                 <div className="preview-table">
                     <div
-                        className="editable-table-header"
-                        style={{width: tableWidth, height: 40}}>
+                        className={datasetType===datasetTypes.hdfs?'editable-table-header':'none'}
+                        style={{width: tableWidth, height: 40}}
+                    >
                         {columnNames}
                     </div>
                     <div className={datasetType===datasetTypes.database?'table-header':'none'}
@@ -275,7 +276,8 @@ class SubPreview extends Component {
                             pagination={false}
                         />
                     </div>
-                    <div className={(datasetType===datasetTypes.hdfs || datasetType===datasetTypes.uploadFile)?'table-header hdfs-table-header':'none'}
+                    <div className={(datasetType===datasetTypes.hdfs || datasetType===datasetTypes.uploadFile)?
+                                    'table-header hdfs-table-header':'none'}
                          style={{width: tableWidth}}>
                         <Table
                             columns={this.state.tbTitle}
@@ -290,7 +292,6 @@ class SubPreview extends Component {
                             dataSource={this.state.tbContent}
                             size='small'
                             pagination={false}
-                            scroll={{y: 350}}
                         />
                     </div>
                 </div>
@@ -365,6 +366,7 @@ function mapStateToProps (state) {
     return {
         datasetId: subDetail.datasetId,
         dsHDFS: subDetail.dsHDFS,
+        dsInceptor: subDetail.dsInceptor,
         isFetching: subDetail.isFetching,
         inceptorPreviewData: subDetail.inceptorPreviewData
     };

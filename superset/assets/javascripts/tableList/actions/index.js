@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishTableUrl} from '../utils';
-import {constructHDFSPreviewUrl} from '../module';
+import {constructHDFSPreviewUrl, constructInceptorPreviewUrl} from '../module';
 import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
 
 export const actionTypes = {
@@ -587,9 +587,13 @@ export function fetchFilterTypeList(callback) {
 }
 
 export function fetchInceptorPreviewData(id, callback) {
-    return (dispatch) => {
+    return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
-        const url = baseURL + 'preview_data?dataset_id=' + id;
+        const url = constructInceptorPreviewUrl(
+            baseURL,
+            id,
+            getState().subDetail.dsInceptor
+        );
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
