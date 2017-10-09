@@ -30,6 +30,7 @@ export default function subDetail(state = {
         description: '',
         db_name: '',
         table_name: '',
+        database_id: '',
         sql: ''
     },
     isFetching: false

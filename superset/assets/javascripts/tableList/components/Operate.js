@@ -128,7 +128,7 @@ class SliceOperate extends React.Component {
                     <li style={{ width: '130px' }}>
                         <OperationSelect
                             opeType='filterDataset'
-                            iconClass=''
+                            iconClass='icon icon-filter'
                             defaultValue='ALL'
                             options={this.state.filterDatasetTypes}
                             selectChange={this.handleSelectChange}
