@@ -71,7 +71,6 @@ class InnerTable extends React.Component {
                 width: '5%',
                 render: (text, record) => {
                     const type = record.type;
-                    //                        const typesetSelectedRows= Math.random();
                     let datasetType;
 
                     switch (type) {
@@ -126,19 +125,18 @@ class InnerTable extends React.Component {
                             </Link>
                         );
                     } else { //send request.
-                        return (<a onClick={
-                            argus => {
-                                if (name === '.') {
-                                    fetchIfNeeded({
-                                        path: record.path
-                                    });
-                                    return;
+                        return (
+                            <a
+                                onClick={
+                                    argus => {
+                                        linkToPath({
+                                            path: record.path
+                                        });
+                                    }
                                 }
-                                linkToPath({
-                                    path: record.path
-                                });
-                            }
-                            }>{name}</a>);
+                                className={record.name==='.'||record.name==='..'?'folder-sign':''}
+                            >{name}</a>
+                        );
                     }
                 }
             }, {

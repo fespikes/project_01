@@ -167,7 +167,7 @@ class SliceTable extends React.Component {
                                     <i className="icon icon-edit"/>
                                 </Link>
                             </Tooltip>
-                            <Tooltip placement="top" title="发布/下线" arrowPointAtCenter>
+                            <Tooltip placement="top" title={record.online?'下线':'发布'} arrowPointAtCenter>
                                 <i
                                     style={{marginLeft: 20}}
                                     className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}

@@ -90,7 +90,11 @@ class Main extends Component {
     }
 
     linkToPath(ag) {
-        this.props.changePath(ag);
+        const { changePath, fetchIfNeeded, condition } = this.props;
+        changePath(ag);
+        if(ag.path === condition.path) {
+            fetchIfNeeded(condition);
+        }
     }
 
     navigation(ag) {
@@ -229,7 +233,6 @@ function mapDispatchToProps(dispatch) {
         fetchIfNeeded,
         popupChangeStatus,
         setSelectedRows,
-        fetchIfNeeded,
         dispatch
     };
 }

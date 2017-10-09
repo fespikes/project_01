@@ -225,9 +225,7 @@ class Operate extends React.Component {
                         <i className="icon icon-trash ps"/>删除
                     </li>
                 </ul>
-                <div className="search-input" style={{
-                marginRight: 0
-            }}>
+                <div className="search-input" style={{marginRight: 0}}>
                     <input
                         onChange={this.searchOnChange}
                         ref="searchField"

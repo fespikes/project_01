@@ -82,7 +82,7 @@ class TableColumnAdd extends React.Component {
 
     formValidate () {
         const tc = this.state.tableColumn;
-        if (tc.column_name && tc.dataset_id) {
+        if (tc.column_name && tc.expression && tc.dataset_id) {
             this.setState({
                 enableConfirm: true
             });
@@ -173,7 +173,7 @@ class TableColumnAdd extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-dataset"/>
-                                <span className="item-label">Add Table Column</span>
+                                <span className="item-label">添加</span>
                             </div>
                             <div className="header-right">
                                 <i className="icon icon-close" onClick={this.closeDialog}/>
@@ -210,6 +210,7 @@ class TableColumnAdd extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
+                                    <i>*</i>
                                     <span className="item-label">表达式：</span>
                                 </div>
                                 <div className="item-right">
@@ -217,6 +218,7 @@ class TableColumnAdd extends React.Component {
                                     <Tooltip placement="topRight" title="生成新列的SQL语法，比如：col+1">
                                         <i
                                             className="icon icon-info after-textarea-icon"
+                                            style={{top: 35}}
                                         />
                                     </Tooltip>
                                 </div>

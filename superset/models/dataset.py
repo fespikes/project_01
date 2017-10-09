@@ -700,10 +700,13 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 logging.exception(e)
 
             new_col = TableColumn(temp_dataset=self, column_name=col.name, type=datatype)
-            new_col.groupby = new_col.is_string
+            new_col.count_distinct = True
+            new_col.groupby = new_col.is_string or new_col.isnum or new_col.is_time
             new_col.filterable = new_col.is_string
             new_col.sum = new_col.isnum
             new_col.avg = new_col.isnum
+            new_col.max = new_col.isnum
+            new_col.min = new_col.isnum
             new_col.is_dttm = new_col.is_time
             self.temp_columns.append(new_col)
 
@@ -775,12 +778,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 datatype = "{}".format(col.type).upper()
             except Exception as e:
                 datatype = "UNKNOWN"
-                logging.error(
-                    "Unrecognized data type in {}.{}".format(table, col.name))
+                logging.error("Unrecognized data type in {}.{}".format(table, col.name))
                 logging.exception(e)
             dbcol = (
-                db.session
-                    .query(TC)
+                db.session.query(TC)
                     .filter(TC.dataset == self)
                     .filter(TC.column_name == col.name)
                     .first()
@@ -788,10 +789,13 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             db.session.flush()
             if not dbcol:
                 dbcol = TableColumn(column_name=col.name, type=datatype)
-                dbcol.groupby = dbcol.is_string
+                dbcol.count_distinct = True
+                dbcol.groupby = dbcol.is_string or dbcol.isnum or dbcol.is_time
                 dbcol.filterable = dbcol.is_string
                 dbcol.sum = dbcol.isnum
                 dbcol.avg = dbcol.isnum
+                dbcol.max = dbcol.isnum
+                dbcol.min = dbcol.isnum
                 dbcol.is_dttm = dbcol.is_time
 
             db.session.merge(self)
