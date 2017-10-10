@@ -173,7 +173,7 @@ class TableColumnAdd extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-dataset"/>
-                                <span className="item-label">添加</span>
+                                <span className="item-label">{this.props.title}</span>
                             </div>
                             <div className="header-right">
                                 <i className="icon icon-close" onClick={this.closeDialog}/>
