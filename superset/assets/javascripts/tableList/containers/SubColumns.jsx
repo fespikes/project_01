@@ -35,33 +35,30 @@ class SubColumns extends Component {
         }
     }
 
-    addTableColumn (argus) {
-        console.log(this.props.datasetId);
+    addTableColumn () {
         const { fetchTableColumnAdd } = this.props;
-        let addTableColumnPopup = render(
-            <TableColumnAdd datasetId={this.props.datasetId} fetchTableColumnAdd={fetchTableColumnAdd} />,
+        render(
+            <TableColumnAdd
+                title="添加列"
+                datasetId={this.props.datasetId}
+                fetchTableColumnAdd={fetchTableColumnAdd}
+            />,
             document.getElementById('popup_root')
         );
-
-        if (addTableColumnPopup) {
-            addTableColumnPopup.showDialog();
-        }
     }
 
     editTableColumn(record) {
         const { datasetId, fetchTableColumnEdit } = this.props;
         record.dataset_id = datasetId;
-        let editTableColumnPopup = render(
+        render(
             <TableColumnAdd
+                title="编辑列"
                 editedColumn={record}
                 datasetId={datasetId}
-                fetchTableColumnEdit={fetchTableColumnEdit} />,
+                fetchTableColumnEdit={fetchTableColumnEdit}
+            />,
             document.getElementById('popup_root')
         );
-
-        if (editTableColumnPopup) {
-            editTableColumnPopup.showDialog();
-        }
     }
 
     deleteTableColumn(record) {
