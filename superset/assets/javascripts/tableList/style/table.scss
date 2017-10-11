@@ -144,6 +144,14 @@ ul > li .ant-select-selection {
     padding: 10px 5px;
 }
 
+.ant-checkbox-wrapper {
+    display: inline-flex;
+    align-items: center;
+    input[type="checkbox"] {
+        position: absolute;
+        top: 0;
+    }
+}
 
 
 
