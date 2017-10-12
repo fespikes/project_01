@@ -808,9 +808,9 @@ class Superset(BaseSupersetView):
         slc.datasource_name = args.get('datasource_name')
         slc.viz_type = args.get('viz_type')
         slc.datasource_type = datasource_type
-        slc.datasource_id = datasource_id
-        slc.slice_name = slice_name
-        slc.database_id = database_id
+        slc.datasource_id = datasource_id if datasource_id else None
+        slc.slice_name = slice_name or slc.slice_name
+        slc.database_id = database_id if database_id else None
         slc.full_table_name = full_tb_name
         SliceModelView.check_column_values(slc)
 
