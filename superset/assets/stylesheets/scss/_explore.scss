@@ -135,6 +135,13 @@
             border: $borderStyleFocus;
         }
     }
+
+    .alert-alert {
+        background-color: #ffb9b9;
+        button {
+            color: #333;
+        }
+    }
 }
 
 div.widget .slice_container {
