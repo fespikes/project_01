@@ -6,19 +6,17 @@ from __future__ import unicode_literals
 
 import json
 import requests
-import copy
 from flask import request
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
 
-from sqlalchemy import or_, and_
+from sqlalchemy import or_
 from superset import app, db
 from superset.utils import SupersetException
 from superset.models import (
-    Database, Dataset, HDFSTable, Log, DailyNumber,
-    TableColumn, SqlMetric, Slice
+    Database, Dataset, HDFSTable, Log, TableColumn, SqlMetric, Slice
 )
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
@@ -28,8 +26,6 @@ from .base import (
 )
 
 config = app.config
-log_action = Log.log_action
-log_number = DailyNumber.log_number
 
 
 class TableColumnInlineView(SupersetModelView):  # noqa
@@ -468,10 +464,8 @@ class DatasetModelView(SupersetModelView):  # noqa
         table.get_sqla_table_object()
 
     def post_add(self, table):
+        Log.log_add(table, 'dataset', get_user_id())
         table.fetch_metadata()
-        action_str = 'Add dataset: [{}]'.format(repr(table))
-        log_action('add', action_str, 'dataset', table.id)
-        log_number('dataset', table.online, get_user_id())
 
     def update_hdfs_table(self, table, json_date):
         hdfs_table = table.hdfs_table
@@ -490,16 +484,13 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def post_update(self, table):
         table.fetch_metadata()
-        action_str = 'Edit dataset: [{}]'.format(repr(table))
-        log_action('edit', action_str, 'dataset', table.id)
+        Log.log_update(table, 'dataset', get_user_id())
 
     def pre_delete(self, table):
         check_ownership(table)
 
     def post_delete(self, table):
-        action_str = 'Delete dataset: [{}]'.format(repr(table))
-        log_action('delete', action_str, 'dataset', table.id)
-        log_number('dataset', table.online, get_user_id())
+        Log.log_delete(table, 'dataset', get_user_id())
 
     @staticmethod
     def check_column_values(obj):

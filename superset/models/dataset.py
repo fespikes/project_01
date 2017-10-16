@@ -33,7 +33,7 @@ from superset import db, app, import_util, utils
 from superset.utils import wrap_clause_in_parens, DTTM_ALIAS, SupersetException
 from superset.jinja_context import get_template_processor
 from .base import (
-    AuditMixinNullable, ImportMixin, Queryable, QueryResult, QueryStatus
+    AuditMixinNullable, ImportMixin, Queryable, QueryResult, QueryStatus, Count
 )
 from .connection import Database, HDFSConnection
 
@@ -226,7 +226,7 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
         return import_util.import_simple_obj(db.session, i_metric, lookup_obj)
 
 
-class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
+class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
     """An ORM object for SqlAlchemy table references"""
     type = "table"
     __tablename__ = 'dataset'
@@ -923,16 +923,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         return import_util.import_datasource(
             db.session, i_datasource, lookup_database, lookup_dataset,
             import_time)
-
-    @classmethod
-    def release(cls, dataset):
-        if dataset.database:
-            Database.release(dataset.database)
-        elif dataset.hdfs_table and dataset.hdfs_table.hdfs_connection_id:
-            HDFSConnection.release(dataset.hdfs_table.hdfs_connection)
-        if str(dataset.created_by_fk) == str(g.user.get_id()):
-            dataset.online = True
-            db.session.commit()
 
 
 class HDFSTable(Model, AuditMixinNullable):

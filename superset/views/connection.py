@@ -13,11 +13,11 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
 
 import sqlalchemy as sqla
-from sqlalchemy import select, literal, cast, or_, and_
+from sqlalchemy import select, literal, cast, or_
 from sqlalchemy.engine.url import make_url
 
 from superset import app, db, models
-from superset.models import Database, HDFSConnection, Connection, Slice
+from superset.models import Database, HDFSConnection, Connection, Slice, Log
 from superset.utils import SupersetException
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
@@ -27,8 +27,6 @@ from .base import (
 )
 
 config = app.config
-log_action = models.Log.log_action
-log_number = models.DailyNumber.log_number
 
 
 class DatabaseView(SupersetModelView):  # noqa
@@ -64,34 +62,20 @@ class DatabaseView(SupersetModelView):  # noqa
         obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
 
     def post_add(self, obj):
-        # self.add_or_edit_database_account(obj)
-        action_str = 'Add connection: [{}]'.format(repr(obj))
-        log_action('add', action_str, 'database', obj.id)
-        log_number('connection', obj.online, get_user_id())
+        Log.log_add(obj, 'database', get_user_id())
 
     def pre_update(self, obj):
         check_ownership(obj)
         self.pre_add(obj)
 
     def post_update(self, obj):
-        # self.add_or_edit_database_account(obj)
-        action_str = 'Edit connection: [{}]'.format(repr(obj))
-        log_action('edit', action_str, 'database', obj.id)
+        Log.log_update(obj, 'database', get_user_id())
 
     def pre_delete(self, obj):
         check_ownership(obj)
 
     def post_delete(self, obj):
-        action_str = 'Delete connection: [{}]'.format(repr(obj))
-        log_action('delete', action_str, 'database', obj.id)
-        log_number('connection', obj.online, get_user_id())
-
-    def add_or_edit_database_account(self, obj):
-        url = sqla.engine.url.make_url(obj.sqlalchemy_uri_decrypted)
-        user_id = g.user.get_id()
-        db_account = models.DatabaseAccount
-        db_account.insert_or_update_account(
-            user_id, obj.id, url.username, url.password)
+        Log.log_delete(obj, 'database', get_user_id())
 
     @staticmethod
     def check_column_values(obj):
@@ -282,21 +266,20 @@ class HDFSConnectionModelView(SupersetModelView):
         self.check_column_values(conn)
 
     def post_add(self, conn):
-        action_str = 'Add hdfsconnection: [{}]'.format(repr(conn))
-        log_action('add', action_str, 'hdfsconnection', conn.id)
-        log_number('connection', conn.online, get_user_id())
+        Log.log_add(conn, 'hdfsconnection', get_user_id())
 
     def pre_update(self, conn):
         check_ownership(conn)
         self.pre_add(conn)
 
+    def post_update(self, conn):
+        Log.log_update(conn, 'hdfsconnection', get_user_id())
+
     def pre_delete(self, conn):
         check_ownership(conn)
 
     def post_delete(self, conn):
-        action_str = 'Delete hdfsconnection: [{}]'.format(repr(conn))
-        log_action('delete', action_str, 'dataset', conn.id)
-        log_number('connection', conn.online, get_user_id())
+        Log.log_delete(conn, 'hdfsconnection', get_user_id())
 
     @staticmethod
     def check_column_values(obj):
@@ -423,9 +406,9 @@ class ConnectionView(BaseSupersetView, PageMixin):
                     .format(ids=db_ids, num=len(objs))
                 )
             for obj in objs:
-                all_user = True if obj.online else all_user
                 check_ownership(obj)
                 db.session.delete(obj)
+                Log.log_delete(obj, 'database', get_user_id())
         #
         hdfs_conn_ids = json_data.get('hdfs')
         if hdfs_conn_ids:
@@ -437,11 +420,11 @@ class ConnectionView(BaseSupersetView, PageMixin):
                     .format(ids=hdfs_conn_ids, num=len(objs))
                 )
             for obj in objs:
-                all_user = True if obj.online else all_user
                 check_ownership(obj)
                 db.session.delete(obj)
+                Log.log_delete(obj, 'hdfsconnection', get_user_id())
+
         db.session.commit()
-        log_number('connection', all_user, get_user_id())
         return json_response(message=DELETE_SUCCESS)
 
     @catch_exception
