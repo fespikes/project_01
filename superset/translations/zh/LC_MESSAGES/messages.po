@@ -1632,47 +1632,28 @@ msgid "Error order column name: [{name}]"
 msgstr "错误的排序字段：[{name}]"
 
 msgid ""
-"Releasing database connection {conn} will make these usable "
-"for other users: \nDataset: {dataset}, \nSlice: {slice}"
-msgstr "上线数据库连接{conn}会使其他用户可用以下对象：\n数据集：{dataset}，\n工作表：{slice}"
+"Releasing connection {conn} will make these usable for other users: \n"
+"Dataset: {dataset}, \nSlice: {slice}"
+msgstr "上线连接{conn}会使其他用户可用以下对象：\n数据集：{dataset}，\n工作表：{slice}"
 
 msgid ""
-"Changing database connection {conn} to offline will make "
-"these unusable for other users: \nDataset: {dataset}, \nSlice: {slice}"
-msgstr "下线数据库连接{conn}会使其他用户不可用以下对象：\n数据集：{dataset}，\n工作表：{slice}"
+"Changing connection {conn} to offline will make these unusable for other users: \n"
+"Dataset: {dataset}, \nSlice: {slice}"
+msgstr "下线连接{conn}会使其他用户不可用以下对象：\n数据集：{dataset}，\n工作表：{slice}"
 
 msgid ""
-"Deleting database connection {conn} will make these unusable: "
+"Deleting connection {conn} will make these unusable: "
 "\nDataset: {dataset}, \nSlice: {slice}"
-msgstr "删除数据库连接{conn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
+msgstr "删除连接{conn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
 
-msgid "Error parameter ids: {ids}, queried {num} database connection(s)"
-msgstr "根据参数ids：{ids}查询到{num}个数据库连接"
-
-msgid ""
-"Releasing hdfs connection {hconn} will make these usable "
-"for other users: \nDataset: {dataset},\nSlice: {slice}"
-msgstr "上线HDFS连接{hconn}会使其他用户可用以下对象：\n数据集：{dataset}，\n工作表：{slice}"
+msgid "Error parameter ids: {ids}, queried {num} connection(s)"
+msgstr "根据参数ids：{ids}查询到{num}个连接"
 
 msgid ""
-"Changing hdfs connection {hconn} to offline will make these unusable "
-"for other users: \nDataset: {dataset},\n Slice: {slice}"
-msgstr "下线HDFS连接{hconn}会使其他用户不可用以下对象：\n数据集：{dataset}，\n工作表：{slice}"
-
-msgid ""
-"Deleting hdfs connection {hconn} will make these unusable: \n"
-"Dataset: {dataset},\nSlice: {slice}
-msgstr "删除HDFS连接{hconn}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
-
-msgid "Error parameter ids: {ids}, queried {num} hdfs connection(s)"
-msgstr "根据参数ids：{ids}查询到{num}个HDFS连接"
-
-msgid ""
-"Deleting database connections {dbs} and hdfs connections {hconns} will make these "
-"unusable: \nDataset: {dataset}, \nSlice: {slice}"
+"Deleting connections {conns} will make these objects unusable: \n"
+"Dataset: {dataset}, \nSlice: {slice}"
 msgstr ""
-"删除数据库连接{dbs}和HDFS连接{hconns}会使以下对象不可用：\n"
-"数据集：{dataset}，\n工作表：{slice}"
+"删除连接{conns}会使以下对象不可用：\n数据集：{dataset}，\n工作表：{slice}"
 
 
 #========================
