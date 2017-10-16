@@ -133,6 +133,7 @@ const config = {
     cheerio: 'window',
     'react/lib/ExecutionEnvironment': true,
     'react/lib/ReactContext': true,
+    xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}'
   },
   plugins: [
     new webpack.DefinePlugin({
