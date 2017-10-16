@@ -14,7 +14,8 @@ from flask_migrate import MigrateCommand, upgrade
 from flask_script import Manager
 
 from superset import app, sm, db, data, security
-from superset.models import HDFSConnection
+from superset.models import HDFSConnection, Log
+
 
 
 config = app.config
@@ -49,7 +50,7 @@ def init_examples():
         rs = db.session.execute('show tables like "birth_names";')
         if rs.rowcount == 0:
             logging.info("Start to load examples data...")
-            load_examples(False)
+            load_examples(False, user_id=None)
             logging.info("Finish to load examples data.")
         else:
             logging.info("Exists examples data (such as: birth_names).")
@@ -83,12 +84,13 @@ def create_default_hdfs_conn():
         db.session.add(hconn)
         db.session.commit()
         logging.info("Finish to add default hdfs connection.")
+        Log.log_add(hconn, 'hdfsconnection', None)
 
 
 def init_pilot():
     init_tables_and_roles()
-    init_examples()
     create_default_user()
+    init_examples()
     create_default_hdfs_conn()
 
 
@@ -148,36 +150,39 @@ def version(verbose):
 @manager.option(
     '-t', '--load-test-data', action='store_true',
     help="Load additional test data")
-def load_examples(load_test_data):
+def load_examples(load_test_data, user_id=None):
     """Loads a set of Slices and Dashboards and a supporting dataset """
     logging.info("Loading examples into {}".format(db))
 
     #data.load_css_templates()
 
     logging.info("Loading energy related dataset")
-    data.load_energy()
+    data.load_energy(user_id=user_id)
 
     logging.info("Loading [World Bank's Health Nutrition and Population Stats]")
-    data.load_world_bank_health_n_pop()
+    data.load_world_bank_health_n_pop(user_id=user_id)
 
     logging.info("Loading [Birth names]")
-    data.load_birth_names()
+    data.load_birth_names(user_id=user_id)
 
     logging.info("Loading [Random time series data]")
-    data.load_random_time_series_data()
+    data.load_random_time_series_data(user_id=user_id)
 
     logging.info("Loading [Random long/lat data]")
-    data.load_long_lat_data()
+    data.load_long_lat_data(user_id=user_id)
 
     logging.info("Loading [Multiformat time series]")
-    data.load_multiformat_time_series_data()
+    data.load_multiformat_time_series_data(user_id=user_id)
 
     logging.info("Loading [Misc Charts] dashboard")
-    data.load_misc_dashboard()
+    data.load_misc_dashboard(user_id=user_id)
 
     if load_test_data:
         logging.info("Loading [Unicode test data]")
-        data.load_unicode_test_data()
+        data.load_unicode_test_data(user_id=user_id)
+
+    # modify examples data's owner to default user
+    # if config.get('COMMUNITY_EDITION') is True:
 
 
 @manager.command

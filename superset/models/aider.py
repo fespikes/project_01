@@ -7,20 +7,19 @@ import json
 import re
 from datetime import datetime, date
 
-from flask import g, request
+from flask import request
 from flask_appbuilder import Model
-from flask_appbuilder.security.sqla.models import User
 
 import sqlalchemy as sqla
 from sqlalchemy import (
-    Column, Integer, String, ForeignKey, Text, Boolean,
-    DateTime, Date, Numeric,  and_, or_
+    Column, Integer, String, ForeignKey, Text, Boolean, DateTime, Date, Numeric,
 )
 from sqlalchemy.orm import backref, relationship
 
 from superset import app, db
 from .base import QueryStatus
-from .dataset import Database, Dataset, HDFSConnection
+from .dataset import Dataset
+from .connection import Database, HDFSConnection, Connection
 from .core import Slice, Dashboard
 
 config = app.config
@@ -30,14 +29,15 @@ str_to_model = {
     'dashboard': Dashboard,
     'dataset': Dataset,
     'database': Database,
-    'hdfsconnection': HDFSConnection
+    'hdfsconnection': HDFSConnection,
+    'connection': Connection
 }
 
 
 class Log(Model):
     """ORM object used to log Superset actions to the database
        Object type: ['slice', 'dashboard', 'dataset', database', 'hdfsconnection']
-       Action type: ['add', 'edit', 'delete', 'online', 'offline', 'import',
+       Action type: ['add', 'update', 'delete', 'online', 'offline', 'import',
                       'export', 'like', 'dislike']
     """
     __tablename__ = 'logs'
@@ -55,10 +55,10 @@ class Log(Model):
     duration_ms = Column(Integer)
     referrer = Column(String(1024))
 
-    record_action_types = ['online', 'offline']
+    record_action_types = ['online', 'offline', 'add', 'delete']
 
     @classmethod
-    def log_action(cls, action_type, action, obj_type, obj_id):
+    def log_action(cls, action_type, action, obj_type, obj_id, user_id):
         if action_type not in cls.record_action_types:
             return
         d = request.args.to_dict()
@@ -77,9 +77,46 @@ class Log(Model):
             obj_id=obj_id,
             json=params,
             referrer=request.referrer[:1000] if request.referrer else None,
-            user_id=g.user.get_id() if g.user else None)
+            user_id=user_id)
         sesh.add(log)
         sesh.commit()
+
+    @classmethod
+    def log(cls, action_type, obj, obj_type, user_id):
+        uniform_type = cls.convert_type(obj_type)
+        action_str = '{} {}: [{}]'.format(action_type.capitalize(), uniform_type, repr(obj))
+        cls.log_action(action_type, action_str, obj_type, obj.id, user_id)
+
+    @classmethod
+    def log_add(cls, obj, obj_type, user_id):
+        if hasattr(obj, 'online') and obj.online is True:
+            cls.log_online(obj, obj_type, user_id)
+        cls.log('add', obj, obj_type, user_id)
+
+    @classmethod
+    def log_update(cls, obj, obj_type, user_id):
+        cls.log('update', obj, obj_type, user_id)
+
+    @classmethod
+    def log_delete(cls, obj, obj_type, user_id):
+        if hasattr(obj, 'online') and obj.online is True:
+            cls.log_offline(obj, obj_type, user_id)
+        cls.log('delete', obj, obj_type, user_id)
+
+    @classmethod
+    def log_online(cls, obj, obj_type, user_id):
+        cls.log('online', obj, obj_type, user_id)
+
+    @classmethod
+    def log_offline(cls, obj, obj_type, user_id):
+        cls.log('offline', obj, obj_type, user_id)
+
+    @classmethod
+    def convert_type(cls, obj_type):
+        if obj_type in ['database', 'hdfsconnection']:
+            return 'connection'
+        else:
+            return obj_type
 
 
 class FavStar(Model):
@@ -189,105 +226,3 @@ class Query(Model):
         tab = self.tab_name.replace(' ', '_').lower() if self.tab_name else 'notab'
         tab = re.sub(r'\W+', '', tab)
         return "sqllab_{tab}_{ts}".format(**locals())
-
-
-class DailyNumber(Model):
-    """ORM object used to log the daily number of objects.
-       object type string: [slice, dashboard, dataset, connection].
-       connection is the set of database and hdfsconnection
-    """
-    __tablename__ = 'daily_number'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('ab_user.id'), nullable=False)
-    obj_type = Column(String(32), nullable=False)
-    count = Column(Integer, nullable=False)
-    dt = Column(Date, default=date.today(), nullable=False)
-
-    type_convert = {
-        'dashboard': 'dashboard',
-        'slice': 'slice',
-        'dataset': 'dataset',
-        'table': 'dataset',
-        'sqlatable': 'dataset',
-        'connection': 'connection',
-        'databae': 'connection',
-        'hdfsconnection': 'connection'
-    }
-
-    def __str__(self):
-        return '{} {}s on {}'.format(self.count, self.type, self.dt)
-
-    @classmethod
-    def do_log(cls, obj_type, user_id):
-        today_count = cls.object_present_count(obj_type, int(user_id))
-        today_record = (
-            db.session.query(cls)
-                .filter(and_(
-                cls.obj_type.ilike(obj_type),
-                cls.dt == date.today(),
-                cls.user_id == user_id)
-            )
-                .first()
-        )
-        if today_record:
-            today_record.count = today_count
-        else:
-            new_record = cls(
-                obj_type=obj_type.lower(),
-                user_id=user_id,
-                count=today_count,
-                dt=date.today()
-            )
-            db.session.add(new_record)
-        db.session.commit()
-
-    @classmethod
-    def object_present_count(cls, obj_type, user_id):
-        if obj_type == 'connection':
-            model_db = str_to_model['database']
-            model_hdfs = str_to_model['hdfsconnection']
-            return cls.query_count(model_db, user_id) + \
-                   cls.query_count(model_hdfs, user_id)
-        else:
-            model = str_to_model[obj_type.lower()]
-            return cls.query_count(model, user_id)
-
-    @staticmethod
-    def query_count(model, user_id):
-        if hasattr(model, 'online'):
-            count = (
-                db.session.query(model).filter(or_(
-                    model.created_by_fk == user_id,
-                    model.online == 1))
-                    .count())
-        else:
-            count = (
-                db.session.query(model).filter(
-                    model.created_by_fk == user_id)
-                    .count()
-            )
-        return count
-
-    @classmethod
-    def log_number(cls, obj_type, all_user, user_id=None):
-        obj_type = cls.type_convert.get(obj_type.lower())
-        if all_user is True:
-            users = db.session.query(User).all()
-            for user in users:
-                cls.do_log(obj_type, user.id)
-        else:
-            cls.do_log(obj_type, user_id)
-
-    @classmethod
-    def log_related_number(cls, obj_type, all_user, user_id=None):
-        if obj_type == 'dashboard':
-            cls.log_number(obj_type, all_user, user_id)
-            obj_type = 'slice'
-        if obj_type == 'slice':
-            cls.log_number(obj_type, all_user, user_id)
-            obj_type = 'dataset'
-        if obj_type == 'dataset':
-            cls.log_number(obj_type, all_user, user_id)
-            obj_type = 'connection'
-        if obj_type == 'connection':
-            cls.log_number(obj_type, all_user, user_id)

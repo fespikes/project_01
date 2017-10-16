@@ -21,14 +21,12 @@ from wtforms.validators import ValidationError
 
 from superset import app, appbuilder, db, models, sm, utils
 from superset.source_registry import SourceRegistry
-from superset.models import Dataset, Database, Dashboard, Slice, FavStar
+from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log
 from superset.message import *
 from superset.utils import SupersetException
 
 
 config = app.config
-log_action = models.Log.log_action
-log_number = models.DailyNumber.log_number
 can_access = utils.can_access
 QueryStatus = utils.QueryStatus
 
@@ -298,12 +296,11 @@ class SupersetModelView(ModelView, PageMixin):
         if len(ids) != len(objs):
             raise Exception("Error parameter ids: {}, get {} "
                             "object(s) in database".format(ids, len(objs)))
-        all_user = False
+
         for obj in objs:
-            all_user = True if obj.online else all_user
             check_ownership(obj)
-        self.datamodel.delete_all(objs)
-        log_number(self.model.__name__, all_user, get_user_id())
+            self.datamodel.delete(obj)
+            Log.log_delete(obj, self.model.__name__.lower(), get_user_id())
         return json_response(message=DELETE_SUCCESS)
 
     def get_addable_choices(self):

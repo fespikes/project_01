@@ -25,13 +25,13 @@ from superset import app, db, utils
 from superset.source_registry import SourceRegistry
 from superset.viz import viz_types
 from superset.utils import SupersetException
-from .base import AuditMixinNullable, ImportMixin
+from .base import AuditMixinNullable, ImportMixin, Count
 from .dataset import Dataset
 
 config = app.config
 
 
-class Slice(Model, AuditMixinNullable, ImportMixin):
+class Slice(Model, AuditMixinNullable, ImportMixin, Count):
     """A slice is essentially a report or a view on data"""
     __tablename__ = 'slices'
     id = Column(Integer, primary_key=True)
@@ -222,14 +222,6 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         return slc_to_import.id
 
     @classmethod
-    def release(cls, slice):
-        if slice.datasource:  # datasource may be deleted
-            Dataset.release(slice.datasource)
-        if str(slice.created_by_fk) == str(g.user.get_id()):
-            slice.online = True
-            db.session.commit()
-
-    @classmethod
     def check_online(cls, slice_id, raise_if_false=True):
         def check(obj, user_id):
             user_id = int(user_id)
@@ -262,7 +254,7 @@ dashboard_slices = Table(
 )
 
 
-class Dashboard(Model, AuditMixinNullable, ImportMixin):
+class Dashboard(Model, AuditMixinNullable, ImportMixin, Count):
     __tablename__ = 'dashboards'
     id = Column(Integer, primary_key=True)
     dashboard_title = Column(String(128), unique=True)
@@ -480,11 +472,3 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             'dashboards': copied_dashboards,
             'datasources': eager_datasources,
         })
-
-    @classmethod
-    def release(cls, dash):
-        for slc in dash.slices:
-            Slice.release(slc)
-        if str(dash.created_by_fk) == str(g.user.get_id()):
-            dash.online = True
-            db.session.commit()

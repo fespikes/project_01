@@ -21,7 +21,8 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy_utils import EncryptedType
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, Text, Boolean, Table,
-    LargeBinary, create_engine, MetaData, select, UniqueConstraint
+    LargeBinary, create_engine, MetaData, select, UniqueConstraint,
+    or_
 )
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.sql import text
@@ -34,12 +35,12 @@ from guardian_common_python.conf.GuardianVars import GuardianVars
 from superset import db, app, db_engine_specs
 from superset.utils import SupersetException
 from superset.message import MISS_PASSWORD_FOR_GUARDIAN, NO_USER
-from .base import AuditMixinNullable
+from .base import AuditMixinNullable, Count
 
 config = app.config
 
 
-class Database(Model, AuditMixinNullable):
+class Database(Model, AuditMixinNullable, Count):
     __tablename__ = 'dbs'
     type = "table"
 
@@ -100,43 +101,7 @@ class Database(Model, AuditMixinNullable):
         conn.password = password_mask if conn.password else None
         self.sqlalchemy_uri = str(conn)  # hides the password
 
-    def fill_sqlalchemy_uri(self, user_id=None):
-        try:
-            if not user_id:
-                user_id = g.user.get_id()
-        except Exception:
-            logging.error(NO_USER)
-            # todo show in the frontend
-            raise Exception(NO_USER)
-        url = make_url(self.sqlalchemy_uri)
-        account = (
-            db.session.query(DatabaseAccount)
-            .filter(DatabaseAccount.user_id == user_id,
-                    DatabaseAccount.database_id == self.id)
-            .first()
-        )
-        if not account:
-            msg = _("You do not have account for connection [{conn}]") \
-                .format(conn=self.database_name)
-            logging.error(msg)
-            # todo the frontend need to mention user to add account
-            raise Exception(msg)
-        url.username = account.username
-        url.password = account.password
-        if not self.test_uri(str(url)):
-            msg = _("Test connection failed, maybe need to modify your "
-                  "account for connection:{conn}")\
-                .format(conn=self.database_name)
-            logging.error(msg)
-            # todo the frontend need to mention user to add account
-            raise Exception(msg)
-        return str(url)
-
     def get_sqla_engine(self, schema=None):
-        # if self.database_name == 'main':
-        #     url = make_url(self.sqlalchemy_uri_decrypted)
-        # else:
-        #     url = make_url(self.fill_sqlalchemy_uri())
         url = make_url(self.sqlalchemy_uri_decrypted)
         connect_args = self.args_append_keytab(self.get_args().get('connect_args', {}))
         if self.backend == 'presto' and schema:
@@ -294,12 +259,6 @@ class Database(Model, AuditMixinNullable):
         return '/p/sql/{}/'.format(self.id)
 
     @classmethod
-    def release(cls, database):
-        if str(database.created_by_fk) == str(g.user.get_id()):
-            database.online = True
-            db.session.commit()
-
-    @classmethod
     def args_append_keytab(cls, connect_args):
         if connect_args.get('mech', '').lower() == 'kerberos':
             dir = config.get('KETTAB_TMP_DIR', '/tmp/keytab')
@@ -327,8 +286,20 @@ class Database(Model, AuditMixinNullable):
         file.close()
         return path
 
+    @classmethod
+    def count(cls, user_id):
+        return (
+            db.session.query(cls)
+            .filter(
+                or_(cls.created_by_fk == user_id,
+                    cls.online == 1),
+                cls.database_name != config.get("METADATA_CONN_NAME")
+                )
+            .count()
+        )
 
-class HDFSConnection(Model, AuditMixinNullable):
+
+class HDFSConnection(Model, AuditMixinNullable, Count):
     __tablename__ = 'hdfs_connection'
     type = 'table'
 
@@ -353,55 +324,53 @@ class HDFSConnection(Model, AuditMixinNullable):
     def __repr__(self):
         return self.connection_name
 
-    @classmethod
-    def release(cls, conn):
-        if str(conn.created_by_fk) == str(g.user.get_id()):
-            conn.online = True
-            db.session.commit()
-
 
 class Connection(object):
     connection_types = Database.database_types + HDFSConnection.connection_types
 
-
-class DatabaseAccount(Model):
-    """ORM object to store the account info of database"""
-    __tablename__ = 'database_account'
-    type = "table"
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('ab_user.id'), nullable=True)
-    database_id = Column(Integer, ForeignKey('dbs.id'))
-    username = Column(String(64))
-    password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
-    database = relationship(
-        'Database',
-        backref=backref('database_account', cascade='all, delete-orphan'),
-        foreign_keys=[database_id]
-    )
-
     @classmethod
-    def insert_or_update_account(cls, user_id, db_id, username, password):
-        record = (
-            db.session.query(cls)
-                .filter(cls.user_id == user_id,
-                        cls.database_id == db_id)
-                .first()
-        )
-        if record:
-            record.username = username if username else record.username
-            record.password = password if password else record.password
-            db.session.commit()
-        else:
-            if not username or not password:
-                logging.error("The username or password of database account can't be none.")
-                return False
-            new_record = cls(user_id=user_id,
-                             database_id=db_id,
-                             username=username,
-                             password=password)
-            db.session.add(new_record)
-        db.session.commit()
-        logging.info("Update username or password of user:{} and database:{} success."
-                     .format(user_id, db_id))
-        return True
+    def count(cls, user_id):
+        return Database.count(user_id) + HDFSConnection.count(user_id)
+
+
+# class DatabaseAccount(Model):
+#     """ORM object to store the account info of database"""
+#     __tablename__ = 'database_account'
+#     type = "table"
+#
+#     id = Column(Integer, primary_key=True)
+#     user_id = Column(Integer, ForeignKey('ab_user.id'), nullable=True)
+#     database_id = Column(Integer, ForeignKey('dbs.id'))
+#     username = Column(String(64))
+#     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
+#     database = relationship(
+#         'Database',
+#         backref=backref('database_account', cascade='all, delete-orphan'),
+#         foreign_keys=[database_id]
+#     )
+#
+#     @classmethod
+#     def insert_or_update_account(cls, user_id, db_id, username, password):
+#         record = (
+#             db.session.query(cls)
+#                 .filter(cls.user_id == user_id,
+#                         cls.database_id == db_id)
+#                 .first()
+#         )
+#         if record:
+#             record.username = username if username else record.username
+#             record.password = password if password else record.password
+#             db.session.commit()
+#         else:
+#             if not username or not password:
+#                 logging.error("The username or password of database account can't be none.")
+#                 return False
+#             new_record = cls(user_id=user_id,
+#                              database_id=db_id,
+#                              username=username,
+#                              password=password)
+#             db.session.add(new_record)
+#         db.session.commit()
+#         logging.info("Update username or password of user:{} and database:{} success."
+#                      .format(user_id, db_id))
+#         return True
