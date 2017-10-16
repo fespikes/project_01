@@ -162,7 +162,7 @@ class DatabaseView(SupersetModelView):  # noqa
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Releasing database connection {conn} will make these usable "
+        info = _("Releasing connection {conn} will make these usable "
                  "for other users: \nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
@@ -173,7 +173,7 @@ class DatabaseView(SupersetModelView):  # noqa
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Changing database connection {conn} to offline will make these "
+        info = _("Changing connection {conn} to offline will make these "
                  "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
@@ -184,7 +184,7 @@ class DatabaseView(SupersetModelView):  # noqa
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Deleting database connection {conn} will make these unusable: "
+        info = _("Deleting connection {conn} will make these unusable: "
                "\nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
@@ -294,9 +294,9 @@ class HDFSConnectionModelView(SupersetModelView):
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Releasing hdfs connection {hconn} will make these usable "
-                 "for other users: \nDataset: {dataset},\nSlice: {slice}") \
-            .format(hconn=objects.get('hdfs_connection'),
+        info = _("Releasing connection {conn} will make these usable "
+                 "for other users: \nDataset: {dataset}, \nSlice: {slice}") \
+            .format(conn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
         return json_response(data=info)
@@ -305,9 +305,9 @@ class HDFSConnectionModelView(SupersetModelView):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Changing hdfs connection {hconn} to offline will make these unusable "
-               "for other users: \nDataset: {dataset},\n Slice: {slice}")\
-            .format(hconn=objects.get('hdfs_connection'),
+        info = _("Changing connection {conn} to offline will make these "
+                 "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}") \
+            .format(conn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
         return json_response(data=info)
@@ -316,9 +316,9 @@ class HDFSConnectionModelView(SupersetModelView):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         objects = self.associated_objects([id, ])
-        info = _("Deleting hdfs connection {hconn} will make these unusable: "
-               "\nDataset: {dataset},\nSlice: {slice}")\
-            .format(hconn=objects.get('hdfs_connection'),
+        info = _("Deleting connection {conn} will make these unusable: "
+                 "\nDataset: {dataset}, \nSlice: {slice}") \
+            .format(conn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
         return json_response(data=info)
@@ -330,7 +330,7 @@ class HDFSConnectionModelView(SupersetModelView):
             .all()
         if len(hconns) != len(ids):
             raise SupersetException(
-                _("Error parameter ids: {ids}, queried {num} hdfs connection(s)")
+                _("Error parameter ids: {ids}, queried {num} connection(s)")
                     .format(ids=ids, num=len(hconns))
             )
 
@@ -395,14 +395,13 @@ class ConnectionView(BaseSupersetView, PageMixin):
         json_data = json.loads(str(request.data, encoding='utf-8'))
         json_data = {k.lower(): v for k, v in json_data.items()}
         #
-        all_user = False
         db_ids = json_data.get('database')
         if db_ids:
             objs = db.session.query(Database) \
                 .filter(Database.id.in_(db_ids)).all()
             if len(db_ids) != len(objs):
                 raise Exception(
-                    _("Error parameter ids: {ids}, queried {num} database connection(s)")
+                    _("Error parameter ids: {ids}, queried {num} connection(s)")
                     .format(ids=db_ids, num=len(objs))
                 )
             for obj in objs:
@@ -416,7 +415,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
                 .filter(HDFSConnection.id.in_(hdfs_conn_ids)).all()
             if len(hdfs_conn_ids) != len(objs):
                 raise Exception(
-                    _("Error parameter ids: {ids}, queried {num} hdfs connection(s)")
+                    _("Error parameter ids: {ids}, queried {num} connection(s)")
                     .format(ids=hdfs_conn_ids, num=len(objs))
                 )
             for obj in objs:
@@ -451,11 +450,9 @@ class ConnectionView(BaseSupersetView, PageMixin):
         slice_names = [s.slice_name for s in slices]
         dataset_names = list(set(dataset_names))
         slice_names = list(set(slice_names))
-        info = _("Deleting database connections {dbs} and hdfs connections {hconns} "
-                 "will make these objects unusable: "
+        info = _("Deleting connections {conns} will make these objects unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}") \
-            .format(dbs=dbs,
-                    hconns=hconns,
+            .format(conns=dbs + hconns,
                     dataset=dataset_names,
                     slice=slice_names)
         return json_response(data=info)
