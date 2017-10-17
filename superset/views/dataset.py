@@ -180,19 +180,19 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/databases/', methods=['GET', ])
     def addable_databases(self):
-        return json.dumps(self.get_available_databases(get_user_id()))
+        return json_response(data=self.get_available_databases(get_user_id()))
 
     @catch_exception
     @expose('/schemas/<database_id>/', methods=['GET', ])
     def addable_schemas(self, database_id):
         d = db.session.query(Database).filter_by(id=database_id).first()
-        return json.dumps(d.all_schema_names())
+        return json_response(data=d.all_schema_names())
 
     @catch_exception
     @expose('/tables/<database_id>/<schema>/', methods=['GET', ])
     def addable_tables(self, database_id, schema):
         d = db.session.query(Database).filter_by(id=database_id).first()
-        return json.dumps(d.all_table_names(schema=schema))
+        return json_response(data=d.all_table_names(schema=schema))
 
     @catch_exception
     @expose('/edit/hdfstable/<pk>/', methods=['GET', 'POST'])
@@ -208,12 +208,12 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/add_dataset_types/', methods=['GET'])
     def add_dataset_types(self):
-        return json.dumps(Dataset.addable_types + HDFSTable.addable_types)
+        return json_response(data=Dataset.addable_types + HDFSTable.addable_types)
 
     @catch_exception
     @expose('/filter_dataset_types/', methods=['GET'])
     def filter_dataset_types(self):
-        return json.dumps(['ALL'] + Dataset.filter_types + HDFSTable.filter_types)
+        return json_response(data=['ALL'] + Dataset.filter_types + HDFSTable.filter_types)
 
     @catch_exception
     @expose('/preview_data/', methods=['GET', ])
