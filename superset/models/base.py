@@ -9,13 +9,13 @@ import re
 import humanize
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer, ForeignKey
+from sqlalchemy import Column, DateTime, Integer, ForeignKey, or_
 from sqlalchemy.ext.declarative import declared_attr
 
 from flask import escape, Markup
 from flask_appbuilder.models.mixins import AuditMixin
 from flask_appbuilder.models.decorators import renders
-from superset import app
+from superset import app, db
 from superset.utils import QueryStatus
 
 config = app.config
@@ -118,6 +118,26 @@ class AuditMixinNullable(AuditMixin):
             <i class="fa fa-database"></i>
         </a>
         """.format(**locals())
+
+
+class Count(object):
+
+    @classmethod
+    def count(cls, user_id):
+        if hasattr(cls, 'online'):
+            return (
+                db.session.query(cls)
+                .filter(
+                    or_(cls.created_by_fk == user_id,
+                        cls.online == 1))
+                .count()
+            )
+        else:
+            return (
+                db.session.query(cls)
+                .filter(cls.created_by_fk == user_id)
+                .count()
+            )
 
 
 class Queryable(object):

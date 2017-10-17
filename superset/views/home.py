@@ -7,6 +7,7 @@ from datetime import timedelta, date
 import logging
 import json
 import re
+import copy
 from werkzeug.urls import Href
 from flask import g, request, redirect, Response
 from flask_babel import lazy_gettext as _
@@ -14,8 +15,8 @@ from flask_appbuilder import expose
 from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import func, and_, or_
 
-from superset import appbuilder, db
-from superset.models import Slice, Dashboard, FavStar, Log, DailyNumber, str_to_model
+from superset import appbuilder, db, conf, utils
+from superset.models import Slice, Dashboard, FavStar, Log, str_to_model
 from superset.message import *
 from .base import BaseSupersetView, catch_exception
 
@@ -24,7 +25,7 @@ class Home(BaseSupersetView):
     """The api for the home page
 
     limit = 0: means not limit
-    default_types['actions'] could be: ['online', 'offline', 'add', 'edit', 'delete'...]
+    default_types['actions'] could be: ['online', 'offline', 'add', 'update', 'delete'...]
     """
     default_view = 'home'
     route_base = '/home'
@@ -38,7 +39,7 @@ class Home(BaseSupersetView):
         'trends': ['dashboard', 'slice', 'dataset', 'connection'],
         'favorits': ['dashboard', 'slice'],
         'edits': ['dashboard', 'slice'],
-        'actions': ['online', 'offline']
+        'actions': ['online', 'offline', 'add', 'delete']
     }
     default_limit = {
         'trends': 30,
@@ -80,15 +81,45 @@ class Home(BaseSupersetView):
         else:
             return True, model
 
-    def get_object_count(self, user_id, type_):
-        return DailyNumber.object_present_count(type_, user_id)
-
     def get_object_counts(self, user_id, types):
         dt = {}
         for type_ in types:
-            count = self.get_object_count(user_id, type_)
-            dt[type_] = count
+            dt[type_] = str_to_model[type_].count(user_id)
         return dt
+
+    def get_object_number_trends(self, user_id=None, types=[], limit=30, counts={}):
+        trends = {}
+        for type_ in types:
+            trends[type_] = [{"date": str(date.today()), "count": counts.get(type_)}]
+
+        start_date = date.today() - timedelta(days=limit-1)
+        logs = db.session.query(Log) \
+            .filter(Log.dt > start_date) \
+            .order_by(Log.dt.desc()) \
+            .all()
+        present_count = counts
+        present_date = date.today()
+        for log in logs:
+            obj_type = 'connection' if log.obj_type in ['database', 'hdfsconnection'] else log.obj_type
+            #
+            if log.dt != present_date:
+                present_date = present_date - timedelta(days=1)
+                for type_ in types:
+                    trends[type_].insert(0, {"date": str(present_date), "count": present_count.get(type_)})
+            #
+            if log.action_type == 'add' and log.user_id == user_id \
+                    or log.action_type == 'online' and log.user_id != user_id:
+                present_count[obj_type] = present_count.get(obj_type) - 1
+            elif log.action_type == 'delete' and log.user_id == user_id \
+                    or log.action_type == 'offline' and log.user_id != user_id:
+                present_count[obj_type] = present_count.get(obj_type) - 1
+
+        while present_date > start_date:
+            for type_ in types:
+                trends[type_].insert(0, {"date": str(present_date), "count": present_count.get(type_)})
+            present_date = present_date - timedelta(days=1)
+
+        return trends
 
     def get_slice_types(self, limit=10):
         """Query the viz_type of slices"""
@@ -461,66 +492,6 @@ class Home(BaseSupersetView):
                             status=status_,
                             mimetype='application/json')
 
-    def get_object_number_trends(self, user_id=0, types=[], limit=30):
-        dt = {}
-        for type_ in types:
-            r = self.get_object_number_trend(user_id, type_, limit)
-            dt[type_.lower()] = r
-        return dt
-
-    def get_object_number_trend(self, user_id, type_, limit):
-        rows = (
-            db.session.query(DailyNumber.count, DailyNumber.dt)
-                .filter(
-                and_(
-                    DailyNumber.obj_type.ilike(type_),
-                    DailyNumber.user_id == user_id
-                )
-            )
-                .order_by(DailyNumber.dt)
-                .limit(limit)
-                .all()
-        )
-        return self.fill_missing_date(rows, limit)
-
-    def fill_missing_date(self, rows, limit):
-        """Fill the discontinuous date and count of number trend
-           Still need to limit
-        """
-        full_count, full_dt = [], []
-        if not rows:
-            return {}
-
-        one_day = timedelta(days=1)
-        for row in rows:
-            if row.dt > date.today():
-                msg = _("Date [{date}] > today [{today}]")\
-                    .format(date=row.dt, today=date.today())
-                logging.error(msg)
-                self.message.append(msg)
-                return {}
-            elif len(full_count) < 1:
-                full_count.append(int(row.count))
-                full_dt.append(row.dt)
-            else:
-                while full_dt[-1] + one_day < row.dt:
-                    full_count.append(full_count[-1])
-                    full_dt.append(full_dt[-1] + one_day)
-                full_count.append(row.count)
-                full_dt.append(row.dt)
-
-        while full_dt[-1] < date.today():
-            full_count.append(full_count[-1])
-            full_dt.append(full_dt[-1] + one_day)
-
-        full_dt = [str(d) for d in full_dt]
-        json_rows = []
-        full_count = full_count[-limit:]
-        full_dt = full_dt[-limit:]
-        for index, v in enumerate(full_count):
-            json_rows.append({'date': full_dt[index], 'count': full_count[index]})
-        return json_rows
-
     @catch_exception
     @expose('/')
     def home(self):
@@ -545,7 +516,8 @@ class Home(BaseSupersetView):
         #
         types = self.default_types.get('trends')
         limit = self.default_limit.get('trends')
-        result = self.get_object_number_trends(user_id, types, limit=limit)
+        result = self.get_object_number_trends(user_id, types, limit,
+                                               counts=copy.deepcopy(result))
         response['trends'] = result
         # #
         types = self.default_types.get('favorits')
@@ -575,7 +547,7 @@ class Home(BaseSupersetView):
         self.status = 201
         self.message = []
         return Response(
-            json.dumps({'index': response}),
+            json.dumps({'index': response}, default=utils.json_iso_dttm_ser),
             status=status_,
             mimetype="application/json")
 
