@@ -375,7 +375,6 @@ class Popup extends React.Component {
                                 <i className="icon icon-close" onClick={this.closeDialog}/>
                             </div>
                         </div>
-                        <div className="error" id="hdfs-popup-tip"></div>
                         {getChildren(popupType)}
 
                         <div className={alertStatus + ' alert-wrapper'}>

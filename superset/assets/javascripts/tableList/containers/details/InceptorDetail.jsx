@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
 import { Link, withRouter } from 'react-router-dom';
-import { Select, Tooltip, TreeSelect, Alert, Popconfirm } from 'antd';
+import { Select, Tooltip, TreeSelect, Alert, Popconfirm, message } from 'antd';
 import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
 import { fetchSchemaList, datasetTypes } from '../../actions';
 import { constructInceptorDataset, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
@@ -61,7 +61,7 @@ class InceptorDetail extends Component {
                     dsInceptor: objInceptor
                 });
             }else {
-                console.log("error...");
+                message.error(data, 5);
             }
         }
     }
@@ -114,7 +114,7 @@ class InceptorDetail extends Component {
                     dsInceptor: dsInceptor
                 });
             }else {
-                console.log("error...");
+                message.error(data, 5);
             }
         }
     }
@@ -135,7 +135,7 @@ class InceptorDetail extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlertDetail', 400);
+                    renderAlertTip(response, 'showAlertDetail', 600);
                 }
             }
         }else {
@@ -149,7 +149,7 @@ class InceptorDetail extends Component {
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlertDetail', 400);
+                    renderAlertTip(response, 'showAlertDetail', 600);
                 }
             }
         }
@@ -196,6 +196,8 @@ class InceptorDetail extends Component {
                 me.setState({
                     dsInceptor: objInceptor
                 });
+            }else {
+                message.error(data, 5);
             }
         }
     }
