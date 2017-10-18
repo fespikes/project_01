@@ -161,6 +161,9 @@
         height: 80px;
         overflow: auto;
     }
+    .error .ant-alert-message {
+        word-break: break-all;
+    }
 }
 /* single dialog css style end  */
 

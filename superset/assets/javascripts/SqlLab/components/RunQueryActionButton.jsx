@@ -14,7 +14,7 @@ export default function RunQueryActionButton(props) {
   const runBtnText = props.selectedText ? '执行选择的查询' : '执行查询';
   const btnStyle = props.selectedText ? 'warning' : 'primary';
   const shouldShowStopBtn = ['running', 'pending'].indexOf(props.queryState) > -1;
-  const asyncToolTip = 'Run query asynchronously';
+  const asyncToolTip = '异步执行查询';
 
   const commonBtnProps = {
     bsSize: 'small',
@@ -40,7 +40,6 @@ export default function RunQueryActionButton(props) {
         {...commonBtnProps}
         onClick={() => props.runQuery(true)}
         key="run-async-btn"
-        tooltip={asyncToolTip}
       >
         <i className="fa fa-table" /> {runBtnText}
       </Button>
