@@ -133,7 +133,7 @@ export function runQuery(query) {
           }
         }
         if (textStatus === 'error' && errorThrown === '') {
-          msg = 'Could not connect to server';
+          msg = '不能连接到服务端';
         } else if (msg === null) {
           msg = `[${textStatus}] ${errorThrown}`;
         }

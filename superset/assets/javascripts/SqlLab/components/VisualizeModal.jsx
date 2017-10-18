@@ -116,6 +116,7 @@ class VisualizeModal extends React.PureComponent {
             sql: this.props.query.sql,
             dbId: this.props.query.dbId,
         };
+        const self = this;
         $.ajax({
             type: 'POST',
             url: PILOT_PREFIX + 'sqllab_viz/',
@@ -124,6 +125,7 @@ class VisualizeModal extends React.PureComponent {
                 data: JSON.stringify(vizOptions),
             },
             success: (url) => {
+                self.props.onHide();
                 window.open(url);
             },
         });
