@@ -47,10 +47,9 @@ class DisplayOriginalTable extends React.Component {
             url: url,
             type: 'GET',
             success: response => {
-                response = JSON.parse(response);
                 let treeData = appendTreeData(
                     schema,
-                    response,
+                    response.data,
                     JSON.parse(JSON.stringify(self.state.treeData))
                 );
                 self.setState({
@@ -88,8 +87,7 @@ class DisplayOriginalTable extends React.Component {
             url: url,
             type: 'GET',
             success: response => {
-                response = JSON.parse(response);
-                let treeData = constructTreeData(response, false, 'folder');
+                let treeData = constructTreeData(response.data, false, 'folder');
                 self.setState({
                     treeData: treeData
                 });
@@ -108,7 +106,6 @@ class DisplayOriginalTable extends React.Component {
             type: 'GET',
             success: response => {
                 response = JSON.parse(response);
-                console.log('response.database_name=', response.database_name);
                 self.setState({
                     databaseName: response.database_name
                 });
@@ -126,9 +123,8 @@ class DisplayOriginalTable extends React.Component {
             url: url_databaseList,
             type: 'GET',
             success: response => {
-                response = JSON.parse(response);
                 self.setState({
-                    databaseNames: response
+                    databaseNames: response.data
                 });
             },
             error: error => {
