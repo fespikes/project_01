@@ -135,7 +135,7 @@ class ConnectionAdd extends React.Component {
 
     addConnection() {
         const { connectionType, dispatch } = this.props;
-
+        const self = this;
         function callback(success, message) {
             if(success) {
                 self.closeDialog();
