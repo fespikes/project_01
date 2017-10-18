@@ -77,7 +77,7 @@ class ResultSet extends React.PureComponent {
                 searchBox = (
                     <Search
                         placeholder="Search Results"
-                        className="form-control input-sm"
+                        className="input-sm tp-input"
                         onChange={this.changeSearch.bind(this)}
                     />
                 );
@@ -168,7 +168,7 @@ class ResultSet extends React.PureComponent {
                             className="m-r-5"
                             onClick={this.popSelectStar.bind(this)}
                         >
-                            Query in a new tab
+                            在新标签中查询
                         </Button>
                     </Alert>
                 </div>);
@@ -201,7 +201,7 @@ class ResultSet extends React.PureComponent {
                     <div>
                         <Alert bsStyle="warning">This query was run asynchronously &nbsp;
                             <Button bsSize="sm" onClick={this.fetchResults.bind(this, query)}>
-                                Fetch results
+                                获取结果
                             </Button>
                         </Alert>
                     </div>
@@ -215,11 +215,11 @@ class ResultSet extends React.PureComponent {
                     bsStyle="primary"
                     onClick={this.reFetchQueryResults.bind(this, query)}
                 >
-                    Fetch data preview
+                    获取数据预览
                 </Button>
             );
         }
-        return <Alert bsStyle="warning">The query returned no data</Alert>;
+        return <Alert bsStyle="warning">本次查询没有返回数据</Alert>;
     }
 }
 ResultSet.propTypes = propTypes;

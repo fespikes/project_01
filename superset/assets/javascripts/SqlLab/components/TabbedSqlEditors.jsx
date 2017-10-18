@@ -81,7 +81,7 @@ class TabbedSqlEditors extends React.PureComponent {
   }
   renameTab(qe) {
     /* eslint no-alert: 0 */
-    const newTitle = prompt('Enter a new title for the tab');
+    const newTitle = prompt('给这个标签输入一个新的标题');
     if (newTitle) {
       this.props.actions.queryEditorSetTitle(qe, newTitle);
     }
@@ -100,7 +100,7 @@ class TabbedSqlEditors extends React.PureComponent {
     queryCount++;
     const activeQueryEditor = this.activeQueryEditor();
     const qe = {
-      title: `Untitled Query ${queryCount}`,
+      title: `未命名的查询 ${queryCount}`,
       dbId: (activeQueryEditor && activeQueryEditor.dbId) ?
         activeQueryEditor.dbId :
         this.props.defaultDbId,
