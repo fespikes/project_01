@@ -393,17 +393,10 @@ export function fetchDatabaseList(callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        dispatch(switchFetchingState(false));
-                        callback(true, response);
-                    });
-                }else {
-                    dispatch(switchFetchingState(false));
-                    callback(false);
-                }
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
         );
     }
@@ -416,17 +409,10 @@ export function fetchSchemaList(dbId, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        callback(true, response);
-                        dispatch(switchFetchingState(false));
-                    });
-                }else {
-                    callback(false);
-                    dispatch(switchFetchingState(false));
-                }
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
         );
     }
@@ -439,17 +425,10 @@ export function fetchTableList(dbId, schema, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        callback(true, response);
-                        dispatch(switchFetchingState(false));
-                    });
-                }else {
-                    callback(false);
-                    dispatch(switchFetchingState(false));
-                }
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
         );
     }
@@ -547,40 +526,30 @@ export function clearDatasetData() {
 }
 
 export function fetchAddTypeList(callback) {
-    return () => {
+    return (dispatch) => {
         const url = baseURL + 'add_dataset_types';
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        callback(true, response);
-                    });
-                }else {
-                    callback(false);
-                }
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
         );
     }
 }
 
 export function fetchFilterTypeList(callback) {
-    return () => {
+    return (dispatch) => {
         const url = baseURL + 'filter_dataset_types';
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        callback(true, response);
-                    });
-                }else {
-                    callback(false);
-                }
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
             }
         );
     }

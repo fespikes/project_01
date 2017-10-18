@@ -150,11 +150,19 @@
         margin-left: 10px;
     }
     .error, .warning {
-        margin: 20px;
         .ant-alert {
             min-height: 100px;
-            padding: 5px 5px 5px 60px;
         }
+    }
+    .warning {
+        margin: 20px;
+    }
+    .error .ant-alert-description {
+        height: 80px;
+        overflow: auto;
+    }
+    .error .ant-alert-message {
+        word-break: break-all;
     }
 }
 /* single dialog css style end  */

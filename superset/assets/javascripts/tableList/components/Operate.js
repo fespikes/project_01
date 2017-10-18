@@ -96,6 +96,8 @@ class SliceOperate extends React.Component {
                 self.setState({
                     addDatasetTypes: data
                 });
+            }else {
+                message.error(data, 5);
             }
         }
         function filterCallback(success, data) {
@@ -103,6 +105,8 @@ class SliceOperate extends React.Component {
                 self.setState({
                     filterDatasetTypes: data
                 });
+            }else {
+                message.error(data, 5);
             }
         }
     }

@@ -182,9 +182,10 @@ function initExploreView() {
     });
 
     $('#datasource_id').change(function (opt) {
+        const datasource_type = getUrlParam('viz_type', window.location.href);
         const sliceId = document.getElementById('slice-title-name').getAttribute('sliceId');
-        const datasourceId = opt.val;
-        let url = $(this).find('option:selected').attr('url') + '?datasource_id=' + datasourceId;
+        let url = $(this).find('option:selected').attr('url');
+        url = url.split('&')[0] + '&viz_type=' + datasource_type;
         if(sliceId && sliceId !== '') {
             url += '&slice_id=' + sliceId;
         }

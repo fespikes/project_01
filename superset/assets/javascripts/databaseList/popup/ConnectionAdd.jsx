@@ -50,7 +50,7 @@ class ConnectionAdd extends React.Component {
         ReactDOM.unmountComponentAtNode(document.getElementById('popup_root'));
     }
 
-    testConnection() {
+    testConnection(testCallBack) {
         const self = this;
         const { dispatch, connectionType } = this.props;
         if(isCorrectConnection(connectionType, connectionTypes)) {
@@ -77,6 +77,9 @@ class ConnectionAdd extends React.Component {
             });
             self.formValidate(self.state.database);
             renderAlertTip(exception, 'test-add-connect-tip', '100%');
+        }
+        if(typeof testCallBack === 'function') {
+            testCallBack(self.state.connected);
         }
     }
 
@@ -130,10 +133,9 @@ class ConnectionAdd extends React.Component {
         });
     }
 
-    submit () {
-        const self = this;
+    addConnection() {
         const { connectionType, dispatch } = this.props;
-
+        const self = this;
         function callback(success, message) {
             if(success) {
                 self.closeDialog();
@@ -156,6 +158,20 @@ class ConnectionAdd extends React.Component {
                 httpfs: this.state.database.httpfs,
                 database_id: this.state.database.database_id
             }, callback))
+        }
+    }
+
+    submit () {
+        const self = this;
+        if(this.state.connected) {
+            this.addConnection();
+        }else {
+            this.testConnection(testCallBack);
+            function testCallBack(success) {
+                if(success) {
+                    self.addConnection();
+                }
+            }
         }
     }
 

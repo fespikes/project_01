@@ -1,15 +1,15 @@
 import React from 'react';
 import {
-  Col,
-  FormGroup,
-  InputGroup,
-  Form,
-  FormControl,
-  Label,
-  OverlayTrigger,
-  Row,
-  Tooltip,
-  Collapse,
+    Col,
+    FormGroup,
+    InputGroup,
+    Form,
+    FormControl,
+    Label,
+    OverlayTrigger,
+    Row,
+    Tooltip,
+    Collapse,
 } from 'react-bootstrap';
 
 import Button from '../../components/Button';
@@ -106,127 +106,121 @@ class SqlEditor extends React.PureComponent {
     let limitWarning = null;
     if (this.props.latestQuery && this.props.latestQuery.limit_reached) {
       const tooltip = (
-        <Tooltip id="tooltip">
-          It appears that the number of rows in the query results displayed
-          was limited on the server side to
-          the {this.props.latestQuery.rows} limit.
-        </Tooltip>
+          <Tooltip id="tooltip">
+            It appears that the number of rows in the query results displayed
+            was limited on the server side to
+            the {this.props.latestQuery.rows} limit.
+          </Tooltip>
       );
       limitWarning = (
-        <OverlayTrigger placement="left" overlay={tooltip}>
-          <Label bsStyle="warning" className="m-r-5">LIMIT</Label>
-        </OverlayTrigger>
+          <OverlayTrigger placement="left" overlay={tooltip}>
+            <Label bsStyle="warning" className="m-r-5">LIMIT</Label>
+          </OverlayTrigger>
       );
     }
     let ctasControls;
     if (this.props.database && this.props.database.allow_ctas) {
       const ctasToolTip = 'Create table as with query results';
       ctasControls = (
-        <FormGroup>
-          <InputGroup>
-            <FormControl
-              type="text"
-              bsSize="small"
-              className="input-sm"
-              placeholder="new table name"
-              onChange={this.ctasChanged.bind(this)}
-            />
-            <InputGroup.Button>
-              <Button
-                bsSize="small"
-                disabled={this.state.ctas.length === 0}
-                onClick={this.createTableAs.bind(this)}
-                tooltip={ctasToolTip}
-              >
-                <i className="fa fa-table" /> CTAS
-              </Button>
-            </InputGroup.Button>
-          </InputGroup>
-        </FormGroup>
+          <FormGroup>
+            <InputGroup>
+              <FormControl
+                  type="text"
+                  bsSize="small"
+                  className="input-sm"
+                  placeholder="new table name"
+                  onChange={this.ctasChanged.bind(this)}
+              />
+              <InputGroup.Button>
+                <Button
+                    bsSize="small"
+                    disabled={this.state.ctas.length === 0}
+                    onClick={this.createTableAs.bind(this)}
+                    tooltip={ctasToolTip}
+                >
+                  <i className="fa fa-table" /> CTAS
+                </Button>
+              </InputGroup.Button>
+            </InputGroup>
+          </FormGroup>
       );
     }
-
-    const editorTopBar = (
-      <div className="sql-toolbar editor-top-bar clearfix">
-        <div className="sql-toolbar-title">
-          <span>编辑SQL</span>
+    const editorBottomBar = (
+        <div className="sql-toolbar editor-top-bar clearfix">
+          <div className="sql-toolbar-title">
+            <span>编辑SQL</span>
+          </div>
+          <div className="operation-button">
+            <Form inline>
+              <RunQueryActionButton
+                  allowAsync={true}
+                  dbId={this.props.queryEditor.dbId}
+                  queryState={this.props.latestQuery && this.props.latestQuery.state}
+                  runQuery={this.runQuery.bind(this)}
+                  selectedText={this.props.queryEditor.selectedText}
+                  stopQuery={this.stopQuery.bind(this)}
+              />
+              {ctasControls}
+            </Form>
+          </div>
+          {/*<div className="pull-right">
+            {limitWarning}
+            {this.props.latestQuery &&
+              <Timer
+                  startTime={this.props.latestQuery.startDttm}
+                  endTime={this.props.latestQuery.endDttm}
+                  state={STATE_BSSTYLE_MAP[this.props.latestQuery.state]}
+                  isRunning={this.props.latestQuery.state === 'running'}
+              />
+            }
+          </div>*/}
         </div>
-        <div className="operation-button">
-          <Form inline>
-            <RunQueryActionButton
-              allowAsync={true}
-              dbId={this.props.queryEditor.dbId}
-              queryState={this.props.latestQuery && this.props.latestQuery.state}
-              runQuery={this.runQuery.bind(this)}
-              selectedText={this.props.queryEditor.selectedText}
-              stopQuery={this.stopQuery.bind(this)}
-            />
-            {ctasControls}
-          </Form>
-        </div>
-      </div>
     );
-
-    const timerBar = (
-      <div className="timer-bar">
-        {limitWarning}
-        {this.props.latestQuery &&
-          <Timer
-            startTime={this.props.latestQuery.startDttm}
-            endTime={this.props.latestQuery.endDttm}
-            state={STATE_BSSTYLE_MAP[this.props.latestQuery.state]}
-            isRunning={this.props.latestQuery.state === 'running'}
-          />
-        }
-      </div>
-    );
-
     return (
-      <div
-        className="SqlEditor"
-        style={{
+        <div
+            className="SqlEditor"
+            style={{
           minHeight: this.sqlEditorHeight(),
           height: this.props.height,
         }}
-      >
-        <Row>
-          <Collapse
-            in={!this.props.hideLeftBar}
-          >
-            <Col md={3}>
-              <SqlEditorLeftBar
-                style={{ height: this.props.height }}
-                queryEditor={this.props.queryEditor}
-                tables={this.props.tables}
-                networkOn={this.props.networkOn}
-                actions={this.props.actions}
-              />
-            </Col>
-          </Collapse>
-          <Col md={this.props.hideLeftBar ? 12 : 9}>
-            <div className="scrollbar-container">
-              <div className="scrollbar-content">
-                {editorTopBar}
-                {timerBar}
-                <AceEditorWrapper
-                  actions={this.props.actions}
-                  onBlur={this.setQueryEditorSql.bind(this)}
-                  queryEditor={this.props.queryEditor}
-                  onAltEnter={this.runQuery.bind(this)}
-                  sql={this.props.queryEditor.sql}
-                  tables={this.props.tables}
+        >
+          <Row>
+            <Collapse
+                in={!this.props.hideLeftBar}
+            >
+              <Col md={3}>
+                <SqlEditorLeftBar
+                    style={{ height: this.props.height }}
+                    queryEditor={this.props.queryEditor}
+                    tables={this.props.tables}
+                    networkOn={this.props.networkOn}
+                    actions={this.props.actions}
                 />
-                <br />
-                <SouthPane
-                  editorQueries={this.props.editorQueries}
-                  dataPreviewQueries={this.props.dataPreviewQueries}
-                  actions={this.props.actions}
-                />
+              </Col>
+            </Collapse>
+            <Col md={this.props.hideLeftBar ? 12 : 9}>
+              <div className="scrollbar-container">
+                <div className="scrollbar-content">
+                  {editorBottomBar}
+                  <AceEditorWrapper
+                      actions={this.props.actions}
+                      onBlur={this.setQueryEditorSql.bind(this)}
+                      queryEditor={this.props.queryEditor}
+                      onAltEnter={this.runQuery.bind(this)}
+                      sql={this.props.queryEditor.sql}
+                      tables={this.props.tables}
+                  />
+                  <br />
+                  <SouthPane
+                      editorQueries={this.props.editorQueries}
+                      dataPreviewQueries={this.props.dataPreviewQueries}
+                      actions={this.props.actions}
+                  />
+                </div>
               </div>
-            </div>
-          </Col>
-        </Row>
-      </div>
+            </Col>
+          </Row>
+        </div>
     );
   }
 }
