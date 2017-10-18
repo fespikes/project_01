@@ -33,9 +33,10 @@ export function renderAlertErrorInfo(description, mountId, width='100%', _this) 
     render(
         <Alert
             style={{width: width}}
-            message='Error'
+            //message='Error'
             type='error'
-            description={description}
+            message={description}
+            //description={description}
             onClose={_this.closeAlert(mountId)}
             closable={true}
             showIcon
