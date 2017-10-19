@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 import { fetchAvailableSlices, fetchUpdateDashboard } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
+import { renderAlertErrorInfo } from '../../../utils/utils';
 
 class DashboardEdit extends React.Component {
     constructor(props) {
@@ -28,19 +29,15 @@ class DashboardEdit extends React.Component {
         }
         // bindings
         this.confirm = this.confirm.bind(this);
-        this.closeDialog = this.closeDialog.bind(this);
-        this.showDialog = this.showDialog.bind(this);
+        this.closeAlert = this.closeAlert.bind(this);
 
         this.handleTitleChange = this.handleTitleChange.bind(this);
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
+        this.onSelectChange = this.onSelectChange.bind(this);
     };
 
-    showDialog() {
-        this.refs.popupDashboardEdit.style.display = "flex";
-    }
-
-    closeDialog() {
-        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+    closeAlert(id) {
+        ReactDOM.unmountComponentAtNode(document.getElementById(id));
     }
 
     handleTitleChange(e) {
@@ -53,6 +50,7 @@ class DashboardEdit extends React.Component {
             dashboardDetail: this.props.dashboardDetail,
             enableConfirm: enableConfirm
         });
+        this.closeAlert('edit-dashboard-error-tip');
     }
 
     handleDescriptionChange(e) {
@@ -60,6 +58,14 @@ class DashboardEdit extends React.Component {
         this.setState({
             dashboardDetail: this.props.dashboardDetail
         });
+        this.closeAlert('edit-dashboard-error-tip');
+    }
+
+    onSelectChange(value) {
+        this.setState({
+            selectedSlices: value
+        });
+        this.closeAlert('edit-dashboard-error-tip');
     }
 
     confirm() {
@@ -68,19 +74,9 @@ class DashboardEdit extends React.Component {
         dispatch(fetchUpdateDashboard(self.state, self.props.dashboardDetail, callback));
         function callback(success, message) {
             if(success) {
-                self.setState({
-                    selectedSlices: []
-                });
-                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+                self.closeAlert('popup_root');
             }else {
-                self.refs.alertRef.style.display = "block";
-                let exception = {};
-                exception.type = "error";
-                exception.message = "Error";
-                exception.description = message;
-                self.setState({
-                    exception: exception
-                });
+                renderAlertErrorInfo(message, 'edit-dashboard-error-tip', '100%', self);
             }
         }
     }
@@ -93,14 +89,8 @@ class DashboardEdit extends React.Component {
         });
         const defaultOptions = this.state.selectedSlices;
 
-        function onChange(value) {
-            self.setState({
-                selectedSlices: value
-            });
-        }
-
         return (
-            <div className="popup" ref="popupDashboardEdit">
+            <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
@@ -109,7 +99,10 @@ class DashboardEdit extends React.Component {
                                 <span>编辑仪表盘</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog} />
+                                <i
+                                    className="icon icon-close"
+                                    onClick={argus => this.closeAlert('popup_root')}
+                                />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -123,6 +116,7 @@ class DashboardEdit extends React.Component {
                                         className="tp-input dialog-input"
                                         value={this.props.dashboardDetail.dashboard_title}
                                         onChange={this.handleTitleChange}
+                                        autoFocus
                                     />
                                 </div>
                             </div>
@@ -147,13 +141,16 @@ class DashboardEdit extends React.Component {
                                         <Select mode={'multiple'}
                                             style={{ width: '100%' }}
                                             defaultValue={defaultOptions}
-                                            placeholder="select the slices..."
-                                            onChange={onChange}
+                                            placeholder="选择工作表"
+                                            onChange={this.onSelectChange}
                                         >
                                             {options}
                                         </Select>
                                     </div>
-                                    <Tooltip title="添加或移除该仪表盘包含的工作表" placement="topRight">
+                                    <Tooltip
+                                        title="添加或移除该仪表盘包含的工作表"
+                                        placement="topRight"
+                                    >
                                         <i className="icon icon-info after-icon" />
                                     </Tooltip>
                                 </div>
@@ -170,16 +167,8 @@ class DashboardEdit extends React.Component {
                                     />
                                 </div>
                             </div>
-                            <div className="error" ref="alertRef" style={{display: 'none'}}>
-                                <Alert
-                                    message={this.state.exception.message}
-                                    description={this.state.exception.description}
-                                    type={this.state.exception.type}
-                                    closeText="close"
-                                    showIcon
-                                />
-                            </div>
                         </div>
+                        <div className="error" id="edit-dashboard-error-tip"></div>
                         <div className="popup-footer">
                             <button
                                 className="tp-btn tp-btn-middle tp-btn-primary"
