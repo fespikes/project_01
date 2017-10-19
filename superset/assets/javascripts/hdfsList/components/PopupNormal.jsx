@@ -30,6 +30,16 @@ class Popup extends React.Component {
 
     componentDidUpdate() {
         this.checkIfSubmit();
+        const popupType = this.props.popupNormalParam.popupType;
+        this.addInputFocus(popupType);
+    }
+
+    addInputFocus(popupType) {
+        if(popupType === CONSTANT.mkdir) {
+            document.getElementById('folder-input-id').focus();
+        }else if(popupType === CONSTANT.touch) {
+            document.getElementById('file-input-id').focus();
+        }
     }
 
     closeDialog() {
@@ -305,6 +315,7 @@ class Popup extends React.Component {
                                             required="required"
                                             type="text"
                                             value={dir_name}
+                                            id="folder-input-id"
                                             name="dir_name"
                                             onChange={this.onInputChange}
                                             className="tp-input dialog-input"
@@ -324,6 +335,7 @@ class Popup extends React.Component {
                                             required="required"
                                             type="text"
                                             value={filename}
+                                            id="file-input-id"
                                             name="filename"
                                             onChange={this.onInputChange}
                                             className="tp-input dialog-input"

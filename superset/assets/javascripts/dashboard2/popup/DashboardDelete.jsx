@@ -54,7 +54,10 @@ class DashboardDelete extends React.Component {
                                 <span>删除仪表板</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog} />
+                                <i
+                                    className="icon icon-close"
+                                    onClick={this.closeDialog}
+                                />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -68,7 +71,10 @@ class DashboardDelete extends React.Component {
                             </div>
                         </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}>
+                            <button
+                                className="tp-btn tp-btn-middle tp-btn-primary"
+                                onClick={this.confirm}
+                            >
                                 确定
                             </button>
                         </div>

@@ -32,14 +32,13 @@ class SliceTable extends React.Component {
         dispatch(fetchSliceDetail(record.id, callback));
         function callback(success, data) {
             if(success) {
-                let editSlicePopup = render(
+                render(
                     <SliceEdit
                         dispatch={dispatch}
-                        sliceDetail={data}/>,
-                    document.getElementById('popup_root'));
-                if(editSlicePopup) {
-                    editSlicePopup.showDialog();
-                }
+                        sliceDetail={data}
+                    />,
+                    document.getElementById('popup_root')
+                );
             }
         }
     }
