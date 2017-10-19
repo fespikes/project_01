@@ -30,21 +30,6 @@ const defaultProps = {
 class QueryTable extends React.PureComponent {
     constructor(props) {
         super(props);
-
-        this.onUserClicked = this.props.onUserClicked;
-        this.onDbClicked = this.props.onDbClicked;
-
-        this.onUserClicked = this.onUserClicked.bind(this);
-        this.onDbClicked = this.onDbClicked.bind(this);
-
-        this.clearQueryResults = this.clearQueryResults.bind(this);
-        this.openAsyncResults = this.openAsyncResults.bind(this);
-        this.showVisualizeModal = this.showVisualizeModal.bind(this);
-        this.openQueryInNewTab = this.openQueryInNewTab.bind(this);
-        this.restoreSql = this.restoreSql.bind(this);
-        this.removeQuery = this.removeQuery.bind(this);
-        this.hideVisualizeModal = this.hideVisualizeModal.bind(this);
-
         const uri = window.location.toString();
         const cleanUri = uri.substring(0, uri.indexOf('#'));
         this.state = {
@@ -53,13 +38,10 @@ class QueryTable extends React.PureComponent {
             activeQuery: null,
         };
     }
-
-
     componentDidMount() {
         $ = window.$;
         $('tbody.reactable-pagination tr td').addClass('custom-pagination');
     }
-
     getQueryLink(dbId, sql) {
         const params = ['dbid=' + dbId, 'sql=' + sql, 'title=Untitled Query'];
         const link = getLink(this.state.cleanUri, params);
@@ -96,29 +78,35 @@ class QueryTable extends React.PureComponent {
             const time = moment(q.startDttm).format().split('T');
             q.时间 = (
                 <div>
-                    <span>
-                      {time[0]} <br /> {time[1]}
-                    </span>
+                  <span>
+                    {time[0]} <br /> {time[1]}
+                  </span>
                 </div>
             );
             q.用户 = (
-                <span>
+                <button
+                    className="btn btn-link btn-xs"
+                    onClick={this.props.onUserClicked.bind(this, q.userId)}
+                >
                     {q.user}
-                </span>
+                </button>
             );
             q.连接 = (
-                <span>
+                <button
+                    className="btn btn-link btn-xs"
+                    onClick={this.props.onDbClicked.bind(this, q.dbId)}
+                >
                     {q.db}
-                </span>
+                </button>
             );
-            q.started = moment(q.startDttm).format('HH:mm:ss');
+            q.开始 = moment(q.startDttm).format('HH:mm:ss');
             q.查询链接 = (
                 <div style={{ width: '100px' }}>
                     <a
                         href={this.getQueryLink(q.dbId, q.sql)}
                         className="btn btn-primary btn-xs"
                     >
-                        <i className="fa fa-external-link" />在SQL编辑器中打开
+                        <i className="fa fa-external-link" />用SQL编辑器打开
                     </a>
                 </div>
             );
@@ -127,24 +115,25 @@ class QueryTable extends React.PureComponent {
                     <HighlightedSql sql={q.sql} rawSql={q.executedSql} shrink maxWidth={60} />
                 </Well>
             );
+            q.行数 = q.rows;
             if (q.resultsKey) {
                 q.output = (
                     <ModalTrigger
                         bsSize="large"
                         className="ResultsModal"
                         triggerNode={(
-                            <Label
-                              bsStyle="info"
-                              style={{ cursor: 'pointer' }}
-                            >
-                              view results
-                            </Label>
-                        )}
-                        modalTitle={'Data preview'}
-                        beforeOpen={(query) => this.openAsyncResults(query)}
-                        onExit={(query) => this.clearQueryResults(query)}
-                        modalBody={<ResultSet showSql query={query} actions={this.props.actions} />}
-                    />
+              <Label
+                bsStyle="info"
+                style={{ cursor: 'pointer' }}
+              >
+                view results
+              </Label>
+            )}
+                modalTitle={'Data preview'}
+                beforeOpen={this.openAsyncResults.bind(this, query)}
+                onExit={this.clearQueryResults.bind(this, query)}
+                modalBody={<ResultSet showSql query={query} actions={this.props.actions} />}
+            />
                 );
             } else {
                 // if query was run using ctas and force_ctas_schema was set
@@ -170,35 +159,35 @@ class QueryTable extends React.PureComponent {
             }
             q.状态 = (
                 <div>
-          <span className={'m-r-3 label label-' + STATE_BSSTYLE_MAP[q.state]}>
-            {q.state.substr(0, 1).toUpperCase() + q.state.substr(1)}
-          </span>
-                    {errorTooltip}
+                  <span className={'m-r-3 label label-' + STATE_BSSTYLE_MAP[q.state]}>
+                    {q.state}
+                  </span>
+                  {errorTooltip}
                 </div>
             );
             q.actions = (
-                <div>
+                <div style={{ width: '75px' }}>
                     <Link
                         className="fa fa-bar-chart m-r-3"
-                        tooltip="Visualize the data out of this query"
-                        onClick={(query) => this.showVisualizeModal(query)}
+                        tooltip="可视化本次查询的数据"
+                        onClick={this.showVisualizeModal.bind(this, query)}
                     />
                     <Link
                         className="fa fa-plus m-r-3"
-                        onClick={(query) => this.openQueryInNewTab(query)}
-                        tooltip="Run query in a new tab"
+                        onClick={this.openQueryInNewTab.bind(this, query)}
+                        tooltip="在新的标签中执行查询"
                         placement="top"
                     />
                     <Link
                         className="fa fa-pencil-square-o m-r-3"
-                        onClick={(query) => this.restoreSql(query)}
-                        tooltip="Overwrite text in editor with a query on this table"
+                        onClick={this.restoreSql.bind(this, query)}
+                        tooltip="用该查询sql覆盖编辑框中的sql"
                         placement="top"
                     />
                     <Link
                         className="fa fa-trash m-r-3"
-                        tooltip="Remove query from log"
-                        onClick={(query) => this.removeQuery(query)}
+                        tooltip="从日志中移除本次查询"
+                        onClick={this.removeQuery.bind(this, query)}
                     />
                 </div>
             );
@@ -209,7 +198,7 @@ class QueryTable extends React.PureComponent {
                 <VisualizeModal
                     show={this.state.showVisualizeModal}
                     query={this.state.activeQuery}
-                    onHide={this.hideVisualizeModal}
+                    onHide={this.hideVisualizeModal.bind(this)}
                 />
                 <Table
                     columns={this.props.columns}

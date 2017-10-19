@@ -30,7 +30,7 @@ export default class CopyQueryTabUrl extends React.PureComponent {
             <i className="fa fa-clipboard" /> <span>share query</span>
           </div>
         )}
-        tooltipText="copy URL to clipboard"
+        tooltipText="复制URL到粘贴板"
         shouldShowText={false}
         getText={this.getUrl.bind(this)}
       />

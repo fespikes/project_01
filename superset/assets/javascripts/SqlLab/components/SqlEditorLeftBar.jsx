@@ -45,13 +45,13 @@ class SqlEditorLeftBar extends React.PureComponent {
     }
   }
   dbMutator(data) {
-    data = JSON.parse(data);
+    data = data.data;
     const options = data.map((db) => ({ value: db.id, label: db.database_name }));
     this.props.actions.setDatabases(data);
     if (data.length === 0) {
       this.props.actions.addAlert({
         bsStyle: 'danger',
-        msg: "It seems you don't have access to any database",
+        msg: "没有权限访问数据库",
       });
     }
     return options;
@@ -67,7 +67,7 @@ class SqlEditorLeftBar extends React.PureComponent {
       this.setState({ tableOptions: [] });
       const url = `/table/tables/${actualDbId}/${actualSchema}`;
       $.get(url, (data) => {
-        data = JSON.parse(data);
+        data = data.data;
         let tableOptions = data.map((s) => ({ value: s, label: s }));
         const views = data.map((s) => ({ value: s, label: '[view] ' + s }));
         tableOptions = [...tableOptions, ...views];
@@ -87,7 +87,7 @@ class SqlEditorLeftBar extends React.PureComponent {
       this.setState({ schemaLoading: true });
       const url = `/table/schemas/${actualDbId}`;
       $.get(url, (data) => {
-        const schemas = JSON.parse(data);
+        const schemas = data.data;
         const schemaOptions = schemas.map((s) => ({ value: s, label: s }));
         this.setState({ schemaOptions });
         this.setState({ schemaLoading: false });
@@ -171,7 +171,7 @@ class SqlEditorLeftBar extends React.PureComponent {
           </div>
           {shouldShowReset &&
             <Button bsSize="small" bsStyle="danger" onClick={this.resetState.bind(this)}>
-              <i className="fa fa-bomb" /> Reset State
+              <i className="fa fa-bomb" /> 重置状态
             </Button>
           }
         </div>

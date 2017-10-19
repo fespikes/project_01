@@ -44,7 +44,7 @@ class SouthPane extends React.PureComponent {
 
         const dataPreviewTabs = props.dataPreviewQueries.map((query) => (
             <Tab
-                title={`Preview for ${query.tableName}`}
+                title={`预览 ${query.tableName}`}
                 eventKey={query.id}
                 key={query.id}
             >
