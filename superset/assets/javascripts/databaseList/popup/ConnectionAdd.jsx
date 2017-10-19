@@ -34,7 +34,7 @@ class ConnectionAdd extends React.Component {
         };
 
         this.submit = this.submit.bind(this);
-        this.closeDialog = this.closeDialog.bind(this);
+        this.closeAlert = this.closeAlert.bind(this);
         this.setSelectConnection = this.setSelectConnection.bind(this);
         this.handleChange = this.handleChange.bind(this);
     }
@@ -44,10 +44,6 @@ class ConnectionAdd extends React.Component {
         if(connectionType === connectionTypes.hdfs) {
             this.fetchConnectionNames();
         }
-    }
-
-    closeDialog () {
-        ReactDOM.unmountComponentAtNode(document.getElementById('popup_root'));
     }
 
     testConnection(testCallBack) {
@@ -64,16 +60,19 @@ class ConnectionAdd extends React.Component {
         }
         function callback(success, message) {
             let exception = {};
+            let connected;
             if(success) {
                 exception.type = "success";
                 exception.message = "该连接是一个合法连接";
+                connected = true;
             }else {
                 exception.type = "error";
                 exception.message = "该连接是一个不合法连接";
-                renderAlertErrorInfo(message, 'add-connect-tip', '100%', self);
+                connected = false;
+                renderAlertErrorInfo(message, 'add-connect-error-tip', '100%', self);
             }
             self.setState({
-                connected: true
+                connected: connected
             });
             self.formValidate(self.state.database);
             renderAlertTip(exception, 'test-add-connect-tip', '100%');
@@ -122,7 +121,7 @@ class ConnectionAdd extends React.Component {
             }
         }else if(this.props.connectionType === connectionTypes.hdfs) {
             if((database.connection_name && database.connection_name.length > 0) &&
-                (database.httpfs && database.httpfs.length > 0)) {
+                (database.httpfs && database.httpfs.length > 0) && this.state.connected) {
                 disabled = false;
             }else {
                 disabled = true;
@@ -131,6 +130,7 @@ class ConnectionAdd extends React.Component {
         this.setState({
             disabled: disabled
         });
+        this.closeAlert('add-connect-error-tip');
     }
 
     addConnection() {
@@ -138,9 +138,9 @@ class ConnectionAdd extends React.Component {
         const self = this;
         function callback(success, message) {
             if(success) {
-                self.closeDialog();
+                self.closeAlert('popup_root');
             }else {
-                renderAlertErrorInfo(message, 'add-connect-tip', '100%', self);
+                renderAlertErrorInfo(message, 'add-connect-error-tip', '100%', self);
             }
         }
         if(isCorrectConnection(connectionType, connectionTypes)) {
@@ -189,7 +189,7 @@ class ConnectionAdd extends React.Component {
         const { connectionType } = this.props;
 
         return (
-            <div className="popup" ref="popupContainer">
+            <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
@@ -198,7 +198,10 @@ class ConnectionAdd extends React.Component {
                                 <span>添加{connectionType}连接</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}/>
+                                <i
+                                    className="icon icon-close"
+                                    onClick={argus => this.closeAlert('popup_root')}
+                                />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -214,6 +217,7 @@ class ConnectionAdd extends React.Component {
                                             name="database_name"
                                             className="tp-input dialog-input"
                                             onChange={this.handleChange}
+                                            autoFocus
                                         />
                                     </div>
                                 </div>
@@ -294,6 +298,7 @@ class ConnectionAdd extends React.Component {
                                             name="connection_name"
                                             className="tp-input dialog-input"
                                             onChange={this.handleChange}
+                                            autoFocus
                                         />
                                     </div>
                                 </div>
@@ -372,7 +377,7 @@ class ConnectionAdd extends React.Component {
                                 </div>
                             </div>
                         </div>
-                        <div className="error" id="add-connect-tip"></div>
+                        <div className="error" id="add-connect-error-tip"></div>
                         <div className="popup-footer">
                             <button
                                 disabled={this.state.disabled}

@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 import { fetchUpdateSlice } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
+import { renderAlertErrorInfo } from '../../../utils/utils';
 
 class SliceEdit extends React.Component {
     constructor(props) {
@@ -28,18 +29,14 @@ class SliceEdit extends React.Component {
         }
         // bindings
         this.confirm = this.confirm.bind(this);
-        this.closeDialog = this.closeDialog.bind(this);
-        this.showDialog = this.showDialog.bind(this);
+        this.closeAlert = this.closeAlert.bind(this);
         this.handleTitleChange = this.handleTitleChange.bind(this);
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
+        this.onSelectChange = this.onSelectChange.bind(this);
     };
 
-    showDialog() {
-        this.refs.popupSliceEdit.style.display = "flex";
-    }
-
-    closeDialog() {
-        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+    closeAlert(id) {
+        ReactDOM.unmountComponentAtNode(document.getElementById(id));
     }
 
     handleTitleChange(e) {
@@ -52,6 +49,7 @@ class SliceEdit extends React.Component {
             sliceDetail: this.props.sliceDetail,
             enableConfirm: enableConfirm
         });
+        this.closeAlert('edit-slice-error-tip');
     }
 
     handleDescriptionChange(e) {
@@ -59,6 +57,14 @@ class SliceEdit extends React.Component {
         this.setState({
             sliceDetail: this.props.sliceDetail
         });
+        this.closeAlert('edit-slice-error-tip');
+    }
+
+    onSelectChange(value) {
+        this.setState({
+            selectedDashboards: value
+        });
+        this.closeAlert('edit-slice-error-tip');
     }
 
     confirm() {
@@ -67,19 +73,9 @@ class SliceEdit extends React.Component {
         dispatch(fetchUpdateSlice(self.state, self.props.sliceDetail, callback));
         function callback(success, message) {
             if(success) {
-                self.setState({
-                    selectedDashboards: []
-                });
-                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+                self.closeAlert('popup_root');
             }else {
-                self.refs.alertRef.style.display = "block";
-                let exception = {};
-                exception.type = "error";
-                exception.message = "Error";
-                exception.description = message;
-                self.setState({
-                    exception: exception
-                });
+                renderAlertErrorInfo(message, 'edit-slice-error-tip', '100%', self);
             }
         }
     }
@@ -92,14 +88,8 @@ class SliceEdit extends React.Component {
             return <Option key={dashboard.dashboard_title}>{dashboard.dashboard_title}</Option>
         });
 
-        function onChange(value) {
-            self.setState({
-                selectedDashboards: value
-            });
-        }
-
         return (
-            <div className="popup" ref="popupSliceEdit" style={{display:'none'}}>
+            <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
@@ -108,7 +98,10 @@ class SliceEdit extends React.Component {
                                 <span>编辑工作表</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog} />
+                                <i
+                                    className="icon icon-close"
+                                    onClick={argus => this.closeAlert('popup_root')}
+                                />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -122,6 +115,7 @@ class SliceEdit extends React.Component {
                                         className="tp-input dialog-input"
                                         value={this.props.sliceDetail.slice_name}
                                         onChange={this.handleTitleChange}
+                                        autoFocus
                                     />
                                 </div>
                             </div>
@@ -146,13 +140,16 @@ class SliceEdit extends React.Component {
                                         <Select mode={'multiple'}
                                             style={{ width: '100%' }}
                                             defaultValue={defaultOptions}
-                                            placeholder="select the dashboards..."
-                                            onChange={onChange}
+                                            placeholder="选择仪表板"
+                                            onChange={this.onSelectChange}
                                         >
                                             {options}
                                         </Select>
                                     </div>
-                                    <Tooltip title="添加该工作表到仪表板或从仪表板移除该工作表" placement="topRight">
+                                    <Tooltip
+                                        title="添加该工作表到仪表板或从仪表板移除该工作表"
+                                        placement="topRight"
+                                    >
                                         <i className="icon icon-info after-icon"/>
                                     </Tooltip>
                                 </div>
@@ -193,16 +190,8 @@ class SliceEdit extends React.Component {
                                     </div>
                                 </div>
                             </div>
-                            <div className="error" ref="alertRef" style={{display: 'none'}}>
-                                <Alert
-                                    message={this.state.exception.message}
-                                    description={this.state.exception.description}
-                                    type={this.state.exception.type}
-                                    closeText="close"
-                                    showIcon
-                                />
-                            </div>
                         </div>
+                        <div className="error" id="edit-slice-error-tip"></div>
                         <div className="popup-footer">
                             <button
                                 className="tp-btn tp-btn-middle tp-btn-primary"
