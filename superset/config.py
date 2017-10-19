@@ -208,7 +208,7 @@ ADDITIONAL_MIDDLEWARE = []
 
 # Console Log Settings
 
-LOG_FORMAT = '%(asctime)s: %(levelname)-8s: %(name)s: %(filename)s: %(funcName)s(): %(message)s'
+LOG_FORMAT = '%(asctime)s:%(levelname)-8s:%(name)s:%(filename)s %(funcName)s(): %(message)s'
 LOG_LEVEL = 'INFO'
 
 # ---------------------------------------------------

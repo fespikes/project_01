@@ -112,7 +112,7 @@ class Home(BaseSupersetView):
                 present_count[obj_type] = present_count.get(obj_type) - 1
             elif log.action_type == 'delete' and log.user_id == user_id \
                     or log.action_type == 'offline' and log.user_id != user_id:
-                present_count[obj_type] = present_count.get(obj_type) - 1
+                present_count[obj_type] = present_count.get(obj_type) + 1
 
         while present_date > start_date:
             for type_ in types:

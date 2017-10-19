@@ -36,10 +36,10 @@ def merge_slice(slc, user_id=None):
     o = db.session.query(Slice).filter_by(slice_name=slc.slice_name).first()
     if o:
         db.session.delete(o)
-        Log.log_action('delete', 'Delete slice: [{}]'.format(o), 'slice', o.id, user_id)
+        Log.log_delete(o, 'slice', user_id)
     db.session.add(slc)
     db.session.commit()
-    Log.log_action('add', 'Add slice: [{}]'.format(slc), 'slice', slc.id, user_id)
+    Log.log_add(slc, 'slice', user_id)
 
 
 def get_slice_json(defaults, **kwargs):
@@ -73,9 +73,10 @@ def load_energy(user_id=None):
     tbl.description = "Energy consumption"
     tbl.online = True
     tbl.database = get_or_create_main_db()
+    tbl.created_by_fk = user_id
     db.session.merge(tbl)
     db.session.commit()
-    Log.log_action('add', 'Add dataset: [{}]'.format(tbl), 'dataset', tbl.id, user_id)
+    Log.log_add(tbl, 'dataset', user_id)
     tbl.fetch_metadata()
 
     slc = Slice(
@@ -208,9 +209,10 @@ def load_world_bank_health_n_pop(user_id=None):
     tbl.main_dttm_col = 'year'
     tbl.online = True
     tbl.database = get_or_create_main_db()
+    tbl.created_by_fk = user_id
     db.session.merge(tbl)
     db.session.commit()
-    Log.log_action('add', 'Add dataset: [{}]'.format(tbl), 'dataset', tbl.id, user_id)
+    Log.log_add(tbl, 'dataset', user_id)
     tbl.fetch_metadata()
 
     defaults = {
@@ -494,7 +496,7 @@ def load_world_bank_health_n_pop(user_id=None):
     dash.created_by_fk = user_id
     db.session.merge(dash)
     db.session.commit()
-    Log.log_action('add', 'Add dashboard: [{}]'.format(dash), 'dashboard', dash.id, user_id)
+    Log.log_add(dash, 'dashboard', user_id)
 
 
 def load_css_templates(user_id=None):
@@ -626,9 +628,10 @@ def load_birth_names(user_id=None):
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
     obj.online = True
+    obj.created_by_fk = user_id
     db.session.merge(obj)
     db.session.commit()
-    Log.log_action('add', 'Add dataset: [{}]'.format(obj), 'dataset', obj.id, user_id)
+    Log.log_add(obj, 'dataset', user_id)
     obj.fetch_metadata()
     tbl = obj
 
@@ -875,7 +878,7 @@ def load_birth_names(user_id=None):
     dash.created_by_fk = user_id
     db.session.merge(dash)
     db.session.commit()
-    Log.log_action('add', 'Add dashboard: [{}]'.format(dash), 'dashboard', dash.id, user_id)
+    Log.log_add(dash, 'dashboard', user_id)
 
 
 def load_unicode_test_data(user_id=None):
@@ -909,9 +912,10 @@ def load_unicode_test_data(user_id=None):
     obj.main_dttm_col = 'date'
     obj.database = get_or_create_main_db()
     obj.online = False
+    obj.created_by_fk = user_id
     db.session.merge(obj)
     db.session.commit()
-    Log.log_action('add', 'Add dataset: [{}]'.format(obj), 'dataset', obj.id, user_id)
+    Log.log_add(obj, 'dataset', user_id)
     obj.fetch_metadata()
     tbl = obj
 
@@ -970,7 +974,7 @@ def load_unicode_test_data(user_id=None):
     dash.created_by_fk = user_id
     db.session.merge(dash)
     db.session.commit()
-    Log.log_action('add', 'Add dashboard: [{}]'.format(dash), 'dashboard', dash.id, user_id)
+    Log.log_add(dash, 'dashboard', user_id)
 
 
 def load_random_time_series_data(user_id=None):
@@ -998,9 +1002,10 @@ def load_random_time_series_data(user_id=None):
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
     obj.online = True
+    obj.created_by_fk = user_id
     db.session.merge(obj)
     db.session.commit()
-    Log.log_action('add', 'Add dataset: [{}]'.format(obj), 'dataset', obj.id, user_id)
+    Log.log_add(obj, 'dataset', user_id)
     obj.fetch_metadata()
     tbl = obj
 
@@ -1071,9 +1076,10 @@ def load_long_lat_data(user_id=None):
     obj.main_dttm_col = 'date'
     obj.database = get_or_create_main_db()
     obj.online = True
+    obj.created_by_fk = user_id
     db.session.merge(obj)
     db.session.commit()
-    Log.log_action('add', 'Add dataset: [{}]'.format(obj), 'dataset', obj.id, user_id)
+    Log.log_add(obj, 'dataset', user_id)
     obj.fetch_metadata()
     tbl = obj
 
@@ -1140,6 +1146,7 @@ def load_multiformat_time_series_data(user_id=None):
     obj.main_dttm_col = 'ds'
     obj.database = get_or_create_main_db()
     obj.online = True
+    obj.created_by_fk = user_id
     dttm_and_expr_dict = {
         'ds': [None, None],
         'ds2': [None, None],
@@ -1157,7 +1164,7 @@ def load_multiformat_time_series_data(user_id=None):
         col.is_dttm = True
     db.session.merge(obj)
     db.session.commit()
-    Log.log_action('add', 'Add dataset: [{}]'.format(obj), 'dataset', obj.id, user_id)
+    Log.log_add(obj, 'dataset', user_id)
     obj.fetch_metadata()
     tbl = obj
 
@@ -1265,4 +1272,4 @@ def load_misc_dashboard(user_id=None):
     dash.created_by_fk = user_id
     db.session.merge(dash)
     db.session.commit()
-    Log.log_action('add', 'Add dashboard: [{}]'.format(dash), 'dashboard', dash.id, user_id)
+    Log.log_add(dash, 'dashboard', user_id)
