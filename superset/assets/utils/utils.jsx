@@ -25,7 +25,9 @@ export function renderAlertTip(response, mountId, width='100%') {
         document.getElementById(mountId)
     );
     setTimeout(function() {
-        ReactDOM.unmountComponentAtNode(document.getElementById(mountId));
+        if(document.getElementById(mountId)) {
+            ReactDOM.unmountComponentAtNode(document.getElementById(mountId));
+        }
     }, 5000);
 }
 
@@ -33,10 +35,8 @@ export function renderAlertErrorInfo(description, mountId, width='100%', _this) 
     render(
         <Alert
             style={{width: width}}
-            //message='Error'
             type='error'
             message={description}
-            //description={description}
             onClose={_this.closeAlert(mountId)}
             closable={true}
             showIcon

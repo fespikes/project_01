@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 import { fetchAddDashboard, setDashAddConfirmState } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
+import { renderAlertErrorInfo } from '../../../utils/utils';
 
 class DashboardAdd extends React.Component {
     constructor(props) {
@@ -17,40 +18,30 @@ class DashboardAdd extends React.Component {
         };
         // bindings
         this.confirm = this.confirm.bind(this);
-        this.closeDialog = this.closeDialog.bind(this);
-        this.showDialog = this.showDialog.bind(this);
+        this.closeAlert = this.closeAlert.bind(this);
 
         this.handleTitleChange = this.handleTitleChange.bind(this);
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
+        this.onSelectChange = this.onSelectChange.bind(this);
     };
 
-    showDialog() {
-        this.refs.popupDashboardAdd.style.display = "flex";
-    }
-
-    closeDialog() {
-        this.setState({
-            dashboard: {},
-            selectedSlices: [],
-            enableConfirm: false
-        });
-        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+    closeAlert(id) {
+        ReactDOM.unmountComponentAtNode(document.getElementById(id));
     }
 
     handleTitleChange(e) {
         this.props.dashboard.dashboard_title = e.currentTarget.value;
-        this.setState({
-            dashboard: this.props.dashboard
-        });
+        let enableConfirm;
         if(!e.currentTarget.value || e.currentTarget.value.length === 0) {
-            this.setState({
-                enableConfirm: false
-            });
+            enableConfirm = false;
         }else {
-            this.setState({
-                enableConfirm: true
-            });
+            enableConfirm = true;
         }
+        this.setState({
+            dashboard: this.props.dashboard,
+            enableConfirm: enableConfirm
+        });
+        this.closeAlert('add-dashboard-error-tip');
     }
 
     handleDescriptionChange(e) {
@@ -58,6 +49,14 @@ class DashboardAdd extends React.Component {
         this.setState({
             dashboard: this.props.dashboard
         });
+        this.closeAlert('add-dashboard-error-tip');
+    }
+
+    onSelectChange(value) {
+        this.setState({
+            selectedSlices: value
+        });
+        this.closeAlert('add-dashboard-error-tip');
     }
 
     confirm() {
@@ -66,21 +65,9 @@ class DashboardAdd extends React.Component {
         dispatch(fetchAddDashboard(self.state, availableSlices, callback));
         function callback(success, message) {
             if(success) {
-                self.setState({
-                    dashboard: {},
-                    selectedSlices: [],
-                    enableConfirm: false
-                });
-                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+                self.closeAlert("popup_root");
             }else {
-                self.refs.alertRef.style.display = "block";
-                let exception = {};
-                exception.type = "error";
-                exception.message = "Error";
-                exception.description = message;
-                self.setState({
-                    exception: exception
-                });
+                renderAlertErrorInfo(message, 'add-dashboard-error-tip', '100%', self);
             }
         }
     }
@@ -92,14 +79,8 @@ class DashboardAdd extends React.Component {
             return <Option key={d.slice_name}>{d.slice_name}</Option>
         });
 
-        function onChange(value) {
-            self.setState({
-                selectedSlices: value
-            });
-        }
-
         return (
-            <div className="popup" ref="popupDashboardAdd">
+            <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
@@ -108,7 +89,10 @@ class DashboardAdd extends React.Component {
                                 <span>添加仪表盘</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog} />
+                                <i
+                                    className="icon icon-close"
+                                    onClick={argus => this.closeAlert('popup_root')}
+                                />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -122,6 +106,7 @@ class DashboardAdd extends React.Component {
                                         className="tp-input dialog-input"
                                         value={this.props.dashboard.dashboard_title}
                                         onChange={this.handleTitleChange}
+                                        autoFocus
                                     />
                                 </div>
                             </div>
@@ -146,12 +131,15 @@ class DashboardAdd extends React.Component {
                                         <Select mode={'multiple'}
                                             value={self.state.selectedSlices}
                                             style={{ width: '100%' }}
-                                            placeholder="select the slices..."
-                                            onChange={onChange}>
+                                            placeholder="选择工作表"
+                                            onChange={this.onSelectChange}>
                                             {options}
                                         </Select>
                                     </div>
-                                    <Tooltip title="添加或移除该仪表盘包含的工作表" placement="topRight">
+                                    <Tooltip
+                                        title="添加或移除该仪表盘包含的工作表"
+                                        placement="topRight"
+                                    >
                                         <i className="icon icon-info after-icon" />
                                     </Tooltip>
                                 </div>
@@ -164,19 +152,14 @@ class DashboardAdd extends React.Component {
                                     <input className="tp-input dialog-input" disabled />
                                 </div>
                             </div>
-                            <div className="error" ref="alertRef" style={{display: 'none'}}>
-                                <Alert
-                                    message={this.state.exception.message}
-                                    description={this.state.exception.description}
-                                    type={this.state.exception.type}
-                                    closeText="close"
-                                    showIcon
-                                />
-                            </div>
                         </div>
+                        <div className="error" id="add-dashboard-error-tip"></div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}
-                                    disabled={!this.state.enableConfirm}>
+                            <button
+                                className="tp-btn tp-btn-middle tp-btn-primary"
+                                onClick={this.confirm}
+                                disabled={!this.state.enableConfirm}
+                            >
                                 确定
                             </button>
                         </div>
