@@ -271,7 +271,7 @@
               class="widget viz slice {{ viz.viz_type }} graph-view"
               data-slice="{{ viz.json_data }}"
               style="height: 700px;display: block">
-              <img src="{{ url_for("static", filename="assets/images/loading.gif") }}" class="loading" alt="loading">
+              <img src="{{ url_for("static", filename="assets/images/loading.gif") }}" id="slice-loading-img" class="loading" alt="loading">
               <div id="{{ viz.token }}_con" class="slice_container" style="height: 100%; width: 100%"></div>
             </div>
             <div

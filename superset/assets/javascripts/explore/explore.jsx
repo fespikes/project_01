@@ -34,6 +34,7 @@ const viewTypes = {
 };
 let slice;
 let currentViewType;
+let operationType;
 
 const getPanelClass = function (fieldPrefix) {
     return (fieldPrefix === 'flt' ? 'filter' : 'having') + '_panel';
@@ -178,11 +179,18 @@ function initExploreView() {
     }
 
     $('#viz_type').change(function () {
+        localStorage.setItem('firstEntry', 'false');
         $('#query').submit();
     });
 
     $('#datasource_id').change(function (opt) {
-        const datasource_type = getUrlParam('viz_type', window.location.href);
+        localStorage.setItem('firstEntry', 'false');
+        let datasource_type;
+        if(getUrlParam('viz_type', window.location.href) === '') {
+            datasource_type = 'table';
+        }else {
+            datasource_type = getUrlParam('viz_type', window.location.href);
+        }
         const sliceId = document.getElementById('slice-title-name').getAttribute('sliceId');
         let url = $(this).find('option:selected').attr('url');
         url = url.split('&')[0] + '&viz_type=' + datasource_type;
@@ -541,8 +549,10 @@ function initTitle() {
     const sliceId = titleEl.getAttribute('sliceId');
     if(sliceId !== '') {
         titleEl.value = "编辑工作表";
+        operationType = 'editSlice';
     }else {
         titleEl.value = "添加工作表";
+        operationType = 'addSlice';
     }
 }
 
@@ -599,15 +609,19 @@ $(document).ready(function () {
     initExploreView();
 
     slice = px.Slice(data, exploreController, 'slice');
-
-    // call vis render method, which issues ajax
-    // calls render on the slice for the first time
-    location.search!=='' && query(false, false);
-
     slice.bindResizeToWindowResize();
 
     initComponents();
     initTitle();
     initDatasourceState();
+
+    // call vis render method, which issues ajax
+    // calls render on the slice for the first time
+    if(operationType==='editSlice' && localStorage.getItem('firstEntry') === 'true') {
+        location.search!=='' && query(false, false);
+    }else {
+        document.getElementById('slice-loading-img').style.display = 'none';
+    }
+
     $('.nav > li:nth-child(3)').addClass('active');
 });

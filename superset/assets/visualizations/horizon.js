@@ -6,14 +6,14 @@ require('./horizon.css');
 
 const horizonChart = function () {
   let colors = [
-    '#313695',
     '#4575b4',
     '#74add1',
     '#abd9e9',
-    '#fee090',
-    '#fdae61',
-    '#f46d43',
-    '#d73027',
+    '#279cf2',
+    '#313695',
+    //'#fdae61',
+    //'#f46d43',
+    //'#d73027',
   ];
   let height = 30;
   const y = d3.scale.linear().range([0, height]);
