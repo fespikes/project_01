@@ -31,16 +31,14 @@ class Operations extends React.Component {
         function callback(success, data) {
             if(success) {
                 var dashboard = {dashboard_title: '', description: ''};
-                var addSlicePopup = render(
+                render(
                     <DashboardAdd
                         dispatch={dispatch}
                         dashboard={dashboard}
                         availableSlices={data.data.available_slices}
                         enableConfirm={false}/>,
-                    document.getElementById('popup_root'));
-                if(addSlicePopup) {
-                    addSlicePopup.showDialog();
-                }
+                    document.getElementById('popup_root')
+                );
             }
         }
     }

@@ -22,10 +22,9 @@ class ConnectionEdit extends React.Component {
 
         // bindings
         this.confirm = this.confirm.bind(this);
-        this.closeDialog = this.closeDialog.bind(this);
         this.testConnection = this.testConnection.bind(this);
         this.closeAlert = this.closeAlert.bind(this);
-        this.setPopupState = this.setPopupState.bind(this);
+        this.onSelectChange = this.onSelectChange.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
     };
 
@@ -44,7 +43,7 @@ class ConnectionEdit extends React.Component {
             database = {
                 ...this.state.database,
                 connectionType: this.props.connectionType
-            }
+            };
             this.fetchConnectionNames();
         }
         this.setState({
@@ -60,8 +59,8 @@ class ConnectionEdit extends React.Component {
         this.props.dispatch(fetchConnectionNames(callback));
     }
 
-    closeDialog() {
-        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+    closeAlert(id) {
+        ReactDOM.unmountComponentAtNode(document.getElementById(id));
     }
 
     testConnection(testCallBack) {
@@ -89,7 +88,7 @@ class ConnectionEdit extends React.Component {
                 exception.type = "error";
                 exception.message = "该连接是一个不合法连接";
                 connected = false;
-                renderAlertErrorInfo(message, 'edit-connect-tip', '100%', me);
+                renderAlertErrorInfo(message, 'edit-connect-error-tip', '100%', me);
             }
             me.setState({
                 exception: exception,
@@ -104,11 +103,6 @@ class ConnectionEdit extends React.Component {
                 testCallBack(me.state.connected);
             }
         }
-    }
-
-    closeAlert(id) {
-
-        ReactDOM.unmountComponentAtNode(document.getElementById(id));
     }
 
     handleInputChange (e) {
@@ -144,9 +138,11 @@ class ConnectionEdit extends React.Component {
         this.setState({
             disabled: disabled
         });
+
+        this.closeAlert('edit-connect-error-tip');
     }
 
-    setPopupState(databaseId) {
+    onSelectChange(databaseId) {
         const database = {
             ...this.state.database,
             database_id: databaseId
@@ -158,13 +154,13 @@ class ConnectionEdit extends React.Component {
 
     doUpdateConnection() {
         const {dispatch} = this.props;
-        const me = this;
+        const self = this;
         dispatch(fetchUpdateConnection(me.state.database, callback));
         function callback(success, message) {
             if(success) {
-                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+                self.closeAlert("popup_root");
             }else {
-                renderAlertErrorInfo(message, 'edit-connect-tip', '100%', me);
+                renderAlertErrorInfo(message, 'edit-connect-error-tip', '100%', self);
             }
         }
     }
@@ -188,7 +184,7 @@ class ConnectionEdit extends React.Component {
         const {connectionNames, database}= this.state;
 
         return (
-            <div className="popup" ref="popupConnectionEdit" style={{display:'flex'}}>
+            <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
@@ -197,7 +193,10 @@ class ConnectionEdit extends React.Component {
                                 <span>编辑{connectionType}连接</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog} />
+                                <i
+                                    className="icon icon-close"
+                                    onClick={argus => this.closeAlert('popup_root')}
+                                />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -221,7 +220,9 @@ class ConnectionEdit extends React.Component {
                                             name="database_name"
                                             className="tp-input dialog-input"
                                             value={database.database_name}
-                                            onChange={this.handleInputChange}/>
+                                            onChange={this.handleInputChange}
+                                            autoFocus
+                                        />
                                     </div>
                                 </div>
 
@@ -354,7 +355,9 @@ class ConnectionEdit extends React.Component {
                                             className="tp-input dialog-input"
                                             name="connection_name"
                                             value={database.connection_name}
-                                            onChange={this.handleInputChange}/>
+                                            onChange={this.handleInputChange}
+                                            autoFocus
+                                        />
                                     </div>
                                 </div>
                                 <div className="dialog-item">
@@ -409,7 +412,7 @@ class ConnectionEdit extends React.Component {
                                             options={connectionNames}
                                             value={database.database}
                                             width={420}
-                                            handleSelect={(argus)=>this.setPopupState(argus)}
+                                            handleSelect={(argus)=>this.onSelectChange(argus)}
                                         />
                                         <Tooltip
                                             placement="topRight"
@@ -440,7 +443,7 @@ class ConnectionEdit extends React.Component {
                             </div>
                             {/*E: HDFS connection*/}
                         </div>
-                        <div className="error" id="edit-connect-tip"></div>
+                        <div className="error" id="edit-connect-error-tip"></div>
                         <div className="popup-footer">
                             <button
                                 className="tp-btn tp-btn-middle tp-btn-primary"

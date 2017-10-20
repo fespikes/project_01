@@ -17,6 +17,8 @@ class SubPreview extends Component {
         super(props);
         this.state = {
             tableWidth: '100%',
+            clickPreview: false,
+            columnNames: [],
             dsHDFS: datasetModule.initHDFSPreviewData(
                 props.dsHDFS,
                 datasetModule.extractOpeType(window.location.hash)
@@ -88,8 +90,10 @@ class SubPreview extends Component {
             JSON.parse(JSON.stringify(tbTitleOnly)),
             this
         );
+        const columnNames = this.constructColumnNames(tbTitle);
         this.setState({
-            tbTitle: tbTitle
+            tbTitle: tbTitle,
+            columnNames: columnNames
         });
     }
 
@@ -131,7 +135,7 @@ class SubPreview extends Component {
     }
 
     doConstructTableData(datasetType, data) {
-        let tbTitle=[], tbType=[], tbContentHDFS=[];
+        let tbTitle=[], tbType=[], tbContentHDFS=[], columnNames=this.state.columnNames;
         let width = datasetModule.getColumnWidth(data.columns.length);
         let tbTitleOnly = datasetModule.getTbTitle(data, width);
         let tbContent = datasetModule.getTbContent(data);
@@ -143,14 +147,36 @@ class SubPreview extends Component {
             tbContentHDFS = [{
                 key: '1'
             }];
+            if(!this.state.clickPreview) {
+                columnNames = this.constructColumnNames(tbTitle);
+            }
         }
         this.setState({
             tbType: tbType,
             tbTitle: tbTitle,
             tbTitleOnly: tbTitleOnly,
             tbContent: tbContent,
-            tbContentHDFS: tbContentHDFS
+            tbContentHDFS: tbContentHDFS,
+            columnNames: columnNames
         });
+    }
+
+    constructColumnNames(tbTitle) {
+        const self = this;
+        const tableWidth = this.state.tableWidth;
+        const colWidth = datasetModule.getHDFSInputColumnWidth(tableWidth, tbTitle.length);
+        const columnNames = tbTitle.map((column) => {
+            return <input
+                type="text"
+                className="tp-input hdfs-column-input"
+                name={column.key}
+                key={column.key}
+                style={{width: colWidth}}
+                value={column.title}
+                onChange={self.hdfsColumnNameChange}
+            />
+        });
+        return columnNames;
     }
 
     charsetChange(value, node) {
@@ -235,36 +261,24 @@ class SubPreview extends Component {
     previewHDFSDataset() {
         const dsHDFS = this.state.dsHDFS;
         this.doFetchHDFSPreviewData(dsHDFS);
+        this.setState({
+            clickPreview: true
+        });
     }
 
     render() {
         const dsHDFS = this.state.dsHDFS;
         const tableWidth = this.state.tableWidth;
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
-        let columnNames;
-        if(datasetType === datasetTypes.hdfs && this.state.tbTitle) {
-            let colWidth = datasetModule.getHDFSInputColumnWidth(tableWidth, this.state.tbTitle.length);
-            columnNames = this.state.tbTitle.map((column) => {
-                return <input
-                    type="text"
-                    className="tp-input hdfs-column-input"
-                    name={column.key}
-                    key={column.key}
-                    style={{width: colWidth}}
-                    value={column.title}
-                    onChange={this.hdfsColumnNameChange}
-                />
-            });
-        }
         return (
             <div>
-                <div style={{width:'100%', height:'30px', background:'#fff', marginTop:'-2px'}}> </div>
+                <div style={{width:'100%', height:'30px', background:'#fff', marginTop:'-2px'}}></div>
                 <div className="preview-table">
                     <div
                         className={datasetType===datasetTypes.hdfs?'editable-table-header':'none'}
                         style={{width: tableWidth, height: 40}}
                     >
-                        {columnNames}
+                        {this.state.columnNames}
                     </div>
                     <div className={datasetType===datasetTypes.database?'table-header':'none'}
                          style={{width: tableWidth}}>
