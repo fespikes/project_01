@@ -34,6 +34,7 @@ const viewTypes = {
 };
 let slice;
 let currentViewType;
+let operationType;
 
 const getPanelClass = function (fieldPrefix) {
     return (fieldPrefix === 'flt' ? 'filter' : 'having') + '_panel';
@@ -178,10 +179,16 @@ function initExploreView() {
     }
 
     $('#viz_type').change(function () {
+        if(operationType === 'addSlice') {
+            return;
+        }
         $('#query').submit();
     });
 
     $('#datasource_id').change(function (opt) {
+        if(operationType === 'addSlice') {
+            return;
+        }
         const datasource_type = getUrlParam('viz_type', window.location.href);
         const sliceId = document.getElementById('slice-title-name').getAttribute('sliceId');
         let url = $(this).find('option:selected').attr('url');
@@ -541,8 +548,10 @@ function initTitle() {
     const sliceId = titleEl.getAttribute('sliceId');
     if(sliceId !== '') {
         titleEl.value = "编辑工作表";
+        operationType = 'editSlice';
     }else {
         titleEl.value = "添加工作表";
+        operationType = 'addSlice';
     }
 }
 
@@ -599,15 +608,15 @@ $(document).ready(function () {
     initExploreView();
 
     slice = px.Slice(data, exploreController, 'slice');
-
-    // call vis render method, which issues ajax
-    // calls render on the slice for the first time
-    location.search!=='' && query(false, false);
-
     slice.bindResizeToWindowResize();
 
     initComponents();
     initTitle();
     initDatasourceState();
+
+    // call vis render method, which issues ajax
+    // calls render on the slice for the first time
+    location.search!=='' && operationType==='editSlice' && query(false, false);
+
     $('.nav > li:nth-child(3)').addClass('active');
 });
