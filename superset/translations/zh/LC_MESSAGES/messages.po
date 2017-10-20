@@ -1160,7 +1160,7 @@ msgstr "次指标"
 msgid ""
 "This secondary metric is used to define the color as a ratio against the "
 "primary metric. If the two metrics match, color is mapped level groups"
-msgstr "次指标用于定义相对主指标的颜色"
+msgstr "次指标用于和主指标进行比较"
 
 msgid "Hierarchy"
 msgstr "层次"
