@@ -6,7 +6,7 @@
 }
 
 .horizon span {
-    left: 5;
+    left: 5px;
     position: absolute;
     color: black;
     text-shadow: 1px 1px rgba(255, 255, 255, 0.75);
