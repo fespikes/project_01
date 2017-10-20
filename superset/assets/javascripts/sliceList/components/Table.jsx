@@ -103,6 +103,11 @@ class SliceTable extends React.Component {
         dispatch(fetchStateChange(record, undefined, "favorite"));
     }
 
+    sliceDetail(url) {
+        localStorage.setItem('firstEntry', 'true');
+        window.location = url;
+    }
+
     render() {
 
         const { sliceList, selectedRowKeys, loading } = this.props;
@@ -137,7 +142,7 @@ class SliceTable extends React.Component {
                                 className="entity-title highlight text-overflow-style"
                                 style={{maxWidth: 270}}
                             >
-                                <a href={record.slice_url}>{record.slice_name}</a>
+                                <a onClick={argus => this.sliceDetail(record.slice_url)}>{record.slice_name}</a>
                             </div>
                             <div
                                 className="entity-description text-overflow-style"

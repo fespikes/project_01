@@ -528,6 +528,8 @@ class Superset(BaseSupersetView):
             else:
                 datasource = SourceRegistry.get_datasource(
                     datasource_type, datasource_id, db.session)
+            if not datasource.database:
+                raise SupersetException('Missing connection for dataset: [{}]'.format(datasource))
             viz_obj = viz.viz_types[viz_type](
                 datasource, request.args if request.args else args)
             return viz_obj
@@ -652,6 +654,7 @@ class Superset(BaseSupersetView):
                     Database.online == 1)
             ).all()
         databases = sorted(databases, key=lambda d: d.name)
+        viz_obj = None
         try:
             viz_obj = self.get_viz(
                 datasource_type=datasource_type,
@@ -661,9 +664,6 @@ class Superset(BaseSupersetView):
                 args=request.args)
         except Exception as e:
             flash('{}'.format(e), "alert")
-
-        if not viz_type and viz_obj.datasource.default_endpoint:
-            return redirect(viz_obj.datasource.default_endpoint)
 
         # slc perms
         slice_add_perm = True

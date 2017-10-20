@@ -642,6 +642,11 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
         engine.execute(create_view)
 
     def get_sqla_table_object(self):
+        if not self.database:
+            err = 'Missing connection for dataset: [{}]'.format(self.dataset_name)
+            logging.error(err)
+            raise SupersetException(err)
+
         try:
             engine = self.database.get_sqla_engine()
             if self.sql:
@@ -658,10 +663,11 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                 .format(msg=str(e))
             logging.error(err)
             raise Exception(err)
-        except Exception:
+        except Exception as e:
             raise Exception(_("Couldn't fetch table [{table}]'s information "
                             "in the specified database [{schema}]")
-                            .format(table=self.table_name, schema=self.schema))
+                            .format(table=self.table_name, schema=self.schema)
+                            + ": " + str(e))
 
     @classmethod
     def temp_dataset(cls, database_id, full_tb_name, need_columns=True):
