@@ -827,8 +827,8 @@ class Superset(BaseSupersetView):
             )
             flash(
                 _("Slice [{slice}] was added to dashboard [{dashboard}]").format(
-                    slc.slice_name,
-                    dash.dashboard_title),
+                    slice=slc.slice_name,
+                    dashboard=dash.dashboard_title),
                 "info")
         elif request.args.get('add_to_dash') == 'new':
             dash = Dashboard(dashboard_title=request.args.get('new_dashboard_name'))
