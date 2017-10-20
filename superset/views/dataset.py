@@ -555,6 +555,17 @@ class HDFSTableModelView(SupersetModelView):
         path = args.pop('path')
         size = args.pop('size', 4096)
         hdfs_conn_id = args.pop('hdfs_connection_id', None)
+        dataset_id = args.pop('dataset_id', None)
+
+        columns = []
+        types = []
+        if dataset_id:
+            dataset = db.session.query(Dataset).filter_by(id=dataset_id).first()
+            if dataset.database:
+                table = dataset.get_sqla_table_object()
+                for col in table.columns:
+                    columns.append(col.name)
+                    types.append('{}'.format(col.type).lower())
 
         cache_key = '{}-{}'.format(hdfs_conn_id, path)
         file = HDFSTable.cached_file.get(cache_key)
@@ -564,9 +575,17 @@ class HDFSTableModelView(SupersetModelView):
             file_path = self.choice_one_file_path(files)
             file = self.download_file(client, file_path, size)
             HDFSTable.cached_file[cache_key] = file
+
+        if columns:
+            args['names'] = columns
         df = HDFSTable.parse_file(file, **args)
+
+        if not columns:
+            columns = list(df.columns)
+            types = ['string'] * len(columns)
         return json_response(data=dict(records=df.to_dict(orient="records"),
-                                       columns=list(df.columns))
+                                       columns=columns,
+                                       types=types)
                              )
 
     @catch_hdfs_exception
