@@ -155,7 +155,7 @@ class ConnectionEdit extends React.Component {
     doUpdateConnection() {
         const {dispatch} = this.props;
         const self = this;
-        dispatch(fetchUpdateConnection(me.state.database, callback));
+        dispatch(fetchUpdateConnection(self.state.database, callback));
         function callback(success, message) {
             if(success) {
                 self.closeAlert("popup_root");
