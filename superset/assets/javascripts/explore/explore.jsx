@@ -179,12 +179,12 @@ function initExploreView() {
     }
 
     $('#viz_type').change(function () {
-        localStorage.setItem('firstEntry', 'false');
+        localStorage.setItem('explore:firstEntry', 'false');
         $('#query').submit();
     });
 
     $('#datasource_id').change(function (opt) {
-        localStorage.setItem('firstEntry', 'false');
+        localStorage.setItem('explore:firstEntry', 'false');
         let datasource_type;
         if(getUrlParam('viz_type', window.location.href) === '') {
             datasource_type = 'table';
@@ -617,7 +617,7 @@ $(document).ready(function () {
 
     // call vis render method, which issues ajax
     // calls render on the slice for the first time
-    if(operationType==='editSlice' && localStorage.getItem('firstEntry') === 'true') {
+    if(operationType==='editSlice' && localStorage.getItem('explore:firstEntry') === 'true') {
         location.search!=='' && query(false, false);
     }else {
         document.getElementById('slice-loading-img').style.display = 'none';

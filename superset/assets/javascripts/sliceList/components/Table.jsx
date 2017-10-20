@@ -104,7 +104,7 @@ class SliceTable extends React.Component {
     }
 
     sliceDetail(url) {
-        localStorage.setItem('firstEntry', 'true');
+        localStorage.setItem('explore:firstEntry', 'true');
         window.location = url;
     }
 
