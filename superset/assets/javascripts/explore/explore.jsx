@@ -179,17 +179,18 @@ function initExploreView() {
     }
 
     $('#viz_type').change(function () {
-        if(operationType === 'addSlice') {
-            return;
-        }
+        localStorage.setItem('firstEntry', 'false');
         $('#query').submit();
     });
 
     $('#datasource_id').change(function (opt) {
-        if(operationType === 'addSlice') {
-            return;
+        localStorage.setItem('firstEntry', 'false');
+        let datasource_type;
+        if(getUrlParam('viz_type', window.location.href) === '') {
+            datasource_type = 'table';
+        }else {
+            datasource_type = getUrlParam('viz_type', window.location.href);
         }
-        const datasource_type = getUrlParam('viz_type', window.location.href);
         const sliceId = document.getElementById('slice-title-name').getAttribute('sliceId');
         let url = $(this).find('option:selected').attr('url');
         url = url.split('&')[0] + '&viz_type=' + datasource_type;
@@ -616,7 +617,11 @@ $(document).ready(function () {
 
     // call vis render method, which issues ajax
     // calls render on the slice for the first time
-    location.search!=='' && operationType==='editSlice' && query(false, false);
+    if(operationType==='editSlice' && localStorage.getItem('firstEntry') === 'true') {
+        location.search!=='' && query(false, false);
+    }else {
+        document.getElementById('slice-loading-img').style.display = 'none';
+    }
 
     $('.nav > li:nth-child(3)').addClass('active');
 });
