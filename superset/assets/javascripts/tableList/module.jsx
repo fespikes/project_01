@@ -7,7 +7,7 @@ const MAX_COLUMNS = 10;
 const SCREEN_WIDTH = document.body.clientWidth - 100;
 
 const typeArray = [
-    'int',
+    'integer',
     'bigint',
     'float',
     'double',
@@ -89,21 +89,24 @@ export function getTbTitleInceptor(commonTitle, width) {
     return tbTitle;
 }
 
-export function getTbTitleHDFS(commonTitle, _this) {
-
+export function getTbTitleHDFS(commonTitle, _this, data, isFirst) {
+    const types = makeDataTypes(data, isFirst);
     const Option = Select.Option;
     const options = typeArray.map(type => {
         return <Option key={type}>{type}</Option>
     });
     let tbTitle = commonTitle;
-    tbTitle.map(column => {
+    tbTitle.map((column, index) => {
         column.render = () => {
+            column.type = types[index];
             return (
                 <Select
-                    defaultValue='string'
-                    style={{ width: '100%', paddingRight: 5, paddingLeft: 5 }}
+                    defaultValue={types[index]?types[index]:'string'}
+                    style={{ width: '100%'}}
                     onSelect={ (value)=>_this.onTypeSelect(value, column) }
-                    placeholder='select the type'>
+                    placeholder='选择数据类型'
+                    getPopupContainer={() => document.getElementById('data-preview-id')}
+                >
                     {options}
                 </Select>
             )
@@ -192,6 +195,7 @@ export function constructInceptorDataset(dataset) {
 }
 
 export function constructHDFSDataset(dataset, title) {
+    console.log('title==', title);
     let hdfsDataset = {};
     hdfsDataset.dataset_name = dataset.dataset_name;
     hdfsDataset.dataset_type = datasetTypes.hdfs;
@@ -417,17 +421,29 @@ export function isActive(type, location) {
         location.pathname.indexOf(`/${type}/${datasetTypes.uploadFile}`) > -1;
 }
 
-export function constructHDFSPreviewUrl(dataset) {
+export function constructHDFSPreviewUrl(dataset, id) {
     let url = window.location.origin + '/hdfstable/preview/';
     url += '?hdfs_connection_id=' + parseInt(dataset.hdfsConnectId) + '&path=' + dataset.hdfsPath +
         '&separator=' + dataset.separator + '&quote=' + dataset.quote + '&skip_rows=' + parseInt(dataset.skip_rows) +
         '&next_as_header=' + dataset.next_as_header + '&skip_more_rows=' + parseInt(dataset.skip_more_rows) +
-        '&charset=' + dataset.charset;
+        '&charset=' + dataset.charset + '&dataset_id=' + id;
     return url;
 }
 
 export function constructInceptorPreviewUrl(baseUrl, datasetId, dsInceptor) {
     return baseUrl + 'preview_data?dataset_id=' + datasetId + '&database_id=' + dsInceptor.database_id +
         '&full_tb_name=' + dsInceptor.schema + '.' + dsInceptor.table_name;
+}
+
+export function makeDataTypes(data, isFirst) {
+    let dataTypes = [];
+    if(isFirst) {
+        dataTypes = data;
+    }else {
+        data.map(item => {
+            dataTypes.push(item.type);
+        });
+    }
+    return dataTypes;
 }
 
