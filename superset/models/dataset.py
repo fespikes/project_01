@@ -705,7 +705,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                 logging.error("Unrecognized data type in {}.{}".format(table, col.name))
                 logging.exception(e)
 
-            new_col = TableColumn(temp_dataset=self, column_name=col.name, type=datatype)
+            new_col = TableColumn(temp_dataset=self,
+                                  column_name=col.name,
+                                  type=datatype,
+                                  expression=col.name)
             new_col.count_distinct = True
             new_col.groupby = new_col.is_string or new_col.isnum or new_col.is_time
             new_col.filterable = new_col.is_string
@@ -794,7 +797,9 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
             )
             db.session.flush()
             if not dbcol:
-                dbcol = TableColumn(column_name=col.name, type=datatype)
+                dbcol = TableColumn(column_name=col.name,
+                                    type=datatype,
+                                    expression=col.name)
                 dbcol.count_distinct = True
                 dbcol.groupby = dbcol.is_string or dbcol.isnum or dbcol.is_time
                 dbcol.filterable = dbcol.is_string
