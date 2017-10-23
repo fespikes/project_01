@@ -88,7 +88,9 @@ class SubPreview extends Component {
         });
         const tbTitle = datasetModule.getTbTitleHDFS(
             JSON.parse(JSON.stringify(tbTitleOnly)),
-            this
+            this,
+            this.state.tbTitle,
+            false
         );
         const columnNames = this.constructColumnNames(tbTitle);
         this.setState({
@@ -118,8 +120,8 @@ class SubPreview extends Component {
 
     doFetchHDFSPreviewData(dsHDFS) {
         const me = this;
-        const {fetchHDFSPreviewData} = this.props;
-        fetchHDFSPreviewData(dsHDFS, callback);
+        const {fetchHDFSPreviewData, datasetId} = this.props;
+        fetchHDFSPreviewData(dsHDFS, datasetId, callback);
         function callback(success, data) {
             if(success) {
                 let width = datasetModule.getTableWidth(data.columns.length);
@@ -143,7 +145,7 @@ class SubPreview extends Component {
             tbType = datasetModule.getTbType(data);
             tbTitle = datasetModule.getTbTitleInceptor(JSON.parse(JSON.stringify(tbTitleOnly)), width);
         }else if(datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) {
-            tbTitle = datasetModule.getTbTitleHDFS(JSON.parse(JSON.stringify(tbTitleOnly)), this);
+            tbTitle = datasetModule.getTbTitleHDFS(JSON.parse(JSON.stringify(tbTitleOnly)), this, data.types, true);
             tbContentHDFS = [{
                 key: '1'
             }];
@@ -225,7 +227,7 @@ class SubPreview extends Component {
 
     saveHDFSDataset() {
         const me = this;
-        const { createDataset, editDataset, saveHDFSDataset } = this.props;
+        const { createDataset, editDataset } = this.props;
         const dsHDFS = datasetModule.constructHDFSDataset(this.state.dsHDFS, this.state.tbTitle);
         const opeType = datasetModule.extractOpeType(window.location.hash);
         if(opeType === 'add') {
@@ -271,7 +273,7 @@ class SubPreview extends Component {
         const tableWidth = this.state.tableWidth;
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
         return (
-            <div>
+            <div id="data-preview-id">
                 <div style={{width:'100%', height:'30px', background:'#fff', marginTop:'-2px'}}></div>
                 <div className="preview-table">
                     <div
@@ -297,6 +299,7 @@ class SubPreview extends Component {
                             columns={this.state.tbTitle}
                             dataSource={this.state.tbContentHDFS}
                             size='small'
+                            className="hdfs-data-type"
                             pagination={false}
                         />
                     </div>
