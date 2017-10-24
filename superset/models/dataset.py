@@ -610,7 +610,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
 
         qry = qry.select_from(tbl)
 
-        engine = self.database.get_sqla_engine()
+        engine = self.database.get_sqla_engine(self.schema)
         sql = "{}".format(
             qry.compile(
                 engine, compile_kwargs={"literal_binds": True},),
