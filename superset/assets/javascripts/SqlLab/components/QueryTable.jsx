@@ -84,20 +84,10 @@ class QueryTable extends React.PureComponent {
                 </div>
             );
             q.用户 = (
-                <button
-                    className="btn btn-link btn-xs"
-                    onClick={this.props.onUserClicked.bind(this, q.userId)}
-                >
-                    {q.user}
-                </button>
+                <span>{q.user}</span>
             );
             q.连接 = (
-                <button
-                    className="btn btn-link btn-xs"
-                    onClick={this.props.onDbClicked.bind(this, q.dbId)}
-                >
-                    {q.db}
-                </button>
+                <span>{q.db}</span>
             );
             q.开始 = moment(q.startDttm).format('HH:mm:ss');
             q.查询链接 = (
