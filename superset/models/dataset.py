@@ -75,8 +75,10 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
         UniqueConstraint('column_name', 'dataset_id', name='column_name_dataset_uc'),
     )
 
-    num_types = ('DOUBLE', 'FLOAT', 'INT', 'BIGINT', 'LONG')
-    date_types = ('DATE', 'TIME')
+    int_types = ('INT', 'BIGINT')
+    float_types = ('DOUBLE', 'FLOAT', 'DECIMAL', 'NUMBER')
+    bool_types = ('BOOL', )
+    date_types = ('DATE', 'TIME', 'YEAR')
     str_types = ('VARCHAR', 'STRING', 'CHAR')
     export_fields = (
         'table_id', 'column_name', 'verbose_name', 'is_dttm', 'is_active',
@@ -94,8 +96,20 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
         return self.temp_dataset if self.temp_dataset else self.ref_dataset
 
     @property
-    def isnum(self):
-        return any([t in self.type.upper() for t in self.num_types])
+    def is_int(self):
+        return any([t in self.type.upper() for t in self.int_types])
+
+    @property
+    def is_float(self):
+        return any([t in self.type.upper() for t in self.float_types])
+
+    @property
+    def is_num(self):
+        return self.is_int or self.is_float
+
+    @property
+    def is_bool(self):
+        return any([t in self.type.upper() for t in self.bool_types])
 
     @property
     def is_time(self):
@@ -233,7 +247,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
 
     id = Column(Integer, primary_key=True)
     dataset_name = Column(String(128), nullable=False)
-    # dataset_type = Column(String(32), nullable=False)
     table_name = Column(String(128))
     schema = Column(String(128))
     sql = Column(Text)
@@ -709,13 +722,15 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                                   column_name=col.name,
                                   type=datatype,
                                   expression=col.name)
-            new_col.count_distinct = True
-            new_col.groupby = new_col.is_string or new_col.isnum or new_col.is_time
-            new_col.filterable = new_col.is_string
-            new_col.sum = new_col.isnum
-            new_col.avg = new_col.isnum
-            new_col.max = new_col.isnum
-            new_col.min = new_col.isnum
+            new_col.count_distinct = new_col.is_int or new_col.is_bool \
+                                   or new_col.is_string or new_col.is_time
+            new_col.groupby = new_col.is_int or new_col.is_bool \
+                            or new_col.is_string or new_col.is_time
+            new_col.filterable = True
+            new_col.sum = new_col.is_num
+            new_col.avg = new_col.is_num
+            new_col.max = new_col.is_num
+            new_col.min = new_col.is_num
             new_col.is_dttm = new_col.is_time
             self.temp_columns.append(new_col)
 
@@ -800,13 +815,15 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                 dbcol = TableColumn(column_name=col.name,
                                     type=datatype,
                                     expression=col.name)
-                dbcol.count_distinct = True
-                dbcol.groupby = dbcol.is_string or dbcol.isnum or dbcol.is_time
-                dbcol.filterable = dbcol.is_string
-                dbcol.sum = dbcol.isnum
-                dbcol.avg = dbcol.isnum
-                dbcol.max = dbcol.isnum
-                dbcol.min = dbcol.isnum
+                dbcol.count_distinct = dbcol.is_int or dbcol.is_bool \
+                                       or dbcol.is_string or dbcol.is_time
+                dbcol.groupby = dbcol.is_int or dbcol.is_bool \
+                                or dbcol.is_string or dbcol.is_time
+                dbcol.filterable = True
+                dbcol.sum = dbcol.is_num
+                dbcol.avg = dbcol.is_num
+                dbcol.max = dbcol.is_num
+                dbcol.min = dbcol.is_num
                 dbcol.is_dttm = dbcol.is_time
 
             db.session.merge(self)
