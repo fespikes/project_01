@@ -16,6 +16,7 @@ class DashboardEdit extends React.Component {
             dashboard: {
                 description: ''
             },
+            enableConfirm: true,
             selectedSlices: [],
             availableSlices: [],
             slicesLoaded: false
@@ -52,7 +53,7 @@ class DashboardEdit extends React.Component {
         function initDefaultOptions(slices) {
             let defaultOptions = [];
             slices.map(slice => {
-                defaultOptions.push(slice.id.toString());
+                defaultOptions.push(slice.slice_name);
             });
             return defaultOptions;
         }
@@ -64,8 +65,13 @@ class DashboardEdit extends React.Component {
 
     handleTitleChange(e) {
         this.state.dashboard.dashboard_title = e.currentTarget.value;
+        let enableConfirm = false;
+        if(e.currentTarget.value && e.currentTarget.value.length > 0) {
+            enableConfirm = true;
+        }
         this.setState({
-            dashboard: this.state.dashboard
+            dashboard: this.state.dashboard,
+            enableConfirm: enableConfirm
         });
     }
 
@@ -161,6 +167,7 @@ class DashboardEdit extends React.Component {
                     className="tp-btn tp-btn-middle tp-btn-primary"
                     data-dismiss="modal"
                     onClick={this.editDashboard}
+                    disabled={!this.state.enableConfirm}
                 >
                     确定
                 </button>

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
 import { fetchPosts, fetchDashboardDelete, fetchDashboardDeleteMul } from '../actions';
+import { renderAlertErrorInfo } from '../../../utils/utils';
 
 class DashboardDelete extends React.Component {
     constructor(props) {
@@ -10,17 +11,11 @@ class DashboardDelete extends React.Component {
         this.state = {};
         // bindings
         this.confirm = this.confirm.bind(this);
-        this.closeDialog = this.closeDialog.bind(this);
-        this.showDialog = this.showDialog.bind(this);
+        this.closeAlert = this.closeAlert.bind(this);
     };
 
-    showDialog() {
-
-        this.refs.popupDashboardDelete.style.display = "flex";
-    }
-
-    closeDialog() {
-        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+    closeAlert(id) {
+        ReactDOM.unmountComponentAtNode(document.getElementById(id));
     }
 
     confirm() {
@@ -31,14 +26,19 @@ class DashboardDelete extends React.Component {
         }else if(deleteType === "multiple") {
             dispatch(fetchDashboardDeleteMul(callback));
         }else if(deleteType === "none") {
-            ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+            this.closeAlert("popup_root");
         }
 
-        function callback(success) {
+        function callback(success, message) {
             if(success) {
-                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+                self.closeAlert("popup_root");
             }else {
-
+                renderAlertErrorInfo(
+                    message,
+                    'delete-dashboard-error-tip',
+                    '100%',
+                    self
+                );
             }
         }
     }
@@ -56,7 +56,7 @@ class DashboardDelete extends React.Component {
                             <div className="header-right">
                                 <i
                                     className="icon icon-close"
-                                    onClick={this.closeDialog}
+                                    onClick={argus => this.closeAlert('popup_root')}
                                 />
                             </div>
                         </div>
@@ -70,6 +70,7 @@ class DashboardDelete extends React.Component {
                                 />
                             </div>
                         </div>
+                        <div className="error" id="delete-dashboard-error-tip"></div>
                         <div className="popup-footer">
                             <button
                                 className="tp-btn tp-btn-middle tp-btn-primary"
