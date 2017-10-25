@@ -2,6 +2,7 @@ import shortid from 'shortid';
 import { now } from '../modules/dates';
 const $ = require('jquery');
 import {PILOT_PREFIX} from '../../utils/utils'
+import { message } from 'antd';
 
 export const RESET_STATE = 'RESET_STATE';
 export const ADD_QUERY_EDITOR = 'ADD_QUERY_EDITOR';
@@ -240,13 +241,9 @@ export function addTable(query, tableName) {
       // Run query to get preview data for table
       dispatch(runQuery(dataPreviewQuery));
     })
-    .fail(() => {
-      dispatch(
-        addAlert({
-          msg: 'Error occurred while fetching metadata',
-          bsStyle: 'danger',
-        })
-      );
+    .fail((response) => {
+      const error = response.responseJSON.message;
+      message.error(error, 5);
     });
 
     url = `${PILOT_PREFIX}extra_table_metadata/${query.dbId}/${tableName}/${query.schema}/`;
