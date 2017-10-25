@@ -4,6 +4,7 @@ import Select from 'react-select';
 import { Label, Button } from 'react-bootstrap';
 import TableElement from './TableElement';
 import AsyncSelect from '../../components/AsyncSelect';
+import { message } from 'antd';
 
 const propTypes = {
   queryEditor: React.PropTypes.object.isRequired,
@@ -27,6 +28,7 @@ class SqlEditorLeftBar extends React.PureComponent {
       tableLoading: false,
       tableOptions: [],
       networkOn: true,
+      tableName: '',
     };
   }
   componentWillMount() {
@@ -66,13 +68,20 @@ class SqlEditorLeftBar extends React.PureComponent {
       this.setState({ tableLoading: true });
       this.setState({ tableOptions: [] });
       const url = `/table/tables/${actualDbId}/${actualSchema}`;
-      $.get(url, (data) => {
-        data = data.data;
-        let tableOptions = data.map((s) => ({ value: s, label: s }));
-        const views = data.map((s) => ({ value: s, label: '[view] ' + s }));
-        tableOptions = [...tableOptions, ...views];
-        this.setState({ tableOptions });
-        this.setState({ tableLoading: false });
+      const self = this;
+      $.ajax({
+        url:url,
+        success:function(data){
+          data = data.data;
+          let tableOptions = data.map((s) => ({ value: s, label: s }));
+          const views = data.map((s) => ({ value: s, label: '[view] ' + s }));
+          tableOptions = [...tableOptions, ...views];
+          self.setState({ tableOptions });
+          self.setState({ tableLoading: false });
+        },
+        error:function(error){
+          message.error(error.responseText, 5);
+        }
       });
     }
   }
@@ -86,11 +95,18 @@ class SqlEditorLeftBar extends React.PureComponent {
     if (actualDbId) {
       this.setState({ schemaLoading: true });
       const url = `/table/schemas/${actualDbId}`;
-      $.get(url, (data) => {
-        const schemas = data.data;
-        const schemaOptions = schemas.map((s) => ({ value: s, label: s }));
-        this.setState({ schemaOptions });
-        this.setState({ schemaLoading: false });
+      const self = this;
+      $.ajax({
+        url:url,
+        success:function(data){
+          const schemas = data.data;
+          const schemaOptions = schemas.map((s) => ({ value: s, label: s }));
+          self.setState({ schemaOptions });
+          self.setState({ schemaLoading: false });
+        },
+        error:function(error){
+          message.error(error.responseText, 5);
+        }
       });
     }
   }
@@ -101,7 +117,7 @@ class SqlEditorLeftBar extends React.PureComponent {
     const tableName = tableOpt.value;
     const qe = this.props.queryEditor;
 
-    this.setState({ tableLoading: true });
+    this.setState({ tableLoading: true, tableName: tableName });
     this.props.actions.addTable(qe, tableName);
     this.setState({ tableLoading: false });
   }
@@ -157,6 +173,12 @@ class SqlEditorLeftBar extends React.PureComponent {
               autosize={false}
               onChange={this.changeTable.bind(this)}
               options={this.state.tableOptions}
+              value={this.state.tableName}
+              valueRenderer={(o) => (
+                <div>
+                {o.label}
+                </div>
+              )}
             />
           </div>
           <hr />

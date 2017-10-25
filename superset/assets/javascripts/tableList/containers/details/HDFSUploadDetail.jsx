@@ -90,23 +90,23 @@ class HDFSUploadDetail extends Component {
     }
 
     onLoadData(node) {
-        const me = this;
+        const self = this;
         const hdfsPath = node.props.value;
         const hdfsConnectId = this.state.dsHDFS.hdfsConnectId;
-        const { fetchHDFSFileBrowser } = me.props;
+        const { fetchHDFSFileBrowser } = self.props;
         return fetchHDFSFileBrowser(hdfsPath, hdfsConnectId, callback);
         function callback(success, data) {
             if(success) {
                 let treeData = appendTreeChildren(
                     hdfsPath,
                     data,
-                    JSON.parse(JSON.stringify(me.state.dsHDFS.fileBrowserData))
+                    JSON.parse(JSON.stringify(self.state.dsHDFS.fileBrowserData))
                 );
                 let objHDFS = {
-                    ...me.state.dsHDFS,
+                    ...self.state.dsHDFS,
                     fileBrowserData: treeData
                 };
-                me.setState({
+                self.setState({
                     dsHDFS: objHDFS
                 });
             }else {
@@ -116,20 +116,20 @@ class HDFSUploadDetail extends Component {
     }
 
     handleFile() {
-        const me = this;
+        const self = this;
         let reader = new FileReader();
         reader.readAsBinaryString(this.refs.fileSelect.files[0]);
         reader.onload = function(e) {
             let objUpload = {
-                ...me.state.dsHDFS,
-                uploadFileName: me.refs.fileSelect.files[0].name,
+                ...self.state.dsHDFS,
+                uploadFileName: self.refs.fileSelect.files[0].name,
                 binaryFile: e.target.result
             };
             let disabled = 'disabled';
-            if(me.state.dsHDFS.hdfsPath && me.state.dsHDFS.hdfsPath.length > 0) {
+            if(self.state.dsHDFS.hdfsPath && self.state.dsHDFS.hdfsPath.length > 0) {
                 disabled = null;
             }
-            me.setState({
+            self.setState({
                 dsHDFS: objUpload,
                 disabledUpload: disabled
             });
@@ -137,7 +137,7 @@ class HDFSUploadDetail extends Component {
     }
 
     uploadFile() {//only upload one file
-        const me = this;
+        const self = this;
         if(this.state.dsHDFS.uploadFileName === '') {
             render(
                 <Confirm />,
@@ -164,7 +164,7 @@ class HDFSUploadDetail extends Component {
                 fileUploaded = false;
                 response.message = '上传失败';
             }
-            me.setState({
+            self.setState({
                 fileUploaded: fileUploaded
             });
             renderAlertTip(response, 'showAlertDetail', 400);
@@ -227,16 +227,16 @@ class HDFSUploadDetail extends Component {
     };
 
     doFetchInceptorList() {
-        const me = this;
-        const { fetchInceptorConnectList } = me.props;
+        const self = this;
+        const { fetchInceptorConnectList } = self.props;
         fetchInceptorConnectList(inceptorCallback);
         function inceptorCallback(success, data) {
             if(success) {
                 let objHDFS = {
-                    ...me.state.dsHDFS,
+                    ...self.state.dsHDFS,
                     inceptorConnections: data
                 };
-                me.setState({
+                self.setState({
                     dsHDFS: objHDFS
                 });
             }
@@ -245,15 +245,15 @@ class HDFSUploadDetail extends Component {
 
     doFetchHDFSList() {
         const { fetchHDFSConnectList, switchHDFSConnected } = this.props;
-        const me = this;
+        const self = this;
         fetchHDFSConnectList(hdfsCallback);
         function hdfsCallback(success, data) {
             if(success) {
                 let objHDFS = {
-                    ...me.state.dsHDFS,
+                    ...self.state.dsHDFS,
                     hdfsConnections: data
                 };
-                me.setState({
+                self.setState({
                     dsHDFS: objHDFS
                 });
                 if(data.length > 0) {
@@ -266,40 +266,43 @@ class HDFSUploadDetail extends Component {
     }
 
     doFetchHDFSFileData(path, hdfsConnectId) {
-        const me = this;
-        const { fetchHDFSFileBrowser } = me.props;
+        const self = this;
+        const { fetchHDFSFileBrowser } = self.props;
         fetchHDFSFileBrowser(path, hdfsConnectId, fileCallback);
-        function fileCallback(success, fileBrowserData) {
+        function fileCallback(success, data) {
             if(success) {
-                const browserData = constructFileBrowserData(fileBrowserData);
+                const browserData = constructFileBrowserData(data);
                 let objHDFS = {
-                    ...me.state.dsHDFS,
+                    ...self.state.dsHDFS,
                     fileBrowserData: browserData
                 };
-                me.setState({
+                self.setState({
                     dsHDFS: objHDFS
                 });
+            }else {
+                message.error(data, 5);
             }
         }
     }
 
     doDatasetEdit() {
-        const me = this;
-        const {fetchDatasetDetail, fetchDBDetail, fetchHDFSDetail} = me.props;
+        const self = this;
+        const {fetchDatasetDetail, fetchDBDetail, fetchHDFSDetail} = self.props;
         let datasetId = getDatasetId('edit', window.location.hash);
         fetchDatasetDetail(datasetId, callback);
         function callback(success, data) {
             if(success) {
                 fetchDBDetail(data.database_id, dbCallback);
                 fetchHDFSDetail(data.hdfs_connection_id, hdfsCallback);
+                self.doFetchHDFSFileData('/', data.hdfs_connection_id);
                 function dbCallback(success, dbData) {
                     if(success) {
                         let objHDFS = {
-                            ...me.state.dsHDFS,
+                            ...self.state.dsHDFS,
                             inceptorConnectName: dbData.database_name,
                             inceptorConnectId: dbData.id
                         };
-                        me.setState({
+                        self.setState({
                             dsHDFS: initDatasetData(datasetTypes.hdfs, data, objHDFS)
                         });
                     }
@@ -307,11 +310,11 @@ class HDFSUploadDetail extends Component {
                 function hdfsCallback(success, hdfsData) {
                     if(success) {
                         let objHDFS = {
-                            ...me.state.dsHDFS,
+                            ...self.state.dsHDFS,
                             hdfsConnectName: hdfsData.connection_name,
                             hdfsConnectId: hdfsData.id
                         };
-                        me.setState({
+                        self.setState({
                             dsHDFS: initDatasetData(datasetTypes.hdfs, data, objHDFS)
                         });
                     }
