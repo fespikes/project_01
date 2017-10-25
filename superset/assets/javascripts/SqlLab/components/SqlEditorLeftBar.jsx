@@ -28,6 +28,7 @@ class SqlEditorLeftBar extends React.PureComponent {
       tableLoading: false,
       tableOptions: [],
       networkOn: true,
+      tableName: '',
     };
   }
   componentWillMount() {
@@ -116,7 +117,7 @@ class SqlEditorLeftBar extends React.PureComponent {
     const tableName = tableOpt.value;
     const qe = this.props.queryEditor;
 
-    this.setState({ tableLoading: true });
+    this.setState({ tableLoading: true, tableName: tableName });
     this.props.actions.addTable(qe, tableName);
     this.setState({ tableLoading: false });
   }
@@ -172,6 +173,12 @@ class SqlEditorLeftBar extends React.PureComponent {
               autosize={false}
               onChange={this.changeTable.bind(this)}
               options={this.state.tableOptions}
+              value={this.state.tableName}
+              valueRenderer={(o) => (
+                <div>
+                {o.label}
+                </div>
+              )}
             />
           </div>
           <hr />

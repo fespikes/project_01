@@ -208,7 +208,7 @@
 				.editor-top-bar {
 					display: flex;
 					align-items: center;
-					justify-content: space-between;
+					justify-content: flex-start;
 					margin-bottom: 5px;
 
 					.sql-toolbar-title {
@@ -532,3 +532,11 @@
 		}
 	}
 }
+
+
+/* overlay css style */
+.ace_scroller {
+	padding: 5px 10px;
+}
+
+

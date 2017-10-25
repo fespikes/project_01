@@ -147,9 +147,9 @@ class SqlEditor extends React.PureComponent {
     }
     const editorBottomBar = (
         <div className="sql-toolbar editor-top-bar clearfix">
-          <div className="sql-toolbar-title">
+          {/*<div className="sql-toolbar-title">
             <span>编辑SQL</span>
-          </div>
+          </div>*/}
           <div className="operation-button">
             <Form inline>
               <RunQueryActionButton
@@ -201,7 +201,6 @@ class SqlEditor extends React.PureComponent {
             <Col md={this.props.hideLeftBar ? 12 : 9}>
               <div className="scrollbar-container">
                 <div className="scrollbar-content">
-                  {editorBottomBar}
                   <AceEditorWrapper
                       actions={this.props.actions}
                       onBlur={this.setQueryEditorSql.bind(this)}
@@ -210,6 +209,7 @@ class SqlEditor extends React.PureComponent {
                       sql={this.props.queryEditor.sql}
                       tables={this.props.tables}
                   />
+                  {editorBottomBar}
                   <br />
                   <SouthPane
                       editorQueries={this.props.editorQueries}
