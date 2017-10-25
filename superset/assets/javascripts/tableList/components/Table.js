@@ -3,7 +3,8 @@ import { render } from 'react-dom';
 import { Link }  from 'react-router-dom';
 import { message, Table, Icon, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
-import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable, fetchOnOfflineInfo, fetchTableDelInfo, datasetTypes } from '../actions';
+import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable, fetchOnOfflineInfo,
+    fetchTableDelInfo, datasetTypes, clearDatasetData } from '../actions';
 import { TableDelete } from '../popup';
 import style from '../style/table.scss'
 import { ConfirmModal } from '../../common/components';
@@ -32,6 +33,7 @@ class SliceTable extends React.Component {
         function editTable(record) {
             dispatch(switchDatasetType(record.dataset_type));
             dispatch(saveDatasetId(record.id));
+            dispatch(clearDatasetData());
         }
 
         function publishTable(record) {
