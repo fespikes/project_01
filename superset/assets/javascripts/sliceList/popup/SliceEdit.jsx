@@ -133,7 +133,7 @@ class SliceEdit extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
-                                    <span>仪表盘：</span>
+                                    <span>仪表板：</span>
                                 </div>
                                 <div className="item-right">
                                     <div id="edit_pop_select">
