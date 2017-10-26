@@ -42,7 +42,7 @@ class SqlEditorLeftBar extends React.PureComponent {
     if (!(db)) {
       this.setState({ tableOptions: [] });
     } else {
-      this.fetchTables(val, this.props.queryEditor.schema);
+      //this.fetchTables(val, this.props.queryEditor.schema);
       this.fetchSchemas(val);
     }
   }
