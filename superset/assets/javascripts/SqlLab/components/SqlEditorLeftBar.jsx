@@ -33,7 +33,7 @@ class SqlEditorLeftBar extends React.PureComponent {
   }
   componentWillMount() {
     this.fetchSchemas();
-    this.fetchTables();
+    //this.fetchTables();
   }
   onChange(db) {
     const val = (db) ? db.value : null;
@@ -88,7 +88,11 @@ class SqlEditorLeftBar extends React.PureComponent {
   changeSchema(schemaOpt) {
     const schema = (schemaOpt) ? schemaOpt.value : null;
     this.props.actions.queryEditorSetSchema(this.props.queryEditor, schema);
-    this.fetchTables(this.props.queryEditor.dbId, schema);
+    if(!schemaOpt) {
+      this.setState({ tableOptions: [] });
+    }else {
+      this.fetchTables(this.props.queryEditor.dbId, schema);
+    }
   }
   fetchSchemas(dbId) {
     const actualDbId = dbId || this.props.queryEditor.dbId;
@@ -114,11 +118,13 @@ class SqlEditorLeftBar extends React.PureComponent {
     this.refs[ref].hide();
   }
   changeTable(tableOpt) {
-    const tableName = tableOpt.value;
+    const tableName = tableOpt?tableOpt.value:null;
     const qe = this.props.queryEditor;
 
     this.setState({ tableLoading: true, tableName: tableName });
-    this.props.actions.addTable(qe, tableName);
+    if(tableName) {
+      this.props.actions.addTable(qe, tableName);
+    }
     this.setState({ tableLoading: false });
   }
   render() {
@@ -169,7 +175,7 @@ class SqlEditorLeftBar extends React.PureComponent {
               name="select-table"
               ref="selectTable"
               isLoading={this.state.tableLoading}
-              placeholder={` `}
+              placeholder={`(${this.state.tableOptions.length})`}
               autosize={false}
               onChange={this.changeTable.bind(this)}
               options={this.state.tableOptions}
