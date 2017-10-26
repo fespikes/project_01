@@ -5,7 +5,7 @@ import { Tooltip, Alert } from 'antd';
 import {Select} from '../components';
 import PropTypes from 'prop-types';
 import { fetchInceptorConnectAdd, fetchHDFSConnectAdd, testConnection, testHDFSConnection, fetchConnectionNames, connectionTypes } from '../actions';
-import { isCorrectConnection, connectDefaultInfo} from '../utils';
+import { isCorrectConnection, argsValidate, connectDefaultInfo} from '../utils';
 import { renderAlertErrorInfo, renderAlertTip } from '../../../utils/utils';
 
 class ConnectionAdd extends React.Component {
@@ -37,6 +37,7 @@ class ConnectionAdd extends React.Component {
         this.closeAlert = this.closeAlert.bind(this);
         this.setSelectConnection = this.setSelectConnection.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.argsOnBlur = this.argsOnBlur.bind(this);
     }
 
     componentDidMount () {
@@ -114,7 +115,7 @@ class ConnectionAdd extends React.Component {
         if(isCorrectConnection(connectionType, connectionTypes)) {
             if((database.database_name && database.database_name.length > 0) &&
                 (database.sqlalchemy_uri && database.sqlalchemy_uri.length > 0) &&
-                (database.args && database.args.length > 0) && this.state.connected) {
+                argsValidate(database.args) && this.state.connected) {
                 disabled = false;
             }else {
                 disabled = true;
@@ -131,6 +132,18 @@ class ConnectionAdd extends React.Component {
             disabled: disabled
         });
         this.closeAlert('add-connect-error-tip');
+    }
+
+    argsOnBlur() {
+        const args = this.state.database.args;
+        if(!argsValidate(args)) {
+            renderAlertErrorInfo(
+                '连接参数语法错误',
+                'add-connect-error-tip',
+                '100%',
+                this
+            );
+        }
     }
 
     addConnection() {
@@ -270,6 +283,7 @@ class ConnectionAdd extends React.Component {
                                             defaultValue={this.state.database.args}
                                             className="tp-textarea dialog-area"
                                             onChange={this.handleChange}
+                                            onBlur={this.argsOnBlur}
                                             disabled={connectionType===connectionTypes.inceptor?false:true}
                                         >
                                         </textarea>

@@ -49,7 +49,12 @@ class EventDetail extends Component {
             width: '23%',
             sorter: true,
             className: 'user-column',
-            render: (text, record) => (<a className="user-td" href={record.link}><i className="icon user-icon"></i><span>{text}</span></a>)
+            render: (text, record) => (
+                <a className="user-td" href='/present_user'>
+                    <i className="icon user-icon"></i>
+                    <span>{text}</span>
+                </a>
+            )
         }, {
             title: '操作',
             dataIndex: 'action',
@@ -62,7 +67,11 @@ class EventDetail extends Component {
                             <div>
                                 <div className="action-text">{text}</div>
                                 <div className="action-title">
-                                    <i className={classes}/>{record.title}
+                                    <i className={classes}/>
+                                    <a
+                                        className={!record.link?'disable-click':''}
+                                        href={record.link}
+                                    >{record.title}</a>
                                 </div>
                             </div>
                         );

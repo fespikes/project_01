@@ -86,7 +86,7 @@ class DashboardAdd extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-dashboard-popup" />
-                                <span>添加仪表盘</span>
+                                <span>添加仪表板</span>
                             </div>
                             <div className="header-right">
                                 <i

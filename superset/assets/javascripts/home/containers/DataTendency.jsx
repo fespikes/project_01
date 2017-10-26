@@ -59,7 +59,7 @@ class DataTendency extends Component {
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.dashboard ? counts.dashboard : 0}</div>
-                                    <div className={catagory === 'dashboard' ? 'current name' : 'name'}>仪表盘</div>
+                                    <div className={catagory === 'dashboard' ? 'current name' : 'name'}>仪表板</div>
                                 </dd>
                             </dl>
                         </h2>

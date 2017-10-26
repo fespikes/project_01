@@ -5,6 +5,19 @@ export default {
 	getAbsUrl: relativePath => window.location.origin + relativePath
 }
 
+export function argsValidate(args) {
+    let validate = true;
+    if(!(args && args.length > 0)) {
+        validate = false;
+    }
+    try {
+        JSON.parse(args);
+    }catch (e) {
+        validate = false;
+    }
+    return validate;
+}
+
 export function transformObjectToArray(objectArray, attr) {
     let array = [];
     objectArray.map(obj => {
