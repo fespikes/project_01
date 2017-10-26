@@ -104,7 +104,7 @@ class SaveModal extends React.PureComponent {
                 render(
                     <Confirm
                         confirmType='warning'
-                        confirmMessage='必须为新的仪表盘选择一个名字'
+                        confirmMessage='必须为新的仪表板选择一个名字'
                     />,
                     document.getElementById('popup_root')
                 );
@@ -121,7 +121,7 @@ class SaveModal extends React.PureComponent {
                 ref={(modal) => { this.modal = modal; }}
                 triggerNode={this.props.triggerNode}
                 isButton
-                modalTitle="保存仪表盘"
+                modalTitle="保存仪表板"
                 modalIcon="icon icon-save"
                 className="popup-modal-save-dashboard"
                 modalBody={
@@ -130,7 +130,7 @@ class SaveModal extends React.PureComponent {
                             value="overwrite"
                             onChange={this.handleSaveTypeChange}
                             checked={this.state.saveType === 'overwrite'}>
-                            覆盖仪表盘 [{this.props.dashboard.dashboard_title}]
+                            覆盖仪表板 [{this.props.dashboard.dashboard_title}]
                         </Radio>
                         <Radio
                             value="newDashboard"
@@ -140,7 +140,7 @@ class SaveModal extends React.PureComponent {
                         </Radio>
                         <FormControl
                             type="text"
-                            placeholder="仪表盘名字"
+                            placeholder="仪表板名字"
                             onFocus={this.handleNameChange}
                             onChange={this.handleNameChange}
                         />
