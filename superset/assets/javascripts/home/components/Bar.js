@@ -79,7 +79,6 @@ function Bar(props) {
                     fontFamily: "'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB', 'Heiti SC', 'WenQuanYi Micro Hei', sans-serif",
                 },
                 formatter: function () {
-                    console.log(this.value);
                     return '<a href="' + categoryLinks[this.value] + '" class="bar-item-link">'  +
                         this.value + '</a>';
                 },

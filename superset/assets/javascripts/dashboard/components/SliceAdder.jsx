@@ -34,16 +34,25 @@ class SliceAdder extends React.Component {
         this.getSliceList(1, keyword);
     }
 
-    onSelectChange = (selectedRowKeys, selectedRows) => {
+    onChange = (selectedRowKeys) => {//for show selected state in table
         let _selectedKeys = {...this.state.selectedRowKeys};
-        let _selectedRows = {...this.state.selectedRows};
         _selectedKeys[this.state.pageNumber] = selectedRowKeys;
-        _selectedRows[this.state.pageNumber] = selectedRows;
         const enableAddSlice = this.judgeEnableAddSlice(_selectedKeys);
         this.setState({
             selectedRowKeys: _selectedKeys,
-            selectedRows: _selectedRows,
             enableAddSlice: enableAddSlice
+        });
+    };
+
+    onSelect = (record, selected) => {//for make selected ids
+        let _selectedRows = {...this.state.selectedRows};
+        if(selected) {
+            _selectedRows[record.id] = record;
+        }else {
+            delete _selectedRows[record.id];
+        }
+        this.setState({
+            selectedRows: _selectedRows
         });
     };
 
@@ -65,11 +74,8 @@ class SliceAdder extends React.Component {
     addSlices() {
         let selectedSliceIds = [];
         const selectedRows = this.state.selectedRows;
-        for(let row in selectedRows) {
-            let rowArray = selectedRows[row];
-            for(let i=0; i<rowArray.length; i++) {
-                selectedSliceIds.push(rowArray[i].id);
-            }
+        for(let id in selectedRows) {
+            selectedSliceIds.push(id);
         }
         this.props.dashboard.addSlicesToDashboard(selectedSliceIds);
     }
@@ -115,7 +121,8 @@ class SliceAdder extends React.Component {
 
         const rowSelection = {
             selectedRowKeys: selectedRowKeys[pageNumber],
-            onChange: this.onSelectChange
+            onSelect: this.onSelect,
+            onChange: this.onChange
         };
 
         const columns = [

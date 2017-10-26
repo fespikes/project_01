@@ -65,7 +65,8 @@ export default function subDetail(state = {
                 ...state,
                 dsHDFS: {},
                 dsInceptor: {},
-                dsUpload: {}
+                dsUpload: {},
+                inceptorPreviewData: {}
             };
             break;
         default:

@@ -334,7 +334,7 @@ export function dashboardContainer(dashboard) {
                 type: 'POST',
                 url: '/dashboard/edit/' + dashboard.id,
                 contentType: 'application/json',
-                data: JSON.stringify(getNewDashboard(dashboard, selectedSlices)),
+                data: JSON.stringify(getNewDashboard(dashboard, selectedSlices, dashboard.available_slices)),
                 success() {
                     window.location.reload();
                 },

@@ -5,7 +5,7 @@ import { connectionTypes, fetchUpdateConnection, testConnection, testHDFSConnect
 import { Alert, Tooltip } from 'antd';
 import {Select} from '../components';
 import PropTypes from 'prop-types';
-import { isCorrectConnection, connectDefaultInfo } from '../utils';
+import { isCorrectConnection, argsValidate, connectDefaultInfo } from '../utils';
 import { renderAlertErrorInfo, renderAlertTip } from '../../../utils/utils';
 
 class ConnectionEdit extends React.Component {
@@ -25,6 +25,7 @@ class ConnectionEdit extends React.Component {
         this.testConnection = this.testConnection.bind(this);
         this.closeAlert = this.closeAlert.bind(this);
         this.onSelectChange = this.onSelectChange.bind(this);
+        this.argsOnBlur = this.argsOnBlur.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
     };
 
@@ -121,7 +122,7 @@ class ConnectionEdit extends React.Component {
         if(isCorrectConnection(this.props.connectionType, connectionTypes)) {
             if((database.database_name && database.database_name.length > 0) &&
                 (database.sqlalchemy_uri && database.sqlalchemy_uri.length > 0) &&
-                (database.databaseArgs && database.databaseArgs.length > 0)) {
+                argsValidate(database.databaseArgs)) {
                 disabled = false;
             }else {
                 disabled = true;
@@ -140,6 +141,18 @@ class ConnectionEdit extends React.Component {
         });
 
         this.closeAlert('edit-connect-error-tip');
+    }
+
+    argsOnBlur() {
+        const args = this.state.database.databaseArgs;
+        if(!argsValidate(args)) {
+            renderAlertErrorInfo(
+                '连接参数语法错误',
+                'edit-connect-error-tip',
+                '100%',
+                 this
+            );
+        }
     }
 
     onSelectChange(databaseId) {
@@ -273,6 +286,7 @@ class ConnectionEdit extends React.Component {
                                             style={{height:'120px'}}
                                             className="tp-textarea dialog-area"
                                             onChange={this.handleInputChange}
+                                            onBlur={this.argsOnBlur}
                                             disabled={connectionType===connectionTypes.inceptor?false:true}
                                         />
                                         <Tooltip

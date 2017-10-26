@@ -1104,6 +1104,7 @@ class Superset(BaseSupersetView):
         )
         if not table:
             table = Dataset(dataset_name=table_name)
+        table.schema = data.get('schema')
         table.database_id = data.get('dbId')
         q = SupersetQuery(data.get('sql'))
         table.sql = q.stripped()
@@ -1118,6 +1119,7 @@ class Superset(BaseSupersetView):
             is_dim = config.get('is_dim', False)
             col = TableColumn(
                 column_name=column_name,
+                expression=column_name,
                 filterable=is_dim,
                 groupby=is_dim,
                 is_dttm=config.get('is_date', False),

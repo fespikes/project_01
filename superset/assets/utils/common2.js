@@ -22,12 +22,12 @@ export function getSelectedDashboards(selectedDashboards, availableDashboards) {
     return array;
 }
 
-export function getNewDashboard(dashboard, selectedSlices) {
+export function getNewDashboard(dashboard, selectedSlices, available_slices) {
     let obj = {};
     obj.id = dashboard.id;
     obj.dashboard_title = dashboard.dashboard_title;
     obj.description = dashboard.description;
-    obj.slices = getSelectedSlices(selectedSlices, dashboard.available_slices);
+    obj.slices = getSelectedSlices(selectedSlices, available_slices);
     return obj;
 }
 
@@ -35,7 +35,7 @@ export function getSelectedSlices(selectedSlices, availableSlices) {
     let array = [];
     selectedSlices.forEach(function(selected) {
         availableSlices.forEach(function(slice) {
-            if(selected === slice.id.toString()) {
+            if(selected === slice.slice_name.toString()) {
                 array.push(slice);
             }
         });

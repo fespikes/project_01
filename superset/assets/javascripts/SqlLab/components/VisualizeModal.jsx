@@ -115,6 +115,7 @@ class VisualizeModal extends React.PureComponent {
             columns: this.state.columns,
             sql: this.props.query.sql,
             dbId: this.props.query.dbId,
+            schema: this.props.query.schema,
         };
         const self = this;
         $.ajax({

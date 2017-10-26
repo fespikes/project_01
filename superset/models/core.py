@@ -283,7 +283,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin, Count):
         tables = []
         for s in self.slices:
             if s.datasource:
-                tables.append(s.datasource.name)
+                tables.append(str(s.datasource))
         return ", ".join(set(tables))
 
     @property

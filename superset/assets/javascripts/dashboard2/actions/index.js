@@ -2,7 +2,8 @@
  * Created by haitao on 17-5-18.
  */
 import fetch from 'isomorphic-fetch';
-import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
+import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils';
+import { getNewDashboard, getSelectedSlices } from '../../../utils/common2';
 
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
@@ -371,27 +372,6 @@ function getStateChangeUrl(record, type) {
         }
         return url_publish;
     }
-}
-
-function getNewDashboard(dashboard, selectedSlices, availableSlices) {
-    let obj = {};
-    obj.id = dashboard.id;
-    obj.dashboard_title = dashboard.dashboard_title;
-    obj.description = dashboard.description;
-    obj.slices = getSelectedSlices(selectedSlices, availableSlices);
-    return obj;
-}
-
-function getSelectedSlices(selectedSlices, availableSlices) {
-    let array = [];
-    selectedSlices.forEach(function(selected) {
-        availableSlices.forEach(function(slice) {
-            if(selected === slice.slice_name.toString()) {
-                array.push(slice);
-            }
-        });
-    });
-    return array;
 }
 
 function getSelectedRows(dashboard, selectedRowKeys, selectedRowNames, type) {

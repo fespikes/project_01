@@ -1169,7 +1169,7 @@ def load_multiformat_time_series_data(user_id=None):
     tbl = obj
 
     logging.info("Creating some slices")
-    for i, col in enumerate(tbl.columns):
+    for i, col in enumerate(tbl.columns[:1]):
         slice_data = {
             "granularity_sqla": col.column_name,
             "datasource_id": "8",

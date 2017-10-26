@@ -575,10 +575,10 @@ export function fetchInceptorPreviewData(id, callback) {
     }
 }
 
-export function fetchHDFSPreviewData(dsHDFS, callback) {
+export function fetchHDFSPreviewData(dsHDFS, datasetId, callback) {
     return (dispatch) => {
         dispatch(switchFetchingState(true));
-        const url = constructHDFSPreviewUrl(dsHDFS);
+        const url = constructHDFSPreviewUrl(dsHDFS, datasetId);
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
