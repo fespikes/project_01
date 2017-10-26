@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import { Table, Input, Button, Icon } from 'antd';
+import { Table, Input, Button, Icon, message } from 'antd';
 
 import { SQLMetricAdd, SQLMetricDelete } from '../popup';
 import * as actionCreators from '../actions';
@@ -17,9 +17,10 @@ class SubSqlMetric extends Component {
         super(props);
         this.state = {};
 
-        this.editMetric = this.editMetric.bind(this);
         this.addSQLMetric = this.addSQLMetric.bind(this);
         this.removeMetric = this.removeMetric.bind(this);
+        this.onChange = this.onChange.bind(this);
+        this.onBlur = this.onBlur.bind(this);
     }
 
     componentDidMount() {
@@ -33,6 +34,11 @@ class SubSqlMetric extends Component {
         const { datasetId, getSQLMetric } = this.props;
         if (nextProps.datasetId !== datasetId && nextProps.datasetId) {
             getSQLMetric(nextProps.datasetId);
+        }
+        if(nextProps.sqlMetric) {
+            this.setState({
+                sqlMetric: nextProps.sqlMetric
+            });
         }
     }
 
@@ -48,23 +54,6 @@ class SubSqlMetric extends Component {
 
         if (addSQLMetricPopup) {
             addSQLMetricPopup.showDialog();
-        }
-    }
-
-    editMetric (metric) {
-        const { datasetId, fetchSQLMetricEdit } =  this.props;
-        metric.dataset_id = datasetId;
-        let editSQLMetricPopup = render(
-            <SQLMetricAdd
-                title="编辑SQL度量"
-                datasetId={datasetId}
-                editedMetric={metric}
-                fetchSQLMetricEdit={fetchSQLMetricEdit} />,
-            document.getElementById('popup_root')
-        );
-
-        if (editSQLMetricPopup) {
-            editSQLMetricPopup.showDialog();
         }
     }
 
@@ -85,11 +74,64 @@ class SubSqlMetric extends Component {
         }
     }
 
+    onChange(id, e) {
+        const target = e.currentTarget;
+        const name = target.name;
+        let value = target.value;
+
+        const state = {...this.state};
+        const metrics = state.sqlMetric;
+        const sqlMetric = this.updateSqlMetric(
+            metrics,
+            id, name, value
+        );
+        this.setState({
+            sqlMetric: sqlMetric
+        });
+    }
+
+    onBlur(metric) {
+        this.formValidate(metric);
+    }
+
+    updateSqlMetric(metrics, id, name, value) {
+        metrics.map(metric => {
+            if(metric.id === id) {
+                metric[name] = value;
+            }
+        });
+        return metrics;
+    }
+
+    formValidate(metric) {
+        if(!(metric.metric_name && metric.metric_name.length > 0)) {
+            message.error('度量名不能为空！', 5);
+            return;
+        }
+        if(!(metric.expression && metric.expression.length > 0)) {
+            message.error('表达式不能为空！', 5);
+            return;
+        }
+        if(!this.props.datasetId) {
+            message.error('数据集ID不能为空！', 5);
+            return;
+        }else {
+            metric.dataset_id = this.props.datasetId;
+        }
+        this.props.fetchSQLMetricEdit(metric, this.editCallback);
+    }
+
+    editCallback(success, message) {
+        if(!success) {
+            message.error(message, 5);
+        }
+    }
+
     render() {
         const me = this;
 
         let data = [];
-        _.forEach(me.props.sqlMetric, function(item, index) {
+        _.forEach(me.state.sqlMetric, function(item, index) {
             item.key = index;
             data.push(item);
         });
@@ -101,12 +143,13 @@ class SubSqlMetric extends Component {
             width: '25%',
             render: (text, record) => {
                 return (
-                    <div
-                        className="text-overflow-style"
-                        style={{maxWidth: 290}}
-                    >
-                        {record.metric_name}
-                    </div>
+                    <input
+                        name="metric_name"
+                        className="tp-input"
+                        value={record.metric_name}
+                        onChange={(e) => this.onChange(record.id, e)}
+                        onBlur={(args) => this.onBlur(record)}
+                    />
                 )
             }
         }, {
@@ -119,7 +162,19 @@ class SubSqlMetric extends Component {
             dataIndex: 'expression',
             key: 'expression',
             width: '30%',
-            className: 'checkb'
+            className: 'checkb',
+            render: (text, record) => {
+                return (
+                    <input
+                        name="expression"
+                        className="tp-input"
+                        value={record.expression}
+                        onChange={(e) => this.onChange(record.id, e)}
+                        onBlur={(args) => this.onBlur(record)}
+                    />
+                )
+            }
+
         }, {
             title: '操作',
             dataIndex: 'operation',
@@ -128,10 +183,8 @@ class SubSqlMetric extends Component {
             render: (text, record, index) => {
                 return (
                     <div className="icon-group" style={{display: 'flex'}}>
-                        <i className="icon icon-edit" onClick={() => me.editMetric(record)}/>&nbsp;
                         <i className="icon icon-delete"
                             onClick={() => me.removeMetric(record)}
-                            style={{marginLeft:'30px'}}
                         />
                     </div>
                 )

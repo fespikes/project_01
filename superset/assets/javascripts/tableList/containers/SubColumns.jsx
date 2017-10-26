@@ -19,6 +19,7 @@ class SubColumns extends Component {
         this.deleteTableColumn = this.deleteTableColumn.bind(this);
         this.addTableColumn = this.addTableColumn.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.onBlur = this.onBlur.bind(this);
     }
 
     componentDidMount() {
@@ -59,11 +60,14 @@ class SubColumns extends Component {
         });
     }
 
+    onBlur(column) {
+        this.formValidate(column);
+    }
+
     updateTableColumn(columns, id, name, value) {
         columns.map(column => {
             if(column.id === id) {
                 column[name] = value;
-                this.formValidate(column);
             }
         });
         return columns;
@@ -144,6 +148,7 @@ class SubColumns extends Component {
                         className="tp-input"
                         value={record.column_name}
                         onChange={(e) => this.onChange(record.id, e)}
+                        onBlur={(args) => this.onBlur(record)}
                     />
                 )
             }
@@ -159,6 +164,7 @@ class SubColumns extends Component {
                         className="tp-input"
                         value={record.expression}
                         onChange={(e) => this.onChange(record.id, e)}
+                        onBlur={(args) => this.onBlur(record)}
                     />
                 )
             }
