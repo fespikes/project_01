@@ -99,7 +99,7 @@ class DashboardEdit extends React.Component {
                 selectedSlices: value
             });
         }
-        const modalTitle = "编辑仪表盘";
+        const modalTitle = "编辑仪表板";
         const modalIcon = "icon icon-dashboard-popup";
         const modalContent = (
             <div>

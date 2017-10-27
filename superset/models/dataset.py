@@ -75,8 +75,8 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
         UniqueConstraint('column_name', 'dataset_id', name='column_name_dataset_uc'),
     )
 
-    int_types = ('INT', 'BIGINT')
-    float_types = ('DOUBLE', 'FLOAT', 'DECIMAL', 'NUMBER')
+    int_types = ('INT', 'BIGINT', 'DECIMAL')
+    float_types = ('DOUBLE', 'FLOAT', 'NUMBER')
     bool_types = ('BOOL', )
     date_types = ('DATE', 'TIME', 'YEAR')
     str_types = ('VARCHAR', 'STRING', 'CHAR')

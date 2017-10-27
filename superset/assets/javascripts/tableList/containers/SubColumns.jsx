@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import { Table, Input, Button, Icon } from 'antd';
+import { Table, Input, Button, Icon, message } from 'antd';
 
 import { TableColumnAdd, TableColumnDelete } from '../popup';
 import * as actionCreators from '../actions';
@@ -17,8 +17,9 @@ class SubColumns extends Component {
         this.state = {};
 
         this.deleteTableColumn = this.deleteTableColumn.bind(this);
-        this.editTableColumn = this.editTableColumn.bind(this);
         this.addTableColumn = this.addTableColumn.bind(this);
+        this.onChange = this.onChange.bind(this);
+        this.onBlur = this.onBlur.bind(this);
     }
 
     componentDidMount() {
@@ -33,6 +34,87 @@ class SubColumns extends Component {
         if (nextProps.datasetId !== datasetId && nextProps.datasetId) {
             getTableColumn(nextProps.datasetId);
         }
+        if(nextProps.tableColumn) {
+            this.setState({
+                tableColumn: nextProps.tableColumn
+            });
+        }
+    };
+
+    onChange(id, e) {
+        const target = e.currentTarget;
+        const name = target.name;
+        let value = target.value;
+        if(target.type === 'checkbox') {
+            value = target.checked;
+        }
+
+        const state = {...this.state};
+        const columns = state.tableColumn;
+        const tableColumn = this.updateTableColumn(
+            columns,
+            id, name, value
+        );
+        if(target.type === 'checkbox') {
+            const column = this.getTableColumn(tableColumn, id);
+            this.editTableColumn(column);
+        }
+        this.setState({
+            tableColumn: tableColumn
+        });
+    }
+
+    onBlur(column) {
+        this.formValidate(column);
+    }
+
+    updateTableColumn(columns, id, name, value) {
+        columns.map(column => {
+            if(column.id === id) {
+                column[name] = value;
+            }
+        });
+        return columns;
+    }
+
+    getTableColumn(columns, id) {
+        let selectedColumn = {};
+        columns.map(column => {
+            if(column.id === id) {
+                selectedColumn = column;
+            }
+        });
+        return selectedColumn;
+    }
+
+    formValidate(column) {
+        if(!(column.column_name && column.column_name.length > 0)) {
+            message.error('列名不能为空！', 5);
+            return;
+        }
+        if(!(column.expression && column.expression.length > 0)) {
+            message.error('表达式不能为空！', 5);
+            return;
+        }
+        if(!this.props.datasetId) {
+            message.error('数据集ID不能为空！', 5);
+            return;
+        }
+        this.editTableColumn(column);
+    }
+
+    editTableColumn(column) {
+        column.dataset_id = this.props.datasetId;
+        this.props.fetchTableColumnEdit(
+            column,
+            this.editCallback
+        );
+    }
+
+    editCallback(success, message) {
+        if(!success) {
+            message.error(message, 5);
+        }
     }
 
     addTableColumn () {
@@ -42,20 +124,6 @@ class SubColumns extends Component {
                 title="添加列"
                 datasetId={this.props.datasetId}
                 fetchTableColumnAdd={fetchTableColumnAdd}
-            />,
-            document.getElementById('popup_root')
-        );
-    }
-
-    editTableColumn(record) {
-        const { datasetId, fetchTableColumnEdit } = this.props;
-        record.dataset_id = datasetId;
-        render(
-            <TableColumnAdd
-                title="编辑列"
-                editedColumn={record}
-                datasetId={datasetId}
-                fetchTableColumnEdit={fetchTableColumnEdit}
             />,
             document.getElementById('popup_root')
         );
@@ -83,7 +151,7 @@ class SubColumns extends Component {
 
         let data = [];
 
-        _.forEach(me.props.tableColumn, function(item, index) {
+        _.forEach(me.state.tableColumn, function(item, index) {
             item.key = index;
             data.push(item);
         });
@@ -92,15 +160,32 @@ class SubColumns extends Component {
             title: '列',
             dataIndex: 'column_name',
             key: 'column_name',
-            width: '16%',
+            width: '15%',
             render: (text, record) => {
                 return (
-                    <div
-                        className="text-overflow-style"
-                        style={{maxWidth: 180}}
-                    >
-                        {record.column_name}
-                    </div>
+                    <input
+                        name="column_name"
+                        className="tp-input columns-input"
+                        value={record.column_name}
+                        onChange={(e) => this.onChange(record.id, e)}
+                        onBlur={(args) => this.onBlur(record)}
+                    />
+                )
+            }
+        }, {
+            title: '表达式',
+            dataIndex: 'expression',
+            key: 'expression',
+            width: '15%',
+            render: (text, record) => {
+                return (
+                    <input
+                        name="expression"
+                        className="tp-input columns-input"
+                        value={record.expression}
+                        onChange={(e) => this.onChange(record.id, e)}
+                        onBlur={(args) => this.onBlur(record)}
+                    />
                 )
             }
         }, {
@@ -112,77 +197,140 @@ class SubColumns extends Component {
             title: '可分组',
             dataIndex: 'groupAble',
             key: 'groupAble',
-            width: '8%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
-                return (<input type="checkbox" checked={record.groupby} readOnly />)
+                return (
+                    <input
+                        name="groupby"
+                        type="checkbox"
+                        checked={record.groupby}
+                        onChange={(e) => this.onChange(record.id, e)}
+                    />
+                )
             }
         }, {
             title: '可筛选',
             dataIndex: 'filterAble',
             key: 'filterAble',
-            width: '8%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
-                return (<input type="checkbox" checked={record.filterable} readOnly />)
+                return (
+                    <input
+                        name="filterable"
+                        type="checkbox"
+                        checked={record.filterable}
+                        onChange={(e) => this.onChange(record.id, e)}
+                    />
+                )
             }
         }, {
             title: '可计数',
             dataIndex: 'accountAble',
             key: 'accountAble',
-            width: '8%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
-                return (<input type="checkbox" checked={record.count_distinct} readOnly />)
+                return (
+                    <input
+                        name="count_distinct"
+                        type="checkbox"
+                        checked={record.count_distinct}
+                        onChange={(e) => this.onChange(record.id, e)}
+                    />
+                )
             }
         },{
             title: '可求和',
             dataIndex: 'sumAble',
             key: 'sumAble',
-            width: '8%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
-                return (<input type="checkbox" checked={record.sum} readOnly />)
+                return (
+                    <input
+                        name="sum"
+                        type="checkbox"
+                        checked={record.sum}
+                        onChange={(e) => this.onChange(record.id, e)}
+                    />
+                )
+            }
+        },{
+            title: '可求平均值',
+            dataIndex: 'avgAble',
+            key: 'avgAble',
+            width: '7%',
+            className: 'checkb',
+            render: (text, record) => {
+                return (
+                    <input
+                        name="avg"
+                        type="checkbox"
+                        checked={record.avg}
+                        onChange={(e) => this.onChange(record.id, e)}
+                    />
+                )
             }
         },{
             title: '可求最小值',
             dataIndex: 'minimumSeekAble',
             key: 'minimumSeekAble',
-            width: '10%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
-                return (<input type="checkbox" checked={record.min} readOnly />)
+                return (
+                    <input
+                        name="min"
+                        type="checkbox"
+                        checked={record.min}
+                        onChange={(e) => this.onChange(record.id, e)}
+                    />
+                )
             }
         },{
             title: '可求最大值',
             dataIndex: 'maximumSeekAble',
             key: 'maximumSeekAble',
-            width: '10%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
-                return (<input type="checkbox" checked={record.max} readOnly />)
+                return (
+                    <input
+                        name="max"
+                        type="checkbox"
+                        checked={record.max}
+                        onChange={(e) => this.onChange(record.id, e)}
+                    />
+                )
             }
         },{
             title: '可表示时间',
             dataIndex: 'timeExpressAble',
             key: 'timeExpressAble',
-            width: '10%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
-                return (<input type="checkbox" checked={record.is_dttm} readOnly />)
+                return (
+                    <input
+                        name="is_dttm"
+                        type="checkbox"
+                        checked={record.is_dttm}
+                        onChange={(e) => this.onChange(record.id, e)}
+                    />
+                )
             }
         },{
             title: '操作',
             dataIndex: 'operation',
             key: 'operation',
-            width: '12%',
+            width: '4%',
             render: (text, record, index) => {
                 return (
                     <div className="icon-group" style={{display: 'flex'}}>
-                        <i className="icon icon-edit" onClick={() => this.editTableColumn(record)}/>&nbsp;
                         <i className="icon icon-delete"
                             onClick={() => this.deleteTableColumn(record)}
-                            style={{marginLeft:'30px'}}
                         />
                     </div>
                 )

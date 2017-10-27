@@ -51,6 +51,10 @@ class ConnectionAdd extends React.Component {
         const self = this;
         const { dispatch, connectionType } = this.props;
         if(isCorrectConnection(connectionType, connectionTypes)) {
+            if(!argsValidate(this.state.database.args)) {
+                renderAlertErrorInfo('连接参数语法错误', 'add-connect-error-tip', '100%', this);
+                return;
+            }
             dispatch(testConnection({
                 database_name: this.state.database.database_name,
                 sqlalchemy_uri: this.state.database.sqlalchemy_uri,

@@ -35,10 +35,10 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     can_delete = False
     list_columns = [
         'id', 'column_name', 'description', 'type', 'groupby', 'filterable',
-        'count_distinct', 'sum', 'min', 'max', 'is_dttm', 'expression']
+        'count_distinct', 'sum', 'avg', 'min', 'max', 'is_dttm', 'expression']
     edit_columns = [
         'column_name', 'description', 'groupby', 'filterable', 'is_dttm',
-        'count_distinct', 'sum', 'min', 'max', 'expression', 'dataset_id']
+        'count_distinct', 'sum', 'avg', 'min', 'max', 'expression', 'dataset_id']
     show_columns = edit_columns + ['id', 'dataset']
     add_columns = edit_columns
     readme_columns = ['is_dttm', 'expression']
