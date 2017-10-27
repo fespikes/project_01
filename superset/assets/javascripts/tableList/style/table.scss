@@ -1,3 +1,5 @@
+@import '../../../stylesheets/scss/global';
+
 .HDFS{
     width:14px;height:16px;background-position:-133px -371px;
     cursor: default;
@@ -27,6 +29,15 @@
 }
 .sql-metric {
     background-color: #fff;
+}
+
+.columns-input, .metrics-input {
+    border-color: transparent;
+    background-color: transparent;
+    &:hover, &:focus {
+        background-color: #fff;
+        border: $borderStyleFocus;
+    }
 }
 
 ul > li .ant-select-selection {

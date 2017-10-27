@@ -55,6 +55,10 @@ class SubColumns extends Component {
             columns,
             id, name, value
         );
+        if(target.type === 'checkbox') {
+            const column = this.getTableColumn(tableColumn, id);
+            this.editTableColumn(column);
+        }
         this.setState({
             tableColumn: tableColumn
         });
@@ -73,6 +77,16 @@ class SubColumns extends Component {
         return columns;
     }
 
+    getTableColumn(columns, id) {
+        let selectedColumn = {};
+        columns.map(column => {
+            if(column.id === id) {
+                selectedColumn = column;
+            }
+        });
+        return selectedColumn;
+    }
+
     formValidate(column) {
         if(!(column.column_name && column.column_name.length > 0)) {
             message.error('列名不能为空！', 5);
@@ -85,10 +99,16 @@ class SubColumns extends Component {
         if(!this.props.datasetId) {
             message.error('数据集ID不能为空！', 5);
             return;
-        }else {
-            column.dataset_id = this.props.datasetId;
         }
-        this.props.fetchTableColumnEdit(column, this.editCallback);
+        this.editTableColumn(column);
+    }
+
+    editTableColumn(column) {
+        column.dataset_id = this.props.datasetId;
+        this.props.fetchTableColumnEdit(
+            column,
+            this.editCallback
+        );
     }
 
     editCallback(success, message) {
@@ -145,7 +165,7 @@ class SubColumns extends Component {
                 return (
                     <input
                         name="column_name"
-                        className="tp-input"
+                        className="tp-input columns-input"
                         value={record.column_name}
                         onChange={(e) => this.onChange(record.id, e)}
                         onBlur={(args) => this.onBlur(record)}
@@ -161,7 +181,7 @@ class SubColumns extends Component {
                 return (
                     <input
                         name="expression"
-                        className="tp-input"
+                        className="tp-input columns-input"
                         value={record.expression}
                         onChange={(e) => this.onChange(record.id, e)}
                         onBlur={(args) => this.onBlur(record)}

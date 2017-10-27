@@ -145,7 +145,7 @@ class SubSqlMetric extends Component {
                 return (
                     <input
                         name="metric_name"
-                        className="tp-input"
+                        className="tp-input metrics-input"
                         value={record.metric_name}
                         onChange={(e) => this.onChange(record.id, e)}
                         onBlur={(args) => this.onBlur(record)}
@@ -167,7 +167,7 @@ class SubSqlMetric extends Component {
                 return (
                     <input
                         name="expression"
-                        className="tp-input"
+                        className="tp-input metrics-input"
                         value={record.expression}
                         onChange={(e) => this.onChange(record.id, e)}
                         onBlur={(args) => this.onBlur(record)}
