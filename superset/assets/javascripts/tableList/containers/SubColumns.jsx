@@ -165,7 +165,7 @@ class SubColumns extends Component {
                 return (
                     <input
                         name="column_name"
-                        className="tp-input"
+                        className="tp-input columns-input"
                         value={record.column_name}
                         onChange={(e) => this.onChange(record.id, e)}
                         onBlur={(args) => this.onBlur(record)}
@@ -181,7 +181,7 @@ class SubColumns extends Component {
                 return (
                     <input
                         name="expression"
-                        className="tp-input"
+                        className="tp-input columns-input"
                         value={record.expression}
                         onChange={(e) => this.onChange(record.id, e)}
                         onBlur={(args) => this.onBlur(record)}
