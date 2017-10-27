@@ -68,6 +68,10 @@ class ConnectionEdit extends React.Component {
         const me = this;
         const { dispatch, connectionType } = me.props;
         if(isCorrectConnection(connectionType, connectionTypes)) {
+            if(!argsValidate(this.state.database.databaseArgs)) {
+                renderAlertErrorInfo('连接参数语法错误', 'edit-connect-error-tip', '100%', this);
+                return;
+            }
             dispatch(testConnection(
                 {
                     database_name: me.state.database.database_name,
