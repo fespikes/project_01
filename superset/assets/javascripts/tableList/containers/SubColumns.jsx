@@ -160,7 +160,7 @@ class SubColumns extends Component {
             title: '列',
             dataIndex: 'column_name',
             key: 'column_name',
-            width: '13%',
+            width: '15%',
             render: (text, record) => {
                 return (
                     <input
@@ -176,7 +176,7 @@ class SubColumns extends Component {
             title: '表达式',
             dataIndex: 'expression',
             key: 'expression',
-            width: '13%',
+            width: '15%',
             render: (text, record) => {
                 return (
                     <input
@@ -197,7 +197,7 @@ class SubColumns extends Component {
             title: '可分组',
             dataIndex: 'groupAble',
             key: 'groupAble',
-            width: '8%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
                 return (
@@ -213,7 +213,7 @@ class SubColumns extends Component {
             title: '可筛选',
             dataIndex: 'filterAble',
             key: 'filterAble',
-            width: '8%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
                 return (
@@ -229,7 +229,7 @@ class SubColumns extends Component {
             title: '可计数',
             dataIndex: 'accountAble',
             key: 'accountAble',
-            width: '8%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
                 return (
@@ -245,7 +245,7 @@ class SubColumns extends Component {
             title: '可求和',
             dataIndex: 'sumAble',
             key: 'sumAble',
-            width: '8%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
                 return (
@@ -258,10 +258,26 @@ class SubColumns extends Component {
                 )
             }
         },{
+            title: '可求平均值',
+            dataIndex: 'avgAble',
+            key: 'avgAble',
+            width: '7%',
+            className: 'checkb',
+            render: (text, record) => {
+                return (
+                    <input
+                        name="avg"
+                        type="checkbox"
+                        checked={record.avg}
+                        onChange={(e) => this.onChange(record.id, e)}
+                    />
+                )
+            }
+        },{
             title: '可求最小值',
             dataIndex: 'minimumSeekAble',
             key: 'minimumSeekAble',
-            width: '10%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
                 return (
@@ -277,7 +293,7 @@ class SubColumns extends Component {
             title: '可求最大值',
             dataIndex: 'maximumSeekAble',
             key: 'maximumSeekAble',
-            width: '8%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
                 return (
@@ -293,7 +309,7 @@ class SubColumns extends Component {
             title: '可表示时间',
             dataIndex: 'timeExpressAble',
             key: 'timeExpressAble',
-            width: '8%',
+            width: '7%',
             className: 'checkb',
             render: (text, record) => {
                 return (
@@ -309,7 +325,7 @@ class SubColumns extends Component {
             title: '操作',
             dataIndex: 'operation',
             key: 'operation',
-            width: '8',
+            width: '4%',
             render: (text, record, index) => {
                 return (
                     <div className="icon-group" style={{display: 'flex'}}>

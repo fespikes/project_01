@@ -140,7 +140,7 @@ class SubSqlMetric extends Component {
             title: '度量',
             dataIndex: 'metric_name',
             key: 'metric_name',
-            width: '25%',
+            width: '30%',
             render: (text, record) => {
                 return (
                     <input
@@ -153,15 +153,10 @@ class SubSqlMetric extends Component {
                 )
             }
         }, {
-            title: '类型',
-            dataIndex: 'metric_type',
-            key: 'metric_type',
-            width: '30%'
-        }, {
             title: '表达式',
             dataIndex: 'expression',
             key: 'expression',
-            width: '30%',
+            width: '46%',
             className: 'checkb',
             render: (text, record) => {
                 return (
@@ -174,12 +169,16 @@ class SubSqlMetric extends Component {
                     />
                 )
             }
-
+        }, {
+            title: '类型',
+            dataIndex: 'metric_type',
+            key: 'metric_type',
+            width: '20%'
         }, {
             title: '操作',
             dataIndex: 'operation',
             key: 'operation',
-            width: '15%',
+            width: '4%',
             render: (text, record, index) => {
                 return (
                     <div className="icon-group" style={{display: 'flex'}}>
