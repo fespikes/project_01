@@ -55,13 +55,7 @@ class SaveModal extends React.PureComponent {
                 if (saveType === 'newDashboard') {
                     window.location = PILOT_PREFIX + 'dashboard/' + resp.id + '/';
                 } else {
-                    render(
-                        <Confirm
-                            confirmType='success'
-                            confirmMessage='仪表板保存成功'
-                        />,
-                        document.getElementById('popup_root')
-                    );
+                    window.location.reload();
                 }
             },
             error(error) {
