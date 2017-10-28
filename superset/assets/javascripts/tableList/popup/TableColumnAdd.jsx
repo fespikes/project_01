@@ -146,6 +146,10 @@ class TableColumnAdd extends React.Component {
                 value: 'sum'
             },
             {
+                label: '可求平均值',
+                value: 'avg'
+            },
+            {
                 label: '可求最小值',
                 value: 'min'
             },
@@ -161,6 +165,7 @@ class TableColumnAdd extends React.Component {
             filterable,
             count_distinct,
             sum,
+            avg,
             min,
             max,
             is_dttm
@@ -204,6 +209,7 @@ class TableColumnAdd extends React.Component {
                                     <Checkbox name="filterable" checked={filterable} onChange={this.handleCheckboxChange}>可筛选</Checkbox>
                                     <Checkbox name="count_distinct" checked={count_distinct} onChange={this.handleCheckboxChange}>可计数</Checkbox>
                                     <Checkbox name="sum" checked={sum} onChange={this.handleCheckboxChange}>可求和</Checkbox>
+                                    <Checkbox name="avg" checked={avg} onChange={this.handleCheckboxChange}>可求平均值</Checkbox>
                                     <Checkbox name="min" checked={min} onChange={this.handleCheckboxChange}>可求最小值</Checkbox>
                                     <Checkbox name="max" checked={max} onChange={this.handleCheckboxChange}>可求最大值</Checkbox>
                                 </div>
