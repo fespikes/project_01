@@ -69,8 +69,11 @@ class Slice(Model, AuditMixinNullable, ImportMixin, Count):
     @datasource.getter
     @utils.memoized
     def get_datasource(self):
-        ds = db.session.query(Dataset) \
-            .filter_by(id=self.datasource_id).first()
+        if self.database_id and self.full_table_name:
+            ds = Dataset.temp_dataset(self.database_id, self.full_table_name)
+        else:
+            ds = db.session.query(Dataset) \
+                .filter_by(id=self.datasource_id).first()
         return ds
 
     @renders('datasource_name')
