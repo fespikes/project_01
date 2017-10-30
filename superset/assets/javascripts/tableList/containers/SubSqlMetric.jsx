@@ -156,7 +156,7 @@ class SubSqlMetric extends Component {
             title: '表达式',
             dataIndex: 'expression',
             key: 'expression',
-            width: '46%',
+            width: '40%',
             className: 'checkb',
             render: (text, record) => {
                 return (
@@ -178,7 +178,7 @@ class SubSqlMetric extends Component {
             title: '操作',
             dataIndex: 'operation',
             key: 'operation',
-            width: '4%',
+            width: '10%',
             render: (text, record, index) => {
                 return (
                     <div className="icon-group" style={{display: 'flex'}}>
