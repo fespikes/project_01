@@ -17,6 +17,7 @@ class TableColumnAdd extends React.Component {
                 description: '',
                 max: false,
                 sum: false,
+                avg: false,
                 groupby: false,
                 dataset_id: '',
                 is_dttm: false,
@@ -142,8 +143,8 @@ class TableColumnAdd extends React.Component {
                 value: 'count_distinct'
             },
             {
-                label: '可求和',
-                value: 'sum'
+                label: '可表示时间',
+                value: 'is_dttm'
             },
             {
                 label: '可求最小值',
@@ -152,6 +153,14 @@ class TableColumnAdd extends React.Component {
             {
                 label: '可求最大值',
                 value: 'max'
+            },
+            {
+                label: '可求和',
+                value: 'sum'
+            },
+            {
+                label: '可求平均值',
+                value: 'avg'
             }
         ];
         const column = this.state.tableColumn;
@@ -161,6 +170,7 @@ class TableColumnAdd extends React.Component {
             filterable,
             count_distinct,
             sum,
+            avg,
             min,
             max,
             is_dttm
@@ -198,17 +208,6 @@ class TableColumnAdd extends React.Component {
                                 </div>
                             </div>
                             <div className="dialog-item">
-                                <div className="item-left"></div>
-                                <div className="item-right">
-                                    <Checkbox name="groupby" checked={groupby} onChange={this.handleCheckboxChange}>可分组</Checkbox>
-                                    <Checkbox name="filterable" checked={filterable} onChange={this.handleCheckboxChange}>可筛选</Checkbox>
-                                    <Checkbox name="count_distinct" checked={count_distinct} onChange={this.handleCheckboxChange}>可计数</Checkbox>
-                                    <Checkbox name="sum" checked={sum} onChange={this.handleCheckboxChange}>可求和</Checkbox>
-                                    <Checkbox name="min" checked={min} onChange={this.handleCheckboxChange}>可求最小值</Checkbox>
-                                    <Checkbox name="max" checked={max} onChange={this.handleCheckboxChange}>可求最大值</Checkbox>
-                                </div>
-                            </div>
-                            <div className="dialog-item">
                                 <div className="item-left">
                                     <i>*</i>
                                     <span className="item-label">表达式：</span>
@@ -224,11 +223,20 @@ class TableColumnAdd extends React.Component {
                                 </div>
                             </div>
                             <div className="dialog-item">
-                                <div className="item-left">
-                                    <span className="item-label">可表示时间：</span>
-                                </div>
-                                <div className="item-right space-between">
-                                    <span style={{color: '#1d2531'}}>是否将此列作为（时间粒度）选项，列中的数据类型必须是DATETIME</span><Checkbox name="is_dttm" checked={is_dttm} onChange={this.handleCheckboxChange}></Checkbox>
+                                <div className="item-left"></div>
+                                <div className="item-right">
+                                    <div>
+                                        <Checkbox name="groupby" checked={groupby} onChange={this.handleCheckboxChange}>可分组</Checkbox>
+                                        <Checkbox name="filterable" checked={filterable} onChange={this.handleCheckboxChange}>可筛选</Checkbox>
+                                        <Checkbox name="count_distinct" checked={count_distinct} onChange={this.handleCheckboxChange}>可计数</Checkbox>
+                                        <Checkbox name="is_dttm" checked={is_dttm} onChange={this.handleCheckboxChange}>可表示时间</Checkbox>
+                                    </div>
+                                    <div>
+                                        <Checkbox name="sum" checked={sum} onChange={this.handleCheckboxChange}>可求和</Checkbox>
+                                        <Checkbox name="avg" checked={avg} onChange={this.handleCheckboxChange}>可求平均值</Checkbox>
+                                        <Checkbox name="min" checked={min} onChange={this.handleCheckboxChange}>可求最小值</Checkbox>
+                                        <Checkbox name="max" checked={max} onChange={this.handleCheckboxChange}>可求最大值</Checkbox>
+                                    </div>
                                 </div>
                             </div>
                             <div className="error" ref="alertRef" style={{display: 'none'}}>
@@ -242,8 +250,11 @@ class TableColumnAdd extends React.Component {
                             </div>
                         </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}
-                                    disabled={!this.state.enableConfirm}>
+                            <button
+                                className="tp-btn tp-btn-middle tp-btn-primary"
+                                onClick={this.confirm}
+                                disabled={!this.state.enableConfirm}
+                            >
                                 保存
                             </button>
                         </div>
