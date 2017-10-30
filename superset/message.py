@@ -15,9 +15,9 @@ OBJECT_IS_OFFLINE = _("This object is already offline")
 NO_ONLINE_PERMISSION = _("No permission for 'online' and 'offline'")
 
 ADD_SUCCESS = _("Success to add")
-ADD_FAILED = _("Failed to add, may cased by unique restriction")
+ADD_FAILED = _("Failed to add, may caused by unique restriction")
 UPDATE_SUCCESS = _("Success to update")
-UPDATE_FAILED = _("Failed to update, may cased by unique restriction")
+UPDATE_FAILED = _("Failed to update, may caused by unique restriction")
 DELETE_SUCCESS = _("Success to delete")
 DELETE_FAILED = _("Failed to delete")
 

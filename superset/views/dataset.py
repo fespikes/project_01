@@ -65,11 +65,6 @@ class TableColumnInlineView(SupersetModelView):  # noqa
             data.append(line)
         return {'data': data}
 
-    def get_addable_choices(self):
-        data = super().get_addable_choices()
-        data['available_dataset'] = self.get_available_tables()
-        return data
-
     def pre_add(self, column):
         self.check_column_values(column)
 
@@ -101,11 +96,6 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
 
     bool_columns = ['is_restricted', ]
     str_columns = ['dataset', ]
-
-    def get_addable_choices(self):
-        data = super().get_addable_choices()
-        data['available_dataset'] = self.get_available_tables()
-        return data
 
     def get_object_list_data(self, **kwargs):
         dataset_id = kwargs.get('dataset_id')
