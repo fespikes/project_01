@@ -69,12 +69,11 @@ class Slice(Model, AuditMixinNullable, ImportMixin, Count):
     @datasource.getter
     @utils.memoized
     def get_datasource(self):
-        if self.database_id and self.full_table_name:
-            ds = Dataset.temp_dataset(self.database_id, self.full_table_name)
+        if not self.datasource_id:
+            logging.error("[{slice}]'s datasource_id is None".format(slice=self))
+            return None
         else:
-            ds = db.session.query(Dataset) \
-                .filter_by(id=self.datasource_id).first()
-        return ds
+            return db.session.query(Dataset).filter_by(id=self.datasource_id).first()
 
     @renders('datasource_name')
     def datasource_link(self):
@@ -84,7 +83,10 @@ class Slice(Model, AuditMixinNullable, ImportMixin, Count):
 
     @property
     def datasource_edit_url(self):
-        self.datasource.url
+        if self.datasource:
+            return self.datasource.url
+        else:
+            return None
 
     @property
     @utils.memoized
@@ -139,11 +141,15 @@ class Slice(Model, AuditMixinNullable, ImportMixin, Count):
 
     @property
     def source_table_url(self):
-        if self.database_id and self.full_table_name:
+        if not self.database_id:
+            logging.error("[{slice}]'s database_id is None".format(slice=self))
+            return None
+        elif not self.full_table_name:
+            logging.error("[{slice}]'s full_table_name is None".format(slice=self))
+            return None
+        else:
             return "/p/explore/table/0/?database_id={}&full_tb_name={}"\
                 .format(self.database_id, self.full_table_name)
-        else:
-            return None
 
     @property
     def slice_id_url(self):

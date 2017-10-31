@@ -253,11 +253,13 @@ class SliceModelView(SupersetModelView):  # noqa
 
             viz_type = line.get('viz_type', None)
             line['viz_type'] = str(_(viz_type)) if viz_type else viz_type
-            line['explore_url'] = obj.datasource.explore_url \
-                if obj.datasource else None
-            if not obj.datasource and obj.full_table_name:
+            if obj.datasource:
+                line['explore_url'] = obj.datasource.explore_url
+            elif obj.database_id and obj.full_table_name:
                 line['datasource'] = obj.full_table_name
                 line['explore_url'] = obj.source_table_url
+            else:
+                line['explore_url'] = None
             line['created_by_user'] = username
             line['favorite'] = True if fav_id else False
             data.append(line)
@@ -663,7 +665,8 @@ class Superset(BaseSupersetView):
                 full_tb_name=full_tb_name,
                 args=request.args)
         except Exception as e:
-            flash('{}'.format(e), "alert")
+            # flash('{}'.format(e), "alert")
+            return json_response(message=str(e), status=500)
 
         # slc perms
         slice_add_perm = True
