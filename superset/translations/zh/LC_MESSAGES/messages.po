@@ -1721,8 +1721,8 @@ msgstr "没有找到id为[{id}]的数据集"
 msgid "Not supported dataset type [{type_}]"
 msgstr "不支持的数据集类型[{type_}]"
 
-msgid "Releasing dataset [{dataset}] will release connection [{connection}]"
-msgstr "上线数据集[{dataset}]会同时上线连接[{connection}]"
+msgid "Releasing dataset [{dataset}] will release connection {connection}"
+msgstr "上线数据集[{dataset}]会同时上线连接{connection}"
 
 msgid "Changing dataset {dataset} to offline will make these slices unusable: {slice}"
 msgstr "下线数据集{dataset}会使这些工作表不可用：{slice}"

@@ -232,8 +232,13 @@ class DatasetModelView(SupersetModelView):  # noqa
             raise SupersetException(
                 _("Not found dataset by id [{id}]").format(id=id)
             )
-        info = _("Releasing dataset [{dataset}] will release connection [{connection}]")\
-            .format(dataset=dataset, connection=dataset.database)
+        conns = []
+        if dataset.database:
+            conns.append(dataset.database)
+        if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
+            conns.append(dataset.hdfs_table.hdfs_connection)
+        info = _("Releasing dataset [{dataset}] will release connection {connection}")\
+            .format(dataset=dataset, connection=conns)
         return json_response(data=info)
 
     @catch_exception
