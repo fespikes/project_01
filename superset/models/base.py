@@ -170,12 +170,9 @@ class Queryable(object):
 
     @property
     def explore_url(self):
-        if self.default_endpoint:
-            return self.default_endpoint
-        else:
-            return "/p/explore/{obj.type}/{obj.id}/" \
-                   "?datasource_id={obj.id}&datasource_type=table"\
-                .format(obj=self)
+        return "/p/explore/{obj.type}/{obj.id}/" \
+               "?datasource_id={obj.id}&datasource_type=table"\
+            .format(obj=self)
 
     @property
     def data(self):
