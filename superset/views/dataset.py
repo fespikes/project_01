@@ -37,7 +37,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         'id', 'column_name', 'type', 'groupby', 'filterable',
         'count_distinct', 'sum', 'avg', 'min', 'max', 'is_dttm', 'expression']
     edit_columns = [
-        'column_name', 'groupby', 'filterable', 'is_dttm',
+        'column_name', 'type', 'groupby', 'filterable', 'is_dttm',
         'count_distinct', 'sum', 'avg', 'min', 'max', 'expression', 'dataset_id']
     show_columns = edit_columns + ['id', 'dataset']
     add_columns = edit_columns
