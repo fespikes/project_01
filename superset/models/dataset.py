@@ -697,8 +697,13 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
             ''.join(random.sample(string.ascii_lowercase, 10))
         )
         dataset.database_id = database_id
-        dataset.database = db.session.query(Database) \
-            .filter_by(id=database_id).first()
+        database = db.session.query(Database).filter_by(id=database_id).first()
+        if not database:
+            logging.error("Not found Database by id: [{id}]".format(id=database_id))
+            return dataset
+        else:
+            dataset.database = database
+
         if need_columns:
             dataset.set_temp_columns_and_metrics()
         return dataset
