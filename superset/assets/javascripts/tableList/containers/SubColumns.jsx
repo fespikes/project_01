@@ -161,6 +161,7 @@ class SubColumns extends Component {
             dataIndex: 'column_name',
             key: 'column_name',
             width: '15%',
+            className: 'text-column',
             render: (text, record) => {
                 return (
                     <input
@@ -177,6 +178,7 @@ class SubColumns extends Component {
             dataIndex: 'expression',
             key: 'expression',
             width: '15%',
+            className: 'text-column',
             render: (text, record) => {
                 return (
                     <input
@@ -193,6 +195,7 @@ class SubColumns extends Component {
             dataIndex: 'type',
             key: 'type',
             width: '10%',
+            className: 'text-column',
             render: (text, record) => {
                 return (
                     <input
