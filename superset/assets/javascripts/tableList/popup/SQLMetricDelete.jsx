@@ -10,13 +10,7 @@ class SQLMetricDelete extends React.Component {
         // bindings
         this.confirm = this.confirm.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
-        this.showDialog = this.showDialog.bind(this);
     };
-
-    showDialog() {
-
-        this.refs.popupSQLMetricDelete.style.display = "flex";
-    }
 
     closeDialog() {
         ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
@@ -29,7 +23,7 @@ class SQLMetricDelete extends React.Component {
 
         function callback(success) {
             if(success) {
-                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+                self.closeDialog();
             }else {
 
             }
@@ -43,11 +37,14 @@ class SQLMetricDelete extends React.Component {
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
-                                <i className="icon icon-trash"></i>
+                                <i className="icon icon-trash"/>
                                 <span>Delete SQLMetric</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}></i>
+                                <i
+                                    className="icon icon-close"
+                                    onClick={this.closeDialog}
+                                />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -61,7 +58,10 @@ class SQLMetricDelete extends React.Component {
                             </div>
                         </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}>
+                            <button
+                                className="tp-btn tp-btn-middle tp-btn-primary"
+                                onClick={this.confirm}
+                            >
                                 确定
                             </button>
                         </div>

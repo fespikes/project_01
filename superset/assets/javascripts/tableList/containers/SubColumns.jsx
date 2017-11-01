@@ -96,6 +96,10 @@ class SubColumns extends Component {
             message.error('表达式不能为空！', 5);
             return;
         }
+        if(!(column.type && column.type.length > 0)) {
+            message.error('类型不能为空！', 5);
+            return;
+        }
         if(!this.props.datasetId) {
             message.error('数据集ID不能为空！', 5);
             return;
@@ -132,7 +136,7 @@ class SubColumns extends Component {
     deleteTableColumn(record) {
         const { fetchTableColumnDelete } = this.props;
         let deleteTips = "确定删除" + record.column_name + "?";
-        let deleteTableColumnPopup = render(
+        render(
             <TableColumnDelete
                 fetchTableColumnDelete={fetchTableColumnDelete}
                 column={record}
@@ -140,10 +144,6 @@ class SubColumns extends Component {
             </TableColumnDelete>,
             document.getElementById('popup_root')
         );
-
-        if (deleteTableColumnPopup) {
-            deleteTableColumnPopup.showDialog();
-        }
     }
  
     render() {
@@ -192,7 +192,18 @@ class SubColumns extends Component {
             title: '类型',
             dataIndex: 'type',
             key: 'type',
-            width: '10%'
+            width: '10%',
+            render: (text, record) => {
+                return (
+                    <input
+                        name="type"
+                        className="tp-input columns-input"
+                        value={record.type}
+                        onChange={(e) => this.onChange(record.id, e)}
+                        onBlur={(args) => this.onBlur(record)}
+                    />
+                )
+            }
         }, {
             title: '可分组',
             dataIndex: 'groupAble',
