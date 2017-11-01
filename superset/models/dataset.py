@@ -685,8 +685,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
     @classmethod
     def temp_dataset(cls, database_id, full_tb_name, need_columns=True):
         """A temp dataset for slice"""
-        dataset = cls(id=0,
-                      online=True,
+        dataset = cls(online=True,
                       filter_select_enabled=True)
         if '.' in full_tb_name:
             dataset.schema, dataset.table_name = full_tb_name.split('.')

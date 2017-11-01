@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Select, Checkbox, Tooltip, Alert } from 'antd';
 import PropTypes from 'prop-types';
+import { getMetricTypeOptions } from '../module';
 
 class SQLMetricAdd extends React.Component {
     constructor(props) {
@@ -12,16 +13,16 @@ class SQLMetricAdd extends React.Component {
                 metric_name: "",
                 expression: "",
                 metric_type: "",
-                dataset_id: "",
-                description: ""
+                dataset_id: ""
             },
-            exception: {}
+            exception: {},
+            options: []
         };
         // bindings
         this.confirm = this.confirm.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
-        this.showDialog = this.showDialog.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleSelectChange = this.handleSelectChange.bind(this);
     };
 
     componentDidMount() {
@@ -36,19 +37,18 @@ class SQLMetricAdd extends React.Component {
             data.metric.dataset_id = this.props.datasetId;
         }
 
+        this.initTypeOptions();
         this.setState(data);
     }
 
-    showDialog() {
-        this.refs.popupSQLMetricAdd.style.display = "flex";
+    initTypeOptions() {
+        const options = getMetricTypeOptions();
+        this.setState({
+            options: options
+        });
     }
 
     closeDialog() {
-        this.setState({
-            metric: {},
-            enableConfirm: false
-        });
-        this.refs.popupSQLMetricAdd.style.display = "none";
         ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
@@ -65,12 +65,7 @@ class SQLMetricAdd extends React.Component {
 
         function callback(success, message) {
             if(success) {
-                self.setState({
-                    metric: {},
-                    enableConfirm: false
-                });
-                self.refs.popupSQLMetricAdd.style.display = "none";
-                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+                self.closeDialog();
             }else {
                 self.refs.alertRef.style.display = "block";
                 let exception = {};
@@ -93,9 +88,18 @@ class SQLMetricAdd extends React.Component {
         this.formValidate();
     }
 
+    handleSelectChange(type) {
+        let data = {
+            metric: this.state.metric
+        };
+        data.metric.metric_type = type;
+        this.setState(data);
+        this.formValidate();
+    }
+
     formValidate() {
         const mt = this.state.metric;
-        if (mt.metric_name && mt.expression && mt.dataset_id) {
+        if (mt.metric_name && mt.expression && mt.metric_type && mt.dataset_id) {
             this.setState({
                 enableConfirm: true
             });
@@ -110,18 +114,22 @@ class SQLMetricAdd extends React.Component {
     render() {
 
         const metric = this.state.metric;
-
         return (
-            <div className="popup" ref="popupSQLMetricAdd">
+            <div className="popup">
                 <div className="popup-dialog popup-md">
-                    <div className="popup-content">
+                    <div className="popup-content" id="addSqlMetric">
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-dataset"/>
-                                <span className="item-label">{this.props.title}</span>
+                                <span className="item-label">
+                                    {this.props.title}
+                                </span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}/>
+                                <i
+                                    className="icon icon-close"
+                                    onClick={this.closeDialog}
+                                />
                             </div>
                         </div>
                         <div className="popup-body">
@@ -131,24 +139,31 @@ class SQLMetricAdd extends React.Component {
                                     <span className="item-label">度量：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="tp-input dialog-input dialog-input-sm" value={metric.metric_name} name="metric_name" onChange={this.handleInputChange}/>
+                                    <input
+                                        className="tp-input dialog-input"
+                                        value={metric.metric_name}
+                                        name="metric_name"
+                                        onChange={this.handleInputChange}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
-                                    <span className="item-label">描述：</span>
-                                </div>
-                                <div className="item-right">
-                                    <textarea className="tp-textarea dialog-area" name="description" value={metric.description} onChange={this.handleInputChange}/>
-                                </div>
-                            </div>
-                            <div className="dialog-item">
-                                <div className="item-left">
+                                    <i>*</i>
                                     <span className="item-label">类型：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="tp-input dialog-input" name="metric_type" value={metric.metric_type} onChange={this.handleInputChange}/>
-                                    <Tooltip placement="topRight" title="比如：count, avg, sum, max, min">
+                                    <Select
+                                        style={{ width: '100%' }}
+                                        onSelect={this.handleSelectChange}
+                                        getPopupContainer={() => document.getElementById('addSqlMetric')}
+                                    >
+                                        {this.state.options}
+                                    </Select>
+                                    <Tooltip
+                                        placement="topRight"
+                                        title="比如：count, avg, sum, max, min"
+                                    >
                                         <i className="icon icon-info after-icon"/>
                                     </Tooltip>
                                 </div>
@@ -159,8 +174,16 @@ class SQLMetricAdd extends React.Component {
                                     <span className="item-label">表达式：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="tp-textarea dialog-area" name="expression" value={metric.expression} onChange={this.handleInputChange}/>
-                                    <Tooltip placement="topRight" title="SQL函数，比如：COUNT(col), AVG(col), SUM(col), MAX(col), MIN(col), COUNT(DISTINCT (col))">
+                                    <textarea
+                                        className="tp-textarea dialog-area"
+                                        name="expression"
+                                        value={metric.expression}
+                                        onChange={this.handleInputChange}
+                                    />
+                                    <Tooltip
+                                        placement="topRight"
+                                        title="SQL函数，比如：COUNT(col), AVG(col), SUM(col), MAX(col), MIN(col), COUNT(DISTINCT (col))"
+                                    >
                                         <i
                                             className="icon icon-info after-icon"
                                             style={{top: 30}}
@@ -179,8 +202,11 @@ class SQLMetricAdd extends React.Component {
                             </div>
                         </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}
-                                    disabled={!this.state.enableConfirm}>
+                            <button
+                                className="tp-btn tp-btn-middle tp-btn-primary"
+                                onClick={this.confirm}
+                                    disabled={!this.state.enableConfirm}
+                            >
                                 保存
                             </button>
                         </div>

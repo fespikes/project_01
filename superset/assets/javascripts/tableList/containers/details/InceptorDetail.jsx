@@ -281,7 +281,7 @@ class InceptorDetail extends Component {
                     <textarea
                         name="description"
                         className="tp-textarea"
-                        value={dsInceptor.description}
+                        value={dsInceptor.description||''}
                         required="required"
                         onChange={this.handleChange}
                     />
@@ -335,7 +335,7 @@ class InceptorDetail extends Component {
                         className="tp-textarea"
                         cols="30"
                         rows="10"
-                        value={dsInceptor.sql}
+                        value={dsInceptor.sql||''}
                         name="sql"
                         onChange={this.handleChange}
                     />

@@ -34,10 +34,10 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     route_base = '/tablecolumn'
     can_delete = False
     list_columns = [
-        'id', 'column_name', 'description', 'type', 'groupby', 'filterable',
+        'id', 'column_name', 'type', 'groupby', 'filterable',
         'count_distinct', 'sum', 'avg', 'min', 'max', 'is_dttm', 'expression']
     edit_columns = [
-        'column_name', 'description', 'groupby', 'filterable', 'is_dttm',
+        'column_name', 'type', 'groupby', 'filterable', 'is_dttm',
         'count_distinct', 'sum', 'avg', 'min', 'max', 'expression', 'dataset_id']
     show_columns = edit_columns + ['id', 'dataset']
     add_columns = edit_columns
@@ -85,11 +85,9 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     model = SqlMetric
     datamodel = SQLAInterface(SqlMetric)
     route_base = '/sqlmetric'
-    list_columns = [
-        'id', 'metric_name', 'description', 'metric_type', 'expression']
+    list_columns = ['id', 'metric_name', 'metric_type', 'expression']
     show_columns = list_columns + ['dataset_id', 'dataset']
-    edit_columns = [
-        'metric_name', 'description', 'metric_type', 'expression', 'dataset_id']
+    edit_columns = ['metric_name', 'metric_type', 'expression', 'dataset_id']
     add_columns = edit_columns
     readme_columns = ['expression', 'd3format']
     description_columns = {}

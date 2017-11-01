@@ -21,7 +21,8 @@ class TableColumnAdd extends React.Component {
                 groupby: false,
                 dataset_id: '',
                 is_dttm: false,
-                min: false
+                min: false,
+                type: ''
             },
             exception: {}
         };
@@ -29,7 +30,6 @@ class TableColumnAdd extends React.Component {
         // bindings
         this.confirm = this.confirm.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
-        this.showDialog = this.showDialog.bind(this);
 
         this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -51,16 +51,7 @@ class TableColumnAdd extends React.Component {
         this.setState(data);
     }
 
-    showDialog() {
-        this.refs.popupTableColumnAdd.style.display = "flex";
-    }
-
     closeDialog() {
-        this.setState({
-            tableColumn: {},
-            enableConfirm: false
-        });
-        this.refs.popupTableColumnAdd.style.display = "none";
         ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
     }
 
@@ -83,7 +74,7 @@ class TableColumnAdd extends React.Component {
 
     formValidate () {
         const tc = this.state.tableColumn;
-        if (tc.column_name && tc.expression && tc.dataset_id) {
+        if (tc.column_name && tc.expression && tc.type && tc.dataset_id) {
             this.setState({
                 enableConfirm: true
             });
@@ -107,12 +98,7 @@ class TableColumnAdd extends React.Component {
         
         function callback(success, message) {
             if(success) {
-                self.setState({
-                    tableColumn: {},
-                    enableConfirm: false
-                });
-                self.refs.popupTableColumnAdd.style.display = "none";
-                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+                self.closeDialog();
             }else {
                 self.refs.alertRef.style.display = "block";
                 let exception = {};
@@ -177,7 +163,7 @@ class TableColumnAdd extends React.Component {
         } = column;
 
         return (
-            <div className="popup" ref="popupTableColumnAdd">
+            <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
@@ -196,7 +182,12 @@ class TableColumnAdd extends React.Component {
                                     <span className="item-label">列：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="tp-input dialog-input dialog-input-sm" name="column_name" value={column.column_name} onChange={this.handleInputChange}/>
+                                    <input
+                                        className="tp-input dialog-input"
+                                        name="column_name"
+                                        value={column.column_name}
+                                        onChange={this.handleInputChange}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -204,7 +195,12 @@ class TableColumnAdd extends React.Component {
                                     <span className="item-label">描述：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="tp-textarea dialog-area" name="description" value={column.description} onChange={this.handleInputChange}/>
+                                    <textarea
+                                        className="tp-textarea dialog-area"
+                                        name="description"
+                                        value={column.description}
+                                        onChange={this.handleInputChange}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">
@@ -213,13 +209,32 @@ class TableColumnAdd extends React.Component {
                                     <span className="item-label">表达式：</span>
                                 </div>
                                 <div className="item-right">
-                                    <textarea className="tp-textarea dialog-area" name="expression" value={column.expression} onChange={this.handleInputChange}/>
+                                    <textarea
+                                        className="tp-textarea dialog-area"
+                                        name="expression"
+                                        value={column.expression}
+                                        onChange={this.handleInputChange}
+                                    />
                                     <Tooltip placement="topRight" title="生成新列的SQL语法，比如：col+1">
                                         <i
                                             className="icon icon-info after-textarea-icon"
                                             style={{top: 35}}
                                         />
                                     </Tooltip>
+                                </div>
+                            </div>
+                            <div className="dialog-item">
+                                <div className="item-left">
+                                    <i>*</i>
+                                    <span className="item-label">类型：</span>
+                                </div>
+                                <div className="item-right">
+                                    <input
+                                        className="tp-input dialog-input"
+                                        name="type"
+                                        value={column.type}
+                                        onChange={this.handleInputChange}
+                                    />
                                 </div>
                             </div>
                             <div className="dialog-item">

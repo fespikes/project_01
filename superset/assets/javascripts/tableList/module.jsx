@@ -447,3 +447,11 @@ export function makeDataTypes(data, isFirst) {
     return dataTypes;
 }
 
+export function getMetricTypeOptions() {
+    const types = ['count', 'count_distinct', 'sum', 'avg', 'max', 'min'];
+    const options = types.map(type => {
+        return <Select.Option key={type}>{type}</Select.Option>
+    });
+    return options;
+}
+
