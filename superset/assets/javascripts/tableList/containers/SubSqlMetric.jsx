@@ -156,6 +156,7 @@ class SubSqlMetric extends Component {
             dataIndex: 'metric_name',
             key: 'metric_name',
             width: '30%',
+            className: 'text-column',
             render: (text, record) => {
                 return (
                     <input
@@ -172,7 +173,7 @@ class SubSqlMetric extends Component {
             dataIndex: 'expression',
             key: 'expression',
             width: '40%',
-            className: 'checkb',
+            className: 'text-column',
             render: (text, record) => {
                 return (
                     <input
@@ -189,6 +190,7 @@ class SubSqlMetric extends Component {
             dataIndex: 'metric_type',
             key: 'metric_type',
             width: '20%',
+            className: 'text-column',
             render: (text, record) => {
                 return (
                     <Select

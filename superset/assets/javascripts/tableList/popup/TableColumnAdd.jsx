@@ -192,19 +192,6 @@ class TableColumnAdd extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
-                                    <span className="item-label">描述：</span>
-                                </div>
-                                <div className="item-right">
-                                    <textarea
-                                        className="tp-textarea dialog-area"
-                                        name="description"
-                                        value={column.description}
-                                        onChange={this.handleInputChange}
-                                    />
-                                </div>
-                            </div>
-                            <div className="dialog-item">
-                                <div className="item-left">
                                     <i>*</i>
                                     <span className="item-label">表达式：</span>
                                 </div>
