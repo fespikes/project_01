@@ -40,6 +40,24 @@
     }
 }
 
+.sql-metric .ant-select .ant-select-selection {
+    border: 1px solid transparent;
+    background-color: transparent;
+}
+
+.sql-metric .ant-select .ant-select-selection .ant-select-arrow {
+    visibility: hidden;
+}
+
+.sql-metric .ant-select:hover .ant-select-selection {
+    border: 1px solid #dfe3e9;
+    background-color: #fff;
+}
+
+.sql-metric .ant-select:hover .ant-select-selection .ant-select-arrow {
+    visibility: visible;
+}
+
 ul > li .ant-select-selection {
     border: none;
     height: 26px;
