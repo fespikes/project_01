@@ -50,7 +50,7 @@ class SliceModelView(SupersetModelView):  # noqa
     datamodel = SQLAInterface(Slice)
     route_base = '/slice'
     can_add = False
-    list_columns = ['id', 'slice_name', 'description', 'slice_url', 'datasource',
+    list_columns = ['id', 'slice_name', 'description', 'slice_url',
                     'viz_type', 'online', 'changed_on']
     edit_columns = ['slice_name', 'description']
     show_columns = ['id', 'slice_name', 'description', 'created_on', 'changed_on']
@@ -255,9 +255,15 @@ class SliceModelView(SupersetModelView):  # noqa
             line['viz_type'] = str(_(viz_type)) if viz_type else viz_type
             line['explore_url'] = obj.datasource.explore_url \
                 if obj.datasource else None
-            if not obj.datasource and obj.full_table_name:
+            if obj.database_id and obj.full_table_name:
                 line['datasource'] = obj.full_table_name
                 line['explore_url'] = obj.source_table_url
+            elif obj.datasource_id:
+                line['datasource'] = str(obj.datasource)
+                line['explore_url'] = obj.datasource.explore_url
+            else:
+                line['datasource'] = None
+                line['explore_url'] = None
             line['created_by_user'] = username
             line['favorite'] = True if fav_id else False
             data.append(line)
@@ -854,6 +860,7 @@ class Superset(BaseSupersetView):
             return redirect(slc.slice_url)
 
     def save_slice(self, slc):
+        db.session.expunge_all()
         db.session.add(slc)
         db.session.commit()
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
@@ -864,6 +871,7 @@ class Superset(BaseSupersetView):
         if not can_update:
             flash(_("You cannot overwrite [{slice}]").format(slice=slc), "danger")
         else:
+            db.session.expunge_all()
             db.session.merge(slc)
             db.session.commit()
             flash(_("Slice [{slice}] has been overwritten")
