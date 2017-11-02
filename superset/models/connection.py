@@ -109,6 +109,8 @@ class Database(Model, AuditMixinNullable, Count):
                 url.database = url.database.split('/')[0] + '/' + schema
             else:
                 url.database += '/' + schema
+        elif self.backend == 'oracle' and schema:
+            pass
         elif schema:
             url.database = schema
         return create_engine(url, connect_args=connect_args)
