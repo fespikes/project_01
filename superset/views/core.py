@@ -256,7 +256,7 @@ class SliceModelView(SupersetModelView):  # noqa
             if obj.database_id and obj.full_table_name:
                 line['datasource'] = obj.full_table_name
                 line['explore_url'] = obj.source_table_url
-            elif obj.datasource_id:
+            elif obj.datasource_id and obj.datasource:
                 line['datasource'] = str(obj.datasource)
                 line['explore_url'] = obj.datasource.explore_url
             else:
