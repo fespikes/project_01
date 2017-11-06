@@ -829,6 +829,10 @@ class Superset(BaseSupersetView):
                     .filter_by(id=int(request.args.get('save_to_dashboard_id')))
                     .one()
             )
+            if dash and slc not in dash.slices:
+                dash.slices.append(slc)
+                db.session.commit()
+                Log.log_update(dash, 'dashboard', get_user_id())
             flash(
                 _("Slice [{slice}] was added to dashboard [{dashboard}]").format(
                     slice=slc.slice_name,
@@ -842,11 +846,11 @@ class Superset(BaseSupersetView):
                     dashboard=dash.dashboard_title,
                     slice=slc.slice_name),
                 "info")
-
-        if dash and slc not in dash.slices:
-            dash.slices.append(slc)
-            db.session.commit()
-            Log.log_add(dash, 'dashboard', get_user_id())
+            if dash and slc not in dash.slices:
+                dash.slices.append(slc)
+                db.session.add(dash)
+                db.session.commit()
+                Log.log_add(dash, 'dashboard', get_user_id())
 
         if request.args.get('goto_dash') == 'true':
             if request.args.get('V2') == 'true':
