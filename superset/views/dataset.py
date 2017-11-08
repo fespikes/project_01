@@ -341,14 +341,16 @@ class DatasetModelView(SupersetModelView):  # noqa
             database = db.session.query(Database) \
                 .filter_by(id=args.get('database_id')) \
                 .first()
+
+            dataset_name = args.get('dataset_name')
             hdfs_table.create_external_table(
-                database, args.get('dataset_name'),
+                database, dataset_name,
                 args.get('columns'), args.get('hdfs_path'), args.get('separator'))
 
             # create dataset
             dataset = self.model(
-                dataset_name=args.get('dataset_name'),
-                table_name=args.get('dataset_name'),
+                dataset_name=dataset_name,
+                table_name=dataset_name.lower(),
                 description=args.get('description'),
                 database_id=args.get('database_id'),
                 database=database,
