@@ -142,7 +142,7 @@ function receiveSQLMetric(json) {
     };
 }
 
-export function saveHDFSDataset(json) {
+export function saveHDFSDataset(json) {//HDFSConfigured value always true in this version
     return {
         type: actionTypes.saveHDFSDataset,
         dsHDFS: json,
@@ -451,7 +451,8 @@ export function fetchHDFSFileBrowser(path, hdfsConnectId, callback) {
 }
 
 export function fetchUploadFile(data, fileName, path, callback) {
-    const url = window.location.origin + '/hdfs/upload/?dest_path=' + path + '&file_name=' + fileName;
+    const url = window.location.origin + '/hdfs/upload/?dest_path='
+        + path + '&file_name=' + fileName;
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
         return fetch(url, {

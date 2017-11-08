@@ -7,7 +7,7 @@ import { now, epochTimeXHoursAgo,
     epochTimeXDaysAgo, epochTimeXYearsAgo } from '../../modules/dates';
 import { STATUS_OPTIONS, TIME_OPTIONS } from '../constants';
 import AsyncSelect from '../../components/AsyncSelect';
-import {PILOT_PREFIX} from '../../../utils/utils'
+import {PILOT_PREFIX} from '../../../utils/utils';
 
 const propTypes = {
     actions: React.PropTypes.object.isRequired,
@@ -205,7 +205,7 @@ class QuerySearch extends React.PureComponent {
                             <div className="scrollbar-content">
                                 <QueryTable
                                     columns={[
-                                        '状态', '连接', '用户', '时间',
+                                        '状态', '连接', '用户', '开始时间',
                                         '进度', '行数', 'sql', '查询链接'
                                     ]}
                                     onUserClicked={this.onUserClicked.bind(this)}
