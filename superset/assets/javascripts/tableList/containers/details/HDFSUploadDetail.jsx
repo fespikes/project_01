@@ -1,15 +1,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { render } from 'react-dom';
-import ReactDOM from 'react-dom';
-import { connect } from 'react-redux';
+import ReactDOM, {render} from 'react-dom';
+import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import { Link, withRouter } from 'react-router-dom';
-import { Select, Tooltip, TreeSelect, Alert, message } from 'antd';
-import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
-import { datasetTypes } from '../../actions';
-import { constructFileBrowserData, appendTreeChildren, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
-import { renderLoadingModal, renderAlertTip } from '../../../../utils/utils';
+import {Link, withRouter} from 'react-router-dom';
+import {Select, Tooltip, TreeSelect, Alert, message} from 'antd';
+import {Confirm, CreateHDFSConnect, CreateInceptorConnect} from '../../popup';
+import {datasetTypes} from '../../actions';
+import {constructFileBrowserData, appendTreeChildren, initDatasetData,
+    extractOpeType, getDatasetId, extractDatasetType} from '../../module';
+import {renderLoadingModal, renderAlertTip} from '../../../../utils/utils';
 
 class HDFSUploadDetail extends Component {
 
@@ -75,16 +75,20 @@ class HDFSUploadDetail extends Component {
     }
 
     onTreeNodeSelect(value, node) {
-        let objHDFS = {
+        const objHDFS = {
             ...this.state.dsHDFS,
             hdfsPath: node.props.value
         };
+        this.setState({dsHDFS: objHDFS});
+        this.setUploadFileState(objHDFS);
+    }
+
+    setUploadFileState(hdfs) {
         let disabled = 'disabled';
-        if(objHDFS.uploadFileName && objHDFS.uploadFileName.length > 0) {
+        if(hdfs.uploadFileName && hdfs.uploadFileName.length > 0) {
             disabled = null;
         }
         this.setState({
-            dsHDFS: objHDFS,
             disabledUpload: disabled
         });
     }
@@ -93,13 +97,11 @@ class HDFSUploadDetail extends Component {
         const self = this;
         const hdfsPath = node.props.value;
         const hdfsConnectId = this.state.dsHDFS.hdfsConnectId;
-        const { fetchHDFSFileBrowser } = self.props;
-        return fetchHDFSFileBrowser(hdfsPath, hdfsConnectId, callback);
+        return this.props.fetchHDFSFileBrowser(hdfsPath, hdfsConnectId, callback);
         function callback(success, data) {
             if(success) {
                 let treeData = appendTreeChildren(
-                    hdfsPath,
-                    data,
+                    hdfsPath, data,
                     JSON.parse(JSON.stringify(self.state.dsHDFS.fileBrowserData))
                 );
                 let objHDFS = {
@@ -145,14 +147,13 @@ class HDFSUploadDetail extends Component {
             );
             return;
         }
-        const { fetchUploadFile } = this.props;
-        fetchUploadFile(
+        this.props.fetchUploadFile(
             this.state.dsHDFS.binaryFile,
             this.state.dsHDFS.uploadFileName,
             this.state.dsHDFS.hdfsPath,
             callback
         );
-        function callback(success) {
+        function callback(success, data) {
             let response = {};
             let fileUploaded = false;
             if(success) {
@@ -162,17 +163,21 @@ class HDFSUploadDetail extends Component {
             }else {
                 response.type = 'error';
                 fileUploaded = false;
-                response.message = '上传失败';
+                response.message = data;
             }
-            self.setState({
+            const objUpload = {
+                ...self.state.dsHDFS,
                 fileUploaded: fileUploaded
+            };
+            self.setState({
+                dsHDFS: objUpload
             });
-            renderAlertTip(response, 'showAlertDetail', 400);
+            renderAlertTip(response, 'showAlertDetail', 600);
         }
     }
 
     onConfig() {
-        const { saveHDFSDataset, datasetType, datasetId, history } = this.props;
+        const {saveHDFSDataset, datasetType, datasetId, history} = this.props;
         const opeType = extractOpeType(window.location.hash);
         saveHDFSDataset(this.state.dsHDFS);
         const url = '/' + opeType + '/preview/' + datasetType + '/' + datasetId;
@@ -191,7 +196,8 @@ class HDFSUploadDetail extends Component {
             }
         });
 
-        if(datasetType === datasetTypes.uploadFile && !this.state.fileUploaded) {
+        if(datasetType === datasetTypes.uploadFile
+            && !this.state.dsHDFS.fileUploaded) {
            disabled = 'disabled';
         }
         if(disabled === this.state.disabledConfig) {
@@ -208,7 +214,9 @@ class HDFSUploadDetail extends Component {
 
     componentDidMount() {
         const datasetType = extractDatasetType(window.location.hash);
-        if(datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) {
+        if(datasetType === datasetTypes.hdfs
+            || datasetType === datasetTypes.uploadFile) {//for exclude inceptor
+
             this.doFetchInceptorList();
             this.doFetchHDFSList();
             if(window.location.hash.indexOf('/edit') > 0) {
@@ -218,8 +226,10 @@ class HDFSUploadDetail extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if(nextProps.dsHDFS.dataset_name &&
-            nextProps.dsHDFS.dataset_name !== this.props.dsHDFS.dataset_name) {
+        if(nextProps.dsHDFS.dataset_name
+            && nextProps.dsHDFS.dataset_name
+            !== this.props.dsHDFS.dataset_name) {
+
             this.setState({
                 dsHDFS: nextProps.dsHDFS
             });
@@ -228,8 +238,7 @@ class HDFSUploadDetail extends Component {
 
     doFetchInceptorList() {
         const self = this;
-        const { fetchInceptorConnectList } = self.props;
-        fetchInceptorConnectList(inceptorCallback);
+        this.props.fetchInceptorConnectList(inceptorCallback);
         function inceptorCallback(success, data) {
             if(success) {
                 let objHDFS = {
@@ -267,8 +276,7 @@ class HDFSUploadDetail extends Component {
 
     doFetchHDFSFileData(path, hdfsConnectId) {
         const self = this;
-        const { fetchHDFSFileBrowser } = self.props;
-        fetchHDFSFileBrowser(path, hdfsConnectId, fileCallback);
+        this.props.fetchHDFSFileBrowser(path, hdfsConnectId, fileCallback);
         function fileCallback(success, data) {
             if(success) {
                 const browserData = constructFileBrowserData(data);
@@ -289,12 +297,14 @@ class HDFSUploadDetail extends Component {
         const self = this;
         const {fetchDatasetDetail, fetchDBDetail, fetchHDFSDetail} = self.props;
         let datasetId = getDatasetId('edit', window.location.hash);
+
         fetchDatasetDetail(datasetId, callback);
         function callback(success, data) {
             if(success) {
                 fetchDBDetail(data.database_id, dbCallback);
                 fetchHDFSDetail(data.hdfs_connection_id, hdfsCallback);
                 self.doFetchHDFSFileData('/', data.hdfs_connection_id);
+
                 function dbCallback(success, dbData) {
                     if(success) {
                         let objHDFS = {
@@ -303,10 +313,13 @@ class HDFSUploadDetail extends Component {
                             inceptorConnectId: dbData.id
                         };
                         self.setState({
-                            dsHDFS: initDatasetData(datasetTypes.hdfs, data, objHDFS)
+                            dsHDFS: initDatasetData(
+                                datasetTypes.hdfs, data, objHDFS
+                            )
                         });
                     }
                 }
+
                 function hdfsCallback(success, hdfsData) {
                     if(success) {
                         let objHDFS = {
@@ -315,7 +328,10 @@ class HDFSUploadDetail extends Component {
                             hdfsConnectId: hdfsData.id
                         };
                         self.setState({
-                            dsHDFS: initDatasetData(datasetTypes.hdfs, data, objHDFS)
+                            dsHDFS: initDatasetData(
+                                datasetTypes.hdfs,
+                                data, objHDFS
+                            )
                         });
                     }
                 }
@@ -328,15 +344,21 @@ class HDFSUploadDetail extends Component {
         const {HDFSConnected, datasetType} = this.props;
         const Option = Select.Option;
         let hdfsOptions = [], inceptorOptions = [];
+
         if(this.state.dsHDFS.hdfsConnections) {
-            hdfsOptions = this.state.dsHDFS.hdfsConnections.map(hdfs => {
-                return <Option key={hdfs.id}>{hdfs.connection_name}</Option>
-            });
+            hdfsOptions = this.state.dsHDFS.hdfsConnections.map(
+                hdfs => {
+                    return <Option key={hdfs.id}>{hdfs.connection_name}</Option>
+                }
+            );
         }
         if(this.state.dsHDFS.inceptorConnections) {
-            inceptorOptions = this.state.dsHDFS.inceptorConnections.map(inceptor => {
-                return <Option key={inceptor.id}>{inceptor.database_name}</Option>
-            });
+            inceptorOptions = this.state.dsHDFS.inceptorConnections.map(
+                inceptor => {
+                    return <Option key={inceptor.id}>
+                        {inceptor.database_name}</Option>
+                }
+            );
         }
         return (
             <div className="data-detail-centent hdfs-detail">
@@ -364,12 +386,17 @@ class HDFSUploadDetail extends Component {
                         onChange={this.handleChange}
                     />
                 </div>
-                <div className={datasetType===datasetTypes.uploadFile?'data-detail-item':'none'}>
+                <div className={datasetType===datasetTypes.uploadFile
+                        ?'data-detail-item':'none'}>
                     <div>
                         <i>*</i>
                     </div>
                     <div>
-                        <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
+                        <label
+                            className="file-browser"
+                            htmlFor="xFile"
+                            style={{width: 200}}
+                        >
                             <span>选择文件</span>
                         </label>
                         <div className="file-name">
@@ -392,7 +419,10 @@ class HDFSUploadDetail extends Component {
                         <span></span>
                         <div className="data-connect-status">
                             <span>尚未建立HDFS连接</span>
-                            <Tooltip placement="top" title="需要到连接页面创建HDFS连接">
+                            <Tooltip
+                                placement="top"
+                                title="需要到连接页面创建HDFS连接"
+                            >
                                 <button>建立HDFS连接</button>
                             </Tooltip>
                             {/*<button onClick={this.createHDFSConnect}>建立HDFS连接</button>*/}
@@ -428,7 +458,10 @@ class HDFSUploadDetail extends Component {
                         <i>*</i>
                         <span>数据目录：</span>
                     </div>
-                    <div className="dataset-detail" id="dataset-detail-tree-select">
+                    <div
+                        className="dataset-detail"
+                        id="dataset-detail-tree-select"
+                    >
                         <TreeSelect
                             showSearch
                             value={dsHDFS.hdfsPath}
@@ -438,11 +471,16 @@ class HDFSUploadDetail extends Component {
                             treeData={dsHDFS.fileBrowserData}
                             onSelect={this.onTreeNodeSelect}
                             loadData={this.onLoadData}
-                            getPopupContainer={() => document.getElementById('dataset-detail-tree-select')}
+                            getPopupContainer={() => document.getElementById(
+                                'dataset-detail-tree-select')}
                             dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
                         >
                         </TreeSelect>
-                        <input type="hidden" required="required" value={dsHDFS.hdfsPath}/>
+                        <input
+                            type="hidden"
+                            required="required"
+                            value={dsHDFS.hdfsPath}
+                        />
                     </div>
                     <Tooltip title="选择创建外表的文件目录">
                         <i

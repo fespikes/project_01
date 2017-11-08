@@ -1,14 +1,14 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { render } from 'react-dom';
+import {connect} from 'react-redux';
+import {render} from 'react-dom';
 import {bindActionCreators} from 'redux';
-import { Link, withRouter } from 'react-router-dom';
+import {Link, withRouter} from 'react-router-dom';
 import * as actionCreators from '../actions';
-import { datasetTypes } from '../actions';
-import { Table, Input, Button, Icon, Select, Alert, message } from 'antd';
+import {datasetTypes} from '../actions';
+import {Table, Input, Button, Icon, Select, Alert, message} from 'antd';
 import * as datasetModule from '../module';
-import { DetailType } from '../popup';
+import {DetailType} from '../popup';
 import {renderAlertTip} from '../../../utils/utils';
 
 class SubPreview extends Component {
@@ -19,10 +19,7 @@ class SubPreview extends Component {
             tableWidth: '100%',
             clickPreview: false,
             columnNames: [],
-            dsHDFS: datasetModule.initHDFSPreviewData(
-                props.dsHDFS,
-                datasetModule.extractOpeType(window.location.hash)
-            )
+            dsHDFS: this.initHDFSDataset(props)
         };
         //bindings
         this.charsetChange = this.charsetChange.bind(this);
@@ -33,6 +30,15 @@ class SubPreview extends Component {
         this.hdfsColumnNameChange = this.hdfsColumnNameChange.bind(this);
     }
 
+    initHDFSDataset(props) {
+        const hashUrl = window.location.hash;
+        const dsHDFS = datasetModule.initHDFSPreviewData(
+            props.dsHDFS,
+            datasetModule.extractOpeType(hashUrl)
+        );
+        return dsHDFS;
+    }
+
     componentDidMount() {
         const { datasetId, inceptorPreviewData, dsHDFS } = this.props;
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
@@ -41,11 +47,13 @@ class SubPreview extends Component {
                 if(datasetId && datasetId.toString().length > 0) {
                     this.doFetchInceptorPreviewData(datasetId);
                 }
-            }else {
+            }else {//local cached
                 this.doConstructTableData(datasetType, inceptorPreviewData);
             }
-        } else if(datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) {
-            if(dsHDFS && dsHDFS.hdfsConnectId) {
+        } else if(datasetType === datasetTypes.hdfs
+            || datasetType === datasetTypes.uploadFile) {
+
+            if(dsHDFS && dsHDFS.hdfsConnectId) {//local not cached
                 this.doFetchHDFSPreviewData(dsHDFS);
             }
         }
@@ -53,11 +61,16 @@ class SubPreview extends Component {
 
     componentWillReceiveProps(nextProps) {
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
-        if(nextProps.datasetId !== this.props.datasetId && nextProps.datasetId) {
-            if(datasetType === datasetTypes.database) {
+        if(datasetType === datasetTypes.database) {
+            if(nextProps.datasetId !== this.props.datasetId && nextProps.datasetId) {
                 this.doFetchInceptorPreviewData(nextProps.datasetId);
-            } else if(datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) {
+            }
+        }else if(datasetType === datasetTypes.hdfs
+            || datasetType === datasetTypes.uploadFile) {
+            if(nextProps.dsHDFS.hdfsConnectId !== this.props.dsHDFS.hdfsConnectId
+                && nextProps.dsHDFS.hdfsConnectId) {
                 this.doFetchHDFSPreviewData(nextProps.dsHDFS);
+                this.setState({dsHDFS: nextProps.dsHDFS});
             }
         }
     }
@@ -88,9 +101,7 @@ class SubPreview extends Component {
         });
         const tbTitle = datasetModule.getTbTitleHDFS(
             JSON.parse(JSON.stringify(tbTitleOnly)),
-            this,
-            this.state.tbTitle,
-            false
+            this, this.state.tbTitle, false
         );
         const columnNames = this.constructColumnNames(tbTitle);
         this.setState({
@@ -100,18 +111,18 @@ class SubPreview extends Component {
     }
 
     doFetchInceptorPreviewData(datasetId) {
-        const me = this;
+        const self = this;
         const {fetchInceptorPreviewData, saveInceptorPreviewData} = this.props;
         fetchInceptorPreviewData(datasetId, callback);
         function callback(success, data) {
             if(success) {
                 let width = datasetModule.getTableWidth(data.columns.length);
                 saveInceptorPreviewData(data);
-                me.setState({
+                self.setState({
                     tableWidth: width,
                     data: data
                 });
-                me.doConstructTableData(datasetTypes.database, data);
+                self.doConstructTableData(datasetTypes.database, data);
             }else {
                 message.error(data, 5);
             }
@@ -119,17 +130,17 @@ class SubPreview extends Component {
     }
 
     doFetchHDFSPreviewData(dsHDFS) {
-        const me = this;
+        const self = this;
         const {fetchHDFSPreviewData, datasetId} = this.props;
         fetchHDFSPreviewData(dsHDFS, datasetId, callback);
         function callback(success, data) {
             if(success) {
                 let width = datasetModule.getTableWidth(data.columns.length);
-                me.setState({
+                self.setState({
                     tableWidth: width,
                     data: data
                 });
-                me.doConstructTableData(datasetTypes.hdfs, data);
+                self.doConstructTableData(datasetTypes.hdfs, data);
             }else {
                 message.error(data, 5);
             }
@@ -137,15 +148,24 @@ class SubPreview extends Component {
     }
 
     doConstructTableData(datasetType, data) {
-        let tbTitle=[], tbType=[], tbContentHDFS=[], columnNames=this.state.columnNames;
+        let tbTitle=[], tbType=[], tbContentHDFS=[],
+            columnNames=this.state.columnNames;
         let width = datasetModule.getColumnWidth(data.columns.length);
         let tbTitleOnly = datasetModule.getTbTitle(data, width);
         let tbContent = datasetModule.getTbContent(data);
+
         if(datasetType === datasetTypes.database) {
             tbType = datasetModule.getTbType(data);
-            tbTitle = datasetModule.getTbTitleInceptor(JSON.parse(JSON.stringify(tbTitleOnly)), width);
-        }else if(datasetType === datasetTypes.hdfs || datasetType === datasetTypes.uploadFile) {
-            tbTitle = datasetModule.getTbTitleHDFS(JSON.parse(JSON.stringify(tbTitleOnly)), this, data.types, true);
+            tbTitle = datasetModule.getTbTitleInceptor(
+                JSON.parse(JSON.stringify(tbTitleOnly)), width
+            );
+        }else if(datasetType === datasetTypes.hdfs
+            || datasetType === datasetTypes.uploadFile) {
+
+            tbTitle = datasetModule.getTbTitleHDFS(
+                JSON.parse(JSON.stringify(tbTitleOnly)),
+                this, data.types, true
+            );
             tbContentHDFS = [{
                 key: '1'
             }];
@@ -153,6 +173,7 @@ class SubPreview extends Component {
                 columnNames = this.constructColumnNames(tbTitle);
             }
         }
+
         this.setState({
             tbType: tbType,
             tbTitle: tbTitle,
@@ -166,7 +187,9 @@ class SubPreview extends Component {
     constructColumnNames(tbTitle) {
         const self = this;
         const tableWidth = this.state.tableWidth;
-        const colWidth = datasetModule.getHDFSInputColumnWidth(tableWidth, tbTitle.length);
+        const colWidth = datasetModule.getHDFSInputColumnWidth(
+            tableWidth, tbTitle.length);
+
         const columnNames = tbTitle.map((column) => {
             return <input
                 type="text"
@@ -194,17 +217,24 @@ class SubPreview extends Component {
     setDataAccuracy(type, accuracy, column) {
         let tbHDFSTitle = [];
         let tbTitle = this.state.tbTitle;
+
         if(type.indexOf('varchar') > -1) {
             let maxLen = accuracy.maxLen;
             let varcharStr = 'varchar(' + maxLen + ')';
-            tbHDFSTitle = datasetModule.setHDFSColumnType(column, tbTitle, varcharStr, this);
+            tbHDFSTitle = datasetModule.setHDFSColumnType(
+                column, tbTitle, varcharStr, this
+            );
         }else if(type.indexOf('decimal') > -1) {
             let effectiveNum = accuracy.effectiveNum;
             let decimalNum = accuracy.decimalNum;
             let decimalStr = 'decimal(' + effectiveNum + ',' + decimalNum + ')';
-            tbHDFSTitle = datasetModule.setHDFSColumnType(column, tbTitle, decimalStr, this);
+            tbHDFSTitle = datasetModule.setHDFSColumnType(
+                column, tbTitle, decimalStr, this
+            );
         }else {
-            tbHDFSTitle = datasetModule.setHDFSColumnType(column, tbTitle, type, this);
+            tbHDFSTitle = datasetModule.setHDFSColumnType(
+                column, tbTitle, type, this
+            );
         }
         this.setState({
             tbTitle: tbHDFSTitle
@@ -216,7 +246,8 @@ class SubPreview extends Component {
             render(
                 <DetailType
                     dataType={value}
-                    setDataAccuracy={(type, accuracy)=>this.setDataAccuracy(type, accuracy, column)}
+                    setDataAccuracy={(type, accuracy)=>this.setDataAccuracy(
+                        type, accuracy, column)}
                 />,
                 document.getElementById('popup_root')
             );
@@ -226,35 +257,40 @@ class SubPreview extends Component {
     }
 
     saveHDFSDataset() {
-        const me = this;
+        const self = this;
         const { createDataset, editDataset } = this.props;
-        const dsHDFS = datasetModule.constructHDFSDataset(this.state.dsHDFS, this.state.tbTitle);
+        const dsHDFS = datasetModule.constructHDFSDataset(
+            this.state.dsHDFS, this.state.tbTitle
+        );
         const opeType = datasetModule.extractOpeType(window.location.hash);
+
         if(opeType === 'add') {
             createDataset(dsHDFS, callback);
             function callback(success, data) {
                 let response = {};
                 if(success) {
                     let url = '/' + opeType + '/columns/HDFS/';
-                    me.props.history.push(url);
+                    self.props.history.push(url);
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlertPreview', 400);
+                    renderAlertTip(response, 'showAlertPreview', 600);
                 }
             }
         }else if(opeType === 'edit') {
-            let hdfsId = datasetModule.getDatasetId(opeType, window.location.hash);
+            let hdfsId = datasetModule.getDatasetId(
+                opeType, window.location.hash
+            );
             editDataset(dsHDFS, hdfsId, callback);
             function callback(success, data) {
                 let response = {};
                 if(success) {
                     let url = '/' + opeType + '/columns/HDFS/' + hdfsId;
-                    me.props.history.push(url);
+                    self.props.history.push(url);
                 }else {
                     response.type = 'error';
                     response.message = data;
-                    renderAlertTip(response, 'showAlertPreview', 400);
+                    renderAlertTip(response, 'showAlertPreview', 600);
                 }
             }
         }
@@ -273,17 +309,21 @@ class SubPreview extends Component {
         const tableWidth = this.state.tableWidth;
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
         return (
-            <div id="data-preview-id">
-                <div style={{width:'100%', height:'30px', background:'#fff', marginTop:'-2px'}}></div>
+            <div id="data-preview-id" className="data-preview-box">
                 <div className="preview-table">
                     <div
-                        className={datasetType===datasetTypes.hdfs?'editable-table-header':'none'}
+                        className={(datasetType===datasetTypes.hdfs
+                            || datasetType===datasetTypes.uploadFile)
+                            ?'editable-table-header':'none'}
                         style={{width: tableWidth, height: 40}}
                     >
                         {this.state.columnNames}
                     </div>
-                    <div className={datasetType===datasetTypes.database?'table-header':'none'}
-                         style={{width: tableWidth}}>
+                    <div
+                        className={datasetType===datasetTypes.database
+                            ?'table-header':'none'}
+                        style={{width: tableWidth}}
+                    >
                         <Table
                             className="data-preview"
                             columns={this.state.tbTitle}
@@ -292,9 +332,12 @@ class SubPreview extends Component {
                             pagination={false}
                         />
                     </div>
-                    <div className={(datasetType===datasetTypes.hdfs || datasetType===datasetTypes.uploadFile)?
-                                    'table-header hdfs-table-header':'none'}
-                         style={{width: tableWidth}}>
+                    <div
+                        className={(datasetType===datasetTypes.hdfs
+                            || datasetType===datasetTypes.uploadFile)
+                            ?'table-header hdfs-table-header':'none'}
+                        style={{width: tableWidth}}
+                    >
                         <Table
                             columns={this.state.tbTitle}
                             dataSource={this.state.tbContentHDFS}
@@ -312,42 +355,65 @@ class SubPreview extends Component {
                         />
                     </div>
                 </div>
-                <div className={datasetType===datasetTypes.database?'none':'data-detail-preview'}>
+                <div
+                    className={datasetType===datasetTypes.database
+                        ?'none':'data-detail-preview'}
+                >
                     <div className="data-detail-border">
                         <div className="data-detail-item">
                             <span>文件类型：</span>
-                            <input type="text" value={dsHDFS.file_type} className="tp-input"
-                                   name="file_type" onChange={this.handleChange}/>
+                            <input
+                                type="text" value={dsHDFS.file_type}
+                                className="tp-input" name="file_type"
+                                onChange={this.handleChange}
+                            />
                         </div>
                         <div className="data-detail-item">
                             <span>分隔符：</span>
-                            <input type="text" value={dsHDFS.separator} className="tp-input"
-                                   name="separator" onChange={this.handleChange}/>
+                            <input
+                                type="text" value={dsHDFS.separator}
+                                className="tp-input" name="separator"
+                                onChange={this.handleChange}
+                            />
                             <i className="icon infor-icon" />
                         </div>
                         <div className="data-detail-item">
                             <span>引号符：</span>
-                            <input type="text" value={dsHDFS.quote} className="tp-input"
-                                   name="quote" onChange={this.handleChange}/>
+                            <input
+                                type="text" value={dsHDFS.quote}
+                                className="tp-input" name="quote"
+                                onChange={this.handleChange}
+                            />
                             <i className="icon infor-icon" />
                         </div>
                         <div className="data-detail-item">
                             <span>忽略行数：</span>
-                            <input type="text" value={dsHDFS.skip_rows} className="tp-input"
-                                   name="skip_rows" onChange={this.handleChange}/>
+                            <input
+                                type="text" value={dsHDFS.skip_rows}
+                                className="tp-input" name="skip_rows"
+                                onChange={this.handleChange}
+                            />
                         </div>
                         <div className="data-detail-item">
                             <span></span>
                             <div className="data-detail-checkbox">
-                                <input type="checkbox" checked={dsHDFS.next_as_header} className="tp-input"
-                                       name="next_as_header" onChange={this.handleChange}/>
+                                <input
+                                    type="checkbox"
+                                    className="tp-input"
+                                    name="next_as_header"
+                                    checked={dsHDFS.next_as_header}
+                                    onChange={this.handleChange}
+                                />
                                 <p>下一行为列名</p>
                             </div>
                         </div>
                         <div className="data-detail-item">
                             <span>再忽略行数：</span>
-                            <input type="text" value={dsHDFS.skip_more_rows} className="tp-input"
-                                   name="skip_more_rows" onChange={this.handleChange}/>
+                            <input
+                                type="text" value={dsHDFS.skip_more_rows}
+                                className="tp-input" name="skip_more_rows"
+                                onChange={this.handleChange}
+                            />
                         </div>
                         <div className="data-detail-item">
                             <span>字符集：</span>
@@ -364,7 +430,10 @@ class SubPreview extends Component {
                     </div>
 
                     <div className="sub-btn">
-                        <button onClick={this.previewHDFSDataset} style={{marginRight: 20}}>
+                        <button
+                            onClick={this.previewHDFSDataset}
+                            style={{marginRight: 20}}
+                        >
                             预览
                         </button>
                         <button onClick={this.saveHDFSDataset}>

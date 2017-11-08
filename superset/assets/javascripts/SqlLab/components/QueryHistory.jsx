@@ -13,8 +13,8 @@ const QueryHistory = (props) => {
     return (
       <QueryTable
         columns={[
-          'state', 'started', 'duration', 'progress',
-          'rows', 'sql', 'output', 'actions',
+          '状态', '开始时间', '用时', '进度',
+          '行数', 'sql', '数据库', '操作',
         ]}
         queries={props.queries}
         actions={props.actions}

@@ -8,7 +8,7 @@ export default function subDetail(state = {
     HDFSConnected: true,
     HDFSConfigured: false,
     datasetId: '',
-    inceptorPreviewData: {},
+    inceptorPreviewData: {},//for local cache
     dsHDFS: {
         dataset_name: '',
         description: '',
@@ -17,6 +17,7 @@ export default function subDetail(state = {
         inceptorConnectName: '',
         hdfsPath: '',
         uploadFileName: '',
+        fileUploaded: false,
         file_type: 'csv',
         separator: ',',
         quote: '\\',
