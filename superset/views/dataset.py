@@ -225,35 +225,56 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        dataset = db.session.query(Dataset).filter_by(id=id).first()
-        if not dataset:
-            raise SupersetException(
-                _("Not found dataset by id [{id}]").format(id=id)
-            )
-        conns = []
-        if dataset.database:
-            conns.append(dataset.database)
-        if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
-            conns.append(dataset.hdfs_table.hdfs_connection)
-        info = _("Releasing dataset [{dataset}] will release connection {connection}")\
-            .format(dataset=dataset, connection=conns)
+        objects = self.release_affect_objects(id)
+        info = _("Releasing dataset {dataset} will release connection {connection}, "
+                 "and make these slices usable for others: {slice}")\
+            .format(dataset=objects.get('dataset'),
+                    connection=objects.get('connection'),
+                    slice=objects.get('slice'),
+                    )
         return json_response(data=info)
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.associated_objects([id, ])
+        objects = self.release_affect_objects(id)
         info = _("Changing dataset {dataset} to offline will make these "
-               "slices unusable: {slice}")\
-            .format(dataset=objects.get('dataset'), slice=objects.get('slice'))
+                 "slices unusable for others: {slice}")\
+            .format(dataset=objects.get('dataset'),
+                    slice=objects.get('slice')
+                    )
         return json_response(data=info)
+
+    def release_affect_objects(self, id):
+        """
+        Changing dataset to online will make offline_connection online,
+        and make online_slices based on it usable.
+        Changing dataset to offline will make online_slices based on it unusable.
+        """
+        dataset = self.get_object(id)
+        slices = (
+            db.session.query(Slice)
+            .filter(
+                Slice.datasource_id == dataset.id,
+                Slice.online == 1
+            ).all()
+        )
+        conns = []
+        if dataset.database:
+            conns.append(dataset.database)
+        if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
+            conns.append(dataset.hdfs_table.hdfs_connection)
+        connections = [c for c in conns if c.online is False]
+        return {'dataset': [dataset, ], 'slice': slices, 'connection': connections}
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.associated_objects([id, ])
+        objects = self.delete_affect_objects([id, ])
         info = _("Deleting datasets {dataset} will make these slices unusable: {slice}")\
-            .format(dataset=objects.get('dataset'), slice=objects.get('slice'))
+            .format(dataset=objects.get('dataset'),
+                    slice=objects.get('slice')
+                    )
         return json_response(data=info)
 
     @catch_exception
@@ -261,24 +282,36 @@ class DatasetModelView(SupersetModelView):  # noqa
     def muldelete_info(self):
         json_data = self.get_request_data()
         ids = json_data.get('selectedRowKeys')
-        objects = self.associated_objects(ids)
+        objects = self.delete_affect_objects(ids)
         info = _("Deleting datasets {dataset} will make these slices unusable: {slice}") \
-            .format(dataset=objects.get('dataset'), slice=objects.get('slice'))
+            .format(dataset=objects.get('dataset'),
+                    slice=objects.get('slice')
+                    )
         return json_response(data=info)
 
-    def associated_objects(self, ids):
-        dataset = db.session.query(Dataset).filter(Dataset.id.in_(ids)).all()
-        if len(dataset) != len(ids):
-            raise SupersetException('Not found all datasets by ids: {}'.format(ids))
+    def delete_affect_objects(self, ids):
+        """
+        Deleting dataset will make myself and online_slices unusable.
+        """
+        datasets = db.session.query(Dataset).filter(Dataset.id.in_(ids)).all()
+        if len(datasets) != len(ids):
+            raise Exception(
+                _("Error parameter ids: {ids}, queried {num} dataset(s)")
+                .format(ids=ids, num=len(datasets))
+            )
+        dataset_ids = [d.id for d in datasets]
+        user_id = get_user_id()
         slices = (
             db.session.query(Slice)
-            .filter(Slice.datasource_id.in_(ids),
-                    or_(Slice.created_by_fk == get_user_id(),
-                        Slice.online == 1)
-                    )
-            .all()
+                .filter(
+                Slice.datasource_id.in_(dataset_ids),
+                or_(
+                    Slice.created_by_fk == user_id,
+                    Slice.online == 1
+                )
+            ).all()
         )
-        return {'dataset': dataset, 'slice': slices}
+        return {'dataset': datasets, 'slice': slices}
 
     @catch_exception
     @expose('/add', methods=['POST', ])

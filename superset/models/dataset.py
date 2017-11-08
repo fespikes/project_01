@@ -911,15 +911,15 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
             if raise_if_false:
                 raise SupersetException(
                     _("Dependent someone's dataset [{dataset}] is offline, "
-                    "so it's unavailable").format(dataset=dataset))
+                      "so it's unavailable").format(dataset=dataset))
             else:
                 return False
         # database
         if dataset.database and check(dataset.database, user_id) is False:
             if raise_if_false:
                 raise SupersetException(
-                    _("Dependent someone's Inceptor connection [{conn}] is offline, "
-                    "so it's unavailable").format(conn=dataset.database))
+                    _("Dependent someone's database connection [{conn}] is offline, "
+                      "so it's unavailable").format(conn=dataset.database))
             else:
                 return False
         # hdfs_connection
@@ -929,7 +929,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
             if raise_if_false:
                 raise SupersetException(
                     _("Dependent someone's HDFS connection [{conn}] is offline, "
-                    "so it's unavailable").format(conn=dataset.hdfs_table.hdfs_connection))
+                      "so it's unavailable").format(conn=dataset.hdfs_table.hdfs_connection))
             else:
                 return False
         return True

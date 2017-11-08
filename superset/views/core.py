@@ -128,34 +128,66 @@ class SliceModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        slice = db.session.query(Slice).filter_by(id=id).first()
-        if not slice:
-            raise SupersetException(
-                _('Error parameter ids: {ids}, queried {num} slice(s)')
-                    .format(ids=[id, ], num=0)
-            )
-        dataset = slice.datasource
-        conn = dataset.database if dataset else None
-        info = _("Releasing slice [{slice}] will release these too: "
-               "\nDataset: [{dataset}], \nConnection: [{conn}]")\
-            .format(slice=slice, dataset=dataset, conn=conn)
+        objects = self.online_affect_objects(id)
+        info = _("Releasing slice {slice} will release these too: Dataset: {dataset}, "
+                 "Connection: {conn}, and make it invisible in these dashboards: {dashboard}")\
+            .format(slice=objects.get('slice'),
+                    dataset=objects.get('dataset'),
+                    conn=objects.get('connection'),
+                    dashboard=objects.get('dashboard'),
+                    )
         return json_response(data=info)
+
+    def online_affect_objects(self, id):
+        """
+        Changing slice to online will make offline dataset and connections online,
+        and make it usable in others' dashboard.
+        Changing slice to offline will make it unusable in others' dashboard.
+        """
+        slice = self.get_object(id)
+        user_id = get_user_id()
+        dashboards = [d for d in slice.dashboards
+                      if d.online is True and d.created_by_fk != user_id]
+        dataset = None
+        if slice.datasource_id and slice.datasource:
+            dataset = slice.datasource
+
+        conns = []
+        if slice.database_id:
+            database = db.session.query(Database) \
+                .filter(Database.id == slice.database_id).first()
+            if database and database.online is False:
+                conns.append(database)
+        if dataset.database:
+            conns.append(dataset.database)
+        if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
+            conns.append(dataset.hdfs_table.hdfs_connection)
+        connections = [c for c in conns if c.online is False]
+        return {'slice': [slice, ],
+                'dashboard': dashboards,
+                'dataset': [dataset, ],
+                'connection': connections}
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.associated_objects([id, ])
+        slice = self.get_object(id)
+        user_id = get_user_id()
+        dashboards = [d for d in slice.dashboards
+                      if d.online is True and d.created_by_fk != user_id]
         info = _("Changing slice {slice} to offline will make it invisible "
-               "in these dashboards: {dashboard}")\
-            .format(slice=objects.get('slice'), dashboard=objects.get('dashboard'))
+                 "in these dashboards: {dashboard}")\
+            .format(slice=[slice, ], dashboard=dashboards)
         return json_response(data=info)
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.associated_objects([id, ])
+        objects = self.delete_affect_objects([id, ])
         info = _("Deleting slice {slice} will remove from these dashboards too: {dashboard}")\
-            .format(slice=objects.get('slice'), dashboard=objects.get('dashboard'))
+            .format(slice=objects.get('slice'),
+                    dashboard=objects.get('dashboard')
+                    )
         return json_response(data=info)
 
     @catch_exception
@@ -163,20 +195,22 @@ class SliceModelView(SupersetModelView):  # noqa
     def muldelete_info(self):
         json_data = self.get_request_data()
         ids = json_data.get('selectedRowKeys')
-        objects = self.associated_objects(ids)
-
-        dashs = [d.dashboard_title for d in objects.get('dashboard')]
-        dashs = list(set(dashs))
+        objects = self.delete_affect_objects(ids)
         info = _("Deleting slice {slice} will remove from these dashboards too: {dashboard}") \
-            .format(slice=objects.get('slice'), dashboard=dashs)
+            .format(slice=objects.get('slice'),
+                    dashboard=objects.get('dashboard')
+                    )
         return json_response(data=info)
 
-    def associated_objects(self, ids):
+    def delete_affect_objects(self, ids):
+        """
+        Deleting slice will remove if from myself and online dashboards.
+        """
         slices = db.session.query(Slice).filter(Slice.id.in_(ids)).all()
         if len(slices) != len(ids):
             raise SupersetException(
                 _('Error parameter ids: {ids}, queried {num} slice(s)')
-                    .format(ids=ids, num=len(slices))
+                .format(ids=ids, num=len(slices))
             )
         dashs = []
         user_id = get_user_id()
@@ -429,21 +463,46 @@ class DashboardModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        dash = db.session.query(Dashboard).filter_by(id=id).first()
-        if not dash:
+        """
+        Changing database to online will affect all online_datasets based on this
+        and online_slices based on these online_datasets
+        """
+        dashboard = db.session.query(Dashboard).filter_by(id=id).first()
+        if not dashboard:
             raise SupersetException(
                 _("Error parameter ids: {ids}, queried {num} dashboard(s)")
-                    .format(ids=[id, ], num=0)
+                .format(ids=[id, ], num=0)
             )
-        slices = dash.slices
-        dataset = list(set([s.datasource for s in slices]))
-        conns = list(set([d.database for d in dataset]))
-        info = _("Releasing dashboard [{dashboard}] will release these too: "
-               "\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}")\
-            .format(dashboard=dash.dashboard_title,
-                    slice=slices,
-                    dataset=dataset,
-                    connection=conns)
+        slices = dashboard.slices
+        datasets = []
+        database_ids = []
+        for s in slices:
+            if s.datasource_id and s.datasource:
+                datasets.append(s.datasource)
+            elif s.database_id:
+                database_ids.append(s.database_id)
+
+        connections = []
+        for d in datasets:
+            if d.database:
+                connections.append(d.database)
+            if d.hdfs_table and d.hdfs_table.hdfs_connection:
+                connections.append(d.hdfs_table.hdfs_connection)
+        databases = db.session.query(Database)\
+            .filter(Database.id.in_(database_ids))\
+            .all()
+        connections.extend(databases)
+
+        offline_slices = [s for s in slices if s.online is False]
+        offline_datasets = [d for d in datasets if d.online is False]
+        offline_connections = [c for c in connections if c.online is False]
+
+        info = _("Releasing dashboard {dashboard} will release these too: "
+                 "Slice: {slice}, Dataset: {dataset}, Connection: {connection}")\
+            .format(dashboard=[dashboard, ],
+                    slice=offline_slices,
+                    dataset=offline_datasets,
+                    connection=offline_connections)
         return json_response(data=info)
 
     @catch_exception
@@ -453,10 +512,10 @@ class DashboardModelView(SupersetModelView):  # noqa
         if not dash:
             raise SupersetException(
                 _("Error parameter ids: {ids}, queried {num} dashboard(s)")
-                    .format(ids=[id, ], num=0)
+                .format(ids=[id, ], num=0)
             )
-        info = _("Changing dashboard [{dashboard}] to offline will make it invisible "
-               "for other users").format(dashboard=dash)
+        info = _("Changing dashboard {dashboard} to offline will make it invisible "
+                 "for other users").format(dashboard=[dash, ])
         return json_response(data=info)
 
     @catch_exception
@@ -467,8 +526,6 @@ class DashboardModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/muldelete_info/", methods=['POST'])
     def muldelete_info(self):
-        # json_data = self.get_request_data()
-        # ids = json_data.get('selectedRowKeys')
         return json_response(data='')
 
     @catch_exception
@@ -581,8 +638,12 @@ class Superset(BaseSupersetView):
             for slice in obj.slices:
                 cls.release_relations(slice, 'slice', user_id)
         elif model == 'slice':
-            if obj.datasource:
+            if obj.datasource_id and obj.datasource:
                 cls.release_relations(obj.datasource, 'dataset', user_id)
+            elif obj.database_id:
+                database = db.session.query(Database).filter_by(id=obj.database_id).first()
+                if database and database.online is False:
+                    cls.release_relations(database, 'database', user_id)
         elif model == 'dataset':
             if obj.database:
                 cls.release_relations(obj.database, 'database', user_id)
