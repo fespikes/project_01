@@ -158,14 +158,14 @@ class SliceModelView(SupersetModelView):  # noqa
                 .filter(Database.id == slice.database_id).first()
             if database and database.online is False:
                 conns.append(database)
-        if dataset.database:
+        if dataset and dataset.database:
             conns.append(dataset.database)
-        if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
+        if dataset and dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
             conns.append(dataset.hdfs_table.hdfs_connection)
-        connections = [c for c in conns if c.online is False]
+        connections = [c for c in set(conns) if c.online is False]
         return {'slice': [slice, ],
                 'dashboard': dashboards,
-                'dataset': [dataset, ],
+                'dataset': [dataset, ] if dataset else [],
                 'connection': connections}
 
     @catch_exception
@@ -464,8 +464,8 @@ class DashboardModelView(SupersetModelView):  # noqa
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
         """
-        Changing database to online will affect all online_datasets based on this
-        and online_slices based on these online_datasets
+        Changing dashboard to online will make myself slices,_datasets and
+        connections online.
         """
         dashboard = db.session.query(Dashboard).filter_by(id=id).first()
         if not dashboard:
@@ -493,9 +493,13 @@ class DashboardModelView(SupersetModelView):  # noqa
             .all()
         connections.extend(databases)
 
-        offline_slices = [s for s in slices if s.online is False]
-        offline_datasets = [d for d in datasets if d.online is False]
-        offline_connections = [c for c in connections if c.online is False]
+        user_id = get_user_id()
+        offline_slices = [s for s in slices
+                          if s.online is False and s.created_by_fk == user_id]
+        offline_datasets = [d for d in datasets
+                            if d.online is False and d.created_by_fk == user_id]
+        offline_connections = [c for c in connections
+                               if c.online is False and c.created_by_fk == user_id]
 
         info = _("Releasing dashboard {dashboard} will release these too: "
                  "Slice: {slice}, Dataset: {dataset}, Connection: {connection}")\
@@ -630,7 +634,7 @@ class Superset(BaseSupersetView):
 
     @classmethod
     def release_relations(cls, obj, model, user_id):
-        if str(obj.created_by_fk) == str(user_id):
+        if str(obj.created_by_fk) == str(user_id) and obj.online is False:
             obj.online = True
             db.session.commit()
             Log.log_online(obj, model, user_id)
@@ -862,6 +866,8 @@ class Superset(BaseSupersetView):
         datasource_id = args.get('datasource_id')
         database_id = args.get('database_id')
         full_tb_name = args.get('full_tb_name')
+        if database_id and full_tb_name:
+            datasource_id = None
 
         if action in ('saveas'):
             d.pop('slice_id')  # don't save old slice_id
