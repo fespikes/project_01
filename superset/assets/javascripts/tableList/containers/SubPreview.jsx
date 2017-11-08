@@ -198,6 +198,7 @@ class SubPreview extends Component {
                 key={column.key}
                 style={{width: colWidth}}
                 value={column.title}
+                _type={column.type}
                 onChange={self.hdfsColumnNameChange}
             />
         });
@@ -236,8 +237,10 @@ class SubPreview extends Component {
                 column, tbTitle, type, this
             );
         }
+        const columnNames = this.constructColumnNames(tbHDFSTitle);
         this.setState({
-            tbTitle: tbHDFSTitle
+            tbTitle: tbHDFSTitle,
+            columnNames: columnNames
         });
     }
 
@@ -260,7 +263,7 @@ class SubPreview extends Component {
         const self = this;
         const { createDataset, editDataset } = this.props;
         const dsHDFS = datasetModule.constructHDFSDataset(
-            this.state.dsHDFS, this.state.tbTitle
+            this.state.dsHDFS, this.state.columnNames
         );
         const opeType = datasetModule.extractOpeType(window.location.hash);
 
