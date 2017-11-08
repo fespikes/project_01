@@ -85,7 +85,10 @@ class SubDetail extends Component {
                             editDataset={editDataset}
                         />
                     </div>
-                    <div className={(datasetType===datasetTypes.hdfs ||datasetType===datasetTypes.uploadFile)?'':'none'}>
+                    <div
+                        className={(datasetType===datasetTypes.hdfs
+                        || datasetType===datasetTypes.uploadFile)?'':'none'}
+                    >
                         <HDFSUploadDetail
                             dispatch={dispatch}
                             history={history}
