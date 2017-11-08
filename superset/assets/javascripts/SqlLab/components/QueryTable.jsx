@@ -73,10 +73,10 @@ class QueryTable extends React.PureComponent {
         const data = this.props.queries.map((query) => {
             const q = Object.assign({}, query);
             if (q.endDttm) {
-                q.duration = fDuration(q.startDttm, q.endDttm);
+                q.用时 = fDuration(q.startDttm, q.endDttm);
             }
             const time = moment(q.startDttm).format().split('T');
-            q.时间 = (
+            q.开始时间 = (
                 <div>
                   <span>
                     {time[0]} <br /> {time[1]}
@@ -105,31 +105,31 @@ class QueryTable extends React.PureComponent {
                     <HighlightedSql sql={q.sql} rawSql={q.executedSql} shrink maxWidth={60} />
                 </Well>
             );
-            q.行数 = q.rows;
+            q.行数 = q.rows || 0;
             if (q.resultsKey) {
-                q.output = (
+                q.数据库 = (
                     <ModalTrigger
                         bsSize="large"
                         className="ResultsModal"
                         triggerNode={(
-              <Label
-                bsStyle="info"
-                style={{ cursor: 'pointer' }}
-              >
-                view results
-              </Label>
-            )}
-                modalTitle={'Data preview'}
-                beforeOpen={this.openAsyncResults.bind(this, query)}
-                onExit={this.clearQueryResults.bind(this, query)}
-                modalBody={<ResultSet showSql query={query} actions={this.props.actions} />}
-            />
+                          <Label
+                            bsStyle="info"
+                            style={{ cursor: 'pointer' }}
+                          >
+                            view results
+                          </Label>
+                        )}
+                        modalTitle={'Data preview'}
+                        beforeOpen={this.openAsyncResults.bind(this, query)}
+                        onExit={this.clearQueryResults.bind(this, query)}
+                        modalBody={<ResultSet showSql query={query} actions={this.props.actions} />}
+                    />
                 );
             } else {
                 // if query was run using ctas and force_ctas_schema was set
                 // tempTable will have the schema
                 const schemaUsed = q.ctas && q.tempTable.includes('.') ? '' : q.schema;
-                q.output = [schemaUsed, q.tempTable].filter((v) => (v)).join('.');
+                q.数据库 = [schemaUsed, q.tempTable].filter((v) => (v)).join('.');
             }
             q.进度 = (
                 <ProgressBar
@@ -155,7 +155,7 @@ class QueryTable extends React.PureComponent {
                   {errorTooltip}
                 </div>
             );
-            q.actions = (
+            q.操作 = (
                 <div style={{ width: '75px' }}>
                     <Link
                         className="fa fa-bar-chart m-r-3"
