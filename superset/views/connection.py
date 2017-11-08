@@ -13,7 +13,7 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
 
 import sqlalchemy as sqla
-from sqlalchemy import select, literal, cast, or_
+from sqlalchemy import select, literal, cast, or_, and_
 from sqlalchemy.engine.url import make_url
 
 from superset import app, db, models
@@ -161,9 +161,9 @@ class DatabaseView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        objects = self.associated_objects([id, ])
+        objects = self.release_affect_objects(id)
         info = _("Releasing connection {conn} will make these usable "
-                 "for other users: \nDataset: {dataset}, \nSlice: {slice}")\
+                 "for other users: Dataset: {dataset}, Slice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -172,49 +172,74 @@ class DatabaseView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.associated_objects([id, ])
+        objects = self.release_affect_objects(id)
         info = _("Changing connection {conn} to offline will make these "
-                 "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}")\
+                 "unusable for other users: Dataset: {dataset}, Slice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
         return json_response(data=info)
+
+    def release_affect_objects(self, id):
+        """
+        Changing database to online/offline will affect online_datasets based on this
+        and online_slices based on these online_datasets
+        """
+        database = self.get_object(id)
+        online_datasets = [d for d in database.dataset if d.online is True]
+
+        online_dataset_ids = [dataset.id for dataset in online_datasets]
+        online_slices = db.session.query(Slice) \
+            .filter(
+                or_(Slice.datasource_id.in_(online_dataset_ids),
+                    Slice.database_id == id),
+                Slice.online == 1
+        ).all()
+        return {'database': [database, ],
+                'dataset': online_datasets,
+                'slice': online_slices}
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.associated_objects([id, ])
+        objects = self.delete_affect_objects(id)
         info = _("Deleting connection {conn} will make these unusable: "
-               "\nDataset: {dataset}, \nSlice: {slice}")\
+               "Dataset: {dataset}, Slice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
         return json_response(data=info)
 
-    @classmethod
-    def associated_objects(cls, ids):
-        dbs = db.session.query(Database).filter(Database.id.in_(ids)).all()
-        if len(dbs) != len(ids):
-            raise SupersetException(
-                _("Error parameter ids: {ids}, queried {num} database connection(s)")
-                    .format(ids=ids, num=len(dbs))
-            )
-
-        datasets = []
-        for d in dbs:
-            datasets.extend(d.dataset)
-        dataset_ids = [dataset.id for dataset in datasets]
-
+    def delete_affect_objects(self, id):
+        """
+        Deleting database will affect myself datasets and online datasets.
+        myself slices and online slices based on these online_datasets
+        """
+        database = self.get_object(id)
         user_id = get_user_id()
+        online_datasets = [d for d in database.dataset if d.online is True]
+        myself_datasets = [d for d in database.dataset if d.created_by_fk == user_id]
+        online_dataset_ids = [dataset.id for dataset in online_datasets]
+        myself_dataset_ids = [dataset.id for dataset in myself_datasets]
+
         slices = db.session.query(Slice) \
             .filter(
-                or_(Slice.datasource_id.in_(dataset_ids),
-                    Slice.database_id.in_(ids)),
-                or_(Slice.created_by_fk == user_id,
-                    Slice.online == 1)
-            ) \
-            .all()
-        return {'database': dbs, 'slice': slices, 'dataset': datasets}
+                or_(
+                    and_(
+                        or_(Slice.datasource_id.in_(online_dataset_ids),
+                            Slice.database_id == id),
+                        Slice.online == 1
+                    ),
+                    and_(
+                        or_(Slice.datasource_id.in_(myself_dataset_ids),
+                            Slice.database_id == id),
+                        Slice.created_by_fk == user_id
+                    )
+                )
+        ).all()
+        return {'database': [database, ],
+                'dataset': set(online_datasets + myself_datasets),
+                'slice': slices}
 
 
 class HDFSConnectionModelView(SupersetModelView):
@@ -293,9 +318,9 @@ class HDFSConnectionModelView(SupersetModelView):
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        objects = self.associated_objects([id, ])
+        objects = self.release_affect_objects(id)
         info = _("Releasing connection {conn} will make these usable "
-                 "for other users: \nDataset: {dataset}, \nSlice: {slice}") \
+                 "for other users: Dataset: {dataset}, Slice: {slice}") \
             .format(conn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -304,51 +329,80 @@ class HDFSConnectionModelView(SupersetModelView):
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.associated_objects([id, ])
+        objects = self.release_affect_objects(id)
         info = _("Changing connection {conn} to offline will make these "
-                 "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}") \
+                 "unusable for other users: Dataset: {dataset}, Slice: {slice}") \
             .format(conn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
         return json_response(data=info)
+
+    def release_affect_objects(self, id):
+        """
+        Changing hdfs connection to online/offline will affect online_datasets based on this
+        and online_slices based on these online_datasets
+        """
+        hdfs_conn = self.get_object(id)
+        hdfs_tables = hdfs_conn.hdfs_table
+        datasets = [t.dataset for t in hdfs_tables if t.dataset]
+        online_datasets = [d for d in datasets if d.online is True]
+        online_dataset_ids = [dataset.id for dataset in online_datasets]
+
+        online_slices = db.session.query(Slice) \
+            .filter(
+                or_(Slice.datasource_id.in_(online_dataset_ids),
+                    Slice.database_id == id),
+                Slice.online == 1
+        ).all()
+        return {'hdfs_connection': [hdfs_conn, ],
+                'dataset': online_datasets,
+                'slice': online_slices}
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.associated_objects([id, ])
+        objects = self.delete_affect_objects(id)
         info = _("Deleting connection {conn} will make these unusable: "
-                 "\nDataset: {dataset}, \nSlice: {slice}") \
+                 "Dataset: {dataset}, Slice: {slice}") \
             .format(conn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
         return json_response(data=info)
 
-    @classmethod
-    def associated_objects(cls, ids):
-        hconns = db.session.query(HDFSConnection)\
-            .filter(HDFSConnection.id.in_(ids))\
-            .all()
-        if len(hconns) != len(ids):
-            raise SupersetException(
-                _("Error parameter ids: {ids}, queried {num} connection(s)")
-                    .format(ids=ids, num=len(hconns))
-            )
-
-        hdfs_tables = []
-        for hconn in hconns:
-            hdfs_tables.extend(hconn.hdfs_table)
-
-        datasets = [t.dataset for t in hdfs_tables]
-        dataset_ids = [d.id for d in datasets]
+    def delete_affect_objects(self, id):
+        """
+        Deleting hdfs connection will affect myself datasets and online datasets.
+        myself slices and online slices based on these online_datasets
+        """
+        hdfs_conn = self.get_object(id)
         user_id = get_user_id()
-        slices = (
-            db.session.query(Slice)
-            .filter(Slice.datasource_id.in_(dataset_ids),
-                    or_(Slice.created_by_fk == user_id,
-                        Slice.online == 1))
-            .all()
-        )
-        return {'hdfs_connection': hconns, 'dataset': datasets, 'slice': slices}
+        hdfs_tables = hdfs_conn.hdfs_table
+        datasets = [t.dataset for t in hdfs_tables if t.dataset]
+
+        online_datasets = [d for d in datasets if d.online is True]
+        myself_datasets = [d for d in datasets if d.created_by_fk == user_id]
+        online_dataset_ids = [dataset.id for dataset in online_datasets]
+        myself_dataset_ids = [dataset.id for dataset in myself_datasets]
+
+        slices = db.session.query(Slice) \
+            .filter(
+                or_(
+                    and_(
+                        or_(Slice.datasource_id.in_(online_dataset_ids),
+                            Slice.database_id == id),
+                        Slice.online == 1
+                    ),
+                    and_(
+                        or_(Slice.datasource_id.in_(myself_dataset_ids),
+                            Slice.database_id == id),
+                        Slice.created_by_fk == user_id
+                    )
+                )
+        ).all()
+        return {'hdfs_connection': [hdfs_conn, ],
+                'dataset': set(online_datasets + myself_datasets),
+                'slice': slices
+                }
 
     @catch_hdfs_exception
     @expose('/test/', methods=['GET'])
@@ -407,6 +461,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
             for obj in objs:
                 check_ownership(obj)
                 db.session.delete(obj)
+                db.session.commit()
                 Log.log_delete(obj, 'database', get_user_id())
         #
         hdfs_conn_ids = json_data.get('hdfs')
@@ -421,40 +476,77 @@ class ConnectionView(BaseSupersetView, PageMixin):
             for obj in objs:
                 check_ownership(obj)
                 db.session.delete(obj)
+                db.session.commit()
                 Log.log_delete(obj, 'hdfsconnection', get_user_id())
 
-        db.session.commit()
         return json_response(message=DELETE_SUCCESS)
 
     @catch_exception
     @expose("/muldelete_info/", methods=['POST'])
     def muldelete_info(self):
+        """
+        Deleting connections will affect myself datasets and online datasets.
+        myself slices and online slices based on these online_datasets
+        """
         json_data = json.loads(str(request.data, encoding='utf-8'))
         json_data = {k.lower(): v for k, v in json_data.items()}
         db_ids = json_data.get('database')
         hdfs_conn_ids = json_data.get('hdfs')
+        user_id = get_user_id()
 
         dbs, hconns, datasets, slices = [], [], [], []
         if db_ids:
-            objects = DatabaseView.associated_objects(db_ids)
-            dbs = objects.get('database')
-            datasets.extend(objects.get('dataset'))
-            slices.extend(objects.get('slice'))
+            dbs = db.session.query(Database).filter(
+                Database.id.in_(db_ids)
+            ).all()
+            if len(db_ids) != len(dbs):
+                raise Exception(
+                    _("Error parameter ids: {ids}, queried {num} connection(s)")
+                    .format(ids=db_ids, num=len(dbs))
+                )
         if hdfs_conn_ids:
-            objects = HDFSConnectionModelView.associated_objects(hdfs_conn_ids)
-            hconns = objects.get('hdfs_connection')
-            datasets.extend(objects.get('dataset'))
-            slices.extend(objects.get('slice'))
+            hconns = db.session.query(HDFSConnection).filter(
+                HDFSConnection.id.in_(hdfs_conn_ids)
+            ).all()
+            if len(hdfs_conn_ids) != len(hconns):
+                raise Exception(
+                    _("Error parameter ids: {ids}, queried {num} connection(s)")
+                    .format(ids=hdfs_conn_ids, num=len(hconns))
+                )
 
-        dataset_names = [d.dataset_name for d in datasets]
-        slice_names = [s.slice_name for s in slices]
-        dataset_names = list(set(dataset_names))
-        slice_names = list(set(slice_names))
+        for d in dbs:
+            datasets.extend(d.dataset)
+        for hconn in hconns:
+            for htable in hconn.hdfs_table:
+                if htable.dataset:
+                    datasets.append(htable.dataset)
+
+        online_datasets = [d for d in datasets if d.online is True]
+        myself_datasets = [d for d in datasets if d.created_by_fk == user_id]
+        online_dataset_ids = [dataset.id for dataset in online_datasets]
+        myself_dataset_ids = [dataset.id for dataset in myself_datasets]
+
+        slices = db.session.query(Slice) \
+            .filter(
+                or_(
+                    and_(
+                        or_(Slice.datasource_id.in_(online_dataset_ids),
+                            Slice.database_id == id),
+                        Slice.online == 1
+                    ),
+                    and_(
+                        or_(Slice.datasource_id.in_(myself_dataset_ids),
+                            Slice.database_id == id),
+                        Slice.created_by_fk == user_id
+                    )
+                )
+        ).all()
+
         info = _("Deleting connections {conns} will make these objects unusable: "
-                 "\nDataset: {dataset}, \nSlice: {slice}") \
+                 "Dataset: {dataset}, Slice: {slice}") \
             .format(conns=dbs + hconns,
-                    dataset=dataset_names,
-                    slice=slice_names)
+                    dataset=set(online_datasets + myself_datasets),
+                    slice=slices)
         return json_response(data=info)
 
     def get_object_list_data(self, **kwargs):
