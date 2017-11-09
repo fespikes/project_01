@@ -392,6 +392,7 @@
 									line-height: 28px;
 									font-size: 14px;
     								color: #7f8fa4;
+									min-width: 40px;
 
     								&:first-child {
     									padding-left: 20px;
@@ -533,10 +534,5 @@
 	}
 }
 
-
-/* overlay css style */
-.ace_scroller {
-	padding: 5px 10px;
-}
 
 

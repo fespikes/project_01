@@ -106,8 +106,17 @@ ul > li .ant-select-selection {
     display: none;
 }
 
+.data-preview-box {
+    background-color: #fff;
+}
+
+.data-preview-box .table-content .ant-table-small {
+    border-top: none;
+}
+
 .preview-table {
     overflow-x: auto;
+    padding-top: 30px;
 }
 
 .ant-table-thead > tr > th {

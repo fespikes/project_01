@@ -74,7 +74,7 @@ export default class CopyToClipboard extends React.Component {
 
   tooltipText() {
     if (this.state.hasCopied) {
-      return 'Copied!';
+      return '已复制!';
     }
     return this.props.tooltipText;
   }
