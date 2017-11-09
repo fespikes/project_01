@@ -195,7 +195,6 @@ export function constructInceptorDataset(dataset) {
 }
 
 export function constructHDFSDataset(dataset, title) {
-    console.log('title==', title);
     let hdfsDataset = {};
     hdfsDataset.dataset_name = dataset.dataset_name;
     hdfsDataset.dataset_type = datasetTypes.hdfs;
@@ -223,8 +222,8 @@ function constructHDFSColumns(title) {
     };
     if(title) {
         title.map(t => {
-            names.push(t.title);
-            types.push(t.type || 'string');
+            names.push(t.props.value);
+            types.push(t.props._type || 'string');
         });
     }
     return columns;
