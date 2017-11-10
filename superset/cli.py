@@ -47,7 +47,7 @@ def init_tables_and_roles():
 
 def init_examples():
     if config.get('LOAD_EXAMPLES'):
-        rs = db.session.execute('show tables like "birth_names";')
+        rs = db.session.execute('show tables like "energy_usage";')
         if rs.rowcount == 0:
             logging.info("Start to load examples data...")
             load_examples(False, user_id=None)
