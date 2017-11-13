@@ -1,26 +1,27 @@
-"""Unit tests for Superset"""
+"""Unit tests for pilot
+If debug someone test script,
+(1) At the end of superset.config, add
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(DATA_DIR, 'unittests.db')
+LICENSE_CHECK = False
+GUARDIAN_AUTH = False
+(2) install pilot:
+# python setup.py install
+(3) upgrade db:
+# pilot db upgrade
+(4) debug the test script file
+"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import logging
 import json
-import os
 import unittest
-from datetime import datetime
-
-from flask_appbuilder.security.sqla import models as ab_models
-from flask import (g, request, redirect, flash,
-                   Response, render_template, Markup, abort)
 
 from superset import app, cli, db, models, appbuilder, security, sm
-from superset.security import sync_role_definitions
-from superset.views.core import DashboardModelView
 
-os.environ['SUPERSET_CONFIG'] = 'tests.superset_test_config'
+config = app.config
 
-BASE_DIR = app.config.get("BASE_DIR")
 
 class PageMixin(object):
     order_column = 'changed_on'
@@ -58,103 +59,94 @@ class PageMixin(object):
             print('the source list and the destination list is not the same length')
             return
         for x in range(len(src_list)):
-          assert src_list[x] == des_list[x]
+            assert src_list[x] == des_list[x]
+
 
 class SupersetTestCase(unittest.TestCase):
-    requires_examples = False
+    require_examples = True
     test_username = 'admin'
+    test_password = '123456'
 
     def __init__(self, *args, **kwargs):
-        if (self.requires_examples and
-                not os.environ.get('SOLO_TEST') and
-                not os.environ.get('examples_loaded')
-        ):
-            logging.info("Loading examples")
-            cli.load_examples(load_test_data=True)
-            logging.info("Done loading examples")
-            os.environ['examples_loaded'] = '1'
-
-        logging.info("add test user")
-        self.add_admin_user(self.test_username)
-        self.update_example_user(self.test_username)
-        self.add_admin_user('hive')
-
-        #sync_role_definitions()
         super(SupersetTestCase, self).__init__(*args, **kwargs)
+        self.init()
         self.client = app.test_client()
         self.maxDiff = None
         self.user = appbuilder.sm.find_user(self.test_username)
 
-    def add_admin_user(self, username):
+    @classmethod
+    def init(cls):
+        if config.get("SQLALCHEMY_DATABASE_URI").startswith('sqlite'):
+            rs = db.session.execute(
+                "select count(*) from sqlite_master "
+                "where name='energy_usage' and type='table'"
+            )
+            row = rs.fetchone()
+            if row[0] > 0 or cls.require_examples is False:
+                return
+        print("sync_role_definitions")
+        security.sync_role_definitions()
+
+        print("Create default user")
+        user = cls.get_or_create_admin_user(cls.test_username, cls.test_password)
+
+        print("Start to load examples...")
+        cli.load_examples(False, user_id=user.id)
+        print("Finish to load examples.")
+
+    @staticmethod
+    def get_or_create_admin_user(username, password):
         user = appbuilder.sm.find_user(username)
         if not user:
-            appbuilder.sm.add_user(
+            user = appbuilder.sm.add_user(
                 username, username, username, '{}@transwarp.io'.format(username),
-                appbuilder.sm.find_role('Admin'),  password='general')
+                appbuilder.sm.find_role('Admin'),  password=password)
+            user.password2 = password
+            sm.get_session.commit()
+        return user
 
-    def update_example_user(self, username):
-        user = appbuilder.sm.find_user(username)
-        classes = [models.Dashboard, models.Slice, models.Database,
-                   models.Dataset, models.TableColumn, models.SqlMetric]
-        for cls in classes:
-            self.update_object_user(cls, user.id)
-
-    def update_object_user(self, cls, user_id):
-        db.session.query(cls).update(
-            {cls.created_by_fk: user_id,
-             cls.changed_by_fk: user_id,
-             cls.created_on: datetime.now(),
-             cls.changed_on: datetime.now()}
-        )
-        db.session.commit()
-
-    def get_table(self, table_id):
-        return db.session.query(models.Dataset).filter_by(
-            id=table_id).first()
-
-    def get_or_create(self, cls, criteria, session):
-        obj = session.query(cls).filter_by(**criteria).first()
-        if not obj:
-            obj = cls(**criteria)
-        return obj
-
-    def login(self, username='admin', password='general'):#general
-        resp = self.get_resp(
-            '/login/',
-            data=dict(username=username, password=password))
+    def login(self, username=None, password=None):
+        if not username:
+            username = config.TEST_USERNAME
+        if not password:
+            password = config.TEST_PASSWORD
+        resp = self.get_resp('/login/',
+                             data=dict(username=username, password=password))
         self.assertIn('Pilot', resp)
 
-    def get_query_by_sql(self, sql):
-        session = db.create_scoped_session()
-        query = session.query(models.Query).filter_by(sql=sql).first()
-        session.close()
-        return query
+    def logout(self):
+        self.client.get('/logout/', follow_redirects=True)
 
-    def get_latest_query(self, sql):
-        session = db.create_scoped_session()
+    @staticmethod
+    def get_query_by_sql(sql):
+        return db.session.query(models.Query).filter_by(sql=sql).first()
+
+    @staticmethod
+    def get_latest_query():
         query = (
-            session.query(models.Query)
-            .order_by(models.Query.id.desc())
-            .first()
+            db.session.query(models.Query)
+                .order_by(models.Query.id.desc())
+                .first()
         )
-        session.close()
         return query
 
-    def get_slice(self, slice_name, session):
-        slc = (
-            session.query(models.Slice)
-            .filter_by(slice_name=slice_name)
-            .one()
-        )
-        session.expunge_all()
-        return slc
+    @staticmethod
+    def get_slice_by_name(slice_name):
+        return db.session.query(models.Slice).filter_by(slice_name=slice_name).one()
 
-    def get_table_by_name(self, name):
-        return db.session.query(models.Dataset).filter_by(
-            table_name=name).first()
+    @staticmethod
+    def get_dataset(id):
+        return db.session.query(models.Dataset).filter_by(id=id).first()
 
-    def get_resp(
-            self, url, data=None, follow_redirects=True, raise_on_error=True):
+    @staticmethod
+    def get_dataset_by_name(name):
+        return db.session.query(models.Dataset).filter_by(dataset_name=name).first()
+
+    @staticmethod
+    def get_main_database():
+        return db.session.query(models.Database).filter_by(database_name='main').first()
+
+    def get_resp(self, url, data=None, follow_redirects=True, raise_on_error=True):
         """Shortcut to get the parsed results while following redirects"""
         if data:
             resp = self.client.post(
@@ -172,21 +164,11 @@ class SupersetTestCase(unittest.TestCase):
         resp = self.get_resp(url, data, follow_redirects, raise_on_error)
         return json.loads(resp)
 
-    def get_main_database(self, session):
-        return (
-            session.query(models.Database)
-            .filter_by(database_name='main')
-            .first()
-        )
-
-    def logout(self):
-        self.client.get('/logout/', follow_redirects=True)
-
     def run_sql(self, sql, client_id, user_name=None, raise_on_error=False):
         if user_name:
             self.logout()
             self.login(username=(user_name if user_name else 'admin'))
-        dbid = self.get_main_database(db.session).id
+        dbid = self.get_main_database().id
         resp = self.get_json_resp(
             '/superset/sql_json/',
             raise_on_error=False,

@@ -6,10 +6,8 @@ from __future__ import unicode_literals
 
 import unittest
 
-from datetime import datetime, timedelta, date
+from datetime import datetime
 
-from sqlalchemy import and_, or_
-from flask_appbuilder.security.sqla.models import User
 from superset import db
 from superset.views.dataset import SqlMetricInlineView
 from superset.models.dataset import SqlMetric
@@ -32,95 +30,60 @@ class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
         pass
 
     def test_listdata(self):
-        one_table = db.session.query(Dataset).first()
-        self.kwargs['dataset_id'] = one_table.id
+        one_dataset = db.session.query(Dataset).first()
+        if not one_dataset:
+            return
+        self.kwargs['dataset_id'] = one_dataset.id
         self.check_base_param(no_check=True)
         sql_metric_data_list = self.real_value.get('data')
+
         for sql_metric_data in sql_metric_data_list:
             sql_metric = db.session.query(SqlMetric) \
-                .filter_by(id=sql_metric_data['id'])\
-                .filter_by(metric_name=sql_metric_data['metric_name']) \
-                .filter_by(expression=sql_metric_data['expression']) \
+                .filter_by(id=sql_metric_data.get('id')) \
                 .first()
-            assert sql_metric is not None
-
-
-    def check_available_tables(self, single_table, available_tables):
-        for available_table in available_tables:
-            if single_table['id'] == available_table['id'] and \
-                            single_table['dataset_name'] == available_table['dataset_name'] :
-                return True
-        return False
-
-    def test_show(self):
-        one_sql_metric = db.session.query(SqlMetric).first()
-        real_value = self.view.get_show_attributes(one_sql_metric, self.user.id)
-        available_tables = self.view.get_available_tables()
-
-        for attr in real_value:
-            if attr == 'readme' or 'changed_by_user':
-                pass
-            elif attr == 'available_tables':
-                available_tables_list = real_value.get('available_tables')
-                for single_table in available_tables_list:
-                    assert self.check_available_tables(single_table, available_tables) == True
-            else:
-                assert getattr(one_sql_metric, attr) == real_value.get(attr)
+            assert sql_metric.metric_name == sql_metric_data['metric_name']
+            assert sql_metric.expression == sql_metric_data['expression']
 
     def test_add_edit_delete(self):
-        
-        one_table = db.session.query(Dataset).first()
+        one_dataset = db.session.query(Dataset).first()
+        if not one_dataset:
+            return
+        # add
+        new_metric_name = 'new_metric_{}'.format(str(datetime.now()))
         json_data = {
-            'metric_name': 'avg_num',
+            'metric_name': new_metric_name,
             'expression': 'AVG(num)',
             'metric_type': 'avg',
-            'dataset_id': one_table.id,
-            'description': 'added metric'+str(datetime.now()),
+            'dataset_id': one_dataset.id
         }
-        # add
-        obj = self.view.populate_object(None, self.user.id, json_data)
-        self.view.pre_add(obj)
-        self.view.datamodel.add(obj)
-        self.view.post_add(obj)
+        new_metric = self.view.populate_object(None, self.user.id, json_data)
+        self.view.datamodel.add(new_metric)
 
-        added_sql_metric = db.session.query(SqlMetric)\
-            .filter_by(metric_name=json_data.get('metric_name'))\
-            .filter_by(expression=json_data.get('expression'))\
-            .filter_by(dataset_id=json_data.get('dataset_id'))\
-            .filter_by(description=json_data.get('description'))\
+        new_metric = db.session.query(SqlMetric)\
+            .filter(
+                SqlMetric.metric_name == new_metric_name,
+                SqlMetric.dataset_id == one_dataset.id
+            )\
             .first()
-        assert added_sql_metric is not None
+        assert new_metric is not None
 
         # edit
-        json_data['description'] = 'this is for test'
-        obj = self.view.populate_object(added_sql_metric.id, self.user.id, json_data)
-        #self.view.pre_update(obj)
+        json_data['metric_type'] = 'sum'
+        json_data['expression'] = 'AVG(num)'
+        obj = self.view.populate_object(new_metric.id, self.user.id, json_data)
         self.view.datamodel.edit(obj)
-        #self.view.post_update(obj)
-        edited_sql_metric = db.session.query(SqlMetric)\
-            .filter_by(metric_name=json_data.get('metric_name'))\
-            .filter_by(expression=json_data.get('expression'))\
-            .filter_by(dataset_id=json_data.get('dataset_id'))\
-            .filter_by(description=json_data.get('description'))\
+        new_metric = db.session.query(SqlMetric) \
+            .filter(
+                SqlMetric.metric_name == new_metric_name,
+                SqlMetric.dataset_id == one_dataset.id
+            ) \
             .first()
-        assert edited_sql_metric is not None
+        assert new_metric.expression == json_data['expression']
 
         # delete
-        obj = self.view.get_object(edited_sql_metric.id)
-        self.view.datamodel.delete(obj)
-        target_sql_metric = db.session.query(SqlMetric) \
-            .filter_by(id=edited_sql_metric.id) \
-            .first()
-        assert target_sql_metric is None
-
-    def test_addablechoices(self):
-        result = self.view.get_addable_choices()
-        available_dataset_list = result.get('available_dataset')
-        for one_available_dataset in available_dataset_list:
-            target_dataset = db.session.query(Dataset) \
-                .filter_by(id=one_available_dataset.get('id'), dataset_name=one_available_dataset.get('dataset_name')) \
-                .first()
-            assert target_dataset is not None
+        self.view.datamodel.delete(new_metric)
+        metric = db.session.query(SqlMetric).filter_by(id=new_metric.id).first()
+        assert metric is None
 
 
 if __name__ == '__main__':

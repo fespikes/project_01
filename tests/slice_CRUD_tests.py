@@ -5,17 +5,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import unittest
-from datetime import datetime, timedelta, date
+from datetime import datetime
 
-from sqlalchemy import and_, or_
 from flask_appbuilder.security.sqla.models import User
 from superset import db
 from superset.views.core import SliceModelView
 from superset.models.core import Dashboard
-from superset.models.aider import FavStar
 from superset.models.core import Slice
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
+
 
 class SliceCRUDTests(SupersetTestCase, PageMixin):
     #requres_examples = True
@@ -39,16 +38,11 @@ class SliceCRUDTests(SupersetTestCase, PageMixin):
             one_slice = slice_list[0]
         for slice_dic in slice_list:
             assert isinstance(slice_dic.get('favorite'), bool)
-            assert '/pilot/explore/table/' in slice_dic.get('slice_url')
+            assert '/p/explore/table/' in slice_dic.get('slice_url')
 
         rs = db.session.query(Slice, User.username) \
             .join(User, Slice.created_by_fk == User.id) \
-            .filter(
-                and_(
-                    Slice.id == one_slice.get('id'),
-                    User.username.ilike(one_slice.get('created_by_user'))
-                )
-            ) \
+            .filter(Slice.id == one_slice.get('id')) \
             .first()
         [target_slice, user_name] = rs
 
@@ -56,133 +50,83 @@ class SliceCRUDTests(SupersetTestCase, PageMixin):
         assert one_slice.get('slice_url') == target_slice.slice_url
         assert one_slice.get('viz_type') == target_slice.viz_type
         assert one_slice.get('slice_name') == target_slice.slice_name
-        #assert one_slice.get('datasource') == target_slice.datasource.datasource_name
         assert one_slice.get('created_by_user') == user_name
-
-    def check_brief_dashboards(self, brief_dashboard, dashboards, user_id=None):
-        for dashboard in dashboards:
-            if user_id:
-                if dashboard['created_by_fk'] == user_id and \
-                            dashboard['dashboard_title'] == brief_dashboard['dashboard_title'] and \
-                            dashboard['id'] == brief_dashboard['id']:
-                    return True
-                else:
-                    pass
-            else:
-                if dashboard.dashboard_title == brief_dashboard['dashboard_title'] and \
-                                dashboard.id == brief_dashboard['id']:
-                    return True
-                else:
-                    pass
-
-        return False
 
     def test_show(self):
         one_slice = db.session.query(Slice).first()
-        obj = self.view.get_object(one_slice.id)
-        real_value = self.view.get_show_attributes(one_slice, self.user.id)
-        assert one_slice.id == real_value.get('id')
-        assert one_slice.slice_name == real_value.get('slice_name')
-        all_related_dashboard = one_slice.dashboards
-        for brief_dashboard in real_value['dashboards']:
-            assert self.check_brief_dashboards(brief_dashboard, all_related_dashboard) is True
+        showed_attributes = self.view.get_show_attributes(one_slice, self.user.id)
+        assert one_slice.id == showed_attributes.get('id')
+        assert one_slice.slice_name == showed_attributes.get('slice_name')
+        assert len(one_slice.dashboards) == len(showed_attributes['dashboards'])
 
-        available_dashboards = []
-        all_dashboard = db.session.query(Dashboard).all()
-        for dashboard in all_dashboard:
-            available_dashboards.append({'id': dashboard.id, 'dashboard_title': dashboard.dashboard_title, 'created_by_fk': dashboard.created_by_fk})
-        for brief_dashboard in real_value['available_dashboards']:
-            assert self.check_brief_dashboards(brief_dashboard, available_dashboards, self.user.id) is True
-
-    def test_release_online(self):
-        slice_obj = db.session.query(Slice).first()
+    def test_online_and_offline(self):
+        one_slice = db.session.query(Slice).first()
+        if not one_slice:
+            return
         # set online
-        slice_obj.online = True
+        one_slice.online = True
         db.session.commit()
-        slice_new = db.session.query(Slice).filter_by(id=slice_obj.id).first()
-        assert slice_new.online is True
+        edited_slice = db.session.query(Slice).filter_by(id=one_slice.id).first()
+        assert edited_slice.online is True
         # set offline
-        slice_obj.online = False
+        one_slice.online = False
         db.session.commit()
-        slice_new = db.session.query(Slice).filter_by(id=slice_obj.id).first()
-        assert slice_new.online is False
+        edited_slice = db.session.query(Slice).filter_by(id=one_slice.id).first()
+        assert edited_slice.online is False
 
-    def test_favstar(self):
-        fav_one_obj = db.session.query(FavStar) \
-            .filter_by(class_name='Slice', user_id=self.user.id) \
-            .first()
-        # ensure there is a favor   
-        if not fav_one_obj:
-            slice_obj = db.session.query(Slice).first()
-            obj_id = slice_obj.id
-            db.session.add(
-                FavStar(
-                    class_name='Slice',
-                    obj_id=obj_id,
-                    user_id=self.user.id,
-                    dttm=datetime.now()
-                )
-            )
-            db.session.commit()
-        # unselect
-        fav_one_obj = db.session.query(FavStar).first()
-        db.session.delete(fav_one_obj)
-        db.session.commit()
-        query_obj = db.session.query(FavStar) \
-            .filter_by(class_name='Slice', id=fav_one_obj.id, user_id=self.user.id) \
-            .first()
-        assert query_obj is None
-        
-        # select
-        db.session.add(
-            FavStar(
-                class_name='Slice',
-                obj_id=fav_one_obj.id,
-                user_id=self.user.id,
-                dttm=datetime.now()
-            )
-        )
-        db.session.commit()
-        query_obj = db.session.query(FavStar) \
-            .filter_by(class_name='Slice', obj_id=fav_one_obj.id, user_id=self.user.id) \
-            .first()
-        assert query_obj is not None
+    def test_add_edit_delete(self):
+        # add
+        new_slice_name = 'new_slice'
+        new_slice = self.add_slice(new_slice_name, self.user.id)
 
-    def test_edit(self):
-
-        one_slice = db.session.query(Slice).first() 
-        all_dashboard = db.session.query(Dashboard).all()
-        if len(all_dashboard) < 2:
-            print("do not have enough dashboard")
-        json_data = {
-            'dashboards':[
-                {'dashboard_title':all_dashboard[0].dashboard_title, 'id':all_dashboard[0].id},
-                {'dashboard_title':all_dashboard[1].dashboard_title, 'id':all_dashboard[1].id},
-            ],
-            'slice_name':'test_slice' + str(datetime.now()),
-            'description':'for test',
-        }
         # edit
-        obj = self.view.populate_object(one_slice.id, self.user.id, json_data)
+        one_dashboard = db.session.query(Dashboard).first()
+        new_slice_name = 'edit_slice_{}'.format(str(datetime.now()))
+        json_data = {
+            'dashboards': [
+                {'dashboard_title': one_dashboard.dashboard_title, 'id': one_dashboard.id},
+            ],
+            'slice_name': new_slice_name,
+            'description': 'for test',
+        }
+        obj = self.view.populate_object(new_slice.id, self.user.id, json_data)
         self.view.datamodel.edit(obj)
 
-        # check5
+        included_dashboards = new_slice.dashboards
+        assert new_slice.description == json_data.get('description')
+        assert new_slice.slice_name == json_data.get('slice_name')
+        assert len(included_dashboards) == len(json_data['dashboards'])
+        assert included_dashboards[0].id == json_data['dashboards'][0]['id']
+
+        # delete
+        self.view.datamodel.delete(new_slice)
         target_slice = db.session.query(Slice) \
-            .filter_by(id=one_slice.id).one()
-        all_related_dashboard = target_slice.dashboards
-
-        assert target_slice.description == json_data.get('description')
-        assert target_slice.slice_name == json_data.get('slice_name')
-        #for brief_dashboard in json_data['dashboards']:
-        #    assert self.check_brief_dashboards(brief_dashboard, all_related_dashboard) is True
-
-    def ttest_delete(self):
-        one_slice = db.session.query(Slice).first()
-        self.view.datamodel.delete(one_slice)
-
-        target_slice = db.session.query(Slice) \
-            .filter_by(id=one_slice.id).first()
+            .filter_by(slice_name=new_slice_name).first()
         assert target_slice is None
+
+    @staticmethod
+    def add_slice(slice_name, user_id):
+        slice = db.session.query(Slice).filter_by(slice_name=slice_name).first()
+        if slice:
+            slice.created_by_fk = user_id
+        else:
+            one_slice = db.session.query(Slice).first()
+            slice = Slice(
+                slice_name=slice_name,
+                online=True,
+                datasource_id=one_slice.datasource_id,
+                datasource_type=one_slice.datasource_type,
+                datasource_name=one_slice.datasource_name,
+                database_id=one_slice.database_id,
+                full_table_name=one_slice.full_table_name,
+                viz_type=one_slice.viz_type,
+                params=one_slice.params,
+                created_by_fk=user_id
+            )
+            db.session.add(slice)
+        db.session.commit()
+        return slice
+
 
 if __name__ == '__main__':
     unittest.main()

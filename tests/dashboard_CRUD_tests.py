@@ -13,6 +13,7 @@ from superset.views.core import DashboardModelView
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 
+
 class DashboardCRUDTests(SupersetTestCase, PageMixin):
     #requires_examples = True
 
@@ -37,7 +38,7 @@ class DashboardCRUDTests(SupersetTestCase, PageMixin):
             assert isinstance(dash_dict.get('id'), int)
             assert isinstance(dash_dict.get('online'), bool)
             assert isinstance(dash_dict.get('favorite'), bool)
-            assert '/pilot/dashboard/' in dash_dict.get('url')
+            assert '/p/dashboard/' in dash_dict.get('url')
 
         queried_dash = db.session.query(Dashboard)\
             .filter_by(id=one_dash.get('id')).first()
@@ -45,7 +46,6 @@ class DashboardCRUDTests(SupersetTestCase, PageMixin):
         assert one_dash.get('online') == queried_dash.online
         assert one_dash.get('url') == queried_dash.url
         assert one_dash.get('description') == queried_dash.description
-        assert one_dash.get('dashboard_title') == queried_dash.dashboard_title
 
     def test_show(self):
         one_dash = db.session.query(Dashboard).first()
@@ -61,7 +61,7 @@ class DashboardCRUDTests(SupersetTestCase, PageMixin):
 
         # add
         new_slices = self.view.get_available_slices(self.user.id)[:2]
-        new_dash = {'dashboard_title': 'new_dashboard' + str(datetime.now()),
+        new_dash = {'dashboard_title': 'new_dashboard_' + str(datetime.now()),
                     'description': 'new dashboard',
                     'slices': self.view.slices_to_dict(new_slices)}
         obj = self.view.populate_object(None, self.user.id, new_dash)

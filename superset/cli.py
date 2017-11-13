@@ -53,7 +53,7 @@ def init_examples():
             load_examples(False, user_id=None)
             logging.info("Finish to load examples data.")
         else:
-            logging.info("Exists examples data (such as: birth_names).")
+            logging.info("Exists examples data (such as: energy_usage).")
 
 
 def create_default_user():

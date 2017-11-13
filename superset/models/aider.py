@@ -61,25 +61,14 @@ class Log(Model):
     def log_action(cls, action_type, action, obj_type, obj_id, user_id):
         if action_type not in cls.record_action_types:
             return
-        d = request.args.to_dict()
-        post_data = request.form or {}
-        d.update(post_data)
-        params = ""
-        try:
-            params = json.dumps(d)
-        except:
-            pass
-        sesh = db.session()
         log = cls(
             action=action,
             action_type=action_type,
             obj_type=obj_type,
             obj_id=obj_id,
-            json=params,
-            referrer=request.referrer[:1000] if request.referrer else None,
             user_id=user_id)
-        sesh.add(log)
-        sesh.commit()
+        db.session().add(log)
+        db.session().commit()
 
     @classmethod
     def log(cls, action_type, obj, obj_type, user_id):
