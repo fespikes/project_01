@@ -129,8 +129,9 @@ class SliceModelView(SupersetModelView):  # noqa
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
         objects = self.online_affect_objects(id)
-        info = _("Releasing slice {slice} will release these too: Dataset: {dataset}, "
-                 "Connection: {conn}, and make it invisible in these dashboards: {dashboard}")\
+        info = _("Releasing slice {slice} will release these too: "
+                 "\nDataset: {dataset}, \nConnection: {conn}, "
+                 "\nand make it invisible in these dashboards: {dashboard}")\
             .format(slice=objects.get('slice'),
                     dataset=objects.get('dataset'),
                     conn=objects.get('connection'),
@@ -502,7 +503,7 @@ class DashboardModelView(SupersetModelView):  # noqa
                                if c.online is False and c.created_by_fk == user_id]
 
         info = _("Releasing dashboard {dashboard} will release these too: "
-                 "Slice: {slice}, Dataset: {dataset}, Connection: {connection}")\
+                 "\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}")\
             .format(dashboard=[dashboard, ],
                     slice=offline_slices,
                     dataset=offline_datasets,

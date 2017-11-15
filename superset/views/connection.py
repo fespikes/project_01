@@ -163,7 +163,7 @@ class DatabaseView(SupersetModelView):  # noqa
     def online_info(self, id):
         objects = self.release_affect_objects(id)
         info = _("Releasing connection {conn} will make these usable "
-                 "for other users: Dataset: {dataset}, Slice: {slice}")\
+                 "for other users: \nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -174,7 +174,7 @@ class DatabaseView(SupersetModelView):  # noqa
     def offline_info(self, id):
         objects = self.release_affect_objects(id)
         info = _("Changing connection {conn} to offline will make these "
-                 "unusable for other users: Dataset: {dataset}, Slice: {slice}")\
+                 "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -204,7 +204,7 @@ class DatabaseView(SupersetModelView):  # noqa
     def delete_info(self, id):
         objects = self.delete_affect_objects(id)
         info = _("Deleting connection {conn} will make these unusable: "
-               "Dataset: {dataset}, Slice: {slice}")\
+                 "\nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -320,7 +320,7 @@ class HDFSConnectionModelView(SupersetModelView):
     def online_info(self, id):
         objects = self.release_affect_objects(id)
         info = _("Releasing connection {conn} will make these usable "
-                 "for other users: Dataset: {dataset}, Slice: {slice}") \
+                 "for other users: \nDataset: {dataset}, \nSlice: {slice}") \
             .format(conn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -331,7 +331,7 @@ class HDFSConnectionModelView(SupersetModelView):
     def offline_info(self, id):
         objects = self.release_affect_objects(id)
         info = _("Changing connection {conn} to offline will make these "
-                 "unusable for other users: Dataset: {dataset}, Slice: {slice}") \
+                 "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}") \
             .format(conn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -363,7 +363,7 @@ class HDFSConnectionModelView(SupersetModelView):
     def delete_info(self, id):
         objects = self.delete_affect_objects(id)
         info = _("Deleting connection {conn} will make these unusable: "
-                 "Dataset: {dataset}, Slice: {slice}") \
+                 "\nDataset: {dataset}, \nSlice: {slice}") \
             .format(conn=objects.get('hdfs_connection'),
                     dataset=objects.get('dataset'),
                     slice=objects.get('slice'))
@@ -542,9 +542,9 @@ class ConnectionView(BaseSupersetView, PageMixin):
                 )
         ).all()
 
-        info = _("Deleting connections {conns} will make these objects unusable: "
-                 "Dataset: {dataset}, Slice: {slice}") \
-            .format(conns=dbs + hconns,
+        info = _("Deleting connection {conn} will make these unusable: "
+                 "\nDataset: {dataset}, \nSlice: {slice}") \
+            .format(conn=dbs + hconns,
                     dataset=set(online_datasets + myself_datasets),
                     slice=slices)
         return json_response(data=info)

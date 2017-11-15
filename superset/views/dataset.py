@@ -237,7 +237,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     def online_info(self, id):
         objects = self.release_affect_objects(id)
         info = _("Releasing dataset {dataset} will release connection {connection}, "
-                 "and make these slices usable for others: {slice}")\
+                 "\nand make these slices usable for others: {slice}")\
             .format(dataset=objects.get('dataset'),
                     connection=objects.get('connection'),
                     slice=objects.get('slice'),
