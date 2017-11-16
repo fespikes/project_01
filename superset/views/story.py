@@ -5,14 +5,6 @@ from __future__ import unicode_literals
 
 
 import json
-import logging
-import pickle
-import sys
-import time
-import zlib
-from datetime import datetime, timedelta
-
-from flask import g, request, redirect, flash, render_template
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
@@ -20,13 +12,13 @@ from flask_appbuilder.security.sqla.models import User
 
 from sqlalchemy import or_
 
-from superset import app, cache, db, utils
+from superset import app, db, utils
 from superset.utils import SupersetException
-from superset.models import (Dashboard, Story, Log, FavStar, str_to_model)
+from superset.models import (
+    Story, Dashboard, Dataset, Database, HDFSConnection, Log, FavStar)
 from superset.message import NONE_STORY_NAME
 from .base import (
-    SupersetModelView, BaseSupersetView, catch_exception, get_user_id,
-    check_ownership, json_response
+    SupersetModelView, catch_exception, get_user_id, check_ownership, json_response
 )
 
 
@@ -188,17 +180,58 @@ class StoryModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        pass
+        """
+        Changing dashboard to online will make myself dashboards, slices,_datasets
+        and connections online.
+        """
+        story = self.get_object(id)
+        dashboards = story.dashboards
+        slices = []
+        datasets = []
+        database_ids = []
+        for d in dashboards:
+            slices.extend(d.slices)
+        for s in slices:
+            if s.datasource_id and s.datasource:
+                datasets.append(s.datasource)
+            elif s.database_id:
+                database_ids.append(s.database_id)
+
+        connections = []
+        for d in datasets:
+            if d.database:
+                connections.append(d.database)
+            if d.hdfs_table and d.hdfs_table.hdfs_connection:
+                connections.append(d.hdfs_table.hdfs_connection)
+        databases = db.session.query(Database) \
+            .filter(Database.id.in_(database_ids)) \
+            .all()
+        connections.extend(databases)
+
+        user_id = get_user_id()
+        offline_dashboards = [d for d in dashboards
+                              if d.online is False and d.created_by_fk == user_id]
+        offline_slices = [s for s in slices
+                          if s.online is False and s.created_by_fk == user_id]
+        offline_datasets = [d for d in datasets
+                            if d.online is False and d.created_by_fk == user_id]
+        offline_connections = [c for c in connections
+                               if c.online is False and c.created_by_fk == user_id]
+
+        info = _("Releasing story {story} will release these too: "
+                 "\nDashboard: {dashboard}, \nSlice: {slice}, "
+                 "\nDataset: {dataset}, \nConnection: {connection}") \
+            .format(story=[story, ],
+                    dashboard=offline_dashboards,
+                    slice=offline_slices,
+                    dataset=offline_datasets,
+                    connection=offline_connections)
+        return json_response(data=info)
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        story = db.session.query(Story).filter_by(id=id).first()
-        if not story:
-            raise SupersetException(
-                _("Error parameter ids: {ids}, queried {num} story(s)")
-                .format(ids=[id, ], num=0)
-            )
+        story = self.get_object(id)
         info = _("Changing story {story} to offline will make it invisible "
                  "for other users").format(story=[story, ])
         return json_response(data=info)
@@ -212,31 +245,6 @@ class StoryModelView(SupersetModelView):  # noqa
     @expose("/muldelete_info/", methods=['POST'])
     def muldelete_info(self):
         return json_response(data='')
-
-    @catch_exception
-    @expose("/add_dashboards/<story_id>/", methods=['POST'])
-    def add_dashboards(self, story_id):
-        """Add and save dashboards to a story"""
-        data = json.loads(request.form.get('data'))
-        dashboard_ids = data['dashboard_ids']
-        story = db.session.query(Story).filter_by(id=story_id).first()
-        check_ownership(story, raise_if_false=True)
-
-        new_dashs = db.session.query(Dashboard).filter(Dashboard.id.in_(dashboard_ids))
-        story.dashboards += new_dashs
-        db.session.merge(story)
-        db.session.commit()
-        return True
-
-    @catch_exception
-    @expose("/save/<story_id>/", methods=['POST'])
-    def save_story(self):
-        pass
-
-    @catch_exception
-    @expose("/copy/<story_id>/", methods=['POST'])
-    def copy_story(self):
-        pass
 
     @catch_exception
     @expose("/import/", methods=['GET', 'POST'])

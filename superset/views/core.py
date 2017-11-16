@@ -185,10 +185,9 @@ class SliceModelView(SupersetModelView):  # noqa
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         objects = self.delete_affect_objects([id, ])
-        info = _("Deleting slice {slice} will remove from these dashboards too: {dashboard}")\
-            .format(slice=objects.get('slice'),
-                    dashboard=objects.get('dashboard')
-                    )
+        info = _("Deleting slice {slice} will remove from these "
+                 "dashboards too: {dashboard}")\
+            .format(slice=objects.get('slice'), dashboard=objects.get('dashboard'))
         return json_response(data=info)
 
     @catch_exception
@@ -197,10 +196,9 @@ class SliceModelView(SupersetModelView):  # noqa
         json_data = self.get_request_data()
         ids = json_data.get('selectedRowKeys')
         objects = self.delete_affect_objects(ids)
-        info = _("Deleting slice {slice} will remove from these dashboards too: {dashboard}") \
-            .format(slice=objects.get('slice'),
-                    dashboard=objects.get('dashboard')
-                    )
+        info = _("Deleting slice {slice} will remove from these "
+                 "dashboards too: {dashboard}") \
+            .format(slice=objects.get('slice'), dashboard=objects.get('dashboard'))
         return json_response(data=info)
 
     def delete_affect_objects(self, ids):
@@ -513,25 +511,52 @@ class DashboardModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        dash = db.session.query(Dashboard).filter_by(id=id).first()
-        if not dash:
-            raise SupersetException(
-                _("Error parameter ids: {ids}, queried {num} dashboard(s)")
-                .format(ids=[id, ], num=0)
-            )
+        dash = self.get_object(id)
+        user_id = get_user_id()
+        stories = [story for story in dash.stories
+                   if story.online is True and story.created_by_fk != user_id]
         info = _("Changing dashboard {dashboard} to offline will make it invisible "
-                 "for other users").format(dashboard=[dash, ])
+                 "in these stories: {story}") \
+            .format(dashboard=[dash, ], story=stories)
         return json_response(data=info)
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        return json_response(data='')
+        objects = self.delete_affect_objects([id, ])
+        info = _("Deleting dashboard {dashboard} will remove from these "
+                 "stories too: {story}") \
+            .format(dashboard=objects.get('dashboard'), story=objects.get('story'))
+        return json_response(data=info)
 
     @catch_exception
     @expose("/muldelete_info/", methods=['POST'])
     def muldelete_info(self):
-        return json_response(data='')
+        json_data = self.get_request_data()
+        ids = json_data.get('selectedRowKeys')
+        objects = self.delete_affect_objects(ids)
+        info = _("Deleting dashboard {dashboard} will remove from these "
+                 "stories too: {story}") \
+            .format(dashboard=objects.get('dashboard'), story=objects.get('story'))
+        return json_response(data=info)
+
+    @staticmethod
+    def delete_affect_objects(ids):
+        """Deleting dashboard will remove if from myself and online stories.
+        """
+        dashs = db.session.query(Dashboard).filter(Dashboard.id.in_(ids)).all()
+        if len(dashs) != len(ids):
+            raise SupersetException(
+                _('Error parameter ids: {ids}, queried {num} dashboard(s)')
+                .format(ids=ids, num=len(dashs))
+            )
+        stories = []
+        user_id = get_user_id()
+        for dash in dashs:
+            for story in dash.stories:
+                if story.created_by_fk == user_id or story.online == 1:
+                    stories.append(story)
+        return {'dashboard': dashs, 'story': stories}
 
     @catch_exception
     @expose("/import/", methods=['GET', 'POST'])
@@ -639,6 +664,9 @@ class Superset(BaseSupersetView):
             obj.online = True
             db.session.commit()
             Log.log_online(obj, model, user_id)
+        if model == 'story':
+            for dash in obj.dashboards:
+                cls.release_relations(dash, 'dashboard', user_id)
         if model == 'dashboard':
             for slice in obj.slices:
                 cls.release_relations(slice, 'slice', user_id)
@@ -654,7 +682,6 @@ class Superset(BaseSupersetView):
                 cls.release_relations(obj.database, 'database', user_id)
             if obj.hdfs_table and obj.hdfs_table.hdfs_connection:
                 cls.release_relations(obj.hdfs_table.hdfs_connection, 'hdfsconnection', user_id)
-
 
     @catch_exception
     @expose("/slice/<slice_id>/")
