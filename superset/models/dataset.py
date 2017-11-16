@@ -740,7 +740,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                 new_metric = SqlMetric(
                     temp_dataset=self,
                     metric_name='sum__' + new_col.column_name,
-                    verbose_name='sum__' + new_col.column_name,
                     metric_type='sum',
                     expression='SUM({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
@@ -748,7 +747,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                 new_metric = SqlMetric(
                     temp_dataset=self,
                     metric_name='avg__' + new_col.column_name,
-                    verbose_name='avg__' + new_col.column_name,
                     metric_type='avg',
                     expression='AVG({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
@@ -756,7 +754,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                 new_metric = SqlMetric(
                     temp_dataset=self,
                     metric_name='max__' + new_col.column_name,
-                    verbose_name='max__' + new_col.column_name,
                     metric_type='max',
                     expression='MAX({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
@@ -764,7 +761,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                 new_metric = SqlMetric(
                     temp_dataset=self,
                     metric_name='min__' + new_col.column_name,
-                    verbose_name='min__' + new_col.column_name,
                     metric_type='min',
                     expression='MIN({})'.format(quoted))
                 self.temp_metrics.append(new_metric)
@@ -772,15 +768,13 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                 new_metric = SqlMetric(
                     temp_dataset=self,
                     metric_name='count_distinct__' + new_col.column_name,
-                    verbose_name='count_distinct__' + new_col.column_name,
                     metric_type='count_distinct',
                     expression='COUNT(DISTINCT {})'.format(quoted))
                 self.temp_metrics.append(new_metric)
 
         new_metric = SqlMetric(
             temp_dataset=self,
-            metric_name='count',
-            verbose_name='COUNT(*)',
+            metric_name='count(*)',
             metric_type='count',
             expression='COUNT(*)')
         self.temp_metrics.append(new_metric)
@@ -834,35 +828,30 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
             if dbcol.sum:
                 metrics.append(M(
                     metric_name='sum__' + dbcol.column_name,
-                    verbose_name='sum__' + dbcol.column_name,
                     metric_type='sum',
                     expression="SUM({})".format(quoted)
                 ))
             if dbcol.avg:
                 metrics.append(M(
                     metric_name='avg__' + dbcol.column_name,
-                    verbose_name='avg__' + dbcol.column_name,
                     metric_type='avg',
                     expression="AVG({})".format(quoted)
                 ))
             if dbcol.max:
                 metrics.append(M(
                     metric_name='max__' + dbcol.column_name,
-                    verbose_name='max__' + dbcol.column_name,
                     metric_type='max',
                     expression="MAX({})".format(quoted)
                 ))
             if dbcol.min:
                 metrics.append(M(
                     metric_name='min__' + dbcol.column_name,
-                    verbose_name='min__' + dbcol.column_name,
                     metric_type='min',
                     expression="MIN({})".format(quoted)
                 ))
             if dbcol.count_distinct:
                 metrics.append(M(
                     metric_name='count_distinct__' + dbcol.column_name,
-                    verbose_name='count_distinct__' + dbcol.column_name,
                     metric_type='count_distinct',
                     expression="COUNT(DISTINCT {})".format(quoted)
                 ))
@@ -871,8 +860,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
             db.session.commit()
 
         metrics.append(M(
-            metric_name='count',
-            verbose_name='COUNT(*)',
+            metric_name='count(*)',
             metric_type='count',
             expression="COUNT(*)"
         ))
