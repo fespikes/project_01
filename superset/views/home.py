@@ -35,8 +35,8 @@ class Home(BaseSupersetView):
     order_column = 'time'
     order_direction = 'desc'
     default_types = {
-        'counts': ['dashboard', 'slice', 'dataset', 'connection'],
-        'trends': ['dashboard', 'slice', 'dataset', 'connection'],
+        'counts': ['story', 'dashboard', 'slice', 'dataset', 'connection'],
+        'trends': ['story', 'dashboard', 'slice', 'dataset', 'connection'],
         'favorits': ['dashboard', 'slice'],
         'edits': ['dashboard', 'slice'],
         'actions': ['online', 'offline', 'add', 'delete']
@@ -100,23 +100,27 @@ class Home(BaseSupersetView):
         present_count = counts
         present_date = date.today()
         for log in logs:
-            obj_type = 'connection' if log.obj_type in ['database', 'hdfsconnection'] else log.obj_type
-            #
-            if log.dt != present_date:
-                present_date = present_date - timedelta(days=1)
-                for type_ in types:
-                    trends[type_].insert(0, {"date": str(present_date), "count": present_count.get(type_)})
-            #
-            if log.action_type == 'add' and log.user_id == user_id \
-                    or log.action_type == 'online' and log.user_id != user_id:
-                present_count[obj_type] = present_count.get(obj_type) - 1
-            elif log.action_type == 'delete' and log.user_id == user_id \
-                    or log.action_type == 'offline' and log.user_id != user_id:
-                present_count[obj_type] = present_count.get(obj_type) + 1
+            obj_type = 'connection' if log.obj_type in ['database', 'hdfsconnection'] \
+                else log.obj_type
+            if obj_type in self.default_types.get('trends'):
+                #
+                if log.dt != present_date:
+                    present_date = present_date - timedelta(days=1)
+                    for type_ in types:
+                        trends[type_].insert(0, {"date": str(present_date),
+                                                 "count": present_count.get(type_)})
+                #
+                if log.action_type == 'add' and log.user_id == user_id \
+                        or log.action_type == 'online' and log.user_id != user_id:
+                    present_count[obj_type] = present_count.get(obj_type) - 1
+                elif log.action_type == 'delete' and log.user_id == user_id \
+                        or log.action_type == 'offline' and log.user_id != user_id:
+                    present_count[obj_type] = present_count.get(obj_type) + 1
 
         while present_date > start_date:
             for type_ in types:
-                trends[type_].insert(0, {"date": str(present_date), "count": present_count.get(type_)})
+                trends[type_].insert(0, {"date": str(present_date),
+                                         "count": present_count.get(type_)})
             present_date = present_date - timedelta(days=1)
 
         return trends
