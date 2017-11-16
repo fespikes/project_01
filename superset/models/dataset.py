@@ -380,10 +380,8 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
 
     @property
     def metrics_combo(self):
-        return sorted(
-            [(m.metric_name, m.verbose_name or m.metric_name)
-             for m in self.metrics],
-            key=lambda x: x[1])
+        return sorted([(m.metric_name, m.metric_name) for m in self.metrics],
+                      key=lambda x: x[1])
 
     @property
     def sql_url(self):
