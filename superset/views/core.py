@@ -30,7 +30,7 @@ from superset.utils import (
     SupersetException, json_error_response
 )
 from superset.models import (
-    Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric,
+    Database, Dataset, Slice, Dashboard, Story, TableColumn, SqlMetric,
     Query, Log, FavStar, str_to_model
 )
 from superset.message import *
@@ -1194,6 +1194,37 @@ class Superset(BaseSupersetView):
             dashboard=dash,
             context=json.dumps(context),
             standalone_mode=standalone,
+        )
+
+    @catch_exception
+    @expose("/story/<story_id>/")
+    def story(self, story_id):
+        """Server side rendering for a story"""
+        story = db.session.query(Story).filter_by(id=story_id).one()
+        context = json.loads(story.order_json)
+
+        user_id = g.user.get_id()
+        dashs_dict = {}
+        for dash in story.dashboards:
+            dashs_dict[dash.id] = dash
+
+        for one_dash_json in context:
+            dash = dashs_dict.get(one_dash_json.get('dashboard_id'))
+            if not dash:
+                one_dash_json['dashboard_id'] = None
+                one_dash_json['visible'] = False
+                one_dash_json['url'] = None
+            else:
+                one_dash_json['url'] = dash.url
+                if dash.created_by_fk != user_id and dash.online is False:
+                    one_dash_json['visible'] = False
+                else:
+                    one_dash_json['visible'] = True
+
+        return self.render_template(
+            "superset/story.html",
+            story=story,
+            context=json.dumps(context),
         )
 
     @catch_exception
