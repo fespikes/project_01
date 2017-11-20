@@ -1426,12 +1426,12 @@ class Superset(BaseSupersetView):
         schema = request.form.get('schema')
         schema = schema if schema else None
 
-        rejected_tables = [
-            t for t in superset_query.tables if not
-            table_accessible(mydb, t, schema_name=schema)]
-        if rejected_tables:
-            return json_error_response(
-                get_datasource_access_error_msg('{}'.format(rejected_tables)))
+        # rejected_tables = [
+        #     t for t in superset_query.tables if not
+        #     table_accessible(mydb, t, schema_name=schema)]
+        # if rejected_tables:
+        #     return json_error_response(
+        #         get_datasource_access_error_msg('{}'.format(rejected_tables)))
         session.commit()
 
         select_as_cta = request.form.get('select_as_cta') == 'true'
