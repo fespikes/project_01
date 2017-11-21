@@ -1863,6 +1863,39 @@ class WorldMapViz(BaseViz):
         return d, df_dict
 
 
+class ChineseMapViz(BaseViz):
+    """The map for china"""
+    viz_type = "chinese_map"
+    verbose_name = _("Chinese Map")
+    is_timeseries = False
+    credits = ''
+    fieldsets = ({
+                 'label': None,
+                 'fields': ('entity', 'metric', 'secondary_metric',)
+                 },)
+    form_overrides = {
+        'entity': {
+            'label': _('The column of provinces'),
+            'description': _("Column that defines provinces"),
+        },
+        'metric': {
+            'label': _('Metric for color'),
+            'description': _("Metric that defines the color of provinces"),
+        },
+        'secondary_metric': {
+            'label': _('Bubble size'),
+            'description': _("Metric that defines the size of the bubble"),
+        },
+    }
+
+    def query_obj(self):
+        qry = super(ChineseMapViz, self).query_obj()
+        qry['metrics'] = [
+            self.form_data['metric'], self.form_data['secondary_metric']]
+        qry['groupby'] = [self.form_data['entity']]
+        return qry
+
+
 class FilterBoxViz(BaseViz):
 
     """A multi filter, multi-choice filter box to make dashboards interactive"""
@@ -2241,6 +2274,7 @@ viz_types_list = [
     DirectedForceViz,
     SankeyViz,
     WorldMapViz,
+    ChineseMapViz,
     MapboxViz,
     FilterBoxViz,
     IFrameViz,
