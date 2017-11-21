@@ -89,9 +89,9 @@ class Log(Model):
 
     @classmethod
     def log_add(cls, obj, obj_type, user_id):
+        cls.log('add', obj, obj_type, user_id)
         if hasattr(obj, 'online') and obj.online is True:
             cls.log_online(obj, obj_type, user_id)
-        cls.log('add', obj, obj_type, user_id)
 
     @classmethod
     def log_update(cls, obj, obj_type, user_id):
