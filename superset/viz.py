@@ -480,10 +480,11 @@ class BaseViz(object):
 
     @classmethod
     def df_dict(cls, df):
-        return dict(
+        d = dict(
             records=df.to_dict(orient="records"),
             columns=list(df.columns),
         )
+        return json.loads(json.dumps(d, default=utils.json_iso_dttm_ser))
 
 
 class TableViz(BaseViz):
