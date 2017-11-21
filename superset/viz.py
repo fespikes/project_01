@@ -30,7 +30,7 @@ from dateutil import relativedelta as rdelta
 
 from superset import app, utils, cache
 from superset.forms import FormFactory
-from superset.utils import flasher, DTTM_ALIAS
+from superset.utils import flasher, DTTM_ALIAS, is_letters
 
 config = app.config
 
@@ -482,7 +482,7 @@ class BaseViz(object):
     def df_dict(cls, df):
         d = dict(
             records=df.to_dict(orient="records"),
-            columns=list(df.columns),
+            columns=set(df.columns),
         )
         return json.loads(json.dumps(d, default=utils.json_iso_dttm_ser))
 
@@ -1863,6 +1863,160 @@ class WorldMapViz(BaseViz):
         return d, df_dict
 
 
+class ChineseMapViz(BaseViz):
+    """The map for china"""
+    viz_type = "chinese_map"
+    verbose_name = _("Chinese Map")
+    is_timeseries = False
+    credits = ''
+    fieldsets = ({
+         'label': None,
+         'fields': (
+             'entity',
+         )
+    }, {
+         'label': _('Show Bubbles'),
+         'fields': (
+             ('show_bubbles', None),
+             'metric',
+             'rename_bubble_metric',
+             'max_bubble_size',
+             ('show_bubble_values', None),
+             'bubble_value_format',
+         )
+    }, {
+         'label': _('Show Colors'),
+         'fields': (
+             ('show_colors', None),
+             'secondary_metric',
+             'rename_color_metric',
+             ('show_color_values', None),
+             'color_value_format',
+         )
+    })
+    form_overrides = {
+        'entity': {
+            'label': _('The column of provinces'),
+            'description': _("Column that defines provinces"),
+        },
+        'metric': {
+            'label': _('Bubble size'),
+            'description': _('Metric that defines the size of the bubble'),
+        },
+        'show_bubbles': {
+            'description': _('Whether to display bubbles on top of provinces'),
+        },
+        'max_bubble_size': {
+            'default': 15,
+        },
+        'secondary_metric': {
+            'label': _('Metric for color'),
+            'description': _('Metric that defines the color of provinces'),
+        },
+    }
+
+    provinces_code = {
+        "xinjiang": "新疆维吾尔自治区",
+        "xizang": "西藏自治区",
+        "neimenggu": "内蒙古自治区",
+        "qinghai": "青海省",
+        "sichuan": "四川省",
+        "heilongjiang": "黑龙江省",
+        "gansu": "甘肃省",
+        "yunnan": "云南省",
+        "guangxi": "广西壮族自治区",
+        "hunan": "湖南省",
+        "hebei": "河北省",
+        "shaanxi": "陕西省",
+        "jilin": "吉林省",
+        "hubei": "湖北省",
+        "guangdong": "广东省",
+        "guizhou": "贵州省",
+        "jiangxi": "江西省",
+        "henan": "河南省",
+        "shandong": "山东省",
+        "shanxi": "山西省",
+        "liaoning": "辽宁省",
+        "anhui": "安徽省",
+        "fujian": "福建省",
+        "jiangsu": "江苏省",
+        "zhejiang": "浙江省",
+        "chongqing": "重庆市",
+        "ningxia": "宁夏回族自治区面积",
+        "taiwan": "台湾省",
+        "hainan": "海南省",
+        "beijing": "北京市",
+        "tianjin": "天津市",
+        "shanghai": "上海市",
+        "hongkong": "香港特别行政区",
+        "aomen": "澳门特别行政区",
+    }
+
+    def query_obj(self):
+        qry = super(ChineseMapViz, self).query_obj()
+        qry['metrics'] = []
+        if self.form_data['show_bubbles']:
+            qry['metrics'].append(self.form_data['metric'])
+        if self.form_data['show_colors']:
+            qry['metrics'].append(self.form_data['secondary_metric'])
+        qry['groupby'] = [self.form_data['entity']]
+        return qry
+
+    def get_data(self):
+        df, df_dict = self.get_df()
+        cols = [self.form_data.get('entity')]
+        bubble_metric, color_metric = None, None
+        if self.form_data['show_bubbles']:
+            bubble_metric = self.form_data.get('metric')
+        if self.form_data['show_colors']:
+            color_metric = self.form_data.get('secondary_metric')
+
+        if bubble_metric and color_metric:
+            columns = ['province', 'm1', 'm2']
+            if bubble_metric == color_metric:
+                ndf = df[cols]
+                ndf['m1'] = df[bubble_metric].iloc[:, 0]
+                ndf['m2'] = ndf['m1']
+            else:
+                cols += [bubble_metric, color_metric]
+                ndf = df[cols]
+        elif bubble_metric and not color_metric:
+            columns = ['province', 'm1']
+            cols += [bubble_metric]
+            ndf = df[cols]
+        elif not bubble_metric and color_metric:
+            columns = ['province', 'm2']
+            cols += [color_metric]
+            ndf = df[cols]
+        else:
+            raise Exception("Not choose to show bubble or color")
+
+        df = ndf
+        df.columns = columns
+        d = df.to_dict(orient='records')
+
+        codes = list(self.provinces_code.keys())
+        cn_names = list(self.provinces_code.values())
+        for row in d:
+            province = row['province']
+            # Here we can't to do with the repeated code or province,
+            # beacuse we don't know the calculate which user want to do,
+            # such as sum, svg or other complicated computing
+            if not isinstance(province, str):
+                raise Exception("The province [{}] is not a string".format(province))
+            if is_letters(province):
+                row['code'] = province.lower()
+                row['province'] = self.provinces_code.get(row['code'])
+            else:
+                row['code'] = None
+                for index, name in enumerate(cn_names):
+                    if name.startswith(province):
+                        row['code'] = codes[index]
+            if row['code'] is None or row['code'] not in codes:
+                raise Exception("Can't recognize the province: [{}]".format(province))
+        return d, df_dict
+
+
 class FilterBoxViz(BaseViz):
 
     """A multi filter, multi-choice filter box to make dashboards interactive"""
@@ -2241,6 +2395,7 @@ viz_types_list = [
     DirectedForceViz,
     SankeyViz,
     WorldMapViz,
+    ChineseMapViz,
     MapboxViz,
     FilterBoxViz,
     IFrameViz,

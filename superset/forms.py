@@ -809,6 +809,39 @@ class FormFactory(object):
                 "description": _(
                     "Whether to display bubbles on top of countries")
             }),
+            'rename_bubble_metric': (TextField, {
+                "label": _("Rename Metric"),
+                "default": '',
+            }),
+            'show_bubble_values': (BetterBooleanField, {
+                "label": _("Bubble values"),
+                "default": False,
+            }),
+            'bubble_value_format': (FreeFormSelectField, {
+                "label": _("Value Format"),
+                "default": '.3s',
+                "choices": AXIS_FORMAT_CHOICES,
+                "description": D3_FORMAT_DOCS,
+            }),
+            'show_colors': (BetterBooleanField, {
+                "label": _("Show Colors"),
+                "default": False,
+                "description": _("Whether to show color of provinces")
+            }),
+            'rename_color_metric': (TextField, {
+                "label": _("Rename Metric"),
+                "default": '',
+            }),
+            'show_color_values': (BetterBooleanField, {
+                "label": _("Color values"),
+                "default": False,
+            }),
+            'color_value_format': (FreeFormSelectField, {
+                "label": _("Value Format"),
+                "default": '.3s',
+                "choices": AXIS_FORMAT_CHOICES,
+                "description": D3_FORMAT_DOCS,
+            }),
             'show_legend': (BetterBooleanField, {
                 "label": _("Legend"),
                 "default": True,

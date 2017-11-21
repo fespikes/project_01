@@ -17,6 +17,7 @@ import smtplib
 import sqlalchemy as sa
 import signal
 import uuid
+import re
 
 from builtins import object
 from datetime import date, datetime, time
@@ -168,6 +169,16 @@ def parse_human_datetime(s):
             logging.exception(e)
             raise ValueError("Couldn't parse date string [{}]".format(s))
     return dttm
+
+
+def is_letters(s):
+    if not isinstance(s, str):
+        return False
+    zh_pattern = re.compile('[a-zA-Z]*$')
+    if zh_pattern.match(s):
+        return True
+    else:
+        return False
 
 
 def dttm_from_timtuple(d):
