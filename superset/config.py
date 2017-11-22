@@ -38,10 +38,14 @@ PILOT_WEBSERVER_TIMEOUT = 60
 CUSTOM_SECURITY_MANAGER = None
 # ---------------------------------------------------------
 
+# The default username and password when guardian is not opened
+DEFAULT_USERNAME = 'admin'
+DEFAULT_PASSWORD = '123456'
+
 # The Community Edition will abandon guardian module, and embed user management module
 COMMUNITY_EDITION = False
-COMMUNITY_USERNAME = 'admin'
-COMMUNITY_PASSWORD = '123456'
+COMMUNITY_USERNAME = DEFAULT_USERNAME
+COMMUNITY_PASSWORD = DEFAULT_PASSWORD
 
 # if load examples data when start server
 LOAD_EXAMPLES = True
