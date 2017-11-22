@@ -1895,6 +1895,25 @@ class ChineseMapViz(BaseViz):
         qry['groupby'] = [self.form_data['entity']]
         return qry
 
+    def get_data(self):
+        df, df_dict = self.get_df()
+        cols = [self.form_data.get('entity')]
+        metric = self.form_data.get('metric')
+        secondary_metric = self.form_data.get('secondary_metric')
+        if metric == secondary_metric:
+            ndf = df[cols]
+            # df[metric] will be a DataFrame
+            # because there are duplicate column names
+            ndf['m1'] = df[metric].iloc[:, 0]
+            ndf['m2'] = ndf['m1']
+        else:
+            cols += [metric, secondary_metric]
+            ndf = df[cols]
+        df = ndf
+        df.columns = ['province', 'm1', 'm2']
+        d = df.to_dict(orient='records')
+        return d, df_dict
+
 
 class FilterBoxViz(BaseViz):
 
