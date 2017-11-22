@@ -57,19 +57,29 @@ def init_examples():
 
 
 def create_default_user():
-    username = config.get('COMMUNITY_USERNAME')
-    password = config.get('COMMUNITY_PASSWORD')
-    if config.get('COMMUNITY_EDITION') is False or sm.find_user(username=username):
+    if config.get('GUARDIAN_AUTH', False):
         return
-    logging.info("Begin to create default admin user...")
-    user = sm.add_user(
-        username, username, username, '{}@email.com'.format(username), sm.find_role('Admin'),
-        password=password)
+    elif config.get('COMMUNITY_EDITION'):
+        username = config.get('COMMUNITY_USERNAME')
+        password = config.get('COMMUNITY_PASSWORD')
+    else:
+        username = config.get('DEFAULT_USERNAME')
+        password = config.get('DEFAULT_PASSWORD')
+
+    user = sm.find_user(username=username)
     if not user:
-        logging.error("Failed to create default admin user.")
+        logging.info("Begin to create default admin user...")
+        user = sm.add_user(
+            username, username, username,
+            '{}@email.com'.format(username),
+            sm.find_role('Admin'),
+            password=password)
+        if not user:
+            logging.error("Failed to add default admin user.")
+    sm.reset_password(user.id, password)
     user.password2 = password
     sm.get_session.commit()
-    logging.info("Finish to add default admin user.")
+    logging.info("Finish to add or edit default admin user.")
 
 
 def create_default_hdfs_conn():
@@ -80,7 +90,7 @@ def create_default_hdfs_conn():
         hconn = HDFSConnection(connection_name=name,
                                httpfs=config.get('DEFAULT_HTTPFS'),
                                online=True,
-                               description='Default hdfs connection for hdfs file browser.')
+                               description='Default hdfs connection for hdfs browser.')
         db.session.add(hconn)
         db.session.commit()
         logging.info("Finish to add default hdfs connection.")
