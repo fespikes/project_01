@@ -17,11 +17,11 @@
 
 
 .slice_container svg{
-    width: 560px;
-    height: 470px;
-    position: relative;
-    left: 50%;
-    top: 50%;
-    margin-left: -280px;
-    margin-top: -235px;
+  width: 560px;
+  height: 470px;
+  position: relative;
+  left: 50%;
+  top: 50%;
+  margin-left: -280px;
+  margin-top: -235px;
 }

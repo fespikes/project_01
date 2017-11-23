@@ -13,11 +13,10 @@ return parseInt(f * m, 10) / m;
 
 function chinaMap(slice) {
 
-    let R;
-
-    let renderMap = function() {};
-
-    let adjustData = function() {};
+    let R,
+        renderMap,
+        adjustData,
+        setColor;
 
     const render = function() {
         const container = slice.container;
@@ -36,24 +35,17 @@ function chinaMap(slice) {
 
 
 
-
-
-
-
-
             const fd = json.form_data;
 
             let data = json.data;
 
-            const ext = d3.extent(data, function(d) {
+            const ext = d3.extent(data, function(d) { //the ladder here 
                 return d.m1;
             });
 
-            const extRadius = d3.extent(data, function(d) {
+            const extRadius = d3.extent(data, function(d) { //the ladder here 
                 return d.m2;
             });
-
-            console.log('ext:', ext, 'extRadius:', extRadius);
 
             const radiusScale = d3.scale.linear()
                 .domain([extRadius[0], extRadius[1]])
@@ -68,15 +60,9 @@ function chinaMap(slice) {
                 fillColor: colorScale(d.m1),
             }));
 
-            console.log(data);
-
-
-
-
-
             let china = renderMap();
 
-            china = adjustData(china, json.data);
+            china = adjustData(china, data);
 
 
             $('#tiplayer').length < 1 && $('body').append('<div id="tiplayer" style=" display:none;"></div>');
@@ -91,29 +77,22 @@ function chinaMap(slice) {
 
                 bbox = china[state].path.getBBox();
 
-                circle = china[state].path.paper.circle(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, china[state].radius);
+                //fill with scale
+                china[state].path.attr({
+                    fill: china[state].fillColor
+                })
 
-                china[state]['path'].color = Raphael.getColor(0.9);
-                //TODO: set the color of design
+                circle = china[state].path.paper.circle(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, +china[state].radius).attr({
+                    "fill": "#005a63",
+                    "stroke": "#005a63",
+                    "stroke-width": 1
+                });
 
-                (function(st, state) {
-                    $(st[0]).css('cursor', 'pointer');
+                (function(circle, state) {
+                    $(circle[0]).css('cursor', 'pointer');
                     //write tip 
-                    $(st[0]).hover(function(e) {
+                    $(circle[0]).hover(function(e) {
                         var _ST = this;
-
-                        current && china[current]['path'].animate({
-                            fill: "#f5f5f5",
-                            stroke: "#ddd"
-                        }, 300);
-
-                        st.animate({
-                            fill: st.color,
-                            stroke: "#eee"
-                        }, 300);
-
-                        // st.toFront();
-                        R.safari && R.safari();
 
                         if (e.type == 'mouseenter') {
                             tiplayer.text(china[state]['name'] + '\n' + Math.formatFloat(china[state].m2, 1)).css({
@@ -130,8 +109,48 @@ function chinaMap(slice) {
                             tiplayer.hide();
                         }
 
+                    });
+
+                })(circle, state)
+
+                //set color of fill
+                // china[state]['path'].color = Raphael.getColor(0.9);
+                china = setColor(china);
+
+                (function(st, state) {
+                    $(st[0]).css('cursor', 'pointer');
+                    //write tip 
+                    $(st[0]).hover(function(e) {
+                        var _ST = this;
+
+                        st.animate({
+                            fill: st.color,
+                            stroke: "#eee"
+                        }, 300);
+
+                        // st.toFront();
+                        R.safari && R.safari();
+
+                        if (e.type == 'mouseenter') {
+                            tiplayer.text(china[state]['name'] + '\n' + Math.formatFloat(china[state].m1, 1)).css({
+                                'opacity': '0.85',
+                                'top': (e.pageY + 10) + 'px',
+                                'left': (e.pageX + 10) + 'px',
+                                'background': '#fff',
+                                'padding': '3px 5px'
+                            }).fadeIn('normal');
+
+                        } else {
+                            if (tiplayer.is(':animated'))
+                                tiplayer.stop();
+                            tiplayer.hide();
+                        }
+
                     }, function(e) {
-                        current = state;
+                        china[state]['path'].animate({
+                            fill: china[state].fillColor,
+                            stroke: "#ddd"
+                        }, 300);
                     });
 
                 })(china[state]['path'], state);
@@ -143,10 +162,10 @@ function chinaMap(slice) {
 
     renderMap = function(e) {
 
-        R = Raphael(slice.container.get(0), 560, 470); //大小与矢量图形文件图形对应；这是比较操蛋的地方高宽不自适应。
+        R = Raphael(slice.container.get(0), 560, 500); //大小与矢量图形文件图形对应；这是比较操蛋的地方高宽不自适应。
         var attr = {
-            "fill": "#f5f5f5",
-            "stroke": "#ccc",
+            "fill": "#ccc",
+            "stroke": "#fff",
             "stroke-width": 1,
             "stroke-linejoin": "round"
         };
@@ -294,7 +313,6 @@ function chinaMap(slice) {
                     china[china[i].name] = china[i];
                 }
         */
-
         return china;
 
     }
@@ -307,6 +325,69 @@ function chinaMap(slice) {
             data[code] = Object.assign({}, json[i], data[code]);
         }
         return data;
+    };
+
+    setColor = function(china) {
+        var n01 = '#85c014',
+            n02 = '#00a0de',
+            n03 = '#3471b0',
+            n04 = '#0896c1',
+            n05 = '#85bbd6',
+            n06 = '#72c4ba',
+            n07 = '#0089d1',
+            n08 = '#3f557d',
+            n09 = '#076c93',
+            n10 = '#b5d5e5',
+            n11 = '#0070a8';
+
+        china['xinjiang']['path'].color = n01;
+        china['xizang']['path'].color = n01;
+        china['neimenggu']['path'].color = n01;
+        china['henan']['path'].color = n01;
+        china['jiangxi']['path'].color = n01;
+        china['guangxi']['path'].color = n01;
+
+        china['jilin']['path'].color = n02;
+        china['ningxia']['path'].color = n02;
+        china['hubei']['path'].color = n02;
+        china['yunnan']['path'].color = n02;
+        china['hainan']['path'].color = n02;
+
+        china['hebei']['path'].color = n03;
+
+        china['shanxi']['path'].color = n04;
+        china['sichuan']['path'].color = n04;
+        china['zhejiang']['path'].color = n04;
+        china['aomen']['path'].color = n04;
+
+        china['qinghai']['path'].color = n05;
+
+        china['heilongjiang']['path'].color = n06;
+        china['hongkong']['path'].color = n06;
+        china['shanghai']['path'].color = n06;
+        china['gansu']['path'].color = n06;
+        china['taiwan']['path'].color = n06;
+        china['jiangsu']['path'].color = n06;
+        china['tianjin']['path'].color = n06;
+
+        china['liaoning']['path'].color = n07;
+        china['shaanxi']['path'].color = n07;
+        china['guizhou']['path'].color = n07;
+
+        china['shandong']['path'].color = n08;
+        china['guangdong']['path'].color = n08;
+
+        china['anhui']['path'].color = n09;
+        china['chongqing']['path'].color = n09;
+
+        china['xizang']['path'].color = n10;
+
+        china['hunan']['path'].color = n11;
+        china['fujian']['path'].color = n11;
+        china['beijing']['path'].color = n11;
+
+
+        return china;
     };
 
     return {
