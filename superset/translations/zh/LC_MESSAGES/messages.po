@@ -1605,6 +1605,9 @@ msgstr "工作表名字不能为空"
 msgid "Dashboard name can't be none"
 msgstr "仪表板名字不能为空"
 
+msgid "Connecting timeout"
+msgstr "连接超时"
+
 
 #========================
 # views/base.py
