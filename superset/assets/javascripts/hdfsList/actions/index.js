@@ -303,7 +303,7 @@ export function fetchDownload() {
             response => {
                 if (response.status === 200) {
                     let aLink = document.createElement('a');
-                    const data = json.data;
+                    const data = response.data;
                     let blob = new Blob([data], {
                         type: 'plain/text',
                         endings: 'native'
