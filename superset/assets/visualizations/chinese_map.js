@@ -163,6 +163,8 @@ function chinaMap(slice) {
     renderMap = function(e) {
 
         R = Raphael(slice.container.get(0), 560, 500); //大小与矢量图形文件图形对应；这是比较操蛋的地方高宽不自适应。
+        R.canvas.id = "chinese-map";
+
         var attr = {
             "fill": "#ccc",
             "stroke": "#fff",

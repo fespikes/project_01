@@ -16,7 +16,7 @@
 }
 
 
-.slice_container svg{
+.slice_container #chinese-map{
   width: 560px;
   height: 470px;
   position: relative;
