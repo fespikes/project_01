@@ -708,6 +708,9 @@ msgstr "显示气泡"
 msgid "Whether to display bubbles on top of countries"
 msgstr "是否在国家上显示气泡"
 
+msgid "Whether to display bubbles on top of provinces"
+msgstr "是否在省市和地区上显示气泡"
+
 msgid "Legend"
 msgstr "图例"
 

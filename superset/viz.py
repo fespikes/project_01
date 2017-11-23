@@ -30,7 +30,7 @@ from dateutil import relativedelta as rdelta
 
 from superset import app, utils, cache
 from superset.forms import FormFactory
-from superset.utils import flasher, DTTM_ALIAS
+from superset.utils import flasher, DTTM_ALIAS, is_letters
 
 config = app.config
 
@@ -1870,9 +1870,19 @@ class ChineseMapViz(BaseViz):
     is_timeseries = False
     credits = ''
     fieldsets = ({
-                 'label': None,
-                 'fields': ('entity', 'metric', 'secondary_metric',)
-                 },)
+         'label': None,
+         'fields': (
+             'entity',
+             'metric',
+         )
+    }, {
+         'label': _('Bubbles'),
+         'fields': (
+             ('show_bubbles', None),
+             'secondary_metric',
+             'max_bubble_size',
+         )
+    })
     form_overrides = {
         'entity': {
             'label': _('The column of provinces'),
@@ -1882,10 +1892,50 @@ class ChineseMapViz(BaseViz):
             'label': _('Metric for color'),
             'description': _("Metric that defines the color of provinces"),
         },
+        'show_bubbles': {
+            'description': _("Whether to display bubbles on top of provinces"),
+        },
         'secondary_metric': {
             'label': _('Bubble size'),
             'description': _("Metric that defines the size of the bubble"),
         },
+    }
+
+    provinces_code = {
+        "xinjiang": "新疆维吾尔自治区",
+        "xizang": "西藏自治区",
+        "neimenggu": "内蒙古自治区",
+        "qinghai": "青海省",
+        "sichuan": "四川省",
+        "heilongjiang": "黑龙江省",
+        "gansu": "甘肃省",
+        "yunnan": "云南省",
+        "guangxi": "广西壮族自治区",
+        "hunan": "湖南省",
+        "hebei": "河北省",
+        "shaanxi": "陕西省",
+        "jilin": "吉林省",
+        "hubei": "湖北省",
+        "guangdong": "广东省",
+        "guizhou": "贵州省",
+        "jiangxi": "江西省",
+        "henan": "河南省",
+        "shandong": "山东省",
+        "shanxi": "山西省",
+        "liaoning": "辽宁省",
+        "anhui": "安徽省",
+        "fujian": "福建省",
+        "jiangsu": "江苏省",
+        "zhejiang": "浙江省",
+        "chongqing": "重庆市",
+        "ningxia": "宁夏回族自治区面积",
+        "taiwan": "台湾省",
+        "hainan": "海南省",
+        "beijing": "北京市",
+        "tianjin": "天津市",
+        "shanghai": "上海市",
+        "hongkong": "香港特别行政区",
+        "aomen": "澳门特别行政区",
     }
 
     def query_obj(self):
@@ -1902,8 +1952,6 @@ class ChineseMapViz(BaseViz):
         secondary_metric = self.form_data.get('secondary_metric')
         if metric == secondary_metric:
             ndf = df[cols]
-            # df[metric] will be a DataFrame
-            # because there are duplicate column names
             ndf['m1'] = df[metric].iloc[:, 0]
             ndf['m2'] = ndf['m1']
         else:
@@ -1912,6 +1960,23 @@ class ChineseMapViz(BaseViz):
         df = ndf
         df.columns = ['province', 'm1', 'm2']
         d = df.to_dict(orient='records')
+
+        codes = list(self.provinces_code.keys())
+        cn_names = list(self.provinces_code.values())
+        for row in d:
+            province = row['province']
+            # Here we can't to do with the repeated code or province,
+            # beacuse we don't know the calculate which user want to do,
+            # such as sum, svg, max or min
+            if is_letters(province):
+                province = province.lower()
+                row['code'] = province
+                row['province'] = self.provinces_code.get(province)
+            else:
+                row['code'] = None
+                for index, name in enumerate(cn_names):
+                    if name.startswith(province):
+                        row['code'] = codes[index]
         return d, df_dict
 
 
