@@ -1,0 +1,27 @@
+
+
+.world_map svg{
+  background-color: #feffff
+}
+
+.world_map{
+  position: relative
+}
+
+#tiplayer{
+  position: absolute;
+  background: #fff;
+  border-radius: 5px;
+  padding: 5px 6px;
+}
+
+
+.slice_container svg{
+    width: 560px;
+    height: 470px;
+    position: relative;
+    left: 50%;
+    top: 50%;
+    margin-left: -280px;
+    margin-top: -235px;
+}
