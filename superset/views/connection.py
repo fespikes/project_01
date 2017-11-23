@@ -16,7 +16,8 @@ import sqlalchemy as sqla
 from sqlalchemy import select, literal, cast, or_, and_
 from sqlalchemy.engine.url import make_url
 
-from superset import app, db, models, timeout_decorator
+from superset import app, db, models
+from superset.timeout_decorator import connection_timeout
 from superset.models import Database, HDFSConnection, Connection, Slice, Log
 from superset.utils import SupersetException
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
@@ -405,9 +406,7 @@ class HDFSConnectionModelView(SupersetModelView):
                 }
 
     @catch_hdfs_exception
-    @timeout_decorator.timeout(config.get('CONNECTION_TIMEOUT', 5),
-                               use_signals=False,
-                               exception_message=CONNECTION_TIMEOUT)
+    @connection_timeout
     @expose('/test/', methods=['GET'])
     def test_hdfs_connection(self):
         httpfs = request.args.get('httpfs')

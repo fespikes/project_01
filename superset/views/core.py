@@ -21,9 +21,9 @@ from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import create_engine, or_
 
 from superset import (
-    app, cache, db, sql_lab, sql_parse, results_backend, viz, utils,
-    timeout_decorator
+    app, cache, db, sql_lab, sql_parse, results_backend, viz, utils
 )
+from superset.timeout_decorator import connection_timeout
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
 from superset.utils import (
@@ -1092,9 +1092,7 @@ class Superset(BaseSupersetView):
         return "SLICES ADDED"
 
     @catch_exception
-    @timeout_decorator.timeout(config.get('CONNECTION_TIMEOUT', 5),
-                               use_signals=False,
-                               exception_message=CONNECTION_TIMEOUT)
+    @connection_timeout
     @expose("/testconn", methods=["POST", "GET"])
     def testconn(self):
         """Tests a sqla connection"""
