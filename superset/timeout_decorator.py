@@ -13,7 +13,11 @@ import sys
 import time
 import multiprocessing
 import signal
+import functools
 from functools import wraps
+from flask_babel import lazy_gettext as _
+from superset import conf
+
 
 ############################################################
 # Timeout
@@ -98,6 +102,20 @@ def timeout(seconds=None,
             return new_function
 
     return decorate
+
+
+def connection_timeout(f):
+    """
+    A decorator to add timeout restriction for database and hdfs connection
+    """
+    seconds = conf.get('CONNECTION_TIMEOUT', 30)
+    exception_message = _('Connecting timeout')
+    exception = TimeoutError
+
+    def wraps(self, *args, **kwargs):
+        timeout_wrapper = _Timeout(f, exception, exception_message, seconds)
+        return timeout_wrapper(self, *args, **kwargs)
+    return functools.update_wrapper(wraps, f)
 
 
 def _target(queue, function, *args, **kwargs):
