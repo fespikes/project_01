@@ -90,8 +90,9 @@ class Main extends Component {
     }
 
     linkToPath(ag) {
-        const { changePath, fetchIfNeeded, condition } = this.props;
+        const { changePath, fetchIfNeeded, condition, navigateTo } = this.props;
         changePath(ag);
+        navigateTo(1);
         if(ag.path === condition.path) {
             fetchIfNeeded(condition);
         }
@@ -224,10 +225,11 @@ function mapStateToProps(state, pros) {
 }
 
 function mapDispatchToProps(dispatch) {
-    const {changePath, giveDetail, setPopupParam, popupChangeStatus, setSelectedRows, fetchIfNeeded} = bindActionCreators(actions, dispatch);
+    const {changePath, navigateTo, giveDetail, setPopupParam, popupChangeStatus, setSelectedRows, fetchIfNeeded} = bindActionCreators(actions, dispatch);
 
     return {
         changePath,
+        navigateTo,
         giveDetail,
         setPopupParam,
         fetchIfNeeded,
