@@ -54,3 +54,5 @@ NONE_HDFS_CONNECTION = _("HDFS connection can't be none")
 # views/core.py
 NONE_SLICE_NAME = _("Slice name can't be none")
 NONE_DASHBOARD_NAME = _("Dashboard name can't be none")
+
+CONNECTION_TIMEOUT = _("Connecting timeout")
