@@ -1873,14 +1873,25 @@ class ChineseMapViz(BaseViz):
          'label': None,
          'fields': (
              'entity',
-             'metric',
          )
     }, {
-         'label': _('Bubbles'),
+         'label': _('Show Bubbles'),
          'fields': (
              ('show_bubbles', None),
-             'secondary_metric',
+             'metric',
+             'rename_bubble_metric',
              'max_bubble_size',
+             ('show_bubble_values', None),
+             'bubble_value_format',
+         )
+    }, {
+         'label': _('Show Colors'),
+         'fields': (
+             ('show_colors', None),
+             'secondary_metric',
+             'rename_color_metric',
+             ('show_color_values', None),
+             'color_value_format',
          )
     })
     form_overrides = {
@@ -1889,15 +1900,15 @@ class ChineseMapViz(BaseViz):
             'description': _("Column that defines provinces"),
         },
         'metric': {
-            'label': _('Metric for color'),
-            'description': _("Metric that defines the color of provinces"),
+            'label': _('Bubble size'),
+            'description': _('Metric that defines the size of the bubble'),
         },
         'show_bubbles': {
-            'description': _("Whether to display bubbles on top of provinces"),
+            'description': _('Whether to display bubbles on top of provinces'),
         },
         'secondary_metric': {
-            'label': _('Bubble size'),
-            'description': _("Metric that defines the size of the bubble"),
+            'label': _('Metric for color'),
+            'description': _('Metric that defines the color of provinces'),
         },
     }
 
@@ -1940,25 +1951,45 @@ class ChineseMapViz(BaseViz):
 
     def query_obj(self):
         qry = super(ChineseMapViz, self).query_obj()
-        qry['metrics'] = [
-            self.form_data['metric'], self.form_data['secondary_metric']]
+        qry['metrics'] = []
+        if self.form_data['show_bubbles']:
+            qry['metrics'].append(self.form_data['metric'])
+        if self.form_data['show_colors']:
+            qry['metrics'].append(self.form_data['secondary_metric'])
         qry['groupby'] = [self.form_data['entity']]
         return qry
 
     def get_data(self):
         df, df_dict = self.get_df()
         cols = [self.form_data.get('entity')]
-        metric = self.form_data.get('metric')
-        secondary_metric = self.form_data.get('secondary_metric')
-        if metric == secondary_metric:
+        bubble_metric, color_metric = None, None
+        if self.form_data['show_bubbles']:
+            bubble_metric = self.form_data.get('metric')
+        if self.form_data['show_colors']:
+            color_metric = self.form_data.get('secondary_metric')
+
+        if bubble_metric and color_metric:
+            columns = ['province', 'm1', 'm2']
+            if bubble_metric == color_metric:
+                ndf = df[cols]
+                ndf['m1'] = df[bubble_metric].iloc[:, 0]
+                ndf['m2'] = ndf['m1']
+            else:
+                cols += [bubble_metric, color_metric]
+                ndf = df[cols]
+        elif bubble_metric and not color_metric:
+            columns = ['province', 'm1']
+            cols += [bubble_metric]
             ndf = df[cols]
-            ndf['m1'] = df[metric].iloc[:, 0]
-            ndf['m2'] = ndf['m1']
+        elif not bubble_metric and color_metric:
+            columns = ['province', 'm2']
+            cols += [color_metric]
+            ndf = df[cols]
         else:
-            cols += [metric, secondary_metric]
-            ndf = df[cols]
+            raise Exception("Not choose to show bubble or color")
+
         df = ndf
-        df.columns = ['province', 'm1', 'm2']
+        df.columns = columns
         d = df.to_dict(orient='records')
 
         codes = list(self.provinces_code.keys())

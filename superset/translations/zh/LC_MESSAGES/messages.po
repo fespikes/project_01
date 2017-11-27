@@ -1211,26 +1211,43 @@ msgid "3 letter code of the country"
 msgstr "3位国家码"
 
 msgid "Metric for color"
-msgstr "色彩度量项"
+msgstr "颜色度量项"
 
 msgid "Metric that defines the color of the country"
 msgstr "国家颜色表示的统计项"
 
 msgid "Bubble size"
-msgstr "气泡大小"
+msgstr "气泡大小度量项"
 
 msgid "Metric that defines the size of the bubble"
 msgstr "气泡大小表示的度量项"
 
 msgid "The column of provinces"
-msgstr "省份列"
+msgstr "地区"
 
 msgid "Column that defines provinces"
 msgstr "选择值为省或地区的列"
 
-msgid "Metric that defines the color of provinces"
-msgstr "省或地区的颜色表示的统计项"
+msgid "Rename Metric"
+msgstr "重命名度量名称"
 
+msgid "Bubble values"
+msgstr "显示气泡代表的值"
+
+msgid "Value Format"
+msgstr "数值格式"
+
+msgid "Show Colors"
+msgstr "显示颜色"
+
+msgid "Whether to show color of provinces"
+msgstr "是否显示各省市和地区的颜色"
+
+msgid "Metric that defines the color of provinces"
+msgstr "省市和地区的颜色表示的统计项"
+
+msgid "Color values"
+msgstr "显示颜色代表的值"
 
 #: superset/templates/superset/explore.html:147 superset/viz.py:1507
 msgid "Filters"

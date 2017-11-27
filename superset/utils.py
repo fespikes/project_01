@@ -170,9 +170,11 @@ def parse_human_datetime(s):
     return dttm
 
 
-def is_letters(str):
+def is_letters(s):
+    if not isinstance(s, str):
+        raise Exception('[{}] is not a string'.format(s))
     zh_pattern = re.compile('[a-zA-Z]*$')
-    if zh_pattern.match(str):
+    if zh_pattern.match(s):
         return True
     else:
         return False
