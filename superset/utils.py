@@ -25,7 +25,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.utils import formatdate
-from flask import flash, Markup, render_template, Response
+from flask import flash, Markup, render_template, Response, g
+from flask_login import login_user
 from flask_babel import gettext as __
 from past.builtins import basestring
 from sqlalchemy import event, exc
@@ -556,3 +557,32 @@ def json_success_response(msg, status=None):
   return Response(
     json.dumps(data), status=status, mimetype="application/json"
   )
+
+
+def add_or_edit_user(appbuilder, username, password):
+    """
+    When passed Guardian or CAS verification, need to add a user to database
+    or edit the user in database
+    """
+    try:
+        user = appbuilder.sm.find_user(username=username)
+        if not user:
+            user = appbuilder.sm.add_user(
+                username, username, username, '{}@transwarp.io'.format(username),
+                appbuilder.sm.find_role('Admin'),  password=password)
+            if not user:
+                raise SupersetException('Add user: [{}] failed'.format(username))
+        appbuilder.sm.reset_password(user.id, password)
+        user.password2 = password
+        appbuilder.sm.get_session.commit()
+        logging.info('Add or edit user: [{}] succeed'.format(username))
+        return user
+    except Exception as e:
+        logging.exception(str(e))
+        raise e
+
+
+def login_app(appbuilder, username, password):
+    user = add_or_edit_user(appbuilder, username, password)
+    login_user(user)
+    return g.user

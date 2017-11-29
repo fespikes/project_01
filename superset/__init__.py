@@ -6,15 +6,19 @@ from __future__ import unicode_literals
 
 import logging
 import os
+import json
+import ssl
+import requests
 from logging.handlers import TimedRotatingFileHandler
 
 from sqlalchemy_utils.functions import database_exists, create_database
-from flask import Flask, redirect
+from flask import g, Flask, redirect, request
 from flask_appbuilder import SQLA, AppBuilder, IndexView
 from flask_appbuilder.baseviews import expose
 from flask_cache import Cache
 from flask_migrate import Migrate
 from flask_compress import Compress
+from flask_cas import CAS, login_required
 from superset.source_registry import SourceRegistry
 from werkzeug.contrib.fixers import ProxyFix
 from superset import utils, config
@@ -26,11 +30,17 @@ CONFIG_MODULE = os.environ.get('SUPERSET_CONFIG', 'superset.config')
 
 app = Flask(__name__)
 app.config.from_object(CONFIG_MODULE)
-app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 Compress(app)
 
 conf = app.config
+
+# CAS
+cas = None
+if conf.get('CAS_AUTH'):
+    cas = CAS(app, '/cas')
+ssl._create_default_https_context = ssl._create_unverified_context
+
 
 if app.debug:
     # In production mode, add log handler to sys.stderr.
@@ -90,15 +100,33 @@ for middleware in app.config.get('ADDITIONAL_MIDDLEWARE'):
     app.wsgi_app = middleware(app.wsgi_app)
 
 
-class MyIndexView(IndexView):
-    @expose('/')
-    def index(self):
-        return redirect('/home')
+def index_view():
+    if conf.get('CAS_AUTH'):
+        class MyIndexView(IndexView):
+            @expose('/')
+            @login_required
+            def index(self):
+                ### login in appbuilder
+                # import flask
+                # data = json.dumps({'username': cas.username, 'password': '123456'})
+                # flask.session['user'] = data
+                # return redirect(flask.url_for('AuthDBView.login'))
+
+                ### login here
+                utils.login_app(appbuilder, cas.username, conf.get('DEFAULT_PASSWORD'))
+                return redirect('/home')
+    else:
+        class MyIndexView(IndexView):
+            @expose('/')
+            def index(self):
+                return redirect('/home')
+    return MyIndexView
+
 
 appbuilder = AppBuilder(
     app, db.session,
     base_template='superset/base.html',
-    indexview=MyIndexView,
+    indexview=index_view(),
     security_manager_class=app.config.get("CUSTOM_SECURITY_MANAGER"))
 
 sm = appbuilder.sm
