@@ -14,7 +14,7 @@ import json
 import os
 
 from dateutil import tz
-from flask_appbuilder.security.manager import AUTH_DB
+from flask_appbuilder.security.manager import AUTH_DB, AUTH_REMOTE_USER
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_DIR = os.path.join(os.path.expanduser('~'), 'pilot')
@@ -46,6 +46,11 @@ DEFAULT_PASSWORD = '123456'
 COMMUNITY_EDITION = False
 COMMUNITY_USERNAME = DEFAULT_USERNAME
 COMMUNITY_PASSWORD = DEFAULT_PASSWORD
+
+# CAS
+CAS_AUTH = False
+CAS_SERVER = 'https://localhost:8393'
+CAS_AFTER_LOGIN = 'index'
 
 # if load examples data when start server
 LOAD_EXAMPLES = True
