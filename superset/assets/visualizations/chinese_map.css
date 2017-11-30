@@ -54,7 +54,7 @@ ul.operate li.gradient::before{
   display: inline-block;
   width: 25px;
   height: 120px;
-  background: linear-gradient(#40557d, #b5d5e5);
+  background: linear-gradient(#00a0de, #b5d5e5);
 }
 .renamed{
   display: inline-block;
