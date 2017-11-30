@@ -36,7 +36,7 @@ let renderOperator = function(data = {
 
     let renameColor = _ => {
         let flag = _ && data['show_colors'];
-        let template = (_ ? `<li>
+        let template = (flag ? `<li>
             <input value="${_}" class="renamed color" name="renamed-color" disabled />
         </li>` : ``);
         return template;
