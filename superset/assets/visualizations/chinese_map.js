@@ -70,6 +70,7 @@ function chinaMap(slice) {
     let R,
         renderMap,
         adjustData,
+        adjustPosition,
         setColor,
         format,
         params = {};
@@ -195,7 +196,7 @@ function chinaMap(slice) {
                 fd.show_colors && (areaAttr.fill = china[state].fillColor);
                 china[state].path.attr(areaAttr);
 
-                //no-3: show 
+                //no-3: show color value
                 if (fd.show_color_values) {
                     china[state].path.paper.text(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, format(china[state].m1));
                 }
@@ -240,6 +241,8 @@ function chinaMap(slice) {
 
                 })(china[state]['path'], state);
             }
+
+            adjustPosition();
 
             slice.done(json);
         })
@@ -403,6 +406,18 @@ function chinaMap(slice) {
         }
         return data;
     };
+
+    adjustPosition = function() {
+
+        var svg = document.querySelector('#chinese-map');
+        $(svg).css({
+            'position': 'absolute',
+            'left': '50%',
+            'top': '50%',
+            'marginLeft': '-280px',
+            'marginTop': '-235px'
+        })
+    }
 
     return {
         render,

@@ -34,7 +34,6 @@ ul.operate{
   position: absolute;
   right: 0;
   top: 0;
-  border: 1px #ddd solid;
   z-index: 2;
   background: #fff;
 }
@@ -64,6 +63,7 @@ ul.operate li.gradient::before{
   height: 80px;
   font-size: 16px;
   font-weight: 600;
+  background: transparent;
 }
 .bubble-max, .bubble-min{
   height: 60px;
