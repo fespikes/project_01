@@ -27,13 +27,15 @@ let renderOperator = function(data = {
     }) {
 
     let renameBubble = _ => {
-        let template = (_ ? `<li>
+        let flag = _ && data['show_bubbles'];
+        let template = (flag ? `<li>
             <input value="${_}" class="renamed bubble" name="renamed-bubble" disabled />
         </li>` : ``);
         return template;
     }
 
     let renameColor = _ => {
+        let flag = _ && data['show_colors'];
         let template = (_ ? `<li>
             <input value="${_}" class="renamed color" name="renamed-color" disabled />
         </li>` : ``);
@@ -126,16 +128,16 @@ function chinaMap(slice) {
             $(slice.container.get(0)).prepend(renderOperator(params)); //slice_container
 
             const radiusScale = d3.scale.linear()
-                .domain([extRadius[0], extRadius[1]])
+                .domain([ext[0], ext[1]])
                 .range([1, fd.max_bubble_size]);
 
             const colorScale = d3.scale.linear()
-                .domain([ext[0], ext[1]])
+                .domain([extRadius[0], extRadius[1]])
                 .range(['#b5d5e5', '#40557d']);
 
             data = data.map((d) => Object.assign({}, d, {
-                radius: radiusScale(d.m2),
-                fillColor: colorScale(d.m1), //XXXX: what if the color   
+                radius: radiusScale(d.m1),
+                fillColor: colorScale(d.m2), //XXXX: what if the color   
             }));
 
             let china = renderMap();
@@ -163,6 +165,11 @@ function chinaMap(slice) {
                         "stroke-width": 0
                     });
 
+                    //no-3: show bubble value
+                    if (fd.show_bubble_values) {
+                        china[state].path.paper.text(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, format(china[state].m1));
+                    }
+
                     (function(circle, state) {
                         $(circle[0]).css('cursor', 'pointer');
                         //write tip 
@@ -170,7 +177,7 @@ function chinaMap(slice) {
                             var _ST = this;
 
                             if (e.type == 'mouseenter') {
-                                tiplayer.text(china[state]['name'] + '\n' + Math.formatFloat(china[state].m2, 1)).css({
+                                tiplayer.text(china[state]['name'] + '\n' + Math.formatFloat(china[state].m1, 1)).css({
                                     'opacity': '0.95',
                                     'top': (e.pageY + 10) + 'px',
                                     'left': (e.pageX + 10) + 'px',
@@ -193,53 +200,65 @@ function chinaMap(slice) {
                 } //TODO: determine the bubble value to show
 
                 //no-2: set color of fill
-                fd.show_colors && (areaAttr.fill = china[state].fillColor);
-                china[state].path.attr(areaAttr);
 
-                //no-3: show color value
-                if (fd.show_color_values) {
-                    china[state].path.paper.text(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, format(china[state].m1));
-                }
-
-                (function(st, state) {
-                    $(st[0]).css('cursor', 'pointer');
-                    //write tip 
-                    $(st[0]).hover(function(e) {
-                        var _ST = this;
-
-                        //xxxx: no need to hover highlight 1
-                        /*                        st.animate({
-                                                    fill: st.color,
-                                                    stroke: "#eee"
-                                                }, 300);*/
-
-                        // st.toFront();
-                        R.safari && R.safari();
-
-                        if (e.type == 'mouseenter') {
-                            tiplayer.text(china[state]['name'] + '\n' + Math.formatFloat(china[state].m1, 1)).css({
-                                'opacity': '0.85',
-                                'top': (e.pageY + 10) + 'px',
-                                'left': (e.pageX + 10) + 'px',
-                                'background': '#fff',
-                                'padding': '3px 5px'
-                            }).fadeIn('normal');
-
-                        } else {
-                            if (tiplayer.is(':animated'))
-                                tiplayer.stop();
-                            tiplayer.hide();
-                        }
-
-                    }, function(e) {
-                        //xxxx: no need to hover highlight 2
-                        /*                        china[state]['path'].animate({
-                                                    fill: china[state].fillColor,
-                                                    stroke: "#ddd"
-                                                }, 300);*/
+                //binding the events of show color number
+                if (fd.show_colors) {
+                    china[state].path.attr({
+                        ...areaAttr,
+                        fill: china[state].fillColor
                     });
 
-                })(china[state]['path'], state);
+                    (function(st, state) {
+                        $(st[0]).css('cursor', 'pointer');
+                        //write tip 
+                        $(st[0]).hover(function(e) {
+                            var _ST = this;
+
+                            //xxxx: no need to hover highlight 1
+                            /*                        st.animate({
+                                                        fill: st.color,
+                                                        stroke: "#eee"
+                                                    }, 300);*/
+
+                            // st.toFront();
+                            R.safari && R.safari();
+
+                            if (e.type == 'mouseenter') {
+                                tiplayer.text(china[state]['name'] + '\n' + Math.formatFloat(china[state].m2, 1)).css({
+                                    'opacity': '0.85',
+                                    'top': (e.pageY + 10) + 'px',
+                                    'left': (e.pageX + 10) + 'px',
+                                    'background': '#fff',
+                                    'padding': '3px 5px'
+                                }).fadeIn('normal');
+
+                            } else {
+                                if (tiplayer.is(':animated'))
+                                    tiplayer.stop();
+                                tiplayer.hide();
+                            }
+
+                        }, function(e) {
+                            //xxxx: no need to hover highlight 2
+                            /*                        china[state]['path'].animate({
+                                                        fill: china[state].fillColor,
+                                                        stroke: "#ddd"
+                                                    }, 300);*/
+                            tiplayer.hide();
+                        });
+
+                    })(china[state]['path'], state);
+
+                    //no-3: show color value
+                    if (fd.show_color_values) {
+                        china[state].path.paper.text(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, format(china[state].m2));
+                    }
+
+                } else {
+                    china[state].path.attr(areaAttr);
+                }
+
+
             }
 
             adjustPosition();
@@ -414,7 +433,7 @@ function chinaMap(slice) {
             'position': 'absolute',
             'left': '50%',
             'top': '50%',
-            'marginLeft': '-280px',
+            'marginLeft': '-350px',
             'marginTop': '-235px'
         })
     }
