@@ -133,7 +133,7 @@ function chinaMap(slice) {
 
             const colorScale = d3.scale.linear()
                 .domain([extRadius[0], extRadius[1]])
-                .range(['#b5d5e5', '#40557d']);
+                .range(['#b5d5e5', '#00a0de']);
 
             data = data.map((d) => Object.assign({}, d, {
                 radius: radiusScale(d.m1),
