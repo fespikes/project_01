@@ -43,8 +43,8 @@ let renderOperator = function(data = {
     }
 
     let showBubble = _ => {
-        let template = (_ ? `<li class="bubble-max"> < ${data['bubble_max']}</li>
-        <li class="bubble-min"> < ${data['bubble_min']}</li>` : ``);
+        let template = (_ ? `<li class="bubble-max"><span></span>< ${data['bubble_max']}</li>
+        <li class="bubble-min"><span></span>< ${data['bubble_min']}</li>` : ``);
         return template;
     }
 
@@ -125,7 +125,15 @@ function chinaMap(slice) {
 
             params.rename_bubble_metric = fd.rename_bubble_metric || fd.metric;
             params.rename_color_metric = fd.rename_color_metric || fd.secondary_metric;
+
             $(slice.container.get(0)).prepend(renderOperator(params)); //slice_container
+            $('.bubble-max span').css({
+                'width': fd.max_bubble_size * 2,
+                'height': fd.max_bubble_size * 2,
+                'border-radius': fd.max_bubble_size + 'px',
+                'left': 30 - fd.max_bubble_size - 5 + 'px',
+                'top': 30 - fd.max_bubble_size + 'px',
+            });
 
             const radiusScale = d3.scale.linear()
                 .domain([ext[0], ext[1]])
