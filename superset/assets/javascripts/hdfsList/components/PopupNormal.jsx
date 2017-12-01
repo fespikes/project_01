@@ -109,7 +109,7 @@ class Popup extends React.Component {
 
         const me = this;
         let reader = new FileReader();
-        reader.readAsBinaryString(this.refs.fileSelect.files[0]);
+        reader.readAsArrayBuffer(this.refs.fileSelect.files[0]);
         reader.onload = function(event) {
             event.currentTarget.name = 'binaryFile';
             event.currentTarget.value = event.target.result;
