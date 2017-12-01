@@ -134,3 +134,18 @@ div.widget .chart-controls {
 .slice_container .alert {
     margin: 10px;
 }
+
+
+.row.chart-container .svg-position{
+  overflow: hidden;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -283px;
+  margin-top: -235px;
+  transform: scale(0.6);
+}
+
+.row.chart-container .operate{
+  display: none
+}

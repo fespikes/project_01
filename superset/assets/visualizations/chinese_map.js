@@ -429,13 +429,24 @@ function chinaMap(slice) {
     adjustPosition = function() {
 
         var svg = document.querySelector('#chinese-map');
+        var min = Math.min($(svg.parentElement).width(), $(svg.parentElement).height())
+        var scale = min / 560;
+        var ml = -350 * scale + 'px';
+        var mt = -235 * scale + 'px';
+
         $(svg).css({
+            'transform': 'scale(' + scale + ',' + scale + ')',
             'position': 'absolute',
             'left': '50%',
             'top': '50%',
-            'marginLeft': '-350px',
-            'marginTop': '-235px'
-        })
+            'marginLeft': ml,
+            'marginTop': mt
+        });
+
+        $('.operate').css({
+            'transform': 'scale(' + scale + ',' + scale + ')',
+            'marginTop': -200 * scale + 'px'
+        });
     }
 
     return {
