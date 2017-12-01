@@ -116,6 +116,7 @@ class HDFSBrowser(BaseView):
     def download(self):
         path = request.args.get('path')
         response = self.client.download(path)
+        response.encoding = 'utf-8'
         return json_response(data=response.text, status=response.status_code)
 
     @catch_hdfs_exception
