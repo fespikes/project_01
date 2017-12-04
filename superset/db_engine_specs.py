@@ -71,6 +71,27 @@ class BaseEngineSpec(object):
         """
         return sql
 
+    @classmethod
+    def adjust_database_uri(cls, uri, selected_schema):
+        """Based on a URI and selected schema, return a new URI
+
+        The URI here represents the URI as entered when saving the database,
+        ``selected_schema`` is the schema currently active presumably in
+        the SQL Lab dropdown. Based on that, for some database engine,
+        we can return a new altered URI that connects straight to the
+        active schema, meaning the users won't have to prefix the object
+        names by the schema name.
+
+        Some databases engines have 2 level of namespacing: database and
+        schema (postgres, oracle, mssql, ...)
+        For those it's probably better to not alter the database
+        component of the URI with the schema name, it won't work.
+
+        Some database drivers like presto accept "{catalog}/{schema}" in
+        the database component of the URL, that can be handled here.
+        """
+        return uri
+
 
 class PostgresEngineSpec(BaseEngineSpec):
     engine = 'postgresql'
@@ -154,6 +175,17 @@ class MySQLEngineSpec(BaseEngineSpec):
     @classmethod
     def epoch_to_dttm(cls):
         return "from_unixtime({col})"
+
+    @classmethod
+    def adjust_database_uri(cls, uri, selected_schema=None):
+        if selected_schema:
+            uri.database = selected_schema
+        return uri
+
+
+class InceptorEngineSpec(MySQLEngineSpec):
+    engine = 'inceptor'
+    time_grains = tuple()
 
 
 class PrestoEngineSpec(BaseEngineSpec):
@@ -261,6 +293,17 @@ class PrestoEngineSpec(BaseEngineSpec):
                     session.commit()
             time.sleep(1)
             polled = cursor.poll()
+
+    @classmethod
+    def adjust_database_uri(cls, uri, selected_schema=None):
+        database = uri.database
+        if selected_schema:
+            if '/' in database:
+                database = database.split('/')[0] + '/' + selected_schema
+            else:
+                database += '/' + selected_schema
+            uri.database = database
+        return uri
 
 
 class MssqlEngineSpec(BaseEngineSpec):
