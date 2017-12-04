@@ -104,15 +104,7 @@ class Database(Model, AuditMixinNullable, Count):
     def get_sqla_engine(self, schema=None):
         url = make_url(self.sqlalchemy_uri_decrypted)
         connect_args = self.args_append_keytab(self.get_args().get('connect_args', {}))
-        if self.backend == 'presto' and schema:
-            if '/' in url.database:
-                url.database = url.database.split('/')[0] + '/' + schema
-            else:
-                url.database += '/' + schema
-        elif self.backend == 'oracle' and schema:
-            pass
-        elif schema:
-            url.database = schema
+        url = self.db_engine_spec.adjust_database_uri(url, schema)
         return create_engine(url, connect_args=connect_args)
 
     def get_reserved_words(self):
@@ -202,9 +194,8 @@ class Database(Model, AuditMixinNullable, Count):
 
     @property
     def db_engine_spec(self):
-        engine_name = self.get_sqla_engine().name or 'base'
         return db_engine_specs.engines.get(
-            engine_name, db_engine_specs.BaseEngineSpec)
+            self.backend, db_engine_specs.BaseEngineSpec)
 
     def grains(self):
         """Defines time granularity database-specific expressions.
@@ -259,6 +250,10 @@ class Database(Model, AuditMixinNullable, Count):
     @property
     def sql_url(self):
         return '/p/sql/{}/'.format(self.id)
+
+    def get_dialect(self):
+        sqla_url = make_url(self.sqlalchemy_uri_decrypted)
+        return sqla_url.get_dialect()()
 
     @classmethod
     def args_append_keytab(cls, connect_args):
