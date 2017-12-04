@@ -784,13 +784,17 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
     def fetch_metadata(self):
         """Fetches the metadata for the table and merges it in"""
         table = self.get_sqla_table_object()
-        TC = TableColumn  # noqa shortcut to class
-        M = SqlMetric  # noqa
+        db_dialect = self.database.get_dialect()
+        TC = TableColumn
+        M = SqlMetric
         metrics = []
         any_date_col = None
         for col in table.columns:
             try:
-                datatype = "{}".format(col.type).upper()
+                datatype = col.type.compile(dialect=db_dialect).upper()
+                # For MSSQL the datatype may be
+                # NVARCHAR(128) COLLATE "SQL_LATIN1_GENERAL_CP1_CI_AS"
+                datatype = datatype.split(' ')[0] if ') ' in datatype else datatype
             except Exception as e:
                 datatype = "UNKNOWN"
                 logging.error("Unrecognized data type in {}.{}".format(table, col.name))
@@ -818,13 +822,12 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                 dbcol.is_dttm = dbcol.is_time
 
             db.session.merge(self)
-            self.columns.append(dbcol)
+            self.ref_columns.append(dbcol)
 
             if not any_date_col and dbcol.is_time:
                 any_date_col = col.name
 
-            quoted = "{}".format(
-                column(dbcol.column_name).compile(dialect=db.engine.dialect))
+            quoted = "{}".format(column(dbcol.column_name).compile(dialect=db_dialect))
             if dbcol.sum:
                 metrics.append(M(
                     metric_name='sum__' + dbcol.column_name,
@@ -855,9 +858,6 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                     metric_type='count_distinct',
                     expression="COUNT(DISTINCT {})".format(quoted)
                 ))
-            dbcol.type = datatype
-            db.session.merge(self)
-            db.session.commit()
 
         metrics.append(M(
             metric_name='count(*)',
@@ -874,9 +874,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
             metric.dataset_id = self.id
             if not m:
                 db.session.add(metric)
-                db.session.commit()
         if not self.main_dttm_col:
             self.main_dttm_col = any_date_col
+        db.session.merge(self)
+        db.session.commit()
 
     @classmethod
     def check_online(cls, dataset, raise_if_false=True):
