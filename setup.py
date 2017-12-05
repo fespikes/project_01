@@ -66,7 +66,7 @@ setup(
         'python-dateutil==2.5.3',
         'requests==2.10.0',
         'simplejson==3.8.2',
-        'sqlalchemy==1.1.5dev',
+        'sqlalchemy==1.2.0',
         'sqlalchemy-utils==0.32.7',
         'sqlparse==0.1.19',
         'werkzeug==0.11.10',
