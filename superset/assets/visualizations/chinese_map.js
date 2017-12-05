@@ -214,7 +214,7 @@ function chinaMap(slice) {
             }
 
 
-            adjustPosition();
+            adjustPosition() && $tiplayer.hide();
 
             slice.done(json);
         })
