@@ -132,7 +132,7 @@ function chinaMap(slice) {
                             //write tip 
                             $(circle[0]).hover(function(e) {
                                 if (e.type == 'mouseenter') {
-                                    $tiplayer.text(china[state]['name'] + '\n' + bubbleFormat(china[state].m1)).css({
+                                    $tiplayer.text(china[state]['name'] + ' ' + fd.metric + ' ' + bubbleFormat(china[state].m1)).css({
                                         'opacity': '0.95',
                                         'top': (e.pageY + 10) + 'px',
                                         'left': (e.pageX + 10) + 'px',
@@ -171,7 +171,7 @@ function chinaMap(slice) {
                                 R.safari && R.safari();
 
                                 if (e.type == 'mouseenter') {
-                                    $tiplayer.text(china[state]['name'] + '\n' + colorFormat(china[state].m2)).css({
+                                    $tiplayer.text(china[state]['name'] + ' ' + fd.secondary_metric + ' ' + colorFormat(china[state].m2)).css({
                                         'opacity': '0.85',
                                         'top': (e.pageY + 10) + 'px',
                                         'left': (e.pageX + 10) + 'px',
@@ -487,8 +487,8 @@ function chinaMap(slice) {
 
         let showColorsValue = _ => {
             let template = (_ ? `<li class="gradient">
-                <div class="color-max"> < ${data['color_max']}</div>
-                <div class="color-min"> < ${data['color_min']}</div>
+                <div class="color-max">${data['color_max']}</div>
+                <div class="color-min">${data['color_min']}</div>
             </li>` : ``);
             return template;
         }
