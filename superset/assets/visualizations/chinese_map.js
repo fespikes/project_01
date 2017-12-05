@@ -4,6 +4,8 @@ import $ from 'jquery';
 
 const Raphael = require('../javascripts/libs/eve&raphael.js');
 
+const centers = require('./chinese_map.json');
+
 require('./chinese_map.css');
 
 Math.formatFloat = function(f, digit) {
@@ -11,70 +13,17 @@ var m = Math.pow(10, digit);
 return parseInt(f * m, 10) / m;
 }
 
-let renderOperator = function(data = {
-
-        'rename_bubble_metric': 'rename_bubble_metric',
-        'rename_color_metric': 'rename_color_metric',
-
-        'bubble_max': 'bubble-max', //m1
-        'bubble_min': 'bubble-min',
-
-        'color_max': 'color-max', //m2
-        'color_min': 'color-min',
-
-        'show_bubbles': 'show_bubbles',
-        'show_colors': 'show_colors' //show_colors
-    }) {
-
-    let renameBubble = _ => {
-        let flag = _ && data['show_bubbles'];
-        let template = (flag ? `<li>
-            <input value="${_}" class="renamed bubble" name="renamed-bubble" disabled />
-        </li>` : ``);
-        return template;
-    }
-
-    let renameColor = _ => {
-        let flag = _ && data['show_colors'];
-        let template = (flag ? `<li>
-            <input value="${_}" class="renamed color" name="renamed-color" disabled />
-        </li>` : ``);
-        return template;
-    }
-
-    let showBubble = _ => {
-        let template = (_ ? `<li class="bubble-max"><span></span>< ${data['bubble_max']}</li>
-        <li class="bubble-min"><span></span>< ${data['bubble_min']}</li>` : ``);
-        return template;
-    }
-
-    let showColorsValue = _ => {
-        let template = (_ ? `<li class="gradient">
-            <div class="color-max"> < ${data['color_max']}</div>
-            <div class="color-min"> < ${data['color_min']}</div>
-        </li>` : ``);
-        return template;
-    }
-
-    let template = `<ul class="operate">
-        ${renameBubble(data['rename_bubble_metric'])}
-        ${showBubble(data['show_bubbles'])}
-        ${renameColor(data['rename_color_metric'])}
-        ${showColorsValue(data['show_colors'])}
-    </ul>`;
-
-    return template;
-}
-
-
 function chinaMap(slice) {
 
     let R,
         renderMap,
         adjustData,
         adjustPosition,
+        determinePrefix,
+        renderOperator,
         setColor,
-        format,
+        bubbleFormat,
+        colorFormat,
         params = {};
 
     let areaAttr = {
@@ -98,11 +47,9 @@ function chinaMap(slice) {
                 return;
             }
 
-            console.log(json);
-
-
             const fd = json.form_data;
-            format = d3.format(fd['color_value_format']);
+            bubbleFormat = d3.format(fd['bubble_value_format']);
+            colorFormat = d3.format(fd['color_value_format']);
 
             let data = json.data;
 
@@ -114,11 +61,11 @@ function chinaMap(slice) {
                 return d.m2;
             });
 
-            params.bubble_max = Math.formatFloat(ext[1], 3);
-            params.bubble_min = Math.formatFloat(ext[0], 3);
+            params.bubble_max = bubbleFormat(ext[1], 3);
+            params.bubble_min = bubbleFormat(ext[0], 3);
 
-            params.color_max = Math.formatFloat(extRadius[1], 3);
-            params.color_min = Math.formatFloat(extRadius[0], 3);
+            params.color_max = colorFormat(extRadius[1], 3);
+            params.color_min = colorFormat(extRadius[0], 3);
 
             params.show_bubbles = fd.show_bubbles;
             params.show_colors = fd.show_colors;
@@ -127,13 +74,13 @@ function chinaMap(slice) {
             params.rename_color_metric = fd.rename_color_metric || fd.secondary_metric;
 
             $(slice.container.get(0)).prepend(renderOperator(params)); //slice_container
-            $('.bubble-max span').css({
+            /*$('.bubble-max span').length && $('.bubble-max span').css({
                 'width': fd.max_bubble_size * 2,
                 'height': fd.max_bubble_size * 2,
                 'border-radius': fd.max_bubble_size + 'px',
                 'left': 30 - fd.max_bubble_size - 5 + 'px',
                 'top': 30 - fd.max_bubble_size + 'px',
-            });
+            });*/
 
             const radiusScale = d3.scale.linear()
                 .domain([ext[0], ext[1]])
@@ -145,7 +92,7 @@ function chinaMap(slice) {
 
             data = data.map((d) => Object.assign({}, d, {
                 radius: radiusScale(d.m1),
-                fillColor: colorScale(d.m2), //XXXX: what if the color   
+                fillColor: colorScale(d.m2),
             }));
 
             let china = renderMap();
@@ -154,120 +101,118 @@ function chinaMap(slice) {
 
             $('#tiplayer').length < 1 && $('body').append('<div id="tiplayer" style=" display:none;"></div>');
 
-            var tiplayer = $('#tiplayer');
+            var $tiplayer = $('#tiplayer');
             var current;
             var bbox;
             var circle;
             var amount;
 
-            for (var state in china) {
+            try {
 
-                bbox = china[state].path.getBBox();
+                for (var state in china) {
 
-                //no-1: show bubble and TODO: show bubble value
-                if (fd['show_bubbles']) {
+                    //bbox = china[state].path.getBBox();   //replaced by centers
 
-                    circle = china[state].path.paper.circle(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, +china[state].radius).attr({
-                        "fill": "#ffd733",
-                        "stroke": "#a09658",
-                        "stroke-width": 0
-                    });
+                    //no-1: show bubble and TODO: show bubble value
+                    if (fd['show_bubbles']) {
 
-                    //no-3: show bubble value
-                    if (fd.show_bubble_values) {
-                        china[state].path.paper.text(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, format(china[state].m1));
-                    }
-
-                    (function(circle, state) {
-                        $(circle[0]).css('cursor', 'pointer');
-                        //write tip 
-                        $(circle[0]).hover(function(e) {
-                            var _ST = this;
-
-                            if (e.type == 'mouseenter') {
-                                tiplayer.text(china[state]['name'] + '\n' + Math.formatFloat(china[state].m1, 1)).css({
-                                    'opacity': '0.95',
-                                    'top': (e.pageY + 10) + 'px',
-                                    'left': (e.pageX + 10) + 'px',
-                                    'background': '#fff',
-                                    'padding': '3px 5px'
-                                }).fadeIn('normal');
-
-                            } else {
-                                if (tiplayer.is(':animated'))
-                                    tiplayer.stop();
-                                tiplayer.hide();
-                            }
-
-                        }, function() {
-                            tiplayer.hide();
+                        circle = china[state].path.paper.circle(china[state]['centor'].x, china[state]['centor'].y, +china[state].radius).attr({
+                            "fill": "#ffd733",
+                            "stroke": "#a09658",
+                            "stroke-width": 0
                         });
 
-                    })(circle, state)
+                        //no-3: show bubble value
+                        if (fd.show_bubble_values) {
+                            china[state].path.paper.text(china[state]['centor'].x, china[state]['centor'].y, bubbleFormat(china[state].m1));
+                        }
 
-                } //TODO: determine the bubble value to show
+                        (function(circle, state) {
+                            $(circle[0]).css('cursor', 'pointer');
+                            //write tip 
+                            $(circle[0]).hover(function(e) {
+                                if (e.type == 'mouseenter') {
+                                    $tiplayer.text(china[state]['name'] + '\n' + bubbleFormat(china[state].m1)).css({
+                                        'opacity': '0.95',
+                                        'top': (e.pageY + 10) + 'px',
+                                        'left': (e.pageX + 10) + 'px',
+                                        'background': '#fff',
+                                        'padding': '3px 5px'
+                                    }).fadeIn('normal');
 
-                //no-2: set color of fill
+                                } else {
+                                    if ($tiplayer.is(':animated'))
+                                        $tiplayer.stop();
+                                    $tiplayer.hide();
+                                }
 
-                //binding the events of show color number
-                if (fd.show_colors) {
-                    china[state].path.attr({
-                        ...areaAttr,
-                        fill: china[state].fillColor
-                    });
+                            }, function() {
+                                $tiplayer.hide();
+                            });
 
-                    (function(st, state) {
-                        $(st[0]).css('cursor', 'pointer');
-                        //write tip 
-                        $(st[0]).hover(function(e) {
-                            var _ST = this;
+                        })(circle, state)
 
-                            //xxxx: no need to hover highlight 1
-                            /*                        st.animate({
-                                                        fill: st.color,
-                                                        stroke: "#eee"
-                                                    }, 300);*/
+                    } //TODO: determine the bubble value to show
 
-                            // st.toFront();
-                            R.safari && R.safari();
+                    //no-2: set color of fill
 
-                            if (e.type == 'mouseenter') {
-                                tiplayer.text(china[state]['name'] + '\n' + Math.formatFloat(china[state].m2, 1)).css({
-                                    'opacity': '0.85',
-                                    'top': (e.pageY + 10) + 'px',
-                                    'left': (e.pageX + 10) + 'px',
-                                    'background': '#fff',
-                                    'padding': '3px 5px'
-                                }).fadeIn('normal');
-
-                            } else {
-                                if (tiplayer.is(':animated'))
-                                    tiplayer.stop();
-                                tiplayer.hide();
-                            }
-
-                        }, function(e) {
-                            //xxxx: no need to hover highlight 2
-                            /*                        china[state]['path'].animate({
-                                                        fill: china[state].fillColor,
-                                                        stroke: "#ddd"
-                                                    }, 300);*/
-                            tiplayer.hide();
+                    //binding the events of show color number
+                    if (fd.show_colors) {
+                        china[state].path.attr({
+                            ...areaAttr,
+                            fill: china[state].fillColor
                         });
 
-                    })(china[state]['path'], state);
+                        (function(st, state) {
+                            $(st[0]).css('cursor', 'pointer');
+                            //write tip 
+                            $(st[0]).hover(function(e) {
+                                // st.toFront();
+                                R.safari && R.safari();
 
-                    //no-3: show color value
-                    if (fd.show_color_values) {
-                        china[state].path.paper.text(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, format(china[state].m2));
+                                if (e.type == 'mouseenter') {
+                                    $tiplayer.text(china[state]['name'] + '\n' + colorFormat(china[state].m2)).css({
+                                        'opacity': '0.85',
+                                        'top': (e.pageY + 10) + 'px',
+                                        'left': (e.pageX + 10) + 'px',
+                                        'background': '#fff',
+                                        'padding': '3px 5px'
+                                    }).fadeIn('normal');
+
+                                } else {
+                                    if ($tiplayer.is(':animated'))
+                                        $tiplayer.stop();
+                                    $tiplayer.hide();
+                                }
+
+                            }, function(e) {
+                                //xxxx: no need to hover highlight 2
+                                /*  china[state]['path'].animate({
+                                        fill: china[state].fillColor,
+                                        stroke: "#ddd"
+                                    }, 300);*/
+                                $tiplayer.hide();
+                            });
+
+                        })(china[state]['path'], state);
+
+                        //no-3: show color value
+                        if (fd.show_color_values) {
+                            // china[state].path.paper.text(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, format(china[state].m2));
+                            china[state].path.paper.text(china[state]['centor'].x, china[state]['centor'].y, colorFormat(china[state].m2));
+                        }
+                    } else {
+                        china[state].path.attr(areaAttr);
                     }
 
-                } else {
-                    china[state].path.attr(areaAttr);
                 }
 
-
+            } catch ( e ) {
+                console.log(e.message, e.name, ' - in render chinese map.');
+            } finally {
+                console.log('finally done of chinese map');
             }
+
 
             adjustPosition();
 
@@ -278,7 +223,7 @@ function chinaMap(slice) {
     renderMap = function(b) {
 
         R = Raphael(slice.container.get(0), 560, 500); //大小与矢量图形文件图形对应；这是比较操蛋的地方高宽不自适应。
-        R.canvas.id = "chinese-map";
+        R.canvas.id = "chinese-svg";
 
         var china = {};
         china.aomen = {
@@ -429,32 +374,134 @@ function chinaMap(slice) {
         for (var i = 0; i < json.length; i++) {
             code = json[i].code;
 
-            data[code] = Object.assign({}, json[i], data[code]);
+            data[code] = Object.assign({}, json[i], data[code], {
+                centor: centers[code]
+            });
         }
         return data;
     };
 
     adjustPosition = function() {
+        var initial = {
+            width: 750,
+            height: 500,
+            gap: 40 //padding 
+        };
+        var csstransform = determinePrefix();
 
-        var svg = document.querySelector('#chinese-map');
-        var min = Math.min($(svg.parentElement).width(), $(svg.parentElement).height())
-        var scale = min / 560;
-        var ml = -350 * scale + 'px';
-        var mt = -235 * scale + 'px';
+        var wrapper = document.querySelector('.chinese_map');
+        var parentWidth = $(wrapper).width();
+        var parentHeight = $(wrapper).height();
 
-        $(svg).css({
-            'transform': 'scale(' + scale + ',' + scale + ')',
+        /////
+        $('.slice_container').css({
+            'width': initial.width + 'px',
+            'height': initial.height + 'px',
             'position': 'absolute',
             'left': '50%',
             'top': '50%',
-            'marginLeft': ml,
-            'marginTop': mt
+            'marginLeft': -initial.width / 2 + 'px',
+            'marginTop': -initial.height / 2 + 'px'
         });
+        /////
 
-        $('.operate').css({
-            'transform': 'scale(' + scale + ',' + scale + ')',
-            'marginTop': -200 * scale + 'px'
+        /*
+        if (parentHeight > (initial.height + initial.gap) && parentWidth > (initial.width + initial.gap)) {
+            return;
+        }*/
+        var childScale = initial.width / initial.height, //
+            parentScale = parentWidth / parentHeight,
+            ratio;
+
+        if (parentScale > childScale) {
+            ratio = $(wrapper).height() / (initial.height + initial.gap);
+        } else {
+            ratio = $(wrapper).width() / (initial.width + initial.gap);
+        }
+
+        $('.slice_container').css(csstransform, 'matrix(' + ratio + ', 0, 0, ' + ratio + ', ' + 0 + ', ' + 0 + ')');
+    };
+
+    determinePrefix = function() {
+        var csstransform = '';
+
+        $('.slice_container').each(function() {
+            if (this.style.KhtmlTransform !== undefined) {
+                csstransform = '-khtml-transform';
+            }
+            if (this.style.WebkitTransform !== undefined) {
+                csstransform = '-webkit-transform';
+            }
+            if (this.style.MozTransform !== undefined) {
+                csstransform = '-moz-transform';
+            }
+            if (this.style.OTransform !== undefined) {
+                csstransform = '-o-transform';
+            }
+            if (this.style.msTransform !== undefined) {
+                csstransform = 'msTransform';
+            }
         });
+        return csstransform;
+    };
+
+    renderOperator = function(data = {
+
+            'rename_bubble_metric': 'rename_bubble_metric',
+            'rename_color_metric': 'rename_color_metric',
+
+            'bubble_max': 'bubble-max', //m1
+            'bubble_min': 'bubble-min',
+
+            'color_max': 'color-max', //m2
+            'color_min': 'color-min',
+
+            'show_bubbles': 'show_bubbles',
+            'show_colors': 'show_colors' //show_colors
+        }) {
+
+        /*        let renameBubble = _ => {
+                    let flag = _ && data['show_bubbles'];
+                    let template = (flag ? `<li>
+                        <input value="${_}" class="renamed bubble" name="renamed-bubble" disabled />
+                    </li>` : ``);
+                    return template;
+                }
+
+        let showBubble = _ => {
+            let
+             template = (_ ? `<li class="bubble-max"><span></span>< ${data['bubble_max']}</li>
+                    <li class="bubble-min"><span></span>< ${data['bubble_min']}</li>` : ``);
+            return template;
+        }
+        */
+
+        let renameColor = _ => {
+            let flag = _ && data['show_colors'];
+            let template = (flag ? `<li>
+                <input value="${_}" class="renamed color" name="renamed-color" disabled />
+            </li>` : ``);
+            return template;
+        }
+
+        let showColorsValue = _ => {
+            let template = (_ ? `<li class="gradient">
+                <div class="color-max"> < ${data['color_max']}</div>
+                <div class="color-min"> < ${data['color_min']}</div>
+            </li>` : ``);
+            return template;
+        }
+        /**
+        ${renameBubble(data['rename_bubble_metric'])}
+        ${showBubble(data['show_bubbles'])}
+        */
+
+        let template = `<ul class="operate">
+            ${renameColor(data['rename_color_metric'])}
+            ${showColorsValue(data['show_colors'])}
+        </ul>`;
+
+        return template;
     }
 
     return {

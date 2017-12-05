@@ -15,29 +15,40 @@
   padding: 5px 6px;
 }
 
-.slice_container{
-  overflow: visible;
-}
-/* below doesn`t work */
-/* .slice_container #chinese-map{
-  width: 560px;
-  height: 470px;
+.chinese_map {
   position: relative;
+}
+.token {
+  height: 100%
+}
+
+.chinese_map .slice_container{
+  width: 750px;
+  height: 500px;
+  overflow: hidden;
+  position: absolute;
   left: 50%;
   top: 50%;
-  margin-left: -350px;
-  margin-top: -235px;
-} */
+  margin-left: -375px;
+  margin-top: -250px;
+}
+
+#chinese-svg{
+  width: 560px;
+  height: 470px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
 
 ul.operate{
   display: block;
-  width: 200px;
-  height: 400px;
+  width: 160px;
+  height: 200px;
   overflow: auto;
   position: absolute;
   right: 0;
-  top: 50%;
-  margin-top: 200px;
+  top: 150px;
   z-index: 2;
   background: #fff;
 }
@@ -69,6 +80,8 @@ ul.operate li.gradient::before{
   font-weight: 600;
   background: transparent;
 }
+
+/*
 .bubble-max, .bubble-min{
   height: 60px;
   line-height: 60px;
@@ -100,6 +113,7 @@ ul.operate li.gradient::before{
     left: 30px;
     top: 30px;
 }
+*/
 
 .color-max{
   position: absolute;

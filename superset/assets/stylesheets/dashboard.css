@@ -94,6 +94,7 @@ div.widget .chart-controls {
 .dashboard .separator.widget .slice_container {
   padding: 0px;
   overflow: visible;
+  position: relative;
 }
 .dashboard .separator.widget .slice_container hr {
   margin-top: 5px;
@@ -147,5 +148,4 @@ div.widget .chart-controls {
 }
 
 .row.chart-container .operate{
-  display: none
 }
