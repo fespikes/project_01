@@ -10,6 +10,7 @@ import pickle
 import sys
 import time
 import zlib
+from base64 import b64encode
 from datetime import datetime, timedelta
 
 from flask import g, request, redirect, flash, Response, render_template
@@ -421,6 +422,9 @@ class DashboardModelView(SupersetModelView):  # noqa
                     line[col] = str(getattr(obj, col, None))
                 else:
                     line[col] = getattr(obj, col, None)
+            image_bytes = getattr(obj, 'image', None)
+            image_bytes = b'' if image_bytes is None else image_bytes
+            line['image'] = b64encode(image_bytes).decode('utf-8')
             line['created_by_user'] = username
             line['favorite'] = True if fav_id else False
             data.append(line)
@@ -450,6 +454,7 @@ class DashboardModelView(SupersetModelView):  # noqa
     def get_edit_attributes(self, data, user_id):
         attributes = super().get_edit_attributes(data, user_id)
         attributes['slices'] = self.get_slices_in_list(data.get('slices'))
+        attributes['need_capture'] = True
         return attributes
 
     def get_slices_in_list(self, slices_list):
@@ -533,6 +538,18 @@ class DashboardModelView(SupersetModelView):  # noqa
     @expose("/muldelete_info/", methods=['POST'])
     def muldelete_info(self):
         return json_response(data='')
+
+    @catch_exception
+    @expose("/upload_image/<id>/", methods=['POST'])
+    def upload_image(self, id):
+        dash = self.get_object(id)
+        check_ownership(dash)
+        dash.image = request.data
+        dash.need_capture = False
+        db.session.merge(dash)
+        db.session.commit()
+        Log.log_update(dash, 'dashboard', get_user_id())
+        return json_response(message="Update dashboard [{}] success".format(dash))
 
     @catch_exception
     @expose("/import/", methods=['GET', 'POST'])
@@ -889,6 +906,9 @@ class Superset(BaseSupersetView):
             self.save_slice(slc)
         elif action == 'overwrite' and slice_edit_perm:
             self.overwrite_slice(slc)
+            slc = db.session.query(Slice).filter_by(id=slc.id).first()
+            for dash in slc.dashboards:
+                dash.need_capture = True
 
         # Adding slice to a dashboard if requested
         dash = None
@@ -900,6 +920,7 @@ class Superset(BaseSupersetView):
             )
             if dash and slc not in dash.slices:
                 dash.slices.append(slc)
+                dash.need_capture = True
                 db.session.commit()
                 Log.log_update(dash, 'dashboard', get_user_id())
             flash(
@@ -1014,8 +1035,7 @@ class Superset(BaseSupersetView):
         session.commit()
         dash_json = dash.json_data
         Log.log_add(dash, 'dashboard', get_user_id())
-        return Response(
-            dash_json, mimetype="application/json")
+        return Response(dash_json, mimetype="application/json")
 
     @catch_exception
     @expose("/save_dash/<dashboard_id>/", methods=['GET', 'POST'])
@@ -1026,6 +1046,7 @@ class Superset(BaseSupersetView):
         # check_ownership(dash, raise_if_false=True)
         data = json.loads(request.form.get('data'))
         self._set_dash_metadata(dash, data)
+        dash.need_capture = True
         session.merge(dash)
         session.commit()
         Log.log_update(dash, 'dashboard', get_user_id())
@@ -1059,6 +1080,7 @@ class Superset(BaseSupersetView):
         new_slices = session.query(Slice).filter(
             Slice.id.in_(data['slice_ids']))
         dash.slices += new_slices
+        dash.need_capture = True
         session.merge(dash)
         session.commit()
         session.close()
@@ -1163,6 +1185,7 @@ class Superset(BaseSupersetView):
             dash_save_perm=dash_save_perm,
             dash_edit_perm=dash_edit_perm,
             standalone_mode=standalone,
+            need_capture=dash.need_capture,
         )
         return self.render_template(
             "superset/dashboard.html",
