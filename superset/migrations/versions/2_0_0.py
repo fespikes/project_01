@@ -14,6 +14,8 @@ import sqlalchemy as sa
 
 
 def upgrade():
+    op.add_column('dashboards', sa.Column('image', sa.LargeBinary(), nullable=True))
+    op.add_column('dashboards', sa.Column('need_capture', sa.Boolean(), server_default="1"))
     op.create_table('stories',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('story_name', sa.String(length=128), nullable=False),
@@ -43,4 +45,6 @@ def downgrade():
     op.drop_index('story_index_online', 'stories')
     op.drop_table('story_dashboards')
     op.drop_table('stories')
+    op.drop_column('dashboards', 'image')
+    op.drop_column('dashboards', 'need_capture')
     # ### end Alembic commands ###

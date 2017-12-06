@@ -15,7 +15,7 @@ from flask_babel import lazy_gettext as _
 from flask_appbuilder import Model
 from flask_appbuilder.models.decorators import renders
 from sqlalchemy import (
-    Column, Integer, String, ForeignKey, Text, Boolean, Table,
+    Column, Integer, String, ForeignKey, Text, Boolean, LargeBinary, Table,
     MetaData, UniqueConstraint
 )
 from sqlalchemy.orm import relationship, subqueryload
@@ -268,6 +268,8 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin, Count):
     online = Column(Boolean, default=False)
     json_metadata = Column(Text)
     slug = Column(String(128))
+    image = Column(LargeBinary, nullable=True)    # dashboard thumbnail
+    need_capture = Column(Boolean, default=True)  # if need new thumbnail
     slices = relationship(
         'Slice', secondary=dashboard_slices, backref='dashboards')
 
