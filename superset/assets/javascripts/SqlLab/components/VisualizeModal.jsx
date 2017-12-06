@@ -67,14 +67,15 @@ class VisualizeModal extends React.PureComponent {
 
         const hints = [];
         const cols = this.mergedColumns();
-        const re = /^\w+$/;
+        const re = /^(?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]+$/;
         Object.keys(cols).forEach((colName) => {
             if (!re.test(colName)) {
                 hints.push(
                     <div>
                         "{colName}" is not right as a column name, please alias it
                         (as in SELECT count(*) <strong>AS my_alias</strong>) using only
-                        alphanumeric characters and underscores
+                        chinese, alphanumeric characters and underscores, and can't start
+                        or end with underscores
                     </div>);
             }
         });
