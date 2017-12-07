@@ -173,7 +173,7 @@ export function dashboardContainer(dashboard) {
                     const scale = 1.29;
                     domtoimage.toPng(container, { width: container.clientWidth, height: container.clientWidth / scale })
                         .then(function (image) {
-                            const url = `/dashboard/upload_image/${dashboard.id}`;
+                            const url = `/dashboard/upload_image/${dashboard.id}/`;
                             const formData = new FormData();
                             if (image) {
                                 formData.append('image', image);
