@@ -54,6 +54,7 @@
     "datamaps": "^0.5.8",
     "datatables-bootstrap3-plugin": "^0.5.0",
     "datatables.net-bs": "^1.10.12",
+    "dom-to-image": "^2.6.0",
     "font-awesome": "^4.6.3",
     "griddle-react": "^0.6.0",
     "gridster": "^0.5.6",
