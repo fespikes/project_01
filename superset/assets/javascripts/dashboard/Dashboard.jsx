@@ -12,6 +12,7 @@ import GridLayout from './components/GridLayout';
 import Header from './components/Header';
 import { getNewDashboard } from '../../utils/common2';
 import { PILOT_PREFIX } from '../../utils/utils';
+import domtoimage from 'dom-to-image';
 
 require('bootstrap');
 require('../../stylesheets/dashboard.css');
@@ -102,6 +103,7 @@ export function dashboardContainer(dashboard) {
         filters: {},
         init() {
             this.sliceObjects = [];
+            this.renderCount = 0;
             dashboard.slices.forEach((data) => {
                 if (data.error) {
                     const html = '<div class="alert alert-danger">' + data.error + '</div>';
@@ -157,6 +159,47 @@ export function dashboardContainer(dashboard) {
                     //.attr('title', '点击强制刷新')
                     .tooltip('fixTitle');
             }
+            this.renderCount++;
+            if (dashboard.context.need_capture && this.renderCount === this.sliceObjects.length && this.sliceObjects.length > 0) {
+                this.screenShot();
+            }
+        },
+        screenShot() {
+            const container = document.getElementById('grid-container');
+            const getAjaxErrorMsg = this.getAjaxErrorMsg;
+            setTimeout(() => {
+                try {
+                    console.log('screen shot');
+                    const scale = 1.29;
+                    domtoimage.toPng(container, { width: container.clientWidth, height: container.clientWidth / scale })
+                        .then(function (image) {
+                            const url = `/dashboard/upload_image/${dashboard.id}`;
+                            const formData = new FormData();
+                            if (image) {
+                                formData.append('image', image);
+                                $.ajax({
+                                    type: "POST",
+                                    url: url,
+                                    data: formData,
+                                    success: (data) => {
+                                        console.log('capture successfully', data);
+                                    },
+                                    error(error) {
+                                        const errorMsg = getAjaxErrorMsg(error);
+                                        utils.showModal({
+                                            title: 'Error',
+                                            body: 'Sorry, fail to take a screen shot </ br>' + errorMsg,
+                                        });
+                                    },
+                                    processData: false,
+                                    contentType: false,
+                                });
+                            }
+                        });
+                } catch (error) {
+                    console.log(error);
+                }
+            }, 500);
         },
         effectiveExtraFilters(sliceId) {
             // Summarized filter, not defined by sliceId
