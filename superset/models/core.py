@@ -268,7 +268,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin, Count):
     online = Column(Boolean, default=False)
     json_metadata = Column(Text)
     slug = Column(String(128))
-    image = Column(LargeBinary, nullable=True)    # dashboard thumbnail
+    image = Column(LargeBinary(length=(2**32)-1), nullable=True)  # dashboard thumbnail
     need_capture = Column(Boolean, default=True)  # if need new thumbnail
     slices = relationship(
         'Slice', secondary=dashboard_slices, backref='dashboards')

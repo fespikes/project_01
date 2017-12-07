@@ -14,7 +14,7 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('dashboards', sa.Column('image', sa.LargeBinary(), nullable=True))
+    op.add_column('dashboards', sa.Column('image', sa.LargeBinary(length=(2**32)-1)))
     op.add_column('dashboards', sa.Column('need_capture', sa.Boolean(), server_default="1"))
     op.create_table('stories',
         sa.Column('id', sa.Integer(), nullable=False),

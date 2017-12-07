@@ -422,7 +422,7 @@ class DashboardModelView(SupersetModelView):  # noqa
                     line[col] = getattr(obj, col, None)
             image_bytes = getattr(obj, 'image', None)
             image_bytes = b'' if image_bytes is None else image_bytes
-            line['image'] = b64encode(image_bytes).decode('utf-8')
+            line['image'] = str(image_bytes, encoding='utf8')
             line['created_by_user'] = username
             line['favorite'] = True if fav_id else False
             data.append(line)
@@ -569,7 +569,8 @@ class DashboardModelView(SupersetModelView):  # noqa
     def upload_image(self, id):
         dash = self.get_object(id)
         check_ownership(dash)
-        dash.image = request.data
+        data = request.form.get('image')
+        dash.image = bytes(data, encoding='utf8')
         dash.need_capture = False
         db.session.merge(dash)
         db.session.commit()
