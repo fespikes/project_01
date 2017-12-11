@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Alert } from 'antd';
 import PropTypes from 'prop-types';
+import { WarningSign } from './';
 
 class ConfirmModal extends React.Component {
     constructor(props) {
@@ -19,7 +20,7 @@ class ConfirmModal extends React.Component {
         if(this.props.needCallback) {
             this.props.confirmCallback();
         }
-        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+        this.closeDialog();
     }
 
     render() {
@@ -34,21 +35,28 @@ class ConfirmModal extends React.Component {
                                 <span>确认</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog} />
-                            </div>
-                        </div>
-                        <div className="popup-body">
-                            <div className="warning">
-                                <Alert
-                                    message="Warning"
-                                    description={confirmMessage}
-                                    type="warning"
-                                    showIcon
+                                <i
+                                    className="icon icon-close"
+                                    onClick={this.closeDialog}
                                 />
                             </div>
                         </div>
+                        <div className="popup-body">
+                            <div className="confirm-modal">
+                                <div className="confirm-sign">
+                                    <WarningSign />
+                                </div>
+                                <div className="confirm-content">
+                                    <h5>Warning</h5>
+                                    <pre>{confirmMessage}</pre>
+                                </div>
+                            </div>
+                        </div>
                         <div className="popup-footer">
-                            <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}>
+                            <button
+                                className="tp-btn tp-btn-middle tp-btn-primary"
+                                onClick={this.confirm}
+                            >
                                 确定
                             </button>
                         </div>
