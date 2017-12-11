@@ -1,0 +1,33 @@
+$warning-color: #ffbf00;
+
+.warning-sign {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    left: 15px;
+    border-radius: 18px;
+    border: 2px solid $warning-color;
+
+    .symbol {
+        position: absolute;
+        left: 50%;
+        transform: translate(-1px);
+        top: 6px;
+
+        .vertical-line {
+            height: 16px;
+            width: 2px;
+            background-color: $warning-color;
+        }
+
+        .dot {
+            position: relative;
+            height: 3px;
+            width: 3px;
+            top: 3px;
+            border-radius: 1px;
+            background-color: $warning-color;
+        }
+
+    }
+}
