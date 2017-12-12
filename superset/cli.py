@@ -31,18 +31,12 @@ def init():
 
 
 def init_tables_and_roles():
-    rs = db.session.execute('show tables like "alembic_version";')
-    if rs.rowcount == 0:
-        logging.info("Start to create metadata tables...")
-        BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-        migration_dir = os.path.join(BASE_DIR, 'migrations')
-        upgrade(directory=migration_dir)
-        db.session.commit()
-        logging.info("Finish to create metadata tables.")
-
-        logging.info("Start to initialize permissions and roles...")
-        init()
-        logging.info("Finish to initialize permissions and roles.")
+    logging.info("Start to upgrade metadata tables...")
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+    migration_dir = os.path.join(BASE_DIR, 'migrations')
+    upgrade(directory=migration_dir)
+    db.session.commit()
+    logging.info("Finish to upgrade metadata tables.")
 
 
 def init_examples():
