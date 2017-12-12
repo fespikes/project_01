@@ -2,8 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Alert } from 'antd';
 import PropTypes from 'prop-types';
-import { WarningSign } from './';
-
 import { WarningAlert } from './WarningAlert';
 
 class ConfirmModal extends React.Component {
