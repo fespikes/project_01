@@ -27,10 +27,7 @@ from superset import (
 from superset.timeout_decorator import connection_timeout
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
-from superset.utils import (
-    get_database_access_error_msg, get_datasource_access_error_msg,
-    SupersetException, json_error_response
-)
+from superset.utils import SupersetException, json_error_response
 from superset.models import (
     Database, Dataset, Slice, Dashboard, Story, TableColumn, SqlMetric,
     Query, Log, FavStar, str_to_model
@@ -43,7 +40,6 @@ from .base import (
 
 
 config = app.config
-can_access = utils.can_access
 QueryStatus = utils.QueryStatus
 
 
@@ -864,9 +860,6 @@ class Superset(BaseSupersetView):
         if not datasource:
             flash(DATASOURCE_MISSING_ERR, "alert")
             return json_error_response(DATASOURCE_MISSING_ERR)
-        if not self.datasource_access(datasource):
-            flash(get_datasource_access_error_msg(datasource.name), "danger")
-            return json_error_response(DATASOURCE_ACCESS_ERR)
 
         viz_type = request.args.get("viz_type")
         if not viz_type and datasource.default_endpoint:
@@ -1394,11 +1387,6 @@ class Superset(BaseSupersetView):
         quote = mydb.get_quoter()
         t = mydb.get_table(table_name)
 
-        # Prevent exposing column fields to users that cannot access DB.
-        if not self.datasource_access(t.perm):
-            flash(get_datasource_access_error_msg(t.name), 'danger')
-            return redirect("/table/list/")
-
         fields = ", ".join(
             [quote(c.name) for c in t.columns] or "*")
         s = "SELECT\n{}\nFROM {}".format(fields, table_name)
@@ -1433,11 +1421,6 @@ class Superset(BaseSupersetView):
             obj = json.loads(json_payload)
             db_id = obj['query']['dbId']
             mydb = db.session.query(Database).filter_by(id=db_id).one()
-
-            if not self.database_access(mydb):
-                return json_error_response(
-                    get_database_access_error_msg(mydb.database_name))
-
             return Response(
                 json_payload,
                 status=200,
@@ -1561,11 +1544,6 @@ class Superset(BaseSupersetView):
             .filter_by(client_id=client_id)
             .one()
         )
-
-        if not self.database_access(query.database):
-            flash(get_database_access_error_msg(query.database.database_name))
-            return redirect('/')
-
         sql = query.select_sql or query.sql
         df = query.database.get_df(sql, query.schema)
         # TODO(bkyryliuk): add compression=gzip for big files.
