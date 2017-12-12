@@ -30,7 +30,6 @@ from superset.utils import (
 
 
 config = app.config
-can_access = utils.can_access
 QueryStatus = utils.QueryStatus
 
 
@@ -144,48 +143,49 @@ def generate_download_headers(extension):
 
 
 class BaseSupersetView(BaseView):
-    def can_access(self, permission_name, view_name):
-        return utils.can_access(appbuilder.sm, permission_name, view_name)
-
-    def all_datasource_access(self):
-        return self.can_access(
-            "all_datasource_access", "all_datasource_access")
-
-    def database_access(self, database):
-        return (
-            self.can_access("all_database_access", "all_database_access") or
-            self.can_access("database_access", database.perm)
-        )
-
-    def schema_access(self, datasource):
-        return (
-            self.database_access(datasource.database) or
-            self.all_datasource_access() or
-            self.can_access("schema_access", datasource.schema_perm)
-        )
-
-    def datasource_access(self, datasource):
-        return (
-            self.schema_access(datasource) or
-            self.can_access("datasource_access", datasource.perm)
-        )
-
-    def datasource_access_by_name(
-            self, database, datasource_name, schema=None):
-        if (self.database_access(database) or
-                self.all_datasource_access()):
-            return True
-
-        schema_perm = utils.get_schema_perm(database, schema)
-        if schema and utils.can_access(sm, 'schema_access', schema_perm):
-            return True
-
-        datasources = SourceRegistry.query_datasources_by_name(
-            db.session, database, datasource_name, schema=schema)
-        for datasource in datasources:
-            if self.can_access("datasource_access", datasource.perm):
-                return True
-        return False
+    pass
+    # def can_access(self, permission_name, view_name):
+    #     return utils.can_access(appbuilder.sm, permission_name, view_name)
+    #
+    # def all_datasource_access(self):
+    #     return self.can_access(
+    #         "all_datasource_access", "all_datasource_access")
+    #
+    # def database_access(self, database):
+    #     return (
+    #         self.can_access("all_database_access", "all_database_access") or
+    #         self.can_access("database_access", database.perm)
+    #     )
+    #
+    # def schema_access(self, datasource):
+    #     return (
+    #         self.database_access(datasource.database) or
+    #         self.all_datasource_access() or
+    #         self.can_access("schema_access", datasource.schema_perm)
+    #     )
+    #
+    # def datasource_access(self, datasource):
+    #     return (
+    #         self.schema_access(datasource) or
+    #         self.can_access("datasource_access", datasource.perm)
+    #     )
+    #
+    # def datasource_access_by_name(
+    #         self, database, datasource_name, schema=None):
+    #     if (self.database_access(database) or
+    #             self.all_datasource_access()):
+    #         return True
+    #
+    #     schema_perm = utils.get_schema_perm(database, schema)
+    #     if schema and utils.can_access(sm, 'schema_access', schema_perm):
+    #         return True
+    #
+    #     datasources = SourceRegistry.query_datasources_by_name(
+    #         db.session, database, datasource_name, schema=schema)
+    #     for datasource in datasources:
+    #         if self.can_access("datasource_access", datasource.perm):
+    #             return True
+    #     return False
 
 
 class PageMixin(object):

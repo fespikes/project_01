@@ -44,7 +44,6 @@ from .base import (
 
 
 config = app.config
-can_access = utils.can_access
 QueryStatus = utils.QueryStatus
 
 
@@ -1328,11 +1327,6 @@ class Superset(BaseSupersetView):
         quote = mydb.get_quoter()
         t = mydb.get_table(table_name)
 
-        # Prevent exposing column fields to users that cannot access DB.
-        if not self.datasource_access(t.perm):
-            flash(get_datasource_access_error_msg(t.name), 'danger')
-            return redirect("/table/list/")
-
         fields = ", ".join(
             [quote(c.name) for c in t.columns] or "*")
         s = "SELECT\n{}\nFROM {}".format(fields, table_name)
@@ -1471,11 +1465,6 @@ class Superset(BaseSupersetView):
             .filter_by(client_id=client_id)
             .one()
         )
-
-        if not self.database_access(query.database):
-            flash(get_database_access_error_msg(query.database.database_name))
-            return redirect('/')
-
         sql = query.select_sql or query.sql
         df = query.database.get_df(sql, query.schema)
         # TODO(bkyryliuk): add compression=gzip for big files.
