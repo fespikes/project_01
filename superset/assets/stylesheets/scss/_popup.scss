@@ -164,31 +164,6 @@
     .error .ant-alert-message {
         word-break: break-all;
     }
-
-    .confirm-modal {
-        margin: 20px;
-        padding: 10px;
-        display: flex;
-        justify-content: flex-start;
-        background-color: #fffaeb;
-
-        .confirm-sign {
-            width: 76px;
-            text-align: center;
-        }
-        .confirm-content {
-            flex: 1;
-        }
-        .confirm-content h5 {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        .confirm-content pre {
-            color: rgba(0, 0, 0, 0.65);
-            background-color: transparent;
-        }
-    }
 }
 /* single dialog css style end  */
 

@@ -2,7 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Alert } from 'antd';
 import PropTypes from 'prop-types';
-import { WarningSign } from './';
+
+import { WarningAlert } from './WarningAlert';
 
 class ConfirmModal extends React.Component {
     constructor(props) {
@@ -26,7 +27,7 @@ class ConfirmModal extends React.Component {
     render() {
         const {confirmMessage} = this.props;
         return (
-            <div className="popup" ref="popupConfirm">
+            <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
@@ -42,15 +43,9 @@ class ConfirmModal extends React.Component {
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div className="confirm-modal">
-                                <div className="confirm-sign">
-                                    <WarningSign />
-                                </div>
-                                <div className="confirm-content">
-                                    <h5>Warning</h5>
-                                    <pre>{confirmMessage}</pre>
-                                </div>
-                            </div>
+                            <WarningAlert
+                                message={confirmMessage}
+                            />
                         </div>
                         <div className="popup-footer">
                             <button

@@ -1,9 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
-import { Alert } from 'antd';
 import { fetchPosts, fetchDashboardDelete, fetchDashboardDeleteMul } from '../actions';
 import { renderAlertErrorInfo } from '../../../utils/utils';
+
+import { WarningAlert } from '../../common/components/WarningAlert';
 
 class DashboardDelete extends React.Component {
     constructor(props) {
@@ -61,14 +62,9 @@ class DashboardDelete extends React.Component {
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div className="warning">
-                                <Alert
-                                    message="Warning"
-                                    description={this.props.deleteTips}
-                                    type="warning"
-                                    showIcon
-                                />
-                            </div>
+                            <WarningAlert
+                                message={this.props.deleteTips}
+                            />
                         </div>
                         <div className="error" id="delete-dashboard-error-tip"></div>
                         <div className="popup-footer">
