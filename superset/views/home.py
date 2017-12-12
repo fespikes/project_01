@@ -18,7 +18,8 @@ from sqlalchemy import func, and_, or_
 from superset import appbuilder, db, conf, utils
 from superset.models import Slice, Dashboard, FavStar, Log, str_to_model
 from superset.message import *
-from .base import BaseSupersetView, catch_exception
+from superset.utils import ParameterException
+from .base import BaseSupersetView, catch_exception, json_response, get_user_id
 
 
 class Home(BaseSupersetView):
@@ -63,13 +64,6 @@ class Home(BaseSupersetView):
         self.status = 201
         self.success = True
         self.message = []
-
-    def get_user_id(self):
-        if not g.user:
-            self.status = 401 if str(self.status)[0] < '4' else self.status
-            self.message.append(NO_USER)
-            return False, -1
-        return True, int(g.user.get_id())
 
     def get_obj_class(self, type_):
         try:
@@ -325,11 +319,7 @@ class Home(BaseSupersetView):
     @catch_exception
     @expose('/edits/slice/')
     def get_edited_slices_by_url(self):
-        success, user_id = self.get_user_id()
-        if not success:
-            return Response(json.dumps(NO_USER),
-                            status=400,
-                            mimetype='application/json')
+        user_id = get_user_id()
         kwargs = self.get_request_args(request.args)
         kwargs['user_id'] = user_id
         count, data = self.get_edited_slices(**kwargs)
@@ -339,9 +329,7 @@ class Home(BaseSupersetView):
         self.status = 200
         self.message = []
         if str(self.status)[0] != '2':
-            return Response(json.dumps(message_),
-                            status=status_,
-                            mimetype='application/json')
+            return json_response(message=message_, status=status_, code=1),
         else:
             response = {}
             response['data'] = data
@@ -350,18 +338,12 @@ class Home(BaseSupersetView):
             response['page_size'] = kwargs.get('page_size')
             response['order_column'] = kwargs.get('order_column')
             response['order_direction'] = kwargs.get('order_direction')
-            return Response(json.dumps(response),
-                            status=status_,
-                            mimetype='application/json')
+            return json_response(data=response)
 
     @catch_exception
     @expose('/edits/dashboard/')
     def get_edited_dashboards_by_url(self):
-        success, user_id = self.get_user_id()
-        if not success:
-            return Response(json.dumps(NO_USER),
-                            status=400,
-                            mimetype='application/json')
+        user_id = get_user_id()
         kwargs = self.get_request_args(request.args)
         kwargs['user_id'] = user_id
         count, data = self.get_edited_dashboards(**kwargs)
@@ -371,9 +353,7 @@ class Home(BaseSupersetView):
         self.status = 200
         self.message = []
         if str(self.status)[0] != '2':
-            return Response(json.dumps(message_),
-                            status=status_,
-                            mimetype='application/json')
+            return json_response(message=message_, status=status_, code=1)
         else:
             response = {}
             response['data'] = data
@@ -382,9 +362,7 @@ class Home(BaseSupersetView):
             response['page_size'] = kwargs.get('page_size')
             response['order_column'] = kwargs.get('order_column')
             response['order_direction'] = kwargs.get('order_direction')
-            return Response(json.dumps(response),
-                            status=status_,
-                            mimetype='application/json')
+            return json_response(data=response)
 
     def get_user_actions(self, **kwargs):
         """The actions of user"""
@@ -459,11 +437,7 @@ class Home(BaseSupersetView):
     @catch_exception
     @expose('/actions/')
     def get_user_actions_by_url(self):
-        success, user_id = self.get_user_id()
-        if not success:
-            return Response(json.dumps(NO_USER),
-                            status=400,
-                            mimetype='application/json')
+        user_id = get_user_id()
         kwargs = self.get_request_args(request.args)
         kwargs['user_id'] = user_id
         kwargs['types'] = request.args.get('types', self.default_types.get('actions'))
@@ -471,9 +445,7 @@ class Home(BaseSupersetView):
         if not isinstance(kwargs['types'], list) or len(kwargs['types']) < 1:
             message_ = _("Error request parameters: [{params}]")\
                 .format(params=request.args)
-            return Response(json.dumps(message_),
-                            status=400,
-                            mimetype='application/json')
+            raise ParameterException(message_)
 
         count, data = self.get_user_actions(**kwargs)
         status_ = self.status
@@ -481,9 +453,7 @@ class Home(BaseSupersetView):
         self.status = 201
         self.message = []
         if str(self.status)[0] != '2':
-            return Response(json.dumps(message_),
-                            status=status_,
-                            mimetype='application/json')
+            return json_response(message=message_, status=status_, code=1)
         else:
             response = {}
             response['data'] = data
@@ -492,9 +462,7 @@ class Home(BaseSupersetView):
             response['page_size'] = kwargs.get('page_size')
             response['order_column'] = kwargs.get('order_column')
             response['order_direction'] = kwargs.get('order_direction')
-            return Response(json.dumps(response),
-                            status=status_,
-                            mimetype='application/json')
+            return json_response(data=response)
 
     @catch_exception
     @expose('/')
@@ -507,11 +475,7 @@ class Home(BaseSupersetView):
     @catch_exception
     @expose('/alldata/')
     def get_all_statistics_data(self):
-        success, user_id = self.get_user_id()
-        if not success:
-            return Response(json.dumps(NO_USER),
-                            status=400,
-                            mimetype='application/json')
+        user_id = get_user_id()
         response = {}
         #
         types = self.default_types.get('counts')
@@ -550,8 +514,5 @@ class Home(BaseSupersetView):
             response['error'] = '. '.join(self.message)
         self.status = 201
         self.message = []
-        return Response(
-            json.dumps({'index': response}, default=utils.json_iso_dttm_ser),
-            status=status_,
-            mimetype="application/json")
+        return json_response(data={'index': response})
 

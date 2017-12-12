@@ -33,7 +33,7 @@ from guardian_common_python.conf.GuardianConfiguration import GuardianConfigurat
 from guardian_common_python.conf.GuardianVars import GuardianVars
 
 from superset import db, app, db_engine_specs
-from superset.utils import SupersetException
+from superset.utils import ParameterException
 from superset.message import MISS_PASSWORD_FOR_GUARDIAN, NO_USER
 from .base import AuditMixinNullable, Count
 
@@ -263,7 +263,7 @@ class Database(Model, AuditMixinNullable, Count):
             username = g.user.username
             password = g.user.password2
             if not password:
-                raise SupersetException(MISS_PASSWORD_FOR_GUARDIAN)
+                raise ParameterException(MISS_PASSWORD_FOR_GUARDIAN)
             connect_args['keytab'] = cls.get_keytab(username, password, server, dir)
         return connect_args
 

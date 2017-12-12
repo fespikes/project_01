@@ -29,7 +29,8 @@ from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
 from superset.utils import (
     get_database_access_error_msg, get_datasource_access_error_msg,
-    SupersetException, json_error_response
+    json_error_response, ParameterException, PropertyException, DatabaseException,
+    ErrorUrlException
 )
 from superset.models import (
     Database, Dataset, Slice, Dashboard, Story, TableColumn, SqlMetric,
@@ -125,7 +126,7 @@ class SliceModelView(SupersetModelView):  # noqa
     @staticmethod
     def check_column_values(obj):
         if not obj.slice_name:
-            raise SupersetException(NONE_SLICE_NAME)
+            raise ParameterException(NONE_SLICE_NAME)
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
@@ -209,8 +210,8 @@ class SliceModelView(SupersetModelView):  # noqa
         """
         slices = db.session.query(Slice).filter(Slice.id.in_(ids)).all()
         if len(slices) != len(ids):
-            raise SupersetException(
-                _('Error parameter ids: {ids}, queried {num} slice(s)')
+            raise ParameterException(_(
+                'Error parameter ids: {ids}, queried {num} slice(s)')
                 .format(ids=ids, num=len(slices))
             )
         dashs = []
@@ -371,7 +372,7 @@ class DashboardModelView(SupersetModelView):  # noqa
     @staticmethod
     def check_column_values(obj):
         if not obj.dashboard_title:
-            raise SupersetException(NONE_DASHBOARD_NAME)
+            raise ParameterException(NONE_DASHBOARD_NAME)
 
     def get_object_list_data(self, **kwargs):
         """Return the dashbaords with column 'favorite' and 'online'"""
@@ -474,8 +475,8 @@ class DashboardModelView(SupersetModelView):  # noqa
         """
         dashboard = db.session.query(Dashboard).filter_by(id=id).first()
         if not dashboard:
-            raise SupersetException(
-                _("Error parameter ids: {ids}, queried {num} dashboard(s)")
+            raise ParameterException(_(
+                "Error parameter ids: {ids}, queried {num} dashboard(s)")
                 .format(ids=[id, ], num=0)
             )
         slices = dashboard.slices
@@ -552,8 +553,8 @@ class DashboardModelView(SupersetModelView):  # noqa
         """
         dashs = db.session.query(Dashboard).filter(Dashboard.id.in_(ids)).all()
         if len(dashs) != len(ids):
-            raise SupersetException(
-                _('Error parameter ids: {ids}, queried {num} dashboard(s)')
+            raise ParameterException(_(
+                'Error parameter ids: {ids}, queried {num} dashboard(s)')
                 .format(ids=ids, num=len(dashs))
             )
         stories = []
@@ -639,7 +640,8 @@ class Superset(BaseSupersetView):
                 datasource = SourceRegistry.get_datasource(
                     datasource_type, datasource_id, db.session)
             if not datasource.database:
-                raise SupersetException('Missing connection for dataset: [{}]'.format(datasource))
+                raise PropertyException(
+                    'Missing connection for dataset: [{}]'.format(datasource))
             viz_obj = viz.viz_types[viz_type](
                 datasource, request.args if request.args else args)
             return viz_obj
@@ -675,7 +677,7 @@ class Superset(BaseSupersetView):
                 return json_response(message=OFFLINE_SUCCESS)
         else:
             msg = _('Error request url: [{url}]').format(url=request.url)
-            return json_response(status=400, message=msg)
+            raise ErrorUrlException(msg)
 
     @classmethod
     def release_relations(cls, obj, model, user_id):
@@ -863,10 +865,7 @@ class Superset(BaseSupersetView):
 
         if not datasource:
             flash(DATASOURCE_MISSING_ERR, "alert")
-            return json_error_response(DATASOURCE_MISSING_ERR)
-        if not self.datasource_access(datasource):
-            flash(get_datasource_access_error_msg(datasource.name), "danger")
-            return json_error_response(DATASOURCE_ACCESS_ERR)
+            raise ParameterException(DATASOURCE_MISSING_ERR)
 
         viz_type = request.args.get("viz_type")
         if not viz_type and datasource.default_endpoint:
@@ -883,10 +882,7 @@ class Superset(BaseSupersetView):
             return redirect(error_redirect)
         status = 200
         payload = obj.get_values_for_column(column)
-        return Response(
-            payload,
-            status=status,
-            mimetype="application/json")
+        return json_response(data=payload)
 
     def save_or_overwrite_slice(
             self, args, slc, slice_add_perm, slice_edit_perm):
@@ -1011,7 +1007,7 @@ class Superset(BaseSupersetView):
         if obj:
             setattr(obj, attr, value == 'true')
             db.session.commit()
-        return Response("OK", mimetype="application/json")
+        return json_response(data="OK")
 
     @catch_exception
     @expose("/all_tables/<db_id>/")
@@ -1027,10 +1023,7 @@ class Superset(BaseSupersetView):
         if not schemas:
             all_tables.extend(database.all_table_names())
             all_views.extend(database.all_view_names())
-
-        return Response(
-            json.dumps({"tables": all_tables, "views": all_views}),
-            mimetype="application/json")
+        return json_response(data={"tables": all_tables, "views": all_views})
 
     @catch_exception
     @expose("/tables/<db_id>/<schema>/")
@@ -1043,8 +1036,7 @@ class Superset(BaseSupersetView):
         views = [v for v in database.all_table_names(schema) if
                  self.datasource_access_by_name(database, v, schema=schema)]
         payload = {'tables': tables, 'views': views}
-        return Response(
-            json.dumps(payload), mimetype="application/json")
+        return json_response(data=payload)
 
     @catch_exception
     @expose("/copy_dash/<dashboard_id>/", methods=['GET', 'POST'])
@@ -1063,7 +1055,7 @@ class Superset(BaseSupersetView):
         session.commit()
         dash_json = dash.json_data
         Log.log_add(dash, 'dashboard', get_user_id())
-        return Response(dash_json, mimetype="application/json")
+        return json_response(data=dash_json)
 
     @catch_exception
     @expose("/save_dash/<dashboard_id>/", methods=['GET', 'POST'])
@@ -1078,7 +1070,7 @@ class Superset(BaseSupersetView):
         session.merge(dash)
         session.commit()
         Log.log_update(dash, 'dashboard', get_user_id())
-        return "SUCCESS"
+        return json_response(message="SUCCESS")
 
     @staticmethod
     def _set_dash_metadata(dashboard, data):
@@ -1112,7 +1104,7 @@ class Superset(BaseSupersetView):
         session.merge(dash)
         session.commit()
         session.close()
-        return "SLICES ADDED"
+        return json_response(message="SLICES ADDED")
 
     @catch_exception
     @connection_timeout
@@ -1131,8 +1123,12 @@ class Superset(BaseSupersetView):
         connect_args = eval(args.get('args', {})).get('connect_args', {})
         connect_args = Database.args_append_keytab(connect_args)
         engine = create_engine(uri, connect_args=connect_args)
-        engine.connect()
-        return json_response(data=engine.table_names())
+        try:
+            engine.connect()
+            tables = engine.table_names()
+            return json_response(data=tables)
+        except Exception as e:
+            raise DatabaseException(str(e))
 
     @catch_exception
     @expose("/favstar/<class_name>/<obj_id>/<action>/")
@@ -1171,9 +1167,7 @@ class Superset(BaseSupersetView):
         else:
             count = len(favs)
         session.commit()
-        return Response(
-            json.dumps({'count': count}),
-            mimetype="application/json")
+        return json_response(data={'count': count})
 
     @catch_exception
     @expose('/if_online/<class_name>/<obj_id>')
@@ -1182,9 +1176,9 @@ class Superset(BaseSupersetView):
             model = str_to_model.get(class_name.lower())
             if hasattr(model, 'online'):
                 obj = db.session.query(model).filter_by(id=obj_id).first()
-                return json.dumps({'online': obj.online})
+                return json_response(data={'online': obj.online})
             else:
-                return json.dumps({'online': False})
+                return json_response(data={'online': False})
         except Exception as e:
             return json_response(message=utils.error_msg_from_exception(e),
                                  status=500)
@@ -1336,9 +1330,7 @@ class Superset(BaseSupersetView):
             primary_key = mydb.get_pk_constraint(table_name, schema)
             foreign_keys = mydb.get_foreign_keys(table_name, schema)
         except Exception as e:
-            return Response(
-                json.dumps({'error': utils.error_msg_from_exception(e)}),
-                mimetype="application/json")
+            raise DatabaseException(str(e))
         keys = []
         if primary_key and primary_key.get('constrained_columns'):
             primary_key['column_names'] = primary_key.pop('constrained_columns')
@@ -1376,7 +1368,7 @@ class Superset(BaseSupersetView):
             'foreignKeys': foreign_keys,
             'indexes': keys,
         }
-        return Response(json.dumps(tbl), mimetype="application/json")
+        return json_response(data=json.dumps(tbl))
 
     @catch_exception
     @expose("/extra_table_metadata/<database_id>/<table_name>/<schema>/")
@@ -1385,7 +1377,7 @@ class Superset(BaseSupersetView):
         mydb = db.session.query(Database).filter_by(id=database_id).one()
         payload = mydb.db_engine_spec.extra_table_metadata(
             mydb, table_name, schema)
-        return Response(json.dumps(payload), mimetype="application/json")
+        return json_response(data=payload)
 
     @catch_exception
     @expose("/select_star/<database_id>/<table_name>/")
@@ -1402,10 +1394,7 @@ class Superset(BaseSupersetView):
         fields = ", ".join(
             [quote(c.name) for c in t.columns] or "*")
         s = "SELECT\n{}\nFROM {}".format(fields, table_name)
-        return self.render_template(
-            "superset/ajah.html",
-            content=s
-        )
+        return self.render_template("superset/ajah.html", content=s)
 
     @expose("/theme/")
     def theme(self):
@@ -1417,41 +1406,26 @@ class Superset(BaseSupersetView):
         """Returns a key from the cache"""
         resp = cache.get(key)
         if resp:
-            return resp
-        return "nope"
+            return json_response(data=resp)
+        return json_response(data="nope")
 
     @catch_exception
     @expose("/results/<key>/")
     def results(self, key):
         """Serves a key off of the results backend"""
         if not results_backend:
-            return json_error_response("Results backend isn't configured")
-
+            return json_response(message="Results backend isn't configured",
+                                 status=500)
         blob = results_backend.get(key)
         if blob:
             json_payload = zlib.decompress(blob)
-            obj = json.loads(json_payload)
-            db_id = obj['query']['dbId']
-            mydb = db.session.query(Database).filter_by(id=db_id).one()
-
-            if not self.database_access(mydb):
-                return json_error_response(
-                    get_database_access_error_msg(mydb.database_name))
-
-            return Response(
-                json_payload,
-                status=200,
-                mimetype="application/json")
+            return json_response(data=json_payload)
         else:
-            return Response(
-                json.dumps({
-                    'error': (
-                        "Data could not be retrived. You may want to "
-                        "re-run the query."
-                    )
-                }),
+            return json_response(
+                message="Data could not be retrived. You may want to re-run the query.",
                 status=410,
-                mimetype="application/json")
+                code=1
+            )
 
     @catch_exception
     @expose("/sql_json/", methods=['POST', 'GET'])
@@ -1543,14 +1517,8 @@ class Superset(BaseSupersetView):
                 data = sql_lab.get_sql_results(query_id, return_results=True)
         except Exception as e:
             logging.exception(e)
-            return Response(
-                json.dumps({'error': "{}".format(e)}),
-                status=500,
-                mimetype="application/json")
-        return Response(
-            data,
-            status=200,
-            mimetype="application/json")
+            raise DatabaseException(str(e))
+        return json_response(data=data)
 
     @catch_exception
     @expose("/csv/<client_id>/")
@@ -1594,20 +1562,13 @@ class Superset(BaseSupersetView):
         if not self.datasource_access(datasource):
             return json_error_response(DATASOURCE_ACCESS_ERR)
 
-        return Response(
-            json.dumps(datasource.data),
-            mimetype="application/json"
-        )
+        return json_response(data=datasource.data)
 
     @catch_exception
     @expose("/queries/<last_updated_ms>/")
     def queries(self, last_updated_ms):
         """Get the updated queries."""
-        if not g.user.get_id():
-            return Response(
-                json.dumps({'error': "Please login to access the queries."}),
-                status=403,
-                mimetype="application/json")
+        user_id = get_user_id()
 
         # Unix time, milliseconds.
         last_updated_ms_int = int(float(last_updated_ms)) if last_updated_ms else 0
@@ -1618,16 +1579,13 @@ class Superset(BaseSupersetView):
         sql_queries = (
             db.session.query(Query)
             .filter(
-                Query.user_id == g.user.get_id(),
+                Query.user_id == user_id,
                 Query.changed_on >= last_updated_dt,
                 )
             .all()
         )
         dict_queries = {q.client_id: q.to_dict() for q in sql_queries}
-        return Response(
-            json.dumps(dict_queries, default=utils.json_int_dttm_ser),
-            status=200,
-            mimetype="application/json")
+        return json_response(data=dict_queries)
 
     @catch_exception
     @expose("/search_queries/")
@@ -1674,10 +1632,7 @@ class Superset(BaseSupersetView):
 
         dict_queries = [q.to_dict() for q in sql_queries]
 
-        return Response(
-            json.dumps(dict_queries, default=utils.json_int_dttm_ser),
-            status=200,
-            mimetype="application/json")
+        return json_response(data=dict_queries)
 
     @app.errorhandler(500)
     def show_traceback(self):

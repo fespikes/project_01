@@ -30,7 +30,10 @@ from sqlalchemy.sql import table, literal_column, text, column
 from sqlalchemy.sql.expression import ColumnClause, TextAsFrom
 
 from superset import db, app, import_util, utils
-from superset.utils import wrap_clause_in_parens, DTTM_ALIAS, SupersetException
+from superset.utils import (
+    wrap_clause_in_parens, DTTM_ALIAS, ParameterException, PropertyException,
+    DatabaseException, OfflineException, HDFSException
+)
 from superset.jinja_context import get_template_processor
 from .base import (
     AuditMixinNullable, ImportMixin, Queryable, QueryResult, QueryStatus, Count
@@ -474,12 +477,12 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
         qry_start_dttm = datetime.now()
 
         if not granularity and is_timeseries:
-            raise Exception(_(
+            raise ParameterException(_(
                 "Datetime column not provided as part table configuration "
                 "and is required by this type of chart"))
         for m in metrics:
             if m not in metrics_dict:
-                raise Exception(_("Metric [{m}] is not valid".format(m)))
+                raise ParameterException(_("Metric [{m}] is not valid".format(m)))
         metrics_exprs = [metrics_dict.get(m).sqla_col for m in metrics]
         timeseries_limit_metric = metrics_dict.get(timeseries_limit_metric)
         timeseries_limit_metric_expr = None
@@ -656,7 +659,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
         if not self.database:
             err = 'Missing connection for dataset: [{}]'.format(self.dataset_name)
             logging.error(err)
-            raise SupersetException(err)
+            raise PropertyException(err)
 
         try:
             engine = self.database.get_sqla_engine()
@@ -673,12 +676,12 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
             err = _("Drop or create temporary view by sql failed: {msg}")\
                 .format(msg=str(e))
             logging.error(err)
-            raise Exception(err)
+            raise DatabaseException(err)
         except Exception as e:
-            raise Exception(_("Couldn't fetch table [{table}]'s information "
-                            "in the specified database [{schema}]")
-                            .format(table=self.table_name, schema=self.schema)
-                            + ": " + str(e))
+            raise DatabaseException(_(
+                "Couldn't fetch table [{table}]'s information in the specified "
+                "database [{schema}]")
+                .format(table=self.table_name, schema=self.schema) + ": " + str(e))
 
     @classmethod
     def temp_dataset(cls, database_id, full_tb_name, need_columns=True):
@@ -891,17 +894,17 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
         user_id = g.user.get_id()
         if check(dataset, user_id) is False:
             if raise_if_false:
-                raise SupersetException(
-                    _("Dependent someone's dataset [{dataset}] is offline, "
-                      "so it's unavailable").format(dataset=dataset))
+                raise OfflineException(_(
+                    "Dependent someone's dataset [{dataset}] is offline, so it's "
+                    "unavailable").format(dataset=dataset))
             else:
                 return False
         # database
         if dataset.database and check(dataset.database, user_id) is False:
             if raise_if_false:
-                raise SupersetException(
-                    _("Dependent someone's database connection [{conn}] is offline, "
-                      "so it's unavailable").format(conn=dataset.database))
+                raise OfflineException(_(
+                    "Dependent someone's database connection [{conn}] is offline,  "
+                    "so it's unavailable").format(conn=dataset.database))
             else:
                 return False
         # hdfs_connection
@@ -909,9 +912,9 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
                 and dataset.hdfs_table.hdfs_connection \
                 and check(dataset.hdfs_table.hdfs_connection, user_id) is False:
             if raise_if_false:
-                raise SupersetException(
-                    _("Dependent someone's HDFS connection [{conn}] is offline, "
-                      "so it's unavailable").format(conn=dataset.hdfs_table.hdfs_connection))
+                raise OfflineException(_(
+                    "Dependent someone's HDFS connection [{conn}] is offline, so it's "
+                    "unavailable").format(conn=dataset.hdfs_table.hdfs_connection))
             else:
                 return False
         return True
@@ -1010,5 +1013,5 @@ class HDFSTable(Model, AuditMixinNullable):
                                skiprows=skiprows, header=None, names=names,
                                prefix='C', nrows=nrows, encoding=charset)
         except Exception as e:
-            raise Exception(_("Parse file error: {msg}").format(msg=str(e)))
+            raise HDFSException(_("Parse file error: {msg}").format(msg=str(e)))
 

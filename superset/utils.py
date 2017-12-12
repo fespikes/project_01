@@ -41,18 +41,49 @@ DTTM_ALIAS = 'timestamp__'
 
 
 class SupersetException(Exception):
-    pass
+    cls_code = 1
+
+    def __init__(self, message=None, code=None):
+        self.message = message
+        self.code = code if code else self.cls_code
+
+    def __repr__(self):
+        return 'code: [{}] message: [{}]'.format(self.code, self.message)
+
+
+class LoginException(SupersetException):
+    cls_code = 2
+
+
+class ErrorUrlException(SupersetException):
+    cls_code = 3
+
+
+class ParameterException(SupersetException):
+    cls_code = 4
+
+
+class PermissionException(SupersetException):
+    cls_code = 5
+
+
+class OfflineException(SupersetException):
+    cls_code = 6
+
+
+class PropertyException(SupersetException):
+    cls_code = 7
+
+
+class DatabaseException(SupersetException):
+    cls_code = 8
+
+
+class HDFSException(SupersetException):
+    cls_code = 9
 
 
 class SupersetTimeoutException(SupersetException):
-    pass
-
-
-class SupersetSecurityException(SupersetException):
-    pass
-
-
-class MetricPermException(SupersetException):
     pass
 
 
