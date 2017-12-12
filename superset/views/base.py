@@ -23,7 +23,10 @@ from superset import app, appbuilder, db, models, sm, utils
 from superset.source_registry import SourceRegistry
 from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log
 from superset.message import *
-from superset.utils import SupersetException
+from superset.utils import (
+    SupersetException, LoginException, PermissionException, ParameterException,
+    DatabaseException
+)
 
 
 config = app.config
@@ -52,10 +55,13 @@ def catch_exception(f):
             return f(self, *args, **kwargs)
         except sqla.exc.IntegrityError as ie:
             logging.exception(ie)
-            return json_response(status=500, message=str(ie))
+            return json_response(status=500, message=str(ie), code=1)
+        except SupersetException as e:
+            logging.exception(e)
+            return json_response(status=500, message=e.message, code=e.code)
         except Exception as e:
             logging.exception(e)
-            return json_response(status=500, message=str(e))
+            return json_response(status=500, message=str(e), code=1)
     return functools.update_wrapper(wraps, f)
 
 
@@ -71,7 +77,7 @@ def check_ownership(obj, raise_if_false=True):
     if not obj:
         return False
 
-    security_exception = utils.SupersetSecurityException(
+    security_exception = PermissionException(
         _("You don't have the rights to update [{obj}]").format(obj=obj))
 
     if g.user.is_anonymous():
@@ -103,7 +109,7 @@ def get_user_id():
     if id:
         return int(id)
     else:
-        raise SupersetException(NO_USER)
+        raise LoginException(1, NO_USER)
 
 
 def json_response(message='', status=200, data='', code=0):
@@ -125,7 +131,7 @@ def validate_json(form, field):  # noqa
         json.loads(field.data)
     except Exception as e:
         logging.exception(e)
-        raise ValidationError("json isn't valid")
+        raise ParameterException("json isn't valid")
 
 
 def generate_download_headers(extension):
@@ -227,13 +233,13 @@ class SupersetModelView(ModelView, PageMixin):
     def get_list_data(self):
         kwargs = self.get_list_args(request.args)
         list_data = self.get_object_list_data(**kwargs)
-        return json.dumps(list_data)
+        return json_response(data=list_data)
 
     @catch_exception
     @expose('/addablechoices/', methods=['GET'])
     def addable_choices(self):
         data = self.get_addable_choices()
-        return json.dumps({'data': data})
+        return json_response(data={'data': data})
 
     @catch_exception
     @expose('/add', methods=['GET', 'POST'])
@@ -248,7 +254,7 @@ class SupersetModelView(ModelView, PageMixin):
     def _add(self, obj):
         self.pre_add(obj)
         if not self.datamodel.add(obj):
-            raise Exception(ADD_FAILED)
+            raise DatabaseException(ADD_FAILED)
         self.post_add(obj)
 
     @catch_exception
@@ -257,7 +263,7 @@ class SupersetModelView(ModelView, PageMixin):
         obj = self.get_object(pk)
         user_id = get_user_id()
         attributes = self.get_show_attributes(obj, user_id=user_id)
-        return json.dumps(attributes)
+        return json_response(data=attributes)
 
     @catch_exception
     @expose('/edit/<pk>', methods=['POST'])
@@ -271,7 +277,7 @@ class SupersetModelView(ModelView, PageMixin):
     def _edit(self, obj):
         self.pre_update(obj)
         if not self.datamodel.edit(obj):
-            raise Exception(UPDATE_FAILED)
+            raise DatabaseException(UPDATE_FAILED)
         self.post_update(obj)
 
     @catch_exception
@@ -284,7 +290,7 @@ class SupersetModelView(ModelView, PageMixin):
     def _delete(self, obj):
         self.pre_delete(obj)
         if not self.datamodel.delete(obj):
-            raise Exception(DELETE_FAILED)
+            raise DatabaseException(DELETE_FAILED)
         self.post_delete(obj)
 
     @catch_exception
@@ -294,9 +300,10 @@ class SupersetModelView(ModelView, PageMixin):
         ids = json_data.get('selectedRowKeys')
         objs = db.session.query(self.model).filter(self.model.id.in_(ids)).all()
         if len(ids) != len(objs):
-            raise Exception("Error parameter ids: {}, get {} "
-                            "object(s) in database".format(ids, len(objs)))
-
+            raise ParameterException(
+                "Error parameter ids: {}, get {} object(s) in database"
+                .format(ids, len(objs))
+            )
         for obj in objs:
             check_ownership(obj)
             self.datamodel.delete(obj)

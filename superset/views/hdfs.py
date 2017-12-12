@@ -18,7 +18,7 @@ from fileRobot_common.exception.FileRobotException import FileRobotException
 
 from superset import app, db
 from superset.message import *
-from superset.utils import SupersetException
+from superset.utils import SupersetException, ParameterException, LoginException
 from superset.models import HDFSConnection
 from .base import catch_exception, json_response
 
@@ -40,10 +40,10 @@ def catch_hdfs_exception(f):
                                  message=fe.message)
         except SupersetException as se:
             logging.exception(se)
-            return json_response(status=500, message=str(se))
+            return json_response(status=500, message=str(se), code=se.code)
         except Exception as e:
             logging.exception(e)
-            return json_response(status=500, message=str(e))
+            return json_response(status=500, message=str(e), code=1)
     return functools.update_wrapper(wraps, f)
 
 
@@ -229,7 +229,7 @@ class HDFSBrowser(BaseView):
                     conn = db.session.query(HDFSConnection) \
                         .filter_by(id=hdfs_conn_id).first()
                     if not conn:
-                        raise SupersetException(NO_HDFS_CONNECTION)
+                        raise ParameterException(NO_HDFS_CONNECTION)
                     return conn.httpfs
                 else:
                     return HDFSBrowser.get_default_httpfs()
@@ -242,9 +242,9 @@ class HDFSBrowser(BaseView):
 
         def do_login(server='', username='', password='', httpfs=''):
             if not server:
-                raise SupersetException(NO_FILEROBOT_SERVER)
+                raise ParameterException(NO_FILEROBOT_SERVER)
             if not password:
-                raise SupersetException(MISS_PASSWORD_FOR_FILEROBOT)
+                raise ParameterException(MISS_PASSWORD_FOR_FILEROBOT)
             conf = FileRobotConfiguartion()
             conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
             client = fileRobotClientFactory.getInstance(conf)
@@ -263,7 +263,7 @@ class HDFSBrowser(BaseView):
             self.client = None
             self.logined_user = ''
             self.hdfs_conn_id = None
-            raise SupersetException(LOGIN_FILEROBOT_FAILED)
+            raise LoginException(LOGIN_FILEROBOT_FAILED)
 
     @staticmethod
     def get_default_httpfs():
@@ -272,6 +272,6 @@ class HDFSBrowser(BaseView):
             .filter_by(connection_name=name)\
             .first()
         if not hconn:
-            raise SupersetException(
-                _("The default hdfs connection [{hconn}] is not exists").format(hconn))
+            raise ParameterException(_(
+                "The default hdfs connection [{hconn}] is not exists").format(hconn))
         return hconn.httpfs

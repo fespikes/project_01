@@ -31,9 +31,7 @@ class UserView(BaseView):
             line['created_by'] = user.created_by.username \
                 if user.created_by else None
             data.append(line)
-        return Response(
-            json.dumps({'count': len(users), 'data': data})
-        )
+        return json_response(data={'count': len(users), 'data': data})
 
     @catch_exception
     @expose('/add/', methods=['POST'])

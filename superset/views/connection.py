@@ -19,7 +19,7 @@ from sqlalchemy.engine.url import make_url
 from superset import app, db, models
 from superset.timeout_decorator import connection_timeout
 from superset.models import Database, HDFSConnection, Connection, Slice, Log
-from superset.utils import SupersetException
+from superset.utils import SupersetException, ParameterException
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
 from .base import (
@@ -81,11 +81,11 @@ class DatabaseView(SupersetModelView):  # noqa
     @staticmethod
     def check_column_values(obj):
         if not obj.database_name:
-            raise SupersetException(NONE_CONNECTION_NAME)
+            raise ParameterException(NONE_CONNECTION_NAME)
         if not obj.sqlalchemy_uri:
-            raise SupersetException(NONE_SQLALCHEMY_URI)
+            raise ParameterException(NONE_SQLALCHEMY_URI)
         if not obj.args:
-            raise SupersetException(NONE_CONNECTION_ARGS)
+            raise ParameterException(NONE_CONNECTION_ARGS)
 
     def get_list_args(self, args):
         kwargs = super().get_list_args(args)
@@ -310,9 +310,9 @@ class HDFSConnectionModelView(SupersetModelView):
     @staticmethod
     def check_column_values(obj):
         if not obj.connection_name:
-            raise SupersetException(NONE_CONNECTION_NAME)
+            raise ParameterException(NONE_CONNECTION_NAME)
         if not obj.httpfs:
-            raise SupersetException(NONE_HTTPFS)
+            raise ParameterException(NONE_HTTPFS)
         if not obj.database_id:
             obj.database_id = None
 
@@ -436,14 +436,14 @@ class ConnectionView(BaseSupersetView, PageMixin):
     @catch_exception
     @expose('/connection_types/', methods=['GET', ])
     def connection_types(self):
-        return json.dumps(list(Connection.connection_types))
+        return json_response(data=list(Connection.connection_types))
 
     @catch_exception
     @expose('/listdata/', methods=['GET', ])
     def get_list_data(self):
         kwargs = self.get_list_args(request.args)
         list_data = self.get_object_list_data(**kwargs)
-        return json.dumps(list_data)
+        return json_response(data=list_data)
 
     @catch_exception
     @expose('/muldelete', methods=['POST', ])
@@ -456,8 +456,8 @@ class ConnectionView(BaseSupersetView, PageMixin):
             objs = db.session.query(Database) \
                 .filter(Database.id.in_(db_ids)).all()
             if len(db_ids) != len(objs):
-                raise Exception(
-                    _("Error parameter ids: {ids}, queried {num} connection(s)")
+                raise ParameterException(_(
+                    "Error parameter ids: {ids}, queried {num} connection(s)")
                     .format(ids=db_ids, num=len(objs))
                 )
             for obj in objs:
@@ -471,8 +471,8 @@ class ConnectionView(BaseSupersetView, PageMixin):
             objs = db.session.query(HDFSConnection) \
                 .filter(HDFSConnection.id.in_(hdfs_conn_ids)).all()
             if len(hdfs_conn_ids) != len(objs):
-                raise Exception(
-                    _("Error parameter ids: {ids}, queried {num} connection(s)")
+                raise ParameterException(_(
+                    "Error parameter ids: {ids}, queried {num} connection(s)")
                     .format(ids=hdfs_conn_ids, num=len(objs))
                 )
             for obj in objs:
@@ -502,8 +502,8 @@ class ConnectionView(BaseSupersetView, PageMixin):
                 Database.id.in_(db_ids)
             ).all()
             if len(db_ids) != len(dbs):
-                raise Exception(
-                    _("Error parameter ids: {ids}, queried {num} connection(s)")
+                raise ParameterException(_(
+                    "Error parameter ids: {ids}, queried {num} connection(s)")
                     .format(ids=db_ids, num=len(dbs))
                 )
         if hdfs_conn_ids:
@@ -511,8 +511,8 @@ class ConnectionView(BaseSupersetView, PageMixin):
                 HDFSConnection.id.in_(hdfs_conn_ids)
             ).all()
             if len(hdfs_conn_ids) != len(hconns):
-                raise Exception(
-                    _("Error parameter ids: {ids}, queried {num} connection(s)")
+                raise ParameterException(_(
+                    "Error parameter ids: {ids}, queried {num} connection(s)")
                     .format(ids=hdfs_conn_ids, num=len(hconns))
                 )
 
@@ -610,8 +610,8 @@ class ConnectionView(BaseSupersetView, PageMixin):
                 else:
                     query = query.order_by(column)
             except KeyError:
-                msg = _('Error order column name: [{name}]').format(name=order_column)
-                raise KeyError(msg)
+                raise ParameterException(_(
+                    'Error order column name: [{name}]').format(name=order_column))
 
         if page is not None and page >= 0 and page_size and page_size > 0:
             query = query.limit(page_size).offset(page * page_size)
