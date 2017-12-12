@@ -239,7 +239,7 @@ class DatabaseView(SupersetModelView):  # noqa
                 )
         ).all()
         return {'database': [database, ],
-                'dataset': set(online_datasets + myself_datasets),
+                'dataset': list(set(online_datasets + myself_datasets)),
                 'slice': slices}
 
 
@@ -401,7 +401,7 @@ class HDFSConnectionModelView(SupersetModelView):
                 )
         ).all()
         return {'hdfs_connection': [hdfs_conn, ],
-                'dataset': set(online_datasets + myself_datasets),
+                'dataset': list(set(online_datasets + myself_datasets)),
                 'slice': slices
                 }
 
@@ -547,7 +547,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
         info = _("Deleting connection {conn} will make these unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}") \
             .format(conn=dbs + hconns,
-                    dataset=set(online_datasets + myself_datasets),
+                    dataset=list(set(online_datasets + myself_datasets)),
                     slice=slices)
         return json_response(data=info)
 
