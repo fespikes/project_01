@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { DataTendency, FavouriteAndCountPanel, EditAndEventPanel} from './';
 import PropTypes from 'prop-types';
-import { fetchPosts } from "../actions";
+import { fetchData } from "../actions";
 import { connect } from 'react-redux';
 
 class Home extends Component {
@@ -12,7 +12,7 @@ class Home extends Component {
 
     componentDidMount() {
         const { dispatch } = this.props;
-        dispatch(fetchPosts());
+        dispatch(fetchData());
     }
 
     render() {
