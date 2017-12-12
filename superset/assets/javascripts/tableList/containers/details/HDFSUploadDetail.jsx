@@ -11,6 +11,8 @@ import {constructFileBrowserData, appendTreeChildren, initDatasetData,
     extractOpeType, getDatasetId, extractDatasetType} from '../../module';
 import {renderLoadingModal, renderAlertTip} from '../../../../utils/utils';
 
+import {ConfirmModal} from '../../../common/components';
+
 class HDFSUploadDetail extends Component {
 
     constructor (props) {
@@ -142,7 +144,10 @@ class HDFSUploadDetail extends Component {
         const self = this;
         if(this.state.dsHDFS.uploadFileName === '') {
             render(
-                <Confirm />,
+                <ConfirmModal
+                    needCallback={false}
+                    confirmMessage="没有上传文件，请先上传！"
+                />,
                 document.getElementById('popup_root')
             );
             return;
