@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
 import { selectRows, applyDelete } from '../actions';
+import { renderAlertErrorInfo } from '../../../utils/utils';
+
+import { WarningAlert } from '../../common/components/WarningAlert';
 
 class ConnectionDelete extends React.Component {
     constructor(props) {
@@ -12,11 +15,11 @@ class ConnectionDelete extends React.Component {
         };
         // bindings
         this.confirm = this.confirm.bind(this);
-        this.closeDialog = this.closeDialog.bind(this);
+        this.closeAlert = this.closeAlert.bind(this);
     }
 
-    closeDialog() {
-        ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+    closeAlert(mountId) {
+        ReactDOM.unmountComponentAtNode(document.getElementById(mountId));
     }
 
     confirm() {
@@ -24,21 +27,19 @@ class ConnectionDelete extends React.Component {
         const {dispatch, deleteType} = this.props;
         const callback = (success, message) => {
             if(success) {
-                ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+                self.closeAlert('popup_root');
             }else {
-                self.refs.alertRef.style.display = "block";
-                let exception = {};
-                exception.type = "error";
-                exception.message = "Error";
-                exception.description = message;
-                self.setState({
-                    exception: exception
-                });
+                renderAlertErrorInfo(
+                    message,
+                    'delete-database-error-tip',
+                    '100%',
+                    self
+                );
             }
         };
 
         if(deleteType === "none") {
-            ReactDOM.unmountComponentAtNode(document.getElementById("popup_root"));
+            this.closeAlert('popup_root');
         } else {
             dispatch(applyDelete(callback));
         }
@@ -46,11 +47,7 @@ class ConnectionDelete extends React.Component {
 
     render() {
         return (
-            <div
-                className="popup"
-                ref="popupDatabaseDelete"
-                style={{display:'flex'}}
-            >
+            <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
@@ -59,28 +56,18 @@ class ConnectionDelete extends React.Component {
                                 <span>删除连接</span>
                             </div>
                             <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog} />
+                                <i
+                                    className="icon icon-close"
+                                    onClick={argus => this.closeAlert('popup_root')}
+                                />
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div className="warning">
-                                <Alert
-                                    message="Warning"
-                                    description={this.props.deleteTips}
-                                    type="warning"
-                                    showIcon
-                                />
-                            </div>
-                            <div className="error" ref="alertRef" style={{display: 'none'}}>
-                                <Alert
-                                    message={this.state.exception.message}
-                                    description={this.state.exception.description}
-                                    type={this.state.exception.type}
-                                    closeText="close"
-                                    showIcon
-                                />
-                            </div>
+                            <WarningAlert
+                                message={this.props.deleteTips}
+                            />
                         </div>
+                        <div className="error" id="delete-database-error-tip"></div>
                         <div className="popup-footer">
                             <button
                                 className="tp-btn tp-btn-middle tp-btn-primary"
