@@ -2,11 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { render } from 'react-dom';
 import { connectionTypes, fetchUpdateConnection, testConnection, testHDFSConnection, fetchConnectionNames } from '../actions';
-import { Alert, Tooltip } from 'antd';
-import {Select} from '../components';
+import { Alert, Tooltip, message } from 'antd';
+import { Select } from '../components';
 import PropTypes from 'prop-types';
 import { isCorrectConnection, argsValidate, connectDefaultInfo } from '../utils';
 import { renderAlertErrorInfo, renderAlertTip } from '../../../utils/utils';
+import { MESSAGE_DURATION } from '../../global.jsx';
 
 class ConnectionEdit extends React.Component {
     constructor(props) {
@@ -54,8 +55,20 @@ class ConnectionEdit extends React.Component {
 
     fetchConnectionNames () {
         const me = this;
-        const callback = (connectionNames) => {
-            me.setState({connectionNames:connectionNames});
+        const callback = (success, data) => {
+            if(success) {
+                const connectionNames = [];
+                data.data.map((obj, key) => {
+                    connectionNames.push({
+                        id:obj.id,
+                        label:obj.database_name
+                    })
+                });
+                me.setState({connectionNames:connectionNames});
+            }else {
+                message.error(data, MESSAGE_DURATION);
+            }
+
         };
         this.props.dispatch(fetchConnectionNames(callback));
     }
