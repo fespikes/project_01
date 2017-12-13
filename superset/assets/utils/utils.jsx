@@ -90,3 +90,19 @@ export function getOnOfflineInfoUrl(id, moudleType, published) {
     }
     return url;
 }
+
+export function getAjaxErrorMsg(error) {
+    const respJSON = error.responseJSON;
+    return (respJSON && respJSON.message) ? respJSON.message :
+        error.responseText;
+}
+
+export function sortByInitials(a, b) {//add null check
+    if((!a && !b) || (a && !b)) {
+        return -1;
+    } else if (!a && b) {
+        return 1;
+    }else {
+        return a.charCodeAt(0) - b.charCodeAt(0);
+    }
+};

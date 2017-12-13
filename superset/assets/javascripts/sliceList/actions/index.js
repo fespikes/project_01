@@ -1,5 +1,6 @@
 import fetch from 'isomorphic-fetch';
 import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
+import {always, json, callbackHandler, MESSAGE_DURATION} from '../../global.jsx';
 
 export const SHOW_ALL = 'showAll';
 export const SHOW_FAVORITE = 'showFavorite';
@@ -25,18 +26,12 @@ export const CONDITION_PARAMS = {
     TABLE_LOADING: 'TABLE_LOADING'
 };
 
-const callbackHandler = (response, callback) => {
+const handler = (response, dispatch) => {
     if(response.status === 200) {
-        callback && callback(true, response.data);
+        dispatch(receiveLists(response.data));
     }else {
-        callback && callback(false, response.message);
+        message.error(response.message, MESSAGE_DURATION);
     }
-};
-const always = (response) => {
-    return Promise.resolve(response);
-};
-const json = (response) => {
-    return response.json();
 };
 
 const baseURL = window.location.origin + '/slice/';
@@ -144,18 +139,12 @@ export function fetchLists() {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(response => {
-            if(response.ok) {
-                return response.json();
-            }else {
-                throw new Error('Network response was not ok.');
+        }).then(always).then(json).then(
+            response => {
+                handler(response, dispatch);
+                dispatch(clearRows());
             }
-        }).then(response => {
-            dispatch(receiveLists(response));
-            dispatch(clearRows());
-        }).catch( argus => {
-            console.log(argus);
-        });
+        );
     };
 }
 
@@ -237,16 +226,11 @@ export function fetchSliceDetail(sliceId, callback) {
         return fetch(url, {
             credentials: "include",
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
-                response.json().then(
-                    function(json) {
-                        callback(true, json);
-                    })
-            }else {
-                callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
             }
-        })
+        );
     }
 }
 

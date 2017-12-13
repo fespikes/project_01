@@ -11,7 +11,7 @@ import { render } from 'react-dom';
 import GridLayout from './components/GridLayout';
 import Header from './components/Header';
 import { getNewDashboard } from '../../utils/common2';
-import { PILOT_PREFIX, renderLoadingModal} from '../../utils/utils';
+import { PILOT_PREFIX, renderLoadingModal, getAjaxErrorMsg} from '../../utils/utils';
 import domtoimage from 'dom-to-image';
 import { ConfirmModal } from '../common/components';
 
@@ -177,7 +177,6 @@ export function dashboardContainer(dashboard) {
         },
         screenShot() {
             const container = document.getElementById('grid-container');
-            const getAjaxErrorMsg = this.getAjaxErrorMsg;
             setTimeout(() => {
                 try {
                     const scale = 1.29;
@@ -350,13 +349,7 @@ export function dashboardContainer(dashboard) {
             }
             return slice;
         },
-        getAjaxErrorMsg(error) {
-            const respJSON = error.responseJSON;
-            return (respJSON && respJSON.message) ? respJSON.message :
-                error.responseText;
-        },
         addSlicesToDashboard(sliceIds) {
-            const getAjaxErrorMsg = this.getAjaxErrorMsg;
             const url = PILOT_PREFIX + `add_slices/${dashboard.id}/`;
             const loadingModal = renderLoadingModal();
             loadingModal.show();
@@ -379,7 +372,6 @@ export function dashboardContainer(dashboard) {
             });
         },
         editDashboard(dashboard, selectedSlices) {
-            const getAjaxErrorMsg = this.getAjaxErrorMsg;
             const loadingModal = renderLoadingModal();
             loadingModal.show();
             $.ajax({
