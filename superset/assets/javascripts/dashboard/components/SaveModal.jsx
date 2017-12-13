@@ -2,12 +2,12 @@ const $ = window.$ = require('jquery');
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { render } from 'react-dom';
-import { Button, FormControl, FormGroup, Radio } from 'react-bootstrap';
-import { getAjaxErrorMsg } from '../../modules/utils';
-import { PILOT_PREFIX } from '../../../utils/utils';
+import {render} from 'react-dom';
+import {Button, FormControl, FormGroup, Radio} from 'react-bootstrap';
+import {getAjaxErrorMsg} from '../../modules/utils';
+import {PILOT_PREFIX, renderLoadingModal} from '../../../utils/utils';
 import ModalTrigger from '../../components/ModalTrigger';
-import Confirm from './Confirm';
+import {ConfirmModal} from '../../common/components';
 
 const propTypes = {
     css: React.PropTypes.string,
@@ -43,6 +43,8 @@ class SaveModal extends React.PureComponent {
     saveDashboardRequest(data, url, saveType) {
         const dashboard = this.props.dashboard;
         const saveModal = this.modal;
+        const loadingModal = renderLoadingModal();
+        loadingModal.show();
         $.ajax({
             type: 'POST',
             url,
@@ -52,18 +54,21 @@ class SaveModal extends React.PureComponent {
             success(resp) {
                 saveModal.close();
                 dashboard.onSave();
+                loadingModal.hide();
+                console.log('resp=', resp);
                 if (saveType === 'newDashboard') {
-                    window.location = PILOT_PREFIX + 'dashboard/' + resp.id + '/';
+                    window.location = PILOT_PREFIX + 'dashboard/' + $.parseJSON(resp.data).id + '/';
                 } else {
                     window.location.reload();
                 }
             },
             error(error) {
                 saveModal.close();
+                loadingModal.hide();
                 const errorMsg = getAjaxErrorMsg(error);
                 const confirmMessage = '仪表板保存失败' +'  '+ errorMsg;
                 render(
-                    <Confirm
+                    <ConfirmModal
                         confirmType='error'
                         confirmMessage={confirmMessage}
                     />,
@@ -96,8 +101,8 @@ class SaveModal extends React.PureComponent {
             if (!newDashboardTitle) {
                 this.modal.close();
                 render(
-                    <Confirm
-                        confirmType='warning'
+                    <ConfirmModal
+                        confirmType='error'
                         confirmMessage='必须为新的仪表板选择一个名字'
                     />,
                     document.getElementById('popup_root')

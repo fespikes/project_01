@@ -3,7 +3,9 @@
  */
 import fetch from 'isomorphic-fetch';
 import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils';
-import { getNewDashboard, getSelectedSlices } from '../../../utils/common2';
+import {getNewDashboard, getSelectedSlices} from '../../../utils/common2';
+import {always, json, callbackHandler, MESSAGE_DURATION} from '../../global.jsx';
+import {message} from 'antd';
 
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
@@ -23,18 +25,12 @@ export const CONFIG_PARAMS = {
     SWITCH_FETCHING_STATE: 'SWITCH_FETCHING_STATE'
 };
 
-const callbackHandler = (response, callback) => {
+const handler = (response, dispatch) => {
     if(response.status === 200) {
-        callback && callback(true, response.data);
+        dispatch(receivePosts(response.data));
     }else {
-        callback && callback(false, response.message);
+        message.error(response.message, MESSAGE_DURATION);
     }
-};
-const always = (response) => {
-    return Promise.resolve(response);
-};
-const json = (response) => {
-    return response.json();
 };
 
 export function requestPosts() {
@@ -225,19 +221,11 @@ export function fetchAvailableSlices(callback) {
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin"
-        }).then(function(response) {
-            if(response.ok) {
-                if(typeof callback === "function") {
-                    response.json().then(function(response) {
-                        callback(true, response);
-                    });
-                }
-            }else {
-                if(typeof callback == "function") {
-                    callback(false);
-                }
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
             }
-        });
+        );
     }
 }
 
@@ -318,30 +306,26 @@ export function fetchDashboardDetail(dashboardId, callback) {
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin",
-        }).then(function(response) {
-            if(response.ok) {
-                response.json().then(
-                    function(json) {
-                        callback(true, json);
-                    })
-            }else {
-                callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
             }
-        })
+        );
     }
 }
 
 export function fetchPosts() {
     return (dispatch, getState) => {
         dispatch(requestPosts());
-        let url = getDashboardListUrl(getState());
+        const url = getDashboardListUrl(getState());
         return fetch(url, {
             credentials: "same-origin"
-        }).then(response => response.json())
-            .then(json => {
-                dispatch(receivePosts(json));
-                dispatch(clearRows());
-            })
+        }).then(always).then(json).then(
+            response => {
+                handler(response, dispatch);
+                dispatch(clearRows);
+            }
+        );
     }
 }
 
