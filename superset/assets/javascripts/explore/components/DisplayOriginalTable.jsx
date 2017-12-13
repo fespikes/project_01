@@ -1,9 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Select, TreeSelect } from 'antd';
+import {Select, TreeSelect, message} from 'antd';
 import PropTypes from 'prop-types';
-import { appendTreeData, constructTreeData } from '../../../utils/common2';
-import { renderLoadingModal, renderAlertTip, PILOT_PREFIX } from '../../../utils/utils';
+import {appendTreeData, constructTreeData} from '../../../utils/common2';
+import {renderLoadingModal, renderAlertTip, getAjaxErrorMsg, PILOT_PREFIX} from '../../../utils/utils';
+import {MESSAGE_DURATION} from '../../global.jsx';
 
 class DisplayOriginalTable extends React.Component {
     constructor(props) {
@@ -59,7 +60,8 @@ class DisplayOriginalTable extends React.Component {
                 });
             },
             error: error => {
-                console.log(error);
+                const errorMsg = getAjaxErrorMsg(error);
+                message.error(errorMsg, MESSAGE_DURATION);
             },
             complete: () => {
                 loadingModal.hide();
@@ -94,7 +96,8 @@ class DisplayOriginalTable extends React.Component {
                 });
             },
             error: error => {
-
+                const errorMsg = getAjaxErrorMsg(error);
+                message.error(errorMsg, MESSAGE_DURATION);
             }
         });
     }
@@ -106,13 +109,14 @@ class DisplayOriginalTable extends React.Component {
             url: url_databaseName,
             type: 'GET',
             success: response => {
-                response = JSON.parse(response);
+                response = response.data;
                 self.setState({
                     databaseName: response.database_name
                 });
             },
             error: error => {
-
+                const errorMsg = getAjaxErrorMsg(error);
+                message.error(errorMsg, MESSAGE_DURATION);
             }
         });
     }
@@ -129,7 +133,8 @@ class DisplayOriginalTable extends React.Component {
                 });
             },
             error: error => {
-
+                const errorMsg = getAjaxErrorMsg(error);
+                message.error(errorMsg, MESSAGE_DURATION);
             }
         });
     }

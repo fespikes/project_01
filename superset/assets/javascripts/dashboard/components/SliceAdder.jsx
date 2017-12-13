@@ -5,6 +5,7 @@ import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import ModalTrigger from '../../components/ModalTrigger';
 import { Table, Pagination } from 'antd';
 require('react-bootstrap-table/css/react-bootstrap-table.css');
+import {sortByInitials} from '../../../utils/utils.jsx';
 
 const propTypes = {
     dashboard: PropTypes.object.isRequired,
@@ -123,16 +124,6 @@ class SliceAdder extends React.Component {
             selectedRowKeys: selectedRowKeys[pageNumber],
             onSelect: this.onSelect,
             onChange: this.onChange
-        };
-
-        const sortByInitials = (a, b) => {//add null check
-            if((!a && !b) || (a && !b)) {
-                return -1;
-            } else if (!a && b) {
-                return 1;
-            }else {
-                return a.charCodeAt(0) - b.charCodeAt(0);
-            }
         };
 
         const columns = [

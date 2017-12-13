@@ -1,11 +1,12 @@
 import React from 'react';
-import { render } from 'react-dom';
-import { message, Table, Icon, Tooltip } from 'antd';
+import {render} from 'react-dom';
+import {message, Table, Icon, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
-import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail,
-    fetchOnOfflineInfo, fetchSliceDelInfo } from '../actions';
-import { SliceDelete, SliceEdit } from '../popup';
-import { ConfirmModal } from '../../common/components';
+import {fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail,
+    fetchOnOfflineInfo, fetchSliceDelInfo} from '../actions';
+import {SliceDelete, SliceEdit} from '../popup';
+import {ConfirmModal} from '../../common/components';
+import {sortByInitials} from '../../../utils/utils.jsx';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -154,7 +155,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.slice_name.substring(0, 1).charCodeAt() - b.slice_name.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.description, b.description);
                 }
             }, {
                 title: '图表类型',
@@ -172,7 +173,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.viz_type.substring(0, 1).charCodeAt() - b.viz_type.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.viz_type, b.viz_type);
                 }
 
             }, {
@@ -192,7 +193,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.datasource.substring(0, 1).charCodeAt() - b.datasource.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.datasource, b.datasource);
                 }
             }, {
                 title: '所有者',
@@ -210,7 +211,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.created_by_user, b.created_by_user);
                 }
             }, {
                 title: '发布状态',

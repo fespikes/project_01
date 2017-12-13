@@ -8,6 +8,7 @@ import {DashboardEdit, DashboardDelete} from '../popup';
 import {ConfirmModal} from '../../common/components';
 import {Table, message, Tooltip} from 'antd';
 import {MESSAGE_DURATION} from '../../global.jsx';
+import {sortByInitials} from '../../../utils/utils.jsx';
 
 class Tables extends React.Component {
     constructor(props) {
@@ -150,7 +151,7 @@ class Tables extends React.Component {
                 )
             },
             sorter(a, b) {
-                return a.dashboard_title.substring(0, 1).charCodeAt() - b.dashboard_title.substring(0, 1).charCodeAt();
+                return sortByInitials(a.description, b.description);
             }
         }, {
             title: '发布状态',
@@ -181,7 +182,7 @@ class Tables extends React.Component {
                 )
             },
             sorter(a, b) {
-                return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
+                return sortByInitials(a.created_by_user, b.created_by_user);
             }
         }, {
             title: '最后修改时间',
