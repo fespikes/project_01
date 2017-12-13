@@ -68,9 +68,8 @@ class Controls extends React.PureComponent {
                 let url = PILOT_PREFIX + 'if_online/dashboard/' + dashboardId;
                 $.get(url, (data) => {
                     _this.setState({
-                        published: $.parseJSON(data).online
+                        published: data.data.online
                     });
-                    loadingModel.hide();
                 });
             }else {
                 render(
@@ -81,6 +80,7 @@ class Controls extends React.PureComponent {
                     document.getElementById('popup_root')
                 );
             }
+            loadingModel.hide();
         });
     }
 
@@ -110,20 +110,14 @@ class Controls extends React.PureComponent {
         let url = PILOT_PREFIX + 'if_online/dashboard/' + dashboard.id;
         $.get(url, (data) => {
             self.setState({
-                published: $.parseJSON(data).online
+                published: data.data.online
             });
         });
     }
-    changeCss(css) {
-        this.setState({ css });
-        this.props.dashboard.onChange();
-    }
+
     render() {
         const dashboard = this.props.dashboard;
         const canSave = dashboard.context.dash_save_perm; //cannot use currently
-        const emailBody = `Checkout this dashboard: ${window.location.href}`;
-        const emailLink = 'mailto:?Subject=Superset%20Dashboard%20'
-            + `${dashboard.dashboard_title}&Body=${emailBody}`;
         return (
             <ButtonGroup>
                 <Button
@@ -146,29 +140,6 @@ class Controls extends React.PureComponent {
                         <i className="icon icon-plus"/>
                     }
                 />
-                {
-                    /*<RefreshIntervalModal
-                    onChange={refreshInterval => dashboard.startPeriodicRender(refreshInterval * 1000)}
-                    triggerNode={
-                        <i className="icon icon-clock" />
-                    }
-                />
-
-                    <CodeModal
-                        codeCallback={dashboard.readFilters.bind(dashboard)}
-                        triggerNode={<i className="icon icon-setting" />}
-                    />
-                    <CssEditor
-                        dashboard={dashboard}
-                        triggerNode={
-                            <i className="icon icon-drag" />
-                        }
-                        initialCss={dashboard.css}
-                        templates={this.state.cssTemplates}
-                        onChange={this.changeCss.bind(this)}
-                    />
-                     */
-                }
                 <DashboardEdit
                     dashboard={dashboard}
                     triggerNode={
@@ -182,13 +153,6 @@ class Controls extends React.PureComponent {
                         <i className="icon icon-save"/>
                     }
                 />
-                {/*<Button
-                    onClick={() => { window.location = emailLink; }}
-                    tooltip="发送邮件"
-                    placement="bottom"
-                    >
-                    <i className="icon icon-email"></i>
-                </Button>*/}
             </ButtonGroup>
         );
     }

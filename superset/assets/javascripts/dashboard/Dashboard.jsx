@@ -11,8 +11,9 @@ import { render } from 'react-dom';
 import GridLayout from './components/GridLayout';
 import Header from './components/Header';
 import { getNewDashboard } from '../../utils/common2';
-import { PILOT_PREFIX } from '../../utils/utils';
+import { PILOT_PREFIX, renderLoadingModal} from '../../utils/utils';
 import domtoimage from 'dom-to-image';
+import { ConfirmModal } from '../common/components';
 
 require('bootstrap');
 require('../../stylesheets/dashboard.css');
@@ -61,6 +62,16 @@ function renderAlert() {
             </Alert>
         </div>,
         document.getElementById('alert-container')
+    );
+}
+
+function renderErrorAlert(errorMsg) {
+    render(
+        <ConfirmModal
+            needCallback={false}
+            confirmMessage={errorMsg}
+        />,
+        document.getElementById('popup_root')
     );
 }
 
@@ -169,7 +180,6 @@ export function dashboardContainer(dashboard) {
             const getAjaxErrorMsg = this.getAjaxErrorMsg;
             setTimeout(() => {
                 try {
-                    console.log('screen shot');
                     const scale = 1.29;
                     domtoimage.toPng(container, { width: container.clientWidth, height: container.clientWidth / scale })
                         .then(function (image) {
@@ -185,11 +195,7 @@ export function dashboardContainer(dashboard) {
                                         console.log('capture successfully', data);
                                     },
                                     error(error) {
-                                        const errorMsg = getAjaxErrorMsg(error);
-                                        utils.showModal({
-                                            title: 'Error',
-                                            body: 'Sorry, fail to take a screen shot </ br>' + errorMsg,
-                                        });
+                                        //the operation should be invisible for user
                                     },
                                     processData: false,
                                     contentType: false,
@@ -352,6 +358,8 @@ export function dashboardContainer(dashboard) {
         addSlicesToDashboard(sliceIds) {
             const getAjaxErrorMsg = this.getAjaxErrorMsg;
             const url = PILOT_PREFIX + `add_slices/${dashboard.id}/`;
+            const loadingModal = renderLoadingModal();
+            loadingModal.show();
             $.ajax({
                 type: 'POST',
                 url: url,
@@ -359,34 +367,34 @@ export function dashboardContainer(dashboard) {
                     data: JSON.stringify({ slice_ids: sliceIds }),
                 },
                 success() {
+                    loadingModal.hide();
                     // Refresh page to allow for slices to re-render
                     window.location.reload();
                 },
                 error(error) {
+                    loadingModal.hide();
                     const errorMsg = getAjaxErrorMsg(error);
-                    utils.showModal({
-                        title: 'Error',
-                        body: 'Sorry, there was an error adding slices to this dashboard: </ br>' + errorMsg,
-                    });
+                    renderErrorAlert(errorMsg);
                 },
             });
         },
         editDashboard(dashboard, selectedSlices) {
             const getAjaxErrorMsg = this.getAjaxErrorMsg;
+            const loadingModal = renderLoadingModal();
+            loadingModal.show();
             $.ajax({
                 type: 'POST',
                 url: '/dashboard/edit/' + dashboard.id,
                 contentType: 'application/json',
                 data: JSON.stringify(getNewDashboard(dashboard, selectedSlices, dashboard.available_slices)),
                 success() {
+                    loadingModal.hide();
                     window.location.reload();
                 },
                 error(error) {
+                    loadingModal.hide();
                     const errorMsg = getAjaxErrorMsg(error);
-                    utils.showModal({
-                        title: 'Error',
-                        body: 'Sorry, there was an error edit dashboard: </ br>' + errorMsg,
-                    });
+                    renderErrorAlert(errorMsg);
                 }
             });
         },
