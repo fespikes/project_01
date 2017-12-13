@@ -1,6 +1,7 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishConnectionUrl, isCorrectConnection} from '../utils';
 import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
+import {always, json, callbackHandler, MESSAGE_DURATION} from '../../global.jsx';
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -40,28 +41,9 @@ const connBaseURL = origin + '/connection/';
 const INCEPTORConnectionBaseURL = origin + '/database/';
 const HDFSConnectionBaseURL = origin + '/hdfsconnection/';
 
-const callbackHandler = (response, callback) => {
-    if(response.status === 200) {
-        callback && callback(true, response.data);
-    }else {
-        callback && callback(false, response.message);
-    }
-};
-const always = (response) => {
-    return Promise.resolve(response);
-};
-const json = (response) => {
-    return response.json();
-};
-
-const errorHandler = (error) => {
-    return error;
-}
-
 const getParamDB = (database) => {
     let db = {};
-    let connectionType = (database.connectionType||database.backend);
-    //todo: get other connection type params
+    let connectionType = (database.connectionType || database.backend);
     if (isCorrectConnection(connectionType, connectionTypes)) {
         db.database_name = database.database_name;
         db.sqlalchemy_uri = database.sqlalchemy_uri;
@@ -78,7 +60,7 @@ const getParamDB = (database) => {
     }
 
     return db;
-}
+};
 
 /**
 @deprecated
@@ -342,15 +324,11 @@ export function fetchDBDetail(record, callback) {
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
-        })
-        .then(
-            response => response.ok?
-                response.json() : ((response)=>errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            callback(true, json);
-        });
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+            }
+        );
     }
 }
 
@@ -402,27 +380,15 @@ function receiveData (condition, json) {
 export function fetchTypes (callback) {
     return (dispatch, getState) => {
         const URL = connBaseURL + 'connection_types';
-        let types = [];
 
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
-        })
-        .then(
-            response => response.ok?
-                response.json() : (errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(function(data){
-            data.map((obj, index) => {
-            //format the data for the options
-                types.push({
-                    id: index+1,
-                    label: obj
-                });
-            });
-            callback(types);
-        }, errorHandler);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+            }
+        );
     };
 }
 
@@ -438,28 +404,33 @@ function applyFetch (condition) {
             (condition.filter? '&filter=' + condition.filter : '') +
             (condition.tableType&&condition.tableType!=='all'? '&table_type=' + condition.tableType : '');
 
-        const dataMatch = json => {
-            if(!json.data) return json;
-            json.data.map(function(obj, index, arr){
-                obj.iconClass = (obj.dataset_type == 'hdfs_folder'? 'HDFS' : obj.dataset_type == 'Inceptor'?'Inceptor' : 'upload');
-                obj.elementId = index+1;
-            });
-            return json;
-        }
-
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
-        })
-        .then(
-            response => response.ok?
-                response.json() : (errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            dispatch(receiveData(condition, dataMatch(json)));
-        });
+        }).then(always).then(json).then(
+            response => {
+                fetchListHanlder(condition, response, dispatch);
+            }
+        );
+
     };
+}
+
+function fetchListHanlder(condition, response, dispatch) {
+    if(response.status === 200) {
+        const json = response.data;
+        if(!json.data)
+            return json;
+        else {
+            json.data.map(function(obj, index){
+                obj.iconClass = (obj.dataset_type == 'hdfs_folder'? 'HDFS' : obj.dataset_type == 'Inceptor'?'Inceptor' : 'upload');
+                obj.elementId = index+1;
+            });
+        }
+        dispatch(receiveData(condition, json));
+    }else {
+        message.error(response.message, MESSAGE_DURATION);
+    }
 }
 
 function shouldFetch (state, condition) {
@@ -481,27 +452,14 @@ export function fetchIfNeeded (condition) {
 export const fetchConnectionNames = (callback) => {
     return (dispatch, getState) => {
         const URL = `${baseURL}listdata?page_size=1000&database_type=inceptor`;
-        let connectionNames = [];
 
         return fetch(URL, {
             credentials: 'include',
             method: 'get'
-        })
-            .then(
-                response => response.ok?
-                    response.json() : ((response)=>errorHandler(response))(response),
-                error => errorHandler(error)
-            )
-            .then(json => {
-                json.data.map((obj, key) => {
-                    connectionNames.push({
-                        id:obj.id,
-                        label:obj.database_name
-                    })
-                })
-                callback && callback(connectionNames);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
             }
-            );
-
+        );
     }
 };

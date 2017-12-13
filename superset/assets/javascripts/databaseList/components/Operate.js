@@ -23,6 +23,7 @@ import { message } from 'antd';
 import { Select }  from './';
 import { OperationSelect } from '../../common/components';
 import { transformObjectToArray } from '../utils';
+import { MESSAGE_DURATION } from '../../global.jsx';
 
 class Operate extends React.Component {
     constructor(props, context) {
@@ -46,13 +47,20 @@ class Operate extends React.Component {
     }
 
     fetchTypes () {
-        const me = this;
-        const callback = data =>
-            me.setState({
-                DBTypes: data
-            });
+        const self = this;
+        const callback = (success, data) => {
+            if(success) {
+                const types = [];
+                data.map((obj, index) => {
+                    types.push({id: index+1, label: obj});
+                });
+                self.setState({DBTypes: types});
+            }else {
+                message.error(data, MESSAGE_DURATION);
+            }
+        };
 
-        me.dispatch(fetchTypes(callback));
+        self.dispatch(fetchTypes(callback));
     }
 
     onChange () {

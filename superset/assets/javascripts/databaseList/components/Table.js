@@ -1,13 +1,14 @@
 import React from 'react';
-import { render } from 'react-dom';
-import { message, Table, Icon, Tooltip } from 'antd';
+import {render} from 'react-dom';
+import {message, Table, Icon, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
-import { fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection, fetchOnOfflineInfo,
-    fetchConnectDelInfo, connectionTypes } from '../actions';
-import { ConnectionDelete, ConnectionEdit } from '../popup';
+import {fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection, fetchOnOfflineInfo,
+    fetchConnectDelInfo, connectionTypes} from '../actions';
+import {ConnectionDelete, ConnectionEdit} from '../popup';
 import style from '../style/database.scss'
-import { ConfirmModal } from '../../common/components';
-import { isCorrectConnection } from '../utils';
+import {ConfirmModal} from '../../common/components';
+import {isCorrectConnection} from '../utils';
+import {MESSAGE_DURATION} from '../../global.jsx';
 
 class SliceTable extends React.Component {
     constructor(props, context) {
@@ -53,6 +54,8 @@ class SliceTable extends React.Component {
                         database={data} />,
                     document.getElementById('popup_root')
                 );
+            }else {
+                message.error(data, MESSAGE_DURATION);
             }
         }
     }
@@ -114,7 +117,7 @@ class SliceTable extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, 5);
+                message.error(data, MESSAGE_DURATION);
             }
         }
     }
