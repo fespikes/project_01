@@ -4,12 +4,12 @@ import ReactDOM, {render} from 'react-dom';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {Link, withRouter} from 'react-router-dom';
-import {Select, Tooltip, TreeSelect, Alert, message} from 'antd';
+import {Select, Tooltip, TreeSelect} from 'antd';
 import {Confirm, CreateHDFSConnect, CreateInceptorConnect} from '../../popup';
 import {datasetTypes} from '../../actions';
 import {constructFileBrowserData, appendTreeChildren, initDatasetData,
     extractOpeType, getDatasetId, extractDatasetType} from '../../module';
-import {renderLoadingModal, renderAlertTip} from '../../../../utils/utils';
+import {renderLoadingModal, renderAlertTip, renderGlobalErrorMsg} from '../../../../utils/utils';
 
 import {ConfirmModal} from '../../../common/components';
 
@@ -114,7 +114,7 @@ class HDFSUploadDetail extends Component {
                     dsHDFS: objHDFS
                 });
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -248,11 +248,13 @@ class HDFSUploadDetail extends Component {
             if(success) {
                 let objHDFS = {
                     ...self.state.dsHDFS,
-                    inceptorConnections: data
+                    inceptorConnections: data.data
                 };
                 self.setState({
                     dsHDFS: objHDFS
                 });
+            }else {
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -262,19 +264,22 @@ class HDFSUploadDetail extends Component {
         const self = this;
         fetchHDFSConnectList(hdfsCallback);
         function hdfsCallback(success, data) {
+            console.log('data-hdfs=', data);
             if(success) {
                 let objHDFS = {
                     ...self.state.dsHDFS,
-                    hdfsConnections: data
+                    hdfsConnections: data.data
                 };
                 self.setState({
                     dsHDFS: objHDFS
                 });
-                if(data.length > 0) {
+                if(data.data && data.data.length > 0) {
                     switchHDFSConnected(true);
                 }else {
                     switchHDFSConnected(false);
                 }
+            }else {
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -293,7 +298,7 @@ class HDFSUploadDetail extends Component {
                     dsHDFS: objHDFS
                 });
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -301,8 +306,7 @@ class HDFSUploadDetail extends Component {
     doDatasetEdit() {
         const self = this;
         const {fetchDatasetDetail, fetchDBDetail, fetchHDFSDetail} = self.props;
-        let datasetId = getDatasetId('edit', window.location.hash);
-
+        const datasetId = getDatasetId('edit', window.location.hash);
         fetchDatasetDetail(datasetId, callback);
         function callback(success, data) {
             if(success) {
@@ -322,6 +326,8 @@ class HDFSUploadDetail extends Component {
                                 datasetTypes.hdfs, data, objHDFS
                             )
                         });
+                    }else {
+                        renderGlobalErrorMsg(dbData);
                     }
                 }
 
@@ -338,6 +344,8 @@ class HDFSUploadDetail extends Component {
                                 data, objHDFS
                             )
                         });
+                    }else {
+                        renderGlobalErrorMsg(hdfsData);
                     }
                 }
             }
