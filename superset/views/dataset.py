@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import json
 import requests
+from distutils.util import strtobool
 from flask import request
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
@@ -618,7 +619,7 @@ class HDFSTableModelView(SupersetModelView):
             args['names'] = columns
         df = HDFSTable.parse_file(file, **args)
 
-        if not columns:
+        if not columns or strtobool(args.get('next_as_header')):
             columns = list(df.columns)
             types = ['string'] * len(columns)
         return json_response(data=dict(records=df.to_dict(orient="records"),

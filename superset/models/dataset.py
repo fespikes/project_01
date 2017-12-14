@@ -993,22 +993,14 @@ class HDFSTable(Model, AuditMixinNullable):
         engine.execute(sql)
 
     @classmethod
-    def parse_file(cls, file_content, separator=',', quote='"', skip_rows='0',
-                   next_as_header='false', skip_more_rows='0', charset='utf-8',
-                   nrows='100', names=None):
-        skip_rows = int(skip_rows)
-        next_as_header = strtobool(next_as_header)
-        skip_more_rows = int(skip_more_rows)
+    def parse_file(cls, file_content, separator=',', quote='"', next_as_header='false',
+                   charset='utf-8', nrows='100', names=None):
+        header = 0 if strtobool(next_as_header) else None
         nrows = int(nrows)
-
-        header = skip_rows + 1 if next_as_header else None
-        names = None if header else names
-        skiprows = int(skip_rows) + int(skip_more_rows)
-        skiprows += 1 if next_as_header else skiprows
         try:
-            return pd.read_csv(StringIO(file_content), sep=separator,
-                               skiprows=skiprows, header=None, names=names,
-                               prefix='C', nrows=nrows, encoding=charset)
+            return pd.read_csv(StringIO(file_content), sep=separator, header=header,
+                               nrows=nrows, prefix='C', encoding=charset,
+                               skip_blank_lines=True)
         except Exception as e:
             raise Exception(_("Parse file error: {msg}").format(msg=str(e)))
 
