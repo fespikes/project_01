@@ -83,7 +83,7 @@ class SliceAdder extends React.Component {
 
     getSliceList(pageNumber, keyword) {
         const self = this;
-        const url = '/slice/listdata?page=' + (pageNumber-1) + '&page_size=' + self.state.pageSize + '&filter=' + keyword;
+        const url = '/slice/listdata/?page=' + (pageNumber-1) + '&page_size=' + self.state.pageSize + '&filter=' + keyword;
         this.slicesRequest = $.ajax({
             url: url,
             type: 'GET',
