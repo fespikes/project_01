@@ -2,10 +2,9 @@
  * Created by haitao on 17-5-18.
  */
 import fetch from 'isomorphic-fetch';
-import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils';
+import {getOnOfflineInfoUrl, renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils';
 import {getNewDashboard, getSelectedSlices} from '../../../utils/common2';
-import {always, json, callbackHandler, MESSAGE_DURATION} from '../../global.jsx';
-import {message} from 'antd';
+import {always, json, callbackHandler} from '../../global.jsx';
 
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
@@ -29,7 +28,7 @@ const handler = (response, dispatch) => {
     if(response.status === 200) {
         dispatch(receivePosts(response.data));
     }else {
-        message.error(response.message, MESSAGE_DURATION);
+        renderGlobalErrorMsg(response.message);
     }
 };
 

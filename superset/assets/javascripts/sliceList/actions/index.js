@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-fetch';
-import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
-import {always, json, callbackHandler, MESSAGE_DURATION} from '../../global.jsx';
+import {getOnOfflineInfoUrl, renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils'
+import {always, json, callbackHandler} from '../../global.jsx';
 
 export const SHOW_ALL = 'showAll';
 export const SHOW_FAVORITE = 'showFavorite';
@@ -30,7 +30,7 @@ const handler = (response, dispatch) => {
     if(response.status === 200) {
         dispatch(receiveLists(response.data));
     }else {
-        message.error(response.message, MESSAGE_DURATION);
+        renderGlobalErrorMsg(response.message);
     }
 };
 

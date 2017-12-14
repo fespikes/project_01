@@ -1,7 +1,7 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishConnectionUrl, isCorrectConnection} from '../utils';
-import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils'
-import {always, json, callbackHandler, MESSAGE_DURATION} from '../../global.jsx';
+import {getOnOfflineInfoUrl, renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils'
+import {always, json, callbackHandler} from '../../global.jsx';
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -429,7 +429,7 @@ function fetchListHanlder(condition, response, dispatch) {
         }
         dispatch(receiveData(condition, json));
     }else {
-        message.error(response.message, MESSAGE_DURATION);
+        renderGlobalErrorMsg(response.message);
     }
 }
 

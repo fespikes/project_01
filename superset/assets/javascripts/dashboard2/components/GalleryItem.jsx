@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Checkbox, message } from 'antd';
-import { render } from 'react-dom';
-import { fetchStateChange, fetchDashboardDetail, appendRow, removeRow, fetchOnOfflineInfo } from '../actions';
-import { DashboardEdit, DashboardDelete } from '../popup';
-import { ConfirmModal } from '../../common/components';
+import {Checkbox, message} from 'antd';
+import {render} from 'react-dom';
+import {fetchStateChange, fetchDashboardDetail, appendRow, removeRow, fetchOnOfflineInfo} from '../actions';
+import {DashboardEdit, DashboardDelete} from '../popup';
+import {ConfirmModal} from '../../common/components';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class GalleryItem extends React.Component {
     constructor(props) {
@@ -50,7 +51,7 @@ class GalleryItem extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }

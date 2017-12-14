@@ -6,10 +6,10 @@ import {bindActionCreators} from 'redux';
 import {Link, withRouter} from 'react-router-dom';
 import * as actionCreators from '../actions';
 import {datasetTypes} from '../actions';
-import {Table, Input, Button, Icon, Select, Alert, message} from 'antd';
+import {Table, Input, Select} from 'antd';
 import * as datasetModule from '../module';
 import {DetailType} from '../popup';
-import {renderAlertTip} from '../../../utils/utils';
+import {renderAlertTip, renderGlobalErrorMsg} from '../../../utils/utils';
 
 class SubPreview extends Component {
 
@@ -124,7 +124,7 @@ class SubPreview extends Component {
                 });
                 self.doConstructTableData(datasetTypes.database, data);
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -142,7 +142,7 @@ class SubPreview extends Component {
                 });
                 self.doConstructTableData(datasetTypes.hdfs, data);
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }

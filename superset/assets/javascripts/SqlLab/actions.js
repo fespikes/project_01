@@ -1,8 +1,7 @@
 import shortid from 'shortid';
 import { now } from '../modules/dates';
 const $ = require('jquery');
-import {PILOT_PREFIX} from '../../utils/utils'
-import { message } from 'antd';
+import {renderGlobalErrorMsg, PILOT_PREFIX} from '../../utils/utils'
 
 export const RESET_STATE = 'RESET_STATE';
 export const ADD_QUERY_EDITOR = 'ADD_QUERY_EDITOR';
@@ -243,7 +242,7 @@ export function addTable(query, tableName) {
     })
     .fail((response) => {
       const error = response.responseJSON.message;
-      message.error(error, 5);
+      renderGlobalErrorMsg(error);
     });
 
     url = `${PILOT_PREFIX}extra_table_metadata/${query.dbId}/${tableName}/${query.schema}/`;

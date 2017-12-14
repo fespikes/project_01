@@ -2,11 +2,13 @@ import React from 'react';
 import {render} from 'react-dom';
 import {message, Table, Icon, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
-import {fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail,
-    fetchOnOfflineInfo, fetchSliceDelInfo} from '../actions';
+import {
+    fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail,
+    fetchOnOfflineInfo, fetchSliceDelInfo
+} from '../actions';
 import {SliceDelete, SliceEdit} from '../popup';
 import {ConfirmModal} from '../../common/components';
-import {sortByInitials} from '../../../utils/utils.jsx';
+import {sortByInitials, renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -60,7 +62,7 @@ class SliceTable extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }

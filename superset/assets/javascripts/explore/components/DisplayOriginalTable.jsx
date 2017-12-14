@@ -3,8 +3,7 @@ import ReactDOM from 'react-dom';
 import {Select, TreeSelect, message} from 'antd';
 import PropTypes from 'prop-types';
 import {appendTreeData, constructTreeData} from '../../../utils/common2';
-import {renderLoadingModal, renderAlertTip, getAjaxErrorMsg, PILOT_PREFIX} from '../../../utils/utils';
-import {MESSAGE_DURATION} from '../../global.jsx';
+import {renderLoadingModal, renderAlertTip, getAjaxErrorMsg, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils';
 
 class DisplayOriginalTable extends React.Component {
     constructor(props) {
@@ -61,7 +60,7 @@ class DisplayOriginalTable extends React.Component {
             },
             error: error => {
                 const errorMsg = getAjaxErrorMsg(error);
-                message.error(errorMsg, MESSAGE_DURATION);
+                renderGlobalErrorMsg(errorMsg);
             },
             complete: () => {
                 loadingModal.hide();
@@ -97,7 +96,7 @@ class DisplayOriginalTable extends React.Component {
             },
             error: error => {
                 const errorMsg = getAjaxErrorMsg(error);
-                message.error(errorMsg, MESSAGE_DURATION);
+                renderGlobalErrorMsg(errorMsg);
             }
         });
     }
@@ -116,7 +115,7 @@ class DisplayOriginalTable extends React.Component {
             },
             error: error => {
                 const errorMsg = getAjaxErrorMsg(error);
-                message.error(errorMsg, MESSAGE_DURATION);
+                renderGlobalErrorMsg(errorMsg);
             }
         });
     }
@@ -134,7 +133,7 @@ class DisplayOriginalTable extends React.Component {
             },
             error: error => {
                 const errorMsg = getAjaxErrorMsg(error);
-                message.error(errorMsg, MESSAGE_DURATION);
+                renderGlobalErrorMsg(errorMsg);
             }
         });
     }

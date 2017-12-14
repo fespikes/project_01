@@ -1,9 +1,8 @@
 import fetch from 'isomorphic-fetch';
 
-import { constructFileBrowserData, appendTreeChildren, findTreeNode } from '../../tableList/module';
-import { getSelectedPath } from '../module';
-import { renderLoadingModal} from '../../../utils/utils'
-import { message } from 'antd';
+import {constructFileBrowserData, appendTreeChildren, findTreeNode} from '../../tableList/module';
+import {getSelectedPath} from '../module';
+import {renderLoadingModal, renderGlobalErrorMsg} from '../../../utils/utils'
 
 export const actionTypes = {
     sendRequest: 'SEND_REQUEST',
@@ -314,7 +313,7 @@ export function fetchDownload() {
                     aLink.click();
                     window.URL.revokeObjectURL(url);
                 } else {
-                    message.error(response.message, 5);
+                    renderGlobalErrorMsg(response.message);
                 }
                 dispatch(switchFetchingStatus(false));
             }
@@ -511,7 +510,7 @@ function applyFetch(condition) {
                     const data = listDataMatch(response ? response.data : {});
                     dispatch(receiveData(data, condition));
                 } else {
-                    message.error(response.message, 5);
+                    renderGlobalErrorMsg(response.message);
                 }
                 dispatch(switchFetchingStatus(false));
             }
@@ -571,7 +570,7 @@ export function fetchPreview() {
                 if (response.status === 200) {
                     dispatch(setPreview(response.data));
                 } else if (response.status === 500) {
-                    message.error(response.message, 5);
+                    renderGlobalErrorMsg(response.message);
                 }
                 dispatch(switchFetchingStatus(false));
             }
@@ -599,7 +598,7 @@ export function fetchHDFSList(path, isFirst) {
                         )));
                     }
                 } else {
-                    message.error(response.message, 5);
+                    renderGlobalErrorMsg(response.message);
                 }
                 dispatch(switchFetchingStatus(false));
             }
