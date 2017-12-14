@@ -329,7 +329,7 @@ export function fetchPosts() {
 }
 
 function getDashboardListUrl(state) {
-    let url = window.location.origin + "/dashboard/listdata?page=" + (state.configs.pageNumber - 1) +
+    let url = window.location.origin + "/dashboard/listdata/?page=" + (state.configs.pageNumber - 1) +
         "&page_size=" + state.configs.pageSize + "&filter=" + state.configs.keyword;
     if(state.configs.type === "show_favorite") {
         url += "&only_favorite=1";

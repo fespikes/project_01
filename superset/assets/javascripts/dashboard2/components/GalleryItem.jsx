@@ -102,7 +102,12 @@ class GalleryItem extends React.Component {
                 <div className="item">
                     <div className='item-img-wrapper'>
                         <div className={'item-img dashboard-thumbnail-' + (dashboard.id%5 + 1)}>
-                            <a href={dashboard.url}><i className="fa fa-search" aria-hidden="true"></i></a>
+                            <a href={dashboard.url}>
+                                <i
+                                    className="fa fa-search"
+                                    aria-hidden="true"
+                                />
+                            </a>
                         </div>
                     </div>
                     <div className="item-operation">
@@ -112,9 +117,18 @@ class GalleryItem extends React.Component {
                             </Checkbox>
                         </div>
                         <div className="icon-group">
-                            <i className="icon icon-edit" onClick={this.editDashboard}></i>&nbsp;
-                            <i className={dashboard.online ? 'icon icon-online' : 'icon icon-offline'} onClick={this.publishDashboard}></i>&nbsp;
-                            <i className="icon icon-delete" onClick={this.deleteDashboard}></i>
+                            <i
+                                className="icon icon-edit"
+                                onClick={this.editDashboard}
+                            />
+                            <i
+                                className={dashboard.online ? 'icon icon-online' : 'icon icon-offline'}
+                                onClick={this.publishDashboard}
+                            />
+                            <i
+                                className="icon icon-delete"
+                                onClick={this.deleteDashboard}
+                            />
                         </div>
                     </div>
                     <hr className="divider"/>
