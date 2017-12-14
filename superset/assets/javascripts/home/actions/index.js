@@ -1,14 +1,15 @@
 import fetch from 'isomorphic-fetch';
 import {message} from 'antd';
 
-import {always, json, MESSAGE_DURATION} from '../../global.jsx';
+import {always, json} from '../../global.jsx';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 
 const handler = (response, data, dispatch) => {
     if(response.status === 200) {
         dispatch(receiveData(data));
     }else {
-        message.error(response.message, MESSAGE_DURATION);
+        renderGlobalErrorMsg(response.message);
     }
 };
 

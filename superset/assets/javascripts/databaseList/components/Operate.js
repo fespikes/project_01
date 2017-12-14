@@ -1,29 +1,18 @@
 import React from 'react';
-import { render } from 'react-dom';
+import {render} from 'react-dom';
 
-import { Link }  from 'react-router-dom';
-import { ConnectionDelete, ConnectionAdd } from '../popup';
+import {Link}  from 'react-router-dom';
+import {ConnectionDelete, ConnectionAdd} from '../popup';
 import PropTypes from 'prop-types';
 import {
-    selectType,
-    search,
-
-    applyAdd,
-    testConnection,
-    fetchTypes,
-
-    setPopupParam,
-    applyDelete,
-    popupActions,
-
-    fetchConnectDelMulInfo
+    selectType, search, applyAdd, testConnection,fetchTypes, setPopupParam,
+    applyDelete, popupActions, fetchConnectDelMulInfo
 } from '../actions';
 
-import { message } from 'antd';
-import { Select }  from './';
-import { OperationSelect } from '../../common/components';
-import { transformObjectToArray } from '../utils';
-import { MESSAGE_DURATION } from '../../global.jsx';
+import {Select}  from './';
+import {OperationSelect} from '../../common/components';
+import {transformObjectToArray} from '../utils';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class Operate extends React.Component {
     constructor(props, context) {
@@ -56,7 +45,7 @@ class Operate extends React.Component {
                 });
                 self.setState({DBTypes: types});
             }else {
-                message.error(data, MESSAGE_DURATION);
+                renderGlobalErrorMsg(data);
             }
         };
 

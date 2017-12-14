@@ -2,13 +2,14 @@ import React from 'react';
 import {render, ReactDOM} from 'react-dom';
 import {Provider, connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange, setSelectedRow, fetchOnOfflineInfo,
-    fetchDashbaordDelInfo} from '../actions';
+import {
+    fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange,
+    setSelectedRow, fetchOnOfflineInfo, fetchDashbaordDelInfo
+} from '../actions';
 import {DashboardEdit, DashboardDelete} from '../popup';
 import {ConfirmModal} from '../../common/components';
-import {Table, message, Tooltip} from 'antd';
-import {MESSAGE_DURATION} from '../../global.jsx';
-import {sortByInitials} from '../../../utils/utils.jsx';
+import {Table, Tooltip} from 'antd';
+import {sortByInitials, renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class Tables extends React.Component {
     constructor(props) {
@@ -43,7 +44,7 @@ class Tables extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, MESSAGE_DURATION);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -65,7 +66,7 @@ class Tables extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, MESSAGE_DURATION);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -86,7 +87,7 @@ class Tables extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, MESSAGE_DURATION);
+                renderGlobalErrorMsg(data);
             }
         }
     }

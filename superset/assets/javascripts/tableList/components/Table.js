@@ -1,13 +1,16 @@
 import React from 'react';
-import { render } from 'react-dom';
-import { Link }  from 'react-router-dom';
-import { message, Table, Icon, Tooltip } from 'antd';
+import {render} from 'react-dom';
+import {Link}  from 'react-router-dom';
+import {Table, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
-import { selectRows, switchDatasetType, saveDatasetId, fetchPublishTable, fetchOnOfflineInfo,
-    fetchTableDelInfo, datasetTypes, clearDatasetData } from '../actions';
-import { TableDelete } from '../popup';
+import {
+    selectRows, switchDatasetType, saveDatasetId, fetchPublishTable,
+    fetchOnOfflineInfo, fetchTableDelInfo, datasetTypes, clearDatasetData
+} from '../actions';
+import {TableDelete} from '../popup';
 import style from '../style/table.scss'
-import { ConfirmModal } from '../../common/components';
+import {ConfirmModal} from '../../common/components';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -82,7 +85,7 @@ class SliceTable extends React.Component {
                         document.getElementById('popup_root')
                     );
                 }else {
-                    message.error(data, 5);
+                    renderGlobalErrorMsg(data);
                 }
             }
         }

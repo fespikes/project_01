@@ -1,12 +1,14 @@
 import React from 'react';
-import { render } from 'react-dom';
-import { Provider, connect } from 'react-redux';
+import {render} from 'react-dom';
+import {Provider, connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
-import { DashboardAdd, DashboardDelete } from '../popup';
-import { message } from 'antd';
-import { fetchAvailableSlices, fetchPosts, fetchDashboardDeleteMul, setShowType, setKeyword,
-    setPageNumber, setViewMode, fetchDashboardMulDelInfo } from '../actions';
+import {Link } from 'react-router-dom';
+import {DashboardAdd, DashboardDelete} from '../popup';
+import {
+    fetchAvailableSlices, fetchPosts, fetchDashboardDeleteMul, setShowType,
+    setKeyword, setPageNumber, setViewMode, fetchDashboardMulDelInfo
+} from '../actions';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class Operations extends React.Component {
     constructor(props) {
@@ -63,7 +65,7 @@ class Operations extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }

@@ -1,9 +1,9 @@
 import React from 'react';
-import { render } from 'react-dom';
+import {render} from 'react-dom';
 import PropTypes from 'prop-types';
-import { fetchLists, switchFavorite, setKeyword, navigateTo, fetchSliceDelMulInfo } from '../actions';
-import { SliceDelete } from '../popup';
-import { message } from 'antd';
+import {fetchLists, switchFavorite, setKeyword, navigateTo, fetchSliceDelMulInfo} from '../actions';
+import {SliceDelete} from '../popup';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 const SHOW_ALL = "showAll";
 const SHOW_FAVORITE = "showFavorite";
@@ -52,7 +52,7 @@ class SliceOperate extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }

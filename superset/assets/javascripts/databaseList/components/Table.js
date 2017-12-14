@@ -2,13 +2,15 @@ import React from 'react';
 import {render} from 'react-dom';
 import {message, Table, Icon, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
-import {fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection, fetchOnOfflineInfo,
-    fetchConnectDelInfo, connectionTypes} from '../actions';
+import {
+    fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection,
+    fetchOnOfflineInfo, fetchConnectDelInfo, connectionTypes
+} from '../actions';
 import {ConnectionDelete, ConnectionEdit} from '../popup';
 import style from '../style/database.scss'
 import {ConfirmModal} from '../../common/components';
 import {isCorrectConnection} from '../utils';
-import {MESSAGE_DURATION} from '../../global.jsx';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class SliceTable extends React.Component {
     constructor(props, context) {
@@ -55,7 +57,7 @@ class SliceTable extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, MESSAGE_DURATION);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -117,7 +119,7 @@ class SliceTable extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, MESSAGE_DURATION);
+                renderGlobalErrorMsg(data);
             }
         }
     }
