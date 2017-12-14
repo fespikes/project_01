@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Select, TreeSelect } from 'antd';
+import {Select, TreeSelect, message} from 'antd';
 import PropTypes from 'prop-types';
-import { appendTreeData, constructTreeData } from '../../../utils/common2';
-import { renderLoadingModal, renderAlertTip, PILOT_PREFIX } from '../../../utils/utils';
+import {appendTreeData, constructTreeData} from '../../../utils/common2';
+import {renderLoadingModal, renderAlertTip, getAjaxErrorMsg, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils';
 
 class DisplayOriginalTable extends React.Component {
     constructor(props) {
@@ -33,7 +33,7 @@ class DisplayOriginalTable extends React.Component {
                 tableName: value
             });
             localStorage.setItem('explore:firstEntry', 'false');
-            window.location = window.location.origin + PILOT_PREFIX + 'explore/table/0?database_id=' + this.state.currentDbId +
+            window.location = window.location.origin + PILOT_PREFIX + 'explore/table/0/?database_id=' + this.state.currentDbId +
                 '&full_tb_name=' + this.state.currentSchema + '.' + value + '&slice_id=' + sliceId + '&viz_type=' + vizType;
         }
     }
@@ -59,7 +59,8 @@ class DisplayOriginalTable extends React.Component {
                 });
             },
             error: error => {
-                console.log(error);
+                const errorMsg = getAjaxErrorMsg(error);
+                renderGlobalErrorMsg(errorMsg);
             },
             complete: () => {
                 loadingModal.hide();
@@ -94,7 +95,8 @@ class DisplayOriginalTable extends React.Component {
                 });
             },
             error: error => {
-
+                const errorMsg = getAjaxErrorMsg(error);
+                renderGlobalErrorMsg(errorMsg);
             }
         });
     }
@@ -106,13 +108,14 @@ class DisplayOriginalTable extends React.Component {
             url: url_databaseName,
             type: 'GET',
             success: response => {
-                response = JSON.parse(response);
+                response = response.data;
                 self.setState({
                     databaseName: response.database_name
                 });
             },
             error: error => {
-
+                const errorMsg = getAjaxErrorMsg(error);
+                renderGlobalErrorMsg(errorMsg);
             }
         });
     }
@@ -129,7 +132,8 @@ class DisplayOriginalTable extends React.Component {
                 });
             },
             error: error => {
-
+                const errorMsg = getAjaxErrorMsg(error);
+                renderGlobalErrorMsg(errorMsg);
             }
         });
     }

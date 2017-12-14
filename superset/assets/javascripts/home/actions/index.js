@@ -1,4 +1,17 @@
 import fetch from 'isomorphic-fetch';
+import {message} from 'antd';
+
+import {always, json} from '../../global.jsx';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+
+
+const handler = (response, data, dispatch) => {
+    if(response.status === 200) {
+        dispatch(receiveData(data));
+    }else {
+        renderGlobalErrorMsg(response.message);
+    }
+};
 
 /*
  * action 类型
@@ -35,14 +48,6 @@ function reuqestPosts() {
     }
 }
 
-function receivePosts(json) {
-    return {
-        type: RECEIVE_POSTS,
-        posts: json.index,
-        receivedAt: Date.now()
-    }
-}
-
 function receiveData(json) {
     return {
         type: RECEIVE_POSTS,
@@ -51,16 +56,18 @@ function receiveData(json) {
     }
 }
 
-export function fetchPosts() {
+export function fetchData() {
     const URL = "/home/alldata";
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
-        })
-        .then(response => response.json())
-        .then(json => dispatch(receivePosts(json)));
+        }).then(always).then(json).then(
+            response => {
+                handler(response, response.data.index, dispatch);
+            }
+        );
     };
 }
 
@@ -68,15 +75,17 @@ export function fetchEditDetail(catagory, index, orderColumn, orderDirection) {
     if (!orderColumn)
         orderColumn = "time";
 
-    const URL = "/home/edits/" + catagory + "?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
+    const URL = "/home/edits/" + catagory + "/?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
-        })
-        .then(response => response.json())
-        .then(json => dispatch(receiveData(json)));
+        }).then(always).then(json).then(
+            response => {
+                handler(response, response.data, dispatch);
+            }
+        );
     };
 }
 
@@ -84,15 +93,17 @@ export function fetchEventDetail(index, orderColumn, orderDirection) {
     if (!orderColumn)
         orderColumn = "time";
     
-    const URL = "/home/actions?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
+    const URL = "/home/actions/?page=" + index + "&&order_column=" + orderColumn + "&&order_direction=" + orderDirection;
     return dispatch => {
         dispatch(reuqestPosts());
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
-        })
-        .then(response => response.json())
-        .then(json => dispatch(receiveData(json)));
+        }).then(always).then(json).then(
+            response => {
+                handler(response, response.data, dispatch);
+            }
+        );
     };
 }
 

@@ -1,16 +1,16 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import { render } from 'react-dom';
+import {render} from 'react-dom';
 import ReactDOM from 'react-dom';
-import { connect } from 'react-redux';
+import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import { Link, withRouter } from 'react-router-dom';
-import { Select, Tooltip, TreeSelect, Alert, Popconfirm, message } from 'antd';
-import { Confirm, CreateHDFSConnect, CreateInceptorConnect } from '../../popup';
-import { fetchSchemaList, datasetTypes } from '../../actions';
-import { constructInceptorDataset, initDatasetData, extractOpeType, getDatasetId, extractDatasetType } from '../../module';
-import { appendTreeData, constructTreeData } from '../../../../utils/common2';
-import { renderLoadingModal, renderAlertTip, PILOT_PREFIX } from '../../../../utils/utils';
+import {Link, withRouter} from 'react-router-dom';
+import {Select, Tooltip, TreeSelect, message} from 'antd';
+import {Confirm, CreateHDFSConnect, CreateInceptorConnect} from '../../popup';
+import {fetchSchemaList, datasetTypes} from '../../actions';
+import {constructInceptorDataset, initDatasetData, extractOpeType, getDatasetId, extractDatasetType} from '../../module';
+import {appendTreeData, constructTreeData} from '../../../../utils/common2';
+import {renderLoadingModal, renderAlertTip, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../../utils/utils';
 
 const $ = window.$ = require('jquery');
 
@@ -47,21 +47,20 @@ class InceptorDetail extends Component {
     }
 
     onConnectChange(dbId, node) {
-        const me = this;
-        const {fetchSchemaList} = this.props;
-        fetchSchemaList(dbId, callback);
+        const self = this;
+        this.props.fetchSchemaList(dbId, callback);
         function callback(success, data) {
             if(success) {
                 let treeData = constructTreeData(data, false, 'folder');
-                let objInceptor = {...me.state.dsInceptor};
+                let objInceptor = {...self.state.dsInceptor};
                 objInceptor.database_id = dbId;
                 objInceptor.db_name = node.props.children;
                 objInceptor.treeData = treeData;
-                me.setState({
+                self.setState({
                     dsInceptor: objInceptor
                 });
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -95,32 +94,35 @@ class InceptorDetail extends Component {
     }
 
     onLoadData(node) {
-        const me = this;
+        const self = this;
         const schema = node.props.value;
-        const { fetchTableList } = me.props;
-        return fetchTableList(me.state.dsInceptor.database_id, schema, callback);
+        const { fetchTableList } = self.props;
+        return fetchTableList(self.state.dsInceptor.database_id, schema, callback);
 
         function callback(success, data) {
             if(success) {
                 let treeData = appendTreeData(
                     schema,
                     data,
-                    JSON.parse(JSON.stringify(me.state.dsInceptor.treeData))
+                    JSON.parse(JSON.stringify(self.state.dsInceptor.treeData))
                 );
-                let dsInceptor = {...me.state.dsInceptor};
+                let dsInceptor = {...self.state.dsInceptor};
                 dsInceptor.schema = schema;
                 dsInceptor.treeData = treeData;
-                me.setState({
+                self.setState({
                     dsInceptor: dsInceptor
                 });
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
 
     onSave() {
-        const {history, datasetType, createDataset, saveDatasetId, editDataset, saveInceptorDataset} = this.props;
+        const {
+            history, datasetType, createDataset, saveDatasetId,
+            editDataset, saveInceptorDataset
+        } = this.props;
         const opeType = extractOpeType(window.location.hash);
         const datasetId = getDatasetId(opeType, window.location.hash);
         const dsInceptor = constructInceptorDataset(this.state.dsInceptor);
@@ -185,53 +187,57 @@ class InceptorDetail extends Component {
 
     doFetchDatabaseList() {
         const { fetchDatabaseList } = this.props;
-        const me = this;
+        const self = this;
         fetchDatabaseList(callback);
         function callback(success, data) {
             if(success) {
                 let objInceptor = {
-                    ...me.state.dsInceptor,
+                    ...self.state.dsInceptor,
                     databases: data
                 };
-                me.setState({
+                self.setState({
                     dsInceptor: objInceptor
                 });
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
 
     doDatasetEdit() {
-        const me = this;
-        const {fetchDatasetDetail, fetchDBDetail, fetchSchemaList} = me.props;
+        const self = this;
+        const {fetchDatasetDetail, fetchDBDetail, fetchSchemaList} = self.props;
         const datasetId = getDatasetId("edit", window.location.hash);
         fetchDatasetDetail(datasetId, callback);
         function callback(success, data) {
             if(success) {
                 fetchDBDetail(data.database_id, callbackDBName);
                 fetchSchemaList(data.database_id, callbackSchemaList);
-                function callbackDBName(success, db) {
+                function callbackDBName(success, data_db) {
                     if(success) {
                         let objIncpetor = {
-                            ...me.state.dsInceptor,
-                            db_name: db.database_name
+                            ...self.state.dsInceptor,
+                            db_name: data_db.database_name
                         };
-                        me.setState({
+                        self.setState({
                             dsInceptor: initDatasetData(datasetTypes.database, data, objIncpetor)
                         });
+                    }else {
+                        renderGlobalErrorMsg(data_db);
                     }
                 }
-                function callbackSchemaList(success, data) {
+                function callbackSchemaList(success, data_schema) {
                     if(success) {
-                        let treeData = constructTreeData(data, false, 'folder');
+                        let treeData = constructTreeData(data_schema, false, 'folder');
                         let objIncpetor = {
-                            ...me.state.dsInceptor,
+                            ...self.state.dsInceptor,
                             treeData: treeData
                         };
-                        me.setState({
+                        self.setState({
                             dsInceptor: objIncpetor
                         });
+                    }else {
+                        renderGlobalErrorMsg(data_schema);
                     }
                 }
             }

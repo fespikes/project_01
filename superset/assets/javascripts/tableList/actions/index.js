@@ -1,7 +1,8 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishTableUrl} from '../utils';
 import {constructHDFSPreviewUrl, constructInceptorPreviewUrl} from '../module';
-import {getOnOfflineInfoUrl, renderLoadingModal} from '../../../utils/utils'
+import {getOnOfflineInfoUrl, renderLoadingModal, renderGlobalErrorMsg} from '../../../utils/utils'
+import {always, json, callbackHandler} from '../../global.jsx';
 
 export const actionTypes = {
     selectType: 'SELECT_TYPE',
@@ -45,24 +46,6 @@ export const datasetTypes = {
 };
 
 const baseURL = window.location.origin + '/table/';
-
-const callbackHandler = (response, callback) => {
-    if(response.status === 200) {
-        callback && callback(true, response.data);
-    }else {
-        callback && callback(false, response.message);
-    }
-};
-const always = (response) => {
-    return Promise.resolve(response);
-};
-const json = (response) => {
-    return response.json();
-};
-
-const errorHandler = (response, dispatch) => {
-    dispatch(switchFetchingState(false));
-};
 
 let fetchingStatus = [];
 
@@ -164,16 +147,16 @@ export function getTableColumn(dataset_id) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        })
-        .then(
-            response => response.ok?
-                response.json() : (response => errorHandler(response, dispatch))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            dispatch(receiveTableColumn(json));
-            dispatch(switchFetchingState(false));
-        });
+        }).then(always).then(json).then(
+            response => {
+                if(response.status === 200) {
+                    dispatch(receiveTableColumn(response.data));
+                    dispatch(switchFetchingState(false));
+                }else {
+                    renderGlobalErrorMsg(response.message);
+                }
+            }
+        );
     }
 }
 
@@ -218,18 +201,14 @@ export function fetchTableColumnDelete(id, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(getTableColumn(getState().subDetail.datasetId));
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(getTableColumn(getState().subDetail.datasetId));
                 }
             }
-        });
+        );
     }
 }
 
@@ -273,18 +252,14 @@ export function fetchSQLMetricDelete(id, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
-                dispatch(getSQLMetric(getState().subDetail.datasetId));
-                if(typeof callback === "function") {
-                    callback(true);
-                }
-            }else {
-                if(typeof callback === "function") {
-                    callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
+                if(response.status === 200) {
+                    dispatch(getSQLMetric(getState().subDetail.datasetId));
                 }
             }
-        });
+        );
     }
 }
 
@@ -295,16 +270,14 @@ export function getSQLMetric(dataset_id) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        })
-        .then(
-            response => response.ok?
-                response.json() : (response => errorHandler(response, dispatch))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            dispatch(receiveSQLMetric(json));
-            dispatch(switchFetchingState(false));
-        });
+        }).then(always).then(json).then(
+            response => {
+                if(response.status === 200) {
+                    dispatch(receiveSQLMetric(response.data));
+                }
+                dispatch(switchFetchingState(false));
+            }
+        );
     }
 }
 
@@ -596,45 +569,14 @@ export function fetchHDFSConnectList(callback) {
     return (dispatch) => {
         dispatch(switchFetchingState(true));
         const MAX_PAGE_SIZE = 1000;
-        const url = window.location.origin + '/hdfsconnection/listdata?page_size=' + MAX_PAGE_SIZE;
+        const url = window.location.origin + '/hdfsconnection/listdata/?page_size=' + MAX_PAGE_SIZE;
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        dispatch(switchFetchingState(false));
-                        callback(true, response.data);
-                    });
-                }else {
-                    dispatch(switchFetchingState(false));
-                    callback(false);
-                }
-            }
-        );
-    }
-}
-
-export function fetchDatabaseConnectList(callback) {
-    return (dispatch) => {
-        dispatch(switchFetchingState(true));
-        const MAX_PAGE_SIZE = 1000;
-        const url = window.location.origin + '/database/listdata?page_size=' + MAX_PAGE_SIZE;
-        return fetch(url, {
-            credentials: 'include',
-            method: 'GET'
-        }).then(
-            response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        dispatch(switchFetchingState(false));
-                        callback(true, response.data);
-                    });
-                }else {
-                    dispatch(switchFetchingState(false));
-                    callback(false);
-                }
+                switchFetchingState(false);
+                callbackHandler(response, callback);
             }
         );
     }
@@ -644,21 +586,14 @@ export function fetchInceptorConnectList(callback) {
     return (dispatch) => {
         dispatch(switchFetchingState(true));
         const MAX_PAGE_SIZE = 1000;
-        const url = window.location.origin + '/database/listdata?page_size=' + MAX_PAGE_SIZE + '&database_type=inceptor';
+        const url = window.location.origin + '/database/listdata/?page_size=' + MAX_PAGE_SIZE + '&database_type=inceptor';
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        dispatch(switchFetchingState(false));
-                        callback(true, response.data);
-                    });
-                }else {
-                    dispatch(switchFetchingState(false));
-                    callback(false);
-                }
+                dispatch(switchFetchingState(false));
+                callbackHandler(response, callback);
             }
         );
     }
@@ -671,15 +606,9 @@ export function fetchCreateHDFSConnect(data, callback) {
             credentials: 'include',
             method: 'POST',
             body: JSON.stringify(data)
-        }).then(
-            response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        callback(true);
-                    });
-                }else {
-                    callback(false);
-                }
+        }).then(always).then(json).then(
+            resposne => {
+                callbackHandler(resposne, callback);
             }
         );
     }
@@ -691,15 +620,9 @@ export function fetchDatasetDetail(id, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        callback(true, response);
-                    });
-                }else {
-                    callback(false);
-                }
+                callbackHandler(response, callback);
             }
         );
     }
@@ -711,15 +634,9 @@ export function fetchDBDetail(id, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        callback(true, response);
-                    });
-                }else {
-                    callback(false);
-                }
+                callbackHandler(response, callback);
             }
         );
     }
@@ -731,15 +648,9 @@ export function fetchHDFSDetail(id, callback) {
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
-        }).then(
+        }).then(always).then(json).then(
             response => {
-                if(response.ok) {
-                    response.json().then(response => {
-                        callback(true, response);
-                    });
-                }else {
-                    callback(false);
-                }
+                callbackHandler(response, callback);
             }
         );
     }
@@ -782,7 +693,7 @@ function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
 
-        const URL = baseURL + 'listdata?' +
+        const URL = baseURL + 'listdata/?' +
             (condition.page? 'page=' + (condition.page - 1) : '') +
             (condition.pageSize? '&page_size=' + condition.pageSize : '') +
             (condition.orderColumn? '&order_column=' + condition.orderColumn : '') +
@@ -790,28 +701,27 @@ function applyFetch(condition) {
             (condition.filter? '&filter=' + condition.filter : '') +
             (condition.tableType&&condition.tableType!=='ALL'? '&dataset_type=' + condition.tableType : '');
 
-        const errorHandler = error => alert(error);
-        const dataMatch = json => {
-            if(!json.data) return json;
-            json.data.map(function(obj, index, arr){
-                obj.iconClass = (obj.dataset_type == 'HDFS'? 'HDFS' : obj.dataset_type == 'INCEPTOR'?'Inceptor' : 'upload');
-            });
-            return json;
-        }
-
         return fetch(URL, {
             credentials: 'include',
             method: 'GET'
-        })
-        .then(
-            response => response.ok?
-                response.json() : (response => errorHandler(response))(response),
-            error => errorHandler(error)
-        )
-        .then(json => {
-            dispatch(receiveData(condition, dataMatch(json)));
-        });
+        }).then(always).then(json).then(
+            response => {
+                if(response.status === 200) {
+                    dispatch(receiveData(condition, dataMatch(response.data)));
+                }else {
+                    renderGlobalErrorMsg(response.message);
+                }
+            }
+        );
     };
+}
+
+function dataMatch(json) {
+    if(!json.data) return json;
+    json.data.map(function(obj, index, arr){
+        obj.iconClass = (obj.dataset_type == 'HDFS'? 'HDFS' : obj.dataset_type == 'INCEPTOR'?'Inceptor' : 'upload');
+    });
+    return json;
 }
 
 function shouldFetch(state, condition) {

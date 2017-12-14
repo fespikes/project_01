@@ -9,7 +9,7 @@ import { Table, Input, Button, Icon, message } from 'antd';
 import { TableColumnAdd, TableColumnDelete } from '../popup';
 import * as actionCreators from '../actions';
 const _ = require('lodash');
-import {renderAlertTip, renderLoadingModal} from '../../../utils/utils';
+import {renderAlertTip, renderLoadingModal, renderGlobalErrorMsg} from '../../../utils/utils';
 
 class SubColumns extends Component {
     constructor(props) {
@@ -89,19 +89,19 @@ class SubColumns extends Component {
 
     formValidate(column) {
         if(!(column.column_name && column.column_name.length > 0)) {
-            message.error('列名不能为空！', 5);
+            renderGlobalErrorMsg('列名不能为空！');
             return;
         }
         if(!(column.expression && column.expression.length > 0)) {
-            message.error('表达式不能为空！', 5);
+            renderGlobalErrorMsg('表达式不能为空！');
             return;
         }
         if(!(column.type && column.type.length > 0)) {
-            message.error('类型不能为空！', 5);
+            renderGlobalErrorMsg('类型不能为空！');
             return;
         }
         if(!this.props.datasetId) {
-            message.error('数据集ID不能为空！', 5);
+            renderGlobalErrorMsg('数据集ID不能为空！');
             return;
         }
         this.editTableColumn(column);

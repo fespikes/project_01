@@ -34,18 +34,17 @@ class DashboardEdit extends React.Component {
             url: url,
             type: 'GET',
             success: response => {
-                // Prepare slice data for table
                 this.setState({
-                    dashboard: $.parseJSON(response),
-                    selectedSlices: initDefaultOptions($.parseJSON(response).slices),
-                    availableSlices: $.parseJSON(response).available_slices,
+                    dashboard: response.data,
+                    selectedSlices: initDefaultOptions(response.data.slices),
+                    availableSlices: response.data.available_slices,
                     slicesLoaded: true,
                 });
             },
             error: error => {
                 this.errored = true;
                 this.setState({
-                    errorMsg: this.props.dashboard.getAjaxErrorMsg(error),
+                    errorMsg: this.props.dashboard.getAjaxErrorMsg(error.message),
                 });
             },
         });
@@ -116,8 +115,11 @@ class DashboardEdit extends React.Component {
                         <span>标题：</span>
                     </div>
                     <div className="item-right">
-                        <input className="tp-input dialog-input" value={this.state.dashboard.dashboard_title}
-                               onChange={this.handleTitleChange}/>
+                        <input
+                            className="tp-input dialog-input"
+                            value={this.state.dashboard.dashboard_title}
+                            onChange={this.handleTitleChange}
+                        />
                     </div>
                 </div>
                 <div className="dialog-item">
@@ -155,7 +157,10 @@ class DashboardEdit extends React.Component {
                         <span>数据集：</span>
                     </div>
                     <div className="item-right">
-                        <input className="tp-input dialog-input" value={this.state.dashboard.table_names} disabled />
+                        <input
+                            className="tp-input dialog-input"
+                            value={this.state.dashboard.table_names} disabled
+                        />
                     </div>
                 </div>
             </div>

@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
-import { Alert } from 'antd';
+
+import { WarningAlert } from '../../common/components/WarningAlert';
 
 class SQLMetricDelete extends React.Component {
     constructor(props) {
@@ -32,7 +33,7 @@ class SQLMetricDelete extends React.Component {
 
     render() {
         return (
-            <div className="popup" ref="popupSQLMetricDelete">
+            <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
@@ -48,14 +49,9 @@ class SQLMetricDelete extends React.Component {
                             </div>
                         </div>
                         <div className="popup-body">
-                            <div className="warning">
-                                <Alert
-                                    message="Warning"
-                                    description={this.props.deleteTips}
-                                    type="warning"
-                                    showIcon
-                                />
-                            </div>
+                            <WarningAlert
+                                message={this.props.deleteTips}
+                            />
                         </div>
                         <div className="popup-footer">
                             <button

@@ -10,6 +10,8 @@ import { CONSTANT } from '../actions'
 import { getPermColumns, updatePermData, updatePermMode } from '../module'
 import { renderAlertTip } from '../../../utils/utils';
 
+import { WarningAlert } from '../../common/components/WarningAlert';
+
 import PropTypes from 'prop-types';
 const $ = window.$ = require('jquery');
 
@@ -346,14 +348,9 @@ class Popup extends React.Component {
                     break;
                 case CONSTANT.remove:
                     return <div className="popup-body">
-                        <div className="warning">
-                            <Alert
-                                message="Warning"
-                                description={deleteTips}
-                                type="warning"
-                                showIcon
-                            />
-                        </div>
+                        <WarningAlert
+                            message={deleteTips}
+                        />
                     </div>;
 
                 case CONSTANT.noSelect:

@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Checkbox, message } from 'antd';
-import { render } from 'react-dom';
-import { fetchStateChange, fetchDashboardDetail, appendRow, removeRow, fetchOnOfflineInfo } from '../actions';
-import { DashboardEdit, DashboardDelete } from '../popup';
-import { ConfirmModal } from '../../common/components';
+import {Checkbox, message} from 'antd';
+import {render} from 'react-dom';
+import {fetchStateChange, fetchDashboardDetail, appendRow, removeRow, fetchOnOfflineInfo} from '../actions';
+import {DashboardEdit, DashboardDelete} from '../popup';
+import {ConfirmModal} from '../../common/components';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class GalleryItem extends React.Component {
     constructor(props) {
@@ -50,7 +51,7 @@ class GalleryItem extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -101,7 +102,12 @@ class GalleryItem extends React.Component {
                 <div className="item">
                     <div className='item-img-wrapper'>
                         <div className={'item-img dashboard-thumbnail-' + (dashboard.id%5 + 1)}>
-                            <a href={dashboard.url}><i className="fa fa-search" aria-hidden="true"></i></a>
+                            <a href={dashboard.url}>
+                                <i
+                                    className="fa fa-search"
+                                    aria-hidden="true"
+                                />
+                            </a>
                         </div>
                     </div>
                     <div className="item-operation">
@@ -111,9 +117,18 @@ class GalleryItem extends React.Component {
                             </Checkbox>
                         </div>
                         <div className="icon-group">
-                            <i className="icon icon-edit" onClick={this.editDashboard}></i>&nbsp;
-                            <i className={dashboard.online ? 'icon icon-online' : 'icon icon-offline'} onClick={this.publishDashboard}></i>&nbsp;
-                            <i className="icon icon-delete" onClick={this.deleteDashboard}></i>
+                            <i
+                                className="icon icon-edit"
+                                onClick={this.editDashboard}
+                            />
+                            <i
+                                className={dashboard.online ? 'icon icon-online' : 'icon icon-offline'}
+                                onClick={this.publishDashboard}
+                            />
+                            <i
+                                className="icon icon-delete"
+                                onClick={this.deleteDashboard}
+                            />
                         </div>
                     </div>
                     <hr className="divider"/>

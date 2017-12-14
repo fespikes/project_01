@@ -14,7 +14,7 @@ import QueryAndSaveBtns from './components/QueryAndSaveBtns.jsx';
 import ExploreActionButtons from './components/ExploreActionButtons.jsx';
 import DisplayOriginalTable from './components/DisplayOriginalTable.jsx';
 import { Radio, Table } from 'antd';
-import { renderLoadingModal, getUrlParam } from '../../utils/utils';
+import { renderLoadingModal, getUrlParam, getAjaxErrorMsg } from '../../utils/utils';
 import { getTableWidth } from '../tableList/module';
 
 require('jquery-ui');
@@ -343,9 +343,9 @@ function initExploreView() {
             }
         };
         const url = '/dashboard/listdata?page_size=1000';
-        $.get(url, function (data) {
+        $.get(url, function (respose) {
             const choices = [];
-            data = JSON.parse(data);
+            const data = respose.data;
             for (let i = 0; i < data.data.length; i++) {
                 choices.push({ id: data.data[i].id, text: data.data[i].dashboard_title });
             }
