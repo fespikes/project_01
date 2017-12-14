@@ -55,7 +55,6 @@ class SaveModal extends React.PureComponent {
                 saveModal.close();
                 dashboard.onSave();
                 loadingModal.hide();
-                console.log('resp=', resp);
                 if (saveType === 'newDashboard') {
                     window.location = PILOT_PREFIX + 'dashboard/' + $.parseJSON(resp.data).id + '/';
                 } else {

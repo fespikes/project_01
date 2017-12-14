@@ -2,6 +2,8 @@
 const $ = window.$ = require('jquery');
 const FAVESTAR_BASE_URL = '/superset/favstar/slice';
 
+import {getAjaxErrorMsg} from '../../../utils/utils.jsx';
+
 export const SET_DATASOURCE_TYPE = 'SET_DATASOURCE_TYPE';
 export function setDatasourceType(datasourceType) {
   return { type: SET_DATASOURCE_TYPE, datasourceType };
@@ -38,11 +40,12 @@ export function fetchDatasourceMetadata(datasourceId, datasourceType) {
         type: 'GET',
         url,
         success: (data) => {
-          dispatch(setDatasource(data));
+          dispatch(setDatasource(data.data));
           dispatch(fetchSucceeded());
         },
         error(error) {
-          dispatch(fetchFailed(error.responseJSON.error));
+          const errorMsg = getAjaxErrorMsg(error);
+          dispatch(fetchFailed(errorMsg));
         },
       });
     } else {

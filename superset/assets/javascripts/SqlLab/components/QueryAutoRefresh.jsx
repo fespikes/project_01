@@ -28,8 +28,8 @@ class QueryAutoRefresh extends React.PureComponent {
     const url = PILOT_PREFIX + 'queries/' + (this.props.queriesLastUpdate - QUERY_UPDATE_BUFFER_MS);
     // No updates in case of failure.
     $.getJSON(url, (data) => {
-      if (Object.keys(data).length > 0) {
-        this.props.actions.refreshQueries(data);
+      if (Object.keys(data.data).length > 0) {
+        this.props.actions.refreshQueries(data.data);
       }
       this.props.actions.setNetworkStatus(true);
     })
