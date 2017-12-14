@@ -242,7 +242,7 @@ class SupersetModelView(ModelView, PageMixin):
         return json_response(data={'data': data})
 
     @catch_exception
-    @expose('/add', methods=['GET', 'POST'])
+    @expose('/add/', methods=['GET', 'POST'])
     def add(self):
         user_id = get_user_id()
         json_data = self.get_request_data()
@@ -266,7 +266,7 @@ class SupersetModelView(ModelView, PageMixin):
         return json_response(data=attributes)
 
     @catch_exception
-    @expose('/edit/<pk>', methods=['POST'])
+    @expose('/edit/<pk>/', methods=['POST'])
     def edit(self, pk):
         user_id = get_user_id()
         json_data = self.get_request_data()
@@ -281,7 +281,7 @@ class SupersetModelView(ModelView, PageMixin):
         self.post_update(obj)
 
     @catch_exception
-    @expose('/delete/<pk>')
+    @expose('/delete/<pk>/')
     def delete(self, pk):
         obj = self.get_object(pk)
         self._delete(obj)
@@ -294,7 +294,7 @@ class SupersetModelView(ModelView, PageMixin):
         self.post_delete(obj)
 
     @catch_exception
-    @expose('/muldelete', methods=['GET', 'POST'])
+    @expose('/muldelete/', methods=['GET', 'POST'])
     def muldelete(self):
         json_data = self.get_request_data()
         ids = json_data.get('selectedRowKeys')
