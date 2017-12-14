@@ -1,12 +1,15 @@
 import React from 'react';
-import ReactDOM, { render, unmountComponentAtNode } from 'react-dom';
-import { Tooltip, Alert } from 'antd';
+import ReactDOM, {render, unmountComponentAtNode} from 'react-dom';
+import {Tooltip, Alert} from 'antd';
 
 import {Select} from '../components';
 import PropTypes from 'prop-types';
-import { fetchInceptorConnectAdd, fetchHDFSConnectAdd, testConnection, testHDFSConnection, fetchConnectionNames, connectionTypes } from '../actions';
-import { isCorrectConnection, argsValidate, connectDefaultInfo} from '../utils';
-import { renderAlertErrorInfo, renderAlertTip } from '../../../utils/utils';
+import {
+    fetchInceptorConnectAdd, fetchHDFSConnectAdd, testConnection,
+    testHDFSConnection, fetchConnectionNames, connectionTypes
+} from '../actions';
+import {isCorrectConnection, argsValidate, connectDefaultInfo} from '../utils';
+import {renderAlertErrorInfo, renderAlertTip, renderGlobalErrorMsg} from '../../../utils/utils';
 
 class ConnectionAdd extends React.Component {
     constructor (props, context) {
@@ -184,9 +187,11 @@ class ConnectionAdd extends React.Component {
             this.addConnection();
         }else {
             this.testConnection(testCallBack);
-            function testCallBack(success) {
+            function testCallBack(success, data) {
                 if(success) {
                     self.addConnection();
+                }else {
+                    renderGlobalErrorMsg(data);
                 }
             }
         }
@@ -195,15 +200,27 @@ class ConnectionAdd extends React.Component {
     fetchConnectionNames () {
         const self = this;
         const { dispatch } = this.props;
-        const callback = (connectionNames) => {
-            self.setState({connectionNames:connectionNames});
+        const callback = (success, data) => {
+            if(success) {
+                const connectionNames = [];
+                data.data.map((obj, key) => {
+                    connectionNames.push({
+                        id:obj.id,
+                        label:obj.database_name
+                    })
+                });
+                self.setState({connectionNames:connectionNames});
+            }else {
+                renderGlobalErrorMsg(data);
+            }
+
         };
         dispatch(fetchConnectionNames(callback));
     }
 
     render () {
         const self = this;
-        const { connectionType } = this.props;
+        const {connectionType} = this.props;
 
         return (
             <div className="popup">

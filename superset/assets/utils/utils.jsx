@@ -1,7 +1,8 @@
-import ReactDOM, { render } from 'react-dom';
+import ReactDOM, {render} from 'react-dom';
 import React from 'react';
-import { Alert } from 'antd';
-import { LoadingModal } from '../javascripts/common/components';
+import {Alert, message} from 'antd';
+import {LoadingModal} from '../javascripts/common/components';
+import {MESSAGE_DURATION} from '../javascripts/global.jsx';
 
 export const PILOT_PREFIX = '/p/';
 
@@ -43,6 +44,10 @@ export function renderAlertErrorInfo(description, mountId, width='100%', _this) 
         />,
         document.getElementById(mountId)
     );
+}
+
+export function renderGlobalErrorMsg(errorMsg) {
+    message.error(errorMsg, MESSAGE_DURATION);
 }
 
 export function getEleOffsetLeft(element) {
