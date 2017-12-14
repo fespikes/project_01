@@ -451,7 +451,7 @@ export function fetchIfNeeded (condition) {
 
 export const fetchConnectionNames = (callback) => {
     return (dispatch, getState) => {
-        const URL = `${baseURL}listdata?page_size=1000&database_type=inceptor`;
+        const URL = `${baseURL}listdata/?page_size=1000&database_type=inceptor`;
 
         return fetch(URL, {
             credentials: 'include',
