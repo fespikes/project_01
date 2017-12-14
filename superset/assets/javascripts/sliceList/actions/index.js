@@ -268,7 +268,7 @@ export function switchFetchingState(isFetching) {
 }
 
 function getSliceListUrl(state) {
-    let url = baseURL + "listdata?page=" + (state.conditions.pageNumber - 1) +
+    let url = baseURL + "listdata/?page=" + (state.conditions.pageNumber - 1) +
         "&page_size=" + state.conditions.pageSize + "&filter=" + state.conditions.keyword;
     if(state.conditions.type === SHOW_FAVORITE) {
         url += "&only_favorite=1";
