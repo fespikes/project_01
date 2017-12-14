@@ -13,6 +13,8 @@ import {renderLoadingModal, renderAlertTip, renderGlobalErrorMsg} from '../../..
 
 import {ConfirmModal} from '../../../common/components';
 
+import {ConfirmModal} from '../../../common/components';
+
 class HDFSUploadDetail extends Component {
 
     constructor (props) {
