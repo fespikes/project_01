@@ -1,7 +1,7 @@
 import shortid from 'shortid';
 import { now } from '../modules/dates';
 const $ = require('jquery');
-import {renderGlobalErrorMsg, PILOT_PREFIX} from '../../utils/utils'
+import {renderGlobalErrorMsg, getAjaxErrorMsg, PILOT_PREFIX} from '../../utils/utils'
 
 export const RESET_STATE = 'RESET_STATE';
 export const ADD_QUERY_EDITOR = 'ADD_QUERY_EDITOR';
@@ -84,13 +84,10 @@ export function fetchQueryResults(query) {
       dataType: 'json',
       url: sqlJsonUrl,
       success(results) {
-        dispatch(querySuccess(query, results));
+        dispatch(querySuccess(query, results.data));
       },
       error(err) {
-        let msg = 'Failed at retrieving results from the results backend';
-        if (err.responseJSON && err.responseJSON.error) {
-          msg = err.responseJSON.error;
-        }
+        const msg = getAjaxErrorMsg(err);
         dispatch(queryFailed(query, msg));
       },
     });
@@ -120,18 +117,11 @@ export function runQuery(query) {
       data: sqlJsonRequest,
       success(results) {
         //if (!query.runAsync) {
-          dispatch(querySuccess(query, results));
+          dispatch(querySuccess(query, results.data));
         //}
       },
       error(err, textStatus, errorThrown) {
-        let msg;
-        try {
-          msg = err.responseJSON.error;
-        } catch (e) {
-          if (err.responseText !== undefined) {
-            msg = err.responseText;
-          }
-        }
+        let msg = getAjaxErrorMsg(err);
         if (textStatus === 'error' && errorThrown === '') {
           msg = '不能连接到服务端';
         } else if (msg === null) {
@@ -253,7 +243,7 @@ export function addTable(query, tableName) {
         schema: query.schema,
         name: tableName,
       };
-      Object.assign(table, data);
+      Object.assign(table, data.data);
       dispatch(mergeTable(table));
     });
   };
