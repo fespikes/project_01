@@ -326,7 +326,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         return {'dataset': datasets, 'slice': slices}
 
     @catch_exception
-    @expose('/add', methods=['POST', ])
+    @expose('/add/', methods=['POST', ])
     def add(self):
         args = self.get_request_data()
         dataset_type = args.get('dataset_type')
@@ -379,7 +379,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         return json_response(data=attributes)
 
     @catch_exception
-    @expose('/edit/<pk>', methods=['POST', ])
+    @expose('/edit/<pk>/', methods=['POST', ])
     def edit(self, pk):
         # TODO rollback
         args = self.get_request_data()

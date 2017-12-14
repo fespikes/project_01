@@ -1108,7 +1108,7 @@ class Superset(BaseSupersetView):
 
     @catch_exception
     @connection_timeout
-    @expose("/testconn", methods=["POST", "GET"])
+    @expose("/testconn/", methods=["POST", "GET"])
     def testconn(self):
         """Tests a sqla connection"""
         args = json.loads(str(request.data, encoding='utf-8'))
@@ -1170,7 +1170,7 @@ class Superset(BaseSupersetView):
         return json_response(data={'count': count})
 
     @catch_exception
-    @expose('/if_online/<class_name>/<obj_id>')
+    @expose('/if_online/<class_name>/<obj_id>/')
     def if_online(self, class_name, obj_id):
         try:
             model = str_to_model.get(class_name.lower())
