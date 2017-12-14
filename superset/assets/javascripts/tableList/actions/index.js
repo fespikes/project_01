@@ -569,7 +569,7 @@ export function fetchHDFSConnectList(callback) {
     return (dispatch) => {
         dispatch(switchFetchingState(true));
         const MAX_PAGE_SIZE = 1000;
-        const url = window.location.origin + '/hdfsconnection/listdata?page_size=' + MAX_PAGE_SIZE;
+        const url = window.location.origin + '/hdfsconnection/listdata/?page_size=' + MAX_PAGE_SIZE;
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
@@ -586,7 +586,7 @@ export function fetchInceptorConnectList(callback) {
     return (dispatch) => {
         dispatch(switchFetchingState(true));
         const MAX_PAGE_SIZE = 1000;
-        const url = window.location.origin + '/database/listdata?page_size=' + MAX_PAGE_SIZE + '&database_type=inceptor';
+        const url = window.location.origin + '/database/listdata/?page_size=' + MAX_PAGE_SIZE + '&database_type=inceptor';
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
@@ -693,7 +693,7 @@ function applyFetch(condition) {
     return (dispatch, getState) => {
         dispatch(sendRequest(condition));
 
-        const URL = baseURL + 'listdata?' +
+        const URL = baseURL + 'listdata/?' +
             (condition.page? 'page=' + (condition.page - 1) : '') +
             (condition.pageSize? '&page_size=' + condition.pageSize : '') +
             (condition.orderColumn? '&order_column=' + condition.orderColumn : '') +
