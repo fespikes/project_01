@@ -446,7 +446,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
         return json_response(data=list_data)
 
     @catch_exception
-    @expose('/muldelete', methods=['POST', ])
+    @expose('/muldelete/', methods=['POST', ])
     def muldelete(self):
         json_data = json.loads(str(request.data, encoding='utf-8'))
         json_data = {k.lower(): v for k, v in json_data.items()}
