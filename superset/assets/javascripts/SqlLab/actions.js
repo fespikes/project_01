@@ -207,7 +207,8 @@ export function mergeTable(table, query) {
 export function addTable(query, tableName) {
   return function (dispatch) {
     let url = `${PILOT_PREFIX}table/${query.dbId}/${tableName}/${query.schema}/`;
-    $.get(url, (data) => {
+    $.get(url, (response) => {
+      const data = response.data;
       const dataPreviewQuery = {
         id: shortid.generate(),
         dbId: query.dbId,
@@ -231,7 +232,7 @@ export function addTable(query, tableName) {
       dispatch(runQuery(dataPreviewQuery));
     })
     .fail((response) => {
-      const error = response.responseJSON.message;
+      const error = getAjaxErrorMsg(response);
       renderGlobalErrorMsg(error);
     });
 

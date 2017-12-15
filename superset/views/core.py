@@ -1368,7 +1368,7 @@ class Superset(BaseSupersetView):
             'foreignKeys': foreign_keys,
             'indexes': keys,
         }
-        return json_response(data=json.dumps(tbl))
+        return json_response(data=tbl)
 
     @catch_exception
     @expose("/extra_table_metadata/<database_id>/<table_name>/<schema>/")
@@ -1518,7 +1518,7 @@ class Superset(BaseSupersetView):
         except Exception as e:
             logging.exception(e)
             raise DatabaseException(str(e))
-        return json_response(data=data)
+        return json_response(data=json.loads(data))
 
     @catch_exception
     @expose("/csv/<client_id>/")

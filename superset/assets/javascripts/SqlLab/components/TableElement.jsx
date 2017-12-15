@@ -126,7 +126,8 @@ class TableElement extends React.PureComponent {
   render() {
     const table = this.props.table;
     let keyLink;
-    if (table.indexes && table.indexes.length > 0) {
+    const tbIndexed = table.indexes && table.indexes.length > 0;
+    if (tbIndexed) {
       keyLink = (
         <ModalTrigger
           modalTitle={
@@ -167,7 +168,10 @@ class TableElement extends React.PureComponent {
                 </small>
               </a>
             </div>
-            <div className="operation-bar">
+            <div
+                className="operation-bar"
+                style={{minWidth: tbIndexed?114:86}}
+            >
               <ButtonGroup className="ws-el-controls">
                 {keyLink}
                 <Link
