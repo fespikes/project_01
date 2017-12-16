@@ -177,7 +177,7 @@ export function fetchDashbaordDelInfo(dashboardId, callback) {
 }
 
 export function fetchDashboardDeleteMul(callback) {
-    const url = window.location.origin + "/dashboard/muldelete";
+    const url = window.location.origin + "/dashboard/muldelete/";
     return (dispatch, getState) => {
         const selectedRowKeys = getState().configs.selectedRowKeys;
         let data = {selectedRowKeys: selectedRowKeys};
@@ -229,7 +229,7 @@ export function fetchAvailableSlices(callback) {
 }
 
 export function fetchUpdateDashboard(state, dashboard, callback) {
-    const url = window.location.origin + "/dashboard/edit/" + dashboard.id;
+    const url = window.location.origin + "/dashboard/edit/" + dashboard.id + '/';
     const newDashboard = getNewDashboard(dashboard, state.selectedSlices, dashboard.available_slices);
     return dispatch => {
         return fetch(url, {
@@ -249,7 +249,7 @@ export function fetchUpdateDashboard(state, dashboard, callback) {
 }
 
 export function fetchAddDashboard(state, availableSlices, callback) {
-    const url = window.location.origin + "/dashboard/add";
+    const url = window.location.origin + "/dashboard/add/";
     const dashboard = getNewDashboard(state.dashboard, state.selectedSlices, availableSlices);
     return dispatch => {
         dispatch(switchFetchingState(true));
