@@ -161,7 +161,7 @@ export function getTableColumn(dataset_id) {
 }
 
 export function fetchTableColumnAdd(column, callback) {
-    const url = window.location.origin + '/tablecolumn/add';
+    const url = window.location.origin + '/tablecolumn/add/';
     return (dispatch, getState) => {
         return fetch(url, {
             credentials: 'include',
@@ -178,7 +178,7 @@ export function fetchTableColumnAdd(column, callback) {
 }
 
 export function fetchTableColumnEdit(column, callback) {
-    const url = window.location.origin + '/tablecolumn/edit/' + column.id;
+    const url = window.location.origin + '/tablecolumn/edit/' + column.id + '/';
     return (dispatch, getState) => {
         return fetch(url, {
             credentials: 'include',
@@ -213,7 +213,7 @@ export function fetchTableColumnDelete(id, callback) {
 }
 
 export function fetchSQLMetricAdd(metric, callback) {
-    const url = window.location.origin + '/sqlmetric/add';
+    const url = window.location.origin + '/sqlmetric/add/';
     return (dispatch, getState) => {
         return fetch(url, {
             credentials: 'include',
@@ -230,7 +230,7 @@ export function fetchSQLMetricAdd(metric, callback) {
 }
 
 export function fetchSQLMetricEdit(metric, callback) {
-    const url = window.location.origin + '/sqlmetric/edit/' + metric.id;
+    const url = window.location.origin + '/sqlmetric/edit/' + metric.id + '/';
     return (dispatch, getState) => {
         return fetch(url, {
             credentials: 'include',
@@ -318,7 +318,7 @@ export function fetchTableDelInfo(tableId, callback) {
 }
 
 export function fetchTableDeleteMul(callback) {
-    const url = baseURL + "muldelete";
+    const url = baseURL + "muldelete/";
     return (dispatch, getState) => {
 
         dispatch(switchFetchingState(true));
@@ -444,7 +444,7 @@ export function fetchUploadFile(data, fileName, path, callback) {
 export function createDataset(dataset, callback) {
     return (dispatch) => {
         dispatch(switchFetchingState(true));
-        const url = baseURL + 'add';
+        const url = baseURL + 'add/';
         return fetch(url, {
             credentials: 'include',
             method: 'POST',
@@ -465,7 +465,7 @@ export function createDataset(dataset, callback) {
 export function editDataset(dataset, id, callback) {
     return (dispatch) => {
         dispatch(switchFetchingState(true));
-        const url = baseURL + 'edit/' + id;
+        const url = baseURL + 'edit/' + id + '/';
         return fetch(url, {
             credentials: 'include',
             method: 'POST',
@@ -601,7 +601,7 @@ export function fetchInceptorConnectList(callback) {
 
 export function fetchCreateHDFSConnect(data, callback) {
     return () => {
-        const url = window.location.origin + '/hdfsconnection/add';
+        const url = window.location.origin + '/hdfsconnection/add/';
         return fetch(url, {
             credentials: 'include',
             method: 'POST',

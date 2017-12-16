@@ -182,7 +182,7 @@ export function fetchSliceDelInfo(sliceId, callback) {
 }
 
 export function fetchSliceDeleteMul(callback) {
-    const url = baseURL + "muldelete";
+    const url = baseURL + "muldelete/";
     return (dispatch, getState) => {
         const selectedRowKeys = getState().conditions.selectedRowKeys;
         let data = {selectedRowKeys: selectedRowKeys};
@@ -235,7 +235,7 @@ export function fetchSliceDetail(sliceId, callback) {
 }
 
 export function fetchUpdateSlice(state, slice, callback) {
-    const url = baseURL + "edit/" + slice.id;
+    const url = baseURL + "edit/" + slice.id + "/";
     const newSlice = getNewSlice(slice, state.selectedDashboards, slice.available_dashboards);
     return dispatch => {
         return fetch(url, {
