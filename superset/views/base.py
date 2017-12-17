@@ -17,15 +17,13 @@ from flask_appbuilder import ModelView, BaseView, expose
 from flask_appbuilder.security.sqla.models import User
 import sqlalchemy as sqla
 from sqlalchemy import and_, or_
-from wtforms.validators import ValidationError
 
-from superset import app, appbuilder, db, models, sm, utils
-from superset.source_registry import SourceRegistry
+from superset import app, db, models, utils
 from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log
 from superset.message import *
 from superset.exception import (
     SupersetException, LoginException, PermissionException, ParameterException,
-    DatabaseException
+    DatabaseException, PropertyException
 )
 
 
@@ -502,7 +500,11 @@ class SupersetModelView(ModelView, PageMixin):
         return json.loads(data)
 
     def get_object(self, obj_id):
-        obj_id = int(obj_id)
+        try:
+            obj_id = int(obj_id)
+        except Exception as e:
+            raise PropertyException("[{}] is not a valid id, may this {} is not existed"
+                                    .format(obj_id, self.model.__name__))
         try:
             obj = db.session.query(self.model).filter_by(id=obj_id).one()
         except sqla.orm.exc.NoResultFound:

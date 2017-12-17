@@ -780,6 +780,7 @@ class Superset(BaseSupersetView):
                 args=request.args)
         except Exception as e:
             flash('{}'.format(e), "alert")
+            raise e
 
         # slc perms
         slice_add_perm = True

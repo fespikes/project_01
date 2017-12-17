@@ -299,11 +299,17 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
     def dataset_type(self):
         if self.hdfs_table:
             return self.hdfs_table.hdfs_table_type
-        return self.database.database_type
+        elif self.database:
+            return self.database.database_type
+        else:
+            return None
 
     @property
     def backend(self):
-        return self.database.backend
+        if self.database:
+            return self.database.backend
+        else:
+            return None
 
     @property
     def connection(self):
@@ -312,7 +318,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
         elif self.database:
             return str(self.database)
         else:
-            return 'No connection'
+            return None
 
     @property
     def columns(self):

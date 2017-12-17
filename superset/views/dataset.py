@@ -15,7 +15,10 @@ from flask_appbuilder.security.sqla.models import User
 
 from sqlalchemy import or_
 from superset import app, db
-from superset.exception import ParameterException, DatabaseException, HDFSException
+from superset.exception import (
+    ParameterException, DatabaseException, HDFSException, PropertyException,
+    ErrorUrlException
+)
 from superset.models import (
     Database, Dataset, HDFSTable, Log, TableColumn, SqlMetric, Slice
 )
@@ -172,8 +175,7 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        data['available_databases'] = \
-            self.get_available_connections(get_user_id())
+        data['available_databases'] = self.get_available_connections(get_user_id())
         return data
 
     @catch_exception
@@ -184,13 +186,23 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/schemas/<database_id>/', methods=['GET', ])
     def addable_schemas(self, database_id):
+        if database_id == 'null':
+            raise PropertyException("Miss database connection")
         d = db.session.query(Database).filter_by(id=database_id).first()
+        if not d:
+            raise ErrorUrlException(
+                "Error database connection id: [{}]".format(database_id))
         return json_response(data=d.all_schema_names())
 
     @catch_exception
     @expose('/tables/<database_id>/<schema>/', methods=['GET', ])
     def addable_tables(self, database_id, schema):
+        if database_id == 'null':
+            raise PropertyException("Miss database connection")
         d = db.session.query(Database).filter_by(id=database_id).first()
+        if not d:
+            raise ErrorUrlException(
+                "Error database connection id: [{}]".format(database_id))
         return json_response(data=d.all_table_names(schema=schema))
 
     @catch_exception
@@ -225,12 +237,12 @@ class DatasetModelView(SupersetModelView):  # noqa
             data = self.get_object(dataset_id).preview_data(limit=rows)
         elif database_id and full_tb_name:
             dataset = Dataset.temp_dataset(database_id, full_tb_name,
-                                         need_columns=False)
+                                           need_columns=False)
             data = dataset.preview_data(limit=rows)
         else:
-            json_response(status=400,
-                          message=_("Error request parameters: [{params}]")
-                          .format(params=request.args.to_dict()))
+            return json_response(status=400,
+                                 message=_("Error request parameters: [{params}]")
+                                 .format(params=request.args.to_dict()))
         return json_response(data=data)
 
     @catch_exception
@@ -370,7 +382,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     def show(self, pk):
         obj = self.get_object(pk)
         attributes = self.get_show_attributes(obj, get_user_id())
-        if obj.dataset_type.lower() == 'hdfs':
+        if obj.dataset_type and obj.dataset_type.lower() == 'hdfs':
             hdfs_tb_attr = HDFSTableModelView().get_show_attributes(obj.hdfs_table)
             hdfs_tb_attr.pop('created_by_user')
             hdfs_tb_attr.pop('changed_by_user')
