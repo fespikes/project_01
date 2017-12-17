@@ -40,61 +40,6 @@ EPOCH = datetime(1970, 1, 1)
 DTTM_ALIAS = 'timestamp__'
 
 
-class SupersetException(Exception):
-    cls_code = 1
-
-    def __init__(self, message=None, code=None):
-        self.message = message
-        self.code = code if code else self.cls_code
-
-    def __repr__(self):
-        return 'code: [{}] message: [{}]'.format(self.code, self.message)
-
-
-class LoginException(SupersetException):
-    cls_code = 2
-
-
-class ErrorUrlException(SupersetException):
-    cls_code = 3
-
-
-class ParameterException(SupersetException):
-    cls_code = 4
-
-
-class PermissionException(SupersetException):
-    cls_code = 5
-
-
-class OfflineException(SupersetException):
-    cls_code = 6
-
-
-class PropertyException(SupersetException):
-    cls_code = 7
-
-
-class DatabaseException(SupersetException):
-    cls_code = 8
-
-
-class HDFSException(SupersetException):
-    cls_code = 9
-
-
-class SupersetTimeoutException(SupersetException):
-    pass
-
-
-class NoDataException(SupersetException):
-    pass
-
-
-class SupersetTemplateException(SupersetException):
-    pass
-
-
 def can_access(security_manager, permission_name, view_name):
     """Protecting from has_access failing from missing perms/view"""
     # try:

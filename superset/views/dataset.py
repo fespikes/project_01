@@ -15,9 +15,7 @@ from flask_appbuilder.security.sqla.models import User
 
 from sqlalchemy import or_
 from superset import app, db
-from superset.utils import (
-    SupersetException, ParameterException, DatabaseException, HDFSException
-)
+from superset.exception import ParameterException, DatabaseException, HDFSException
 from superset.models import (
     Database, Dataset, HDFSTable, Log, TableColumn, SqlMetric, Slice
 )

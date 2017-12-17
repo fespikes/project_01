@@ -33,7 +33,7 @@ from guardian_common_python.conf.GuardianConfiguration import GuardianConfigurat
 from guardian_common_python.conf.GuardianVars import GuardianVars
 
 from superset import db, app, db_engine_specs
-from superset.utils import ParameterException
+from superset.exception import ParameterException
 from superset.message import MISS_PASSWORD_FOR_GUARDIAN, NO_USER
 from .base import AuditMixinNullable, Count
 

@@ -19,7 +19,7 @@ from sqlalchemy.engine.url import make_url
 from superset import app, db, models
 from superset.timeout_decorator import connection_timeout
 from superset.models import Database, HDFSConnection, Connection, Slice, Log
-from superset.utils import SupersetException, ParameterException
+from superset.exception import SupersetException, ParameterException
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
 from .base import (

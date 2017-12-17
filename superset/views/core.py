@@ -27,10 +27,9 @@ from superset import (
 from superset.timeout_decorator import connection_timeout
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
-from superset.utils import (
-    get_database_access_error_msg, get_datasource_access_error_msg,
-    json_error_response, ParameterException, PropertyException, DatabaseException,
-    ErrorUrlException
+from superset.utils import json_error_response
+from superset.exception import (
+    ParameterException, PropertyException, DatabaseException, ErrorUrlException
 )
 from superset.models import (
     Database, Dataset, Slice, Dashboard, Story, TableColumn, SqlMetric,

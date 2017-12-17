@@ -23,7 +23,7 @@ from superset import app, appbuilder, db, models, sm, utils
 from superset.source_registry import SourceRegistry
 from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log
 from superset.message import *
-from superset.utils import (
+from superset.exception import (
     SupersetException, LoginException, PermissionException, ParameterException,
     DatabaseException
 )

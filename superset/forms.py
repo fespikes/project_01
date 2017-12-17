@@ -16,7 +16,7 @@ from wtforms import (
 from wtforms import validators, widgets
 
 from superset import app
-from superset.utils import PropertyException
+from superset.exception import PropertyException
 
 config = app.config
 

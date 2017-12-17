@@ -13,9 +13,8 @@ from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import or_
 
 from superset import app, db, utils
-from superset.utils import SupersetException, ParameterException
-from superset.models import (
-    Story, Dashboard, Dataset, Database, HDFSConnection, Log, FavStar)
+from superset.exception import ParameterException
+from superset.models import Story, Dashboard, Database, Log, FavStar
 from superset.message import NONE_STORY_NAME
 from .base import (
     SupersetModelView, catch_exception, get_user_id, check_ownership, json_response

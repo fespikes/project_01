@@ -15,7 +15,7 @@ import uuid
 import random
 
 from superset import app
-from superset.utils import SupersetTemplateException
+from superset.exception import SupersetTemplateException
 
 config = app.config
 BASE_CONTEXT = {
