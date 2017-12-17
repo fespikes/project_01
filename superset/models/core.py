@@ -24,7 +24,7 @@ from sqlalchemy.orm.session import make_transient
 from superset import app, db, utils
 from superset.source_registry import SourceRegistry
 from superset.viz import viz_types
-from superset.utils import ParameterException, OfflineException
+from superset.exception import ParameterException, OfflineException
 from .base import AuditMixinNullable, ImportMixin, Count
 from .dataset import Dataset
 

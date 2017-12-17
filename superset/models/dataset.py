@@ -30,9 +30,10 @@ from sqlalchemy.sql import table, literal_column, text, column
 from sqlalchemy.sql.expression import ColumnClause, TextAsFrom
 
 from superset import db, app, import_util, utils
-from superset.utils import (
-    wrap_clause_in_parens, DTTM_ALIAS, ParameterException, PropertyException,
-    DatabaseException, OfflineException, HDFSException
+from superset.utils import wrap_clause_in_parens, DTTM_ALIAS
+from superset.exception import (
+    ParameterException, PropertyException, DatabaseException, OfflineException,
+    HDFSException
 )
 from superset.jinja_context import get_template_processor
 from .base import (

@@ -4,9 +4,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import json
-from flask import g, request, Response
+from flask import g, request
 from flask_appbuilder import BaseView, expose
-from superset.utils import SupersetException
+from superset.exception import SupersetException
 from superset import sm
 from superset.message import *
 from .base import catch_exception, json_response

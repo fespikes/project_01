@@ -9,16 +9,15 @@ import json
 import re
 import copy
 from werkzeug.urls import Href
-from flask import g, request, redirect, Response
+from flask import g, request, redirect
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import func, and_, or_
 
-from superset import appbuilder, db, conf, utils
+from superset import appbuilder, db
 from superset.models import Slice, Dashboard, FavStar, Log, str_to_model
-from superset.message import *
-from superset.utils import ParameterException
+from superset.exception import ParameterException
 from .base import BaseSupersetView, catch_exception, json_response, get_user_id
 
 

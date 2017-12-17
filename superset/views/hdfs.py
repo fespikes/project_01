@@ -18,7 +18,7 @@ from fileRobot_common.exception.FileRobotException import FileRobotException
 
 from superset import app, db
 from superset.message import *
-from superset.utils import SupersetException, ParameterException, LoginException
+from superset.exception import SupersetException, ParameterException, LoginException
 from superset.models import HDFSConnection
 from .base import catch_exception, json_response
 

@@ -30,10 +30,9 @@ from dateutil import relativedelta as rdelta
 
 from superset import app, utils, cache
 from superset.forms import FormFactory
-from superset.utils import (
-    flasher, DTTM_ALIAS, is_letters, ParameterException, PropertyException,
-    DatabaseException
-)
+from superset.utils import flasher, DTTM_ALIAS, is_letters
+from superset.exception import ParameterException, PropertyException, DatabaseException
+
 
 config = app.config
 
