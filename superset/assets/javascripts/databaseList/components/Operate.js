@@ -1,28 +1,18 @@
 import React from 'react';
-import { render } from 'react-dom';
+import {render} from 'react-dom';
 
-import { Link }  from 'react-router-dom';
-import { ConnectionDelete, ConnectionAdd } from '../popup';
+import {Link}  from 'react-router-dom';
+import {ConnectionDelete, ConnectionAdd} from '../popup';
 import PropTypes from 'prop-types';
 import {
-    selectType,
-    search,
-
-    applyAdd,
-    testConnection,
-    fetchTypes,
-
-    setPopupParam,
-    applyDelete,
-    popupActions,
-
-    fetchConnectDelMulInfo
+    selectType, search, applyAdd, testConnection,fetchTypes, setPopupParam,
+    applyDelete, popupActions, fetchConnectDelMulInfo
 } from '../actions';
 
-import { message } from 'antd';
-import { Select }  from './';
-import { OperationSelect } from '../../common/components';
-import { transformObjectToArray } from '../utils';
+import {Select}  from './';
+import {OperationSelect} from '../../common/components';
+import {transformObjectToArray} from '../utils';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class Operate extends React.Component {
     constructor(props, context) {
@@ -46,13 +36,20 @@ class Operate extends React.Component {
     }
 
     fetchTypes () {
-        const me = this;
-        const callback = data =>
-            me.setState({
-                DBTypes: data
-            });
+        const self = this;
+        const callback = (success, data) => {
+            if(success) {
+                const types = [];
+                data.map((obj, index) => {
+                    types.push({id: index+1, label: obj});
+                });
+                self.setState({DBTypes: types});
+            }else {
+                renderGlobalErrorMsg(data);
+            }
+        };
 
-        me.dispatch(fetchTypes(callback));
+        self.dispatch(fetchTypes(callback));
     }
 
     onChange () {

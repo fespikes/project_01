@@ -9,7 +9,7 @@ import { Table, Input, Button, Icon, message, Select } from 'antd';
 import { SQLMetricAdd, SQLMetricDelete } from '../popup';
 import * as actionCreators from '../actions';
 const _ = require('lodash');
-import {renderAlertTip, renderLoadingModal} from '../../../utils/utils';
+import {renderAlertTip, renderLoadingModal, renderGlobalErrorMsg} from '../../../utils/utils';
 import {getMetricTypeOptions} from '../module';
 
 class SubSqlMetric extends Component {
@@ -114,19 +114,19 @@ class SubSqlMetric extends Component {
 
     formValidate(metric) {
         if(!(metric.metric_name && metric.metric_name.length > 0)) {
-            message.error('度量名不能为空！', 5);
+            renderGlobalErrorMsg('度量名不能为空！');
             return;
         }
         if(!(metric.metric_type && metric.metric_type.length > 0)) {
-            message.error('类型不能为空！', 5);
+            renderGlobalErrorMsg('类型不能为空！');
             return;
         }
         if(!(metric.expression && metric.expression.length > 0)) {
-            message.error('表达式不能为空！', 5);
+            renderGlobalErrorMsg('表达式不能为空！');
             return;
         }
         if(!this.props.datasetId) {
-            message.error('数据集ID不能为空！', 5);
+            renderGlobalErrorMsg('数据集ID不能为空！');
             return;
         }else {
             metric.dataset_id = this.props.datasetId;

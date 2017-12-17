@@ -1,16 +1,15 @@
 import React from 'react';
-import { render } from 'react-dom';
-import { Link }  from 'react-router-dom';
-import { Select, message } from 'antd';
-import { OperationSelect } from '../../common/components';
-import { switchDatasetType, fetchAddTypeList, fetchFilterTypeList, fetchTableDelMulInfo } from '../actions';
+import {render} from 'react-dom';
+import {Link}  from 'react-router-dom';
+import {Select} from 'antd';
+import {OperationSelect} from '../../common/components';
 import PropTypes from 'prop-types';
 import {
-    selectType,
-    search
+    switchDatasetType, fetchAddTypeList, fetchFilterTypeList, fetchTableDelMulInfo,
+    selectType,search
 } from '../actions';
-
-import { TableDelete } from '../popup';
+import {TableDelete} from '../popup';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class SliceOperate extends React.Component {
     constructor(props) {
@@ -40,7 +39,7 @@ class SliceOperate extends React.Component {
         }
     }
 
-    onDelete () {//TODO:
+    onDelete () {
         const { dispatch, selectedRowNames } = this.props;
         dispatch(fetchTableDelMulInfo(callback));
         function callback(success, data) {
@@ -59,7 +58,7 @@ class SliceOperate extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -97,7 +96,7 @@ class SliceOperate extends React.Component {
                     addDatasetTypes: data
                 });
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
         function filterCallback(success, data) {
@@ -106,7 +105,7 @@ class SliceOperate extends React.Component {
                     filterDatasetTypes: data
                 });
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -141,9 +140,18 @@ class SliceOperate extends React.Component {
                     </li>
                 </ul>
                 <div className="search-input" style={{marginRight: 0}}>
-                    <input onKeyUp={this.onEnterSearch} onChange={this.onChange} className="tp-input" ref="searchField" placeholder="搜索..." />
-                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon" />
-
+                    <input
+                        onKeyUp={this.onEnterSearch}
+                        onChange={this.onChange}
+                        className="tp-input"
+                        ref="searchField"
+                        placeholder="搜索..."
+                    />
+                    <i
+                        className="icon icon-search"
+                        onClick={this.onSearch}
+                        ref="searchIcon"
+                    />
                 </div>
             </div>
         );

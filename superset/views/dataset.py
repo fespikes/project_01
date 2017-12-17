@@ -15,7 +15,9 @@ from flask_appbuilder.security.sqla.models import User
 
 from sqlalchemy import or_
 from superset import app, db
-from superset.utils import SupersetException
+from superset.utils import (
+    SupersetException, ParameterException, DatabaseException, HDFSException
+)
 from superset.models import (
     Database, Dataset, HDFSTable, Log, TableColumn, SqlMetric, Slice
 )
@@ -84,7 +86,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
     @staticmethod
     def check_column_values(obj):
         if not obj.column_name:
-            raise SupersetException(NONE_COLUMN_NAME)
+            raise ParameterException(NONE_COLUMN_NAME)
 
 
 class SqlMetricInlineView(SupersetModelView):  # noqa
@@ -140,9 +142,9 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
     @staticmethod
     def check_column_values(obj):
         if not obj.metric_name:
-            raise SupersetException(NONE_METRIC_NAME)
+            raise ParameterException(NONE_METRIC_NAME)
         if not obj.expression:
-            raise SupersetException(NONE_METRIC_EXPRESSION)
+            raise ParameterException(NONE_METRIC_EXPRESSION)
 
 
 class DatasetModelView(SupersetModelView):  # noqa
@@ -306,8 +308,8 @@ class DatasetModelView(SupersetModelView):  # noqa
         """
         datasets = db.session.query(Dataset).filter(Dataset.id.in_(ids)).all()
         if len(datasets) != len(ids):
-            raise Exception(
-                _("Error parameter ids: {ids}, queried {num} dataset(s)")
+            raise ParameterException(_(
+                "Error parameter ids: {ids}, queried {num} dataset(s)")
                 .format(ids=ids, num=len(datasets))
             )
         dataset_ids = [d.id for d in datasets]
@@ -325,7 +327,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         return {'dataset': datasets, 'slice': slices}
 
     @catch_exception
-    @expose('/add', methods=['POST', ])
+    @expose('/add/', methods=['POST', ])
     def add(self):
         args = self.get_request_data()
         dataset_type = args.get('dataset_type')
@@ -362,7 +364,8 @@ class DatasetModelView(SupersetModelView):  # noqa
             hdfs_table_view._add(hdfs_table)
             return json_response(message=ADD_SUCCESS, data={'object_id': dataset.id})
         else:
-            raise Exception(_("Error dataset type: [{type_}]").format(type_=dataset_type))
+            raise ParameterException(
+                _("Error dataset type: [{type_}]").format(type_=dataset_type))
 
     @catch_exception
     @expose('/show/<pk>/', methods=['GET'])
@@ -374,10 +377,10 @@ class DatasetModelView(SupersetModelView):  # noqa
             hdfs_tb_attr.pop('created_by_user')
             hdfs_tb_attr.pop('changed_by_user')
             attributes.update(hdfs_tb_attr)
-        return json.dumps(attributes)
+        return json_response(data=attributes)
 
     @catch_exception
-    @expose('/edit/<pk>', methods=['POST', ])
+    @expose('/edit/<pk>/', methods=['POST', ])
     def edit(self, pk):
         # TODO rollback
         args = self.get_request_data()
@@ -410,7 +413,8 @@ class DatasetModelView(SupersetModelView):  # noqa
             self._edit(dataset)
             return json_response(message=UPDATE_SUCCESS)
         else:
-            raise Exception(_("Error dataset type: [{type_}]").format(type_=dataset_type))
+            raise ParameterException(
+                _("Error dataset type: [{type_}]").format(type_=dataset_type))
 
     def get_object_list_data(self, **kwargs):
         """Return the table list"""
@@ -534,11 +538,11 @@ class DatasetModelView(SupersetModelView):  # noqa
     @staticmethod
     def check_column_values(obj):
         if not obj.dataset_name:
-            raise SupersetException(NONE_DATASET_NAME)
+            raise ParameterException(NONE_DATASET_NAME)
         if not obj.database_id:
-            raise SupersetException(NONE_CONNECTION)
+            raise ParameterException(NONE_CONNECTION)
         if not obj.schema and not obj.table_namej and not obj.sql:
-            raise SupersetException(NONE_CONNECTION)
+            raise ParameterException(NONE_CONNECTION)
 
 
 class HDFSTableModelView(SupersetModelView):
@@ -558,7 +562,7 @@ class HDFSTableModelView(SupersetModelView):
                 .filter(Dataset.id == hdfs_table.dataset_id) \
                 .delete(synchronize_session=False)
             db.session.commit()
-            raise Exception(ADD_FAILED)
+            raise DatabaseException(ADD_FAILED)
         self.post_add(hdfs_table)
 
     def pre_add(self, obj):
@@ -570,9 +574,9 @@ class HDFSTableModelView(SupersetModelView):
     @staticmethod
     def check_column_values(obj):
         if not obj.hdfs_path:
-            raise SupersetException(NONE_HDFS_PATH)
+            raise ParameterException(NONE_HDFS_PATH)
         if not obj.hdfs_connection_id:
-            raise SupersetException(NONE_HDFS_CONNECTION)
+            raise ParameterException(NONE_HDFS_CONNECTION)
 
     @catch_hdfs_exception
     @expose('/files/', methods=['GET'])
@@ -656,18 +660,19 @@ class HDFSTableModelView(SupersetModelView):
             if name == '.' or name == '..':
                 pass
             elif type_ == 'dir':
-                raise SupersetException(
-                    _('Should not exist folder [{folder}] in selected path [{path}] '
+                raise ParameterException(_(
+                    'Should not exist folder [{folder}] in selected path [{path}] '
                     'to create external table')
                     .format(folder=file.get('path'), path=files_json.get('path')))
             elif type_ == 'file':
                 file_path = file.get('path')
             else:
-                raise SupersetException(
+                raise HDFSException(
                     _('Error file type: [{type_}]').format(type_=type_))
         if not file_path:
-            raise SupersetException(
-                _('No files in selected path: [{path}]').format(path=files_json.get('path'))
+            raise ParameterException(_(
+                'No files in selected path: [{path}]')
+                .format(path=files_json.get('path'))
             )
         return file_path
 
@@ -684,7 +689,7 @@ class HDFSTableModelView(SupersetModelView):
                 file = file[:index]
                 return file
             size = size * 2
-        raise SupersetException(
-            _("Fetched {size} bytes file, but still not a complete line")
-                .format(size=size)
+        raise HDFSException(_(
+            "Fetched {size} bytes file, but still not a complete line")
+            .format(size=size)
         )

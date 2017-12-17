@@ -1,13 +1,15 @@
 import React from 'react';
-import { render, ReactDOM } from 'react-dom';
-import { Provider, connect } from 'react-redux';
+import {render, ReactDOM} from 'react-dom';
+import {Provider, connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import { fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange, setSelectedRow, fetchOnOfflineInfo,
-    fetchDashbaordDelInfo } from '../actions';
-import { DashboardEdit, DashboardDelete } from '../popup';
-import { ConfirmModal } from '../../common/components';
-import { Table, message, Tooltip } from 'antd';
-import 'antd/lib/table/style';
+import {
+    fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange,
+    setSelectedRow, fetchOnOfflineInfo, fetchDashbaordDelInfo
+} from '../actions';
+import {DashboardEdit, DashboardDelete} from '../popup';
+import {ConfirmModal} from '../../common/components';
+import {Table, Tooltip} from 'antd';
+import {sortByInitials, renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class Tables extends React.Component {
     constructor(props) {
@@ -42,7 +44,7 @@ class Tables extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -64,7 +66,7 @@ class Tables extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -85,7 +87,7 @@ class Tables extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                message.error(data, 5);
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -150,7 +152,7 @@ class Tables extends React.Component {
                 )
             },
             sorter(a, b) {
-                return a.dashboard_title.substring(0, 1).charCodeAt() - b.dashboard_title.substring(0, 1).charCodeAt();
+                return sortByInitials(a.description, b.description);
             }
         }, {
             title: '发布状态',
@@ -181,7 +183,7 @@ class Tables extends React.Component {
                 )
             },
             sorter(a, b) {
-                return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
+                return sortByInitials(a.created_by_user, b.created_by_user);
             }
         }, {
             title: '最后修改时间',

@@ -2,8 +2,9 @@
  * Created by haitao on 17-5-18.
  */
 import fetch from 'isomorphic-fetch';
-import {getOnOfflineInfoUrl, renderLoadingModal, PILOT_PREFIX} from '../../../utils/utils';
-import { getNewDashboard, getSelectedSlices } from '../../../utils/common2';
+import {getOnOfflineInfoUrl, renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils';
+import {getNewDashboard, getSelectedSlices} from '../../../utils/common2';
+import {always, json, callbackHandler} from '../../global.jsx';
 
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
@@ -23,18 +24,12 @@ export const CONFIG_PARAMS = {
     SWITCH_FETCHING_STATE: 'SWITCH_FETCHING_STATE'
 };
 
-const callbackHandler = (response, callback) => {
+const handler = (response, dispatch) => {
     if(response.status === 200) {
-        callback && callback(true, response.data);
+        dispatch(receivePosts(response.data));
     }else {
-        callback && callback(false, response.message);
+        renderGlobalErrorMsg(response.message);
     }
-};
-const always = (response) => {
-    return Promise.resolve(response);
-};
-const json = (response) => {
-    return response.json();
 };
 
 export function requestPosts() {
@@ -225,19 +220,11 @@ export function fetchAvailableSlices(callback) {
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin"
-        }).then(function(response) {
-            if(response.ok) {
-                if(typeof callback === "function") {
-                    response.json().then(function(response) {
-                        callback(true, response);
-                    });
-                }
-            }else {
-                if(typeof callback == "function") {
-                    callback(false);
-                }
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
             }
-        });
+        );
     }
 }
 
@@ -318,35 +305,31 @@ export function fetchDashboardDetail(dashboardId, callback) {
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin",
-        }).then(function(response) {
-            if(response.ok) {
-                response.json().then(
-                    function(json) {
-                        callback(true, json);
-                    })
-            }else {
-                callback(false);
+        }).then(always).then(json).then(
+            response => {
+                callbackHandler(response, callback);
             }
-        })
+        );
     }
 }
 
 export function fetchPosts() {
     return (dispatch, getState) => {
         dispatch(requestPosts());
-        let url = getDashboardListUrl(getState());
+        const url = getDashboardListUrl(getState());
         return fetch(url, {
             credentials: "same-origin"
-        }).then(response => response.json())
-            .then(json => {
-                dispatch(receivePosts(json));
-                dispatch(clearRows());
-            })
+        }).then(always).then(json).then(
+            response => {
+                handler(response, dispatch);
+                dispatch(clearRows);
+            }
+        );
     }
 }
 
 function getDashboardListUrl(state) {
-    let url = window.location.origin + "/dashboard/listdata?page=" + (state.configs.pageNumber - 1) +
+    let url = window.location.origin + "/dashboard/listdata/?page=" + (state.configs.pageNumber - 1) +
         "&page_size=" + state.configs.pageSize + "&filter=" + state.configs.keyword;
     if(state.configs.type === "show_favorite") {
         url += "&only_favorite=1";

@@ -5,6 +5,7 @@ import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import ModalTrigger from '../../components/ModalTrigger';
 import { Table, Pagination } from 'antd';
 require('react-bootstrap-table/css/react-bootstrap-table.css');
+import {sortByInitials} from '../../../utils/utils.jsx';
 
 const propTypes = {
     dashboard: PropTypes.object.isRequired,
@@ -82,13 +83,13 @@ class SliceAdder extends React.Component {
 
     getSliceList(pageNumber, keyword) {
         const self = this;
-        const url = '/slice/listdata?page=' + (pageNumber-1) + '&page_size=' + self.state.pageSize + '&filter=' + keyword;
+        const url = '/slice/listdata/?page=' + (pageNumber-1) + '&page_size=' + self.state.pageSize + '&filter=' + keyword;
         this.slicesRequest = $.ajax({
             url: url,
             type: 'GET',
             success: response => {
-                const slices = $.parseJSON(response).data;
-                const sliceCount = $.parseJSON(response).count;
+                const slices = response.data.data;
+                const sliceCount = response.data.count;
                 const totalPage = Math.ceil(sliceCount/self.state.pageSize);
                 self.setState({
                     slices,
@@ -152,7 +153,7 @@ class SliceAdder extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.slice_name.substring(0, 1).charCodeAt() - b.slice_name.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.slice_name, b.slice_name);
                 }
             }, {
                 title: '图表类型',
@@ -160,7 +161,7 @@ class SliceAdder extends React.Component {
                 key: 'viz_type',
                 width: '20%',
                 sorter(a, b) {
-                    return a.viz_type.substring(0, 1).charCodeAt() - b.viz_type.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.viz_type, b.viz_type);
                 }
             }, {
                 title: '数据集',
@@ -168,7 +169,7 @@ class SliceAdder extends React.Component {
                 key: 'datasource',
                 width: '20%',
                 sorter(a, b) {
-                    return a.datasource.substring(0, 1).charCodeAt() - b.datasource.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.datasource, b.datasource);
                 }
             }, {
                 title: '所有者',
@@ -176,7 +177,7 @@ class SliceAdder extends React.Component {
                 key: 'created_by_user',
                 width: '20%',
                 sorter(a, b) {
-                    return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.created_by_user, b.created_by_user);
                 }
             }
         ];
@@ -195,7 +196,11 @@ class SliceAdder extends React.Component {
                 </div>
                 <div className={this.state.slicesLoaded ? '' : 'hidden'}>
                     <div className="search-input">
-                        <input className="tp-input" onChange={this.keywordChange} placeholder="搜索..." />
+                        <input
+                            className="tp-input"
+                            onChange={this.keywordChange}
+                            placeholder="搜索..."
+                        />
                         <i className="icon icon-search"/>
                     </div>
                     <Table

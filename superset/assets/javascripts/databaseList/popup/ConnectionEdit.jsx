@@ -1,12 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { render } from 'react-dom';
-import { connectionTypes, fetchUpdateConnection, testConnection, testHDFSConnection, fetchConnectionNames } from '../actions';
-import { Alert, Tooltip } from 'antd';
+import {render} from 'react-dom';
+import {
+    connectionTypes, fetchUpdateConnection, testConnection,
+    testHDFSConnection, fetchConnectionNames
+} from '../actions';
+import {Alert, Tooltip, message} from 'antd';
 import {Select} from '../components';
 import PropTypes from 'prop-types';
-import { isCorrectConnection, argsValidate, connectDefaultInfo } from '../utils';
-import { renderAlertErrorInfo, renderAlertTip } from '../../../utils/utils';
+import {isCorrectConnection, argsValidate, connectDefaultInfo} from '../utils';
+import {renderAlertErrorInfo, renderAlertTip, renderGlobalErrorMsg} from '../../../utils/utils';
 
 class ConnectionEdit extends React.Component {
     constructor(props) {
@@ -53,9 +56,21 @@ class ConnectionEdit extends React.Component {
     }
 
     fetchConnectionNames () {
-        const me = this;
-        const callback = (connectionNames) => {
-            me.setState({connectionNames:connectionNames});
+        const self = this;
+        const callback = (success, data) => {
+            if(success) {
+                const connectionNames = [];
+                data.data.map((obj, key) => {
+                    connectionNames.push({
+                        id:obj.id,
+                        label:obj.database_name
+                    })
+                });
+                self.setState({connectionNames:connectionNames});
+            }else {
+                renderGlobalErrorMsg(data);
+            }
+
         };
         this.props.dispatch(fetchConnectionNames(callback));
     }
@@ -65,8 +80,8 @@ class ConnectionEdit extends React.Component {
     }
 
     testConnection(testCallBack) {
-        const me = this;
-        const { dispatch, connectionType } = me.props;
+        const self = this;
+        const { dispatch, connectionType } = self.props;
         if(isCorrectConnection(connectionType, connectionTypes)) {
             if(!argsValidate(this.state.database.databaseArgs)) {
                 renderAlertErrorInfo('连接参数语法错误', 'edit-connect-error-tip', '100%', this);
@@ -74,9 +89,9 @@ class ConnectionEdit extends React.Component {
             }
             dispatch(testConnection(
                 {
-                    database_name: me.state.database.database_name,
-                    sqlalchemy_uri: me.state.database.sqlalchemy_uri,
-                    args: me.state.database.databaseArgs
+                    database_name: self.state.database.database_name,
+                    sqlalchemy_uri: self.state.database.sqlalchemy_uri,
+                    args: self.state.database.databaseArgs
                 }, callback)
             );
         }else if(connectionType === connectionTypes.hdfs) {
@@ -93,9 +108,9 @@ class ConnectionEdit extends React.Component {
                 exception.type = "error";
                 exception.message = "该连接是一个不合法连接";
                 connected = false;
-                renderAlertErrorInfo(message, 'edit-connect-error-tip', '100%', me);
+                renderAlertErrorInfo(message, 'edit-connect-error-tip', '100%', self);
             }
-            me.setState({
+            self.setState({
                 exception: exception,
                 connected: connected
             });
@@ -105,7 +120,7 @@ class ConnectionEdit extends React.Component {
             }
             renderAlertTip(exception, 'test-connect-tip-' + connectType, '100%');
             if(typeof testCallBack === 'function') {
-                testCallBack(me.state.connected);
+                testCallBack(self.state.connected);
             }
         }
     }
@@ -188,9 +203,11 @@ class ConnectionEdit extends React.Component {
             this.doUpdateConnection();
         }else {
             this.testConnection(testCallBack);
-            function testCallBack(success) {
+            function testCallBack(success, data) {
                 if(success) {
                     self.doUpdateConnection();
+                }else {
+                    renderGlobalErrorMsg(data);
                 }
             }
         }

@@ -1,10 +1,10 @@
 const $ = window.$ = require('jquery');
 import React from 'react';
 import Select from 'react-select';
-import { Label, Button } from 'react-bootstrap';
+import {Label, Button} from 'react-bootstrap';
 import TableElement from './TableElement';
 import AsyncSelect from '../../components/AsyncSelect';
-import { message } from 'antd';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 const propTypes = {
   queryEditor: React.PropTypes.object.isRequired,
@@ -80,7 +80,7 @@ class SqlEditorLeftBar extends React.PureComponent {
           self.setState({ tableLoading: false });
         },
         error:function(error){
-          message.error(error.responseText, 5);
+          renderGlobalErrorMsg(error.responseText);
         }
       });
     }
@@ -109,7 +109,7 @@ class SqlEditorLeftBar extends React.PureComponent {
           self.setState({ schemaLoading: false });
         },
         error:function(error){
-          message.error(error.responseText, 5);
+          renderGlobalErrorMsg(error.responseText);
         }
       });
     }

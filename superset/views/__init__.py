@@ -90,3 +90,4 @@ appbuilder.add_link(
     category_icon='')
 
 appbuilder.add_view_no_menu(user.PresentUserView)
+appbuilder.add_view_no_menu(user.UserView)

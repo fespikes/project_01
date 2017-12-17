@@ -13,7 +13,7 @@ from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import or_
 
 from superset import app, db, utils
-from superset.utils import SupersetException
+from superset.utils import SupersetException, ParameterException
 from superset.models import (
     Story, Dashboard, Dataset, Database, HDFSConnection, Log, FavStar)
 from superset.message import NONE_STORY_NAME
@@ -80,14 +80,14 @@ class StoryModelView(SupersetModelView):  # noqa
     @staticmethod
     def check_column_values(obj):
         if not obj.story_name:
-            raise SupersetException(NONE_STORY_NAME)
+            raise ParameterException(NONE_STORY_NAME)
         if obj.order_json:
             orders_json = json.loads(obj.order_json)
             orders = sorted([one_order.get("order") for one_order in orders_json])
             # the orders should start with 1, and be sequential
             for order in orders:
                 if orders.index(order) + 1 != order:
-                    raise SupersetException("Error dashboard orders: {}".format(orders))
+                    raise ParameterException("Error dashboard orders: {}".format(orders))
 
     def get_object_list_data(self, **kwargs):
         """Return the stories with column 'favorite' and 'online'"""
@@ -116,7 +116,7 @@ class StoryModelView(SupersetModelView):  # noqa
                 column = self.str_to_column.get(order_column)
             except KeyError:
                 msg = _('Error order column name: [{name}]').format(name=order_column)
-                self.handle_exception(404, KeyError, msg)
+                self.handle_exception(404, ParameterException, msg)
             else:
                 if order_direction == 'desc':
                     query = query.order_by(column.desc())
@@ -174,7 +174,7 @@ class StoryModelView(SupersetModelView):  # noqa
         if len(ids) != len(dashs):
             msg = _("Error parameter ids: {ids}, queried {num} dashboard(s)") \
                 .format(ids=ids, num=len(dashs))
-            self.handle_exception(404, Exception, msg)
+            self.handle_exception(404, ParameterException, msg)
         return dashs
 
     @catch_exception

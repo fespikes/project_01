@@ -16,6 +16,7 @@ from wtforms import (
 from wtforms import validators, widgets
 
 from superset import app
+from superset.utils import PropertyException
 
 config = app.config
 
@@ -133,7 +134,7 @@ class FormFactory(object):
         viz = self.viz
         datasource = viz.datasource
         if not datasource.metrics_combo:
-            raise Exception("Please define at least one metric for your table")
+            raise PropertyException("Please define at least one metric for your table")
         default_metric = datasource.metrics_combo[0][0]
 
         gb_cols = datasource.groupby_column_names

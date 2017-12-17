@@ -24,7 +24,7 @@ from sqlalchemy.orm.session import make_transient
 from superset import app, db, utils
 from superset.source_registry import SourceRegistry
 from superset.viz import viz_types
-from superset.utils import SupersetException
+from superset.utils import ParameterException, OfflineException
 from .base import AuditMixinNullable, ImportMixin, Count
 from .dataset import Dataset
 
@@ -239,11 +239,11 @@ class Slice(Model, AuditMixinNullable, ImportMixin, Count):
         user_id = g.user.get_id()
         slice = db.session.query(Slice).filter_by(id=slice_id).first()
         if not slice:
-            raise SupersetException(
+            raise ParameterException(
                 _("Not found slice by id [{id}]").format(id=slice_id))
         if check(slice, user_id) is False:
             if raise_if_false:
-                raise SupersetException(
+                raise OfflineException(
                     _("Slice [{slice}] is offline").format(slice=slice.slice_name))
             else:
                 return False
