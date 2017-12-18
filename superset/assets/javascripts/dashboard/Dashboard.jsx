@@ -376,7 +376,7 @@ export function dashboardContainer(dashboard) {
             loadingModal.show();
             $.ajax({
                 type: 'POST',
-                url: '/dashboard/edit/' + dashboard.id,
+                url: `/dashboard/edit/${dashboard.id}/`,
                 contentType: 'application/json',
                 data: JSON.stringify(getNewDashboard(
                     dashboard, selectedSlices, dashboard.available_slices

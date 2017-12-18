@@ -111,7 +111,7 @@ export function clearRows () {
 export function testConnection(database, callback) {
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
-        const URL = origin + PILOT_PREFIX + 'testconn';
+        const URL = origin + PILOT_PREFIX + 'testconn/';
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',
@@ -145,7 +145,7 @@ export function fetchInceptorConnectAdd(inceptor, callback) {
 
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
-        const URL = baseURL + 'add';
+        const URL = baseURL + 'add/';
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',
@@ -166,7 +166,7 @@ export function fetchHDFSConnectAdd(hdfs, callback) {
 
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
-        const URL = HDFSConnectionBaseURL + 'add';
+        const URL = HDFSConnectionBaseURL + 'add/';
         return fetch(URL, {
             credentials: 'include',
             method: 'POST',
@@ -235,7 +235,7 @@ export function switchFetchingState(isFetching) {
 
 export function applyDelete (callback) {
     return (dispatch, getState) => {
-        const URL = connBaseURL + 'muldelete';
+        const URL = connBaseURL + 'muldelete/';
         const connToBeDeleted = getState().paramOfDelete.connToBeDeleted;
         dispatch(switchFetchingState(true));
         return fetch(URL, {
@@ -335,7 +335,7 @@ export function fetchDBDetail(record, callback) {
 export function fetchUpdateConnection(database, callback) {
 
     return (dispatch, getState) => {
-        const URL = getURLBase(database.connectionType, 'edit/') + database.id;
+        const URL = getURLBase(database.connectionType, 'edit/') + database.id + '/';
         const db = getParamDB(database);
         dispatch(switchFetchingState(true));
         return fetch(URL, {
