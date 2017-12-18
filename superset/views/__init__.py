@@ -2,7 +2,6 @@ from flask_babel import gettext as __
 from superset import appbuilder
 from . import base
 from . import home
-from . import story
 from . import core
 from . import connection
 from . import dataset
@@ -17,14 +16,6 @@ appbuilder.add_view(
     category='',
     category_label='',
     icon="fa-list-ol")
-
-# appbuilder.add_view(
-#     story.StoryModelView,
-#     "Story",
-#     label=__("Story"),
-#     category='',
-#     category_label='',
-#     icon="fa-list-ol")
 
 appbuilder.add_view_no_menu(core.Superset)
 appbuilder.add_view(

@@ -1013,10 +1013,8 @@ class Superset(BaseSupersetView):
         """endpoint to power the calendar heatmap on the welcome page"""
         schema = None if schema in ('null', 'undefined') else schema
         database = db.session.query(Database).filter_by(id=db_id).one()
-        tables = [t for t in database.all_table_names(schema) if
-                  self.datasource_access_by_name(database, t, schema=schema)]
-        views = [v for v in database.all_table_names(schema) if
-                 self.datasource_access_by_name(database, v, schema=schema)]
+        tables = [t for t in database.all_table_names(schema)]
+        views = [v for v in database.all_table_names(schema)]
         payload = {'tables': tables, 'views': views}
         return json_response(data=payload)
 
@@ -1377,18 +1375,6 @@ class Superset(BaseSupersetView):
     @expose("/sql_json/", methods=['POST', 'GET'])
     def sql_json(self):
         """Runs arbitrary sql and returns and json"""
-        def table_accessible(database, full_table_name, schema_name=None):
-            table_name_pieces = full_table_name.split(".")
-            if len(table_name_pieces) == 2:
-                table_schema = table_name_pieces[0]
-                table_name = table_name_pieces[1]
-            else:
-                table_schema = schema_name
-                table_name = table_name_pieces[0]
-            return self.datasource_access_by_name(
-                database, table_name, schema=table_schema)
-
-        async = request.form.get('runAsync') == 'true'
         sql = request.form.get('sql')
         database_id = request.form.get('database_id')
 
@@ -1396,20 +1382,11 @@ class Superset(BaseSupersetView):
         mydb = session.query(Database).filter_by(id=database_id).one()
 
         if not mydb:
-            json_error_response(
+            raise PropertyException(
                 'Database with id {} is missing.'.format(database_id))
 
-        superset_query = sql_parse.SupersetQuery(sql)
         schema = request.form.get('schema')
         schema = schema if schema else None
-
-        # rejected_tables = [
-        #     t for t in superset_query.tables if not
-        #     table_accessible(mydb, t, schema_name=schema)]
-        # if rejected_tables:
-        #     return json_error_response(
-        #         get_datasource_access_error_msg('{}'.format(rejected_tables)))
-        session.commit()
 
         select_as_cta = request.form.get('select_as_cta') == 'true'
         tmp_table_name = request.form.get('tmp_table_name')
@@ -1427,7 +1404,7 @@ class Superset(BaseSupersetView):
             select_as_cta=request.form.get('select_as_cta') == 'true',
             start_time=utils.now_as_float(),
             tab_name=request.form.get('tab'),
-            status=QueryStatus.PENDING if async else QueryStatus.RUNNING,
+            status=QueryStatus.RUNNING,
             sql_editor_id=request.form.get('sql_editor_id'),
             tmp_table_name=tmp_table_name,
             user_id=int(g.user.get_id()),
@@ -1437,33 +1414,7 @@ class Superset(BaseSupersetView):
         session.commit()
         query_id = query.id
 
-        # Async request.
-        # if async:
-        #     # Ignore the celery future object and the request may time out.
-        #     sql_lab.get_sql_results.delay(
-        #         query_id, return_results=False,
-        #         store_results=not query.select_as_cta)
-        #     return Response(
-        #         json.dumps({'query': query.to_dict()},
-        #                    default=utils.json_int_dttm_ser,
-        #                    allow_nan=False),
-        #         status=202,  # Accepted
-        #         mimetype="application/json")
-
-        # Sync request.
-        try:
-            SQLLAB_TIMEOUT = config.get("SQLLAB_TIMEOUT")
-            with utils.timeout(
-                    seconds=SQLLAB_TIMEOUT,
-                    error_message=(
-                            _("The query exceeded the {SQLLAB_TIMEOUT} seconds "
-                            "timeout. You may want to run your query as a "
-                            "`CREATE TABLE AS` to prevent timeouts.")
-                    ).format(**locals())):
-                data = sql_lab.get_sql_results(query_id, return_results=True)
-        except Exception as e:
-            logging.exception(e)
-            raise DatabaseException(str(e))
+        data = sql_lab.get_sql_results(query_id, return_results=True)
         return json_response(data=json.loads(data))
 
     @catch_exception
@@ -1494,11 +1445,9 @@ class Superset(BaseSupersetView):
             .filter_by(id=request.args.get('datasource_id'))
             .first()
         )
-
         # Check if datasource exists
         if not datasource:
-            return json_error_response(DATASOURCE_MISSING_ERR)
-
+            raise PropertyException(DATASOURCE_MISSING_ERR)
         return json_response(data=datasource.data)
 
     @catch_exception

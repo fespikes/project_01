@@ -15,6 +15,7 @@ from superset import (
 from superset.sql_parse import SupersetQuery
 from superset.db_engine_specs import LimitMethod
 from superset.jinja_context import get_template_processor
+from superset.timeout_decorator import sql_timeout
 QueryStatus = models.QueryStatus
 
 celery_app = celery.Celery(config_source=app.config.get('CELERY_CONFIG'))
@@ -41,6 +42,7 @@ def dedup(l, suffix='__'):
     return new_l
 
 
+@sql_timeout
 @celery_app.task(bind=True)
 def get_sql_results(self, query_id, return_results=True, store_results=False):
     """Executes the sql query returns the results."""

@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Alert} from 'antd';
 import PropTypes from 'prop-types';
-import { WarningAlert } from './WarningAlert';
 
 import {WarningAlert} from './WarningAlert';
 import {ErrorAlert} from './ErrorAlert';

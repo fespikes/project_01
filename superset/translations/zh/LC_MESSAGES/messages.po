@@ -1712,8 +1712,8 @@ msgid ""
 "\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}"
 msgstr "上线仪表板{dashboard}会同时上线：\n工作表：{slice}，\n数据集：{dataset}，\n连接：{connection}"
 
-msgid "Changing dashboard {dashboard} to offline will make it invisible in these stories: {story}"
-msgstr "下线仪表板{dashboard}会使其在以下故事中不可见：{story}"
+msgid "Changing dashboard {dashboard} to offline will make it invisible for other users"
+msgstr "下线仪表板{dashboard}会使其他用户不可见"
 
 msgid "Deleting dashboard {dashboard} will remove from these stories too: {story}"
 msgstr "删除仪表板{dashboard}会同时从以下故事中移除：{story}"
