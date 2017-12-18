@@ -32,7 +32,7 @@ from superset.exception import (
     ParameterException, PropertyException, DatabaseException, ErrorUrlException
 )
 from superset.models import (
-    Database, Dataset, Slice, Dashboard, Story, TableColumn, SqlMetric,
+    Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric,
     Query, Log, FavStar, str_to_model
 )
 from superset.message import *
@@ -516,52 +516,38 @@ class DashboardModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        dash = self.get_object(id)
-        user_id = get_user_id()
-        stories = [story for story in dash.stories
-                   if story.online is True and story.created_by_fk != user_id]
+        dash = db.session.query(Dashboard).filter_by(id=id).first()
+        if not dash:
+            raise ErrorUrlException(
+                _("Error parameter ids: {ids}, queried {num} dashboard(s)")
+                .format(ids=[id, ], num=0)
+            )
         info = _("Changing dashboard {dashboard} to offline will make it invisible "
-                 "in these stories: {story}") \
-            .format(dashboard=[dash, ], story=stories)
+                 "for other users").format(dashboard=[dash, ])
         return json_response(data=info)
 
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.delete_affect_objects([id, ])
-        info = _("Deleting dashboard {dashboard} will remove from these "
-                 "stories too: {story}") \
-            .format(dashboard=objects.get('dashboard'), story=objects.get('story'))
-        return json_response(data=info)
+        return json_response(data='')
 
     @catch_exception
     @expose("/muldelete_info/", methods=['POST'])
     def muldelete_info(self):
-        json_data = self.get_request_data()
-        ids = json_data.get('selectedRowKeys')
-        objects = self.delete_affect_objects(ids)
-        info = _("Deleting dashboard {dashboard} will remove from these "
-                 "stories too: {story}") \
-            .format(dashboard=objects.get('dashboard'), story=objects.get('story'))
-        return json_response(data=info)
+        return json_response(data='')
 
-    @staticmethod
-    def delete_affect_objects(ids):
-        """Deleting dashboard will remove if from myself and online stories.
-        """
-        dashs = db.session.query(Dashboard).filter(Dashboard.id.in_(ids)).all()
-        if len(dashs) != len(ids):
-            raise ParameterException(_(
-                'Error parameter ids: {ids}, queried {num} dashboard(s)')
-                .format(ids=ids, num=len(dashs))
-            )
-        stories = []
-        user_id = get_user_id()
-        for dash in dashs:
-            for story in dash.stories:
-                if story.created_by_fk == user_id or story.online == 1:
-                    stories.append(story)
-        return {'dashboard': dashs, 'story': stories}
+    @catch_exception
+    @expose("/upload_image/<id>/", methods=['POST'])
+    def upload_image(self, id):
+        dash = self.get_object(id)
+        check_ownership(dash)
+        data = request.form.get('image')
+        dash.image = bytes(data, encoding='utf8')
+        dash.need_capture = False
+        db.session.merge(dash)
+        db.session.commit()
+        Log.log_update(dash, 'dashboard', get_user_id())
+        return json_response(message="Update dashboard [{}] success".format(dash))
 
     @catch_exception
     @expose("/upload_image/<id>/", methods=['POST'])
@@ -683,9 +669,6 @@ class Superset(BaseSupersetView):
             obj.online = True
             db.session.commit()
             Log.log_online(obj, model, user_id)
-        if model == 'story':
-            for dash in obj.dashboards:
-                cls.release_relations(dash, 'dashboard', user_id)
         if model == 'dashboard':
             for slice in obj.slices:
                 cls.release_relations(slice, 'slice', user_id)
@@ -1216,37 +1199,6 @@ class Superset(BaseSupersetView):
         )
 
     @catch_exception
-    @expose("/story/<story_id>/")
-    def story(self, story_id):
-        """Server side rendering for a story"""
-        story = db.session.query(Story).filter_by(id=story_id).one()
-        context = json.loads(story.order_json)
-
-        user_id = g.user.get_id()
-        dashs_dict = {}
-        for dash in story.dashboards:
-            dashs_dict[dash.id] = dash
-
-        for one_dash_json in context:
-            dash = dashs_dict.get(one_dash_json.get('dashboard_id'))
-            if not dash:
-                one_dash_json['dashboard_id'] = None
-                one_dash_json['visible'] = False
-                one_dash_json['url'] = None
-            else:
-                one_dash_json['url'] = dash.url
-                if dash.created_by_fk != user_id and dash.online is False:
-                    one_dash_json['visible'] = False
-                else:
-                    one_dash_json['visible'] = True
-
-        return self.render_template(
-            "superset/story.html",
-            story=story,
-            context=json.dumps(context),
-        )
-
-    @catch_exception
     @expose("/sqllab_viz/", methods=['POST'])
     def sqllab_viz(self):
         data = json.loads(request.form.get('data'))
@@ -1546,10 +1498,6 @@ class Superset(BaseSupersetView):
         # Check if datasource exists
         if not datasource:
             return json_error_response(DATASOURCE_MISSING_ERR)
-
-        # Check permission for datasource
-        if not self.datasource_access(datasource):
-            return json_error_response(DATASOURCE_ACCESS_ERR)
 
         return json_response(data=datasource.data)
 
