@@ -64,6 +64,8 @@
   float: left;
   overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-left: 10px;
   width: 100px; height: 18px;
 }
 .parcoords .col-0 {

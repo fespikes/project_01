@@ -21,9 +21,7 @@ export default function subDetail(state = {
         file_type: 'csv',
         separator: ',',
         quote: '\\',
-        skip_rows: '0',
         next_as_header: false,
-        skip_more_rows: '0',
         charset: 'utf-8'
     },
     dsInceptor: {
