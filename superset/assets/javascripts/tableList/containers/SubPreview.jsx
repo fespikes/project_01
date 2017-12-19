@@ -6,7 +6,7 @@ import {bindActionCreators} from 'redux';
 import {Link, withRouter} from 'react-router-dom';
 import * as actionCreators from '../actions';
 import {datasetTypes} from '../actions';
-import {Table, Input, Select} from 'antd';
+import {Table, Select, Tooltip} from 'antd';
 import * as datasetModule from '../module';
 import {DetailType} from '../popup';
 import {renderAlertTip, renderGlobalErrorMsg} from '../../../utils/utils';
@@ -378,22 +378,12 @@ class SubPreview extends Component {
                                 className="tp-input" name="separator"
                                 onChange={this.handleChange}
                             />
-                            <i className="icon infor-icon" />
                         </div>
                         <div className="data-detail-item">
                             <span>引号符：</span>
                             <input
                                 type="text" value={dsHDFS.quote}
                                 className="tp-input" name="quote"
-                                onChange={this.handleChange}
-                            />
-                            <i className="icon infor-icon" />
-                        </div>
-                        <div className="data-detail-item">
-                            <span>忽略行数：</span>
-                            <input
-                                type="text" value={dsHDFS.skip_rows}
-                                className="tp-input" name="skip_rows"
                                 onChange={this.handleChange}
                             />
                         </div>
@@ -408,15 +398,13 @@ class SubPreview extends Component {
                                     onChange={this.handleChange}
                                 />
                                 <p>下一行为列名</p>
+                                <Tooltip placement="top" title="自动忽略空白行">
+                                    <i
+                                        className="icon icon-infor"
+                                        style={{marginLeft: '8px'}}
+                                    />
+                                </Tooltip>
                             </div>
-                        </div>
-                        <div className="data-detail-item">
-                            <span>再忽略行数：</span>
-                            <input
-                                type="text" value={dsHDFS.skip_more_rows}
-                                className="tp-input" name="skip_more_rows"
-                                onChange={this.handleChange}
-                            />
                         </div>
                         <div className="data-detail-item">
                             <span>字符集：</span>

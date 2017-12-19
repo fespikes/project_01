@@ -560,8 +560,7 @@ class HDFSTableModelView(SupersetModelView):
     model = HDFSTable
     datamodel = SQLAInterface(HDFSTable)
     add_columns = ['hdfs_path', 'separator', 'file_type', 'quote',
-                   'skip_rows', 'next_as_header', 'skip_more_rows',
-                   'charset', 'hdfs_connection_id']
+                   'next_as_header','charset', 'hdfs_connection_id']
     show_columns = add_columns
     edit_columns = add_columns
 
