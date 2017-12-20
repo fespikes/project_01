@@ -14,6 +14,7 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
 
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 from superset import app, db
 from superset.exception import (
     ParameterException, DatabaseException, HDFSException, PropertyException,
@@ -392,7 +393,6 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose('/edit/<pk>/', methods=['POST', ])
     def edit(self, pk):
-        # TODO rollback
         args = self.get_request_data()
         dataset = self.get_object(pk)
         dataset_type = dataset.dataset_type
@@ -401,30 +401,54 @@ class DatasetModelView(SupersetModelView):  # noqa
             self._edit(dataset)
             return json_response(message=UPDATE_SUCCESS)
         elif dataset_type in HDFSTable.hdfs_table_types:
-            HDFSTable.cache.clear()
-            # edit hdfs_table
-            hdfs_table = dataset.hdfs_table
-            hdfs_table.separator = args.get('separator')
-            hdfs_table.hdfs_path = args.get('hdfs_path')
-            database = db.session.query(Database) \
-                .filter_by(id=args.get('database_id')) \
-                .first()
-            dataset.hdfs_table.create_external_table(
-                database, args.get('dataset_name'),
-                args.get('columns'), hdfs_table.hdfs_path, hdfs_table.separator)
-            HDFSTableModelView()._edit(hdfs_table)
-
-            # edit dataset
-            dataset.dataset_name = args.get('dataset_name')
-            dataset.table_name = args.get('dataset_name')
-            dataset.description = args.get('description')
-            dataset.database_id = args.get('database_id')
-            dataset.database = database
-            self._edit(dataset)
+            self._edit_hdfs_dataset(dataset, args)
             return json_response(message=UPDATE_SUCCESS)
         else:
             raise ParameterException(
                 _("Error dataset type: [{type_}]").format(type_=dataset_type))
+
+    def _edit_hdfs_dataset(self, dataset, args):
+        HDFSTable.cache.clear()
+        dataset_name = args.get('dataset_name')
+        database_id = args.get('database_id')
+        columns = args.get('columns')
+        hdfs_path = args.get('hdfs_path')
+        separator = args.get('separator')
+
+        database = db.session.query(Database).filter_by(id=database_id).first()
+        dataset.hdfs_table.create_external_table(
+            database, dataset_name, columns, hdfs_path, separator)
+
+        dataset.dataset_name = dataset_name
+        dataset.table_name = args.get('dataset_name')
+        dataset.description = args.get('description')
+        dataset.database_id = database_id
+        dataset.database = database
+
+        hdfs_table_view = HDFSTableModelView()
+        hdfs_table = dataset.hdfs_table
+        hdfs_table = hdfs_table_view.populate_object(hdfs_table.id, get_user_id(), args)
+
+        db_session = db.session
+        self.pre_update(dataset)
+        hdfs_table_view.pre_update(hdfs_table)
+
+        try:
+            db_session.merge(dataset)
+            db_session.merge(hdfs_table)
+            db_session.commit()
+        except IntegrityError as e:
+            db_session.rollback()
+            msg = "Edit record integrity error: {0}".format(str(e))
+            self.handle_exception(500, DatabaseException, msg)
+        except Exception as e:
+            db_session.rollback()
+            msg = "Edit record error: {0}".format(str(e))
+            self.handle_exception(500, DatabaseException, msg)
+
+        hdfs_table_view.post_update(hdfs_table)
+        self.post_update(dataset)
+        return True
 
     def get_object_list_data(self, **kwargs):
         """Return the table list"""
@@ -560,17 +584,14 @@ class HDFSTableModelView(SupersetModelView):
     model = HDFSTable
     datamodel = SQLAInterface(HDFSTable)
     add_columns = ['hdfs_path', 'separator', 'file_type', 'quote',
-                   'next_as_header','charset', 'hdfs_connection_id']
+                   'next_as_header', 'charset', 'hdfs_connection_id']
     show_columns = add_columns
     edit_columns = add_columns
 
     def _add(self, hdfs_table):
         self.pre_add(hdfs_table)
         if not self.datamodel.add(hdfs_table):
-            db.session.query(Dataset) \
-                .filter(Dataset.id == hdfs_table.dataset_id) \
-                .delete(synchronize_session=False)
-            db.session.commit()
+            DatasetModelView()._delete(hdfs_table.dataset)
             raise DatabaseException(ADD_FAILED)
         self.post_add(hdfs_table)
 
