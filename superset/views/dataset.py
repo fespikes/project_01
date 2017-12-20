@@ -347,7 +347,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             return json_response(
                 message=ADD_SUCCESS, data={'object_id': dataset.id})
         elif dataset_type in HDFSTable.addable_types:
-            HDFSTable.cached_file.clear()
+            HDFSTable.cache.clear()
             # create hdfs_table
             hdfs_table_view = HDFSTableModelView()
             hdfs_table = hdfs_table_view.populate_object(None, get_user_id(), args)
@@ -401,7 +401,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             self._edit(dataset)
             return json_response(message=UPDATE_SUCCESS)
         elif dataset_type in HDFSTable.hdfs_table_types:
-            HDFSTable.cached_file.clear()
+            HDFSTable.cache.clear()
             # edit hdfs_table
             hdfs_table = dataset.hdfs_table
             hdfs_table.separator = args.get('separator')
@@ -612,29 +612,45 @@ class HDFSTableModelView(SupersetModelView):
         columns = []
         types = []
         if dataset_id:
-            dataset = db.session.query(Dataset).filter_by(id=dataset_id).first()
-            if dataset.database:
+            cols_cache_key = '{}-{}'.format(dataset_id, path)
+            cols_and_types = HDFSTable.cache.get(cols_cache_key)
+            if not cols_and_types:
+                dataset = db.session.query(Dataset).filter_by(id=dataset_id).first()
+                if not dataset:
+                    raise ParameterException("Can't get dataset by id [{}]"
+                                             .format(dataset_id))
                 table = dataset.get_sqla_table_object()
                 for col in table.columns:
                     columns.append(col.name)
                     types.append('{}'.format(col.type).lower())
+                cols_and_types = {'columns': columns, 'types': types}
+                HDFSTable.cache[cols_cache_key] = cols_and_types
 
-        cache_key = '{}-{}'.format(hdfs_conn_id, path)
-        file = HDFSTable.cached_file.get(cache_key)
+            columns = cols_and_types.get("columns")
+            types = cols_and_types.get("types")
+
+        file_cache_key = '{}-{}'.format(hdfs_conn_id, path)
+        file = HDFSTable.cache.get(file_cache_key)
         if not file:
             client, _ = HDFSBrowser.login_filerobot(hdfs_conn_id)
             files = self.list_files(client, path, size)
             file_path = self.choice_one_file_path(files)
             file = self.download_file(client, file_path, size)
-            HDFSTable.cached_file[cache_key] = file
+            HDFSTable.cache[file_cache_key] = file
 
-        if columns:
-            args['names'] = columns
         df = HDFSTable.parse_file(file, **args)
 
-        if not columns or strtobool(args.get('next_as_header')):
+        if not dataset_id:
             columns = list(df.columns)
             types = ['string'] * len(columns)
+        else:
+            df_columns = list(df.columns)
+            if len(columns) >= len(df_columns):
+                columns = columns[0:len(df_columns)]
+                types = types[0:len(df_columns)]
+            else:
+                columns += df_columns[len(columns):]
+                types += ['string'] * (len(columns) - len(types))
         return json_response(data=dict(records=df.to_dict(orient="records"),
                                        columns=columns,
                                        types=types)
