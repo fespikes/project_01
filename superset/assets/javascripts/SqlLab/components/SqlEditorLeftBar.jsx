@@ -53,7 +53,7 @@ class SqlEditorLeftBar extends React.PureComponent {
     if (data.length === 0) {
       this.props.actions.addAlert({
         bsStyle: 'danger',
-        msg: "没有权限访问数据库",
+        msg: "没有可使用的数据库连接",
       });
     }
     return options;
