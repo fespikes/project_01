@@ -17,6 +17,7 @@ module.exports = function(config) {
 
     header.enter().append("div")
       .attr("class", function(d,i) { return "col-" + i; })
+      .attr("title", function(d,i) { return d; })
       .classed("cell", true)
 
     selection.selectAll(".header .cell")

@@ -54,9 +54,9 @@ export function getTbTitle(data, width) {
     let tbTitle = [];
     data.columns.map((column) => {
         let objTitle = {
-            title: column,
-            dataIndex: column,
-            key: column,
+            title: column.toUpperCase(),
+            dataIndex: column.toUpperCase(),
+            key: column.toUpperCase(),
             width: width,
             render: (text, record) => {
                 return (<span
@@ -206,9 +206,7 @@ export function constructHDFSDataset(dataset, title) {
     hdfsDataset.hdfs_connection_id = dataset.hdfsConnectId;
     hdfsDataset.file_type = dataset.file_type;
     hdfsDataset.quote = dataset.quote;
-    hdfsDataset.skip_rows = parseInt(dataset.skip_rows);
     hdfsDataset.next_as_header = dataset.next_as_header;
-    hdfsDataset.skip_more_rows = parseInt(dataset.skip_more_rows);
     hdfsDataset.charset = dataset.charset;
     return hdfsDataset;
 }
@@ -387,8 +385,6 @@ function initHDFSData(newData, oldData) {
         next_as_header: newData.next_as_header,
         quote: newData.quote,
         separator: newData.separator,
-        skip_more_rows: newData.skip_more_rows,
-        skip_rows: newData.skip_rows,
         hdfsConnections: oldData.hdfsConnections,
         inceptorConnections: oldData.inceptorConnections,
         hdfsConnectId: oldData.hdfsConnectId,
@@ -406,9 +402,7 @@ export function initHDFSPreviewData(data, opeType) {
         dataset.file_type = "csv";
         dataset.separator = ",";
         dataset.quote = "\\";
-        dataset.skip_rows = "0";
         dataset.next_as_header = false;
-        dataset.skip_more_rows = "0";
         dataset.charset = "utf-8";
     }
     return dataset;
@@ -422,16 +416,18 @@ export function isActive(type, location) {
 
 export function constructHDFSPreviewUrl(dataset, id) {
     let url = window.location.origin + '/hdfstable/preview/';
-    url += '?hdfs_connection_id=' + parseInt(dataset.hdfsConnectId) + '&path=' + dataset.hdfsPath +
-        '&separator=' + dataset.separator + '&quote=' + dataset.quote + '&skip_rows=' + parseInt(dataset.skip_rows) +
-        '&next_as_header=' + dataset.next_as_header + '&skip_more_rows=' + parseInt(dataset.skip_more_rows) +
-        '&charset=' + dataset.charset + '&dataset_id=' + id;
+    url += '?hdfs_connection_id=' + parseInt(dataset.hdfsConnectId) +
+           '&path=' + dataset.hdfsPath + '&separator=' + dataset.separator +
+           '&quote=' + dataset.quote + '&next_as_header=' + dataset.next_as_header +
+           '&charset=' + dataset.charset + '&dataset_id=' + id;
     return url;
 }
 
 export function constructInceptorPreviewUrl(baseUrl, datasetId, dsInceptor) {
-    return baseUrl + 'preview_data?dataset_id=' + datasetId + '&database_id=' + dsInceptor.database_id +
-        '&full_tb_name=' + dsInceptor.schema + '.' + dsInceptor.table_name;
+    return baseUrl + 'preview_data?dataset_id=' + datasetId + '&database_id=' +
+           dsInceptor.database_id + '&full_tb_name=' + dsInceptor.schema + '.' +
+           dsInceptor.table_name;
+
 }
 
 export function makeDataTypes(data, isFirst) {
