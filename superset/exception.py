@@ -42,6 +42,10 @@ class HDFSException(SupersetException):
     exception_code = 9
 
 
+class GuardianException(SupersetException):
+    exception_code = 10
+
+
 class SupersetTimeoutException(SupersetException):
     pass
 
