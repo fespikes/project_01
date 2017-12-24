@@ -34,13 +34,14 @@ function chinaMap(slice) {
     };
     let bubbleAttr = {};
     const render = function() {
-        const container = slice.container;
+        const container = $('<div id="china"></div>');
         const div = d3.select(slice.selector);
-        container.css('height', slice.height());
 
         d3.json(slice.jsonEndpoint(), function(error, json) {
 
             div.selectAll('*').remove();
+            slice.container.append(container);
+            container.css('height', slice.height());
 
             if (error !== null) {
                 slice.error(error.responseText, error);
@@ -76,7 +77,7 @@ function chinaMap(slice) {
             params.rename_bubble_metric = rename_bubble_metric;
             params.rename_color_metric = rename_color_metric;
 
-            $(slice.container.get(0)).prepend(renderOperator(params)); //slice_container
+            container.prepend(renderOperator(params)); //slice_container
             /*$('.bubble-max span').length && $('.bubble-max span').css({
                 'width': fd.max_bubble_size * 2,
                 'height': fd.max_bubble_size * 2,
@@ -226,7 +227,7 @@ function chinaMap(slice) {
 
     renderMap = function(b) {
 
-        R = Raphael(slice.container.get(0), 560, 500); //大小与矢量图形文件图形对应；这是比较操蛋的地方高宽不自适应。
+        R = Raphael($('#china').get(0), 560, 500); //大小与矢量图形文件图形对应；这是比较操蛋的地方高宽不自适应。
         R.canvas.id = "chinese-svg";
 
         var china = {};
@@ -398,7 +399,7 @@ function chinaMap(slice) {
         var parentHeight = $(wrapper).height();
 
         /////
-        $('.slice_container').css({
+        $('#china').css({
             'width': initial.width + 'px',
             'height': initial.height + 'px',
             'position': 'absolute',
@@ -423,13 +424,13 @@ function chinaMap(slice) {
             ratio = $(wrapper).width() / (initial.width + initial.gap);
         }
 
-        $('.slice_container').css(csstransform, 'matrix(' + ratio + ', 0, 0, ' + ratio + ', ' + 0 + ', ' + 0 + ')');
+        $('#china').css(csstransform, 'matrix(' + ratio + ', 0, 0, ' + ratio + ', ' + 0 + ', ' + 0 + ')');
     };
 
     determinePrefix = function() {
         var csstransform = '';
 
-        $('.slice_container').each(function() {
+        $('#china').each(function() {
             if (this.style.KhtmlTransform !== undefined) {
                 csstransform = '-khtml-transform';
             }
