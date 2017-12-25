@@ -91,7 +91,16 @@ def create_default_hdfs_conn():
         Log.log_add(hconn, 'hdfsconnection', None)
 
 
+def register_in_guardian():
+    if config.get('GUARDIAN_AUTH'):
+        from superset.guardian import guardian_client
+        guardian_client.login()
+        guardian_client.register()
+        logging.info("Finish to register service in Guardian")
+
+
 def init_pilot():
+    register_in_guardian()
     init_tables_and_roles()
     create_default_user()
     init_examples()
@@ -122,7 +131,8 @@ def runserver(debug, address, port, timeout, workers):
             host='0.0.0.0',
             port=int(port),
             threaded=True,
-            debug=True)
+            debug=True,
+            use_reloader=False)
     else:
         cmd = (
             "gunicorn "

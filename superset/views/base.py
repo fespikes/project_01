@@ -18,7 +18,7 @@ from flask_appbuilder.security.sqla.models import User
 import sqlalchemy as sqla
 from sqlalchemy import and_, or_
 
-from superset import app, db, models, utils
+from superset import app, db, models, utils, conf
 from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log
 from superset.message import *
 from superset.exception import (
@@ -184,6 +184,51 @@ class BaseSupersetView(BaseView):
     #         if self.can_access("datasource_access", datasource.perm):
     #             return True
     #     return False
+
+
+class PermissionManagement(object):
+    READ_PERM = 'READ'
+    EDIT_PERM = 'EDIT'
+    ADMIN_PERM = 'ADMIN'
+    ALL_PERMS = [READ_PERM, EDIT_PERM, ADMIN_PERM]
+    OWNER_PERMS = [READ_PERM, EDIT_PERM]
+    READ_PERMS = ALL_PERMS
+    EDIT_PERMS = [EDIT_PERM, ADMIN_PERM]
+    ADMIN_PERMS = [ADMIN_PERM, ]
+
+    def add_object_permissions(self, finite_obj):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_admin
+            guardian_admin.add_permission(finite_obj, self.ALL_PERMS)
+
+    def del_object_permissions(self, finite_obj):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_admin
+            guardian_admin.del_perm_obj(finite_obj)
+
+    def grant_owner_permissions(self, finite_obj):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_admin
+            guardian_admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
+
+    def check_edit(self, finite_obj):
+        return self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
+
+    def check_delete(self, finite_obj):
+        return self.check_edit(finite_obj)
+
+    def check_admin(self, finite_obj):
+        self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
+
+    def check_release(self, finite_obj):
+        return self.check_admin(finite_obj)
+
+    def do_check(self, username, finite_obj, actions):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_client
+            return guardian_client.check_any_access(username, finite_obj, actions)
+        else:
+            return True
 
 
 class PageMixin(object):

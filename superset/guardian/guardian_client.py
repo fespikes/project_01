@@ -59,19 +59,15 @@ class GuardianClient(GuardianBase):
         else:
             perm = self._permission(finite_obj, action)
         can = self.client.checkAccess(username, perm)
-        if can:
-            print(True)
-        else:
-            print(False)
+        can = True if can else False
+        return can
 
     @catch_guardian_exception
     def check_any_access(self, username, finite_obj, actions):
         perms = self._permissions(finite_obj, actions)
         can = self.client.checkAnyAccess(username, perms)
-        if can:
-            print(True)
-        else:
-            print(False)
+        can = True if can else False
+        return can
 
     @catch_guardian_exception
     def user_permissions(self, username, component=None, finite_obj=None):

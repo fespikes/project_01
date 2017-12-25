@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import json
 from flask import g, request
 from flask_appbuilder import expose
-from .base import BaseSupersetView, catch_exception, json_response
+from .base import BaseSupersetView, PermissionManagement, catch_exception, json_response
 from superset.guardian import guardian_client, guardian_admin
 
 
@@ -14,15 +14,8 @@ def get_request_data():
     return json.loads(str(request.data, encoding='utf-8'))
 
 
-class GuardianView(BaseSupersetView):
+class GuardianView(BaseSupersetView, PermissionManagement):
     route_base = '/guardian'
-    READ_PERM = 'READ'
-    EDIT_PERM = 'EDIT'
-    ADMIN_PERM = 'ADMIN'
-    ALL_PERMS = [READ_PERM, EDIT_PERM, ADMIN_PERM]
-    READ_PERMS = ALL_PERMS
-    EDIT_PERMS = [EDIT_PERM, ADMIN_PERM]
-    ADMIN_PERMS = [ADMIN_PERM, ]
 
     @catch_exception
     @expose('/users/', methods=['GET'])
