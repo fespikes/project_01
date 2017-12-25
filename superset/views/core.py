@@ -10,10 +10,9 @@ import pickle
 import sys
 import time
 import zlib
-from base64 import b64encode
 from datetime import datetime, timedelta
 
-from flask import g, request, redirect, flash, Response, render_template
+from flask import g, request, redirect, flash, Response
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
@@ -21,13 +20,10 @@ from flask_appbuilder.security.sqla.models import User
 
 from sqlalchemy import create_engine, or_
 
-from superset import (
-    app, cache, db, sql_lab, sql_parse, results_backend, viz, utils
-)
+from superset import app, cache, db, sql_lab, results_backend, viz, utils
 from superset.timeout_decorator import connection_timeout
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
-from superset.utils import json_error_response
 from superset.exception import (
     ParameterException, PropertyException, DatabaseException, ErrorUrlException
 )
@@ -37,8 +33,8 @@ from superset.models import (
 )
 from superset.message import *
 from .base import (
-    SupersetModelView, BaseSupersetView, catch_exception, get_user_id,
-    check_ownership, generate_download_headers, json_response, get_error_msg
+    SupersetModelView, catch_exception, BaseSupersetView,
+    check_ownership, json_response
 )
 
 
@@ -76,7 +72,7 @@ class SliceModelView(SupersetModelView):  # noqa
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        dashs = self.get_available_dashboards(get_user_id())
+        dashs = self.get_available_dashboards(g.user.id)
         data['available_dashboards'] = self.dashboards_to_dict(dashs)
         return data
 
@@ -108,7 +104,7 @@ class SliceModelView(SupersetModelView):  # noqa
         self.check_column_values(obj)
 
     def post_update(self, obj):
-        Log.log_update(obj, 'slice', get_user_id())
+        Log.log_update(obj, 'slice', g.user.id)
 
     def pre_delete(self, obj):
         check_ownership(obj)
@@ -119,7 +115,7 @@ class SliceModelView(SupersetModelView):  # noqa
                     FavStar.obj_id == obj.id) \
             .delete(synchronize_session=False)
         db.session.commit()
-        Log.log_delete(obj, 'slice', get_user_id())
+        Log.log_delete(obj, 'slice', g.user.id)
 
     @staticmethod
     def check_column_values(obj):
@@ -147,7 +143,7 @@ class SliceModelView(SupersetModelView):  # noqa
         Changing slice to offline will make it unusable in others' dashboard.
         """
         slice = self.get_object(id)
-        user_id = get_user_id()
+        user_id = g.user.id
         dashboards = [d for d in slice.dashboards
                       if d.online is True and d.created_by_fk != user_id]
         dataset = None
@@ -174,9 +170,8 @@ class SliceModelView(SupersetModelView):  # noqa
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         slice = self.get_object(id)
-        user_id = get_user_id()
         dashboards = [d for d in slice.dashboards
-                      if d.online is True and d.created_by_fk != user_id]
+                      if d.online is True and d.created_by_fk != g.user.id]
         info = _("Changing slice {slice} to offline will make it invisible "
                  "in these dashboards: {dashboard}")\
             .format(slice=[slice, ], dashboard=dashboards)
@@ -213,10 +208,9 @@ class SliceModelView(SupersetModelView):  # noqa
                 .format(ids=ids, num=len(slices))
             )
         dashs = []
-        user_id = get_user_id()
         for s in slices:
             for d in s.dashboards:
-                if d.created_by_fk == user_id or d.online == 1:
+                if d.created_by_fk == g.user.id or d.online == 1:
                     dashs.append(d)
         return {'slice': slices, 'dashboard': dashs}
 
@@ -225,7 +219,7 @@ class SliceModelView(SupersetModelView):  # noqa
         dataset = (
             db.session.query(Dataset)
             .filter(
-                or_(Dataset.created_by_fk == get_user_id(),
+                or_(Dataset.created_by_fk == g.user.id,
                     Dataset.online == 1))
             .order_by(Dataset.id)
             .first()
@@ -337,7 +331,7 @@ class DashboardModelView(SupersetModelView):  # noqa
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        slices = self.get_available_slices(get_user_id())
+        slices = self.get_available_slices(g.user.id)
         data['available_slices'] = self.slices_to_dict(slices)
         return data
 
@@ -347,14 +341,14 @@ class DashboardModelView(SupersetModelView):  # noqa
         utils.validate_json(obj.position_json)
 
     def post_add(self, obj):
-        Log.log_add(obj, 'dashboard', get_user_id())
+        Log.log_add(obj, 'dashboard', g.user.id)
 
     def pre_update(self, obj):
-        # check_ownership(obj)
+
         self.pre_add(obj)
 
     def post_update(self, obj):
-        Log.log_update(obj, 'dashboard', get_user_id())
+        Log.log_update(obj, 'dashboard', g.user.id)
 
     def pre_delete(self, obj):
         check_ownership(obj)
@@ -365,7 +359,7 @@ class DashboardModelView(SupersetModelView):  # noqa
                     FavStar.obj_id == obj.id) \
             .delete(synchronize_session=False)
         db.session.commit()
-        Log.log_delete(obj, 'dashboard', get_user_id())
+        Log.log_delete(obj, 'dashboard', g.user.id)
 
     @staticmethod
     def check_column_values(obj):
@@ -497,13 +491,12 @@ class DashboardModelView(SupersetModelView):  # noqa
             .all()
         connections.extend(databases)
 
-        user_id = get_user_id()
         offline_slices = [s for s in slices
-                          if s.online is False and s.created_by_fk == user_id]
+                          if s.online is False and s.created_by_fk == g.user.id]
         offline_datasets = [d for d in datasets
-                            if d.online is False and d.created_by_fk == user_id]
+                            if d.online is False and d.created_by_fk == g.user.id]
         offline_connections = [c for c in connections
-                               if c.online is False and c.created_by_fk == user_id]
+                               if c.online is False and c.created_by_fk == g.user.id]
 
         info = _("Releasing dashboard {dashboard} will release these too: "
                  "\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}")\
@@ -546,7 +539,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         dash.need_capture = False
         db.session.merge(dash)
         db.session.commit()
-        Log.log_update(dash, 'dashboard', get_user_id())
+        Log.log_update(dash, 'dashboard', g.user.id)
         return json_response(message="Update dashboard [{}] success".format(dash))
 
     @catch_exception
@@ -559,7 +552,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         dash.need_capture = False
         db.session.merge(dash)
         db.session.commit()
-        Log.log_update(dash, 'dashboard', get_user_id())
+        Log.log_update(dash, 'dashboard', g.user.id)
         return json_response(message="Update dashboard [{}] success".format(dash))
 
     @catch_exception
@@ -579,7 +572,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             for dashboard in data['dashboards']:
                 Dashboard.import_obj(
                     dashboard, import_time=current_tt)
-                Log.log('import', dashboard, 'dashboard', get_user_id())
+                Log.log('import', dashboard, 'dashboard', g.user.id)
             db.session.commit()
         return redirect('/dashboard/list/')
 
@@ -589,7 +582,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         ids = request.args.getlist('id')
         return Response(
             Dashboard.export_dashboards(ids),
-            headers=generate_download_headers("pickle"),
+            headers=self.generate_download_headers("pickle"),
             mimetype="application/text")
 
     @staticmethod
@@ -649,7 +642,7 @@ class Superset(BaseSupersetView):
             if obj.online is True:
                 return json_response(message=OBJECT_IS_ONLINE)
             else:
-                self.release_relations(obj, model, get_user_id())
+                self.release_relations(obj, model, g.user.id)
                 return json_response(message=ONLINE_SUCCESS)
         elif action.lower() == 'offline':
             if obj.online is False:
@@ -657,7 +650,7 @@ class Superset(BaseSupersetView):
             else:
                 obj.online = False
                 db.session.commit()
-                Log.log_offline(obj, model, get_user_id())
+                Log.log_offline(obj, model, g.user.id)
                 return json_response(message=OFFLINE_SUCCESS)
         else:
             msg = _('Error request url: [{url}]').format(url=request.url)
@@ -735,7 +728,7 @@ class Superset(BaseSupersetView):
         slice_id = request.args.get('slice_id')
         database_id = request.args.get('database_id')
         full_tb_name = request.args.get('full_tb_name')
-        user_id = get_user_id()
+        user_id = g.user.id
 
         slc = None
         if slice_id:
@@ -787,7 +780,7 @@ class Superset(BaseSupersetView):
             return Response(
                 payload,
                 status=200,
-                headers=generate_download_headers("csv"),
+                headers=self.generate_download_headers("csv"),
                 mimetype="application/csv")
         elif request.args.get("standalone") == "true":
             return self.render_template("superset/standalone.html", viz=viz_obj, standalone_mode=True)
@@ -928,7 +921,7 @@ class Superset(BaseSupersetView):
                 dash.slices.append(slc)
                 dash.need_capture = True
                 db.session.commit()
-                Log.log_update(dash, 'dashboard', get_user_id())
+                Log.log_update(dash, 'dashboard', g.user.id)
             flash(
                 _("Slice [{slice}] was added to dashboard [{dashboard}]").format(
                     slice=slc.slice_name,
@@ -946,7 +939,7 @@ class Superset(BaseSupersetView):
                 dash.slices.append(slc)
                 db.session.add(dash)
                 db.session.commit()
-                Log.log_add(dash, 'dashboard', get_user_id())
+                Log.log_add(dash, 'dashboard', g.user.id)
 
         if request.args.get('goto_dash') == 'true':
             if request.args.get('V2') == 'true':
@@ -962,7 +955,7 @@ class Superset(BaseSupersetView):
         db.session.add(slc)
         db.session.commit()
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
-        Log.log_add(slc, 'slice', get_user_id())
+        Log.log_add(slc, 'slice', g.user.id)
 
     def overwrite_slice(self, slc):
         can_update = check_ownership(slc, raise_if_false=False)
@@ -975,7 +968,7 @@ class Superset(BaseSupersetView):
             flash(_("Slice [{slice}] has been overwritten")
                   .format(slice=slc.slice_name),
                   "info")
-            Log.log_update(slc, 'slice', get_user_id())
+            Log.log_update(slc, 'slice', g.user.id)
 
     @catch_exception
     @expose("/checkbox/<model_view>/<id_>/<attr>/<value>/", methods=['GET'])
@@ -1034,7 +1027,7 @@ class Superset(BaseSupersetView):
         session.add(dash)
         session.commit()
         dash_json = dash.json_data
-        Log.log_add(dash, 'dashboard', get_user_id())
+        Log.log_add(dash, 'dashboard', g.user.id)
         return json_response(data=dash_json)
 
     @catch_exception
@@ -1049,7 +1042,7 @@ class Superset(BaseSupersetView):
         dash.need_capture = True
         session.merge(dash)
         session.commit()
-        Log.log_update(dash, 'dashboard', get_user_id())
+        Log.log_update(dash, 'dashboard', g.user.id)
         return json_response(message="SUCCESS")
 
     @staticmethod
@@ -1139,11 +1132,11 @@ class Superset(BaseSupersetView):
                     )
                 )
             count = 1
-            Log.log('like', obj, class_name.lower(), get_user_id())
+            Log.log('like', obj, class_name.lower(), g.user.id)
         elif action == 'unselect':
             for fav in favs:
                 session.delete(fav)
-            Log.log('dislike', obj, class_name.lower(), get_user_id())
+            Log.log('dislike', obj, class_name.lower(), g.user.id)
         else:
             count = len(favs)
         session.commit()
@@ -1215,7 +1208,7 @@ class Superset(BaseSupersetView):
         table.sql = q.stripped()
         db.session.add(table)
         db.session.commit()
-        Log.log_add(table, 'dataset', get_user_id())
+        Log.log_add(table, 'dataset', g.user.id)
 
         cols = []
         dims = []
@@ -1454,8 +1447,6 @@ class Superset(BaseSupersetView):
     @expose("/queries/<last_updated_ms>/")
     def queries(self, last_updated_ms):
         """Get the updated queries."""
-        user_id = get_user_id()
-
         # Unix time, milliseconds.
         last_updated_ms_int = int(float(last_updated_ms)) if last_updated_ms else 0
 
@@ -1465,7 +1456,7 @@ class Superset(BaseSupersetView):
         sql_queries = (
             db.session.query(Query)
             .filter(
-                Query.user_id == user_id,
+                Query.user_id == g.user.id,
                 Query.changed_on >= last_updated_dt,
                 )
             .all()
@@ -1519,13 +1510,6 @@ class Superset(BaseSupersetView):
         dict_queries = [q.to_dict() for q in sql_queries]
 
         return json_response(data=dict_queries)
-
-    @app.errorhandler(500)
-    def show_traceback(self):
-        return render_template(
-            'superset/traceback.html',
-            error_msg=get_error_msg(),
-        ), 500
 
     @catch_exception
     @expose("/sqllab/")

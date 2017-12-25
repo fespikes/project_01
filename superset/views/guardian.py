@@ -3,15 +3,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import json
-from flask import g, request
+from flask import request
 from flask_appbuilder import expose
 from .base import BaseSupersetView, PermissionManagement, catch_exception, json_response
 from superset.guardian import guardian_client, guardian_admin
-
-
-def get_request_data():
-    return json.loads(str(request.data, encoding='utf-8'))
 
 
 class GuardianView(BaseSupersetView, PermissionManagement):
@@ -39,7 +34,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
             "object_id": 1
         }
         """
-        args = get_request_data()
+        args = self.get_request_data()
         object_type = args.get('object_type')
         object_id = args.get('object_id')
         data = guardian_client.search_permissions([object_type, object_id])
@@ -57,7 +52,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
             "actions": ["READ", "EDIT", "ADMIN"]
         }
         """
-        args = get_request_data()
+        args = self.get_request_data()
         username = args.get('username')
         object_type = args.get('object_type')
         object_id = args.get('object_id')
@@ -78,7 +73,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
             "actions": ["READ", "EDIT", "ADMIN"]
         }
         """
-        args = get_request_data()
+        args = self.get_request_data()
         username = args.get('username')
         object_type = args.get('object_type')
         object_id = args.get('object_id')

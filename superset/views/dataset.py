@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import json
 import requests
 from distutils.util import strtobool
-from flask import request
+from flask import request, g
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
@@ -25,8 +25,7 @@ from superset.models import (
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
 from .base import (
-    SupersetModelView, catch_exception, get_user_id, check_ownership,
-    json_response
+    SupersetModelView, catch_exception, check_ownership, json_response
 )
 
 config = app.config
@@ -175,13 +174,13 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        data['available_databases'] = self.get_available_connections(get_user_id())
+        data['available_databases'] = self.get_available_connections(g.user.id)
         return data
 
     @catch_exception
     @expose('/databases/', methods=['GET', ])
     def addable_databases(self):
-        return json_response(data=self.get_available_databases(get_user_id()))
+        return json_response(data=self.get_available_databases(g.user.id))
 
     @catch_exception
     @expose('/schemas/<database_id>/', methods=['GET', ])
@@ -323,13 +322,12 @@ class DatasetModelView(SupersetModelView):  # noqa
                 .format(ids=ids, num=len(datasets))
             )
         dataset_ids = [d.id for d in datasets]
-        user_id = get_user_id()
         slices = (
             db.session.query(Slice)
                 .filter(
                 Slice.datasource_id.in_(dataset_ids),
                 or_(
-                    Slice.created_by_fk == user_id,
+                    Slice.created_by_fk == g.user.id,
                     Slice.online == 1
                 )
             ).all()
@@ -342,7 +340,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         args = self.get_request_data()
         dataset_type = args.get('dataset_type')
         if dataset_type in Dataset.addable_types:
-            dataset = self.populate_object(None, get_user_id(), args)
+            dataset = self.populate_object(None, g.user.id, args)
             self._add(dataset)
             return json_response(
                 message=ADD_SUCCESS, data={'object_id': dataset.id})
@@ -350,7 +348,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             HDFSTable.cached_file.clear()
             # create hdfs_table
             hdfs_table_view = HDFSTableModelView()
-            hdfs_table = hdfs_table_view.populate_object(None, get_user_id(), args)
+            hdfs_table = hdfs_table_view.populate_object(None, g.user.id, args)
             database = db.session.query(Database) \
                 .filter_by(id=args.get('database_id')) \
                 .first()
@@ -381,7 +379,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     @expose('/show/<pk>/', methods=['GET'])
     def show(self, pk):
         obj = self.get_object(pk)
-        attributes = self.get_show_attributes(obj, get_user_id())
+        attributes = self.get_show_attributes(obj, g.user.id)
         if obj.dataset_type and obj.dataset_type.lower() == 'hdfs':
             hdfs_tb_attr = HDFSTableModelView().get_show_attributes(obj.hdfs_table)
             hdfs_tb_attr.pop('created_by_user')
@@ -397,7 +395,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         dataset = self.get_object(pk)
         dataset_type = dataset.dataset_type
         if dataset_type in Dataset.dataset_types:
-            dataset = self.populate_object(pk, get_user_id(), args)
+            dataset = self.populate_object(pk, g.user.id, args)
             self._edit(dataset)
             return json_response(message=UPDATE_SUCCESS)
         elif dataset_type in HDFSTable.hdfs_table_types:
@@ -517,7 +515,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         table.get_sqla_table_object()
 
     def post_add(self, table):
-        Log.log_add(table, 'dataset', get_user_id())
+        Log.log_add(table, 'dataset', g.user.id)
         table.fetch_metadata()
 
     def update_hdfs_table(self, table, json_date):
@@ -537,13 +535,13 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def post_update(self, table):
         table.fetch_metadata()
-        Log.log_update(table, 'dataset', get_user_id())
+        Log.log_update(table, 'dataset', g.user.id)
 
     def pre_delete(self, table):
         check_ownership(table)
 
     def post_delete(self, table):
-        Log.log_delete(table, 'dataset', get_user_id())
+        Log.log_delete(table, 'dataset', g.user.id)
 
     @staticmethod
     def check_column_values(obj):

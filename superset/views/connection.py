@@ -19,12 +19,11 @@ from sqlalchemy.engine.url import make_url
 from superset import app, db, models
 from superset.timeout_decorator import connection_timeout
 from superset.models import Database, HDFSConnection, Connection, Slice, Log
-from superset.exception import SupersetException, ParameterException
+from superset.exception import ParameterException
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
 from .base import (
-    SupersetModelView, BaseSupersetView, PageMixin, catch_exception,
-    get_user_id, check_ownership, json_response
+    SupersetModelView, BaseSupersetView, PageMixin, catch_exception, check_ownership, json_response
 )
 
 config = app.config
@@ -63,20 +62,20 @@ class DatabaseView(SupersetModelView):  # noqa
         obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
 
     def post_add(self, obj):
-        Log.log_add(obj, 'database', get_user_id())
+        Log.log_add(obj, 'database', g.user.id)
 
     def pre_update(self, obj):
         check_ownership(obj)
         self.pre_add(obj)
 
     def post_update(self, obj):
-        Log.log_update(obj, 'database', get_user_id())
+        Log.log_update(obj, 'database', g.user.id)
 
     def pre_delete(self, obj):
         check_ownership(obj)
 
     def post_delete(self, obj):
-        Log.log_delete(obj, 'database', get_user_id())
+        Log.log_delete(obj, 'database', g.user.id)
 
     @staticmethod
     def check_column_values(obj):
@@ -217,7 +216,7 @@ class DatabaseView(SupersetModelView):  # noqa
         myself slices and online slices based on these online_datasets
         """
         database = self.get_object(id)
-        user_id = get_user_id()
+        user_id = g.user.id
         online_datasets = [d for d in database.dataset if d.online is True]
         myself_datasets = [d for d in database.dataset if d.created_by_fk == user_id]
         online_dataset_ids = [dataset.id for dataset in online_datasets]
@@ -292,20 +291,20 @@ class HDFSConnectionModelView(SupersetModelView):
         self.check_column_values(conn)
 
     def post_add(self, conn):
-        Log.log_add(conn, 'hdfsconnection', get_user_id())
+        Log.log_add(conn, 'hdfsconnection', g.user.id)
 
     def pre_update(self, conn):
         check_ownership(conn)
         self.pre_add(conn)
 
     def post_update(self, conn):
-        Log.log_update(conn, 'hdfsconnection', get_user_id())
+        Log.log_update(conn, 'hdfsconnection', g.user.id)
 
     def pre_delete(self, conn):
         check_ownership(conn)
 
     def post_delete(self, conn):
-        Log.log_delete(conn, 'hdfsconnection', get_user_id())
+        Log.log_delete(conn, 'hdfsconnection', g.user.id)
 
     @staticmethod
     def check_column_values(obj):
@@ -376,7 +375,7 @@ class HDFSConnectionModelView(SupersetModelView):
         myself slices and online slices based on these online_datasets
         """
         hdfs_conn = self.get_object(id)
-        user_id = get_user_id()
+        user_id = g.user.id
         hdfs_tables = hdfs_conn.hdfs_table
         datasets = [t.dataset for t in hdfs_tables if t.dataset]
 
@@ -464,7 +463,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
                 check_ownership(obj)
                 db.session.delete(obj)
                 db.session.commit()
-                Log.log_delete(obj, 'database', get_user_id())
+                Log.log_delete(obj, 'database', g.user.id)
         #
         hdfs_conn_ids = json_data.get('hdfs')
         if hdfs_conn_ids:
@@ -479,7 +478,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
                 check_ownership(obj)
                 db.session.delete(obj)
                 db.session.commit()
-                Log.log_delete(obj, 'hdfsconnection', get_user_id())
+                Log.log_delete(obj, 'hdfsconnection', g.user.id)
 
         return json_response(message=DELETE_SUCCESS)
 
@@ -494,7 +493,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
         json_data = {k.lower(): v for k, v in json_data.items()}
         db_ids = json_data.get('database')
         hdfs_conn_ids = json_data.get('hdfs')
-        user_id = get_user_id()
+        user_id = g.user.id
 
         dbs, hconns, datasets, slices = [], [], [], []
         if db_ids:

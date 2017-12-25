@@ -9,7 +9,7 @@ import functools
 import requests
 from flask import g, request
 from flask_babel import lazy_gettext as _
-from flask_appbuilder import BaseView, expose
+from flask_appbuilder import expose
 
 from fileRobot_client.FileRobotClientFactory import fileRobotClientFactory
 from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
@@ -20,7 +20,7 @@ from superset import app, db
 from superset.message import *
 from superset.exception import SupersetException, ParameterException, LoginException
 from superset.models import HDFSConnection
-from .base import catch_exception, json_response
+from .base import BaseSupersetView, catch_exception, json_response
 
 config = app.config
 
@@ -68,7 +68,7 @@ def ensure_logined(f):
     return functools.update_wrapper(wraps, f)
 
 
-class HDFSBrowser(BaseView):
+class HDFSBrowser(BaseSupersetView):
     route_base = '/hdfs'
 
     def __init__(self):
@@ -215,9 +215,6 @@ class HDFSBrowser(BaseView):
         response = self.client.modify(path, file)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
-
-    def get_request_data(self):
-        return json.loads(str(request.data, encoding='utf-8'))
 
     @staticmethod
     def login_filerobot(hdfs_conn_id=None, httpfs=None):
