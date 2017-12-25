@@ -980,7 +980,7 @@ class HDFSTable(Model, AuditMixinNullable):
         foreign_keys=[dataset_id]
     )
 
-    cached_file = {}
+    cache = {}
 
     def __repr__(self):
         return self.hdfs_path
