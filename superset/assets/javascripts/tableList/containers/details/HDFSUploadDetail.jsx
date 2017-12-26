@@ -393,7 +393,7 @@ class HDFSUploadDetail extends Component {
                     <span>描述：</span>
                     <textarea
                         name="description"
-                        value={dsHDFS.description || ''}
+                        value={dsHDFS.description}
                         className="tp-textarea"
                         required="required"
                         onChange={this.handleChange}
