@@ -33,8 +33,8 @@ from superset.models import (
 )
 from superset.message import *
 from .base import (
-    SupersetModelView, catch_exception, BaseSupersetView,
-    check_ownership, json_response
+    SupersetModelView, BaseSupersetView, PermissionManagement, catch_exception,
+    json_response
 )
 
 
@@ -42,7 +42,7 @@ config = app.config
 QueryStatus = utils.QueryStatus
 
 
-class SliceModelView(SupersetModelView):  # noqa
+class SliceModelView(SupersetModelView, PermissionManagement):
     model = Slice
     datamodel = SQLAInterface(Slice)
     route_base = '/slice'
@@ -100,14 +100,14 @@ class SliceModelView(SupersetModelView):  # noqa
         return objs
 
     def pre_update(self, obj):
-        # check_ownership(obj)
+        self.check_edit_perm(['slice', obj.id])
         self.check_column_values(obj)
 
     def post_update(self, obj):
         Log.log_update(obj, 'slice', g.user.id)
 
     def pre_delete(self, obj):
-        check_ownership(obj)
+        self.check_delete_perm(['slice', obj.id])
 
     def post_delete(self, obj):
         db.session.query(FavStar) \
@@ -116,6 +116,7 @@ class SliceModelView(SupersetModelView):  # noqa
             .delete(synchronize_session=False)
         db.session.commit()
         Log.log_delete(obj, 'slice', g.user.id)
+        self.del_object_permissions(['slice', obj.id])
 
     @staticmethod
     def check_column_values(obj):
@@ -305,7 +306,7 @@ class SliceModelView(SupersetModelView):  # noqa
         return response
 
 
-class DashboardModelView(SupersetModelView):  # noqa
+class DashboardModelView(SupersetModelView, PermissionManagement):
     model = Dashboard
     datamodel = SQLAInterface(Dashboard)
     route_base = '/dashboard'
@@ -342,16 +343,18 @@ class DashboardModelView(SupersetModelView):  # noqa
 
     def post_add(self, obj):
         Log.log_add(obj, 'dashboard', g.user.id)
+        self.add_object_permissions(['dashboard', obj.id])
+        self.grant_owner_permissions(['dashboard', obj.id])
 
     def pre_update(self, obj):
-
+        self.check_edit_perm(['dashboard', obj.id])
         self.pre_add(obj)
 
     def post_update(self, obj):
         Log.log_update(obj, 'dashboard', g.user.id)
 
     def pre_delete(self, obj):
-        check_ownership(obj)
+        self.check_delete_perm(['dashboard', obj.id])
 
     def post_delete(self, obj):
         db.session.query(FavStar) \
@@ -360,6 +363,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             .delete(synchronize_session=False)
         db.session.commit()
         Log.log_delete(obj, 'dashboard', g.user.id)
+        self.del_object_permissions(['dashboard', obj.id])
 
     @staticmethod
     def check_column_values(obj):
@@ -533,20 +537,6 @@ class DashboardModelView(SupersetModelView):  # noqa
     @expose("/upload_image/<id>/", methods=['POST'])
     def upload_image(self, id):
         dash = self.get_object(id)
-        check_ownership(dash)
-        data = request.form.get('image')
-        dash.image = bytes(data, encoding='utf8')
-        dash.need_capture = False
-        db.session.merge(dash)
-        db.session.commit()
-        Log.log_update(dash, 'dashboard', g.user.id)
-        return json_response(message="Update dashboard [{}] success".format(dash))
-
-    @catch_exception
-    @expose("/upload_image/<id>/", methods=['POST'])
-    def upload_image(self, id):
-        dash = self.get_object(id)
-        check_ownership(dash)
         data = request.form.get('image')
         dash.image = bytes(data, encoding='utf8')
         dash.need_capture = False
@@ -585,12 +575,11 @@ class DashboardModelView(SupersetModelView):  # noqa
             headers=self.generate_download_headers("pickle"),
             mimetype="application/text")
 
-    @staticmethod
-    def add_slices_api(dashboard_id, slice_ids):
+    def add_slices_api(self, dashboard_id, slice_ids):
         """Add and save slices to a dashboard"""
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        check_ownership(dash, raise_if_false=True)
+        self.check_edit_perm(['dashboard', dash.id])
         new_slices = session.query(Slice).filter(
             Slice.id.in_(slice_ids))
         dash.slices += new_slices
@@ -600,7 +589,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         return True
 
 
-class Superset(BaseSupersetView):
+class Superset(BaseSupersetView, PermissionManagement):
     route_base = '/p'
 
     def get_viz(self, slice_id=None, args=None,
@@ -636,7 +625,7 @@ class Superset(BaseSupersetView):
                 .format(model=cls.__name__, id=id)
             logging.error(msg)
             return json_response(status=400, message=msg)
-        check_ownership(obj, raise_if_false=True)
+        self.check_release_perm([model, id])
 
         if action.lower() == 'online':
             if obj.online is True:
@@ -760,7 +749,7 @@ class Superset(BaseSupersetView):
 
         # slc perms
         slice_add_perm = True
-        slice_edit_perm = check_ownership(slc, raise_if_false=False)
+        slice_edit_perm = self.check_edit_perm(['slice', slc.id], raise_if_false=False)
         slice_download_perm = True
 
         # handle save or overwrite
@@ -859,8 +848,7 @@ class Superset(BaseSupersetView):
         payload = obj.get_values_for_column(column)
         return json_response(data=payload)
 
-    def save_or_overwrite_slice(
-            self, args, slc, slice_add_perm, slice_edit_perm):
+    def save_or_overwrite_slice(self, args, slc, slice_add_perm, slice_edit_perm):
         """Save or overwrite a slice"""
         slice_name = args.get('slice_name')
         action = args.get('action')
@@ -956,19 +944,16 @@ class Superset(BaseSupersetView):
         db.session.commit()
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         Log.log_add(slc, 'slice', g.user.id)
+        self.add_object_permissions(['slice', slc.id])
+        self.grant_owner_permissions(['slice', slc.id])
 
     def overwrite_slice(self, slc):
-        can_update = check_ownership(slc, raise_if_false=False)
-        if not can_update:
-            flash(_("You cannot overwrite [{slice}]").format(slice=slc), "danger")
-        else:
-            db.session.expunge_all()
-            db.session.merge(slc)
-            db.session.commit()
-            flash(_("Slice [{slice}] has been overwritten")
-                  .format(slice=slc.slice_name),
-                  "info")
-            Log.log_update(slc, 'slice', g.user.id)
+        db.session.expunge_all()
+        db.session.merge(slc)
+        db.session.commit()
+        flash(_("Slice [{slice}] has been overwritten").format(slice=slc.slice_name),
+              "info")
+        Log.log_update(slc, 'slice', g.user.id)
 
     @catch_exception
     @expose("/checkbox/<model_view>/<id_>/<attr>/<value>/", methods=['GET'])
@@ -1028,6 +1013,8 @@ class Superset(BaseSupersetView):
         session.commit()
         dash_json = dash.json_data
         Log.log_add(dash, 'dashboard', g.user.id)
+        self.add_object_permissions(['dashboard', dash.id])
+        self.grant_owner_permissions(['dashboard', dash.id])
         return json_response(data=dash_json)
 
     @catch_exception
@@ -1036,7 +1023,7 @@ class Superset(BaseSupersetView):
         """Save a dashboard's metadata"""
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        # check_ownership(dash, raise_if_false=True)
+        self.check_edit_perm(['dashboard', dash.id])
         data = json.loads(request.form.get('data'))
         self._set_dash_metadata(dash, data)
         dash.need_capture = True
@@ -1069,9 +1056,8 @@ class Superset(BaseSupersetView):
         data = json.loads(request.form.get('data'))
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        # check_ownership(dash, raise_if_false=True)
-        new_slices = session.query(Slice).filter(
-            Slice.id.in_(data['slice_ids']))
+        self.check_edit_perm(['dashboard', dash.id])
+        new_slices = session.query(Slice).filter(Slice.id.in_(data['slice_ids']))
         dash.slices += new_slices
         dash.need_capture = True
         session.merge(dash)
@@ -1172,7 +1158,7 @@ class Superset(BaseSupersetView):
         def dashboard(**kwargs):  # noqa
             pass
         dashboard(dashboard_id=dash.id)
-        dash_edit_perm = True
+        dash_edit_perm = self.check_edit_perm(['dashboard', dash.id])
         dash_save_perm = dash_edit_perm
         standalone = request.args.get("standalone") == "true"
         context = dict(
@@ -1209,6 +1195,8 @@ class Superset(BaseSupersetView):
         db.session.add(table)
         db.session.commit()
         Log.log_add(table, 'dataset', g.user.id)
+        self.add_object_permissions(['dataset', table.id])
+        self.grant_owner_permissions(['dataset', table.id])
 
         cols = []
         dims = []

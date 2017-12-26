@@ -37,7 +37,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
         args = self.get_request_data()
         object_type = args.get('object_type')
         object_id = args.get('object_id')
-        data = guardian_client.search_permissions([object_type, object_id])
+        data = guardian_client.search_object_permissions([object_type, object_id])
         return json_response(data=data)
 
     @catch_exception

@@ -51,45 +51,6 @@ def catch_exception(f):
     return functools.update_wrapper(wraps, f)
 
 
-def check_ownership(obj, raise_if_false=True):
-    """Meant to be used in `pre_update` hooks on models to enforce ownership
-
-    Admin have all access, and other users need to be referenced on either
-    the created_by field that comes with the ``AuditMixin``, or in a field
-    named ``owners`` which is expected to be a one-to-many with the User
-    model. It is meant to be used in the ModelView's pre_update hook in
-    which raising will abort the update.
-    """
-    if not obj:
-        return False
-
-    security_exception = PermissionException(
-        _("You don't have the rights to update [{obj}]").format(obj=obj))
-
-    if g.user.is_anonymous():
-        if raise_if_false:
-            raise security_exception
-        return False
-
-    session = db.create_scoped_session()
-    orig_obj = session.query(obj.__class__).filter_by(id=obj.id).first()
-
-    if (hasattr(orig_obj, 'created_by') and
-            orig_obj.created_by and
-                orig_obj.created_by.username == g.user.username):
-        return True
-    if hasattr(orig_obj, 'owners'):
-        owner_names = (user.username for user in orig_obj.owners)
-        if (g.user and
-                hasattr(g.user, 'username') and
-                    g.user.username in owner_names):
-            return True
-    if raise_if_false:
-        raise security_exception
-    else:
-        return False
-
-
 def json_response(message='', status=200, data='', code=0):
     if isinstance(message, LazyString):
         message = str(message)  # py3
@@ -305,7 +266,6 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
                 .format(ids, len(objs))
             )
         for obj in objs:
-            check_ownership(obj)
             self.datamodel.delete(obj)
             Log.log_delete(obj, self.model.__name__.lower(), g.user.id)
         return json_response(message=DELETE_SUCCESS)

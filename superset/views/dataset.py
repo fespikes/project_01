@@ -25,13 +25,13 @@ from superset.models import (
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
 from .base import (
-    SupersetModelView, catch_exception, check_ownership, json_response
+    SupersetModelView, PermissionManagement, catch_exception, json_response
 )
 
 config = app.config
 
 
-class TableColumnInlineView(SupersetModelView):  # noqa
+class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
     model = TableColumn
     datamodel = SQLAInterface(TableColumn)
     route_base = '/tablecolumn'
@@ -77,11 +77,11 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         self.check_column_values(column)
 
     def pre_update(self, column):
-        check_ownership(column)
+        self.check_edit_perm(['dataset', column.dataset_id])
         self.pre_add(column)
 
     def pre_delete(self, column):
-        check_ownership(column)
+        self.check_delete_perm(['dataset', column.dataset_id])
 
     @staticmethod
     def check_column_values(obj):
@@ -89,7 +89,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
             raise ParameterException(NONE_COLUMN_NAME)
 
 
-class SqlMetricInlineView(SupersetModelView):  # noqa
+class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
     model = SqlMetric
     datamodel = SQLAInterface(SqlMetric)
     route_base = '/sqlmetric'
@@ -133,11 +133,11 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
         self.check_column_values(metric)
 
     def pre_update(self, metric):
-        check_ownership(metric)
+        self.check_edit_perm(['dataset', metric.dataset_id])
         self.pre_add(metric)
 
     def pre_delete(self, metric):
-        check_ownership(metric)
+        self.check_delete_perm(['dataset', metric.dataset_id])
 
     @staticmethod
     def check_column_values(obj):
@@ -147,7 +147,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             raise ParameterException(NONE_METRIC_EXPRESSION)
 
 
-class DatasetModelView(SupersetModelView):  # noqa
+class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     model = Dataset
     datamodel = SQLAInterface(Dataset)
     route_base = '/table'
@@ -516,6 +516,8 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def post_add(self, table):
         Log.log_add(table, 'dataset', g.user.id)
+        self.add_object_permissions(['dataset', table.id])
+        self.grant_owner_permissions(['dataset', table.id])
         table.fetch_metadata()
 
     def update_hdfs_table(self, table, json_date):
@@ -528,7 +530,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         table.fetch_metadata()
 
     def pre_update(self, table):
-        check_ownership(table)
+        self.check_edit_perm(['dataset', table.id])
         self.pre_add(table)
         TableColumnInlineView.datamodel.delete_all(table.ref_columns)
         SqlMetricInlineView.datamodel.delete_all(table.ref_metrics)
@@ -538,10 +540,11 @@ class DatasetModelView(SupersetModelView):  # noqa
         Log.log_update(table, 'dataset', g.user.id)
 
     def pre_delete(self, table):
-        check_ownership(table)
+        self.check_delete_perm(['dataset', table.id])
 
     def post_delete(self, table):
         Log.log_delete(table, 'dataset', g.user.id)
+        self.del_object_permissions(['dataset', table.id])
 
     @staticmethod
     def check_column_values(obj):

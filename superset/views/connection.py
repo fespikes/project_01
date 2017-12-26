@@ -23,13 +23,14 @@ from superset.exception import ParameterException
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
 from .base import (
-    SupersetModelView, BaseSupersetView, PageMixin, catch_exception, check_ownership, json_response
+    SupersetModelView, BaseSupersetView, PageMixin, catch_exception, json_response,
+    PermissionManagement
 )
 
 config = app.config
 
 
-class DatabaseView(SupersetModelView):  # noqa
+class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     model = models.Database
     datamodel = SQLAInterface(models.Database)
     route_base = '/database'
@@ -63,19 +64,22 @@ class DatabaseView(SupersetModelView):  # noqa
 
     def post_add(self, obj):
         Log.log_add(obj, 'database', g.user.id)
+        self.add_object_permissions(['database', obj.id])
+        self.grant_owner_permissions(['database', obj.id])
 
     def pre_update(self, obj):
-        check_ownership(obj)
+        self.check_edit_perm(['database', obj.id])
         self.pre_add(obj)
 
     def post_update(self, obj):
         Log.log_update(obj, 'database', g.user.id)
 
     def pre_delete(self, obj):
-        check_ownership(obj)
+        self.check_delete_perm(['dashboard', obj.id])
 
     def post_delete(self, obj):
         Log.log_delete(obj, 'database', g.user.id)
+        self.del_object_permissions(['dashboard', obj.id])
 
     @staticmethod
     def check_column_values(obj):
@@ -242,7 +246,7 @@ class DatabaseView(SupersetModelView):  # noqa
                 'slice': slices}
 
 
-class HDFSConnectionModelView(SupersetModelView):
+class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     model = models.HDFSConnection
     datamodel = SQLAInterface(models.HDFSConnection)
     route_base = '/hdfsconnection'
@@ -292,19 +296,22 @@ class HDFSConnectionModelView(SupersetModelView):
 
     def post_add(self, conn):
         Log.log_add(conn, 'hdfsconnection', g.user.id)
+        self.add_object_permissions(['hdfsconnection', conn.id])
+        self.grant_owner_permissions(['hdfsconnection', conn.id])
 
     def pre_update(self, conn):
-        check_ownership(conn)
+        self.check_edit_perm(['hdfsconnection', conn.id])
         self.pre_add(conn)
 
     def post_update(self, conn):
         Log.log_update(conn, 'hdfsconnection', g.user.id)
 
     def pre_delete(self, conn):
-        check_ownership(conn)
+        self.check_delete_perm(['hdfsconnection', conn.id])
 
     def post_delete(self, conn):
         Log.log_delete(conn, 'hdfsconnection', g.user.id)
+        self.del_object_permissions(['hdfsconnection', conn.id])
 
     @staticmethod
     def check_column_values(obj):
@@ -420,7 +427,7 @@ class HDFSConnectionModelView(SupersetModelView):
                 status=500)
 
 
-class ConnectionView(BaseSupersetView, PageMixin):
+class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
     """Connection includes Database and HDFSConnection.
     This view just gets the list data of Database and HDFSConnection
     """
@@ -460,7 +467,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
                     .format(ids=db_ids, num=len(objs))
                 )
             for obj in objs:
-                check_ownership(obj)
+                self.check_delete_perm(['database', obj.id])
                 db.session.delete(obj)
                 db.session.commit()
                 Log.log_delete(obj, 'database', g.user.id)
@@ -475,7 +482,7 @@ class ConnectionView(BaseSupersetView, PageMixin):
                     .format(ids=hdfs_conn_ids, num=len(objs))
                 )
             for obj in objs:
-                check_ownership(obj)
+                self.check_delete_perm(['hdfsconnection', obj.id])
                 db.session.delete(obj)
                 db.session.commit()
                 Log.log_delete(obj, 'hdfsconnection', g.user.id)
