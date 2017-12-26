@@ -232,47 +232,42 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         return redirect(redirect_url)
 
     def get_object_list_data(self, **kwargs):
-        """ Return the slices with column 'favorite' and 'online' """
-        user_id = kwargs.get('user_id')
+        """
+        Return the slices with column 'favorite' and 'online'
+        """
         order_column = kwargs.get('order_column')
         order_direction = kwargs.get('order_direction')
         page = kwargs.get('page')
         page_size = kwargs.get('page_size')
-        filter = kwargs.get('filter')
         only_favorite = kwargs.get('only_favorite')
 
-        query = self.query_own_or_online('slice', user_id, only_favorite)
-        if filter:
-            filter_str = '%{}%'.format(filter.lower())
-            query = query.filter(
-                or_(
-                    Slice.slice_name.ilike(filter_str),
-                    Slice.description.ilike(filter_str),
-                    Slice.viz_type.ilike(filter_str),
-                    Slice.datasource_name.ilike(filter_str),
-                    User.username.ilike(filter_str)
-                )
-            )
-        count = query.count()
+        query = self.query_with_favorite('slice', **kwargs)
 
-        if order_column:
-            try:
-                column = self.str_to_column.get(order_column)
-            except KeyError:
-                msg = 'Error order column name: \'{}\''.format(order_column)
-                self.handle_exception(404, KeyError, msg)
-            else:
-                if order_direction == 'desc':
-                    query = query.order_by(column.desc())
-                else:
-                    query = query.order_by(column)
-
-        if page is not None and page >= 0 and page_size and page_size > 0:
-            query = query.limit(page_size).offset(page * page_size)
+        guardian_auth = config.get('GUARDIAN_AUTH', False)
+        readable_ids = None
+        if guardian_auth:
+            from superset.guardian import guardian_client
+            readable_ids = \
+                guardian_client.search_model_permissions(g.user.username, 'slice')
+            count = len(readable_ids)
+        else:
+            count = query.count()
+            if page is not None and page >= 0 and page_size and page_size > 0:
+                query = query.limit(page_size).offset(page * page_size)
 
         rs = query.all()
         data = []
+        index = 0
         for obj, username, fav_id in rs:
+            if guardian_auth:
+                if obj.id in readable_ids:
+                    index += 1
+                    if index <= page * page_size:
+                        continue
+                    elif index > (page+1) * page_size:
+                        break
+                else:
+                    continue
             line = {}
             for col in self.list_columns:
                 if col in self.str_columns:
@@ -371,46 +366,42 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
             raise ParameterException(NONE_DASHBOARD_NAME)
 
     def get_object_list_data(self, **kwargs):
-        """Return the dashbaords with column 'favorite' and 'online'"""
-        user_id = kwargs.get('user_id')
+        """
+        Return the dashbaords with column 'favorite' and 'online'
+        """
         order_column = kwargs.get('order_column')
         order_direction = kwargs.get('order_direction')
         page = kwargs.get('page')
         page_size = kwargs.get('page_size')
-        filter = kwargs.get('filter')
         only_favorite = kwargs.get('only_favorite')
 
-        query = self.query_own_or_online('dashboard', user_id, only_favorite)
-        if filter:
-            filter_str = '%{}%'.format(filter.lower())
-            query = query.filter(
-                or_(
-                    Dashboard.dashboard_title.ilike(filter_str),
-                    Dashboard.description.ilike(filter_str),
-                    #str(Slice.changed_on).contains(filter_str),
-                    User.username.ilike(filter_str)
-                )
-            )
-        count = query.count()
+        query = self.query_with_favorite('dashboard', **kwargs)
 
-        if order_column:
-            try:
-                column = self.str_to_column.get(order_column)
-            except KeyError:
-                msg = _('Error order column name: [{name}]').format(name=order_column)
-                self.handle_exception(404, KeyError, msg)
-            else:
-                if order_direction == 'desc':
-                    query = query.order_by(column.desc())
-                else:
-                    query = query.order_by(column)
-
-        if page is not None and page >= 0 and page_size and page_size > 0:
-            query = query.limit(page_size).offset(page * page_size)
+        guardian_auth = config.get('GUARDIAN_AUTH', False)
+        readable_ids = None
+        if guardian_auth:
+            from superset.guardian import guardian_client
+            readable_ids = \
+                guardian_client.search_model_permissions(g.user.username, 'dashboard')
+            count = len(readable_ids)
+        else:
+            count = query.count()
+            if page is not None and page >= 0 and page_size and page_size > 0:
+                query = query.limit(page_size).offset(page * page_size)
 
         rs = query.all()
         data = []
+        index = 0
         for obj, username, fav_id in rs:
+            if guardian_auth:
+                if obj.id in readable_ids:
+                    index += 1
+                    if index <= page * page_size:
+                        continue
+                    elif index > (page+1) * page_size:
+                        break
+                else:
+                    continue
             line = {}
             for col in self.list_columns:
                 if col in self.str_columns:
