@@ -266,8 +266,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
                 .format(ids, len(objs))
             )
         for obj in objs:
-            self.datamodel.delete(obj)
-            Log.log_delete(obj, self.model.__name__.lower(), g.user.id)
+            self._delete(obj)
         return json_response(message=DELETE_SUCCESS)
 
     def get_addable_choices(self):
@@ -350,12 +349,23 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
                 attributes[col] = value
         return attributes
 
-    def query_own_or_online(self, class_name, user_id, only_favorite):
+    def query_with_favorite(self, class_name, **kwargs):
+        """
+        A query api suitable for dashboard and slice
+        :param class_name: 'dashboard' or 'slice'
+        :param kwargs:
+        :return:
+        """
+        user_id = kwargs.get('user_id')
+        order_column = kwargs.get('order_column')
+        order_direction = kwargs.get('order_direction')
+        filter = kwargs.get('filter')
+        only_favorite = kwargs.get('only_favorite')
+
         query = (
             db.session.query(self.model, User.username, FavStar.obj_id)
                 .outerjoin(User, self.model.created_by_fk == User.id)
         )
-
         if only_favorite:
             query = query.join(
                 FavStar,
@@ -363,7 +373,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
                     self.model.id == FavStar.obj_id,
                     FavStar.class_name.ilike(class_name),
                     FavStar.user_id == user_id)
-                )
+            )
         else:
             query = query.outerjoin(
                 FavStar,
@@ -371,13 +381,32 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
                     self.model.id == FavStar.obj_id,
                     FavStar.class_name.ilike(class_name),
                     FavStar.user_id == user_id)
+            )
+
+        if filter:
+            filter_str = '%{}%'.format(filter.lower())
+            if class_name.lower() == 'dashbaord':
+                query = query.filter(
+                    or_(Dashboard.dashboard_title.ilike(filter_str),
+                        User.username.ilike(filter_str))
+                )
+            elif class_name.lower() == 'slice':
+                query = query.filter(
+                    or_(Slice.slice_name.ilike(filter_str),
+                        User.username.ilike(filter_str))
                 )
 
-        query = query.filter(
-            or_(self.model.created_by_fk == user_id,
-                self.model.online == 1)
-        )
-
+        if order_column:
+            try:
+                column = self.str_to_column.get(order_column)
+            except KeyError:
+                msg = _('Error order column name: [{name}]').format(name=order_column)
+                raise ParameterException(msg)
+            else:
+                if order_direction == 'desc':
+                    query = query.order_by(column.desc())
+                else:
+                    query = query.order_by(column)
         return query
 
     @staticmethod
