@@ -646,9 +646,9 @@ class HDFSTableModelView(SupersetModelView):
                     types.append('{}'.format(col.type).lower())
                 cols_and_types = {'columns': columns, 'types': types}
                 HDFSTable.cache[cols_cache_key] = cols_and_types
-
-            columns = cols_and_types.get("columns")
-            types = cols_and_types.get("types")
+                # just used for first time
+                columns = cols_and_types.get("columns")
+                types = cols_and_types.get("types")
 
         file_cache_key = '{}-{}'.format(hdfs_conn_id, path)
         file = HDFSTable.cache.get(file_cache_key)
@@ -659,19 +659,11 @@ class HDFSTableModelView(SupersetModelView):
             file = self.download_file(client, file_path, size)
             HDFSTable.cache[file_cache_key] = file
 
+        args['names'] = columns if columns else None
         df = HDFSTable.parse_file(file, **args)
 
-        if not dataset_id:
-            columns = list(df.columns)
-            types = ['string'] * len(columns)
-        else:
-            df_columns = list(df.columns)
-            if len(columns) >= len(df_columns):
-                columns = columns[0:len(df_columns)]
-                types = types[0:len(df_columns)]
-            else:
-                columns += df_columns[len(columns):]
-                types += ['string'] * (len(columns) - len(types))
+        columns = list(df.columns)
+        types = types if types else ['string'] * len(columns)
         return json_response(data=dict(records=df.to_dict(orient="records"),
                                        columns=columns,
                                        types=types)
