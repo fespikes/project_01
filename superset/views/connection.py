@@ -103,18 +103,15 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
         database_type = kwargs.get('database_type')
-        user_id = kwargs.get('user_id')
 
         query = db.session.query(Database, User) \
-            .filter(Database.created_by_fk == User.id,
-                    Database.created_by_fk == user_id)
+                .outerjoin(User, Database.created_by_fk == User.id)
 
         if database_type:
             match_str = '{}%'.format(database_type)
             query = query.filter(
                 Database.sqlalchemy_uri.ilike(match_str)
             )
-
         if filter:
             filter_str = '%{}%'.format(filter.lower())
             query = query.filter(
@@ -123,26 +120,43 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
                     User.username.ilike(filter_str)
                 )
             )
-        count = query.count()
-
         if order_column:
             try:
                 column = self.str_to_column.get(order_column)
             except KeyError:
                 msg = _('Error order column name: [{name}]').format(name=order_column)
-                self.handle_exception(404, KeyError, msg)
+                raise ParameterException(msg)
             else:
                 if order_direction == 'desc':
                     query = query.order_by(column.desc())
                 else:
                     query = query.order_by(column)
 
-        if page is not None and page >= 0 and page_size and page_size > 0:
-            query = query.limit(page_size).offset(page * page_size)
+        guardian_auth = config.get('GUARDIAN_AUTH', False)
+        readable_ids = None
+        if guardian_auth:
+            from superset.guardian import guardian_client
+            readable_ids = \
+                guardian_client.search_model_permissions(g.user.username, 'database')
+            count = len(readable_ids)
+        else:
+            count = query.count()
+            if page is not None and page >= 0 and page_size and page_size > 0:
+                query = query.limit(page_size).offset(page * page_size)
 
         rs = query.all()
         data = []
+        index = 0
         for obj, user in rs:
+            if guardian_auth:
+                if obj.id in readable_ids:
+                    index += 1
+                    if index <= page * page_size:
+                        continue
+                    elif index > (page+1) * page_size:
+                        break
+                else:
+                    continue
             line = {}
             for col in self.list_columns:
                 if col in self.str_columns:
@@ -263,20 +277,32 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
         There won't be a lot of hdfs conenctions, so just use 'page_size'
         """
         page_size = kwargs.get('page_size')
-        user_id = kwargs.get('user_id')
+        query = db.session.query(HDFSConnection) \
+            .order_by(HDFSConnection.connection_name.desc())
 
-        query = db.session.query(HDFSConnection, User) \
-            .filter(HDFSConnection.created_by_fk == User.id,
-                    or_(
-                        HDFSConnection.created_by_fk == user_id,
-                        HDFSConnection.online == 1)
-                    )
-        count = query.count()
-        query = query.order_by(HDFSConnection.connection_name.desc()) \
-            .limit(page_size)
+        guardian_auth = config.get('GUARDIAN_AUTH', False)
+        readable_ids = None
+        if guardian_auth:
+            from superset.guardian import guardian_client
+            readable_ids = \
+                guardian_client.search_model_permissions(g.user.username, 'hdfsconnection')
+            count = len(readable_ids)
+        else:
+            count = query.count()
+            if page_size and page_size > 0:
+                query = query.limit(page_size)
 
+        rs = query.all()
         data = []
-        for obj, user in query.all():
+        index = 0
+        for obj in rs:
+            if guardian_auth:
+                if obj.id in readable_ids:
+                    index += 1
+                    if index > page_size:
+                        break
+                else:
+                    continue
             line = {}
             for col in self.list_columns:
                 if col in self.str_columns:
@@ -584,19 +610,13 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
         query = (
             db.session.query(union_q, User.username)
             .outerjoin(User, User.id == union_q.c.user_id)
-            .filter(
-                or_(
-                    union_q.c.user_id == user_id,
-                    union_q.c.online == 1),
-                union_q.c.expose == 1)
+            .filter(union_q.c.expose == 1)
         )
-
         if connection_type:
             match_str = '{}%'.format(connection_type)
             query = query.filter(
                     union_q.c.connection_type.ilike(match_str)
             )
-
         if filter:
             filter_str = '%{}%'.format(filter.lower())
             query = query.filter(
@@ -606,8 +626,6 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
                     User.username.ilike(filter_str)
                 )
             )
-        count = query.count()
-
         if order_column:
             try:
                 column = self.str_to_column(union_q).get(order_column)
@@ -616,16 +634,41 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
                 else:
                     query = query.order_by(column)
             except KeyError:
-                raise ParameterException(_(
-                    'Error order column name: [{name}]').format(name=order_column))
+                msg = _('Error order column name: [{name}]').format(name=order_column)
+                raise ParameterException(msg)
 
-        if page is not None and page >= 0 and page_size and page_size > 0:
-            query = query.limit(page_size).offset(page * page_size)
+        guardian_auth = config.get('GUARDIAN_AUTH', False)
+        readable_db_ids = None
+        readable_hdfs_ids = None
+        if guardian_auth:
+            from superset.guardian import guardian_client
+            username = g.user.username
+            readable_db_ids = \
+                guardian_client.search_model_permissions(username, 'database')
+            readable_hdfs_ids = \
+                guardian_client.search_model_permissions(username, 'hdfsconnection')
+            count = len(readable_db_ids) + len(readable_hdfs_ids)
+        else:
+            count = query.count()
+            if page is not None and page >= 0 and page_size and page_size > 0:
+                query = query.limit(page_size).offset(page * page_size)
 
         rs = query.all()
         data = []
+        index = 0
         for row in rs:
-            type_ = row[5]
+            if guardian_auth:
+                type_ = row[5]
+                if (type_ == 'HDFS' and row[0] in readable_hdfs_ids) \
+                        or (type_ != 'HDFS' and row[0] in readable_db_ids):
+                    index += 1
+                    if index <= page * page_size:
+                        continue
+                    elif index > (page+1) * page_size:
+                        break
+                else:
+                    continue
+
             if type_ != 'HDFS':
                 url = make_url(type_)
                 type_ = url.get_backend_name().upper()
