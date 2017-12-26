@@ -432,7 +432,6 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
         dataset_type = kwargs.get('dataset_type')
-        user_id = kwargs.get('user_id')
 
         query = (
             db.session.query(Dataset, User)
@@ -450,11 +449,6 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
                             HDFSTable.id == None)
                 )
 
-        query = query.filter(
-             or_(Dataset.created_by_fk == user_id,
-                 Dataset.online == 1)
-        )
-
         if filter:
             filter_str = '%{}%'.format(filter.lower())
             query = query.filter(
@@ -463,26 +457,44 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
                     User.username.ilike(filter_str)
                 )
             )
-        count = query.count()
 
         if order_column:
             try:
                 column = self.str_to_column.get(order_column)
             except KeyError:
                 msg = _("Error order column name: [{name}]").format(name=order_column)
-                self.handle_exception(404, KeyError, msg)
+                raise ParameterException(msg)
             else:
                 if order_direction == 'desc':
                     query = query.order_by(column.desc())
                 else:
                     query = query.order_by(column)
 
-        if page is not None and page >= 0 and page_size and page_size > 0:
-            query = query.limit(page_size).offset(page * page_size)
+        guardian_auth = config.get('GUARDIAN_AUTH', False)
+        available_ids = None
+        if guardian_auth:
+            from superset.guardian import guardian_client
+            readable_ids = \
+                guardian_client.search_model_permissions(g.user.username, 'dataset')
+            count = len(readable_ids)
+        else:
+            count = query.count()
+            if page is not None and page >= 0 and page_size and page_size > 0:
+                query = query.limit(page_size).offset(page * page_size)
 
         rs = query.all()
         data = []
+        index = 0
         for obj, user in rs:
+            if guardian_auth:
+                if obj.id in readable_ids:
+                    index += 1
+                    if index <= page * page_size:
+                        continue
+                    elif index > (page+1) * page_size:
+                        break
+                else:
+                    continue
             line = {}
             for col in self.list_columns:
                 if col in self.str_columns:
