@@ -55,7 +55,8 @@ class GuardianBase(object):
             startJVM(getDefaultJVMPath(), '-ea',
                      '-Djava.class.path={}:{}'.format(self.GUARDIAN_JAR,
                                                       self.GUARDIAN_SITE_PATH))
-            attachThreadToJVM()
+            if not isThreadAttachedToJVM():
+                attachThreadToJVM()
 
     def shutdomn_jvm(self):
         shutdownJVM()
