@@ -46,6 +46,11 @@ class GuardianAdmin(GuardianBase):
             self.client.delPermission(perm)
 
     @catch_guardian_exception
+    def del_perm_obj(self, finite_obj):
+        perm_obj = self._perm_obj(finite_obj)
+        self.client.delPermObj(perm_obj)
+
+    @catch_guardian_exception
     def grant(self, name, finite_obj, action, principal_type='USER'):
         if isinstance(action, list):
             for a in action:

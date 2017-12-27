@@ -8,6 +8,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from jpype import *
+from superset.exception import GuardianException
 from .guardian_base import GuardianBase, catch_guardian_exception
 
 
@@ -59,19 +60,15 @@ class GuardianClient(GuardianBase):
         else:
             perm = self._permission(finite_obj, action)
         can = self.client.checkAccess(username, perm)
-        if can:
-            print(True)
-        else:
-            print(False)
+        can = True if can else False
+        return can
 
     @catch_guardian_exception
     def check_any_access(self, username, finite_obj, actions):
         perms = self._permissions(finite_obj, actions)
         can = self.client.checkAnyAccess(username, perms)
-        if can:
-            print(True)
-        else:
-            print(False)
+        can = True if can else False
+        return can
 
     @catch_guardian_exception
     def user_permissions(self, username, component=None, finite_obj=None):
@@ -99,9 +96,9 @@ class GuardianClient(GuardianBase):
                                     perm.getAction()))
 
     @catch_guardian_exception
-    def search_permissions(self, finite_obj, component=None):
+    def search_object_permissions(self, finite_obj, component=None):
         """
-        Search user's permission on a specific object
+        Search users' permission on a specific object
         :param finite_obj: [object_type, object_id], such as ['database', 1]
         :param component: default component in guardian-site.xml
         :return: {user1: [action1,], user2: [action2,action2], }
@@ -122,6 +119,35 @@ class GuardianClient(GuardianBase):
                 else:
                     data[name] = [perm.getAction(), ]
         return data
+
+    @catch_guardian_exception
+    def search_model_permissions(self, username, model, component=None):
+        """
+        Search user's permissions of all objects of one model
+        :param username:
+        :param model: such as 'database', 'dataset', 'slice', 'dashboard' ...
+        :param component:
+        :return: set of ids which has any permissions
+        """
+        component = component if component else self.component
+        datasource = self._datasource([model, ])
+        entity_perms = self.client.searchPermissions(
+            username, self.PrincipalType.USER, component, datasource, True
+        )
+        ids = set()
+        for entity_perm in entity_perms:
+            perm = entity_perm.getPermissionVo()
+            datasource = perm.getDataSource()
+            id = int(datasource[1])
+            if id:
+                # if id in data.keys():
+                #     actions = data.get(id)
+                #     actions.append(perm.getAction())
+                #     data[id] = actions
+                # else:
+                #     data[id] = [perm.getAction(), ]
+                ids.add(id)
+        return sorted(ids)
 
     @catch_guardian_exception
     def get_keytab(self, username):

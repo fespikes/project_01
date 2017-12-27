@@ -10,10 +10,9 @@ import pickle
 import sys
 import time
 import zlib
-from base64 import b64encode
 from datetime import datetime, timedelta
 
-from flask import g, request, redirect, flash, Response, render_template
+from flask import g, request, redirect, flash, Response
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
@@ -21,13 +20,10 @@ from flask_appbuilder.security.sqla.models import User
 
 from sqlalchemy import create_engine, or_
 
-from superset import (
-    app, cache, db, sql_lab, sql_parse, results_backend, viz, utils
-)
+from superset import app, cache, db, sql_lab, results_backend, viz, utils
 from superset.timeout_decorator import connection_timeout
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
-from superset.utils import json_error_response
 from superset.exception import (
     ParameterException, PropertyException, DatabaseException, ErrorUrlException
 )
@@ -37,8 +33,8 @@ from superset.models import (
 )
 from superset.message import *
 from .base import (
-    SupersetModelView, BaseSupersetView, catch_exception, get_user_id,
-    check_ownership, generate_download_headers, json_response, get_error_msg
+    SupersetModelView, BaseSupersetView, PermissionManagement, catch_exception,
+    json_response
 )
 
 
@@ -46,7 +42,7 @@ config = app.config
 QueryStatus = utils.QueryStatus
 
 
-class SliceModelView(SupersetModelView):  # noqa
+class SliceModelView(SupersetModelView, PermissionManagement):
     model = Slice
     datamodel = SQLAInterface(Slice)
     route_base = '/slice'
@@ -76,7 +72,7 @@ class SliceModelView(SupersetModelView):  # noqa
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        dashs = self.get_available_dashboards(get_user_id())
+        dashs = self.get_available_dashboards(g.user.id)
         data['available_dashboards'] = self.dashboards_to_dict(dashs)
         return data
 
@@ -104,14 +100,15 @@ class SliceModelView(SupersetModelView):  # noqa
         return objs
 
     def pre_update(self, obj):
-        # check_ownership(obj)
+        self.check_online(obj)
+        self.check_edit_perm(['slice', obj.id])
         self.check_column_values(obj)
 
     def post_update(self, obj):
-        Log.log_update(obj, 'slice', get_user_id())
+        Log.log_update(obj, 'slice', g.user.id)
 
     def pre_delete(self, obj):
-        check_ownership(obj)
+        self.check_delete_perm(['slice', obj.id])
 
     def post_delete(self, obj):
         db.session.query(FavStar) \
@@ -119,7 +116,8 @@ class SliceModelView(SupersetModelView):  # noqa
                     FavStar.obj_id == obj.id) \
             .delete(synchronize_session=False)
         db.session.commit()
-        Log.log_delete(obj, 'slice', get_user_id())
+        Log.log_delete(obj, 'slice', g.user.id)
+        self.del_object_permissions(['slice', obj.id])
 
     @staticmethod
     def check_column_values(obj):
@@ -129,6 +127,8 @@ class SliceModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
+        slice = self.get_object(id)
+        self.check_release_perm(['slice', id], obj=slice)
         objects = self.online_affect_objects(id)
         info = _("Releasing slice {slice} will release these too: "
                  "\nDataset: {dataset}, \nConnection: {conn}, "
@@ -140,14 +140,13 @@ class SliceModelView(SupersetModelView):  # noqa
                     )
         return json_response(data=info)
 
-    def online_affect_objects(self, id):
+    def online_affect_objects(self, slice):
         """
         Changing slice to online will make offline dataset and connections online,
         and make it usable in others' dashboard.
         Changing slice to offline will make it unusable in others' dashboard.
         """
-        slice = self.get_object(id)
-        user_id = get_user_id()
+        user_id = g.user.id
         dashboards = [d for d in slice.dashboards
                       if d.online is True and d.created_by_fk != user_id]
         dataset = None
@@ -174,9 +173,9 @@ class SliceModelView(SupersetModelView):  # noqa
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         slice = self.get_object(id)
-        user_id = get_user_id()
+        self.check_release_perm(['slice', id], obj=slice)
         dashboards = [d for d in slice.dashboards
-                      if d.online is True and d.created_by_fk != user_id]
+                      if d.online is True and d.created_by_fk != g.user.id]
         info = _("Changing slice {slice} to offline will make it invisible "
                  "in these dashboards: {dashboard}")\
             .format(slice=[slice, ], dashboard=dashboards)
@@ -185,6 +184,8 @@ class SliceModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
+        slice = self.get_object(id)
+        self.check_delete_perm(['slice', id], obj=slice)
         objects = self.delete_affect_objects([id, ])
         info = _("Deleting slice {slice} will remove from these "
                  "dashboards too: {dashboard}")\
@@ -213,10 +214,9 @@ class SliceModelView(SupersetModelView):  # noqa
                 .format(ids=ids, num=len(slices))
             )
         dashs = []
-        user_id = get_user_id()
         for s in slices:
             for d in s.dashboards:
-                if d.created_by_fk == user_id or d.online == 1:
+                if d.created_by_fk == g.user.id or d.online == 1:
                     dashs.append(d)
         return {'slice': slices, 'dashboard': dashs}
 
@@ -225,7 +225,7 @@ class SliceModelView(SupersetModelView):  # noqa
         dataset = (
             db.session.query(Dataset)
             .filter(
-                or_(Dataset.created_by_fk == get_user_id(),
+                or_(Dataset.created_by_fk == g.user.id,
                     Dataset.online == 1))
             .order_by(Dataset.id)
             .first()
@@ -237,47 +237,42 @@ class SliceModelView(SupersetModelView):  # noqa
         return redirect(redirect_url)
 
     def get_object_list_data(self, **kwargs):
-        """ Return the slices with column 'favorite' and 'online' """
-        user_id = kwargs.get('user_id')
+        """
+        Return the slices with column 'favorite' and 'online'
+        """
         order_column = kwargs.get('order_column')
         order_direction = kwargs.get('order_direction')
         page = kwargs.get('page')
         page_size = kwargs.get('page_size')
-        filter = kwargs.get('filter')
         only_favorite = kwargs.get('only_favorite')
 
-        query = self.query_own_or_online('slice', user_id, only_favorite)
-        if filter:
-            filter_str = '%{}%'.format(filter.lower())
-            query = query.filter(
-                or_(
-                    Slice.slice_name.ilike(filter_str),
-                    Slice.description.ilike(filter_str),
-                    Slice.viz_type.ilike(filter_str),
-                    Slice.datasource_name.ilike(filter_str),
-                    User.username.ilike(filter_str)
-                )
-            )
-        count = query.count()
+        query = self.query_with_favorite('slice', **kwargs)
 
-        if order_column:
-            try:
-                column = self.str_to_column.get(order_column)
-            except KeyError:
-                msg = 'Error order column name: \'{}\''.format(order_column)
-                self.handle_exception(404, KeyError, msg)
-            else:
-                if order_direction == 'desc':
-                    query = query.order_by(column.desc())
-                else:
-                    query = query.order_by(column)
-
-        if page is not None and page >= 0 and page_size and page_size > 0:
-            query = query.limit(page_size).offset(page * page_size)
+        guardian_auth = config.get('GUARDIAN_AUTH', False)
+        readable_ids = None
+        if guardian_auth:
+            from superset.guardian import guardian_client
+            readable_ids = \
+                guardian_client.search_model_permissions(g.user.username, 'slice')
+            count = len(readable_ids)
+        else:
+            count = query.count()
+            if page is not None and page >= 0 and page_size and page_size > 0:
+                query = query.limit(page_size).offset(page * page_size)
 
         rs = query.all()
         data = []
+        index = 0
         for obj, username, fav_id in rs:
+            if guardian_auth:
+                if obj.id in readable_ids:
+                    index += 1
+                    if index <= page * page_size:
+                        continue
+                    elif index > (page+1) * page_size:
+                        break
+                else:
+                    continue
             line = {}
             for col in self.list_columns:
                 if col in self.str_columns:
@@ -311,7 +306,7 @@ class SliceModelView(SupersetModelView):  # noqa
         return response
 
 
-class DashboardModelView(SupersetModelView):  # noqa
+class DashboardModelView(SupersetModelView, PermissionManagement):
     model = Dashboard
     datamodel = SQLAInterface(Dashboard)
     route_base = '/dashboard'
@@ -337,7 +332,7 @@ class DashboardModelView(SupersetModelView):  # noqa
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        slices = self.get_available_slices(get_user_id())
+        slices = self.get_available_slices(g.user.id)
         data['available_slices'] = self.slices_to_dict(slices)
         return data
 
@@ -347,17 +342,20 @@ class DashboardModelView(SupersetModelView):  # noqa
         utils.validate_json(obj.position_json)
 
     def post_add(self, obj):
-        Log.log_add(obj, 'dashboard', get_user_id())
+        Log.log_add(obj, 'dashboard', g.user.id)
+        self.add_object_permissions(['dashboard', obj.id])
+        self.grant_owner_permissions(['dashboard', obj.id])
 
     def pre_update(self, obj):
-        # check_ownership(obj)
+        self.check_online(obj)
+        self.check_edit_perm(['dashboard', obj.id])
         self.pre_add(obj)
 
     def post_update(self, obj):
-        Log.log_update(obj, 'dashboard', get_user_id())
+        Log.log_update(obj, 'dashboard', g.user.id)
 
     def pre_delete(self, obj):
-        check_ownership(obj)
+        self.check_delete_perm(['dashboard', obj.id])
 
     def post_delete(self, obj):
         db.session.query(FavStar) \
@@ -365,7 +363,8 @@ class DashboardModelView(SupersetModelView):  # noqa
                     FavStar.obj_id == obj.id) \
             .delete(synchronize_session=False)
         db.session.commit()
-        Log.log_delete(obj, 'dashboard', get_user_id())
+        Log.log_delete(obj, 'dashboard', g.user.id)
+        self.del_object_permissions(['dashboard', obj.id])
 
     @staticmethod
     def check_column_values(obj):
@@ -373,46 +372,42 @@ class DashboardModelView(SupersetModelView):  # noqa
             raise ParameterException(NONE_DASHBOARD_NAME)
 
     def get_object_list_data(self, **kwargs):
-        """Return the dashbaords with column 'favorite' and 'online'"""
-        user_id = kwargs.get('user_id')
+        """
+        Return the dashbaords with column 'favorite' and 'online'
+        """
         order_column = kwargs.get('order_column')
         order_direction = kwargs.get('order_direction')
         page = kwargs.get('page')
         page_size = kwargs.get('page_size')
-        filter = kwargs.get('filter')
         only_favorite = kwargs.get('only_favorite')
 
-        query = self.query_own_or_online('dashboard', user_id, only_favorite)
-        if filter:
-            filter_str = '%{}%'.format(filter.lower())
-            query = query.filter(
-                or_(
-                    Dashboard.dashboard_title.ilike(filter_str),
-                    Dashboard.description.ilike(filter_str),
-                    #str(Slice.changed_on).contains(filter_str),
-                    User.username.ilike(filter_str)
-                )
-            )
-        count = query.count()
+        query = self.query_with_favorite('dashboard', **kwargs)
 
-        if order_column:
-            try:
-                column = self.str_to_column.get(order_column)
-            except KeyError:
-                msg = _('Error order column name: [{name}]').format(name=order_column)
-                self.handle_exception(404, KeyError, msg)
-            else:
-                if order_direction == 'desc':
-                    query = query.order_by(column.desc())
-                else:
-                    query = query.order_by(column)
-
-        if page is not None and page >= 0 and page_size and page_size > 0:
-            query = query.limit(page_size).offset(page * page_size)
+        guardian_auth = config.get('GUARDIAN_AUTH', False)
+        readable_ids = None
+        if guardian_auth:
+            from superset.guardian import guardian_client
+            readable_ids = \
+                guardian_client.search_model_permissions(g.user.username, 'dashboard')
+            count = len(readable_ids)
+        else:
+            count = query.count()
+            if page is not None and page >= 0 and page_size and page_size > 0:
+                query = query.limit(page_size).offset(page * page_size)
 
         rs = query.all()
         data = []
+        index = 0
         for obj, username, fav_id in rs:
+            if guardian_auth:
+                if obj.id in readable_ids:
+                    index += 1
+                    if index <= page * page_size:
+                        continue
+                    elif index > (page+1) * page_size:
+                        break
+                else:
+                    continue
             line = {}
             for col in self.list_columns:
                 if col in self.str_columns:
@@ -471,12 +466,9 @@ class DashboardModelView(SupersetModelView):  # noqa
         Changing dashboard to online will make myself slices,_datasets and
         connections online.
         """
-        dashboard = db.session.query(Dashboard).filter_by(id=id).first()
-        if not dashboard:
-            raise ParameterException(_(
-                "Error parameter ids: {ids}, queried {num} dashboard(s)")
-                .format(ids=[id, ], num=0)
-            )
+        dashboard = self.get_object(id)
+        self.check_release_perm(['dashboard', id], obj=dashboard)
+
         slices = dashboard.slices
         datasets = []
         database_ids = []
@@ -497,13 +489,12 @@ class DashboardModelView(SupersetModelView):  # noqa
             .all()
         connections.extend(databases)
 
-        user_id = get_user_id()
         offline_slices = [s for s in slices
-                          if s.online is False and s.created_by_fk == user_id]
+                          if s.online is False and s.created_by_fk == g.user.id]
         offline_datasets = [d for d in datasets
-                            if d.online is False and d.created_by_fk == user_id]
+                            if d.online is False and d.created_by_fk == g.user.id]
         offline_connections = [c for c in connections
-                               if c.online is False and c.created_by_fk == user_id]
+                               if c.online is False and c.created_by_fk == g.user.id]
 
         info = _("Releasing dashboard {dashboard} will release these too: "
                  "\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}")\
@@ -516,12 +507,8 @@ class DashboardModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        dash = db.session.query(Dashboard).filter_by(id=id).first()
-        if not dash:
-            raise ErrorUrlException(
-                _("Error parameter ids: {ids}, queried {num} dashboard(s)")
-                .format(ids=[id, ], num=0)
-            )
+        dash = self.get_object(id)
+        self.check_release_perm(['dashboard', id], obj=dash)
         info = _("Changing dashboard {dashboard} to offline will make it invisible "
                  "for other users").format(dashboard=[dash, ])
         return json_response(data=info)
@@ -529,6 +516,8 @@ class DashboardModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
+        dash = self.get_object(id)
+        self.check_delete_perm(['dashboard', id], obj=dash)
         return json_response(data='')
 
     @catch_exception
@@ -540,26 +529,12 @@ class DashboardModelView(SupersetModelView):  # noqa
     @expose("/upload_image/<id>/", methods=['POST'])
     def upload_image(self, id):
         dash = self.get_object(id)
-        check_ownership(dash)
         data = request.form.get('image')
         dash.image = bytes(data, encoding='utf8')
         dash.need_capture = False
         db.session.merge(dash)
         db.session.commit()
-        Log.log_update(dash, 'dashboard', get_user_id())
-        return json_response(message="Update dashboard [{}] success".format(dash))
-
-    @catch_exception
-    @expose("/upload_image/<id>/", methods=['POST'])
-    def upload_image(self, id):
-        dash = self.get_object(id)
-        check_ownership(dash)
-        data = request.form.get('image')
-        dash.image = bytes(data, encoding='utf8')
-        dash.need_capture = False
-        db.session.merge(dash)
-        db.session.commit()
-        Log.log_update(dash, 'dashboard', get_user_id())
+        Log.log_update(dash, 'dashboard', g.user.id)
         return json_response(message="Update dashboard [{}] success".format(dash))
 
     @catch_exception
@@ -579,7 +554,7 @@ class DashboardModelView(SupersetModelView):  # noqa
             for dashboard in data['dashboards']:
                 Dashboard.import_obj(
                     dashboard, import_time=current_tt)
-                Log.log('import', dashboard, 'dashboard', get_user_id())
+                Log.log('import', dashboard, 'dashboard', g.user.id)
             db.session.commit()
         return redirect('/dashboard/list/')
 
@@ -589,15 +564,14 @@ class DashboardModelView(SupersetModelView):  # noqa
         ids = request.args.getlist('id')
         return Response(
             Dashboard.export_dashboards(ids),
-            headers=generate_download_headers("pickle"),
+            headers=self.generate_download_headers("pickle"),
             mimetype="application/text")
 
-    @staticmethod
-    def add_slices_api(dashboard_id, slice_ids):
+    def add_slices_api(self, dashboard_id, slice_ids):
         """Add and save slices to a dashboard"""
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        check_ownership(dash, raise_if_false=True)
+        self.check_edit_perm(['dashboard', dash.id])
         new_slices = session.query(Slice).filter(
             Slice.id.in_(slice_ids))
         dash.slices += new_slices
@@ -607,7 +581,7 @@ class DashboardModelView(SupersetModelView):  # noqa
         return True
 
 
-class Superset(BaseSupersetView):
+class Superset(BaseSupersetView, PermissionManagement):
     route_base = '/p'
 
     def get_viz(self, slice_id=None, args=None,
@@ -643,13 +617,13 @@ class Superset(BaseSupersetView):
                 .format(model=cls.__name__, id=id)
             logging.error(msg)
             return json_response(status=400, message=msg)
-        check_ownership(obj, raise_if_false=True)
+        self.check_release_perm([model, id])
 
         if action.lower() == 'online':
             if obj.online is True:
                 return json_response(message=OBJECT_IS_ONLINE)
             else:
-                self.release_relations(obj, model, get_user_id())
+                self.release_relations(obj, model, g.user.id)
                 return json_response(message=ONLINE_SUCCESS)
         elif action.lower() == 'offline':
             if obj.online is False:
@@ -657,7 +631,7 @@ class Superset(BaseSupersetView):
             else:
                 obj.online = False
                 db.session.commit()
-                Log.log_offline(obj, model, get_user_id())
+                Log.log_offline(obj, model, g.user.id)
                 return json_response(message=OFFLINE_SUCCESS)
         else:
             msg = _('Error request url: [{url}]').format(url=request.url)
@@ -735,7 +709,7 @@ class Superset(BaseSupersetView):
         slice_id = request.args.get('slice_id')
         database_id = request.args.get('database_id')
         full_tb_name = request.args.get('full_tb_name')
-        user_id = get_user_id()
+        user_id = g.user.id
 
         slc = None
         if slice_id:
@@ -767,7 +741,7 @@ class Superset(BaseSupersetView):
 
         # slc perms
         slice_add_perm = True
-        slice_edit_perm = check_ownership(slc, raise_if_false=False)
+        slice_edit_perm = self.check_edit_perm(['slice', slc.id], raise_if_false=False)
         slice_download_perm = True
 
         # handle save or overwrite
@@ -787,7 +761,7 @@ class Superset(BaseSupersetView):
             return Response(
                 payload,
                 status=200,
-                headers=generate_download_headers("csv"),
+                headers=self.generate_download_headers("csv"),
                 mimetype="application/csv")
         elif request.args.get("standalone") == "true":
             return self.render_template("superset/standalone.html", viz=viz_obj, standalone_mode=True)
@@ -866,8 +840,7 @@ class Superset(BaseSupersetView):
         payload = obj.get_values_for_column(column)
         return json_response(data=payload)
 
-    def save_or_overwrite_slice(
-            self, args, slc, slice_add_perm, slice_edit_perm):
+    def save_or_overwrite_slice(self, args, slc, slice_add_perm, slice_edit_perm):
         """Save or overwrite a slice"""
         slice_name = args.get('slice_name')
         action = args.get('action')
@@ -928,7 +901,7 @@ class Superset(BaseSupersetView):
                 dash.slices.append(slc)
                 dash.need_capture = True
                 db.session.commit()
-                Log.log_update(dash, 'dashboard', get_user_id())
+                Log.log_update(dash, 'dashboard', g.user.id)
             flash(
                 _("Slice [{slice}] was added to dashboard [{dashboard}]").format(
                     slice=slc.slice_name,
@@ -946,7 +919,7 @@ class Superset(BaseSupersetView):
                 dash.slices.append(slc)
                 db.session.add(dash)
                 db.session.commit()
-                Log.log_add(dash, 'dashboard', get_user_id())
+                Log.log_add(dash, 'dashboard', g.user.id)
 
         if request.args.get('goto_dash') == 'true':
             if request.args.get('V2') == 'true':
@@ -962,20 +935,17 @@ class Superset(BaseSupersetView):
         db.session.add(slc)
         db.session.commit()
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
-        Log.log_add(slc, 'slice', get_user_id())
+        Log.log_add(slc, 'slice', g.user.id)
+        self.add_object_permissions(['slice', slc.id])
+        self.grant_owner_permissions(['slice', slc.id])
 
     def overwrite_slice(self, slc):
-        can_update = check_ownership(slc, raise_if_false=False)
-        if not can_update:
-            flash(_("You cannot overwrite [{slice}]").format(slice=slc), "danger")
-        else:
-            db.session.expunge_all()
-            db.session.merge(slc)
-            db.session.commit()
-            flash(_("Slice [{slice}] has been overwritten")
-                  .format(slice=slc.slice_name),
-                  "info")
-            Log.log_update(slc, 'slice', get_user_id())
+        db.session.expunge_all()
+        db.session.merge(slc)
+        db.session.commit()
+        flash(_("Slice [{slice}] has been overwritten").format(slice=slc.slice_name),
+              "info")
+        Log.log_update(slc, 'slice', g.user.id)
 
     @catch_exception
     @expose("/checkbox/<model_view>/<id_>/<attr>/<value>/", methods=['GET'])
@@ -1034,7 +1004,9 @@ class Superset(BaseSupersetView):
         session.add(dash)
         session.commit()
         dash_json = dash.json_data
-        Log.log_add(dash, 'dashboard', get_user_id())
+        Log.log_add(dash, 'dashboard', g.user.id)
+        self.add_object_permissions(['dashboard', dash.id])
+        self.grant_owner_permissions(['dashboard', dash.id])
         return json_response(data=dash_json)
 
     @catch_exception
@@ -1043,13 +1015,13 @@ class Superset(BaseSupersetView):
         """Save a dashboard's metadata"""
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        # check_ownership(dash, raise_if_false=True)
+        self.check_edit_perm(['dashboard', dash.id])
         data = json.loads(request.form.get('data'))
         self._set_dash_metadata(dash, data)
         dash.need_capture = True
         session.merge(dash)
         session.commit()
-        Log.log_update(dash, 'dashboard', get_user_id())
+        Log.log_update(dash, 'dashboard', g.user.id)
         return json_response(message="SUCCESS")
 
     @staticmethod
@@ -1076,9 +1048,8 @@ class Superset(BaseSupersetView):
         data = json.loads(request.form.get('data'))
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        # check_ownership(dash, raise_if_false=True)
-        new_slices = session.query(Slice).filter(
-            Slice.id.in_(data['slice_ids']))
+        self.check_edit_perm(['dashboard', dash.id])
+        new_slices = session.query(Slice).filter(Slice.id.in_(data['slice_ids']))
         dash.slices += new_slices
         dash.need_capture = True
         session.merge(dash)
@@ -1139,11 +1110,11 @@ class Superset(BaseSupersetView):
                     )
                 )
             count = 1
-            Log.log('like', obj, class_name.lower(), get_user_id())
+            Log.log('like', obj, class_name.lower(), g.user.id)
         elif action == 'unselect':
             for fav in favs:
                 session.delete(fav)
-            Log.log('dislike', obj, class_name.lower(), get_user_id())
+            Log.log('dislike', obj, class_name.lower(), g.user.id)
         else:
             count = len(favs)
         session.commit()
@@ -1179,7 +1150,7 @@ class Superset(BaseSupersetView):
         def dashboard(**kwargs):  # noqa
             pass
         dashboard(dashboard_id=dash.id)
-        dash_edit_perm = True
+        dash_edit_perm = self.check_edit_perm(['dashboard', dash.id])
         dash_save_perm = dash_edit_perm
         standalone = request.args.get("standalone") == "true"
         context = dict(
@@ -1215,7 +1186,9 @@ class Superset(BaseSupersetView):
         table.sql = q.stripped()
         db.session.add(table)
         db.session.commit()
-        Log.log_add(table, 'dataset', get_user_id())
+        Log.log_add(table, 'dataset', g.user.id)
+        self.add_object_permissions(['dataset', table.id])
+        self.grant_owner_permissions(['dataset', table.id])
 
         cols = []
         dims = []
@@ -1454,8 +1427,6 @@ class Superset(BaseSupersetView):
     @expose("/queries/<last_updated_ms>/")
     def queries(self, last_updated_ms):
         """Get the updated queries."""
-        user_id = get_user_id()
-
         # Unix time, milliseconds.
         last_updated_ms_int = int(float(last_updated_ms)) if last_updated_ms else 0
 
@@ -1465,7 +1436,7 @@ class Superset(BaseSupersetView):
         sql_queries = (
             db.session.query(Query)
             .filter(
-                Query.user_id == user_id,
+                Query.user_id == g.user.id,
                 Query.changed_on >= last_updated_dt,
                 )
             .all()
@@ -1519,13 +1490,6 @@ class Superset(BaseSupersetView):
         dict_queries = [q.to_dict() for q in sql_queries]
 
         return json_response(data=dict_queries)
-
-    @app.errorhandler(500)
-    def show_traceback(self):
-        return render_template(
-            'superset/traceback.html',
-            error_msg=get_error_msg(),
-        ), 500
 
     @catch_exception
     @expose("/sqllab/")

@@ -3,16 +3,15 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import json
-from flask import g, request
-from flask_appbuilder import BaseView, expose
+from flask import g
+from flask_appbuilder import expose
 from superset.exception import SupersetException
 from superset import sm
 from superset.message import *
-from .base import catch_exception, json_response
+from .base import BaseSupersetView, catch_exception, json_response
 
 
-class UserView(BaseView):
+class UserView(BaseSupersetView):
     route_base = '/user'
     default_role = 'Admin'
     list_columns = ['id', 'username', 'email', 'last_login']
@@ -88,10 +87,6 @@ class UserView(BaseView):
         return json_response(message=DELETE_SUCCESS, status=500)
 
     @classmethod
-    def get_request_data(cls):
-        return json.loads(str(request.data, encoding='utf-8'))
-
-    @classmethod
     def check_permission(cls, user, action):
         present_id = g.user.get_user_id()
         if action == 'edit':
@@ -108,7 +103,7 @@ class UserView(BaseView):
             raise SupersetException('Error action [{}]'.format(action))
 
 
-class PresentUserView(BaseView):
+class PresentUserView(BaseSupersetView):
     route_base = '/present_user'
 
     @catch_exception

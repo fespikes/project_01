@@ -18,7 +18,7 @@ from sqlalchemy import func, and_, or_
 from superset import appbuilder, db
 from superset.models import Slice, Dashboard, FavStar, Log, str_to_model
 from superset.exception import ParameterException
-from .base import BaseSupersetView, catch_exception, json_response, get_user_id
+from .base import BaseSupersetView, catch_exception, json_response
 
 
 class Home(BaseSupersetView):
@@ -318,9 +318,8 @@ class Home(BaseSupersetView):
     @catch_exception
     @expose('/edits/slice/')
     def get_edited_slices_by_url(self):
-        user_id = get_user_id()
         kwargs = self.get_request_args(request.args)
-        kwargs['user_id'] = user_id
+        kwargs['user_id'] = g.user.id
         count, data = self.get_edited_slices(**kwargs)
 
         status_ = self.status
@@ -342,9 +341,8 @@ class Home(BaseSupersetView):
     @catch_exception
     @expose('/edits/dashboard/')
     def get_edited_dashboards_by_url(self):
-        user_id = get_user_id()
         kwargs = self.get_request_args(request.args)
-        kwargs['user_id'] = user_id
+        kwargs['user_id'] = g.user.id
         count, data = self.get_edited_dashboards(**kwargs)
 
         status_ = self.status
@@ -436,9 +434,8 @@ class Home(BaseSupersetView):
     @catch_exception
     @expose('/actions/')
     def get_user_actions_by_url(self):
-        user_id = get_user_id()
         kwargs = self.get_request_args(request.args)
-        kwargs['user_id'] = user_id
+        kwargs['user_id'] = g.user.id
         kwargs['types'] = request.args.get('types', self.default_types.get('actions'))
 
         if not isinstance(kwargs['types'], list) or len(kwargs['types']) < 1:
@@ -474,7 +471,7 @@ class Home(BaseSupersetView):
     @catch_exception
     @expose('/alldata/')
     def get_all_statistics_data(self):
-        user_id = get_user_id()
+        user_id = g.user.id
         response = {}
         #
         types = self.default_types.get('counts')

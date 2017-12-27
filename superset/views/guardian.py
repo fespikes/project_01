@@ -3,26 +3,14 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import json
-from flask import g, request
+from flask import request
 from flask_appbuilder import expose
-from .base import BaseSupersetView, catch_exception, json_response
+from .base import BaseSupersetView, PermissionManagement, catch_exception, json_response
 from superset.guardian import guardian_client, guardian_admin
 
 
-def get_request_data():
-    return json.loads(str(request.data, encoding='utf-8'))
-
-
-class GuardianView(BaseSupersetView):
+class GuardianView(BaseSupersetView, PermissionManagement):
     route_base = '/guardian'
-    READ_PERM = 'READ'
-    EDIT_PERM = 'EDIT'
-    ADMIN_PERM = 'ADMIN'
-    ALL_PERMS = [READ_PERM, EDIT_PERM, ADMIN_PERM]
-    READ_PERMS = ALL_PERMS
-    EDIT_PERMS = [EDIT_PERM, ADMIN_PERM]
-    ADMIN_PERMS = [ADMIN_PERM, ]
 
     @catch_exception
     @expose('/users/', methods=['GET'])
@@ -46,10 +34,10 @@ class GuardianView(BaseSupersetView):
             "object_id": 1
         }
         """
-        args = get_request_data()
+        args = self.get_request_data()
         object_type = args.get('object_type')
         object_id = args.get('object_id')
-        data = guardian_client.search_permissions([object_type, object_id])
+        data = guardian_client.search_object_permissions([object_type, object_id])
         return json_response(data=data)
 
     @catch_exception
@@ -64,11 +52,12 @@ class GuardianView(BaseSupersetView):
             "actions": ["READ", "EDIT", "ADMIN"]
         }
         """
-        args = get_request_data()
+        args = self.get_request_data()
         username = args.get('username')
         object_type = args.get('object_type')
         object_id = args.get('object_id')
         actions = args.get('actions')
+        self.check_grant_perm([object_type, object_id])
         guardian_admin.grant(username, [object_type, object_id], actions)
         return json_response(message="Grant [{}] actions {} on object {} success."
                              .format(username, actions, [object_type, object_id]))
@@ -85,11 +74,12 @@ class GuardianView(BaseSupersetView):
             "actions": ["READ", "EDIT", "ADMIN"]
         }
         """
-        args = get_request_data()
+        args = self.get_request_data()
         username = args.get('username')
         object_type = args.get('object_type')
         object_id = args.get('object_id')
         actions = args.get('actions')
+        self.check_grant_perm([object_type, object_id])
         guardian_admin.revoke(username, [object_type, object_id], actions)
         return json_response(message="Revoke [{}] actions {} from object {} success."
                              .format(username, actions, [object_type, object_id]))

@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import json
 import requests
 from distutils.util import strtobool
-from flask import request
+from flask import request, g
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
@@ -26,14 +26,13 @@ from superset.models import (
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
 from .base import (
-    SupersetModelView, catch_exception, get_user_id, check_ownership,
-    json_response
+    SupersetModelView, PermissionManagement, catch_exception, json_response
 )
 
 config = app.config
 
 
-class TableColumnInlineView(SupersetModelView):  # noqa
+class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
     model = TableColumn
     datamodel = SQLAInterface(TableColumn)
     route_base = '/tablecolumn'
@@ -79,11 +78,12 @@ class TableColumnInlineView(SupersetModelView):  # noqa
         self.check_column_values(column)
 
     def pre_update(self, column):
-        check_ownership(column)
+        self.check_online(column.dataset)
+        self.check_edit_perm(['dataset', column.dataset_id])
         self.pre_add(column)
 
     def pre_delete(self, column):
-        check_ownership(column)
+        self.check_delete_perm(['dataset', column.dataset_id])
 
     @staticmethod
     def check_column_values(obj):
@@ -91,7 +91,7 @@ class TableColumnInlineView(SupersetModelView):  # noqa
             raise ParameterException(NONE_COLUMN_NAME)
 
 
-class SqlMetricInlineView(SupersetModelView):  # noqa
+class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
     model = SqlMetric
     datamodel = SQLAInterface(SqlMetric)
     route_base = '/sqlmetric'
@@ -135,11 +135,12 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
         self.check_column_values(metric)
 
     def pre_update(self, metric):
-        check_ownership(metric)
+        self.check_online(metric.dataset)
+        self.check_edit_perm(['dataset', metric.dataset_id])
         self.pre_add(metric)
 
     def pre_delete(self, metric):
-        check_ownership(metric)
+        self.check_delete_perm(['dataset', metric.dataset_id])
 
     @staticmethod
     def check_column_values(obj):
@@ -149,7 +150,7 @@ class SqlMetricInlineView(SupersetModelView):  # noqa
             raise ParameterException(NONE_METRIC_EXPRESSION)
 
 
-class DatasetModelView(SupersetModelView):  # noqa
+class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     model = Dataset
     datamodel = SQLAInterface(Dataset)
     route_base = '/table'
@@ -176,13 +177,13 @@ class DatasetModelView(SupersetModelView):  # noqa
 
     def get_addable_choices(self):
         data = super().get_addable_choices()
-        data['available_databases'] = self.get_available_connections(get_user_id())
+        data['available_databases'] = self.get_available_connections(g.user.id)
         return data
 
     @catch_exception
     @expose('/databases/', methods=['GET', ])
     def addable_databases(self):
-        return json_response(data=self.get_available_databases(get_user_id()))
+        return json_response(data=self.get_available_databases(g.user.id))
 
     @catch_exception
     @expose('/schemas/<database_id>/', methods=['GET', ])
@@ -249,7 +250,9 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        objects = self.release_affect_objects(id)
+        dataset = self.get_object(id)
+        self.check_release_perm(['dataset', id], obj=dataset)
+        objects = self.release_affect_objects(dataset)
         info = _("Releasing dataset {dataset} will release connection {connection}, "
                  "\nand make these slices usable for others: {slice}")\
             .format(dataset=objects.get('dataset'),
@@ -261,7 +264,9 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.release_affect_objects(id)
+        dataset = self.get_object(id)
+        self.check_release_perm(['dataset', id], obj=dataset)
+        objects = self.release_affect_objects(dataset)
         info = _("Changing dataset {dataset} to offline will make these "
                  "slices unusable for others: {slice}")\
             .format(dataset=objects.get('dataset'),
@@ -269,13 +274,12 @@ class DatasetModelView(SupersetModelView):  # noqa
                     )
         return json_response(data=info)
 
-    def release_affect_objects(self, id):
+    def release_affect_objects(self, dataset):
         """
         Changing dataset to online will make offline_connection online,
         and make online_slices based on it usable.
         Changing dataset to offline will make online_slices based on it unusable.
         """
-        dataset = self.get_object(id)
         slices = (
             db.session.query(Slice)
             .filter(
@@ -294,6 +298,8 @@ class DatasetModelView(SupersetModelView):  # noqa
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
+        dataset = self.get_object(id)
+        self.check_delete_perm(['dataset', id], obj=dataset)
         objects = self.delete_affect_objects([id, ])
         info = _("Deleting datasets {dataset} will make these slices unusable: {slice}")\
             .format(dataset=objects.get('dataset'),
@@ -324,13 +330,12 @@ class DatasetModelView(SupersetModelView):  # noqa
                 .format(ids=ids, num=len(datasets))
             )
         dataset_ids = [d.id for d in datasets]
-        user_id = get_user_id()
         slices = (
             db.session.query(Slice)
                 .filter(
                 Slice.datasource_id.in_(dataset_ids),
                 or_(
-                    Slice.created_by_fk == user_id,
+                    Slice.created_by_fk == g.user.id,
                     Slice.online == 1
                 )
             ).all()
@@ -343,7 +348,7 @@ class DatasetModelView(SupersetModelView):  # noqa
         args = self.get_request_data()
         dataset_type = args.get('dataset_type')
         if dataset_type in Dataset.addable_types:
-            dataset = self.populate_object(None, get_user_id(), args)
+            dataset = self.populate_object(None, g.user.id, args)
             self._add(dataset)
             return json_response(
                 message=ADD_SUCCESS, data={'object_id': dataset.id})
@@ -351,7 +356,7 @@ class DatasetModelView(SupersetModelView):  # noqa
             HDFSTable.cache.clear()
             # create hdfs_table
             hdfs_table_view = HDFSTableModelView()
-            hdfs_table = hdfs_table_view.populate_object(None, get_user_id(), args)
+            hdfs_table = hdfs_table_view.populate_object(None, g.user.id, args)
             database = db.session.query(Database) \
                 .filter_by(id=args.get('database_id')) \
                 .first()
@@ -382,7 +387,7 @@ class DatasetModelView(SupersetModelView):  # noqa
     @expose('/show/<pk>/', methods=['GET'])
     def show(self, pk):
         obj = self.get_object(pk)
-        attributes = self.get_show_attributes(obj, get_user_id())
+        attributes = self.get_show_attributes(obj, g.user.id)
         if obj.dataset_type and obj.dataset_type.lower() == 'hdfs':
             hdfs_tb_attr = HDFSTableModelView().get_show_attributes(obj.hdfs_table)
             hdfs_tb_attr.pop('created_by_user')
@@ -395,9 +400,11 @@ class DatasetModelView(SupersetModelView):  # noqa
     def edit(self, pk):
         args = self.get_request_data()
         dataset = self.get_object(pk)
+        self.check_online(dataset)
+
         dataset_type = dataset.dataset_type
         if dataset_type in Dataset.dataset_types:
-            dataset = self.populate_object(pk, get_user_id(), args)
+            dataset = self.populate_object(pk, g.user.id, args)
             self._edit(dataset)
             return json_response(message=UPDATE_SUCCESS)
         elif dataset_type in HDFSTable.hdfs_table_types:
@@ -458,7 +465,6 @@ class DatasetModelView(SupersetModelView):  # noqa
         page_size = kwargs.get('page_size')
         filter = kwargs.get('filter')
         dataset_type = kwargs.get('dataset_type')
-        user_id = kwargs.get('user_id')
 
         query = (
             db.session.query(Dataset, User)
@@ -476,11 +482,6 @@ class DatasetModelView(SupersetModelView):  # noqa
                             HDFSTable.id == None)
                 )
 
-        query = query.filter(
-             or_(Dataset.created_by_fk == user_id,
-                 Dataset.online == 1)
-        )
-
         if filter:
             filter_str = '%{}%'.format(filter.lower())
             query = query.filter(
@@ -489,26 +490,44 @@ class DatasetModelView(SupersetModelView):  # noqa
                     User.username.ilike(filter_str)
                 )
             )
-        count = query.count()
 
         if order_column:
             try:
                 column = self.str_to_column.get(order_column)
             except KeyError:
                 msg = _("Error order column name: [{name}]").format(name=order_column)
-                self.handle_exception(404, KeyError, msg)
+                raise ParameterException(msg)
             else:
                 if order_direction == 'desc':
                     query = query.order_by(column.desc())
                 else:
                     query = query.order_by(column)
 
-        if page is not None and page >= 0 and page_size and page_size > 0:
-            query = query.limit(page_size).offset(page * page_size)
+        guardian_auth = config.get('GUARDIAN_AUTH', False)
+        available_ids = None
+        if guardian_auth:
+            from superset.guardian import guardian_client
+            readable_ids = \
+                guardian_client.search_model_permissions(g.user.username, 'dataset')
+            count = len(readable_ids)
+        else:
+            count = query.count()
+            if page is not None and page >= 0 and page_size and page_size > 0:
+                query = query.limit(page_size).offset(page * page_size)
 
         rs = query.all()
         data = []
+        index = 0
         for obj, user in rs:
+            if guardian_auth:
+                if obj.id in readable_ids:
+                    index += 1
+                    if index <= page * page_size:
+                        continue
+                    elif index > (page+1) * page_size:
+                        break
+                else:
+                    continue
             line = {}
             for col in self.list_columns:
                 if col in self.str_columns:
@@ -541,7 +560,9 @@ class DatasetModelView(SupersetModelView):  # noqa
         table.get_sqla_table_object()
 
     def post_add(self, table):
-        Log.log_add(table, 'dataset', get_user_id())
+        Log.log_add(table, 'dataset', g.user.id)
+        self.add_object_permissions(['dataset', table.id])
+        self.grant_owner_permissions(['dataset', table.id])
         table.fetch_metadata()
 
     def update_hdfs_table(self, table, json_date):
@@ -554,20 +575,22 @@ class DatasetModelView(SupersetModelView):  # noqa
         table.fetch_metadata()
 
     def pre_update(self, table):
-        check_ownership(table)
+        self.check_online(table)
+        self.check_edit_perm(['dataset', table.id])
         self.pre_add(table)
         TableColumnInlineView.datamodel.delete_all(table.ref_columns)
         SqlMetricInlineView.datamodel.delete_all(table.ref_metrics)
 
     def post_update(self, table):
         table.fetch_metadata()
-        Log.log_update(table, 'dataset', get_user_id())
+        Log.log_update(table, 'dataset', g.user.id)
 
     def pre_delete(self, table):
-        check_ownership(table)
+        self.check_delete_perm(['dataset', table.id])
 
     def post_delete(self, table):
-        Log.log_delete(table, 'dataset', get_user_id())
+        Log.log_delete(table, 'dataset', g.user.id)
+        self.del_object_permissions(['dataset', table.id])
 
     @staticmethod
     def check_column_values(obj):

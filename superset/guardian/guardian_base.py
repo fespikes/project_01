@@ -44,6 +44,7 @@ class GuardianBase(object):
         self.EntityPermissionVo = self.models.EntityPermissionVo
         self.PrincipalType = self.models.PrincipalType
         self.UserVo = self.models.UserVo
+        self.PermObjVo = self.models.PermObjVo
 
     def start_jvm(self):
         if not isJVMStarted():
@@ -54,7 +55,8 @@ class GuardianBase(object):
             startJVM(getDefaultJVMPath(), '-ea',
                      '-Djava.class.path={}:{}'.format(self.GUARDIAN_JAR,
                                                       self.GUARDIAN_SITE_PATH))
-            attachThreadToJVM()
+            if not isThreadAttachedToJVM():
+                attachThreadToJVM()
 
     def shutdomn_jvm(self):
         shutdownJVM()
@@ -99,3 +101,7 @@ class GuardianBase(object):
             principal_type = self.PrincipalType.USER
         permission = self._permission(finite_obj, action)
         return self.EntityPermissionVo(name, principal_type, permission)
+
+    def _perm_obj(self, finite_obj):
+        datasource = self._datasource(finite_obj)
+        return self.PermObjVo(self.component, datasource)
