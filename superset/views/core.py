@@ -100,6 +100,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         return objs
 
     def pre_update(self, obj):
+        self.check_online(obj)
         self.check_edit_perm(['slice', obj.id])
         self.check_column_values(obj)
 
@@ -342,6 +343,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         self.grant_owner_permissions(['dashboard', obj.id])
 
     def pre_update(self, obj):
+        self.check_online(obj)
         self.check_edit_perm(['dashboard', obj.id])
         self.pre_add(obj)
 

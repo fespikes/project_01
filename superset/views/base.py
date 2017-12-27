@@ -505,6 +505,13 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
         logging.error(msg)
         raise exception(msg)
 
+    def check_online(self, obj, raise_if_false=True):
+        online = getattr(obj, 'online', False)
+        if online and raise_if_false:
+            raise PermissionException(_('Can not edit a online object'))
+        else:
+            return online
+
 
 @app.route('/health/')
 def health():

@@ -68,6 +68,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
         self.grant_owner_permissions(['database', obj.id])
 
     def pre_update(self, obj):
+        self.check_online(obj)
         self.check_edit_perm(['database', obj.id])
         self.pre_add(obj)
 
@@ -326,6 +327,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
         self.grant_owner_permissions(['hdfsconnection', conn.id])
 
     def pre_update(self, conn):
+        self.check_online(conn)
         self.check_edit_perm(['hdfsconnection', conn.id])
         self.pre_add(conn)
 

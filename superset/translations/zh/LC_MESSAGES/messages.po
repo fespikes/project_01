@@ -1657,6 +1657,9 @@ msgstr "[{attributes}]缺少需要的字段[{attribute}]"
 msgid "Not found the object: model={model}, id={id}"
 msgstr "没有找到对象：类名={model}, id={id}"
 
+msgid "Can not edit a online object"
+msgstr "不能编辑已发布的对象，请先取消发布"
+
 
 #========================
 # views/connection.py
