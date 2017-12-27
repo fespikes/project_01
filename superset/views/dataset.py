@@ -249,7 +249,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
-    def online_info(self, id):
+    def online_info(self, id):  # Deprecated
         dataset = self.get_object(id)
         self.check_release_perm(['dataset', id], obj=dataset)
         objects = self.release_affect_objects(dataset)
@@ -263,7 +263,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
-    def offline_info(self, id):
+    def offline_info(self, id):  # Deprecated
         dataset = self.get_object(id)
         self.check_release_perm(['dataset', id], obj=dataset)
         objects = self.release_affect_objects(dataset)
@@ -274,7 +274,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
                     )
         return json_response(data=info)
 
-    def release_affect_objects(self, dataset):
+    def release_affect_objects(self, dataset):  # Deprecated
         """
         Changing dataset to online will make offline_connection online,
         and make online_slices based on it usable.
@@ -341,6 +341,26 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
             ).all()
         )
         return {'dataset': datasets, 'slice': slices}
+
+    @catch_exception
+    @expose("/grant_info/<id>/", methods=['GET'])
+    def grant_info(self, id):
+        dataset = self.get_object(id)
+        self.check_grant_perm(['dataset', id], obj=dataset)
+        objects = self.grant_affect_objects(dataset)
+        info = _("Granting permissions of [{dataset}] to this user, will grant "
+                 "permissions of dependencies to this user too: "
+                 "\nConnection: {connection}")\
+            .format(dataset=dataset, connection=objects.get('connection'))
+        return json_response(data=info)
+
+    def grant_affect_objects(self, dataset):
+        conns = []
+        if dataset.database:
+            conns.append(dataset.database)
+        if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
+            conns.append(dataset.hdfs_table.hdfs_connection)
+        return {'connection': conns}
 
     @catch_exception
     @expose('/add/', methods=['POST', ])
@@ -434,7 +454,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
 
         hdfs_table_view = HDFSTableModelView()
         hdfs_table = dataset.hdfs_table
-        hdfs_table = hdfs_table_view.populate_object(hdfs_table.id, get_user_id(), args)
+        hdfs_table = hdfs_table_view.populate_object(hdfs_table.id, g.user.id, args)
 
         db_session = db.session
         self.pre_update(dataset)

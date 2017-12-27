@@ -179,7 +179,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
-    def online_info(self, id):
+    def online_info(self, id):  # Deprecated
         database = self.get_object(id)
         self.check_release_perm(['database', id], obj=database)
         objects = self.release_affect_objects(database)
@@ -192,7 +192,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
-    def offline_info(self, id):
+    def offline_info(self, id):  # Deprecated
         database = self.get_object(id)
         self.check_release_perm(['database', id], obj=database)
         objects = self.release_affect_objects(database)
@@ -203,7 +203,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
                     slice=objects.get('slice'))
         return json_response(data=info)
 
-    def release_affect_objects(self, database):
+    def release_affect_objects(self, database):  # Deprecated
         """
         Changing database to online/offline will affect online_datasets based on this
         and online_slices based on these online_datasets
@@ -263,6 +263,11 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
         return {'database': [database, ],
                 'dataset': list(set(online_datasets + myself_datasets)),
                 'slice': slices}
+
+    @catch_exception
+    @expose("/grant_info/<id>/", methods=['GET'])
+    def grant_info(self, id):
+        return json_response(data="")
 
 
 class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
@@ -356,7 +361,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
-    def online_info(self, id):
+    def online_info(self, id):  # Deprecated
         hdfs_conn = self.get_object(id)
         self.check_release_perm(['hdfsconnection', id], obj=hdfs_conn)
         objects = self.release_affect_objects(hdfs_conn)
@@ -369,7 +374,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
-    def offline_info(self, id):
+    def offline_info(self, id):  # Deprecated
         hdfs_conn = self.get_object(id)
         self.check_release_perm(['hdfsconnection', id])
         objects = self.release_affect_objects(hdfs_conn)
@@ -380,7 +385,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
                     slice=objects.get('slice'))
         return json_response(data=info)
 
-    def release_affect_objects(self, hdfs_conn):
+    def release_affect_objects(self, hdfs_conn):  # Deprecated
         """
         Changing hdfs connection to online/offline will affect online_datasets based on this
         and online_slices based on these online_datasets
@@ -446,6 +451,11 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
                 'dataset': list(set(online_datasets + myself_datasets)),
                 'slice': slices
                 }
+
+    @catch_exception
+    @expose("/grant_info/<id>/", methods=['GET'])
+    def grant_info(self, id):
+        return json_response(data="")
 
     @catch_hdfs_exception
     @connection_timeout

@@ -126,7 +126,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
-    def online_info(self, id):
+    def online_info(self, id):  # Deprecated
         slice = self.get_object(id)
         self.check_release_perm(['slice', id], obj=slice)
         objects = self.online_affect_objects(id)
@@ -140,7 +140,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
                     )
         return json_response(data=info)
 
-    def online_affect_objects(self, slice):
+    def online_affect_objects(self, slice):  # Deprecated
         """
         Changing slice to online will make offline dataset and connections online,
         and make it usable in others' dashboard.
@@ -171,7 +171,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
-    def offline_info(self, id):
+    def offline_info(self, id):  # Deprecated
         slice = self.get_object(id)
         self.check_release_perm(['slice', id], obj=slice)
         dashboards = [d for d in slice.dashboards
@@ -219,6 +219,37 @@ class SliceModelView(SupersetModelView, PermissionManagement):
                 if d.created_by_fk == g.user.id or d.online == 1:
                     dashs.append(d)
         return {'slice': slices, 'dashboard': dashs}
+
+    @catch_exception
+    @expose("/grant_info/<id>/", methods=['GET'])
+    def grant_info(self, id):
+        slice = self.get_object(id)
+        self.check_grant_perm(['slice', id], obj=slice)
+        objects = self.grant_affect_objects(slice)
+        info = _("Granting permissions of [{slice}] to this user, will grant "
+                 "permissions of dependencies to this user too: "
+                 "\nDataset: {dataset}, \nConnection: {connection}") \
+            .format(slice=slice,
+                    dataset=objects.get('dataset'),
+                    connection=objects.get('connection'))
+        return json_response(data=info)
+
+    def grant_affect_objects(self, slice):
+        dataset = None
+        if slice.datasource_id and slice.datasource:
+            dataset = slice.datasource
+
+        conns = []
+        if slice.database_id:
+            database = db.session.query(Database) \
+                .filter(Database.id == slice.database_id).first()
+            conns.append(database)
+        if dataset and dataset.database:
+            conns.append(dataset.database)
+        if dataset and dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
+            conns.append(dataset.hdfs_table.hdfs_connection)
+        return {'dataset': [dataset, ] if dataset else [],
+                'connection': set(conns)}
 
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
@@ -461,7 +492,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
-    def online_info(self, id):
+    def online_info(self, id):  # Deprecated
         """
         Changing dashboard to online will make myself slices,_datasets and
         connections online.
@@ -506,7 +537,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
-    def offline_info(self, id):
+    def offline_info(self, id):  # Deprecated
         dash = self.get_object(id)
         self.check_release_perm(['dashboard', id], obj=dash)
         info = _("Changing dashboard {dashboard} to offline will make it invisible "
@@ -524,6 +555,45 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/muldelete_info/", methods=['POST'])
     def muldelete_info(self):
         return json_response(data='')
+
+    @catch_exception
+    @expose("/grant_info/<id>/", methods=['GET'])
+    def grant_info(self, id):
+        dash = self.get_object(id)
+        self.check_grant_perm(['dashboard', id], obj=dash)
+        objects = self.grant_affect_objects(dash)
+        info = _("Granting permissions of [{dashboard}] to this user, will grant "
+                 "permissions of dependencies to this user too: "
+                 "\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}") \
+            .format(dashboard=dash,
+                    slice=objects.get('slice'),
+                    dataset=objects.get('dataset'),
+                    connection=objects.get('connection'))
+        return json_response(data=info)
+
+    def grant_affect_objects(self, dash):
+        slices = dash.slices
+        datasets = []
+        database_ids = []
+        for s in slices:
+            if s.datasource_id and s.datasource:
+                datasets.append(s.datasource)
+            elif s.database_id:
+                database_ids.append(s.database_id)
+
+        connections = []
+        for d in datasets:
+            if d.database:
+                connections.append(d.database)
+            if d.hdfs_table and d.hdfs_table.hdfs_connection:
+                connections.append(d.hdfs_table.hdfs_connection)
+        databases = db.session.query(Database) \
+            .filter(Database.id.in_(database_ids)) \
+            .all()
+        connections.extend(databases)
+        return {'slice': set(slices),
+                'dataset': set(datasets),
+                'connection': set(connections)}
 
     @catch_exception
     @expose("/upload_image/<id>/", methods=['POST'])
