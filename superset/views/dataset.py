@@ -249,7 +249,9 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        objects = self.release_affect_objects(id)
+        dataset = self.get_object(id)
+        self.check_release_perm(['dataset', id], obj=dataset)
+        objects = self.release_affect_objects(dataset)
         info = _("Releasing dataset {dataset} will release connection {connection}, "
                  "\nand make these slices usable for others: {slice}")\
             .format(dataset=objects.get('dataset'),
@@ -261,7 +263,9 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.release_affect_objects(id)
+        dataset = self.get_object(id)
+        self.check_release_perm(['dataset', id], obj=dataset)
+        objects = self.release_affect_objects(dataset)
         info = _("Changing dataset {dataset} to offline will make these "
                  "slices unusable for others: {slice}")\
             .format(dataset=objects.get('dataset'),
@@ -269,13 +273,12 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
                     )
         return json_response(data=info)
 
-    def release_affect_objects(self, id):
+    def release_affect_objects(self, dataset):
         """
         Changing dataset to online will make offline_connection online,
         and make online_slices based on it usable.
         Changing dataset to offline will make online_slices based on it unusable.
         """
-        dataset = self.get_object(id)
         slices = (
             db.session.query(Slice)
             .filter(
@@ -294,6 +297,8 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
+        dataset = self.get_object(id)
+        self.check_delete_perm(['dataset', id], obj=dataset)
         objects = self.delete_affect_objects([id, ])
         info = _("Deleting datasets {dataset} will make these slices unusable: {slice}")\
             .format(dataset=objects.get('dataset'),

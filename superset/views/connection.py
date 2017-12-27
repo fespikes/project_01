@@ -180,7 +180,9 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        objects = self.release_affect_objects(id)
+        database = self.get_object(id)
+        self.check_release_perm(['database', id], obj=database)
+        objects = self.release_affect_objects(database)
         info = _("Releasing connection {conn} will make these usable "
                  "for other users: \nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
@@ -191,7 +193,9 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.release_affect_objects(id)
+        database = self.get_object(id)
+        self.check_release_perm(['database', id], obj=database)
+        objects = self.release_affect_objects(database)
         info = _("Changing connection {conn} to offline will make these "
                  "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
@@ -199,12 +203,11 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
                     slice=objects.get('slice'))
         return json_response(data=info)
 
-    def release_affect_objects(self, id):
+    def release_affect_objects(self, database):
         """
         Changing database to online/offline will affect online_datasets based on this
         and online_slices based on these online_datasets
         """
-        database = self.get_object(id)
         online_datasets = [d for d in database.dataset if d.online is True]
 
         online_dataset_ids = [dataset.id for dataset in online_datasets]
@@ -221,7 +224,9 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.delete_affect_objects(id)
+        database = self.get_object(id)
+        self.check_delete_perm(['database', id], obj=database)
+        objects = self.delete_affect_objects(database)
         info = _("Deleting connection {conn} will make these unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}")\
             .format(conn=objects.get('database'),
@@ -229,12 +234,11 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
                     slice=objects.get('slice'))
         return json_response(data=info)
 
-    def delete_affect_objects(self, id):
+    def delete_affect_objects(self, database):
         """
         Deleting database will affect myself datasets and online datasets.
         myself slices and online slices based on these online_datasets
         """
-        database = self.get_object(id)
         user_id = g.user.id
         online_datasets = [d for d in database.dataset if d.online is True]
         myself_datasets = [d for d in database.dataset if d.created_by_fk == user_id]
@@ -353,7 +357,9 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
-        objects = self.release_affect_objects(id)
+        hdfs_conn = self.get_object(id)
+        self.check_release_perm(['hdfsconnection', id], obj=hdfs_conn)
+        objects = self.release_affect_objects(hdfs_conn)
         info = _("Releasing connection {conn} will make these usable "
                  "for other users: \nDataset: {dataset}, \nSlice: {slice}") \
             .format(conn=objects.get('hdfs_connection'),
@@ -364,7 +370,9 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        objects = self.release_affect_objects(id)
+        hdfs_conn = self.get_object(id)
+        self.check_release_perm(['hdfsconnection', id])
+        objects = self.release_affect_objects(hdfs_conn)
         info = _("Changing connection {conn} to offline will make these "
                  "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}") \
             .format(conn=objects.get('hdfs_connection'),
@@ -372,12 +380,11 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
                     slice=objects.get('slice'))
         return json_response(data=info)
 
-    def release_affect_objects(self, id):
+    def release_affect_objects(self, hdfs_conn):
         """
         Changing hdfs connection to online/offline will affect online_datasets based on this
         and online_slices based on these online_datasets
         """
-        hdfs_conn = self.get_object(id)
         hdfs_tables = hdfs_conn.hdfs_table
         datasets = [t.dataset for t in hdfs_tables if t.dataset]
         online_datasets = [d for d in datasets if d.online is True]
@@ -396,7 +403,9 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
-        objects = self.delete_affect_objects(id)
+        hdfs_conn = self.get_object(id)
+        self.check_delete_perm(['database', id], obj=hdfs_conn)
+        objects = self.delete_affect_objects(hdfs_conn)
         info = _("Deleting connection {conn} will make these unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}") \
             .format(conn=objects.get('hdfs_connection'),
@@ -404,12 +413,11 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
                     slice=objects.get('slice'))
         return json_response(data=info)
 
-    def delete_affect_objects(self, id):
+    def delete_affect_objects(self, hdfs_conn):
         """
         Deleting hdfs connection will affect myself datasets and online datasets.
         myself slices and online slices based on these online_datasets
         """
-        hdfs_conn = self.get_object(id)
         user_id = g.user.id
         hdfs_tables = hdfs_conn.hdfs_table
         datasets = [t.dataset for t in hdfs_tables if t.dataset]

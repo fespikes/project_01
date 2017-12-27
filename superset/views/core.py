@@ -127,6 +127,8 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):
+        slice = self.get_object(id)
+        self.check_release_perm(['slice', id], obj=slice)
         objects = self.online_affect_objects(id)
         info = _("Releasing slice {slice} will release these too: "
                  "\nDataset: {dataset}, \nConnection: {conn}, "
@@ -138,13 +140,12 @@ class SliceModelView(SupersetModelView, PermissionManagement):
                     )
         return json_response(data=info)
 
-    def online_affect_objects(self, id):
+    def online_affect_objects(self, slice):
         """
         Changing slice to online will make offline dataset and connections online,
         and make it usable in others' dashboard.
         Changing slice to offline will make it unusable in others' dashboard.
         """
-        slice = self.get_object(id)
         user_id = g.user.id
         dashboards = [d for d in slice.dashboards
                       if d.online is True and d.created_by_fk != user_id]
@@ -172,6 +173,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
         slice = self.get_object(id)
+        self.check_release_perm(['slice', id], obj=slice)
         dashboards = [d for d in slice.dashboards
                       if d.online is True and d.created_by_fk != g.user.id]
         info = _("Changing slice {slice} to offline will make it invisible "
@@ -182,6 +184,8 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
+        slice = self.get_object(id)
+        self.check_delete_perm(['slice', id], obj=slice)
         objects = self.delete_affect_objects([id, ])
         info = _("Deleting slice {slice} will remove from these "
                  "dashboards too: {dashboard}")\
@@ -462,12 +466,9 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         Changing dashboard to online will make myself slices,_datasets and
         connections online.
         """
-        dashboard = db.session.query(Dashboard).filter_by(id=id).first()
-        if not dashboard:
-            raise ParameterException(_(
-                "Error parameter ids: {ids}, queried {num} dashboard(s)")
-                .format(ids=[id, ], num=0)
-            )
+        dashboard = self.get_object(id)
+        self.check_release_perm(['dashboard', id], obj=dashboard)
+
         slices = dashboard.slices
         datasets = []
         database_ids = []
@@ -506,12 +507,8 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @catch_exception
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):
-        dash = db.session.query(Dashboard).filter_by(id=id).first()
-        if not dash:
-            raise ErrorUrlException(
-                _("Error parameter ids: {ids}, queried {num} dashboard(s)")
-                .format(ids=[id, ], num=0)
-            )
+        dash = self.get_object(id)
+        self.check_release_perm(['dashboard', id], obj=dash)
         info = _("Changing dashboard {dashboard} to offline will make it invisible "
                  "for other users").format(dashboard=[dash, ])
         return json_response(data=info)
@@ -519,6 +516,8 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @catch_exception
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
+        dash = self.get_object(id)
+        self.check_delete_perm(['dashboard', id], obj=dash)
         return json_response(data='')
 
     @catch_exception

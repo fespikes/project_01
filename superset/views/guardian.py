@@ -57,6 +57,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
         object_type = args.get('object_type')
         object_id = args.get('object_id')
         actions = args.get('actions')
+        self.check_grant_perm([object_type, object_id])
         guardian_admin.grant(username, [object_type, object_id], actions)
         return json_response(message="Grant [{}] actions {} on object {} success."
                              .format(username, actions, [object_type, object_id]))
@@ -78,6 +79,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
         object_type = args.get('object_type')
         object_id = args.get('object_id')
         actions = args.get('actions')
+        self.check_grant_perm([object_type, object_id])
         guardian_admin.revoke(username, [object_type, object_id], actions)
         return json_response(message="Revoke [{}] actions {} from object {} success."
                              .format(username, actions, [object_type, object_id]))
