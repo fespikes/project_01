@@ -78,7 +78,6 @@ class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
         self.check_column_values(column)
 
     def pre_update(self, column):
-        self.check_online(column.dataset)
         self.check_edit_perm(['dataset', column.dataset_id])
         self.pre_add(column)
 
@@ -135,7 +134,6 @@ class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
         self.check_column_values(metric)
 
     def pre_update(self, metric):
-        self.check_online(metric.dataset)
         self.check_edit_perm(['dataset', metric.dataset_id])
         self.pre_add(metric)
 
@@ -420,7 +418,6 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     def edit(self, pk):
         args = self.get_request_data()
         dataset = self.get_object(pk)
-        self.check_online(dataset)
 
         dataset_type = dataset.dataset_type
         if dataset_type in Dataset.dataset_types:
@@ -595,7 +592,6 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         table.fetch_metadata()
 
     def pre_update(self, table):
-        self.check_online(table)
         self.check_edit_perm(['dataset', table.id])
         self.pre_add(table)
         TableColumnInlineView.datamodel.delete_all(table.ref_columns)
