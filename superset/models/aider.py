@@ -21,7 +21,6 @@ from .base import QueryStatus
 from .dataset import Dataset
 from .connection import Database, HDFSConnection, Connection
 from .core import Slice, Dashboard
-from .story import Story
 
 config = app.config
 
@@ -31,14 +30,13 @@ str_to_model = {
     'dataset': Dataset,
     'database': Database,
     'hdfsconnection': HDFSConnection,
-    'connection': Connection,
-    'story': Story
+    'connection': Connection
 }
 
 
 class Log(Model):
     """ORM object used to log Superset actions to the database
-       Object type: ['story', 'slice', 'dashboard', 'dataset', database', 'hdfsconnection']
+       Object type: ['slice', 'dashboard', 'dataset', database', 'hdfsconnection']
        Action type: ['add', 'update', 'delete', 'online', 'offline', 'import',
                       'export', 'like', 'dislike']
     """

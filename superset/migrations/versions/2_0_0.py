@@ -1,4 +1,4 @@
-"""add sroty layer
+"""add dashboard thumbnail
 
 Revision ID: 2_0_0
 Revises: None
