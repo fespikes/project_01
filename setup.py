@@ -54,7 +54,6 @@ setup(
         'flask-testing==0.5.0',
         'future==0.16.0',
         'humanize==0.5.1',
-        'guardian-python-client>=0.0.1',
         'gunicorn==19.6.0',
         'JPype1==0.6.2',
         'markdown==2.6.6',

@@ -43,11 +43,6 @@ function build_pilot
     find . -type f -iname "pilot*tar.gz" -exec cp {} $RPM_DIR \;
     cd -
 
-    cd guardian-python-client
-    python3.5 setup.py bdist_wheel
-    find . -type f -iname "guardian*whl" -exec cp {} ${RPM_DIR} \;
-    cd -
-
     cd fileRobot/fileRobot-client
     python3.5 setup.py bdist_wheel
     find . -type f -iname "fileRobot*client*whl" -exec cp {} ${RPM_DIR} \;
