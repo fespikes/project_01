@@ -250,7 +250,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
     __tablename__ = 'dataset'
 
     id = Column(Integer, primary_key=True)
-    dataset_name = Column(String(128), nullable=False)
+    dataset_name = Column(String(128), nullable=False, unique=True)
     table_name = Column(String(128))
     schema = Column(String(128))
     sql = Column(Text)
@@ -275,7 +275,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
     cache_timeout = Column(Integer)
 
     __table_args__ = (
-        UniqueConstraint('dataset_name', 'created_by_fk', name='dataset_name_owner_uc'),
+        UniqueConstraint('dataset_name', name='dataset_name_uc'),
     )
 
     baselink = "table"

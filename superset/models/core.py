@@ -35,7 +35,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin, Count):
     """A slice is essentially a report or a view on data"""
     __tablename__ = 'slices'
     id = Column(Integer, primary_key=True)
-    slice_name = Column(String(128))
+    slice_name = Column(String(128), unique=True)
     online = Column(Boolean, default=False)
     datasource_id = Column(Integer)
     datasource_type = Column(String(32))
@@ -49,7 +49,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin, Count):
     cache_timeout = Column(Integer)
 
     __table_args__ = (
-        UniqueConstraint('slice_name', 'created_by_fk', name='slice_name_owner_uc'),
+        UniqueConstraint('slice_name', name='slice_name_uc'),
     )
 
     export_fields = ('slice_name', 'datasource_type', 'datasource_name',
@@ -274,7 +274,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin, Count):
         'Slice', secondary=dashboard_slices, backref='dashboards')
 
     __table_args__ = (
-        UniqueConstraint('dashboard_title', 'created_by_fk', name='dashboard_title_owner_uc'),
+        UniqueConstraint('dashboard_title', name='dashboard_title_uc'),
     )
 
     export_fields = ('dashboard_title', 'position_json', 'json_metadata',
