@@ -22,7 +22,7 @@ class GuardianClient(GuardianBase):
 
     @catch_guardian_exception
     def register(self):
-        service_type = self.GUARDIAN_SERVICE_TYPE
+        service_type = self.service_type
         component = self.component
         description = "Service {}".format(self.component)
         config = JObject({}, JClass('java.util.Map'))
