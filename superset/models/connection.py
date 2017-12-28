@@ -28,11 +28,7 @@ from sqlalchemy.engine.url import make_url
 from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import TextAsFrom
 
-from guardian_client_python.GuardianClientFactory import guardianClientFactory
-from guardian_common_python.conf.GuardianConfiguration import GuardianConfiguration
-from guardian_common_python.conf.GuardianVars import GuardianVars
-
-from superset import db, app, db_engine_specs
+from superset import db, app, db_engine_specs, conf
 from superset.exception import ParameterException
 from superset.message import MISS_PASSWORD_FOR_GUARDIAN, NO_USER
 from .base import AuditMixinNullable, Count
@@ -259,25 +255,24 @@ class Database(Model, AuditMixinNullable, Count):
     def args_append_keytab(cls, connect_args):
         if connect_args.get('mech', '').lower() == 'kerberos':
             dir = config.get('KETTAB_TMP_DIR', '/tmp/keytab')
-            server = config.get('GUARDIAN_SERVER')
             username = g.user.username
             password = g.user.password2
             if not password:
                 raise ParameterException(MISS_PASSWORD_FOR_GUARDIAN)
-            connect_args['keytab'] = cls.get_keytab(username, password, server, dir)
+            connect_args['keytab'] = cls.get_keytab(username, password, dir)
         return connect_args
 
     @classmethod
-    def get_keytab(cls, user, passwd, guardian_server, dir):
+    def get_keytab(cls, user, passwd, dir):
         if not os.path.exists(dir):
             os.makedirs(dir)
         path = os.path.join(dir, 'tmp.keytab')
-        conf = GuardianConfiguration()
-        conf.set(GuardianVars.GUARDIAN_SERVER_ADDRESS.varname, guardian_server)
-        client = guardianClientFactory.getInstance(conf)
-        client.login(user, passwd)
-        keytab = client.getKeytab(user)
-
+        if conf.get('GUARDIAN_AUTH'):
+            from superset.guardian import guardian_client
+            guardian_client.login(user, passwd)
+            keytab = guardian_client.getKeytab(user)
+        else:
+            keytab = b''
         file = open(path, "wb")
         file.write(keytab)
         file.close()
