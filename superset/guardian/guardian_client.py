@@ -134,20 +134,20 @@ class GuardianClient(GuardianBase):
         entity_perms = self.client.searchPermissions(
             username, self.PrincipalType.USER, component, datasource, True
         )
-        ids = set()
+        names = set()
         for entity_perm in entity_perms:
             perm = entity_perm.getPermissionVo()
             datasource = perm.getDataSource()
-            id = int(datasource.get(datasource.size() - 1))
-            if id:
+            name = datasource.get(datasource.size() - 1)
+            if name:
                 # if id in data.keys():
                 #     actions = data.get(id)
                 #     actions.append(perm.getAction())
                 #     data[id] = actions
                 # else:
                 #     data[id] = [perm.getAction(), ]
-                ids.add(id)
-        return sorted(ids)
+                names.add(name)
+        return sorted(names)
 
     @catch_guardian_exception
     def get_keytab(self, username):

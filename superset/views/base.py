@@ -95,48 +95,43 @@ class PermissionManagement(object):
             from superset.guardian import guardian_admin
             guardian_admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
 
-    def check_edit_perm(self, finite_obj, raise_if_false=True, obj=None):
+    def check_edit_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
         if not can and raise_if_false:
-            obj_name = [obj, ] if obj else finite_obj
             raise PermissionException(
-                _('No privilege to edit {name}').format(name=obj_name))
+                _('No privilege to edit {name}').format(name=finite_obj[-1]))
         else:
             return can
 
-    def check_delete_perm(self, finite_obj, raise_if_false=True, obj=None):
+    def check_delete_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
         if not can and raise_if_false:
-            obj_name = [obj, ] if obj else finite_obj
             raise PermissionException(
-                _('No privilege to delete {name}').format(name=obj_name))
+                _('No privilege to delete {name}').format(name=finite_obj[-1]))
         else:
             return can
 
-    def check_admin_perm(self, finite_obj, raise_if_false=True, obj=None):
+    def check_admin_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
         if not can and raise_if_false:
-            obj_name = [obj, ] if obj else finite_obj
             raise PermissionException(
-                _('No privilege ADMIN of {name}').format(name=obj_name))
+                _('No privilege ADMIN of {name}').format(name=finite_obj[-1]))
         else:
             return can
 
-    def check_grant_perm(self, finite_obj, raise_if_false=True, obj=None):
+    def check_grant_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
         if not can and raise_if_false:
-            obj_name = [obj, ] if obj else finite_obj
             raise PermissionException(
-                _('No privilege to grant/revoke on {name}').format(name=obj_name))
+                _('No privilege to grant/revoke on {name}').format(name=finite_obj[-1]))
         else:
             return can
 
-    def check_release_perm(self, finite_obj, raise_if_false=True, obj=None):
+    def check_release_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
         if not can and raise_if_false:
-            obj_name = [obj, ] if obj else finite_obj
             raise PermissionException(
-                _('No privilege to release {name}').format(name=obj_name))
+                _('No privilege to release {name}').format(name=finite_obj[-1]))
         else:
             return can
 

@@ -521,12 +521,12 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
                     query = query.order_by(column)
 
         guardian_auth = config.get('GUARDIAN_AUTH', False)
-        available_ids = None
+        available_names = None
         if guardian_auth:
             from superset.guardian import guardian_client
-            readable_ids = \
+            available_names = \
                 guardian_client.search_model_permissions(g.user.username, 'dataset')
-            count = len(readable_ids)
+            count = len(available_names)
         else:
             count = query.count()
             if page is not None and page >= 0 and page_size and page_size > 0:
@@ -537,7 +537,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         index = 0
         for obj, user in rs:
             if guardian_auth:
-                if obj.id in readable_ids:
+                if obj.id in available_names:
                     index += 1
                     if index <= page * page_size:
                         continue

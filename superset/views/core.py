@@ -100,14 +100,14 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         return objs
 
     def pre_update(self, obj):
-        self.check_edit_perm(['slice', obj.id])
+        self.check_edit_perm(['slice', obj.slice_name])
         self.check_column_values(obj)
 
     def post_update(self, obj):
         Log.log_update(obj, 'slice', g.user.id)
 
     def pre_delete(self, obj):
-        self.check_delete_perm(['slice', obj.id])
+        self.check_delete_perm(['slice', obj.slice_name])
 
     def post_delete(self, obj):
         db.session.query(FavStar) \
@@ -127,7 +127,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):  # Deprecated
         slice = self.get_object(id)
-        self.check_release_perm(['slice', id], obj=slice)
+        self.check_release_perm(['slice', slice.slice_name])
         objects = self.online_affect_objects(id)
         info = _("Releasing slice {slice} will release these too: "
                  "\nDataset: {dataset}, \nConnection: {conn}, "
@@ -172,7 +172,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         slice = self.get_object(id)
-        self.check_release_perm(['slice', id], obj=slice)
+        self.check_release_perm(['slice', slice.slice_name])
         dashboards = [d for d in slice.dashboards
                       if d.online is True and d.created_by_fk != g.user.id]
         info = _("Changing slice {slice} to offline will make it invisible "
@@ -223,7 +223,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         slice = self.get_object(id)
-        self.check_grant_perm(['slice', id], obj=slice)
+        self.check_grant_perm(['slice', slice.slice_name])
         objects = self.grant_affect_objects(slice)
         info = _("Granting permissions of [{slice}] to this user, will grant "
                  "permissions of dependencies to this user too: "
@@ -279,12 +279,12 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         query = self.query_with_favorite('slice', **kwargs)
 
         guardian_auth = config.get('GUARDIAN_AUTH', False)
-        readable_ids = None
+        readable_names = None
         if guardian_auth:
             from superset.guardian import guardian_client
-            readable_ids = \
+            readable_names = \
                 guardian_client.search_model_permissions(g.user.username, 'slice')
-            count = len(readable_ids)
+            count = len(readable_names)
         else:
             count = query.count()
             if page is not None and page >= 0 and page_size and page_size > 0:
@@ -295,7 +295,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         index = 0
         for obj, username, fav_id in rs:
             if guardian_auth:
-                if obj.id in readable_ids:
+                if obj.id in readable_names:
                     index += 1
                     if index <= page * page_size:
                         continue
@@ -373,18 +373,18 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
     def post_add(self, obj):
         Log.log_add(obj, 'dashboard', g.user.id)
-        self.add_object_permissions(['dashboard', obj.id])
-        self.grant_owner_permissions(['dashboard', obj.id])
+        self.add_object_permissions(['dashboard', obj.dashboard_title])
+        self.grant_owner_permissions(['dashboard', obj.dashboard_title])
 
     def pre_update(self, obj):
-        self.check_edit_perm(['dashboard', obj.id])
+        self.check_edit_perm(['dashboard', obj.dashboard_title])
         self.pre_add(obj)
 
     def post_update(self, obj):
         Log.log_update(obj, 'dashboard', g.user.id)
 
     def pre_delete(self, obj):
-        self.check_delete_perm(['dashboard', obj.id])
+        self.check_delete_perm(['dashboard', obj.dashboard_title])
 
     def post_delete(self, obj):
         db.session.query(FavStar) \
@@ -393,7 +393,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
             .delete(synchronize_session=False)
         db.session.commit()
         Log.log_delete(obj, 'dashboard', g.user.id)
-        self.del_object_permissions(['dashboard', obj.id])
+        self.del_object_permissions(['dashboard', obj.dashboard_title])
 
     @staticmethod
     def check_column_values(obj):
@@ -413,12 +413,12 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         query = self.query_with_favorite('dashboard', **kwargs)
 
         guardian_auth = config.get('GUARDIAN_AUTH', False)
-        readable_ids = None
+        readable_names = None
         if guardian_auth:
             from superset.guardian import guardian_client
-            readable_ids = \
+            readable_names = \
                 guardian_client.search_model_permissions(g.user.username, 'dashboard')
-            count = len(readable_ids)
+            count = len(readable_names)
         else:
             count = query.count()
             if page is not None and page >= 0 and page_size and page_size > 0:
@@ -429,7 +429,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         index = 0
         for obj, username, fav_id in rs:
             if guardian_auth:
-                if obj.id in readable_ids:
+                if obj.dashboard_title in readable_names:
                     index += 1
                     if index <= page * page_size:
                         continue
@@ -496,7 +496,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         connections online.
         """
         dashboard = self.get_object(id)
-        self.check_release_perm(['dashboard', id], obj=dashboard)
+        self.check_release_perm(['dashboard', dashboard.dashboard_title])
 
         slices = dashboard.slices
         datasets = []
@@ -537,7 +537,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         dash = self.get_object(id)
-        self.check_release_perm(['dashboard', id], obj=dash)
+        self.check_release_perm(['dashboard', dash.dashboard])
         info = _("Changing dashboard {dashboard} to offline will make it invisible "
                  "for other users").format(dashboard=[dash, ])
         return json_response(data=info)
@@ -558,7 +558,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         dash = self.get_object(id)
-        self.check_grant_perm(['dashboard', id], obj=dash)
+        self.check_grant_perm(['dashboard', dash.dashboard])
         objects = self.grant_affect_objects(dash)
         info = _("Granting permissions of [{dashboard}] to this user, will grant "
                  "permissions of dependencies to this user too: "
@@ -639,7 +639,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         """Add and save slices to a dashboard"""
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        self.check_edit_perm(['dashboard', dash.id])
+        self.check_edit_perm(['dashboard', dash.dashboard])
         new_slices = session.query(Slice).filter(
             Slice.id.in_(slice_ids))
         dash.slices += new_slices
@@ -685,7 +685,17 @@ class Superset(BaseSupersetView, PermissionManagement):
                 .format(model=cls.__name__, id=id)
             logging.error(msg)
             return json_response(status=400, message=msg)
-        self.check_release_perm([model, id])
+        if model.lower() == 'dashboard':
+            name = obj.dashboard_title
+        elif model.lower() == 'slice':
+            name = obj.slice_name
+        elif model.lower() == 'dataset':
+            name = obj.dataset_name
+        elif model.lower() == 'database':
+            name = obj.database_name
+        elif model.lower() == 'hdfsconnection':
+            name = obj.connection_name
+        self.check_release_perm([model, name])
 
         if action.lower() == 'online':
             if obj.online is True:
@@ -807,7 +817,7 @@ class Superset(BaseSupersetView, PermissionManagement):
 
         # slc perms
         slice_add_perm = True
-        slice_edit_perm = self.check_edit_perm(['slice', slc.id], raise_if_false=False)
+        slice_edit_perm = self.check_edit_perm(['slice', slc.slice_name], raise_if_false=False)
         slice_download_perm = True
 
         # handle save or overwrite
@@ -1002,8 +1012,8 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.commit()
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         Log.log_add(slc, 'slice', g.user.id)
-        self.add_object_permissions(['slice', slc.id])
-        self.grant_owner_permissions(['slice', slc.id])
+        self.add_object_permissions(['slice', slc.slice_name])
+        self.grant_owner_permissions(['slice', slc.slice_name])
 
     def overwrite_slice(self, slc):
         db.session.expunge_all()
@@ -1071,8 +1081,8 @@ class Superset(BaseSupersetView, PermissionManagement):
         session.commit()
         dash_json = dash.json_data
         Log.log_add(dash, 'dashboard', g.user.id)
-        self.add_object_permissions(['dashboard', dash.id])
-        self.grant_owner_permissions(['dashboard', dash.id])
+        self.add_object_permissions(['dashboard', dash.dashboard_title])
+        self.grant_owner_permissions(['dashboard', dash.dashboard_title])
         return json_response(data=dash_json)
 
     @catch_exception
@@ -1081,7 +1091,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         """Save a dashboard's metadata"""
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        self.check_edit_perm(['dashboard', dash.id])
+        self.check_edit_perm(['dashboard', dash.dashboard_title])
         data = json.loads(request.form.get('data'))
         self._set_dash_metadata(dash, data)
         dash.need_capture = True
@@ -1114,7 +1124,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         data = json.loads(request.form.get('data'))
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        self.check_edit_perm(['dashboard', dash.id])
+        self.check_edit_perm(['dashboard', dash.dashboard_title])
         new_slices = session.query(Slice).filter(Slice.id.in_(data['slice_ids']))
         dash.slices += new_slices
         dash.need_capture = True
@@ -1216,7 +1226,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         def dashboard(**kwargs):  # noqa
             pass
         dashboard(dashboard_id=dash.id)
-        dash_edit_perm = self.check_edit_perm(['dashboard', dash.id])
+        dash_edit_perm = self.check_edit_perm(['dashboard', dash.dashboard_title])
         dash_save_perm = dash_edit_perm
         standalone = request.args.get("standalone") == "true"
         context = dict(
@@ -1253,8 +1263,8 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.add(table)
         db.session.commit()
         Log.log_add(table, 'dataset', g.user.id)
-        self.add_object_permissions(['dataset', table.id])
-        self.grant_owner_permissions(['dataset', table.id])
+        self.add_object_permissions(['dataset', table.dataset_name])
+        self.grant_owner_permissions(['dataset', table.dataset_name])
 
         cols = []
         dims = []

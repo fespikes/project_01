@@ -71,7 +71,7 @@ class GuardianBase(object):
             self.client.login(username, password)
 
     def _datasource(self, finite_obj):
-        """Datasource is like ['OBJECT', 'database', 1]"""
+        """Datasource is like ['OBJECT', 'database', 'name']"""
         alist = java.util.ArrayList()
         alist.add(self.datasource_root)
         for s in finite_obj:

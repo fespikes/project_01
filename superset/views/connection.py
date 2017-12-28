@@ -64,22 +64,22 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
 
     def post_add(self, obj):
         Log.log_add(obj, 'database', g.user.id)
-        self.add_object_permissions(['database', obj.id])
-        self.grant_owner_permissions(['database', obj.id])
+        self.add_object_permissions(['database', obj.database_name])
+        self.grant_owner_permissions(['database', obj.database_name])
 
     def pre_update(self, obj):
-        self.check_edit_perm(['database', obj.id])
+        self.check_edit_perm(['database', obj.database_name])
         self.pre_add(obj)
 
     def post_update(self, obj):
         Log.log_update(obj, 'database', g.user.id)
 
     def pre_delete(self, obj):
-        self.check_delete_perm(['dashboard', obj.id])
+        self.check_delete_perm(['dashboard', obj.database_name])
 
     def post_delete(self, obj):
         Log.log_delete(obj, 'database', g.user.id)
-        self.del_object_permissions(['dashboard', obj.id])
+        self.del_object_permissions(['dashboard', obj.database_name])
 
     @staticmethod
     def check_column_values(obj):
@@ -133,12 +133,12 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
                     query = query.order_by(column)
 
         guardian_auth = config.get('GUARDIAN_AUTH', False)
-        readable_ids = None
+        readable_names = None
         if guardian_auth:
             from superset.guardian import guardian_client
-            readable_ids = \
+            readable_names = \
                 guardian_client.search_model_permissions(g.user.username, 'database')
-            count = len(readable_ids)
+            count = len(readable_names)
         else:
             count = query.count()
             if page is not None and page >= 0 and page_size and page_size > 0:
@@ -149,7 +149,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
         index = 0
         for obj, user in rs:
             if guardian_auth:
-                if obj.id in readable_ids:
+                if obj.id in readable_names:
                     index += 1
                     if index <= page * page_size:
                         continue
@@ -180,7 +180,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):  # Deprecated
         database = self.get_object(id)
-        self.check_release_perm(['database', id], obj=database)
+        self.check_release_perm(['database', database.database_name])
         objects = self.release_affect_objects(database)
         info = _("Releasing connection {conn} will make these usable "
                  "for other users: \nDataset: {dataset}, \nSlice: {slice}")\
@@ -193,7 +193,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         database = self.get_object(id)
-        self.check_release_perm(['database', id], obj=database)
+        self.check_release_perm(['database', database.database_name])
         objects = self.release_affect_objects(database)
         info = _("Changing connection {conn} to offline will make these "
                  "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}")\
@@ -224,7 +224,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         database = self.get_object(id)
-        self.check_delete_perm(['database', id], obj=database)
+        self.check_delete_perm(['database', database.database_name])
         objects = self.delete_affect_objects(database)
         info = _("Deleting connection {conn} will make these unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}")\
@@ -290,12 +290,12 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
             .order_by(HDFSConnection.connection_name.desc())
 
         guardian_auth = config.get('GUARDIAN_AUTH', False)
-        readable_ids = None
+        readable_names = None
         if guardian_auth:
             from superset.guardian import guardian_client
-            readable_ids = \
+            readable_names = \
                 guardian_client.search_model_permissions(g.user.username, 'hdfsconnection')
-            count = len(readable_ids)
+            count = len(readable_names)
         else:
             count = query.count()
             if page_size and page_size > 0:
@@ -306,7 +306,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
         index = 0
         for obj in rs:
             if guardian_auth:
-                if obj.id in readable_ids:
+                if obj.id in readable_names:
                     index += 1
                     if index > page_size:
                         break
@@ -331,22 +331,22 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
 
     def post_add(self, conn):
         Log.log_add(conn, 'hdfsconnection', g.user.id)
-        self.add_object_permissions(['hdfsconnection', conn.id])
-        self.grant_owner_permissions(['hdfsconnection', conn.id])
+        self.add_object_permissions(['hdfsconnection', conn.connection_name])
+        self.grant_owner_permissions(['hdfsconnection', conn.connection_name])
 
     def pre_update(self, conn):
-        self.check_edit_perm(['hdfsconnection', conn.id])
+        self.check_edit_perm(['hdfsconnection', conn.connection_name])
         self.pre_add(conn)
 
     def post_update(self, conn):
         Log.log_update(conn, 'hdfsconnection', g.user.id)
 
     def pre_delete(self, conn):
-        self.check_delete_perm(['hdfsconnection', conn.id])
+        self.check_delete_perm(['hdfsconnection', conn.connection_name])
 
     def post_delete(self, conn):
         Log.log_delete(conn, 'hdfsconnection', g.user.id)
-        self.del_object_permissions(['hdfsconnection', conn.id])
+        self.del_object_permissions(['hdfsconnection', conn.connection_name])
 
     @staticmethod
     def check_column_values(obj):
@@ -361,7 +361,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):  # Deprecated
         hdfs_conn = self.get_object(id)
-        self.check_release_perm(['hdfsconnection', id], obj=hdfs_conn)
+        self.check_release_perm(['hdfsconnection', hdfs_conn.connection_name])
         objects = self.release_affect_objects(hdfs_conn)
         info = _("Releasing connection {conn} will make these usable "
                  "for other users: \nDataset: {dataset}, \nSlice: {slice}") \
@@ -374,7 +374,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         hdfs_conn = self.get_object(id)
-        self.check_release_perm(['hdfsconnection', id])
+        self.check_release_perm(['hdfsconnection', hdfs_conn.connection_name])
         objects = self.release_affect_objects(hdfs_conn)
         info = _("Changing connection {conn} to offline will make these "
                  "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}") \
@@ -407,7 +407,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         hdfs_conn = self.get_object(id)
-        self.check_delete_perm(['database', id], obj=hdfs_conn)
+        self.check_delete_perm(['database', hdfs_conn.connection_name])
         objects = self.delete_affect_objects(hdfs_conn)
         info = _("Deleting connection {conn} will make these unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}") \
@@ -511,7 +511,7 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
                     .format(ids=db_ids, num=len(objs))
                 )
             for obj in objs:
-                self.check_delete_perm(['database', obj.id])
+                self.check_delete_perm(['database', obj.database_name])
                 db.session.delete(obj)
                 db.session.commit()
                 Log.log_delete(obj, 'database', g.user.id)
@@ -526,7 +526,7 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
                     .format(ids=hdfs_conn_ids, num=len(objs))
                 )
             for obj in objs:
-                self.check_delete_perm(['hdfsconnection', obj.id])
+                self.check_delete_perm(['hdfsconnection', obj.connection_name])
                 db.session.delete(obj)
                 db.session.commit()
                 Log.log_delete(obj, 'hdfsconnection', g.user.id)
@@ -656,16 +656,16 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
                 raise ParameterException(msg)
 
         guardian_auth = config.get('GUARDIAN_AUTH', False)
-        readable_db_ids = None
-        readable_hdfs_ids = None
+        readable_db_names = None
+        readable_hdfs_names = None
         if guardian_auth:
             from superset.guardian import guardian_client
             username = g.user.username
-            readable_db_ids = \
+            readable_db_names = \
                 guardian_client.search_model_permissions(username, 'database')
-            readable_hdfs_ids = \
+            readable_hdfs_names = \
                 guardian_client.search_model_permissions(username, 'hdfsconnection')
-            count = len(readable_db_ids) + len(readable_hdfs_ids)
+            count = len(readable_db_names) + len(readable_hdfs_names)
         else:
             count = query.count()
             if page is not None and page >= 0 and page_size and page_size > 0:
@@ -677,8 +677,8 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
         for row in rs:
             if guardian_auth:
                 type_ = row[5]
-                if (type_ == 'HDFS' and row[0] in readable_hdfs_ids) \
-                        or (type_ != 'HDFS' and row[0] in readable_db_ids):
+                if (type_ == 'HDFS' and row[0] in readable_hdfs_names) \
+                        or (type_ != 'HDFS' and row[0] in readable_db_names):
                     index += 1
                     if index <= page * page_size:
                         continue
