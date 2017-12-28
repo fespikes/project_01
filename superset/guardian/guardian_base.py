@@ -34,6 +34,7 @@ class GuardianBase(object):
     client_jar = '/usr/local/lib/guardian-client-2.0-transwarp-5.2.0-SNAPSHOT.jar'
     site_path = '/etc/pilot/conf/'
     service_type = 'PILOT'
+    datasource_root = 'OBJECT'
 
     def __init__(self):
         self.start_jvm()
@@ -70,7 +71,9 @@ class GuardianBase(object):
             self.client.login(username, password)
 
     def _datasource(self, finite_obj):
+        """Datasource is like ['OBJECT', 'database', 1]"""
         alist = java.util.ArrayList()
+        alist.add(self.datasource_root)
         for s in finite_obj:
             alist.add(str(s))
         return alist

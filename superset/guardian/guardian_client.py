@@ -138,7 +138,7 @@ class GuardianClient(GuardianBase):
         for entity_perm in entity_perms:
             perm = entity_perm.getPermissionVo()
             datasource = perm.getDataSource()
-            id = int(datasource[1])
+            id = int(datasource.get(datasource.size() - 1))
             if id:
                 # if id in data.keys():
                 #     actions = data.get(id)
