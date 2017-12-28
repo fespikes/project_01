@@ -1009,8 +1009,8 @@ class HDFSTable(Model, AuditMixinNullable):
         nrows = int(nrows)
         try:
             return pd.read_csv(StringIO(file_content), sep=separator, header=header,
-                               nrows=nrows, prefix='C', encoding=charset,
-                               skip_blank_lines=True)
+                               nrows=nrows, prefix='C', encoding=charset, names=names,
+                               quotechar=quote, skip_blank_lines=True)
         except Exception as e:
             raise HDFSException(_("Parse file error: {msg}").format(msg=str(e)))
 

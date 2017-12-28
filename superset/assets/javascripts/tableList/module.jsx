@@ -54,9 +54,9 @@ export function getTbTitle(data, width) {
     let tbTitle = [];
     data.columns.map((column) => {
         let objTitle = {
-            title: column.toUpperCase(),
-            dataIndex: column.toUpperCase(),
-            key: column.toUpperCase(),
+            title: column,
+            dataIndex: column,
+            key: column,
             width: width,
             render: (text, record) => {
                 return (<span
@@ -221,7 +221,7 @@ function constructHDFSColumns(title) {
     if(title) {
         title.map(t => {
             names.push(t.props.value);
-            types.push(t.props._type || 'string');
+            types.push(t.props.className || 'string');
         });
     }
     return columns;

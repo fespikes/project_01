@@ -17,8 +17,8 @@ class SubPreview extends Component {
         super(props);
         this.state = {
             tableWidth: '100%',
-            clickPreview: false,
             columnNames: [],
+            operatorChange: false,
             dsHDFS: this.initHDFSDataset(props)
         };
         //bindings
@@ -48,13 +48,13 @@ class SubPreview extends Component {
                     this.doFetchInceptorPreviewData(datasetId);
                 }
             }else {//local cached
-                this.doConstructTableData(datasetType, inceptorPreviewData);
+                this.doConstructTableData(datasetType, inceptorPreviewData, true);
             }
         } else if(datasetType === datasetTypes.hdfs
             || datasetType === datasetTypes.uploadFile) {
 
             if(dsHDFS && dsHDFS.hdfsConnectId) {//local not cached
-                this.doFetchHDFSPreviewData(dsHDFS);
+                this.doFetchHDFSPreviewData(dsHDFS, false);
             }
         }
     }
@@ -69,7 +69,7 @@ class SubPreview extends Component {
             || datasetType === datasetTypes.uploadFile) {
             if(nextProps.dsHDFS.hdfsConnectId !== this.props.dsHDFS.hdfsConnectId
                 && nextProps.dsHDFS.hdfsConnectId) {
-                this.doFetchHDFSPreviewData(nextProps.dsHDFS);
+                this.doFetchHDFSPreviewData(nextProps.dsHDFS, false);
                 this.setState({dsHDFS: nextProps.dsHDFS});
             }
         }
@@ -78,7 +78,15 @@ class SubPreview extends Component {
     handleChange(e) {
         const target = e.currentTarget;
         const name = target.name;
-        const val = target.value;
+        let val = target.value;
+        if(name === 'next_as_header') {
+            val = target.checked;
+        }
+        if(name === 'separator' || name === 'next_as_header') {//seperator can case columns number change Currently
+            this.setState({
+                operatorChange: true
+            });
+        }
         const objHDFS = {
             ...this.state.dsHDFS,
             [name]: val
@@ -122,32 +130,34 @@ class SubPreview extends Component {
                     tableWidth: width,
                     data: data
                 });
-                self.doConstructTableData(datasetTypes.database, data);
+                self.doConstructTableData(datasetTypes.database, data, false);
             }else {
                 renderGlobalErrorMsg(data);
             }
         }
     }
 
-    doFetchHDFSPreviewData(dsHDFS) {
+    doFetchHDFSPreviewData(dsHDFS, isClickPreview) {
         const self = this;
         const {fetchHDFSPreviewData, datasetId} = this.props;
         fetchHDFSPreviewData(dsHDFS, datasetId, callback);
         function callback(success, data) {
             if(success) {
                 let width = datasetModule.getTableWidth(data.columns.length);
+                const columnsNeedChange = (!isClickPreview) || (isClickPreview && self.state.operatorChange);
                 self.setState({
                     tableWidth: width,
-                    data: data
+                    data: data,
+                    operatorChange: false
                 });
-                self.doConstructTableData(datasetTypes.hdfs, data);
+                self.doConstructTableData(datasetTypes.hdfs, data, columnsNeedChange);
             }else {
                 renderGlobalErrorMsg(data);
             }
         }
     }
 
-    doConstructTableData(datasetType, data) {
+    doConstructTableData(datasetType, data, columnsNeedChange) {
         let tbTitle=[], tbType=[], tbContentHDFS=[],
             columnNames=this.state.columnNames;
         let width = datasetModule.getColumnWidth(data.columns.length);
@@ -169,7 +179,7 @@ class SubPreview extends Component {
             tbContentHDFS = [{
                 key: '1'
             }];
-            if(!this.state.clickPreview) {
+            if(columnsNeedChange) {
                 columnNames = this.constructColumnNames(tbTitle);
             }
         }
@@ -193,12 +203,11 @@ class SubPreview extends Component {
         const columnNames = tbTitle.map((column) => {
             return <input
                 type="text"
-                className="tp-input hdfs-column-input"
+                className={column.type}
                 name={column.key}
                 key={column.key}
                 style={{width: colWidth}}
                 value={column.title}
-                _type={column.type}
                 onChange={self.hdfsColumnNameChange}
             />
         });
@@ -270,14 +279,11 @@ class SubPreview extends Component {
         if(opeType === 'add') {
             createDataset(dsHDFS, callback);
             function callback(success, data) {
-                let response = {};
                 if(success) {
                     let url = '/' + opeType + '/columns/HDFS/';
                     self.props.history.push(url);
                 }else {
-                    response.type = 'error';
-                    response.message = data;
-                    renderAlertTip(response, 'showAlertPreview', 600);
+                    renderGlobalErrorMsg(data);
                 }
             }
         }else if(opeType === 'edit') {
@@ -286,14 +292,11 @@ class SubPreview extends Component {
             );
             editDataset(dsHDFS, hdfsId, callback);
             function callback(success, data) {
-                let response = {};
                 if(success) {
                     let url = '/' + opeType + '/columns/HDFS/' + hdfsId;
                     self.props.history.push(url);
                 }else {
-                    response.type = 'error';
-                    response.message = data;
-                    renderAlertTip(response, 'showAlertPreview', 600);
+                    renderGlobalErrorMsg(data);
                 }
             }
         }
@@ -301,10 +304,7 @@ class SubPreview extends Component {
 
     previewHDFSDataset() {
         const dsHDFS = this.state.dsHDFS;
-        this.doFetchHDFSPreviewData(dsHDFS);
-        this.setState({
-            clickPreview: true
-        });
+        this.doFetchHDFSPreviewData(dsHDFS, true);
     }
 
     render() {

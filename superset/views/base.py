@@ -18,7 +18,7 @@ from flask_appbuilder.security.sqla.models import User
 import sqlalchemy as sqla
 from sqlalchemy import and_, or_
 
-from superset import app, db, models, utils
+from superset import app, db, models, utils, conf
 from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log
 from superset.message import *
 from superset.exception import (
@@ -29,17 +29,6 @@ from superset.exception import (
 
 config = app.config
 QueryStatus = utils.QueryStatus
-
-
-def get_error_msg():
-    if config.get("SHOW_STACKTRACE"):
-        error_msg = traceback.format_exc()
-    else:
-        error_msg = "FATAL ERROR \n"
-        error_msg += (
-            "Stacktrace is hidden. Change the SHOW_STACKTRACE "
-            "configuration setting to enable it")
-    return error_msg
 
 
 def catch_exception(f):
@@ -62,53 +51,6 @@ def catch_exception(f):
     return functools.update_wrapper(wraps, f)
 
 
-def check_ownership(obj, raise_if_false=True):
-    """Meant to be used in `pre_update` hooks on models to enforce ownership
-
-    Admin have all access, and other users need to be referenced on either
-    the created_by field that comes with the ``AuditMixin``, or in a field
-    named ``owners`` which is expected to be a one-to-many with the User
-    model. It is meant to be used in the ModelView's pre_update hook in
-    which raising will abort the update.
-    """
-    if not obj:
-        return False
-
-    security_exception = PermissionException(
-        _("You don't have the rights to update [{obj}]").format(obj=obj))
-
-    if g.user.is_anonymous():
-        if raise_if_false:
-            raise security_exception
-        return False
-
-    session = db.create_scoped_session()
-    orig_obj = session.query(obj.__class__).filter_by(id=obj.id).first()
-
-    if (hasattr(orig_obj, 'created_by') and
-            orig_obj.created_by and
-                orig_obj.created_by.username == g.user.username):
-        return True
-    if hasattr(orig_obj, 'owners'):
-        owner_names = (user.username for user in orig_obj.owners)
-        if (g.user and
-                hasattr(g.user, 'username') and
-                    g.user.username in owner_names):
-            return True
-    if raise_if_false:
-        raise security_exception
-    else:
-        return False
-
-
-def get_user_id():
-    id = g.user.get_id()
-    if id:
-        return int(id)
-    else:
-        raise LoginException(1, NO_USER)
-
-
 def json_response(message='', status=200, data='', code=0):
     if isinstance(message, LazyString):
         message = str(message)  # py3
@@ -123,67 +65,108 @@ def json_response(message='', status=200, data='', code=0):
     )
 
 
-def validate_json(form, field):  # noqa
-    try:
-        json.loads(field.data)
-    except Exception as e:
-        logging.exception(e)
-        raise ParameterException("json isn't valid")
+class PermissionManagement(object):
+    READ_PERM = 'READ'
+    EDIT_PERM = 'EDIT'
+    ADMIN_PERM = 'ADMIN'
+    ALL_PERMS = [READ_PERM, EDIT_PERM, ADMIN_PERM]
+    OWNER_PERMS = [READ_PERM, EDIT_PERM]
+    READ_PERMS = ALL_PERMS
+    EDIT_PERMS = [EDIT_PERM, ADMIN_PERM]
+    ADMIN_PERMS = [ADMIN_PERM, ]
+    DATASOURCE_TYPE = {'database': 'database',
+                       'hdfsconnection': 'hdfsconnection',
+                       'dataset': 'dataset',
+                       'slice': 'slice',
+                       'dashboard': 'dashboard'}
 
+    def add_object_permissions(self, finite_obj):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_admin
+            guardian_admin.add_permission(finite_obj, self.ALL_PERMS)
 
-def generate_download_headers(extension):
-    filename = datetime.now().strftime("%Y%m%d_%H%M%S")
-    content_disp = "attachment; filename={}.{}".format(filename, extension)
-    headers = {
-        "Content-Disposition": content_disp,
-    }
-    return headers
+    def del_object_permissions(self, finite_obj):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_admin
+            guardian_admin.del_perm_obj(finite_obj)
+
+    def grant_owner_permissions(self, finite_obj):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_admin
+            guardian_admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
+
+    def check_edit_perm(self, finite_obj, raise_if_false=True, obj=None):
+        can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
+        if not can and raise_if_false:
+            obj_name = [obj, ] if obj else finite_obj
+            raise PermissionException(
+                _('No privilege to edit {name}').format(name=obj_name))
+        else:
+            return can
+
+    def check_delete_perm(self, finite_obj, raise_if_false=True, obj=None):
+        can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
+        if not can and raise_if_false:
+            obj_name = [obj, ] if obj else finite_obj
+            raise PermissionException(
+                _('No privilege to delete {name}').format(name=obj_name))
+        else:
+            return can
+
+    def check_admin_perm(self, finite_obj, raise_if_false=True, obj=None):
+        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
+        if not can and raise_if_false:
+            obj_name = [obj, ] if obj else finite_obj
+            raise PermissionException(
+                _('No privilege ADMIN of {name}').format(name=obj_name))
+        else:
+            return can
+
+    def check_grant_perm(self, finite_obj, raise_if_false=True, obj=None):
+        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
+        if not can and raise_if_false:
+            obj_name = [obj, ] if obj else finite_obj
+            raise PermissionException(
+                _('No privilege to grant/revoke on {name}').format(name=obj_name))
+        else:
+            return can
+
+    def check_release_perm(self, finite_obj, raise_if_false=True, obj=None):
+        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
+        if not can and raise_if_false:
+            obj_name = [obj, ] if obj else finite_obj
+            raise PermissionException(
+                _('No privilege to release {name}').format(name=obj_name))
+        else:
+            return can
+
+    def do_check(self, username, finite_obj, actions):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_client
+            return guardian_client.check_any_access(username, finite_obj, actions)
+        else:
+            return True
 
 
 class BaseSupersetView(BaseView):
-    pass
-    # def can_access(self, permission_name, view_name):
-    #     return utils.can_access(appbuilder.sm, permission_name, view_name)
-    #
-    # def all_datasource_access(self):
-    #     return self.can_access(
-    #         "all_datasource_access", "all_datasource_access")
-    #
-    # def database_access(self, database):
-    #     return (
-    #         self.can_access("all_database_access", "all_database_access") or
-    #         self.can_access("database_access", database.perm)
-    #     )
-    #
-    # def schema_access(self, datasource):
-    #     return (
-    #         self.database_access(datasource.database) or
-    #         self.all_datasource_access() or
-    #         self.can_access("schema_access", datasource.schema_perm)
-    #     )
-    #
-    # def datasource_access(self, datasource):
-    #     return (
-    #         self.schema_access(datasource) or
-    #         self.can_access("datasource_access", datasource.perm)
-    #     )
-    #
-    # def datasource_access_by_name(
-    #         self, database, datasource_name, schema=None):
-    #     if (self.database_access(database) or
-    #             self.all_datasource_access()):
-    #         return True
-    #
-    #     schema_perm = utils.get_schema_perm(database, schema)
-    #     if schema and utils.can_access(sm, 'schema_access', schema_perm):
-    #         return True
-    #
-    #     datasources = SourceRegistry.query_datasources_by_name(
-    #         db.session, database, datasource_name, schema=schema)
-    #     for datasource in datasources:
-    #         if self.can_access("datasource_access", datasource.perm):
-    #             return True
-    #     return False
+
+    def user_id(self):
+        id = g.user.get_id()
+        if id:
+            return int(id)
+        else:
+            raise LoginException(1, NO_USER)
+
+    def get_request_data(self):
+        return json.loads(str(request.data, encoding='utf-8'))
+
+    def generate_download_headers(self, extension):
+        filename = datetime.now().strftime("%Y%m%d_%H%M%S")
+        content_disp = "attachment; filename={}.{}".format(filename, extension)
+        headers = {
+            "Content-Disposition": content_disp,
+        }
+        return headers
 
 
 class PageMixin(object):
@@ -197,7 +180,7 @@ class PageMixin(object):
 
     def get_list_args(self, args):
         kwargs = {}
-        kwargs['user_id'] = get_user_id()
+        kwargs['user_id'] = g.user.id
         kwargs['order_column'] = args.get('order_column', self.order_column)
         kwargs['order_direction'] = args.get('order_direction', self.order_direction)
         kwargs['page'] = int(args.get('page', self.page))
@@ -208,7 +191,7 @@ class PageMixin(object):
         return kwargs
 
 
-class SupersetModelView(ModelView, PageMixin):
+class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
     model = models.Model
     # used for Data type conversion
     int_columns = []
@@ -242,9 +225,8 @@ class SupersetModelView(ModelView, PageMixin):
     @catch_exception
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
-        user_id = get_user_id()
         json_data = self.get_request_data()
-        obj = self.populate_object(None, user_id, json_data)
+        obj = self.populate_object(None, g.user.id, json_data)
         self._add(obj)
         data = {'object_id': obj.id}
         return json_response(message=ADD_SUCCESS, data=data)
@@ -259,16 +241,14 @@ class SupersetModelView(ModelView, PageMixin):
     @expose('/show/<pk>/', methods=['GET'])
     def show(self, pk):
         obj = self.get_object(pk)
-        user_id = get_user_id()
-        attributes = self.get_show_attributes(obj, user_id=user_id)
+        attributes = self.get_show_attributes(obj, user_id=g.user.id)
         return json_response(data=attributes)
 
     @catch_exception
     @expose('/edit/<pk>/', methods=['POST'])
     def edit(self, pk):
-        user_id = get_user_id()
         json_data = self.get_request_data()
-        obj = self.populate_object(pk, user_id, json_data)
+        obj = self.populate_object(pk, g.user.id, json_data)
         self._edit(obj)
         return json_response(message=UPDATE_SUCCESS)
 
@@ -303,9 +283,7 @@ class SupersetModelView(ModelView, PageMixin):
                 .format(ids, len(objs))
             )
         for obj in objs:
-            check_ownership(obj)
-            self.datamodel.delete(obj)
-            Log.log_delete(obj, self.model.__name__.lower(), get_user_id())
+            self._delete(obj)
         return json_response(message=DELETE_SUCCESS)
 
     def get_addable_choices(self):
@@ -388,12 +366,23 @@ class SupersetModelView(ModelView, PageMixin):
                 attributes[col] = value
         return attributes
 
-    def query_own_or_online(self, class_name, user_id, only_favorite):
+    def query_with_favorite(self, class_name, **kwargs):
+        """
+        A query api suitable for dashboard and slice
+        :param class_name: 'dashboard' or 'slice'
+        :param kwargs:
+        :return:
+        """
+        user_id = kwargs.get('user_id')
+        order_column = kwargs.get('order_column')
+        order_direction = kwargs.get('order_direction')
+        filter = kwargs.get('filter')
+        only_favorite = kwargs.get('only_favorite')
+
         query = (
             db.session.query(self.model, User.username, FavStar.obj_id)
                 .outerjoin(User, self.model.created_by_fk == User.id)
         )
-
         if only_favorite:
             query = query.join(
                 FavStar,
@@ -401,7 +390,7 @@ class SupersetModelView(ModelView, PageMixin):
                     self.model.id == FavStar.obj_id,
                     FavStar.class_name.ilike(class_name),
                     FavStar.user_id == user_id)
-                )
+            )
         else:
             query = query.outerjoin(
                 FavStar,
@@ -409,13 +398,32 @@ class SupersetModelView(ModelView, PageMixin):
                     self.model.id == FavStar.obj_id,
                     FavStar.class_name.ilike(class_name),
                     FavStar.user_id == user_id)
+            )
+
+        if filter:
+            filter_str = '%{}%'.format(filter.lower())
+            if class_name.lower() == 'dashbaord':
+                query = query.filter(
+                    or_(Dashboard.dashboard_title.ilike(filter_str),
+                        User.username.ilike(filter_str))
+                )
+            elif class_name.lower() == 'slice':
+                query = query.filter(
+                    or_(Slice.slice_name.ilike(filter_str),
+                        User.username.ilike(filter_str))
                 )
 
-        query = query.filter(
-            or_(self.model.created_by_fk == user_id,
-                self.model.online == 1)
-        )
-
+        if order_column:
+            try:
+                column = self.str_to_column.get(order_column)
+            except KeyError:
+                msg = _('Error order column name: [{name}]').format(name=order_column)
+                raise ParameterException(msg)
+            else:
+                if order_direction == 'desc':
+                    query = query.order_by(column.desc())
+                else:
+                    query = query.order_by(column)
         return query
 
     @staticmethod
@@ -494,11 +502,6 @@ class SupersetModelView(ModelView, PageMixin):
             slices_list.append(row)
         return slices_list
 
-    def get_request_data(self):
-        data = request.data
-        data = str(data, encoding='utf-8')
-        return json.loads(data)
-
     def get_object(self, obj_id):
         try:
             obj_id = int(obj_id)
@@ -518,6 +521,13 @@ class SupersetModelView(ModelView, PageMixin):
         self.status = status
         logging.error(msg)
         raise exception(msg)
+
+    def check_online(self, obj, raise_if_false=True):
+        online = getattr(obj, 'online', False)
+        if online and raise_if_false:
+            raise PermissionException(_('Can not edit a online object'))
+        else:
+            return online
 
 
 @app.route('/health/')

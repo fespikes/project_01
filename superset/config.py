@@ -38,6 +38,11 @@ PILOT_WEBSERVER_TIMEOUT = 60
 CUSTOM_SECURITY_MANAGER = None
 # ---------------------------------------------------------
 
+# Guardian
+GUARDIAN_CLIENT_JAR = '/usr/local/lib/guardian-client-2.0-transwarp-5.2.0-SNAPSHOT.jar'
+GUARDIAN_SITE_PATH = '/etc/pilot/conf/'
+GUARDIAN_SERVICE_TYPE = 'PILOT'
+
 # The default username and password when guardian is not opened
 DEFAULT_USERNAME = 'admin'
 DEFAULT_PASSWORD = '123456'

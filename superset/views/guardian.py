@@ -3,26 +3,18 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import json
-from flask import g, request
+from flask import request
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
-from .base import BaseSupersetView, catch_exception, json_response
+from superset import db
+from superset.models import Database, str_to_model
 from superset.guardian import guardian_client, guardian_admin
+from superset.exception import ParameterException
+from .base import BaseSupersetView, PermissionManagement, catch_exception, json_response
 
 
-def get_request_data():
-    return json.loads(str(request.data, encoding='utf-8'))
-
-
-class GuardianView(BaseSupersetView):
+class GuardianView(BaseSupersetView, PermissionManagement):
     route_base = '/guardian'
-    READ_PERM = 'READ'
-    EDIT_PERM = 'EDIT'
-    ADMIN_PERM = 'ADMIN'
-    ALL_PERMS = [READ_PERM, EDIT_PERM, ADMIN_PERM]
-    READ_PERMS = ALL_PERMS
-    EDIT_PERMS = [EDIT_PERM, ADMIN_PERM]
-    ADMIN_PERMS = [ADMIN_PERM, ]
 
     @catch_exception
     @expose('/users/', methods=['GET'])
@@ -46,10 +38,10 @@ class GuardianView(BaseSupersetView):
             "object_id": 1
         }
         """
-        args = get_request_data()
+        args = self.get_request_data()
         object_type = args.get('object_type')
         object_id = args.get('object_id')
-        data = guardian_client.search_permissions([object_type, object_id])
+        data = guardian_client.search_object_permissions([object_type, object_id])
         return json_response(data=data)
 
     @catch_exception
@@ -64,14 +56,37 @@ class GuardianView(BaseSupersetView):
             "actions": ["READ", "EDIT", "ADMIN"]
         }
         """
-        args = get_request_data()
+        args = self.get_request_data()
         username = args.get('username')
         object_type = args.get('object_type')
         object_id = args.get('object_id')
         actions = args.get('actions')
-        guardian_admin.grant(username, [object_type, object_id], actions)
-        return json_response(message="Grant [{}] actions {} on object {} success."
-                             .format(username, actions, [object_type, object_id]))
+        obj = self.get_object(object_type, object_id)
+        self.grant_relations(username, obj, object_type, actions)
+        msg = _("Grant [{}] actions {} on object {} and dependencies success.") \
+            .format(username, actions, [object_type, object_id])
+        return json_response(message=msg)
+
+    def grant_relations(self, username, obj, object_type, actions):
+        if not self.check_grant_perm([object_type, obj.id], raise_if_false=False):
+            return
+        guardian_admin.grant(username, [object_type, obj.id], actions)
+
+        if object_type == 'dashboard':
+            for slice in obj.slices:
+                self.grant_relations(username, slice, 'slice', actions)
+        elif object_type == 'slice':
+            if obj.datasource_id and obj.datasource:
+                self.grant_relations(username, obj.datasource, 'dataset', actions)
+            elif obj.database_id:
+                database = db.session.query(Database).filter_by(id=obj.database_id).first()
+                self.grant_relations(username, database, 'database', actions)
+        elif object_type == 'dataset':
+            if obj.database:
+                self.grant_relations(username, obj.database, 'database', actions)
+            if obj.hdfs_table and obj.hdfs_table.hdfs_connection:
+                self.grant_relations(username, obj.hdfs_table.hdfs_connection,
+                                     'hdfsconnection', actions)
 
     @catch_exception
     @expose('/permisson/revoke/', methods=['POST'])
@@ -85,11 +100,20 @@ class GuardianView(BaseSupersetView):
             "actions": ["READ", "EDIT", "ADMIN"]
         }
         """
-        args = get_request_data()
+        args = self.get_request_data()
         username = args.get('username')
         object_type = args.get('object_type')
         object_id = args.get('object_id')
         actions = args.get('actions')
+        self.check_grant_perm([object_type, object_id])
         guardian_admin.revoke(username, [object_type, object_id], actions)
         return json_response(message="Revoke [{}] actions {} from object {} success."
                              .format(username, actions, [object_type, object_id]))
+
+    def get_object(self, obj_type, obj_id):
+        model = str_to_model.get(obj_type)
+        obj = db.session.query(model).filter_by(id=obj_id).first()
+        if not obj:
+            raise ParameterException(_("Not found the object: model={model}, id={id}")
+                                     .format(model=obj_type, id=obj_id))
+        return obj

@@ -142,10 +142,12 @@ ul > li .ant-select-selection {
     background-color: #fff;
     display: flex;
     align-items: center;
-}
 
-.hdfs-column-input {
-    margin: 0 5px;
+    > input {
+        @include tp-input-style;
+        height: 32px;
+        margin: 0 5px;
+    }
 }
 
 .column-type {
