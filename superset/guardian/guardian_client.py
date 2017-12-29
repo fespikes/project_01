@@ -150,8 +150,12 @@ class GuardianClient(GuardianBase):
         return sorted(names)
 
     @catch_guardian_exception
-    def get_keytab(self, username):
-        return self.client.getKeytab(username)
+    def download_keytab(self, username, file_path):
+        keytab = self.client.getKeytab(username)
+        FileUtils = JClass('org.apache.commons.io.FileUtils')
+        File = JClass('java.io.File')
+        file = File(file_path)
+        FileUtils.writeByteArrayToFile(file, keytab)
 
 
 guardian_client = GuardianClient()

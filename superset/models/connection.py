@@ -270,12 +270,7 @@ class Database(Model, AuditMixinNullable, Count):
         if conf.get('GUARDIAN_AUTH'):
             from superset.guardian import guardian_client
             guardian_client.login(user, passwd)
-            keytab = guardian_client.getKeytab(user)
-        else:
-            keytab = b''
-        file = open(path, "wb")
-        file.write(keytab)
-        file.close()
+            guardian_client.download_keytab(user, path)
         return path
 
     @classmethod
