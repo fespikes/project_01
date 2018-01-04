@@ -77,6 +77,8 @@ class SliceTable extends React.Component {
                         confirmMessage={data} />,
                     document.getElementById('popup_root')
                 );
+            }else {
+                renderGlobalErrorMsg(data);
             }
         }
     }

@@ -41,6 +41,8 @@ class SliceTable extends React.Component {
                     />,
                     document.getElementById('popup_root')
                 );
+            }else {
+                renderGlobalErrorMsg(data);
             }
         }
     }
