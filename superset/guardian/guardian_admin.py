@@ -46,6 +46,12 @@ class GuardianAdmin(GuardianBase):
             self.client.delPermission(perm)
 
     @catch_guardian_exception
+    def rename_perm_obj(self, old_finite_obj, new_finite_obj):
+        old = self._perm_obj(old_finite_obj)
+        new = self._perm_obj(new_finite_obj)
+        self.client.renamePermObj(old, new)
+
+    @catch_guardian_exception
     def del_perm_obj(self, finite_obj):
         perm_obj = self._perm_obj(finite_obj)
         self.client.delPermObj(perm_obj)

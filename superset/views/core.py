@@ -44,6 +44,7 @@ QueryStatus = utils.QueryStatus
 
 class SliceModelView(SupersetModelView, PermissionManagement):
     model = Slice
+    model_type = 'slice'
     datamodel = SQLAInterface(Slice)
     route_base = '/slice'
     can_add = False
@@ -99,24 +100,14 @@ class SliceModelView(SupersetModelView, PermissionManagement):
             self.handle_exception(404, Exception, msg)
         return objs
 
-    def pre_update(self, obj):
-        self.check_edit_perm(['slice', obj.slice_name])
-        self.check_column_values(obj)
-
-    def post_update(self, obj):
-        Log.log_update(obj, 'slice', g.user.id)
-
-    def pre_delete(self, obj):
-        self.check_delete_perm(['slice', obj.slice_name])
-
     def post_delete(self, obj):
         db.session.query(FavStar) \
-            .filter(FavStar.class_name.ilike('slice'),
+            .filter(FavStar.class_name.ilike(self.model_type),
                     FavStar.obj_id == obj.id) \
             .delete(synchronize_session=False)
         db.session.commit()
-        Log.log_delete(obj, 'slice', g.user.id)
-        self.del_object_permissions(['slice', obj.id])
+        Log.log_delete(obj, self.model_type, g.user.id)
+        self.del_perm_obj([self.model_type, obj.slice_name])
 
     @staticmethod
     def check_column_values(obj):
@@ -127,7 +118,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):  # Deprecated
         slice = self.get_object(id)
-        self.check_release_perm(['slice', slice.slice_name])
+        self.check_release_perm([self.model_type, slice.slice_name])
         objects = self.online_affect_objects(id)
         info = _("Releasing slice {slice} will release these too: "
                  "\nDataset: {dataset}, \nConnection: {conn}, "
@@ -172,7 +163,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         slice = self.get_object(id)
-        self.check_release_perm(['slice', slice.slice_name])
+        self.check_release_perm([self.model_type, slice.slice_name])
         dashboards = [d for d in slice.dashboards
                       if d.online is True and d.created_by_fk != g.user.id]
         info = _("Changing slice {slice} to offline will make it invisible "
@@ -184,7 +175,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         slice = self.get_object(id)
-        self.check_delete_perm(['slice', id], obj=slice)
+        self.check_delete_perm([self.model_type, id], obj=slice)
         objects = self.delete_affect_objects([id, ])
         info = _("Deleting slice {slice} will remove from these "
                  "dashboards too: {dashboard}")\
@@ -223,7 +214,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         slice = self.get_object(id)
-        self.check_grant_perm(['slice', slice.slice_name])
+        self.check_grant_perm([self.model_type, slice.slice_name])
         objects = self.grant_affect_objects(slice)
         info = _("Granting permissions of [{slice}] to this user, will grant "
                  "permissions of dependencies to this user too: "
@@ -276,14 +267,14 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         page_size = kwargs.get('page_size')
         only_favorite = kwargs.get('only_favorite')
 
-        query = self.query_with_favorite('slice', **kwargs)
+        query = self.query_with_favorite(self.model_type, **kwargs)
 
         guardian_auth = config.get('GUARDIAN_AUTH', False)
         readable_names = None
         if guardian_auth:
             from superset.guardian import guardian_client
             readable_names = \
-                guardian_client.search_model_permissions(g.user.username, 'slice')
+                guardian_client.search_model_permissions(g.user.username, self.model_type)
             count = len(readable_names)
         else:
             count = query.count()
@@ -338,6 +329,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
 
 class DashboardModelView(SupersetModelView, PermissionManagement):
     model = Dashboard
+    model_type = 'dashboard'
     datamodel = SQLAInterface(Dashboard)
     route_base = '/dashboard'
     list_columns = ['id', 'dashboard_title', 'url', 'description',
@@ -371,29 +363,18 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         utils.validate_json(obj.json_metadata)
         utils.validate_json(obj.position_json)
 
-    def post_add(self, obj):
-        Log.log_add(obj, 'dashboard', g.user.id)
-        self.add_object_permissions(['dashboard', obj.dashboard_title])
-        self.grant_owner_permissions(['dashboard', obj.dashboard_title])
-
-    def pre_update(self, obj):
-        self.check_edit_perm(['dashboard', obj.dashboard_title])
-        self.pre_add(obj)
-
-    def post_update(self, obj):
-        Log.log_update(obj, 'dashboard', g.user.id)
-
-    def pre_delete(self, obj):
-        self.check_delete_perm(['dashboard', obj.dashboard_title])
+    def pre_update(self, old_obj, new_obj):
+        self.check_edit_perm([self.model_type, old_obj.dashboard_title])
+        self.pre_add(new_obj)
 
     def post_delete(self, obj):
         db.session.query(FavStar) \
-            .filter(FavStar.class_name.ilike('dashboard'),
+            .filter(FavStar.class_name.ilike(self.model_type),
                     FavStar.obj_id == obj.id) \
             .delete(synchronize_session=False)
         db.session.commit()
-        Log.log_delete(obj, 'dashboard', g.user.id)
-        self.del_object_permissions(['dashboard', obj.dashboard_title])
+        Log.log_delete(obj, self.model_type, g.user.id)
+        self.del_perm_obj([self.model_type, obj.dashboard_title])
 
     @staticmethod
     def check_column_values(obj):
@@ -410,14 +391,14 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         page_size = kwargs.get('page_size')
         only_favorite = kwargs.get('only_favorite')
 
-        query = self.query_with_favorite('dashboard', **kwargs)
+        query = self.query_with_favorite(self.model_type, **kwargs)
 
         guardian_auth = config.get('GUARDIAN_AUTH', False)
         readable_names = None
         if guardian_auth:
             from superset.guardian import guardian_client
             readable_names = \
-                guardian_client.search_model_permissions(g.user.username, 'dashboard')
+                guardian_client.search_model_permissions(g.user.username, self.model_type)
             count = len(readable_names)
         else:
             count = query.count()
@@ -496,7 +477,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         connections online.
         """
         dashboard = self.get_object(id)
-        self.check_release_perm(['dashboard', dashboard.dashboard_title])
+        self.check_release_perm([self.model_type, dashboard.dashboard_title])
 
         slices = dashboard.slices
         datasets = []
@@ -537,7 +518,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         dash = self.get_object(id)
-        self.check_release_perm(['dashboard', dash.dashboard])
+        self.check_release_perm([self.model_type, dash.dashboard])
         info = _("Changing dashboard {dashboard} to offline will make it invisible "
                  "for other users").format(dashboard=[dash, ])
         return json_response(data=info)
@@ -546,7 +527,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         dash = self.get_object(id)
-        self.check_delete_perm(['dashboard', id], obj=dash)
+        self.check_delete_perm([self.model_type, dash.dashboard_title])
         return json_response(data='')
 
     @catch_exception
@@ -558,7 +539,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         dash = self.get_object(id)
-        self.check_grant_perm(['dashboard', dash.dashboard])
+        self.check_grant_perm([self.model_type, dash.dashboard])
         objects = self.grant_affect_objects(dash)
         info = _("Granting permissions of [{dashboard}] to this user, will grant "
                  "permissions of dependencies to this user too: "
@@ -639,7 +620,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         """Add and save slices to a dashboard"""
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        self.check_edit_perm(['dashboard', dash.dashboard])
+        self.check_edit_perm([self.model_type, dash.dashboard_title])
         new_slices = session.query(Slice).filter(
             Slice.id.in_(slice_ids))
         dash.slices += new_slices

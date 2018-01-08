@@ -311,6 +311,10 @@ class HDFSConnection(Model, AuditMixinNullable, Count):
     def __repr__(self):
         return self.connection_name
 
+    @property
+    def name(self):
+        return self.connection_name
+
 
 class Connection(object):
     connection_types = Database.database_types + HDFSConnection.connection_types
