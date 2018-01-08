@@ -1,4 +1,5 @@
 /* eslint-disable no-param-reassign */
+/* eslint-disable react/no-multi-comp */
 
 import d3 from 'd3';
 import React from 'react';

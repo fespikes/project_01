@@ -7,15 +7,14 @@ const _ = require('lodash');
 
 class App extends React.Component {
 
-    state = {
-        username: '',
-        login_count: '',
-        last_login: ''
-    }
-
     constructor(props) {
         super(props);
 
+        this.state = {
+            username: '',
+            login_count: '',
+            last_login: ''
+        }
     }
 
     componentDidMount() {

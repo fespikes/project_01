@@ -8,10 +8,6 @@ const centers = require('./chinese_map.json');
 
 require('./chinese_map.css');
 
-Math.formatFloat = function(f, digit) {
-var m = Math.pow(10, digit);
-return parseInt(f * m, 10) / m;
-}
 
 function chinaMap(slice) {
 
