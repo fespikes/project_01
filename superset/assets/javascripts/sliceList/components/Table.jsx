@@ -17,7 +17,6 @@ class SliceTable extends React.Component {
 
         this.editSlice = this.editSlice.bind(this);
         this.deleteSlice = this.deleteSlice.bind(this);
-        this.publishSlice = this.publishSlice.bind(this);
         this.favoriteSlice = this.favoriteSlice.bind(this);
     }
 
@@ -42,6 +41,8 @@ class SliceTable extends React.Component {
                     />,
                     document.getElementById('popup_root')
                 );
+            }else {
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -63,40 +64,6 @@ class SliceTable extends React.Component {
                 );
             }else {
                 renderGlobalErrorMsg(data);
-            }
-        }
-    }
-
-    publishSlice(record) {
-        const { dispatch } = this.props;
-        const self = this;
-        dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
-        function callback(success, data) {
-            if(success) {
-                render(
-                    <ConfirmModal
-                        dispatch={dispatch}
-                        record={record}
-                        needCallback={true}
-                        confirmCallback={self.onOfflineSlice}
-                        confirmMessage={data} />,
-                    document.getElementById('popup_root')
-                );
-            }
-        }
-    }
-
-    onOfflineSlice() {
-        const {dispatch, record} = this;
-        dispatch(fetchStateChange(record, callback, "publish"));
-        function callback(success, data) {
-            if(!success) {
-                render(
-                    <ConfirmModal
-                        needCallback={false}
-                        confirmMessage={data} />,
-                    document.getElementById('popup_root')
-                );
             }
         }
     }
@@ -245,12 +212,6 @@ class SliceTable extends React.Component {
                                 <i
                                     className="icon icon-edit"
                                     onClick={() => this.editSlice(record)}
-                                />
-                            </Tooltip>
-                            <Tooltip placement="top" title={record.online?'下线':'发布'} arrowPointAtCenter>
-                                <i
-                                    className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
-                                    onClick={() => this.publishSlice(record)}
                                 />
                             </Tooltip>
                             <Tooltip placement="top" title="删除" arrowPointAtCenter>

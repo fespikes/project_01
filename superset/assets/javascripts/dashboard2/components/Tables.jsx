@@ -18,7 +18,6 @@ class Tables extends React.Component {
 
         this.editDashboard = this.editDashboard.bind(this);
         this.deleteDashboard = this.deleteDashboard.bind(this);
-        this.publishDashboard = this.publishDashboard.bind(this);
         this.favoriteSlice = this.favoriteSlice.bind(this);
     };
 
@@ -67,42 +66,6 @@ class Tables extends React.Component {
                 );
             }else {
                 renderGlobalErrorMsg(data);
-            }
-        }
-    }
-
-    publishDashboard(record) {
-        const { dispatch } = this.props;
-        const self = this;
-        dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
-        function callback(success, data) {
-            if(success) {
-                render(
-                    <ConfirmModal
-                        dispatch={dispatch}
-                        record={record}
-                        needCallback={true}
-                        confirmCallback={self.onOfflineDashboard}
-                        confirmMessage={data} />,
-                    document.getElementById('popup_root')
-                );
-            }else {
-                renderGlobalErrorMsg(data);
-            }
-        }
-    }
-
-    onOfflineDashboard() {
-        const {dispatch, record} = this;
-        dispatch(fetchStateChange(record, callback,"publish"));
-        function callback(success, data) {
-            if(!success) {
-                render(
-                    <ConfirmModal
-                        needCallback={false}
-                        confirmMessage={data} />,
-                    document.getElementById('popup_root')
-                );
             }
         }
     }
@@ -204,12 +167,6 @@ class Tables extends React.Component {
                             <i
                                 className="icon icon-edit"
                                 onClick={() => this.editDashboard(record)}
-                            />
-                        </Tooltip>
-                        <Tooltip placement="top" title={record.online?'下线':'发布'} arrowPointAtCenter>
-                            <i
-                                className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
-                                onClick={() => this.publishDashboard(record)}
                             />
                         </Tooltip>
                         <Tooltip placement="top" title="删除" arrowPointAtCenter>
