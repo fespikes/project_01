@@ -5,6 +5,7 @@ import { createSelector } from 'reselect';
 import { Link } from 'react-router-dom';
 import { EditList, EventList } from "../components";
 import { swithTabInEdit } from "../actions";
+import intl from "react-intl-universal";
 
 const _ = require('lodash');
 
@@ -22,11 +23,11 @@ class EditAndEventPanel extends Component {
             <aside className="recentedit-and-event">
                 <div className="recentedit white-bg-and-border-radius">
                     <div className="index-title-module">
-                        <h3>最近编辑 </h3>
+                        <h3>{intl.get('recent_edited')}</h3>
                         <div className="title-tab">
                             <ul onClick={ () => {} }>
-                                <li onClick={ () => {onChangeCatagory('dashboard')} } className={selected==='slice'?'':'current'}>仪表板</li>
-                                <li onClick={ () => {onChangeCatagory('slice')} } className={selected==='slice'?'current':''}>工作表</li>
+                                <li onClick={ () => {onChangeCatagory('dashboard')} } className={selected==='slice'?'':'current'}>{intl.get('dashboard')}</li>
+                                <li onClick={ () => {onChangeCatagory('slice')} } className={selected==='slice'?'current':''}>{intl.get('slice')}</li>
                             </ul>
                         </div>
                         <div className="more">
@@ -41,7 +42,7 @@ class EditAndEventPanel extends Component {
                 </div>
                 <div className="event white-bg-and-border-radius">
                     <div className="index-title-module">
-                        <h3>事件</h3>
+                        <h3>{intl.get('events')}</h3>
                         <div className="more">
                             <Link to="/eventDetail">
                                 <i className="icon more-icon"></i>

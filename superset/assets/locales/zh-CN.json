@@ -1,0 +1,23 @@
+{
+  "dashboard": "仪表板",
+  "connection": "连接",
+  "dataset": "数据集",
+  "slice": "工作表",
+  "events": "事件",
+  "recent_edited": "最近编辑",
+  "name": "名称",
+  "action": "操作",
+  "edit_time": "编辑时间",
+  "record_amount": "记录条目",
+  "edit": "编辑",
+  "create": "创建",
+  "users": "用户",
+  "favorite_top_10": "收藏次数top10",
+  "recommend_top_10": "引用次数top10",
+  "amount": "个数",
+  "faulty_data": "数据异常",
+  "no_data": "暂无数据",
+  "changes_yesterday": "昨日变动",
+  "changes_today": "今日变动",
+  "go_back": "返回"
+}

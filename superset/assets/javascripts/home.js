@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { HashRouter, Route, Link, IndexRoute } from 'react-router-dom';
 import configureStore from './home/store/configureStore';
-import { Home, EditDetail, EventDetail} from './home/containers';
+import { Home, EditDetail, EventDetail } from './home/containers';
 import { App } from './home/components';
 import 'babel-polyfill';
 const $ = window.$ = require('jquery');

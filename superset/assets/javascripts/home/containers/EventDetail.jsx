@@ -5,10 +5,17 @@ import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 import { Table, Button, Tooltip } from 'antd';
 import { Redirect } from 'react-router-dom';
+import * as utils  from '../../../utils/utils.jsx';
+import intl from "react-intl-universal";
 
 const _ = require('lodash');
 
 class EventDetail extends Component {
+
+    state = {
+        initDone: false,
+        redirect: false
+    };
 
     constructor(props) {
         super(props);
@@ -18,9 +25,8 @@ class EventDetail extends Component {
 
     componentDidMount() {
         const { dispatch } = this.props;
-        this.state = {
-            redirect: false
-        };
+
+        this.loadLocales();
         dispatch(fetchEventDetail(0, "time", "desc"));
     }
 
@@ -36,6 +42,13 @@ class EventDetail extends Component {
         dispatch(fetchEventDetail(pager.current -1, sorter.columnKey, direction));
     }
 
+    loadLocales() {
+        utils.loadIntlResources(_ => {
+            console.log('wat ever');
+            this.setState({ initDone: true });
+        });
+    }
+
     render() {
 
         const dataSource = this.props.actions;
@@ -43,7 +56,7 @@ class EventDetail extends Component {
         const redirect = this.state ? this.state.redirect : false;
 
         const columns = [{
-            title: '用户',
+            title: intl.get('users'),
             dataIndex: 'user',
             key: 'user',
             width: '23%',
@@ -56,7 +69,7 @@ class EventDetail extends Component {
                 </a>
             )
         }, {
-            title: '操作',
+            title: intl.get('action'),
             dataIndex: 'action',
             key: 'action',
             sorter: true,
@@ -77,7 +90,7 @@ class EventDetail extends Component {
                         );
                     }
         }, {
-            title: '编辑时间',
+            title: intl.get('edit_time'),
             dataIndex: 'time',
             key: 'time',
             sorter: true,
@@ -88,22 +101,25 @@ class EventDetail extends Component {
 
         const pagination = this.props.pagination;
 
-
-        return (
-            <div className="event-detail-page detail-page">
-                <div className="event-detail-page-title detail-page-title">
-                    <div className="left">
-                        <span className="title">事件</span>
-                        <span className="count-title">记录条目</span>
-                        <span　className="count-value">{itemCount || 0}</span>
+        if (this.state.initDone) {
+            return (
+                <div className="event-detail-page detail-page">
+                    <div className="event-detail-page-title detail-page-title">
+                        <div className="left">
+                            <span className="title">{intl.get('events')}</span>
+                            <span className="count-title">{intl.get('record_amount')}</span>
+                            <span　className="count-value">{itemCount || 0}</span>
+                        </div>
+                        <div className="right">
+                            <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
+                        </div>
                     </div>
-                    <div className="right">
-                        <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
-                    </div>
+                    <Table onChange={this.tableOnChange} className="event-table" pagination={pagination} dataSource={dataSource} columns={columns} />
                 </div>
-                <Table onChange={this.tableOnChange} className="event-table" pagination={pagination} dataSource={dataSource} columns={columns} />
-            </div>
-        );
+            );
+        } else {
+            return <div></div>;
+        }
     }
 }
 
@@ -112,7 +128,7 @@ function BackButton(props) {
         return <Redirect push to="/" />;
     }
     else {
-        return <Button onClick={props.handleOnClick} className="back-button" icon="left">返回</Button>;
+        return <Button onClick={props.handleOnClick} className="back-button" icon="left">{intl.get('go_back')}</Button>;
     }
 }
 

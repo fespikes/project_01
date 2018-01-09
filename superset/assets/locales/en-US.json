@@ -1,0 +1,23 @@
+{
+  "dashboard": "dashboard",
+  "connection": "connection",
+  "dataset": "dataset",
+  "slice": "slice",
+  "events": "events",
+  "recent_edited": "recent edited",
+  "name": "name",
+  "action": "action",
+  "edit_time": "edit time",
+  "record_amount": "amount",
+  "edit": "edit",
+  "create": "create",
+  "users": "user",
+  "favorite_top_10": "favorite top 10",
+  "recommend_top_10": "recommendation top 10",
+  "amount": "amount",
+  "faulty_data": "faulty data",
+  "no_data": "no data",
+  "changes_yesterday": "changes yesterday",
+  "changes_today": "changes today",
+  "go_back": "go back"
+}
