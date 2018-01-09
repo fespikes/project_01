@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import re
 from datetime import datetime
 import json
 import logging
@@ -151,6 +152,12 @@ class PermissionManagement(object):
 
 
 class BaseSupersetView(BaseView):
+    NAME_RESTRICT_PATTERN = '^(?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]+$'
+
+    def check_value_pattern(self, value):
+        match = re.search(self.NAME_RESTRICT_PATTERN, value)
+        if not match:
+            raise PropertyException(NAME_RESTRICT_ERROR)
 
     def user_id(self):
         id = g.user.get_id()

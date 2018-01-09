@@ -87,10 +87,10 @@ class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
     def pre_delete(self, column):
         self.check_delete_perm(['dataset', column.dataset.dataset_name])
 
-    @staticmethod
-    def check_column_values(obj):
+    def check_column_values(self, obj):
         if not obj.column_name:
             raise ParameterException(NONE_COLUMN_NAME)
+        self.check_value_pattern(obj.column_name)
 
 
 class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
@@ -145,10 +145,10 @@ class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
     def pre_delete(self, metric):
         self.check_delete_perm(['dataset', metric.dataset.dataset_name])
 
-    @staticmethod
-    def check_column_values(obj):
+    def check_column_values(self, obj):
         if not obj.metric_name:
             raise ParameterException(NONE_METRIC_NAME)
+        self.check_value_pattern(obj.metric_name)
         if not obj.expression:
             raise ParameterException(NONE_METRIC_EXPRESSION)
 
@@ -609,10 +609,10 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         self.rename_perm_obj(self.model_type, old_table.dataset_name,
                              new_table.dataset_name)
 
-    @staticmethod
-    def check_column_values(obj):
+    def check_column_values(self, obj):
         if not obj.dataset_name:
             raise ParameterException(NONE_DATASET_NAME)
+        self.check_value_pattern(obj.dataset_name)
         if not obj.database_id:
             raise ParameterException(NONE_CONNECTION)
         if not obj.schema and not obj.table_namej and not obj.sql:
@@ -653,8 +653,7 @@ class HDFSTableModelView(SupersetModelView):
     def post_delete(self, obj):
         pass
 
-    @staticmethod
-    def check_column_values(obj):
+    def check_column_values(self, obj):
         if not obj.hdfs_path:
             raise ParameterException(NONE_HDFS_PATH)
         if not obj.hdfs_connection_id:
