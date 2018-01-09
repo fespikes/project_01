@@ -8,7 +8,6 @@ from . import dataset
 from . import sql_lab
 from . import hdfs
 from . import user
-from . import guardian
 
 appbuilder.add_view(
     home.Home,
@@ -85,4 +84,5 @@ appbuilder.add_view_no_menu(user.PresentUserView)
 appbuilder.add_view_no_menu(user.UserView)
 
 if conf.get('GUARDIAN_AUTH'):
+    from . import guardian
     appbuilder.add_view_no_menu(guardian.GuardianView)
