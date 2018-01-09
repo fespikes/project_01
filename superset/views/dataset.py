@@ -372,15 +372,14 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         args = self.get_request_data()
         dataset_type = args.get('dataset_type')
         if dataset_type in Dataset.addable_types:
-            dataset = self.populate_object(None, g.user.id, args)
+            o, dataset = self.populate_object(None, g.user.id, args)
             self._add(dataset)
-            return json_response(
-                message=ADD_SUCCESS, data={'object_id': dataset.id})
+            return json_response(message=ADD_SUCCESS, data={'object_id': dataset.id})
         elif dataset_type in HDFSTable.addable_types:
             HDFSTable.cache.clear()
             # create hdfs_table
             hdfs_table_view = HDFSTableModelView()
-            hdfs_table = hdfs_table_view.populate_object(None, g.user.id, args)
+            o, hdfs_table = hdfs_table_view.populate_object(None, g.user.id, args)
             database = db.session.query(Database) \
                 .filter_by(id=args.get('database_id')) \
                 .first()
@@ -458,7 +457,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
 
         hdfs_table_view = HDFSTableModelView()
         hdfs_table = dataset.hdfs_table
-        hdfs_table = hdfs_table_view.populate_object(hdfs_table.id, g.user.id, args)
+        _, hdfs_table = hdfs_table_view.populate_object(hdfs_table.id, g.user.id, args)
 
         db_session = db.session
         self.pre_update(old_dataset, dataset)
@@ -544,7 +543,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         index = 0
         for obj, user in rs:
             if guardian_auth:
-                if obj.id in available_names:
+                if obj.name in available_names:
                     index += 1
                     if index <= page * page_size:
                         continue
@@ -639,10 +638,19 @@ class HDFSTableModelView(SupersetModelView):
     def pre_add(self, obj):
         self.check_column_values(obj)
 
+    def post_add(self, obj):
+        pass
+
     def pre_update(self, old_obj, new_obj):
         self.pre_add(new_obj)
 
     def post_update(self, old_obj, new_obj):
+        pass
+
+    def pre_delete(self, obj):
+        pass
+
+    def post_delete(self, obj):
         pass
 
     @staticmethod

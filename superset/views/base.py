@@ -240,13 +240,13 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
             raise DatabaseException(ADD_FAILED)
         self.post_add(obj)
 
-    def pre_add(self, conn):
-        self.check_column_values(conn)
+    def pre_add(self, obj):
+        self.check_column_values(obj)
 
-    def post_add(self, conn):
-        Log.log_add(conn, self.model_type, g.user.id)
-        self.add_object_permissions([self.model_type, conn.connection_name])
-        self.grant_owner_permissions([self.model_type, conn.connection_name])
+    def post_add(self, obj):
+        Log.log_add(obj, self.model_type, g.user.id)
+        self.add_object_permissions([self.model_type, obj.name])
+        self.grant_owner_permissions([self.model_type, obj.name])
 
     @catch_exception
     @expose('/show/<pk>/', methods=['GET'])

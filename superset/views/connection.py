@@ -131,7 +131,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
         index = 0
         for obj, user in rs:
             if guardian_auth:
-                if obj.id in readable_names:
+                if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
                         continue
@@ -289,7 +289,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
         index = 0
         for obj in rs:
             if guardian_auth:
-                if obj.id in readable_names:
+                if obj.name in readable_names:
                     index += 1
                     if index > page_size:
                         break

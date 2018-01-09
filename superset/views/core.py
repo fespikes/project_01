@@ -286,7 +286,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         index = 0
         for obj, username, fav_id in rs:
             if guardian_auth:
-                if obj.id in readable_names:
+                if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
                         continue
@@ -410,7 +410,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         index = 0
         for obj, username, fav_id in rs:
             if guardian_auth:
-                if obj.dashboard_title in readable_names:
+                if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
                         continue
@@ -798,7 +798,11 @@ class Superset(BaseSupersetView, PermissionManagement):
 
         # slc perms
         slice_add_perm = True
-        slice_edit_perm = self.check_edit_perm(['slice', slc.slice_name], raise_if_false=False)
+        if not slc:
+            slice_edit_perm = True
+        else:
+            slice_edit_perm = self.check_edit_perm(['slice', slc.name],
+                                                   raise_if_false=False)
         slice_download_perm = True
 
         # handle save or overwrite
@@ -966,17 +970,14 @@ class Superset(BaseSupersetView, PermissionManagement):
                 "info")
         elif request.args.get('add_to_dash') == 'new':
             dash = Dashboard(dashboard_title=request.args.get('new_dashboard_name'))
-            flash(
-                _("Dashboard [{dashboard}] just got created and slice [{slice}] "
-                "was added to it").format(
-                    dashboard=dash.dashboard_title,
-                    slice=slc.slice_name),
-                "info")
             if dash and slc not in dash.slices:
                 dash.slices.append(slc)
-                db.session.add(dash)
-                db.session.commit()
-                Log.log_add(dash, 'dashboard', g.user.id)
+                dash_view = DashboardModelView()
+                dash_view._add(dash)
+            flash(_("Dashboard [{dashboard}] just got created and slice [{slice}] "
+                    "was added to it").format(dashboard=dash.dashboard_title,
+                                              slice=slc.slice_name),
+                  "info")
 
         if request.args.get('goto_dash') == 'true':
             if request.args.get('V2') == 'true':
