@@ -932,7 +932,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         slc.slice_name = slice_name or slc.slice_name
         slc.database_id = database_id if database_id else None
         slc.full_table_name = full_tb_name
-        SliceModelView.check_column_values(slc)
+        SliceModelView().check_column_values(slc)
 
         if action in ('saveas') and slice_add_perm:
             self.save_slice(slc)
