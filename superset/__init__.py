@@ -30,10 +30,35 @@ CONFIG_MODULE = os.environ.get('SUPERSET_CONFIG', 'superset.config')
 
 app = Flask(__name__)
 app.config.from_object(CONFIG_MODULE)
-
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 Compress(app)
 
 conf = app.config
+
+#################################################################
+# Handling manifest file logic at app start
+#################################################################
+MANIFEST_FILE = APP_DIR + '/static/assets/dist/manifest.json'
+manifest = {}
+
+def parse_manifest_json():
+    global manifest
+    try:
+        with open(MANIFEST_FILE, 'r') as f:
+            manifest = json.load(f)
+    except Exception:
+        print('no manifest file found at ' + MANIFEST_FILE)
+
+def get_manifest_file(filename):
+    if app.debug:
+        parse_manifest_json()
+    return '/static/assets/dist/' + manifest.get(filename, '')
+
+parse_manifest_json()
+
+@app.context_processor
+def get_js_manifest():
+    return dict(js_manifest=get_manifest_file)
 
 # CAS
 cas = None
