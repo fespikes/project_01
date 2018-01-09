@@ -15,10 +15,12 @@ from flask_appbuilder import expose
 from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import func, and_, or_
 
-from superset import appbuilder, db
+from superset import appbuilder, db, app
 from superset.models import Slice, Dashboard, FavStar, Log, str_to_model
 from superset.exception import ParameterException
 from .base import BaseSupersetView, catch_exception, json_response
+
+config = app.config
 
 
 class Home(BaseSupersetView):
@@ -39,7 +41,7 @@ class Home(BaseSupersetView):
         'trends': ['dashboard', 'slice', 'dataset', 'connection'],
         'favorits': ['dashboard', 'slice'],
         'edits': ['dashboard', 'slice'],
-        'actions': ['online', 'offline', 'add', 'delete']
+        'actions': ['grant', 'revoke', 'add', 'delete']
     }
     default_limit = {
         'trends': 30,
@@ -63,6 +65,7 @@ class Home(BaseSupersetView):
         self.status = 201
         self.success = True
         self.message = []
+        self.guardian_auth = config.get('GUARDIAN_AUTH', False)
 
     def get_obj_class(self, type_):
         try:
@@ -74,10 +77,19 @@ class Home(BaseSupersetView):
         else:
             return True, model
 
-    def get_object_counts(self, user_id, types):
+    def get_object_counts(self, username, types):
         dt = {}
         for type_ in types:
-            dt[type_] = str_to_model[type_].count(user_id)
+            if self.guardian_auth:
+                from superset.guardian import guardian_client as client
+                if type_.lower() == 'connection':
+                    names = client.search_model_permissions(username, 'database') \
+                            + client.search_model_permissions(username, 'hdfsconnection')
+                else:
+                    names = client.search_model_permissions(username, type_)
+                dt[type_] = len(names)
+            else:
+                dt[type_] = str_to_model[type_].count()
         return dt
 
     def get_object_number_trends(self, user_id=None, types=[], limit=30, counts={}):
@@ -104,10 +116,10 @@ class Home(BaseSupersetView):
                                                  "count": present_count.get(type_)})
                 #
                 if log.action_type == 'add' and log.user_id == user_id \
-                        or log.action_type == 'online' and log.user_id != user_id:
+                        or log.action_type == 'grant' and log.user_id != user_id:
                     present_count[obj_type] = present_count.get(obj_type) - 1
                 elif log.action_type == 'delete' and log.user_id == user_id \
-                        or log.action_type == 'offline' and log.user_id != user_id:
+                        or log.action_type == 'revoke' and log.user_id != user_id:
                     present_count[obj_type] = present_count.get(obj_type) + 1
 
         while present_date > start_date:
@@ -129,63 +141,71 @@ class Home(BaseSupersetView):
         )
         return rs
 
-    def get_fav_dashboards(self, user_id, limit=10):
+    def get_fav_dashboards(self, username, limit=10):
         """Query the times of dashboard liked by users"""
         query = db.session.query(func.count(FavStar.obj_id), Dashboard) \
             .filter(
             and_(FavStar.class_name.ilike('dashboard'),
                  FavStar.obj_id == Dashboard.id)
         )
-        if user_id > 0:
-            query = query.filter(
-                or_(Dashboard.created_by_fk == user_id,
-                    Dashboard.online == 1)
-            )
         query = query.group_by(FavStar.obj_id) \
             .order_by(func.count(FavStar.obj_id).desc())
-        if limit > 0:
-            query = query.limit(limit)
         rs = query.all()
 
+        readable_dashs = []
+        if self.guardian_auth:
+            from superset.guardian import guardian_client as client
+            readable_dashs = client.search_model_permissions(username, 'dashboard')
+
         rows = []
+        index = 0
         for count, dash in rs:
-            rows.append(
-                {'name': dash.dashboard_title, 'link': dash.url, 'count': count})
+            if index >= limit:
+                break
+            if self.guardian_auth:
+                if dash.name not in readable_dashs:
+                    continue
+            rows.append({'name': dash.name, 'link': dash.url, 'count': count})
+            index += 1
         return rows
 
-    def get_fav_slices(self, user_id, limit=10):
+    def get_fav_slices(self, username, limit=10):
         """Query the times of slice liked by users"""
         query = db.session.query(func.count(FavStar.obj_id), Slice) \
             .filter(
             and_(FavStar.class_name.ilike('slice'),
                  FavStar.obj_id == Slice.id)
         )
-        if user_id > 0:
-            query = query.filter(
-                or_(Slice.created_by_fk == user_id,
-                    Slice.online == 1)
-            )
         query = query.group_by(FavStar.obj_id) \
             .order_by(func.count(FavStar.obj_id).desc())
-        if limit > 0:
-            query = query.limit(limit)
         rs = query.all()
 
+        readable_slices = []
+        if self.guardian_auth:
+            from superset.guardian import guardian_client as client
+            readable_slices = client.search_model_permissions(username, 'slice')
+
         rows = []
+        index = 0
         for count, slice in rs:
-            rows.append(
-                {'name': slice.slice_name, 'link': slice.slice_url, 'count': count})
+            if index >= limit:
+                break
+            if self.guardian_auth:
+                if slice.name not in readable_slices:
+                    continue
+            rows.append({'name': slice.name, 'link': slice.slice_url, 'count': count})
+            index += 1
         return rows
 
-    def get_fav_objects(self, user_id, types, limit):
+    def get_fav_objects(self, username, types, limit):
         dt = {}
         if 'dashboard' in types:
-            dt['dashboard'] = self.get_fav_dashboards(user_id, limit=limit)
+            dt['dashboard'] = self.get_fav_dashboards(username, limit=limit)
         if 'slice' in types:
-            dt['slice'] = self.get_fav_slices(user_id, limit=limit)
+            dt['slice'] = self.get_fav_slices(username, limit=limit)
         return dt
 
-    def get_refered_slices(self, user_id, limit=10):
+    def get_refered_slices(self, username, limit=10):
         """Query the times of slice used by dashboards"""
         sql = """
             SELECT slices.slice_name, count(slices.slice_name), slices.params, 
@@ -193,17 +213,24 @@ class Home(BaseSupersetView):
             FROM slices, dashboards, dashboard_slices
             WHERE slices.id = dashboard_slices.slice_id
             AND dashboards.id = dashboard_slices.dashboard_id
-            AND (
-                slices.created_by_fk = {}
-                OR
-                slices.online = 1)
-            GROUP BY slices.slice_name
+            GROUP BY slices.slice_name, slices.params, slices.id, slices.datasource_id
             ORDER BY count(slices.slice_name) DESC
-            LIMIT {}""".format(user_id, limit)
+            """
         rs = db.session.execute(sql)
-        
+
+        readable_slices = []
+        if self.guardian_auth:
+            from superset.guardian import guardian_client as client
+            readable_slices = client.search_model_permissions(username, 'slice')
+
         rows = []
+        index = 0
         for row in rs:
+            if index >= limit:
+                break
+            if self.guardian_auth:
+                if row[0] not in readable_slices:
+                    continue
             try:
                 slice_params = json.loads(row[2])
             except Exception as e:
@@ -214,24 +241,18 @@ class Home(BaseSupersetView):
             slice_params['slice_name'] = row[0]
             href = Href("/p/explore/table/{}/".format(row[4]))
             rows.append({'name': row[0], 'count': row[1], 'link': href(slice_params)})
+            index += 1
         return rows
 
     def get_edited_slices(self, **kwargs):
         """The records of slice be modified"""
-        user_id = kwargs.get('user_id')
-        page = kwargs.get('page')
+        username = kwargs.get('username')
+        page = kwargs.get('page', 0)
         page_size = kwargs.get('page_size')
         order_column = kwargs.get('order_column')
         order_direction = kwargs.get('order_direction')
 
-        query = db.session.query(Slice).filter(
-            or_(
-                Slice.created_by_fk == user_id,
-                Slice.online == 1
-            )
-        )
-        count = query.count()
-
+        query = db.session.query(Slice)
         if order_column:
             column = self.str_to_column_in_edits.get(order_column).get('slice')
             if order_direction == 'desc':
@@ -241,13 +262,30 @@ class Home(BaseSupersetView):
         else:
             query = query.order_by(Slice.changed_on.desc())
 
-        if page_size and page_size > 0:
-            query = query.limit(page_size)
-        if page and page > 0:
-            query = query.offset(page * page_size)
+        readable_slices = []
+        if self.guardian_auth:
+            from superset.guardian import guardian_client as client
+            readable_slices = client.search_model_permissions(username, 'slice')
+            count = len(readable_slices)
+        else:
+            count = query.count()
+            if page_size and page_size > 0:
+                query = query.limit(page_size)
+            if page and page > 0:
+                query = query.offset(page * page_size)
 
         rows = []
+        index = 0
         for obj in query.all():
+            if self.guardian_auth:
+                if obj.name in readable_slices:
+                    index += 1
+                    if index <= page * page_size:
+                        continue
+                    elif index > (page+1) * page_size:
+                        break
+                else:
+                    continue
             action = 'create' if obj.changed_on == obj.created_on else 'edit'
             line = {'name': obj.slice_name,
                     'description': obj.description,
@@ -259,20 +297,13 @@ class Home(BaseSupersetView):
 
     def get_edited_dashboards(self, **kwargs):
         """The records of slice be modified"""
-        user_id = kwargs.get('user_id')
-        page = kwargs.get('page')
+        username = kwargs.get('username')
+        page = kwargs.get('page', 0)
         page_size = kwargs.get('page_size')
         order_column = kwargs.get('order_column')
         order_direction = kwargs.get('order_direction')
 
-        query = db.session.query(Dashboard).filter(
-            or_(
-                Dashboard.created_by_fk == user_id,
-                Dashboard.online == True
-            )
-        )
-        count = query.count()
-
+        query = db.session.query(Dashboard)
         if order_column:
             column = self.str_to_column_in_edits.get(order_column).get('dashboard')
             if order_direction == 'desc':
@@ -282,13 +313,30 @@ class Home(BaseSupersetView):
         else:
             query = query.order_by(Dashboard.changed_on.desc())
 
-        if page_size and page_size > 0:
-            query = query.limit(page_size)
-        if page and page > 0:
-            query = query.offset(page * page_size)
+        readable_dashs = []
+        if self.guardian_auth:
+            from superset.guardian import guardian_client as client
+            readable_dashs = client.search_model_permissions(username, 'dashboard')
+            count = len(readable_dashs)
+        else:
+            count = query.count()
+            if page_size and page_size > 0:
+                query = query.limit(page_size)
+            if page and page > 0:
+                query = query.offset(page * page_size)
 
         rows = []
+        index = 0
         for obj in query.all():
+            if self.guardian_auth:
+                if obj.name in readable_dashs:
+                    index += 1
+                    if index <= page * page_size:
+                        continue
+                    elif index > (page+1) * page_size:
+                        break
+                else:
+                    continue
             action = 'create' if obj.changed_on == obj.created_on else 'edit'
             line = {'name': obj.dashboard_title,
                     'description': obj.description,
@@ -319,7 +367,7 @@ class Home(BaseSupersetView):
     @expose('/edits/slice/')
     def get_edited_slices_by_url(self):
         kwargs = self.get_request_args(request.args)
-        kwargs['user_id'] = g.user.id
+        kwargs['username'] = g.user.username
         count, data = self.get_edited_slices(**kwargs)
 
         status_ = self.status
@@ -342,7 +390,7 @@ class Home(BaseSupersetView):
     @expose('/edits/dashboard/')
     def get_edited_dashboards_by_url(self):
         kwargs = self.get_request_args(request.args)
-        kwargs['user_id'] = g.user.id
+        kwargs['username'] = g.user.username
         count, data = self.get_edited_dashboards(**kwargs)
 
         status_ = self.status
@@ -373,8 +421,7 @@ class Home(BaseSupersetView):
         if len(types) < 1 or page_size < 0:
             self.status = 401 if str(self.status)[0] < '4' else self.status
             self.message.append(_("Error request parameters: [{params}]")
-                                .format(params={'types': types,
-                                                'page_size': page_size})
+                                .format(params={'types': types, 'page_size': page_size})
                                 )
             return {}
 
@@ -414,9 +461,9 @@ class Home(BaseSupersetView):
         rows = []
         for log, username, dash, slice in query.all():
             if dash:
-                title, link = dash.dashboard_title, dash.url
+                title, link = dash.name, dash.url
             elif slice:
-                title, link = slice.slice_name, slice.slice_url
+                title, link = slice.name, slice.slice_url
             else:
                 link = None
                 g = re.compile(r"\[.*\]").search(log.action)
@@ -471,11 +518,12 @@ class Home(BaseSupersetView):
     @catch_exception
     @expose('/alldata/')
     def get_all_statistics_data(self):
+        username = g.user.username
         user_id = g.user.id
         response = {}
         #
         types = self.default_types.get('counts')
-        result = self.get_object_counts(user_id, types)
+        result = self.get_object_counts(username, types)
         response['counts'] = result
         #
         types = self.default_types.get('trends')
@@ -486,17 +534,17 @@ class Home(BaseSupersetView):
         # #
         types = self.default_types.get('favorits')
         limit = self.default_limit.get('favorits')
-        result = self.get_fav_objects(user_id, types, limit)
+        result = self.get_fav_objects(username, types, limit)
         response['favorits'] = result
         # #
         limit = self.default_limit.get('refers')
-        result = self.get_refered_slices(user_id, limit)
+        result = self.get_refered_slices(username, limit)
         response['refers'] = result
         #
         types = self.default_types.get('edits')
         limit = self.default_limit.get('edits')
         result = self.get_edited_objects(
-            user_id=user_id, types=types, page_size=limit)
+            username=username, types=types, page_size=limit)
         response['edits'] = result
         # #
         limit = self.default_limit.get('actions')

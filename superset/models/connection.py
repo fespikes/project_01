@@ -13,7 +13,6 @@ from flask import g
 from itertools import groupby
 from collections import OrderedDict
 
-from flask_babel import lazy_gettext as _
 from flask_appbuilder import Model
 
 import sqlalchemy as sqla
@@ -21,8 +20,7 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy_utils import EncryptedType
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, Text, Boolean, Table,
-    LargeBinary, create_engine, MetaData, select, UniqueConstraint,
-    or_
+    create_engine, MetaData, select, UniqueConstraint,
 )
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.sql import text
@@ -30,13 +28,13 @@ from sqlalchemy.sql.expression import TextAsFrom
 
 from superset import db, app, db_engine_specs, conf
 from superset.exception import ParameterException
-from superset.message import MISS_PASSWORD_FOR_GUARDIAN, NO_USER
-from .base import AuditMixinNullable, Count
+from superset.message import MISS_PASSWORD_FOR_GUARDIAN
+from .base import AuditMixinNullable
 
 config = app.config
 
 
-class Database(Model, AuditMixinNullable, Count):
+class Database(Model, AuditMixinNullable):
     __tablename__ = 'dbs'
     type = "table"
 
@@ -274,19 +272,13 @@ class Database(Model, AuditMixinNullable, Count):
         return path
 
     @classmethod
-    def count(cls, user_id):
-        return (
-            db.session.query(cls)
-            .filter(
-                or_(cls.created_by_fk == user_id,
-                    cls.online == 1),
-                cls.database_name != config.get("METADATA_CONN_NAME")
-                )
+    def count(cls):
+        return db.session.query(cls)\
+            .filter(cls.database_name != config.get("METADATA_CONN_NAME"))\
             .count()
-        )
 
 
-class HDFSConnection(Model, AuditMixinNullable, Count):
+class HDFSConnection(Model, AuditMixinNullable):
     __tablename__ = 'hdfs_connection'
     type = 'table'
 
@@ -320,8 +312,8 @@ class Connection(object):
     connection_types = Database.database_types + HDFSConnection.connection_types
 
     @classmethod
-    def count(cls, user_id):
-        return Database.count(user_id) + HDFSConnection.count(user_id)
+    def count(cls):
+        return Database.count() + HDFSConnection.count()
 
 
 # class DatabaseAccount(Model):
