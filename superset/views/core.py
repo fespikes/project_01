@@ -772,18 +772,16 @@ class Superset(BaseSupersetView, PermissionManagement):
         if slice_id:
             slc = db.session.query(Slice).filter_by(id=slice_id).first()
 
-        datasources = db.session.query(Dataset) \
-            .filter(
-                or_(Dataset.created_by_fk == user_id,
-                    Dataset.online == 1)
-            ).all()
-        datasources = sorted(datasources, key=lambda ds: ds.full_name)
-        databases = db.session.query(Database) \
-            .filter(
-                or_(Database.created_by_fk == user_id,
-                    Database.online == 1)
-            ).all()
-        databases = sorted(databases, key=lambda d: d.name)
+        datasets = db.session.query(Dataset).all()
+        datasets = sorted(datasets, key=lambda ds: ds.full_name)
+        guardian_auth = config.get('GUARDIAN_AUTH', False)
+        if guardian_auth:
+            from superset.guardian import guardian_client
+            readable_dataset_names = \
+                guardian_client.search_model_permissions(g.user.username, 'dataset')
+            readable_datasets = [d for d in datasets if d.name in readable_dataset_names]
+            datasets = readable_datasets
+
         viz_obj = None
         try:
             viz_obj = self.get_viz(
@@ -798,24 +796,19 @@ class Superset(BaseSupersetView, PermissionManagement):
 
         # slc perms
         slice_add_perm = True
+        slice_download_perm = True
         if not slc:
             slice_edit_perm = True
         else:
             slice_edit_perm = self.check_edit_perm(['slice', slc.name],
                                                    raise_if_false=False)
-        slice_download_perm = True
-
         # handle save or overwrite
         action = request.args.get('action')
         if action in ('saveas', 'overwrite'):
             return self.save_or_overwrite_slice(
                 request.args, slc, slice_add_perm, slice_edit_perm)
 
-        # find out if user is in explore v2 beta group
-        # and set flag `is_in_explore_v2_beta`
-        #is_in_explore_v2_beta = sm.find_role('explore-v2-beta') in get_user_roles()
         is_in_explore_v2_beta = False
-
         # handle different endpoints
         if request.args.get("csv") == "true":
             payload = viz_obj.get_csv()
@@ -833,7 +826,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 "can_download": slice_download_perm,
                 "can_edit": slice_edit_perm,
                 # TODO: separate endpoint for fetching datasources
-                "datasources": [(d.id, d.full_name) for d in datasources],
+                "datasources": [(d.id, d.full_name) for d in datasets],
                 "datasource_id": datasource_id,
                 "datasource_name": viz_obj.datasource.name,
                 "datasource_type": datasource_type,
@@ -854,8 +847,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 "superset/explore.html",
                 viz=viz_obj,
                 slice=slc,
-                datasources=datasources,
-                databases=databases,
+                datasources=datasets,
                 can_add=slice_add_perm,
                 can_edit=slice_edit_perm,
                 can_download=slice_download_perm,
