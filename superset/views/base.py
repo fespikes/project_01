@@ -3,10 +3,11 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import re
 from datetime import datetime
 import json
 import logging
-import traceback
+import copy
 from distutils.util import strtobool
 import functools
 
@@ -85,58 +86,60 @@ class PermissionManagement(object):
             from superset.guardian import guardian_admin
             guardian_admin.add_permission(finite_obj, self.ALL_PERMS)
 
-    def del_object_permissions(self, finite_obj):
+    def del_perm_obj(self, finite_obj):
         if conf.get("GUARDIAN_AUTH"):
             from superset.guardian import guardian_admin
             guardian_admin.del_perm_obj(finite_obj)
+
+    def rename_perm_obj(self, model, old_name, new_name):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_admin
+            if old_name == new_name:
+                return
+            guardian_admin.rename_perm_obj([model, old_name], [model, new_name])
 
     def grant_owner_permissions(self, finite_obj):
         if conf.get("GUARDIAN_AUTH"):
             from superset.guardian import guardian_admin
             guardian_admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
 
-    def check_edit_perm(self, finite_obj, raise_if_false=True, obj=None):
+    def check_edit_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
         if not can and raise_if_false:
-            obj_name = [obj, ] if obj else finite_obj
             raise PermissionException(
-                _('No privilege to edit {name}').format(name=obj_name))
+                _('No privilege to edit {name}').format(name=finite_obj[-1]))
         else:
             return can
 
-    def check_delete_perm(self, finite_obj, raise_if_false=True, obj=None):
+    def check_delete_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
         if not can and raise_if_false:
-            obj_name = [obj, ] if obj else finite_obj
             raise PermissionException(
-                _('No privilege to delete {name}').format(name=obj_name))
+                _('No privilege to delete {name}').format(name=finite_obj[-1]))
         else:
             return can
 
-    def check_admin_perm(self, finite_obj, raise_if_false=True, obj=None):
+    def check_admin_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
         if not can and raise_if_false:
-            obj_name = [obj, ] if obj else finite_obj
             raise PermissionException(
-                _('No privilege ADMIN of {name}').format(name=obj_name))
+                _('No privilege ADMIN of {name}').format(name=finite_obj[-1]))
         else:
             return can
 
-    def check_grant_perm(self, finite_obj, raise_if_false=True, obj=None):
+    def check_grant_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
         if not can and raise_if_false:
-            obj_name = [obj, ] if obj else finite_obj
             raise PermissionException(
-                _('No privilege to grant/revoke on {name}').format(name=obj_name))
+                _('No privilege to grant/revoke on {name}').format(name=finite_obj[-1]))
         else:
             return can
 
-    def check_release_perm(self, finite_obj, raise_if_false=True, obj=None):
+    def check_release_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
         if not can and raise_if_false:
-            obj_name = [obj, ] if obj else finite_obj
             raise PermissionException(
-                _('No privilege to release {name}').format(name=obj_name))
+                _('No privilege to release {name}').format(name=finite_obj[-1]))
         else:
             return can
 
@@ -149,6 +152,12 @@ class PermissionManagement(object):
 
 
 class BaseSupersetView(BaseView):
+    NAME_RESTRICT_PATTERN = '^(?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]+$'
+
+    def check_value_pattern(self, value):
+        match = re.search(self.NAME_RESTRICT_PATTERN, value)
+        if not match:
+            raise PropertyException(NAME_RESTRICT_ERROR)
 
     def user_id(self):
         id = g.user.get_id()
@@ -191,8 +200,9 @@ class PageMixin(object):
         return kwargs
 
 
-class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
+class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManagement):
     model = models.Model
+    model_type = 'model'
     # used for Data type conversion
     int_columns = []
     bool_columns = []
@@ -226,7 +236,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
     @expose('/add/', methods=['GET', 'POST'])
     def add(self):
         json_data = self.get_request_data()
-        obj = self.populate_object(None, g.user.id, json_data)
+        _, obj = self.populate_object(None, g.user.id, json_data)
         self._add(obj)
         data = {'object_id': obj.id}
         return json_response(message=ADD_SUCCESS, data=data)
@@ -236,6 +246,14 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
         if not self.datamodel.add(obj):
             raise DatabaseException(ADD_FAILED)
         self.post_add(obj)
+
+    def pre_add(self, obj):
+        self.check_column_values(obj)
+
+    def post_add(self, obj):
+        Log.log_add(obj, self.model_type, g.user.id)
+        self.add_object_permissions([self.model_type, obj.name])
+        self.grant_owner_permissions([self.model_type, obj.name])
 
     @catch_exception
     @expose('/show/<pk>/', methods=['GET'])
@@ -248,15 +266,23 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
     @expose('/edit/<pk>/', methods=['POST'])
     def edit(self, pk):
         json_data = self.get_request_data()
-        obj = self.populate_object(pk, g.user.id, json_data)
-        self._edit(obj)
+        old_obj, new_obj = self.populate_object(pk, g.user.id, json_data)
+        self._edit(old_obj, new_obj)
         return json_response(message=UPDATE_SUCCESS)
 
-    def _edit(self, obj):
-        self.pre_update(obj)
-        if not self.datamodel.edit(obj):
+    def _edit(self, old_obj, new_obj):
+        self.pre_update(old_obj, new_obj)
+        if not self.datamodel.edit(new_obj):
             raise DatabaseException(UPDATE_FAILED)
-        self.post_update(obj)
+        self.post_update(old_obj, new_obj)
+
+    def pre_update(self, old_obj, new_obj):
+        self.check_edit_perm([self.model_type, old_obj.name])
+        self.pre_add(new_obj)
+
+    def post_update(self, old_obj, new_obj):
+        Log.log_update(new_obj, self.model_type, g.user.id)
+        self.rename_perm_obj(self.model_type, old_obj.name, new_obj.name)
 
     @catch_exception
     @expose('/delete/<pk>/')
@@ -270,6 +296,13 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
         if not self.datamodel.delete(obj):
             raise DatabaseException(DELETE_FAILED)
         self.post_delete(obj)
+
+    def pre_delete(self, obj):
+        self.check_delete_perm([self.model_type, obj.name])
+
+    def post_delete(self, obj):
+        Log.log_delete(obj, self.model_type, g.user.id)
+        self.del_perm_obj([self.model_type, obj.name])
 
     @catch_exception
     @expose('/muldelete/', methods=['GET', 'POST'])
@@ -295,18 +328,20 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin):
         pass
 
     def populate_object(self, obj_id, user_id, data):
+        old_obj = None
         if obj_id:
-            obj = self.get_object(obj_id)
+            new_obj = self.get_object(obj_id)
+            old_obj = copy.deepcopy(new_obj)
             attributes = self.get_edit_attributes(data, user_id)
         else:
-            obj = self.model()
+            new_obj = self.model()
             attributes = self.get_add_attributes(data, user_id)
         for key, value in attributes.items():
             if isinstance(value, str):
-                setattr(obj, key, value.strip())
+                setattr(new_obj, key, value.strip())
             else:
-                setattr(obj, key, value)
-        return obj
+                setattr(new_obj, key, value)
+        return old_obj, new_obj
 
     def get_show_attributes(self, obj, user_id=None):
         attributes = {}

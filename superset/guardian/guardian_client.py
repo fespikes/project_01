@@ -134,24 +134,28 @@ class GuardianClient(GuardianBase):
         entity_perms = self.client.searchPermissions(
             username, self.PrincipalType.USER, component, datasource, True
         )
-        ids = set()
+        names = set()
         for entity_perm in entity_perms:
             perm = entity_perm.getPermissionVo()
             datasource = perm.getDataSource()
-            id = int(datasource.get(datasource.size() - 1))
-            if id:
+            name = datasource.get(datasource.size() - 1)
+            if name:
                 # if id in data.keys():
                 #     actions = data.get(id)
                 #     actions.append(perm.getAction())
                 #     data[id] = actions
                 # else:
                 #     data[id] = [perm.getAction(), ]
-                ids.add(id)
-        return sorted(ids)
+                names.add(name)
+        return sorted(names)
 
     @catch_guardian_exception
-    def get_keytab(self, username):
-        return self.client.getKeytab(username)
+    def download_keytab(self, username, file_path):
+        keytab = self.client.getKeytab(username)
+        FileUtils = JClass('org.apache.commons.io.FileUtils')
+        File = JClass('java.io.File')
+        file = File(file_path)
+        FileUtils.writeByteArrayToFile(file, keytab)
 
 
 guardian_client = GuardianClient()

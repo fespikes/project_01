@@ -1641,6 +1641,9 @@ msgstr "仪表板名字不能为空"
 msgid "Connecting timeout"
 msgstr "连接超时"
 
+msgid "Name should consist of chinese, alphanumeric characters and underscores, and can't start or end with underscores"
+msgstr "名字只能由中文、字母、数字和下划线组成，且不能以下划线开始或结束"
+
 
 #========================
 # views/base.py

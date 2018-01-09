@@ -96,6 +96,10 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
         return self.column_name
 
     @property
+    def name(self):
+        return self.column_name
+
+    @property
     def dataset(self):
         return self.temp_dataset if self.temp_dataset else self.ref_dataset
 
@@ -220,6 +224,10 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
         return self.metric_name
 
     @property
+    def name(self):
+        return self.metric_name
+
+    @property
     def dataset(self):
         return self.temp_dataset if self.temp_dataset else self.ref_dataset
 
@@ -250,7 +258,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
     __tablename__ = 'dataset'
 
     id = Column(Integer, primary_key=True)
-    dataset_name = Column(String(128), nullable=False)
+    dataset_name = Column(String(128), nullable=False, unique=True)
     table_name = Column(String(128))
     schema = Column(String(128))
     sql = Column(Text)
@@ -275,7 +283,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
     cache_timeout = Column(Integer)
 
     __table_args__ = (
-        UniqueConstraint('dataset_name', 'created_by_fk', name='dataset_name_owner_uc'),
+        UniqueConstraint('dataset_name', name='dataset_name_uc'),
     )
 
     baselink = "table"
@@ -293,6 +301,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
     addable_types = ['DATABASE']
 
     def __repr__(self):
+        return self.dataset_name
+
+    @property
+    def name(self):
         return self.dataset_name
 
     @property
@@ -348,7 +360,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
         return "[{obj.database}].[{obj.dataset_name}](id:{obj.id})".format(obj=self)
 
     @property
-    def name(self):
+    def table(self):
         if not self.schema:
             return self.table_name
         return "{}.{}".format(self.schema, self.table_name)

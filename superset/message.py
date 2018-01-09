@@ -34,6 +34,10 @@ MISS_PASSWORD_FOR_FILEROBOT = _("Miss password to login FileRobot")
 NO_HDFS_CONNECTION = _("No HDFS connection, please create one")
 NO_FILEROBOT_SERVER = _("Failed to get FileRobot server from config")
 
+# views/base.py
+NAME_RESTRICT_ERROR = _("Name should consist of chinese, alphanumeric characters "
+                        "and underscores, and can't start or end with underscores")
+
 # views/connection.py
 NONE_CONNECTION_NAME = _("Connection name can't be none")
 NONE_CONNECTION_TYPE = _("Connection type can't be none")

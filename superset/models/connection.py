@@ -41,7 +41,7 @@ class Database(Model, AuditMixinNullable, Count):
     type = "table"
 
     id = Column(Integer, primary_key=True)
-    database_name = Column(String(128), nullable=False)
+    database_name = Column(String(128), nullable=False, unique=True)
     description = Column(Text)
     online = Column(Boolean, default=False)
     # database_type = Column(String(32), nullable=False)
@@ -62,7 +62,7 @@ class Database(Model, AuditMixinNullable, Count):
     """))
 
     __table_args__ = (
-        UniqueConstraint('database_name', 'created_by_fk', name='database_name_owner_uc'),
+        UniqueConstraint('database_name', name='database_name_uc'),
     )
 
     database_types = ['INCEPTOR', 'MYSQL', 'ORACLE', 'MSSQL']
@@ -270,12 +270,7 @@ class Database(Model, AuditMixinNullable, Count):
         if conf.get('GUARDIAN_AUTH'):
             from superset.guardian import guardian_client
             guardian_client.login(user, passwd)
-            keytab = guardian_client.getKeytab(user)
-        else:
-            keytab = b''
-        file = open(path, "wb")
-        file.write(keytab)
-        file.close()
+            guardian_client.download_keytab(user, path)
         return path
 
     @classmethod
@@ -296,7 +291,7 @@ class HDFSConnection(Model, AuditMixinNullable, Count):
     type = 'table'
 
     id = Column(Integer, primary_key=True)
-    connection_name = Column(String(128), nullable=False)
+    connection_name = Column(String(128), nullable=False, unique=True)
     description = Column(Text)
     online = Column(Boolean, default=False)
     database_id = Column(Integer, ForeignKey('dbs.id'), nullable=True)
@@ -307,13 +302,17 @@ class HDFSConnection(Model, AuditMixinNullable, Count):
         foreign_keys=[database_id])
 
     __table_args__ = (
-        UniqueConstraint('connection_name', 'created_by_fk', name='connection_name_owner_uc'),
+        UniqueConstraint('connection_name', name='hdfs_connection_name_uc'),
     )
 
     connection_types = ['HDFS', ]
     addable_types = connection_types
 
     def __repr__(self):
+        return self.connection_name
+
+    @property
+    def name(self):
         return self.connection_name
 
 
