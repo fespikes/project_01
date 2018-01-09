@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import json
 import requests
+import copy
 from distutils.util import strtobool
 from flask import request, g
 from flask_babel import lazy_gettext as _
@@ -77,17 +78,19 @@ class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
     def pre_add(self, column):
         self.check_column_values(column)
 
-    def pre_update(self, column):
-        self.check_edit_perm(['dataset', column.dataset_id])
-        self.pre_add(column)
+    def pre_update(self, old_column, new_column):
+        if not new_column.dataset:
+            raise PropertyException('Column [{}] misses dataset'.format(new_column))
+        self.check_edit_perm(['dataset', new_column.dataset.dataset_name])
+        self.pre_add(new_column)
 
     def pre_delete(self, column):
-        self.check_delete_perm(['dataset', column.dataset_id])
+        self.check_delete_perm(['dataset', column.dataset.dataset_name])
 
-    @staticmethod
-    def check_column_values(obj):
+    def check_column_values(self, obj):
         if not obj.column_name:
             raise ParameterException(NONE_COLUMN_NAME)
+        self.check_value_pattern(obj.column_name)
 
 
 class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
@@ -133,23 +136,26 @@ class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
     def pre_add(self, metric):
         self.check_column_values(metric)
 
-    def pre_update(self, metric):
-        self.check_edit_perm(['dataset', metric.dataset_id])
-        self.pre_add(metric)
+    def pre_update(self, old_metric, new_metric):
+        if not new_metric.dataset:
+            raise PropertyException('Metric [{}] misses dataset'.format(new_metric))
+        self.check_edit_perm(['dataset', old_metric.dataset.dataset_name])
+        self.pre_add(new_metric)
 
     def pre_delete(self, metric):
-        self.check_delete_perm(['dataset', metric.dataset_id])
+        self.check_delete_perm(['dataset', metric.dataset.dataset_name])
 
-    @staticmethod
-    def check_column_values(obj):
+    def check_column_values(self, obj):
         if not obj.metric_name:
             raise ParameterException(NONE_METRIC_NAME)
+        self.check_value_pattern(obj.metric_name)
         if not obj.expression:
             raise ParameterException(NONE_METRIC_EXPRESSION)
 
 
 class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     model = Dataset
+    model_type = 'dataset'
     datamodel = SQLAInterface(Dataset)
     route_base = '/table'
     list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url',
@@ -249,7 +255,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):  # Deprecated
         dataset = self.get_object(id)
-        self.check_release_perm(['dataset', id], obj=dataset)
+        self.check_release_perm([self.model_type, dataset.dataset_name])
         objects = self.release_affect_objects(dataset)
         info = _("Releasing dataset {dataset} will release connection {connection}, "
                  "\nand make these slices usable for others: {slice}")\
@@ -263,7 +269,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         dataset = self.get_object(id)
-        self.check_release_perm(['dataset', id], obj=dataset)
+        self.check_release_perm([self.model_type, dataset.dataset_name])
         objects = self.release_affect_objects(dataset)
         info = _("Changing dataset {dataset} to offline will make these "
                  "slices unusable for others: {slice}")\
@@ -297,7 +303,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         dataset = self.get_object(id)
-        self.check_delete_perm(['dataset', id], obj=dataset)
+        self.check_delete_perm([self.model_type, dataset.dataset_name])
         objects = self.delete_affect_objects([id, ])
         info = _("Deleting datasets {dataset} will make these slices unusable: {slice}")\
             .format(dataset=objects.get('dataset'),
@@ -344,7 +350,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         dataset = self.get_object(id)
-        self.check_grant_perm(['dataset', id], obj=dataset)
+        self.check_grant_perm([self.model_type, dataset.dataset_name])
         objects = self.grant_affect_objects(dataset)
         info = _("Granting permissions of [{dataset}] to this user, will grant "
                  "permissions of dependencies to this user too: "
@@ -366,15 +372,14 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         args = self.get_request_data()
         dataset_type = args.get('dataset_type')
         if dataset_type in Dataset.addable_types:
-            dataset = self.populate_object(None, g.user.id, args)
+            o, dataset = self.populate_object(None, g.user.id, args)
             self._add(dataset)
-            return json_response(
-                message=ADD_SUCCESS, data={'object_id': dataset.id})
+            return json_response(message=ADD_SUCCESS, data={'object_id': dataset.id})
         elif dataset_type in HDFSTable.addable_types:
             HDFSTable.cache.clear()
             # create hdfs_table
             hdfs_table_view = HDFSTableModelView()
-            hdfs_table = hdfs_table_view.populate_object(None, g.user.id, args)
+            o, hdfs_table = hdfs_table_view.populate_object(None, g.user.id, args)
             database = db.session.query(Database) \
                 .filter_by(id=args.get('database_id')) \
                 .first()
@@ -421,8 +426,8 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
 
         dataset_type = dataset.dataset_type
         if dataset_type in Dataset.dataset_types:
-            dataset = self.populate_object(pk, g.user.id, args)
-            self._edit(dataset)
+            old, new = self.populate_object(pk, g.user.id, args)
+            self._edit(old, new)
             return json_response(message=UPDATE_SUCCESS)
         elif dataset_type in HDFSTable.hdfs_table_types:
             self._edit_hdfs_dataset(dataset, args)
@@ -443,6 +448,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         dataset.hdfs_table.create_external_table(
             database, dataset_name, columns, hdfs_path, separator)
 
+        old_dataset = copy.deepcopy(dataset)
         dataset.dataset_name = dataset_name
         dataset.table_name = args.get('dataset_name')
         dataset.description = args.get('description')
@@ -451,11 +457,11 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
 
         hdfs_table_view = HDFSTableModelView()
         hdfs_table = dataset.hdfs_table
-        hdfs_table = hdfs_table_view.populate_object(hdfs_table.id, g.user.id, args)
+        _, hdfs_table = hdfs_table_view.populate_object(hdfs_table.id, g.user.id, args)
 
         db_session = db.session
-        self.pre_update(dataset)
-        hdfs_table_view.pre_update(hdfs_table)
+        self.pre_update(old_dataset, dataset)
+        hdfs_table_view.pre_update(hdfs_table, hdfs_table)
 
         try:
             db_session.merge(dataset)
@@ -470,8 +476,8 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
             msg = "Edit record error: {0}".format(str(e))
             self.handle_exception(500, DatabaseException, msg)
 
-        hdfs_table_view.post_update(hdfs_table)
-        self.post_update(dataset)
+        hdfs_table_view.post_update(hdfs_table, hdfs_table)
+        self.post_update(old_dataset, dataset)
         return True
 
     def get_object_list_data(self, **kwargs):
@@ -525,7 +531,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         if guardian_auth:
             from superset.guardian import guardian_client
             available_names = \
-                guardian_client.search_model_permissions(g.user.username, 'dataset')
+                guardian_client.search_model_permissions(g.user.username, self.model_type)
             count = len(available_names)
         else:
             count = query.count()
@@ -537,7 +543,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         index = 0
         for obj, user in rs:
             if guardian_auth:
-                if obj.id in available_names:
+                if obj.name in available_names:
                     index += 1
                     if index <= page * page_size:
                         continue
@@ -577,9 +583,9 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         table.get_sqla_table_object()
 
     def post_add(self, table):
-        Log.log_add(table, 'dataset', g.user.id)
-        self.add_object_permissions(['dataset', table.id])
-        self.grant_owner_permissions(['dataset', table.id])
+        Log.log_add(table, self.model_type, g.user.id)
+        self.add_object_permissions([self.model_type, table.dataset_name])
+        self.grant_owner_permissions([self.model_type, table.dataset_name])
         table.fetch_metadata()
 
     def update_hdfs_table(self, table, json_date):
@@ -591,27 +597,22 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         db.session.delete(table.ref_metrics)
         table.fetch_metadata()
 
-    def pre_update(self, table):
-        self.check_edit_perm(['dataset', table.id])
-        self.pre_add(table)
-        TableColumnInlineView.datamodel.delete_all(table.ref_columns)
-        SqlMetricInlineView.datamodel.delete_all(table.ref_metrics)
+    def pre_update(self, old_table, new_table):
+        self.check_edit_perm([self.model_type, old_table.dataset_name])
+        self.pre_add(new_table)
+        TableColumnInlineView.datamodel.delete_all(new_table.ref_columns)
+        SqlMetricInlineView.datamodel.delete_all(new_table.ref_metrics)
 
-    def post_update(self, table):
-        table.fetch_metadata()
-        Log.log_update(table, 'dataset', g.user.id)
+    def post_update(self, old_table, new_table):
+        new_table.fetch_metadata()
+        Log.log_update(new_table, self.model_type, g.user.id)
+        self.rename_perm_obj(self.model_type, old_table.dataset_name,
+                             new_table.dataset_name)
 
-    def pre_delete(self, table):
-        self.check_delete_perm(['dataset', table.id])
-
-    def post_delete(self, table):
-        Log.log_delete(table, 'dataset', g.user.id)
-        self.del_object_permissions(['dataset', table.id])
-
-    @staticmethod
-    def check_column_values(obj):
+    def check_column_values(self, obj):
         if not obj.dataset_name:
             raise ParameterException(NONE_DATASET_NAME)
+        self.check_value_pattern(obj.dataset_name)
         if not obj.database_id:
             raise ParameterException(NONE_CONNECTION)
         if not obj.schema and not obj.table_namej and not obj.sql:
@@ -637,11 +638,22 @@ class HDFSTableModelView(SupersetModelView):
     def pre_add(self, obj):
         self.check_column_values(obj)
 
-    def pre_update(self, obj):
-        self.pre_add(obj)
+    def post_add(self, obj):
+        pass
 
-    @staticmethod
-    def check_column_values(obj):
+    def pre_update(self, old_obj, new_obj):
+        self.pre_add(new_obj)
+
+    def post_update(self, old_obj, new_obj):
+        pass
+
+    def pre_delete(self, obj):
+        pass
+
+    def post_delete(self, obj):
+        pass
+
+    def check_column_values(self, obj):
         if not obj.hdfs_path:
             raise ParameterException(NONE_HDFS_PATH)
         if not obj.hdfs_connection_id:

@@ -96,6 +96,10 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
         return self.column_name
 
     @property
+    def name(self):
+        return self.column_name
+
+    @property
     def dataset(self):
         return self.temp_dataset if self.temp_dataset else self.ref_dataset
 
@@ -220,6 +224,10 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
         return self.metric_name
 
     @property
+    def name(self):
+        return self.metric_name
+
+    @property
     def dataset(self):
         return self.temp_dataset if self.temp_dataset else self.ref_dataset
 
@@ -296,6 +304,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
         return self.dataset_name
 
     @property
+    def name(self):
+        return self.dataset_name
+
+    @property
     def dataset_type(self):
         if self.hdfs_table:
             return self.hdfs_table.hdfs_table_type
@@ -348,7 +360,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
         return "[{obj.database}].[{obj.dataset_name}](id:{obj.id})".format(obj=self)
 
     @property
-    def name(self):
+    def table(self):
         if not self.schema:
             return self.table_name
         return "{}.{}".format(self.schema, self.table_name)

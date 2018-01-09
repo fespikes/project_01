@@ -9,7 +9,7 @@ from jpype import *
 
 
 class CheckLicense(object):
-    default_jar = "/usr/local/lib/pilot-license-1.0-transwarp-5.1.0-SNAPSHOT.jar"
+    default_jar = "/usr/local/lib/pilot-license-1.0-transwarp-5.2.0-SNAPSHOT.jar"
 
     @classmethod
     def start_jvm(cls, license_jar):

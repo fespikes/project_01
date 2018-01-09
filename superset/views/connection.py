@@ -32,6 +32,7 @@ config = app.config
 
 class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     model = models.Database
+    model_type = 'database'
     datamodel = SQLAInterface(models.Database)
     route_base = '/database'
     list_columns = ['id', 'database_name', 'description', 'backend', 'changed_on']
@@ -62,29 +63,10 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
         self.check_column_values(obj)
         obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
 
-    def post_add(self, obj):
-        Log.log_add(obj, 'database', g.user.id)
-        self.add_object_permissions(['database', obj.database_name])
-        self.grant_owner_permissions(['database', obj.database_name])
-
-    def pre_update(self, obj):
-        self.check_edit_perm(['database', obj.database_name])
-        self.pre_add(obj)
-
-    def post_update(self, obj):
-        Log.log_update(obj, 'database', g.user.id)
-
-    def pre_delete(self, obj):
-        self.check_delete_perm(['dashboard', obj.database_name])
-
-    def post_delete(self, obj):
-        Log.log_delete(obj, 'database', g.user.id)
-        self.del_object_permissions(['dashboard', obj.database_name])
-
-    @staticmethod
-    def check_column_values(obj):
+    def check_column_values(self, obj):
         if not obj.database_name:
             raise ParameterException(NONE_CONNECTION_NAME)
+        self.check_value_pattern(obj.database_name)
         if not obj.sqlalchemy_uri:
             raise ParameterException(NONE_SQLALCHEMY_URI)
         if not obj.args:
@@ -149,7 +131,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
         index = 0
         for obj, user in rs:
             if guardian_auth:
-                if obj.id in readable_names:
+                if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
                         continue
@@ -180,7 +162,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):  # Deprecated
         database = self.get_object(id)
-        self.check_release_perm(['database', database.database_name])
+        self.check_release_perm([self.model_type, database.database_name])
         objects = self.release_affect_objects(database)
         info = _("Releasing connection {conn} will make these usable "
                  "for other users: \nDataset: {dataset}, \nSlice: {slice}")\
@@ -193,7 +175,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         database = self.get_object(id)
-        self.check_release_perm(['database', database.database_name])
+        self.check_release_perm([self.model_type, database.database_name])
         objects = self.release_affect_objects(database)
         info = _("Changing connection {conn} to offline will make these "
                  "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}")\
@@ -224,7 +206,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         database = self.get_object(id)
-        self.check_delete_perm(['database', database.database_name])
+        self.check_delete_perm([self.model_type, database.database_name])
         objects = self.delete_affect_objects(database)
         info = _("Deleting connection {conn} will make these unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}")\
@@ -271,6 +253,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
 
 class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     model = models.HDFSConnection
+    model_type = 'hdfsconnection'
     datamodel = SQLAInterface(models.HDFSConnection)
     route_base = '/hdfsconnection'
     list_columns = ['id', 'connection_name']
@@ -306,7 +289,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
         index = 0
         for obj in rs:
             if guardian_auth:
-                if obj.id in readable_names:
+                if obj.name in readable_names:
                     index += 1
                     if index > page_size:
                         break
@@ -326,32 +309,10 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
         response['data'] = data
         return response
 
-    def pre_add(self, conn):
-        self.check_column_values(conn)
-
-    def post_add(self, conn):
-        Log.log_add(conn, 'hdfsconnection', g.user.id)
-        self.add_object_permissions(['hdfsconnection', conn.connection_name])
-        self.grant_owner_permissions(['hdfsconnection', conn.connection_name])
-
-    def pre_update(self, conn):
-        self.check_edit_perm(['hdfsconnection', conn.connection_name])
-        self.pre_add(conn)
-
-    def post_update(self, conn):
-        Log.log_update(conn, 'hdfsconnection', g.user.id)
-
-    def pre_delete(self, conn):
-        self.check_delete_perm(['hdfsconnection', conn.connection_name])
-
-    def post_delete(self, conn):
-        Log.log_delete(conn, 'hdfsconnection', g.user.id)
-        self.del_object_permissions(['hdfsconnection', conn.connection_name])
-
-    @staticmethod
-    def check_column_values(obj):
+    def check_column_values(self, obj):
         if not obj.connection_name:
             raise ParameterException(NONE_CONNECTION_NAME)
+        self.check_value_pattern(obj.connection_name)
         if not obj.httpfs:
             raise ParameterException(NONE_HTTPFS)
         if not obj.database_id:
@@ -361,7 +322,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):  # Deprecated
         hdfs_conn = self.get_object(id)
-        self.check_release_perm(['hdfsconnection', hdfs_conn.connection_name])
+        self.check_release_perm([self.model_type, hdfs_conn.connection_name])
         objects = self.release_affect_objects(hdfs_conn)
         info = _("Releasing connection {conn} will make these usable "
                  "for other users: \nDataset: {dataset}, \nSlice: {slice}") \
@@ -374,7 +335,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         hdfs_conn = self.get_object(id)
-        self.check_release_perm(['hdfsconnection', hdfs_conn.connection_name])
+        self.check_release_perm([self.model_type, hdfs_conn.connection_name])
         objects = self.release_affect_objects(hdfs_conn)
         info = _("Changing connection {conn} to offline will make these "
                  "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}") \
@@ -407,7 +368,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         hdfs_conn = self.get_object(id)
-        self.check_delete_perm(['database', hdfs_conn.connection_name])
+        self.check_delete_perm([self.model_type, hdfs_conn.connection_name])
         objects = self.delete_affect_objects(hdfs_conn)
         info = _("Deleting connection {conn} will make these unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}") \
@@ -476,6 +437,7 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
     This view just gets the list data of Database and HDFSConnection
     """
     model = models.Connection
+    model_type = 'connection'
     route_base = '/connection'
 
     def get_list_args(self, args):
@@ -503,18 +465,15 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
         #
         db_ids = json_data.get('database')
         if db_ids:
-            objs = db.session.query(Database) \
-                .filter(Database.id.in_(db_ids)).all()
+            objs = db.session.query(Database).filter(Database.id.in_(db_ids)).all()
             if len(db_ids) != len(objs):
                 raise ParameterException(_(
                     "Error parameter ids: {ids}, queried {num} connection(s)")
                     .format(ids=db_ids, num=len(objs))
                 )
-            for obj in objs:
-                self.check_delete_perm(['database', obj.database_name])
-                db.session.delete(obj)
-                db.session.commit()
-                Log.log_delete(obj, 'database', g.user.id)
+            db_view = DatabaseView()
+            for id in db_ids:
+                db_view.delete(id)
         #
         hdfs_conn_ids = json_data.get('hdfs')
         if hdfs_conn_ids:
@@ -525,11 +484,9 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
                     "Error parameter ids: {ids}, queried {num} connection(s)")
                     .format(ids=hdfs_conn_ids, num=len(objs))
                 )
-            for obj in objs:
-                self.check_delete_perm(['hdfsconnection', obj.connection_name])
-                db.session.delete(obj)
-                db.session.commit()
-                Log.log_delete(obj, 'hdfsconnection', g.user.id)
+            hdfs_view = HDFSConnectionModelView()
+            for id in hdfs_conn_ids:
+                hdfs_view.delete(id)
 
         return json_response(message=DELETE_SUCCESS)
 
@@ -675,10 +632,10 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
         data = []
         index = 0
         for row in rs:
+            type_ = row[5]
             if guardian_auth:
-                type_ = row[5]
-                if (type_ == 'HDFS' and row[0] in readable_hdfs_names) \
-                        or (type_ != 'HDFS' and row[0] in readable_db_names):
+                if (type_ == 'HDFS' and row[1] in readable_hdfs_names) \
+                        or (type_ != 'HDFS' and row[1] in readable_db_names):
                     index += 1
                     if index <= page * page_size:
                         continue

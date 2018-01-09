@@ -59,6 +59,10 @@ class Slice(Model, AuditMixinNullable, ImportMixin, Count):
         return self.slice_name
 
     @property
+    def name(self):
+        return self.slice_name
+
+    @property
     def perm(self):
         return self.slice_name
 
@@ -281,6 +285,10 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin, Count):
                      'description', 'css', 'slug')
 
     def __repr__(self):
+        return self.dashboard_title
+
+    @property
+    def name(self):
         return self.dashboard_title
 
     @property
