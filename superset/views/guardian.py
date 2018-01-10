@@ -3,11 +3,11 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from flask import request
+from flask import request, g
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from superset import db
-from superset.models import Database, str_to_model
+from superset.models import Database, str_to_model, Log
 from superset.guardian import guardian_client, guardian_admin
 from superset.exception import ParameterException
 from .base import BaseSupersetView, PermissionManagement, catch_exception, json_response
@@ -35,13 +35,13 @@ class GuardianView(BaseSupersetView, PermissionManagement):
         Search user's permission on specific object. Format of request.data is as bellow:
         {
             "object_type": "database",
-            "object_id": 1
+            "object_name": "name"
         }
         """
         args = self.get_request_data()
         object_type = args.get('object_type')
-        object_id = args.get('object_id')
-        data = guardian_client.search_object_permissions([object_type, object_id])
+        object_name = args.get('object_name')
+        data = guardian_client.search_object_permissions([object_type, object_name])
         return json_response(data=data)
 
     @catch_exception
@@ -52,26 +52,25 @@ class GuardianView(BaseSupersetView, PermissionManagement):
         {
             "username": "a",
             "object_type": "database",
-            "object_id": 1,
+            "object_name": "name",
             "actions": ["READ", "EDIT", "ADMIN"]
         }
         """
         args = self.get_request_data()
         username = args.get('username')
         object_type = args.get('object_type')
-        object_id = args.get('object_id')
+        object_name = args.get('object_name')
         actions = args.get('actions')
-        obj = self.get_object(object_type, object_id)
+        obj = self.get_object(object_type, object_name)
         self.grant_relations(username, obj, object_type, actions)
         msg = _("Grant [{}] actions {} on object {} and dependencies success.") \
-            .format(username, actions, [object_type, object_id])
+            .format(username, actions, [object_type, object_name])
         return json_response(message=msg)
 
     def grant_relations(self, username, obj, object_type, actions):
-        if not self.check_grant_perm([object_type, obj.id], raise_if_false=False):
+        if not self.check_grant_perm([object_type, obj.name], raise_if_false=False):
             return
-        guardian_admin.grant(username, [object_type, obj.id], actions)
-
+        guardian_admin.grant(username, [object_type, obj.name], actions)
         if object_type == 'dashboard':
             for slice in obj.slices:
                 self.grant_relations(username, slice, 'slice', actions)
@@ -96,24 +95,34 @@ class GuardianView(BaseSupersetView, PermissionManagement):
         {
             "username": "a",
             "object_type": "database",
-            "object_id": 1,
+            "object_name": "name",
             "actions": ["READ", "EDIT", "ADMIN"]
         }
         """
         args = self.get_request_data()
         username = args.get('username')
         object_type = args.get('object_type')
-        object_id = args.get('object_id')
+        object_name = args.get('object_name')
         actions = args.get('actions')
-        self.check_grant_perm([object_type, object_id])
-        guardian_admin.revoke(username, [object_type, object_id], actions)
+        self.check_grant_perm([object_type, object_name])
+        guardian_admin.revoke(username, [object_type, object_name], actions)
         return json_response(message="Revoke [{}] actions {} from object {} success."
-                             .format(username, actions, [object_type, object_id]))
+                             .format(username, actions, [object_type, object_name]))
 
-    def get_object(self, obj_type, obj_id):
+    def get_object(self, obj_type, obj_name):
         model = str_to_model.get(obj_type)
-        obj = db.session.query(model).filter_by(id=obj_id).first()
+        obj = None
+        if obj_type == 'dashboard':
+            obj = db.session.query(model).filter_by(dashboard_title=obj_name).first()
+        elif obj_type == 'slice':
+            obj = db.session.query(model).filter_by(slice_name=obj_name).first()
+        elif obj_type == 'dataset':
+            obj = db.session.query(model).filter_by(dataset_name=obj_name).first()
+        elif obj_type == 'database':
+            obj = db.session.query(model).filter_by(database_name=obj_name).first()
+        elif obj_type == 'hdfsconnection':
+            obj = db.session.query(model).filter_by(connection_name=obj_name).first()
         if not obj:
-            raise ParameterException(_("Not found the object: model={model}, id={id}")
-                                     .format(model=obj_type, id=obj_id))
+            raise ParameterException(_("Not found the {model} by name: [{name}]")
+                                     .format(model=obj_type, name=obj_name))
         return obj
