@@ -42,13 +42,13 @@ class GuardianView(BaseSupersetView, PermissionManagement):
 
     @catch_exception
     @guardian_entry
-    @expose('/permisson/types/', methods=['GET'])
+    @expose('/permission/types/', methods=['GET'])
     def permission_types(self):
         return json_response(data={'permissions': self.ALL_PERMS})
 
     @catch_exception
     @guardian_entry
-    @expose('/permisson/search/', methods=['POST'])
+    @expose('/permission/search/', methods=['POST'])
     def search_permissions(self):
         """
         Search user's permission on specific object. Format of request.data is as bellow:
@@ -65,7 +65,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
 
     @catch_exception
     @guardian_entry
-    @expose('/permisson/grant/', methods=['POST'])
+    @expose('/permission/grant/', methods=['POST'])
     def grant_permissions(self):
         """
         Grant a user actions on a object. Format of request.data is as bellow:
@@ -115,7 +115,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
 
     @catch_exception
     @guardian_entry
-    @expose('/permisson/revoke/', methods=['POST'])
+    @expose('/permission/revoke/', methods=['POST'])
     def revoke_permissions(self):
         """"
         Revoke a user's actions from a object. Format of request.data is as bellow:
