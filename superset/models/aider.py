@@ -6,10 +6,7 @@ from __future__ import unicode_literals
 import json
 import re
 from datetime import datetime, date
-
-from flask import request
 from flask_appbuilder import Model
-
 import sqlalchemy as sqla
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, Text, Boolean, DateTime, Date, Numeric,
@@ -17,6 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import backref, relationship
 
 from superset import app, db
+from superset.exception import PropertyException
 from .base import QueryStatus
 from .dataset import Dataset
 from .connection import Database, HDFSConnection, Connection
@@ -231,3 +229,90 @@ class Query(Model):
         tab = self.tab_name.replace(' ', '_').lower() if self.tab_name else 'notab'
         tab = re.sub(r'\W+', '', tab)
         return "sqllab_{tab}_{ts}".format(**locals())
+
+
+class Number(Model):
+    """ORM object used to log objects' number readable for user
+       Object type: ['slice', 'dashboard', 'dataset', 'connection']
+    """
+    __tablename__ = 'number'
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String(128))
+    obj_type = Column(String(32))
+    dt = Column(Date, default=date.today())
+    count = Column(Integer)
+
+    LOG_TYPES = ['dashboard', 'slice', 'dataset', 'connection']
+    OBJECT_TYPES = ['dashboard', 'slice', 'dataset', 'database', 'hdfsconnection']
+
+    @classmethod
+    def do_log(cls, username, obj_type, count):
+        today_number = db.session.query(Number)\
+            .filter(
+                Number.username == username,
+                Number.obj_type == obj_type,
+                Number.dt == date.today()
+            ).first()
+        if today_number:
+            today_number.count = count
+            db.session.merge(today_number)
+        else:
+            today_number = cls(
+                username=username,
+                obj_type=obj_type,
+                dt=date.today(),
+                count=count,
+            )
+            db.session.add(today_number)
+        db.session.commit()
+
+    @classmethod
+    def object_count(cls, username, obj_type):
+        if obj_type not in cls.LOG_TYPES:
+            raise PropertyException(
+                'Error object type: [] when logging number'.format(obj_type))
+        if config.get('GUARDIAN_AUTH'):
+            from superset.guardian import guardian_client as client
+            if obj_type.lower() == 'connection':
+                db_names = client.search_model_permissions(username, cls.OBJECT_TYPES[3])
+                hdfs_names = client.search_model_permissions(username, cls.OBJECT_TYPES[4])
+                return len(db_names) + len(hdfs_names)
+            else:
+                names = client.search_model_permissions(username, obj_type)
+                return len(names)
+        else:
+            if obj_type.lower() == cls.LOG_TYPES[3]:
+                return Database.count() + HDFSConnection.count()
+            else:
+                model = str_to_model.get(obj_type)
+                return model.count()
+
+    @classmethod
+    def log_number(cls, username, obj_type):
+        obj_type = cls.convert_type(obj_type)
+        count = cls.object_count(username, obj_type)
+        cls.do_log(username, obj_type, count)
+
+    @classmethod
+    def log_dashboard_number(cls, username):
+        cls.log_number(username, cls.LOG_TYPES[0])
+
+    @classmethod
+    def log_slice_number(cls, username):
+        cls.log_number(username, cls.LOG_TYPES[1])
+
+    @classmethod
+    def log_dataset_number(cls, username):
+        cls.log_number(username, cls.LOG_TYPES[2])
+
+    @classmethod
+    def log_connection_number(cls, username):
+        cls.log_number(username, cls.LOG_TYPES[3])
+
+    @classmethod
+    def convert_type(cls, obj_type):
+        obj_type = obj_type.lower()
+        if obj_type in cls.OBJECT_TYPES[3:]:
+            obj_type = cls.LOG_TYPES[3]
+        return obj_type
