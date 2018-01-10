@@ -48,6 +48,7 @@ class Log(Model):
     obj_type = Column(String(32))
     obj_id = Column(Integer)
     user_id = Column(Integer, ForeignKey('ab_user.id'))
+    username = Column(String(128))
     json = Column(Text)
     user = relationship('User', backref='logs', foreign_keys=[user_id])
     dttm = Column(DateTime, default=datetime.now)
@@ -55,10 +56,10 @@ class Log(Model):
     duration_ms = Column(Integer)
     referrer = Column(String(1024))
 
-    record_action_types = ['online', 'offline', 'add', 'delete']
+    record_action_types = ['online', 'offline', 'add', 'delete', 'grant', 'revoke']
 
     @classmethod
-    def log_action(cls, action_type, action, obj_type, obj_id, user_id):
+    def log_action(cls, action_type, action, obj_type, obj_id, user_id, username=None):
         if action_type not in cls.record_action_types:
             return
         log = cls(
@@ -66,7 +67,8 @@ class Log(Model):
             action_type=action_type,
             obj_type=obj_type,
             obj_id=obj_id,
-            user_id=user_id)
+            user_id=user_id,
+            username=username)
         db.session().add(log)
         db.session().commit()
 
@@ -99,6 +101,20 @@ class Log(Model):
     @classmethod
     def log_offline(cls, obj, obj_type, user_id):
         cls.log('offline', obj, obj_type, user_id)
+
+    @classmethod
+    def log_grant(cls, obj, obj_type, user_id, username, actions):
+        """The username is the user be granted"""
+        action_str = 'Grant {user} {actions} on {obj_type}: [{obj_name}]'\
+            .format(user=username, actions=actions, obj_type=obj_type, obj_name=repr(obj))
+        cls.log_action('grant', action_str, obj_type, obj.id, user_id, username)
+
+    @classmethod
+    def log_revoke(cls, obj, obj_type, user_id, username, actions):
+        """The user is the user be revoked"""
+        action_str = 'Revoke {user} {actions} from {obj_type}: [{obj_name}]' \
+            .format(user=username, actions=actions, obj_type=obj_type, obj_name=repr(obj))
+        cls.log_action('revoke', action_str, obj_type, obj.id, user_id, username)
 
     @classmethod
     def convert_type(cls, obj_type):

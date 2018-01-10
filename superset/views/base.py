@@ -131,7 +131,17 @@ class PermissionManagement(object):
         can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to grant/revoke on {name}').format(name=finite_obj[-1]))
+                _('No privilege to grant permission on {obj_type}: [{name}]')
+                .format(obj_type=finite_obj[-2], name=finite_obj[-1]))
+        else:
+            return can
+
+    def check_revoke_perm(self, finite_obj, raise_if_false=True):
+        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
+        if not can and raise_if_false:
+            raise PermissionException(
+                _('No privilege to revoke permissions from {obj_type}: [{name}]')
+                .format(obj_type=finite_obj[-2], name=finite_obj[-1]))
         else:
             return can
 
@@ -149,6 +159,30 @@ class PermissionManagement(object):
             return guardian_client.check_any_access(username, finite_obj, actions)
         else:
             return True
+
+    def do_grant(self, username, finite_obj, actions):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_admin
+            guardian_admin.grant(username, finite_obj, actions)
+
+    def do_revoke(self, username, finite_obj, actions):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_admin
+            guardian_admin.revoke(username, finite_obj, actions)
+
+    def search_object_permissions(self, finite_obj):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_client
+            return guardian_client.search_object_permissions(finite_obj)
+        else:
+            return None
+
+    def get_guardian_users(self, prefix):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_client
+            return guardian_client.get_users(prefix)
+        else:
+            return []
 
 
 class BaseSupersetView(BaseView):

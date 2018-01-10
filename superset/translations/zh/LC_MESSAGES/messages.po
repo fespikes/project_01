@@ -1672,8 +1672,11 @@ msgstr "没有权限删除{name}"
 msgid "No privilege ADMIN of {name}"
 msgstr "没有{name} ADMIN权限"
 
-msgid "No privilege to grant/revoke on {name}"
-msgstr "没有权限对其他用户赋予{name}的权限"
+msgid "No privilege to grant permission on {obj_type}: [{name}]"
+msgstr "没有权限对其他用户赋予{obj_type}: [{name}]的权限"
+
+msgid "No privilege to revoke permissions from {obj_type}: [{name}]"
+msgstr "没有权限回收其他用户在{obj_type}: [{name}]上的权限"
 
 msgid "No privilege to release {name}"
 msgstr "没有权限发布或下线{name}"
