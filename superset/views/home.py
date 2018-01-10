@@ -16,7 +16,7 @@ from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import func, and_, or_
 
 from superset import appbuilder, db, app
-from superset.models import Slice, Dashboard, FavStar, Log, str_to_model
+from superset.models import Slice, Dashboard, FavStar, Log, str_to_model, Number
 from superset.exception import ParameterException
 from .base import BaseSupersetView, catch_exception, json_response
 
@@ -92,41 +92,42 @@ class Home(BaseSupersetView):
                 dt[type_] = str_to_model[type_].count()
         return dt
 
-    def get_object_number_trends(self, user_id=None, types=[], limit=30, counts={}):
+    def get_object_number_trends(self, username, types, today_counts={}, limit=30):
         trends = {}
-        for type_ in types:
-            trends[type_] = [{"date": str(date.today()), "count": counts.get(type_)}]
-
+        today = date.today()
         start_date = date.today() - timedelta(days=limit-1)
-        logs = db.session.query(Log) \
-            .filter(Log.dt > start_date) \
-            .order_by(Log.dt.desc()) \
-            .all()
-        present_count = counts
-        present_date = date.today()
-        for log in logs:
-            obj_type = 'connection' if log.obj_type in ['database', 'hdfsconnection'] \
-                else log.obj_type
-            if obj_type in self.default_types.get('trends'):
-                #
-                if log.dt != present_date:
-                    present_date = present_date - timedelta(days=1)
-                    for type_ in types:
-                        trends[type_].insert(0, {"date": str(present_date),
-                                                 "count": present_count.get(type_)})
-                #
-                if log.action_type == 'add' and log.user_id == user_id \
-                        or log.action_type == 'grant' and log.user_id != user_id:
-                    present_count[obj_type] = present_count.get(obj_type) - 1
-                elif log.action_type == 'delete' and log.user_id == user_id \
-                        or log.action_type == 'revoke' and log.user_id != user_id:
-                    present_count[obj_type] = present_count.get(obj_type) + 1
 
-        while present_date > start_date:
-            for type_ in types:
+        for type_ in types:
+            present_count = today_counts.get(type_, 0)
+            trends[type_] = [{"date": str(today), "count": present_count}]
+            present_date = date.today() - timedelta(days=1)
+
+            query = db.session.query(Number)\
+                .filter(Number.username == username, Number.obj_type == type_)\
+                .order_by(Number.dt.desc()).limit(limit)
+
+            for number in query.all():
+                if number.dt > present_date:
+                    continue
+                elif number.dt < present_date:
+                    while number.dt < present_date:
+                        if present_date < start_date:
+                            break
+                        trends[type_].insert(0, {"date": str(present_date),
+                                                 "count": present_count})
+                        present_date = present_date - timedelta(days=1)
+
+                if present_date < start_date:
+                    break
                 trends[type_].insert(0, {"date": str(present_date),
-                                         "count": present_count.get(type_)})
-            present_date = present_date - timedelta(days=1)
+                                         "count": number.count})
+                present_date = present_date - timedelta(days=1)
+                present_count = number.count
+
+            while present_date >= start_date:
+                trends[type_].insert(0, {"date": str(present_date),
+                                         "count": present_count})
+                present_date = present_date - timedelta(days=1)
 
         return trends
 
@@ -528,8 +529,8 @@ class Home(BaseSupersetView):
         #
         types = self.default_types.get('trends')
         limit = self.default_limit.get('trends')
-        result = self.get_object_number_trends(user_id, types, limit,
-                                               counts=copy.deepcopy(result))
+        today_counts = copy.deepcopy(result)
+        result = self.get_object_number_trends(username, types, today_counts, limit)
         response['trends'] = result
         # #
         types = self.default_types.get('favorits')
