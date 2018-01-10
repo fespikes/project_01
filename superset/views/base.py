@@ -20,7 +20,7 @@ import sqlalchemy as sqla
 from sqlalchemy import and_, or_
 
 from superset import app, db, models, utils, conf
-from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log
+from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log, Number
 from superset.message import *
 from superset.exception import (
     SupersetException, LoginException, PermissionException, ParameterException,
@@ -52,7 +52,7 @@ def catch_exception(f):
     return functools.update_wrapper(wraps, f)
 
 
-def json_response(message='', status=200, data='', code=0):
+def json_response(message='', status=200, data=None, code=0):
     if isinstance(message, LazyString):
         message = str(message)  # py3
     resp = {'status': status,
@@ -243,7 +243,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     str_columns = []
 
     def get_list_args(self, args):
-        kwargs = super().get_list_args(args)
+        kwargs = super(SupersetModelView, self).get_list_args(args)
         kwargs['dataset_type'] = args.get('dataset_type')
         kwargs['dataset_id'] = int(args.get('dataset_id')) \
             if args.get('dataset_id') else None
@@ -286,6 +286,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
 
     def post_add(self, obj):
         Log.log_add(obj, self.model_type, g.user.id)
+        Number.log_number(g.user.username, self.model_type)
         self.add_object_permissions([self.model_type, obj.name])
         self.grant_owner_permissions([self.model_type, obj.name])
 
@@ -336,6 +337,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
 
     def post_delete(self, obj):
         Log.log_delete(obj, self.model_type, g.user.id)
+        Number.log_number(g.user.username, self.model_type)
         self.del_perm_obj([self.model_type, obj.name])
 
     @catch_exception

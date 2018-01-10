@@ -8,7 +8,7 @@ from flask import request, g
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from superset import db, app
-from superset.models import Database, str_to_model, Log
+from superset.models import Database, str_to_model, Log, Number
 from superset.exception import ParameterException, PermissionException
 from .base import BaseSupersetView, PermissionManagement, catch_exception, json_response
 
@@ -93,6 +93,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
             return
         self.do_grant(username, [object_type, obj.name], actions)
         Log.log_grant(obj, object_type, g.user.id, username, actions)
+        Number.log_number(username, object_type)
         if object_type == self.OBJECT_TYPES[0]:
             for slice in obj.slices:
                 self.grant_relations(username, slice, self.OBJECT_TYPES[1], actions)
@@ -134,6 +135,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
         self.do_revoke(username, [object_type, object_name], actions)
         obj = self.get_object(object_type, object_name)
         Log.log_revoke(obj, object_type, g.user.id, username, actions)
+        Number.log_number(username, object_type)
         return json_response(message="Revoke [{}] actions {} from object {} success."
                              .format(username, actions, [object_type, object_name]))
 

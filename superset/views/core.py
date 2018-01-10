@@ -29,7 +29,7 @@ from superset.exception import (
 )
 from superset.models import (
     Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric,
-    Query, Log, FavStar, str_to_model
+    Query, Log, FavStar, str_to_model, Number
 )
 from superset.message import *
 from .base import (
@@ -72,13 +72,13 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     str_columns = ['datasource', 'created_on', 'changed_on']
 
     def get_addable_choices(self):
-        data = super().get_addable_choices()
+        data = super(SliceModelView, self).get_addable_choices()
         dashs = self.get_available_dashboards(g.user.id)
         data['available_dashboards'] = self.dashboards_to_dict(dashs)
         return data
 
     def get_show_attributes(self, obj, user_id=None):
-        attributes = super().get_show_attributes(obj, user_id)
+        attributes = super(SliceModelView, self).get_show_attributes(obj, user_id)
         attributes['dashboards'] = self.dashboards_to_dict(obj.dashboards)
         dashs = self.get_available_dashboards(user_id)
         available_dashs = self.dashboards_to_dict(dashs)
@@ -86,7 +86,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         return attributes
 
     def get_edit_attributes(self, data, user_id):
-        attributes = super().get_edit_attributes(data, user_id)
+        attributes = super(SliceModelView, self).get_edit_attributes(data, user_id)
         attributes['dashboards'] = self.get_dashs_in_list(data.get('dashboards'))
         return attributes
 
@@ -101,13 +101,12 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         return objs
 
     def post_delete(self, obj):
+        super(SliceModelView, self).post_delete(obj)
         db.session.query(FavStar) \
             .filter(FavStar.class_name.ilike(self.model_type),
                     FavStar.obj_id == obj.id) \
             .delete(synchronize_session=False)
         db.session.commit()
-        Log.log_delete(obj, self.model_type, g.user.id)
-        self.del_perm_obj([self.model_type, obj.slice_name])
 
     def check_column_values(self, obj):
         if not obj.slice_name:
@@ -175,7 +174,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         slice = self.get_object(id)
-        self.check_delete_perm([self.model_type, id], obj=slice)
+        self.check_delete_perm([self.model_type, slice.name])
         objects = self.delete_affect_objects([id, ])
         info = _("Deleting slice {slice} will remove from these "
                  "dashboards too: {dashboard}")\
@@ -353,7 +352,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     str_columns = ['created_on', 'changed_on']
 
     def get_addable_choices(self):
-        data = super().get_addable_choices()
+        data = super(DashboardModelView, self).get_addable_choices()
         slices = self.get_available_slices(g.user.id)
         data['available_slices'] = self.slices_to_dict(slices)
         return data
@@ -368,13 +367,12 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         self.pre_add(new_obj)
 
     def post_delete(self, obj):
+        super(DashboardModelView, self).post_delete(obj)
         db.session.query(FavStar) \
             .filter(FavStar.class_name.ilike(self.model_type),
                     FavStar.obj_id == obj.id) \
             .delete(synchronize_session=False)
         db.session.commit()
-        Log.log_delete(obj, self.model_type, g.user.id)
-        self.del_perm_obj([self.model_type, obj.dashboard_title])
 
     def check_column_values(self, obj):
         if not obj.dashboard_title:
@@ -442,19 +440,19 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         return response
 
     def get_show_attributes(self, obj, user_id=None):
-        attributes = super().get_show_attributes(obj)
+        attributes = super(DashboardModelView, self).get_show_attributes(obj)
         attributes['slices'] = self.slices_to_dict(obj.slices)
         available_slices = self.get_available_slices(user_id)
         attributes['available_slices'] = self.slices_to_dict(available_slices)
         return attributes
 
     def get_add_attributes(self, data, user_id):
-        attributes = super().get_add_attributes(data, user_id)
+        attributes = super(DashboardModelView, self).get_add_attributes(data, user_id)
         attributes['slices'] = self.get_slices_in_list(data.get('slices'))
         return attributes
 
     def get_edit_attributes(self, data, user_id):
-        attributes = super().get_edit_attributes(data, user_id)
+        attributes = super(DashboardModelView, self).get_edit_attributes(data, user_id)
         attributes['slices'] = self.get_slices_in_list(data.get('slices'))
         attributes['need_capture'] = True
         return attributes
@@ -987,6 +985,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.commit()
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         Log.log_add(slc, 'slice', g.user.id)
+        Number.log_number(g.user.id, g.user.username, 'slice')
         self.add_object_permissions(['slice', slc.slice_name])
         self.grant_owner_permissions(['slice', slc.slice_name])
 
@@ -1238,6 +1237,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.add(table)
         db.session.commit()
         Log.log_add(table, 'dataset', g.user.id)
+        Number.log_number(g.user.username, 'dataset')
         self.add_object_permissions(['dataset', table.dataset_name])
         self.grant_owner_permissions(['dataset', table.dataset_name])
 
