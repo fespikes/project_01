@@ -119,25 +119,9 @@ class AuditMixinNullable(AuditMixin):
         </a>
         """.format(**locals())
 
-
-class Count(object):
-
     @classmethod
-    def count(cls, user_id):
-        if hasattr(cls, 'online'):
-            return (
-                db.session.query(cls)
-                .filter(
-                    or_(cls.created_by_fk == user_id,
-                        cls.online == 1))
-                .count()
-            )
-        else:
-            return (
-                db.session.query(cls)
-                .filter(cls.created_by_fk == user_id)
-                .count()
-            )
+    def count(cls):
+        return db.session.query(cls).count()
 
 
 class Queryable(object):

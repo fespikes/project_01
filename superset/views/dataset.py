@@ -71,8 +71,8 @@ class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
         return {'data': data}
 
     def get_addable_choices(self):
-        data = super().get_addable_choices()
-        data['available_dataset'] = self.get_available_tables()
+        data = super(TableColumnInlineView, self).get_addable_choices()
+        data['available_dataset'] = self.get_available_datasets(g.user.id)
         return data
 
     def pre_add(self, column):
@@ -108,8 +108,8 @@ class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
     str_columns = ['dataset', ]
 
     def get_addable_choices(self):
-        data = super().get_addable_choices()
-        data['available_dataset'] = self.get_available_tables()
+        data = super(SqlMetricInlineView, self).get_addable_choices()
+        data['available_dataset'] = self.get_available_datasets(g.user.id)
         return data
 
     def get_object_list_data(self, **kwargs):
@@ -180,7 +180,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     list_template = "superset/tableList.html"
 
     def get_addable_choices(self):
-        data = super().get_addable_choices()
+        data = super(DatasetModelView, self).get_addable_choices()
         data['available_databases'] = self.get_available_connections(g.user.id)
         return data
 
@@ -216,10 +216,10 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     def edit_hdfs_table(self, pk):
         json_data = self.get_request_data()
         obj = self.get_object(pk)
-        self.pre_update(obj)
+        self.pre_update(obj, obj)
         self.update_hdfs_table(obj, json_data)
         self.datamodel.edit(obj)
-        self.post_update(obj)
+        self.post_update(obj, obj)
         return json_response(message=UPDATE_SUCCESS)
 
     @catch_exception
@@ -571,7 +571,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         return response
 
     def get_add_attributes(self, data, user_id):
-        attributes = super().get_add_attributes(data, user_id)
+        attributes = super(DatasetModelView, self).get_add_attributes(data, user_id)
         database = db.session.query(Database) \
             .filter_by(id=data['database_id']) \
             .first()
@@ -583,9 +583,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         table.get_sqla_table_object()
 
     def post_add(self, table):
-        Log.log_add(table, self.model_type, g.user.id)
-        self.add_object_permissions([self.model_type, table.dataset_name])
-        self.grant_owner_permissions([self.model_type, table.dataset_name])
+        super(DatasetModelView, self).post_add(table)
         table.fetch_metadata()
 
     def update_hdfs_table(self, table, json_date):

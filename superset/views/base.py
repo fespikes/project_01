@@ -20,7 +20,7 @@ import sqlalchemy as sqla
 from sqlalchemy import and_, or_
 
 from superset import app, db, models, utils, conf
-from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log
+from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log, Number
 from superset.message import *
 from superset.exception import (
     SupersetException, LoginException, PermissionException, ParameterException,
@@ -52,7 +52,7 @@ def catch_exception(f):
     return functools.update_wrapper(wraps, f)
 
 
-def json_response(message='', status=200, data='', code=0):
+def json_response(message='', status=200, data=None, code=0):
     if isinstance(message, LazyString):
         message = str(message)  # py3
     resp = {'status': status,
@@ -131,7 +131,17 @@ class PermissionManagement(object):
         can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to grant/revoke on {name}').format(name=finite_obj[-1]))
+                _('No privilege to grant permission on {obj_type}: [{name}]')
+                .format(obj_type=finite_obj[-2], name=finite_obj[-1]))
+        else:
+            return can
+
+    def check_revoke_perm(self, finite_obj, raise_if_false=True):
+        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
+        if not can and raise_if_false:
+            raise PermissionException(
+                _('No privilege to revoke permissions from {obj_type}: [{name}]')
+                .format(obj_type=finite_obj[-2], name=finite_obj[-1]))
         else:
             return can
 
@@ -149,6 +159,30 @@ class PermissionManagement(object):
             return guardian_client.check_any_access(username, finite_obj, actions)
         else:
             return True
+
+    def do_grant(self, username, finite_obj, actions):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_admin
+            guardian_admin.grant(username, finite_obj, actions)
+
+    def do_revoke(self, username, finite_obj, actions):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_admin
+            guardian_admin.revoke(username, finite_obj, actions)
+
+    def search_object_permissions(self, finite_obj):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_client
+            return guardian_client.search_object_permissions(finite_obj)
+        else:
+            return None
+
+    def get_guardian_users(self, prefix):
+        if conf.get("GUARDIAN_AUTH"):
+            from superset.guardian import guardian_client
+            return guardian_client.get_users(prefix)
+        else:
+            return []
 
 
 class BaseSupersetView(BaseView):
@@ -209,7 +243,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     str_columns = []
 
     def get_list_args(self, args):
-        kwargs = super().get_list_args(args)
+        kwargs = super(SupersetModelView, self).get_list_args(args)
         kwargs['dataset_type'] = args.get('dataset_type')
         kwargs['dataset_id'] = int(args.get('dataset_id')) \
             if args.get('dataset_id') else None
@@ -252,6 +286,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
 
     def post_add(self, obj):
         Log.log_add(obj, self.model_type, g.user.id)
+        Number.log_number(g.user.username, self.model_type)
         self.add_object_permissions([self.model_type, obj.name])
         self.grant_owner_permissions([self.model_type, obj.name])
 
@@ -302,6 +337,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
 
     def post_delete(self, obj):
         Log.log_delete(obj, self.model_type, g.user.id)
+        Number.log_number(g.user.username, self.model_type)
         self.del_perm_obj([self.model_type, obj.name])
 
     @catch_exception

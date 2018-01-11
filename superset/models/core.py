@@ -25,13 +25,13 @@ from superset import app, db, utils
 from superset.source_registry import SourceRegistry
 from superset.viz import viz_types
 from superset.exception import ParameterException, OfflineException
-from .base import AuditMixinNullable, ImportMixin, Count
+from .base import AuditMixinNullable, ImportMixin
 from .dataset import Dataset
 
 config = app.config
 
 
-class Slice(Model, AuditMixinNullable, ImportMixin, Count):
+class Slice(Model, AuditMixinNullable, ImportMixin):
     """A slice is essentially a report or a view on data"""
     __tablename__ = 'slices'
     id = Column(Integer, primary_key=True)
@@ -261,7 +261,7 @@ dashboard_slices = Table(
 )
 
 
-class Dashboard(Model, AuditMixinNullable, ImportMixin, Count):
+class Dashboard(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = 'dashboards'
     id = Column(Integer, primary_key=True)
     dashboard_title = Column(String(128), unique=True)

@@ -1,5 +1,5 @@
 from flask_babel import gettext as __
-from superset import appbuilder, conf
+from superset import appbuilder
 from . import base
 from . import home
 from . import core
@@ -8,6 +8,7 @@ from . import dataset
 from . import sql_lab
 from . import hdfs
 from . import user
+from . import guardian
 
 appbuilder.add_view(
     home.Home,
@@ -82,7 +83,4 @@ appbuilder.add_link(
 
 appbuilder.add_view_no_menu(user.PresentUserView)
 appbuilder.add_view_no_menu(user.UserView)
-
-if conf.get('GUARDIAN_AUTH'):
-    from . import guardian
-    appbuilder.add_view_no_menu(guardian.GuardianView)
+appbuilder.add_view_no_menu(guardian.GuardianView)

@@ -73,7 +73,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
             raise ParameterException(NONE_CONNECTION_ARGS)
 
     def get_list_args(self, args):
-        kwargs = super().get_list_args(args)
+        kwargs = super(DatabaseView, self).get_list_args(args)
         kwargs['database_type'] = args.get('database_type')
         return kwargs
 
@@ -441,7 +441,7 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
     route_base = '/connection'
 
     def get_list_args(self, args):
-        kwargs = super().get_list_args(args)
+        kwargs = super(ConnectionView, self).get_list_args(args)
         kwargs['connection_type'] = args.get('connection_type')
         return kwargs
 
