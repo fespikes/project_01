@@ -20,6 +20,7 @@ import sqlalchemy as sqla
 from sqlalchemy import and_, or_
 
 from superset import app, db, models, utils, conf
+from superset.utils import GUARDIAN_AUTH
 from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log, Number
 from superset.message import *
 from superset.exception import (
@@ -82,24 +83,24 @@ class PermissionManagement(object):
                        'dashboard': 'dashboard'}
 
     def add_object_permissions(self, finite_obj):
-        if conf.get("GUARDIAN_AUTH"):
+        if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_admin
             guardian_admin.add_permission(finite_obj, self.ALL_PERMS)
 
     def del_perm_obj(self, finite_obj):
-        if conf.get("GUARDIAN_AUTH"):
+        if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_admin
             guardian_admin.del_perm_obj(finite_obj)
 
     def rename_perm_obj(self, model, old_name, new_name):
-        if conf.get("GUARDIAN_AUTH"):
+        if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_admin
             if old_name == new_name:
                 return
             guardian_admin.rename_perm_obj([model, old_name], [model, new_name])
 
     def grant_owner_permissions(self, finite_obj):
-        if conf.get("GUARDIAN_AUTH"):
+        if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_admin
             guardian_admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
 
@@ -154,31 +155,31 @@ class PermissionManagement(object):
             return can
 
     def do_check(self, username, finite_obj, actions):
-        if conf.get("GUARDIAN_AUTH"):
+        if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_client
             return guardian_client.check_any_access(username, finite_obj, actions)
         else:
             return True
 
     def do_grant(self, username, finite_obj, actions):
-        if conf.get("GUARDIAN_AUTH"):
+        if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_admin
             guardian_admin.grant(username, finite_obj, actions)
 
     def do_revoke(self, username, finite_obj, actions):
-        if conf.get("GUARDIAN_AUTH"):
+        if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_admin
             guardian_admin.revoke(username, finite_obj, actions)
 
     def search_object_permissions(self, finite_obj):
-        if conf.get("GUARDIAN_AUTH"):
+        if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_client
             return guardian_client.search_object_permissions(finite_obj)
         else:
             return None
 
     def get_guardian_users(self, prefix):
-        if conf.get("GUARDIAN_AUTH"):
+        if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_client
             return guardian_client.get_users(prefix)
         else:

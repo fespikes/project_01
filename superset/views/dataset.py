@@ -17,6 +17,7 @@ from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from superset import app, db
+from superset.utils import GUARDIAN_AUTH
 from superset.exception import (
     ParameterException, DatabaseException, HDFSException, PropertyException,
     ErrorUrlException
@@ -526,7 +527,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
                 else:
                     query = query.order_by(column)
 
-        guardian_auth = config.get('GUARDIAN_AUTH', False)
+        guardian_auth = config.get(GUARDIAN_AUTH, False)
         available_names = None
         if guardian_auth:
             from superset.guardian import guardian_client

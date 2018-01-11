@@ -27,6 +27,7 @@ from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import TextAsFrom
 
 from superset import db, app, db_engine_specs, conf
+from superset.utils import GUARDIAN_AUTH
 from superset.exception import ParameterException
 from superset.message import MISS_PASSWORD_FOR_GUARDIAN
 from .base import AuditMixinNullable
@@ -265,7 +266,7 @@ class Database(Model, AuditMixinNullable):
         if not os.path.exists(dir):
             os.makedirs(dir)
         path = os.path.join(dir, 'tmp.keytab')
-        if conf.get('GUARDIAN_AUTH'):
+        if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_client
             guardian_client.login(user, passwd)
             guardian_client.download_keytab(user, path)

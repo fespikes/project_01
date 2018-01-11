@@ -38,6 +38,7 @@ logging.getLogger('MARKDOWN').setLevel(logging.INFO)
 
 EPOCH = datetime(1970, 1, 1)
 DTTM_ALIAS = 'timestamp__'
+GUARDIAN_AUTH = 'GUARDIAN_AUTH'
 
 
 def can_access(security_manager, permission_name, view_name):
