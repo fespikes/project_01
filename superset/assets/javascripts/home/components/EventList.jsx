@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Table, Tooltip } from 'antd';
+import intl from "react-intl-universal";
 
 function EventList(props) {
     const dataSource = props.eventList || [];
     const columns = [{
-        title: '用户',
+        title: intl.get('users'),
         dataIndex: 'user',
         key: 'user',
         className: "user-column",
@@ -19,7 +20,7 @@ function EventList(props) {
             </Tooltip>
         )
     }, {
-        title: '操作',
+        title: intl.get('action'),
         dataIndex: 'action',
         key: 'action',
         sorter: (a, b) => a.action.localeCompare(b.action),
@@ -39,7 +40,7 @@ function EventList(props) {
             );
         }
     }, {
-        title: '编辑时间',
+        title: intl.get('edit_time'),
         dataIndex: 'time',
         key: 'time',
         sorter: (a, b) => { return a.time > b.time　? 1 : -1;},

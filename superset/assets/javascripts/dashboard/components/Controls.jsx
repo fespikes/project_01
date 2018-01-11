@@ -3,7 +3,6 @@ import React from 'react';
 import { render, ReactDOM } from 'react-dom';
 import { ButtonGroup } from 'react-bootstrap';
 import Button from '../../components/Button';
-import CssEditor from './CssEditor';
 import RefreshIntervalModal from './RefreshIntervalModal';
 import SaveModal from './SaveModal';
 import CodeModal from './CodeModal';
@@ -21,97 +20,11 @@ class Controls extends React.PureComponent {
         super(props);
         this.state = {
             css: props.dashboard.css,
-            cssTemplates: [],
-            published: false
         };
     }
     refresh() {
         this.props.dashboard.sliceObjects.forEach((slice) => {
             slice.render(true);
-        });
-    }
-    publish() {
-        const self = this;
-        const { dashboard } = self.props;
-        const loadingModel = renderLoadingModal();
-        loadingModel.show();
-        let url = this.getOnOfflineUrl(dashboard.id, this.state.published, 'check');
-        $.get(url, (data) => {
-            loadingModel.hide();
-            if(data.status === 200) {
-                render(
-                    <ConfirmModal
-                        self={self}
-                        dashboardId={dashboard.id}
-                        published={this.state.published}
-                        dashboardStateChange={self.dashboardStateChange}
-                        needCallback={true}
-                        confirmCallback={self.dashboardOnOffline}
-                        confirmMessage={data.data} />,
-                    document.getElementById('popup_root')
-                );
-            }
-        });
-    }
-
-    dashboardOnOffline() {
-        const self = this.self;
-        const url = self.getOnOfflineUrl(this.dashboardId, this.published, 'release');
-        this.dashboardStateChange(url, this.dashboardId, self);
-    }
-
-    dashboardStateChange(url, dashboardId, _this) {
-        const loadingModel = renderLoadingModal();
-        loadingModel.show();
-        $.get(url, (data) => {
-            if(data.status === 200) {
-                let url = PILOT_PREFIX + 'if_online/dashboard/' + dashboardId;
-                $.get(url, (data) => {
-                    _this.setState({
-                        published: data.data.online
-                    });
-                });
-            }else {
-                render(
-                    <ConfirmModal
-                        needCallback={false}
-                        confirmMessage={data.message}
-                    />,
-                    document.getElementById('popup_root')
-                );
-            }
-            loadingModel.hide();
-        });
-    }
-
-    getOnOfflineUrl(dashboardId, published, type) {
-        let url = "";
-        if(type === 'check') {
-            url = '/dashboard/';
-            if(published) {
-                url += 'offline_info/' + dashboardId;
-            }else {
-                url += 'online_info/' + dashboardId;
-            }
-        }else if(type === "release") {
-            url = PILOT_PREFIX + 'release/dashboard/';
-            if(published) {
-                url += 'offline/' + dashboardId;
-            }else {
-                url += 'online/' + dashboardId;
-            }
-        }
-        return url;
-    }
-
-    componentDidMount() {
-        const self = this;
-        const { dashboard } = self.props;
-        let url = PILOT_PREFIX + 'if_online/dashboard/' + dashboard.id;
-        $.get(url, (data) => {
-            self.setState({
-                published: data.data.online
-            });
         });
     }
 
@@ -120,13 +33,6 @@ class Controls extends React.PureComponent {
         const canSave = dashboard.context.dash_save_perm; //cannot use currently
         return (
             <ButtonGroup>
-                <Button
-                    onClick={this.publish.bind(this)}
-                    tooltip={this.state.published?'下线':'发布'}
-                    placement="bottom"
-                    >
-                    <i className={this.state.published ? 'icon icon-online' : 'icon icon-offline'}/>
-                </Button>
                 <Button
                     onClick={this.refresh.bind(this)}
                     tooltip="刷新仪表盘"

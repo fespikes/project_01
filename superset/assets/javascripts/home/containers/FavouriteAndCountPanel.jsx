@@ -4,6 +4,7 @@ import {connect} from "react-redux";
 import { createSelector } from 'reselect';
 import  { Bar } from "../components";
 import { swithTabInFavourite } from "../actions";
+import intl from "react-intl-universal";
 
 const _ = require('lodash');
 
@@ -20,11 +21,11 @@ class FavouriteAndCountPanel extends Component {
             <aside className="top10-and-worktimes">
                 <div className="top10 white-bg-and-border-radius">
                     <div className="index-title-module">
-                        <h3>收藏次数top10</h3>
+                        <h3>{intl.get('favorite_top_10')}</h3>
                         <div className="title-tab">
                             <ul>
-                                <li onClick={ () => {onChangeCatagory('dashboard')} } className={selected==='slice'?'':'current'}>仪表板</li>
-                                <li onClick={ () => {onChangeCatagory('slice')} } className={selected==='slice'?'current':''}>工作表</li>
+                                <li onClick={ () => {onChangeCatagory('dashboard')} } className={selected==='slice'?'':'current'}>{intl.get('dashboard')}</li>
+                                <li onClick={ () => {onChangeCatagory('slice')} } className={selected==='slice'?'current':''}>{intl.get('slice')}</li>
                             </ul>
                         </div>
                         <div className="transparent"></div>
@@ -35,7 +36,7 @@ class FavouriteAndCountPanel extends Component {
                 </div>
                 <div className="worktimes white-bg-and-border-radius">
                     <div className="index-title-module">
-                        <h3>引用次数top10</h3>
+                        <h3>{intl.get('recommend_top_10')}</h3>
                     </div>
                     <div className="times-barchart" style={{background:'transparent'}}>
                         <Bar barData={refBarData}></Bar>
@@ -52,7 +53,7 @@ const getFavBarData = createSelector(
     (data, catagory) => {
         let barData = {
             series: {
-                name: "个数",
+                name: intl.get('amount'),
                 data: []
             },
             categories: [],
@@ -85,7 +86,7 @@ const getRefBarData = createSelector(
     (data) => {
         let barData = {
             series: {
-                name: "个数",
+                name: intl.get('amount'),
                 data: []
             },
             categories: [],

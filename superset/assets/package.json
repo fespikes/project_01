@@ -10,7 +10,7 @@
   "scripts": {
     "test": "mocha --require ignore-styles --compilers js:babel-core/register --require spec/helpers/browser.js --recursive spec/**/*_spec.*",
     "cover": "babel-node ./node_modules/.bin/istanbul cover _mocha -- --require spec/helpers/browser.js --recursive spec/**/*_spec.*",
-    "dev":  "NODE_ENV=dev webpack --watch --colors --progress --debug --output-pathinfo --devtool cheap-module-eval-source-map",
+    "dev": "NODE_ENV=dev webpack --watch --colors --progress --debug --output-pathinfo --devtool cheap-module-eval-source-map",
     "prod": "NODE_ENV=production node --max_old_space_size=4096 ./node_modules/webpack/bin/webpack.js -p --colors --progress",
     "build": "NODE_ENV=production webpack --colors --progress",
     "lint": "eslint --ignore-path=.eslintignore --ext .js,.jsx ."
@@ -39,6 +39,7 @@
   "dependencies": {
     "antd": "^2.11.0",
     "autobind-decorator": "^1.3.3",
+    "axios": "^0.17.1",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
     "bootstrap": "^3.3.6",
     "bootstrap-datepicker": "^1.6.0",
@@ -82,6 +83,7 @@
     "react-grid-layout": "^0.13.1",
     "react-helmet": "^3.1.0",
     "react-highcharts": "^12.0.0",
+    "react-intl-universal": "^1.8.4",
     "react-map-gl": "^1.7.0",
     "react-redux": "^4.2.1",
     "react-resizable": "^1.3.3",

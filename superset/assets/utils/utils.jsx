@@ -4,6 +4,10 @@ import {Alert, message} from 'antd';
 import {LoadingModal} from '../javascripts/common/components';
 import {MESSAGE_DURATION} from '../javascripts/global.jsx';
 
+import intl from "react-intl-universal";
+import http from "axios";
+import SUPPOER_LOCALES from '../javascripts/support_locales';
+
 export const PILOT_PREFIX = '/p/';
 
 export function renderLoadingModal() {
@@ -111,3 +115,30 @@ export function sortByInitials(a, b) {//add null check
         return a.charCodeAt(0) - b.charCodeAt(0);
     }
 };
+
+//load intl resources at the very beginning or from cache
+export function loadIntlResources(callback, path = `/static/assets/locales/`) {
+    let currentLocale = intl.determineLocale({
+        urlLocaleKey: "lang",
+        cookieLocaleKey: "lang"
+    });
+
+    if (!_.find(SUPPOER_LOCALES, { value: currentLocale })) {
+        currentLocale = "en-US";
+    }
+
+    //because in the project setting , front end source are only located under assets folder
+    http.get(path + `${currentLocale}.json`)
+        .then(res => {
+            return intl.init({
+                currentLocale,
+                locales: {
+                    [currentLocale]: res.data
+                }
+            });
+        })
+        .then(() => {
+            // After loading CLDR locale data, start to render
+            callback && callback();
+        });
+}
