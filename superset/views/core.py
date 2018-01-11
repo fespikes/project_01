@@ -631,8 +631,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 class Superset(BaseSupersetView, PermissionManagement):
     route_base = '/p'
 
-    def get_viz(self, slice_id=None, args=None,
-                datasource_type=None, datasource_id=None,
+    def get_viz(self, slice_id=None, args=None, datasource_type=None, datasource_id=None,
                 database_id=None, full_tb_name=None):
         if slice_id:
             slc = db.session.query(Slice).filter_by(id=slice_id).one()
@@ -644,6 +643,8 @@ class Superset(BaseSupersetView, PermissionManagement):
             else:
                 datasource = SourceRegistry.get_datasource(
                     datasource_type, datasource_id, db.session)
+            if not datasource:
+                raise PropertyException('Missing a dataset for slice')
             if not datasource.database:
                 raise PropertyException(
                     'Missing connection for dataset: [{}]'.format(datasource))
