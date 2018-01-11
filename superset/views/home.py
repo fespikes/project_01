@@ -16,15 +16,14 @@ from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import func, and_, or_
 
 from superset import appbuilder, db, app
-from superset.utils import GUARDIAN_AUTH
 from superset.models import Slice, Dashboard, FavStar, Log, str_to_model, Number
 from superset.exception import ParameterException
-from .base import BaseSupersetView, catch_exception, json_response
+from .base import BaseSupersetView, PermissionManagement, catch_exception, json_response
 
 config = app.config
 
 
-class Home(BaseSupersetView):
+class Home(BaseSupersetView, PermissionManagement):
     """The api for the home page
 
     limit = 0: means not limit
@@ -66,7 +65,6 @@ class Home(BaseSupersetView):
         self.status = 201
         self.success = True
         self.message = []
-        self.guardian_auth = config.get(GUARDIAN_AUTH, False)
 
     def get_obj_class(self, type_):
         try:
@@ -515,7 +513,6 @@ class Home(BaseSupersetView):
         """default page"""
         if not g.user or not g.user.get_id():
             return redirect(appbuilder.get_url_for_login)
-
         return self.render_template('superset/home.html')
 
     @catch_exception

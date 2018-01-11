@@ -17,7 +17,6 @@ from sqlalchemy import select, literal, cast, or_, and_
 from sqlalchemy.engine.url import make_url
 
 from superset import app, db, models
-from superset.utils import GUARDIAN_AUTH
 from superset.timeout_decorator import connection_timeout
 from superset.models import Database, HDFSConnection, Connection, Slice, Log
 from superset.exception import ParameterException
@@ -115,9 +114,8 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
                 else:
                     query = query.order_by(column)
 
-        guardian_auth = config.get(GUARDIAN_AUTH, False)
         readable_names = None
-        if guardian_auth:
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             readable_names = \
                 guardian_client.search_model_permissions(g.user.username, 'database')
@@ -131,7 +129,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
         data = []
         index = 0
         for obj, user in rs:
-            if guardian_auth:
+            if self.guardian_auth:
                 if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
@@ -273,9 +271,8 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
         query = db.session.query(HDFSConnection) \
             .order_by(HDFSConnection.connection_name.desc())
 
-        guardian_auth = config.get(GUARDIAN_AUTH, False)
         readable_names = None
-        if guardian_auth:
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             readable_names = \
                 guardian_client.search_model_permissions(g.user.username, self.model_type)
@@ -289,7 +286,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
         data = []
         index = 0
         for obj in rs:
-            if guardian_auth:
+            if self.guardian_auth:
                 if obj.name in readable_names:
                     index += 1
                     if index > page_size:
@@ -613,10 +610,9 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
                 msg = _('Error order column name: [{name}]').format(name=order_column)
                 raise ParameterException(msg)
 
-        guardian_auth = config.get(GUARDIAN_AUTH, False)
         readable_db_names = None
         readable_hdfs_names = None
-        if guardian_auth:
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             username = g.user.username
             readable_db_names = \
@@ -634,7 +630,7 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
         index = 0
         for row in rs:
             type_ = row[5]
-            if guardian_auth:
+            if self.guardian_auth:
                 if (type_ == 'HDFS' and row[1] in readable_hdfs_names) \
                         or (type_ != 'HDFS' and row[1] in readable_db_names):
                     index += 1

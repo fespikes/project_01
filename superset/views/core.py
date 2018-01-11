@@ -21,7 +21,6 @@ from flask_appbuilder.security.sqla.models import User
 from sqlalchemy import create_engine, or_
 
 from superset import app, cache, db, sql_lab, results_backend, viz, utils
-from superset.utils import GUARDIAN_AUTH
 from superset.timeout_decorator import connection_timeout
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
@@ -269,9 +268,8 @@ class SliceModelView(SupersetModelView, PermissionManagement):
 
         query = self.query_with_favorite(self.model_type, **kwargs)
 
-        guardian_auth = config.get(GUARDIAN_AUTH, False)
         readable_names = None
-        if guardian_auth:
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             readable_names = \
                 guardian_client.search_model_permissions(g.user.username, self.model_type)
@@ -285,7 +283,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         data = []
         index = 0
         for obj, username, fav_id in rs:
-            if guardian_auth:
+            if self.guardian_auth:
                 if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
@@ -392,9 +390,8 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         query = self.query_with_favorite(self.model_type, **kwargs)
 
-        guardian_auth = config.get(GUARDIAN_AUTH, False)
         readable_names = None
-        if guardian_auth:
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             readable_names = \
                 guardian_client.search_model_permissions(g.user.username, self.model_type)
@@ -408,7 +405,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         data = []
         index = 0
         for obj, username, fav_id in rs:
-            if guardian_auth:
+            if self.guardian_auth:
                 if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
@@ -777,8 +774,7 @@ class Superset(BaseSupersetView, PermissionManagement):
 
         datasets = db.session.query(Dataset).all()
         datasets = sorted(datasets, key=lambda ds: ds.full_name)
-        guardian_auth = config.get(GUARDIAN_AUTH, False)
-        if guardian_auth:
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             readable_dataset_names = \
                 guardian_client.search_model_permissions(g.user.username, 'dataset')

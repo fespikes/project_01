@@ -20,6 +20,7 @@ import sqlalchemy as sqla
 from sqlalchemy import and_, or_
 
 from superset import app, db, models, utils, conf
+from superset.data import EXAMPLE_NAMES
 from superset.utils import GUARDIAN_AUTH
 from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log, Number
 from superset.message import *
@@ -82,27 +83,35 @@ class PermissionManagement(object):
                        'slice': 'slice',
                        'dashboard': 'dashboard'}
 
+    def __init__(self):
+        self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
+
     def add_object_permissions(self, finite_obj):
-        if conf.get(GUARDIAN_AUTH):
+        if self.guardian_auth:
             from superset.guardian import guardian_admin
             guardian_admin.add_permission(finite_obj, self.ALL_PERMS)
 
     def del_perm_obj(self, finite_obj):
-        if conf.get(GUARDIAN_AUTH):
+        if self.guardian_auth:
             from superset.guardian import guardian_admin
             guardian_admin.del_perm_obj(finite_obj)
 
     def rename_perm_obj(self, model, old_name, new_name):
-        if conf.get(GUARDIAN_AUTH):
+        if self.guardian_auth:
             from superset.guardian import guardian_admin
             if old_name == new_name:
                 return
             guardian_admin.rename_perm_obj([model, old_name], [model, new_name])
 
     def grant_owner_permissions(self, finite_obj):
-        if conf.get(GUARDIAN_AUTH):
+        if self.guardian_auth:
             from superset.guardian import guardian_admin
             guardian_admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
+
+    def grant_read_permissions(self, finite_obj):
+        if self.guardian_auth:
+            from superset.guardian import guardian_admin
+            guardian_admin.grant(g.user.username, finite_obj, self.READ_PERM)
 
     def check_read_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.ALL_PERMS)
@@ -163,31 +172,31 @@ class PermissionManagement(object):
             return can
 
     def do_check(self, username, finite_obj, actions):
-        if conf.get(GUARDIAN_AUTH):
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             return guardian_client.check_any_access(username, finite_obj, actions)
         else:
             return True
 
     def do_grant(self, username, finite_obj, actions):
-        if conf.get(GUARDIAN_AUTH):
+        if self.guardian_auth:
             from superset.guardian import guardian_admin
             guardian_admin.grant(username, finite_obj, actions)
 
     def do_revoke(self, username, finite_obj, actions):
-        if conf.get(GUARDIAN_AUTH):
+        if self.guardian_auth:
             from superset.guardian import guardian_admin
             guardian_admin.revoke(username, finite_obj, actions)
 
     def search_object_permissions(self, finite_obj):
-        if conf.get(GUARDIAN_AUTH):
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             return guardian_client.search_object_permissions(finite_obj)
         else:
             return None
 
     def get_guardian_users(self, prefix):
-        if conf.get(GUARDIAN_AUTH):
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             return guardian_client.get_users(prefix)
         else:
@@ -196,6 +205,10 @@ class PermissionManagement(object):
 
 class BaseSupersetView(BaseView):
     NAME_RESTRICT_PATTERN = '^(?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]+$'
+
+    def __init__(self):
+        super(BaseSupersetView, self).__init__()
+        self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
 
     def check_value_pattern(self, value):
         match = re.search(self.NAME_RESTRICT_PATTERN, value)
@@ -250,6 +263,10 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     int_columns = []
     bool_columns = []
     str_columns = []
+
+    def __init__(self):
+        super(SupersetModelView, self).__init__()
+        self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
 
     def get_list_args(self, args):
         kwargs = super(SupersetModelView, self).get_list_args(args)
