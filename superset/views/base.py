@@ -104,6 +104,14 @@ class PermissionManagement(object):
             from superset.guardian import guardian_admin
             guardian_admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
 
+    def check_read_perm(self, finite_obj, raise_if_false=True):
+        can = self.do_check(g.user.username, finite_obj, self.ALL_PERMS)
+        if not can and raise_if_false:
+            raise PermissionException(
+                _('No privilege to read {name}').format(name=finite_obj[-1]))
+        else:
+            return can
+
     def check_edit_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
         if not can and raise_if_false:

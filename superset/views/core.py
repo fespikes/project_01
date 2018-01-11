@@ -738,6 +738,9 @@ class Superset(BaseSupersetView, PermissionManagement):
                 database_id=database_id,
                 full_tb_name=full_tb_name,
                 args=request.args)
+            if slice_id:
+                slice = db.session.query(Slice).filter_by(id=slice_id).first()
+                self.check_read_perm(['slice', slice.name])
         except Exception as e:
             logging.exception(e)
             return Response(utils.error_msg_from_exception(e), status=500)
