@@ -32,6 +32,8 @@ from flask_babel import gettext as __
 from past.builtins import basestring
 from sqlalchemy import event, exc
 from sqlalchemy.types import TypeDecorator, TEXT
+from superset.exception import SupersetException, ParameterException, DatabaseException
+
 
 logging.getLogger('MARKDOWN').setLevel(logging.INFO)
 
@@ -39,16 +41,6 @@ logging.getLogger('MARKDOWN').setLevel(logging.INFO)
 EPOCH = datetime(1970, 1, 1)
 DTTM_ALIAS = 'timestamp__'
 GUARDIAN_AUTH = 'GUARDIAN_AUTH'
-
-
-def can_access(security_manager, permission_name, view_name):
-    """Protecting from has_access failing from missing perms/view"""
-    # try:
-    #     return security_manager.has_access(permission_name, view_name)
-    # except:
-    #     pass
-    # return False
-    return True
 
 
 def flasher(msg, severity=None):
@@ -93,18 +85,6 @@ class memoized(object):  # noqa
     def __get__(self, obj, objtype):
         """Support instance methods."""
         return functools.partial(self.__call__, obj)
-
-
-# class DimSelector(Having):
-#     def __init__(self, **args):
-#         # Just a hack to prevent any exceptions
-#         Having.__init__(self, type='equalTo', aggregation=None, value=None)
-#
-#         self.having = {'having': {
-#             'type': 'dimSelector',
-#             'dimension': args['dimension'],
-#             'value': args['value'],
-#         }}
 
 
 def list_minus(l, minus):
@@ -341,7 +321,7 @@ def validate_json(obj):
         try:
             json.loads(obj)
         except Exception:
-            raise SupersetException("JSON is not valid")
+            raise ParameterException("JSON is not valid")
 
 
 def table_has_constraint(table, name, db):
@@ -364,7 +344,7 @@ class timeout(object):
 
     def handle_timeout(self, signum, frame):
         logging.error("Process timed out")
-        raise SupersetTimeoutException(self.error_message)
+        raise SupersetException(self.error_message)
 
     def __enter__(self):
         try:
@@ -560,7 +540,7 @@ def add_or_edit_user(appbuilder, username, password):
                 username, username, username, '{}@transwarp.io'.format(username),
                 appbuilder.sm.find_role('Admin'),  password=password)
             if not user:
-                raise SupersetException('Add user: [{}] failed'.format(username))
+                raise DatabaseException('Add user: [{}] failed'.format(username))
         appbuilder.sm.reset_password(user.id, password)
         user.password2 = password
         appbuilder.sm.get_session.commit()
