@@ -985,7 +985,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.commit()
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         Log.log_add(slc, 'slice', g.user.id)
-        Number.log_number(g.user.id, g.user.username, 'slice')
+        Number.log_number(g.user.username, 'slice')
         self.add_object_permissions(['slice', slc.slice_name])
         self.grant_owner_permissions(['slice', slc.slice_name])
 
