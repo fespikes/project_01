@@ -20,7 +20,6 @@ import sqlalchemy as sqla
 from sqlalchemy import and_, or_
 
 from superset import app, db, models, utils, conf
-from superset.data import EXAMPLE_NAMES
 from superset.utils import GUARDIAN_AUTH
 from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log, Number
 from superset.message import *
@@ -201,6 +200,22 @@ class PermissionManagement(object):
             return guardian_client.get_users(prefix)
         else:
             return []
+
+    def init_examples_perms(self):
+        """Grant READ perm of example data to present user"""
+        if not self.guardian_auth:
+            return
+        example_types = {'dashboard': Dashboard, 'slice': Slice, 'dataset': Dataset}
+        for obj_type, model in example_types.items():
+            objs = db.session.query(model).filter(model.created_by_fk == None).all()
+            if objs and self.check_read_perm([obj_type, objs[0].name],
+                                             raise_if_false=False):
+                return
+            for obj in objs:
+                self.add_object_permissions([obj_type, obj.name])
+                self.grant_read_permissions([obj_type, obj.name])
+                logging.info('Grant {} [READ] perm on {}: [{}]'
+                             .format(g.user.username, obj_type, obj.name))
 
 
 class BaseSupersetView(BaseView):
