@@ -7,8 +7,6 @@ import {
     selectRows,
     switchDatasetType,
     saveDatasetId,
-    fetchPublishTable,
-    fetchOnOfflineInfo,
     fetchTableDelInfo,
     datasetTypes,
     clearDatasetData
@@ -53,40 +51,6 @@ class SliceTable extends React.Component {
             dispatch(switchDatasetType(record.dataset_type));
             dispatch(saveDatasetId(record.id));
             dispatch(clearDatasetData());
-        }
-
-        function publishTable(record) {
-            dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
-            function callback(success, data) {
-                if(success) {
-                    render(
-                        <ConfirmModal
-                            dispatch={dispatch}
-                            record={record}
-                            needCallback={true}
-                            confirmCallback={onOfflineTable}
-                            confirmMessage={data} />,
-                        document.getElementById('popup_root')
-                    );
-                }else {
-                    renderGlobalErrorMsg(data);
-                }
-            }
-        }
-
-        function onOfflineTable() {
-            const {dispatch, record} = this;
-            dispatch(fetchPublishTable(record, callback));
-            function callback(success, data) {
-                if(!success) {
-                    render(
-                        <ConfirmModal
-                            needCallback={false}
-                            confirmMessage={data} />,
-                        document.getElementById('popup_root')
-                    );
-                }
-            }
         }
 
         function deleteTable(record) {
@@ -189,16 +153,10 @@ class SliceTable extends React.Component {
                                     <i className="icon icon-edit"/>
                                 </Link>
                             </Tooltip>
-                            <Tooltip placement="top" title={record.online?'下线':'发布'} arrowPointAtCenter>
-                                <i
-                                    style={{marginLeft: 20}}
-                                    className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
-                                    onClick={() => publishTable(record)}
-                                />
-                            </Tooltip>
                             <Tooltip placement="top" title="删除" arrowPointAtCenter>
                                 <i
                                     className="icon icon-delete"
+                                    style={{margin: '0 20'}}
                                     onClick={() => deleteTable(record)}
                                 />
                             </Tooltip>

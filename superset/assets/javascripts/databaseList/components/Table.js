@@ -6,8 +6,6 @@ import {
     fetchDBDetail,
     selectRows,
     fetchUpdateConnection,
-    fetchPublishConnection,
-    fetchOnOfflineInfo,
     fetchConnectDelInfo,
     connectionTypes
 } from '../actions';
@@ -24,7 +22,6 @@ class SliceTable extends React.Component {
         //bindings
         this.deleteConnection = this.deleteConnection.bind(this);
         this.editConnection = this.editConnection.bind(this);
-        this.publishConnection = this.publishConnection.bind(this);
 
         this.dispatch = context.dispatch;
     }
@@ -63,42 +60,6 @@ class SliceTable extends React.Component {
                 );
             }else {
                 renderGlobalErrorMsg(data);
-            }
-        }
-    }
-
-    publishConnection(record) {
-        const dispatch = this.dispatch;
-        const self = this;
-        dispatch(fetchOnOfflineInfo(record.id, record.online, record.connection_type, callback));
-        function callback(success, data) {
-            if(success) {
-                render(
-                    <ConfirmModal
-                        dispatch={dispatch}
-                        record={record}
-                        needCallback={true}
-                        confirmCallback={self.onOfflineConnection}
-                        confirmMessage={data} />,
-                    document.getElementById('popup_root')
-                );
-            }else {
-                renderGlobalErrorMsg(data);
-            }
-        }
-    }
-
-    onOfflineConnection() {
-        const {dispatch, record} = this;
-        dispatch(fetchPublishConnection(record, callback));
-        function callback(success, data) {
-            if(!success) {
-                render(
-                    <ConfirmModal
-                        needCallback={false}
-                        confirmMessage={data} />,
-                    document.getElementById('popup_root')
-                );
             }
         }
     }
@@ -218,16 +179,10 @@ class SliceTable extends React.Component {
                                     onClick={() => this.editConnection(record)}
                                 />
                             </Tooltip>
-                            <Tooltip placement="top" title={record.online?'下线':'发布'} arrowPointAtCenter>
-                                <i
-                                    style={{marginLeft: 20}}
-                                    className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
-                                    onClick={() => this.publishConnection(record)}
-                                />
-                            </Tooltip>
                             <Tooltip placement="top" title="删除" arrowPointAtCenter>
                                 <i
                                     className="icon icon-delete"
+                                    style={{margin: '0 20'}}
                                     onClick={() => this.deleteConnection(record)}
                                 />
                             </Tooltip>

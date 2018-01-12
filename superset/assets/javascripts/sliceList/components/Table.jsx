@@ -231,6 +231,7 @@ class SliceTable extends React.Component {
                             <Tooltip placement="top" title="删除" arrowPointAtCenter>
                                 <i
                                     className="icon icon-delete"
+                                    style={{margin: '0 20'}}
                                     onClick={() => this.deleteSlice(record)}
                                 />
                             </Tooltip>
