@@ -5,7 +5,6 @@ import { fetchData } from "../actions";
 import { connect } from 'react-redux';
 
 import intl from "react-intl-universal";
-import http from "axios";
 import _ from "lodash";
 import * as utils  from '../../../utils/utils.jsx';
 
@@ -29,9 +28,9 @@ class Home extends Component {
 
         return ( this.state.initDone &&
           <div>
-                <DataTendency intl={intl}></DataTendency>
-                <FavouriteAndCountPanel intl={intl}></FavouriteAndCountPanel>
-                <EditAndEventPanel intl={intl}></EditAndEventPanel>
+                <DataTendency></DataTendency>
+                <FavouriteAndCountPanel></FavouriteAndCountPanel>
+                <EditAndEventPanel></EditAndEventPanel>
           </div>
         );
     }

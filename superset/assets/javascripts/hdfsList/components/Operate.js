@@ -10,35 +10,15 @@ import { CONSTANT } from '../actions';
 import { Select, PopupNormal } from './';
 import { OperationSelect } from '../../common/components';
 import { getPermData, updatePermMode, getPopupType } from '../module';
-
-const manipulateOptions = [
-        {
-            id: CONSTANT.move,
-            name: '移动'
-        },
-        {
-            id: CONSTANT.copy,
-            name: '复制'
-        },
-        {
-            id: CONSTANT.auth,
-            name: '更改权限'
-        }
-    ],
-    createOptions = [
-        {
-            id: CONSTANT.mkdir,
-            name: '目录'
-        },
-        {
-            id: CONSTANT.touch,
-            name: '文件'
-        }
-    ];
+import intl from "react-intl-universal";
 
 const _ = require('lodash');
 
 class Operate extends React.Component {
+
+    manipulateOptions: any = [];
+    createOptions: any = [];
+
     constructor(props, context) {
         super(props);
         this.state = {};
@@ -49,6 +29,33 @@ class Operate extends React.Component {
         this.onSearch = this.onSearch.bind(this);
         this.upload = this.upload.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
+    }
+
+    componentDidMount() {
+        this.manipulateOptions = [
+            {
+                id: CONSTANT.move,
+                name: intl.get('move')
+            },
+            {
+                id: CONSTANT.copy,
+                name: intl.get('copy')
+            },
+            {
+                id: CONSTANT.auth,
+                name: intl.get('chang_right')
+            }
+        ];
+        this.createOptions = [
+            {
+                id: CONSTANT.mkdir,
+                name: intl.get('catalog')
+            },
+            {
+                id: CONSTANT.touch,
+                name: intl.get('files')
+            }
+        ];
     }
 
     cleanNormalParamState(popupNormalParam) {
@@ -70,13 +77,13 @@ class Operate extends React.Component {
     }
 
     manipulate(ag) {
-        const popupType = getPopupType(ag, manipulateOptions.concat(createOptions));
-        const {fetchOperation, popupNormalParam, setPopupNormalParams, setPermData, setPermMode, setHDFSPath, fetchHDFSList, condition } = this.props;
+        const popupType = getPopupType(ag, this.manipulateOptions.concat(this.createOptions));
+        const {fetchOperation, popupNormalParam, setPopupNormalParams, setPermData, setPermMode, setHDFSPath, fetchHDFSList, condition} = this.props;
         let obj = this.cleanNormalParamState(popupNormalParam);
 
         let normalPopupParam = {};
         if (condition.selectedRows.length !== 0 || _.indexOf([CONSTANT.mkdir, CONSTANT.touch], popupType) >= 0) {
-            if(popupType === CONSTANT.auth || popupType === CONSTANT.copy || popupType === CONSTANT.move) {
+            if (popupType === CONSTANT.auth || popupType === CONSTANT.copy || popupType === CONSTANT.move) {
                 normalPopupParam = {
                     ...obj,
                     popupType: popupType,
@@ -160,7 +167,7 @@ class Operate extends React.Component {
     onRemove() {
         const {fetchOperation, popupNormalParam, setPopupNormalParams, condition} = this.props;
 
-        let deleteTips = deleteTips = '确定删除' + condition.selectedRowNames.join(' ') + '?';
+        let deleteTips = intl.get('sure_to_delete') + condition.selectedRowNames.join(' ') + '?';
         let normalPopupParam = {
             ...popupNormalParam,
             popupType: CONSTANT.remove,
@@ -189,48 +196,50 @@ class Operate extends React.Component {
 
                 <ul className="icon-list">
                     <li
-                        className="li-setting"
-                    >
+            className="li-setting"
+            >
                         <OperationSelect
-                            opeType="hdfsOperation"
-                            iconClass="icon icon-setting ps"
-                            options={manipulateOptions}
-                            placeholder="编辑"
-                            selectChange={(argus) => this.manipulate(argus)}
-                        >
+            opeType="hdfsOperation"
+            iconClass="icon icon-setting ps"
+            options={this.manipulateOptions}
+            placeholder={intl.get('edit')}
+            selectChange={(argus) => this.manipulate(argus)}
+            >
                         </OperationSelect>
                     </li>
                     <li
-                        className="li-upload"
-                        onClick={this.upload}
-                    >
-                        <i className="icon icon-upload ps"/>上传
+            className="li-upload"
+            onClick={this.upload}
+            >
+                        <i className="icon icon-upload ps"/>{intl.get('upload')}
                     </li>
                     <li
-                        className="li-plus"
-                    >
+            className="li-plus"
+            >
                         <OperationSelect
-                            opeType="addFolder"
-                            iconClass="icon icon-plus ps"
-                            options={createOptions}
-                            placeholder="添加"
-                            selectChange={(argus) => this.manipulate(argus)}
-                        >
+            opeType="addFolder"
+            iconClass="icon icon-plus ps"
+            options={this.createOptions}
+            placeholder={intl.get('add')}
+            selectChange={(argus) => this.manipulate(argus)}
+            >
                         </OperationSelect>
                     </li>
                     <li
-                        className="li-trash  bolder-right-none"
-                        onClick={this.onRemove}
-                    >
-                        <i className="icon icon-trash ps"/>删除
+            className="li-trash  bolder-right-none"
+            onClick={this.onRemove}
+            >
+                        <i className="icon icon-trash ps"/>{intl.get('delete')}
                     </li>
                 </ul>
-                <div className="search-input" style={{marginRight: 0}}>
+                <div className="search-input" style={{
+                marginRight: 0
+            }}>
                     <input
-                        onChange={this.searchOnChange}
-                        ref="searchField"
-                        className="tp-input"
-                        placeholder="搜索..." />
+            onChange={this.searchOnChange}
+            ref="searchField"
+            className="tp-input"
+            placeholder={intl.get('search_ellipsis')} />
                     <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"/>
                 </div>
             </div>

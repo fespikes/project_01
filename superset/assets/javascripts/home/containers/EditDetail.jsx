@@ -10,7 +10,10 @@ import intl from "react-intl-universal";
 
 class EditDetail extends Component {
 
-    state = { initDone: false };
+    state = {
+        initDone: false,
+        redirect: false
+    };
 
     constructor(props) {
         super(props);
@@ -21,9 +24,7 @@ class EditDetail extends Component {
     componentDidMount() {
         const { fetchEditDetail } = this.props;
         this.loadLocales();
-        this.state = {
-            redirect: false
-        };
+        
         fetchEditDetail('dashboard', 0, 'time', 'desc');
     }
 
@@ -49,7 +50,6 @@ class EditDetail extends Component {
 
     loadLocales() {
         utils.loadIntlResources(_ => {
-            console.log('wat ever');
             this.setState({ initDone: true });
         });
     }

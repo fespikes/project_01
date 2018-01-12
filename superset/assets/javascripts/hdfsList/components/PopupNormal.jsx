@@ -13,6 +13,8 @@ import { renderAlertTip } from '../../../utils/utils';
 import { WarningAlert } from '../../common/components/WarningAlert';
 
 import PropTypes from 'prop-types';
+import intl from "react-intl-universal";
+
 const $ = window.$ = require('jquery');
 
 class Popup extends React.Component {
@@ -142,9 +144,9 @@ class Popup extends React.Component {
         const {popupNormalParam, setPopupNormalParams, fetchHDFSList} = this.props;
         const {popupType, disabled, treeData, treeVal, status, alertStatus, alertMsg,
             alertType, permData, deleteTips, dir_name, dest_path, filename, file_name} = popupNormalParam;
-        let btnTitle = "提交";
+        let btnTitle = intl.get('submit');
         if (popupType === CONSTANT.noSelect) {
-            btnTitle = "确定";
+            btnTitle =  intl.get('confirm');
         }
 
         let permColumns = [];
@@ -154,29 +156,29 @@ class Popup extends React.Component {
             let title = '';
             switch (popupType) {
                 case CONSTANT.move:
-                    title = '移至';
+                    title = intl.get('move_to');
                     break;
                 case CONSTANT.copy:
-                    title = '复制到';
+                    title = intl.get('copy_to');
                     break;
                 case CONSTANT.auth:
-                    title = '修改权限';
+                    title = intl.get('change_auth');
                     permColumns = getPermColumns(me);
                     break;
                 case CONSTANT.upload:
-                    title = '上传文件';
+                    title = intl.get('upload_file');
                     break;
                 case CONSTANT.mkdir:
-                    title = '创建目录';
+                    title = intl.get('create_folder');
                     break;
                 case CONSTANT.touch:
-                    title = '新建文件';
+                    title = intl.get('create_file');
                     break;
                 case CONSTANT.remove:
-                    title = '删除HDFS连接';
+                    title = intl.get('delete_HDFS_conn');
                     break;
                 case CONSTANT.noSelect:
-                    title = '提示';
+                    title = intl.get('tips');
             }
             return {
                 title
@@ -197,7 +199,7 @@ class Popup extends React.Component {
                         <div id="hdfs-tree-select" className="hdfs-tree-select"></div>
                         <div className="dialog-item">
                             <div className="item-left">
-                                <span>移动至:</span>
+                                <span>{intl.get('move_into')}</span>
                             </div>
                             <div className="item-right">
                                 <div id="edit_pop_select">
@@ -222,7 +224,7 @@ class Popup extends React.Component {
                         <div id="hdfs-tree-select" className="hdfs-tree-select"></div>
                         <div className="dialog-item">
                             <div className="item-left">
-                                <span>复制至:</span>
+                                <span>{intl.get('copy_into')}</span>
                             </div>
                             <div className="item-right">
                                 <div id="edit_pop_select">
@@ -247,7 +249,7 @@ class Popup extends React.Component {
                         />
                         <div className="recursive-perm">
                             <div>
-                                <div className="col-20 perm-name">递归</div>
+                                <div className="col-20 perm-name">{intl.get('recursion')}</div>
                                 <div className="col-55"></div>
                                 <div className="col-25 perm-value">
                                     <input
@@ -265,7 +267,7 @@ class Popup extends React.Component {
 
                         <div className="dialog-item">
                             <div className="item-left">
-                                <span>上传到：</span>
+                                <span>{intl.get('upload_to')}</span>
                             </div>
                             <div className="item-right">
                                 <input
@@ -285,7 +287,7 @@ class Popup extends React.Component {
 
                             <div className="item-right">
                                 <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
-                                    <span>选择文件</span>
+                                    <span>{intl.get('select_file')}</span>
                                 </label>
                                 <div className="file-name">
                                     <i className="icon icon-file"/>
@@ -310,7 +312,7 @@ class Popup extends React.Component {
                     return <div className="popup-body">
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>文件夹名称：</span>
+                                        <span>{intl.get('folder_name')}</span>
                                     </div>
                                     <div className="item-right">
                                         <input
@@ -330,7 +332,7 @@ class Popup extends React.Component {
                     return <div className="popup-body">
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>文件名称：</span>
+                                        <span>{intl.get('file_name')}</span>
                                     </div>
                                     <div className="item-right">
                                         <input
@@ -358,7 +360,7 @@ class Popup extends React.Component {
                         <div className="warning">
                             <Alert
                                 message="Warning"
-                                description="没有选择HDFS路径，请先选择！"
+                                description={intl.get('tip:not_selected_HDFS')}
                                 type="warning"
                                 showIcon
                             />
