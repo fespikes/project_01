@@ -1198,6 +1198,9 @@ msgstr "世界地图"
 msgid "Chinese Map"
 msgstr "中国地图"
 
+msgid "chinese_map"
+msgstr "中国地图"
+
 msgid "world_map"
 msgstr "世界地图"
 
