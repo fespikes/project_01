@@ -1240,6 +1240,12 @@ msgstr "显示气泡代表的值"
 msgid "Value Format"
 msgstr "数值格式"
 
+msgid "The value format should be like 'a.bf'"
+msgstr "数值格式为'a.bf'"
+
+msgid "Number Of Decimals"
+msgstr "小数位数"
+
 msgid "Show Colors"
 msgstr "显示颜色"
 

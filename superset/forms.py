@@ -703,6 +703,11 @@ class FormFactory(object):
                 "choices": AXIS_FORMAT_CHOICES,
                 "description": D3_FORMAT_DOCS,
             }),
+            'value_format': (TextField, {
+                "label": _("Value Format"),
+                "description": _("The value format should be like 'a.bf'"),
+                "default": '10.0f',
+            }),
             'markup_type': (SelectField, {
                 "label": _("Markup Type"),
                 "choices": (

@@ -565,8 +565,16 @@ class PivotTableViz(BaseViz):
             'columns',
             'metrics',
             'pandas_aggfunc',
+            'value_format',
         )
     },)
+    form_overrides = ({
+        'value_format': {
+            "label": _("Number Of Decimals"),
+            "description": None,
+            "default": 0,
+        },
+    })
 
     def query_obj(self):
         d = super(PivotTableViz, self).query_obj()
@@ -602,7 +610,9 @@ class PivotTableViz(BaseViz):
             aggfunc=self.form_data.get('pandas_aggfunc'),
             margins=True,
         )
-        return df.to_html(na_rep='',
+        value_format = self.form_data.get("value_format", 0)
+        value_format = '%.{}f'.format(value_format)
+        return df.to_html(na_rep='', float_format=lambda x: value_format % x,
             classes=("dataframe table table-striped table-bordered "
                      "table-condensed table-hover").split(" ")), df_dict
 
