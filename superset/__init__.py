@@ -79,9 +79,8 @@ if app.config.get('ENABLE_TIME_ROTATE'):
 
 # License check
 if conf.get('LICENSE_CHECK') is True:
-    server_location = conf.get('LICENSE_CHECK_SERVER')
     license_jar = conf.get('LICENSE_CHECK_JAR')
-    CheckLicense.check(server_location, license_jar=license_jar)
+    CheckLicense.check(license_jar)
 
 if app.config.get('ENABLE_CORS'):
     from flask_cors import CORS
