@@ -9,19 +9,17 @@ from jpype import *
 
 
 class CheckLicense(object):
-    default_jar = "/usr/local/lib/pilot-license-1.0-transwarp-5.2.0-SNAPSHOT.jar"
 
     @classmethod
     def start_jvm(cls, license_jar):
-        jar = license_jar if license_jar else cls.default_jar
         if not isJVMStarted():
-            if not os.path.exists(jar):
+            if not os.path.exists(license_jar):
                 logging.error("Can't find the jar for license checking: {}"
-                              .format(jar))
+                              .format(license_jar))
                 raise IOError
             logging.info("Begin to start JVM ...")
             startJVM(get_default_jvm_path(), '-ea', '-Djava.class.path={}'
-                     .format(jar))
+                     .format(license_jar))
             logging.info("Finish to start JVM.")
             if not isThreadAttachedToJVM():
                 attachThreadToJVM()
@@ -33,24 +31,24 @@ class CheckLicense(object):
         logging.info("Finish to shutdown JVM.")
 
     @classmethod
-    def do_check(cls, server_location, license_jar=None):
+    def do_check(cls, license_jar):
         logging.info("Begin to check license ...")
         cls.start_jvm(license_jar)
         try:
             Check = JClass('io.transwarp.pilot.license.CheckLicense')
             check = Check()
-            check.checkLicense(server_location)
+            check.checkLicense()
             logging.info("License checking succeed")
             return True
         except JavaException as ex:
-            msg = "License check failed with check server [{}]".format(server_location)
+            msg = "License check failed: " + str(ex)
             logging.error(msg)
             return False
         finally:
             cls.shutdown_jvm()
 
     @classmethod
-    def check(cls, server_location, license_jar=None):
-        success = cls.do_check(server_location, license_jar)
+    def check(cls, license_jar):
+        success = cls.do_check(license_jar)
         if not success:
             raise Exception("License checking failed")

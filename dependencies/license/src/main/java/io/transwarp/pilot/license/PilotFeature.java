@@ -33,8 +33,8 @@ public enum PilotFeature implements Feature {
     }
 
     @Override
-    public String getCompName() {
-        return CompLicInfoV2.CompTypeV2.PILOT.name();
+    public CompLicInfoV2.CompTypeV2 getCompType() {
+        return CompLicInfoV2.CompTypeV2.PILOT;
     }
 
     @Override
