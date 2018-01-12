@@ -3,13 +3,18 @@ import {render, ReactDOM} from 'react-dom';
 import {Provider, connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {
-    fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange,
-    setSelectedRow, fetchOnOfflineInfo, fetchDashbaordDelInfo
+    fetchDashboardDetail,
+    fetchAvailableSlices,
+    fetchPosts,
+    fetchStateChange,
+    setSelectedRow,
+    fetchOnOfflineInfo,
+    fetchDashbaordDelInfo
 } from '../actions';
 import {DashboardEdit, DashboardDelete} from '../popup';
-import {ConfirmModal} from '../../common/components';
+import {ConfirmModal, PermPopup} from '../../common/components';
 import {Table, Tooltip} from 'antd';
-import {sortByInitials, renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import {sortByInitials, renderGlobalErrorMsg, OBJECT_TYPE} from '../../../utils/utils.jsx';
 
 class Tables extends React.Component {
     constructor(props) {
@@ -75,6 +80,15 @@ class Tables extends React.Component {
         dispatch(fetchStateChange(record, undefined, "favorite"));
     }
 
+    givePerm(record) {
+        render(
+            <PermPopup
+                objectType={OBJECT_TYPE.DASHBOARD}
+                objectName={record.dashboard_title}
+            />,
+            document.getElementById('popup_root')
+        );
+    }
 
     render() {
 
@@ -173,6 +187,12 @@ class Tables extends React.Component {
                             <i
                                 className="icon icon-delete"
                                 onClick={() => this.deleteDashboard(record)}
+                            />
+                        </Tooltip>
+                        <Tooltip placement="top" title="赋权" arrowPointAtCenter>
+                            <i
+                                className="icon icon-edit"
+                                onClick={() => this.givePerm(record)}
                             />
                         </Tooltip>
                     </div>

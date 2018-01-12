@@ -4,13 +4,19 @@ import {Link}  from 'react-router-dom';
 import {Table, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
 import {
-    selectRows, switchDatasetType, saveDatasetId, fetchPublishTable,
-    fetchOnOfflineInfo, fetchTableDelInfo, datasetTypes, clearDatasetData
+    selectRows,
+    switchDatasetType,
+    saveDatasetId,
+    fetchPublishTable,
+    fetchOnOfflineInfo,
+    fetchTableDelInfo,
+    datasetTypes,
+    clearDatasetData
 } from '../actions';
 import {TableDelete} from '../popup';
 import style from '../style/table.scss'
-import {ConfirmModal} from '../../common/components';
-import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import {ConfirmModal, PermPopup} from '../../common/components';
+import {sortByInitials, renderGlobalErrorMsg, OBJECT_TYPE} from '../../../utils/utils.jsx';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -28,6 +34,16 @@ class SliceTable extends React.Component {
         });
         dispatch(selectRows(selectedRowKeys, selectedRowNames));
     };
+
+    givePerm(record) {
+        render(
+            <PermPopup
+                objectType={OBJECT_TYPE.DATASET}
+                objectName={record.dataset_name}
+            />,
+            document.getElementById('popup_root')
+        );
+    }
 
     render() {
 
@@ -101,7 +117,6 @@ class SliceTable extends React.Component {
             {
                 width: '2%',
                 render: (text, record) => {
-                    const datasetType = record.dataset_type;
                     return (
                         <i className={'icon ' + record.iconClass} />
                     )
@@ -131,7 +146,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.dataset_name.substring(0, 1).charCodeAt() - b.dataset_name.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.dataset_name, b.dataset_name);
                 }
             }, {
                 title: '所有者',
@@ -149,7 +164,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.created_by_user, b.created_by_user);
                 }
             }, {
                 title: '更新时间',
@@ -185,6 +200,12 @@ class SliceTable extends React.Component {
                                 <i
                                     className="icon icon-delete"
                                     onClick={() => deleteTable(record)}
+                                />
+                            </Tooltip>
+                            <Tooltip placement="top" title="赋权" arrowPointAtCenter>
+                                <i
+                                    className="icon icon-edit"
+                                    onClick={() => this.givePerm(record)}
                                 />
                             </Tooltip>
                         </div>

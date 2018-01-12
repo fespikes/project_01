@@ -58,11 +58,11 @@ table {
         }
     }
 }
-.table-add-slice table tbody.ant-table-tbody > tr td {
+.table-add-slice table tbody.ant-table-tbody > tr td, .table-grant-perm table tbody.ant-table-tbody > tr td {
     height: 40px;
 }
-.table-add-slice .ant-table-content .ant-table-body {
-    max-height: 450px;
+.table-add-slice .ant-table-content .ant-table-body, .table-grant-perm .ant-table-content .ant-table-body {
+    max-height: 400px;
     overflow: auto;
 }
 

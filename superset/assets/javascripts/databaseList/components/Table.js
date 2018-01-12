@@ -3,14 +3,19 @@ import {render} from 'react-dom';
 import {message, Table, Icon, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
 import {
-    fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection,
-    fetchOnOfflineInfo, fetchConnectDelInfo, connectionTypes
+    fetchDBDetail,
+    selectRows,
+    fetchUpdateConnection,
+    fetchPublishConnection,
+    fetchOnOfflineInfo,
+    fetchConnectDelInfo,
+    connectionTypes
 } from '../actions';
 import {ConnectionDelete, ConnectionEdit} from '../popup';
 import style from '../style/database.scss'
-import {ConfirmModal} from '../../common/components';
+import {ConfirmModal, PermPopup} from '../../common/components';
 import {isCorrectConnection} from '../utils';
-import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import {sortByInitials, renderGlobalErrorMsg, OBJECT_TYPE} from '../../../utils/utils.jsx';
 
 class SliceTable extends React.Component {
     constructor(props, context) {
@@ -126,6 +131,18 @@ class SliceTable extends React.Component {
         }
     }
 
+    givePerm(record) {
+        const objectType = isCorrectConnection(record.connection_type, connectionTypes)
+            ? OBJECT_TYPE.DATABASE : OBJECT_TYPE.HDFSCONNECTION;
+        render(
+            <PermPopup
+                objectType={objectType}
+                objectName={record.name}
+            />,
+            document.getElementById('popup_root')
+        );
+    }
+
     render() {
         const { data, selectedRowKeys } = this.props;
         const rowSelection = {
@@ -152,7 +169,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.name.substring(0, 1).charCodeAt() - b.name.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.name, b.name);
                 }
             }, {
                 title: '连接类型',
@@ -160,7 +177,7 @@ class SliceTable extends React.Component {
                 key: 'connection_type',
                 width: '20%',
                 sorter(a, b) {
-                    return a.connection_type.substring(0, 1).charCodeAt() - b.connection_type.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.connection_type, b.connection_type);
                 }
             }, {
                 title: '所有者',
@@ -178,7 +195,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.owner.substring(0, 1).charCodeAt() - b.owner.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.owner, b.owner);
                 }
             }, {
                 title: '更新时间',
@@ -212,6 +229,12 @@ class SliceTable extends React.Component {
                                 <i
                                     className="icon icon-delete"
                                     onClick={() => this.deleteConnection(record)}
+                                />
+                            </Tooltip>
+                            <Tooltip placement="top" title="赋权" arrowPointAtCenter>
+                                <i
+                                    className="icon icon-edit"
+                                    onClick={() => this.givePerm(record)}
                                 />
                             </Tooltip>
                         </div>

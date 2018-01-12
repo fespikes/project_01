@@ -10,6 +10,14 @@ import SUPPOER_LOCALES from '../javascripts/support_locales';
 
 export const PILOT_PREFIX = '/p/';
 
+export const OBJECT_TYPE = {
+    DASHBOARD: 'dashboard',
+    SLICE: 'slice',
+    DATABASE: 'database',
+    DATASET: 'dataset',
+    HDFSCONNECTION: 'hdfsconnection'
+};
+
 export function renderLoadingModal() {
     const loadingModal = render(
         <LoadingModal />,

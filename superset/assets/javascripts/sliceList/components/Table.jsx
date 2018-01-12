@@ -3,12 +3,16 @@ import {render} from 'react-dom';
 import {message, Table, Icon, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
 import {
-    fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail,
-    fetchOnOfflineInfo, fetchSliceDelInfo
+    fetchStateChange,
+    setSelectedRows,
+    fetchSliceDelete,
+    fetchSliceDetail,
+    fetchOnOfflineInfo,
+    fetchSliceDelInfo
 } from '../actions';
 import {SliceDelete, SliceEdit} from '../popup';
-import {ConfirmModal} from '../../common/components';
-import {sortByInitials, renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import {ConfirmModal, PermPopup} from '../../common/components';
+import {sortByInitials, renderGlobalErrorMsg, OBJECT_TYPE} from '../../../utils/utils.jsx';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -76,6 +80,16 @@ class SliceTable extends React.Component {
     sliceDetail(url) {
         localStorage.setItem('explore:firstEntry', 'true');
         window.location = url;
+    }
+
+    givePerm(record) {
+        render(
+            <PermPopup
+                objectType={OBJECT_TYPE.SLICE}
+                objectName={record.slice_name}
+            />,
+            document.getElementById('popup_root')
+        );
     }
 
     render() {
@@ -218,6 +232,12 @@ class SliceTable extends React.Component {
                                 <i
                                     className="icon icon-delete"
                                     onClick={() => this.deleteSlice(record)}
+                                />
+                            </Tooltip>
+                            <Tooltip placement="top" title="赋权" arrowPointAtCenter>
+                                <i
+                                    className="icon icon-edit"
+                                    onClick={() => this.givePerm(record)}
                                 />
                             </Tooltip>
                         </div>
