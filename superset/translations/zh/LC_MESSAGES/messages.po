@@ -1198,6 +1198,9 @@ msgstr "世界地图"
 msgid "Chinese Map"
 msgstr "中国地图"
 
+msgid "chinese_map"
+msgstr "中国地图"
+
 msgid "world_map"
 msgstr "世界地图"
 
@@ -1236,6 +1239,12 @@ msgstr "显示气泡代表的值"
 
 msgid "Value Format"
 msgstr "数值格式"
+
+msgid "The value format should be like 'a.bf'"
+msgstr "数值格式为'a.bf'"
+
+msgid "Number Of Decimals"
+msgstr "小数位数"
 
 msgid "Show Colors"
 msgstr "显示颜色"
@@ -1672,8 +1681,11 @@ msgstr "没有权限删除{name}"
 msgid "No privilege ADMIN of {name}"
 msgstr "没有{name} ADMIN权限"
 
-msgid "No privilege to grant/revoke on {name}"
-msgstr "没有权限对其他用户赋予{name}的权限"
+msgid "No privilege to grant permission on {obj_type}: [{name}]"
+msgstr "没有权限对其他用户赋予{obj_type}: [{name}]的权限"
+
+msgid "No privilege to revoke permissions from {obj_type}: [{name}]"
+msgstr "没有权限回收其他用户在{obj_type}: [{name}]上的权限"
 
 msgid "No privilege to release {name}"
 msgstr "没有权限发布或下线{name}"

@@ -36,10 +36,8 @@ from superset.exception import (
     HDFSException
 )
 from superset.jinja_context import get_template_processor
-from .base import (
-    AuditMixinNullable, ImportMixin, Queryable, QueryResult, QueryStatus, Count
-)
-from .connection import Database, HDFSConnection
+from .base import AuditMixinNullable, ImportMixin, Queryable, QueryResult, QueryStatus
+from .connection import Database
 
 config = app.config
 
@@ -252,7 +250,7 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
         return import_util.import_simple_obj(db.session, i_metric, lookup_obj)
 
 
-class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin, Count):
+class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     """An ORM object for SqlAlchemy table references"""
     type = "table"
     __tablename__ = 'dataset'

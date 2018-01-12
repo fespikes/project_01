@@ -183,7 +183,7 @@ class MySQLEngineSpec(BaseEngineSpec):
         return uri
 
 
-class InceptorEngineSpec(MySQLEngineSpec):
+class InceptorEngineSpec(BaseEngineSpec):
     engine = 'inceptor'
     time_grains = tuple()
 

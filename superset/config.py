@@ -39,6 +39,7 @@ CUSTOM_SECURITY_MANAGER = None
 # ---------------------------------------------------------
 
 # Guardian
+GUARDIAN_AUTH = True
 GUARDIAN_CLIENT_JAR = '/usr/local/lib/guardian-client-2.0-transwarp-5.2.0-SNAPSHOT.jar'
 GUARDIAN_SITE_PATH = '/etc/pilot/conf/'
 GUARDIAN_SERVICE_TYPE = 'PILOT'
@@ -62,10 +63,9 @@ LOAD_EXAMPLES = True
 
 # License check
 LICENSE_CHECK = True
-LICENSE_CHECK_SERVER = '172.16.2.41:2291'
 # The jar has default path.
 # if you have not moved it, then no need to changed it.
-# LICENSE_CHECK_JAR = '/usr/local/lib/pilot-license-1.0-transwarp-5.1.0-SNAPSHOT.jar'
+LICENSE_CHECK_JAR = '/usr/local/lib/pilot-license-1.0-transwarp-5.2.0.jar'
 
 # Your App secret key
 SECRET_KEY = '=== Transwarp Studio Pilot ==='  # noqa
@@ -329,3 +329,5 @@ SMTP_MAIL_FROM = 'pilot@pilot.com'
 
 if not CACHE_DEFAULT_TIMEOUT:
     CACHE_DEFAULT_TIMEOUT = CACHE_CONFIG.get('CACHE_DEFAULT_TIMEOUT')
+
+#GUARDIAN_AUTH = False

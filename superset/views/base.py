@@ -20,7 +20,8 @@ import sqlalchemy as sqla
 from sqlalchemy import and_, or_
 
 from superset import app, db, models, utils, conf
-from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log
+from superset.utils import GUARDIAN_AUTH
+from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log, Number
 from superset.message import *
 from superset.exception import (
     SupersetException, LoginException, PermissionException, ParameterException,
@@ -52,7 +53,7 @@ def catch_exception(f):
     return functools.update_wrapper(wraps, f)
 
 
-def json_response(message='', status=200, data='', code=0):
+def json_response(message='', status=200, data=None, code=0):
     if isinstance(message, LazyString):
         message = str(message)  # py3
     resp = {'status': status,
@@ -81,27 +82,43 @@ class PermissionManagement(object):
                        'slice': 'slice',
                        'dashboard': 'dashboard'}
 
+    def __init__(self):
+        self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
+
     def add_object_permissions(self, finite_obj):
-        if conf.get("GUARDIAN_AUTH"):
+        if self.guardian_auth:
             from superset.guardian import guardian_admin
             guardian_admin.add_permission(finite_obj, self.ALL_PERMS)
 
     def del_perm_obj(self, finite_obj):
-        if conf.get("GUARDIAN_AUTH"):
+        if self.guardian_auth:
             from superset.guardian import guardian_admin
             guardian_admin.del_perm_obj(finite_obj)
 
     def rename_perm_obj(self, model, old_name, new_name):
-        if conf.get("GUARDIAN_AUTH"):
+        if self.guardian_auth:
             from superset.guardian import guardian_admin
             if old_name == new_name:
                 return
             guardian_admin.rename_perm_obj([model, old_name], [model, new_name])
 
     def grant_owner_permissions(self, finite_obj):
-        if conf.get("GUARDIAN_AUTH"):
+        if self.guardian_auth:
             from superset.guardian import guardian_admin
             guardian_admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
+
+    def grant_read_permissions(self, finite_obj):
+        if self.guardian_auth:
+            from superset.guardian import guardian_admin
+            guardian_admin.grant(g.user.username, finite_obj, self.READ_PERM)
+
+    def check_read_perm(self, finite_obj, raise_if_false=True):
+        can = self.do_check(g.user.username, finite_obj, self.ALL_PERMS)
+        if not can and raise_if_false:
+            raise PermissionException(
+                _('No privilege to read {name}').format(name=finite_obj[-1]))
+        else:
+            return can
 
     def check_edit_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
@@ -131,7 +148,17 @@ class PermissionManagement(object):
         can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to grant/revoke on {name}').format(name=finite_obj[-1]))
+                _('No privilege to grant permission on {obj_type}: [{name}]')
+                .format(obj_type=finite_obj[-2], name=finite_obj[-1]))
+        else:
+            return can
+
+    def check_revoke_perm(self, finite_obj, raise_if_false=True):
+        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
+        if not can and raise_if_false:
+            raise PermissionException(
+                _('No privilege to revoke permissions from {obj_type}: [{name}]')
+                .format(obj_type=finite_obj[-2], name=finite_obj[-1]))
         else:
             return can
 
@@ -144,15 +171,59 @@ class PermissionManagement(object):
             return can
 
     def do_check(self, username, finite_obj, actions):
-        if conf.get("GUARDIAN_AUTH"):
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             return guardian_client.check_any_access(username, finite_obj, actions)
         else:
             return True
 
+    def do_grant(self, username, finite_obj, actions):
+        if self.guardian_auth:
+            from superset.guardian import guardian_admin
+            guardian_admin.grant(username, finite_obj, actions)
+
+    def do_revoke(self, username, finite_obj, actions):
+        if self.guardian_auth:
+            from superset.guardian import guardian_admin
+            guardian_admin.revoke(username, finite_obj, actions)
+
+    def search_object_permissions(self, finite_obj):
+        if self.guardian_auth:
+            from superset.guardian import guardian_client
+            return guardian_client.search_object_permissions(finite_obj)
+        else:
+            return None
+
+    def get_guardian_users(self, prefix):
+        if self.guardian_auth:
+            from superset.guardian import guardian_client
+            return guardian_client.get_users(prefix)
+        else:
+            return []
+
+    def init_examples_perms(self):
+        """Grant READ perm of example data to present user"""
+        if not self.guardian_auth:
+            return
+        example_types = {'dashboard': Dashboard, 'slice': Slice, 'dataset': Dataset}
+        for obj_type, model in example_types.items():
+            objs = db.session.query(model).filter(model.created_by_fk == None).all()
+            if objs and self.check_read_perm([obj_type, objs[0].name],
+                                             raise_if_false=False):
+                return
+            for obj in objs:
+                self.add_object_permissions([obj_type, obj.name])
+                self.grant_read_permissions([obj_type, obj.name])
+                logging.info('Grant {} [READ] perm on {}: [{}]'
+                             .format(g.user.username, obj_type, obj.name))
+
 
 class BaseSupersetView(BaseView):
     NAME_RESTRICT_PATTERN = '^(?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]+$'
+
+    def __init__(self):
+        super(BaseSupersetView, self).__init__()
+        self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
 
     def check_value_pattern(self, value):
         match = re.search(self.NAME_RESTRICT_PATTERN, value)
@@ -208,8 +279,12 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     bool_columns = []
     str_columns = []
 
+    def __init__(self):
+        super(SupersetModelView, self).__init__()
+        self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
+
     def get_list_args(self, args):
-        kwargs = super().get_list_args(args)
+        kwargs = super(SupersetModelView, self).get_list_args(args)
         kwargs['dataset_type'] = args.get('dataset_type')
         kwargs['dataset_id'] = int(args.get('dataset_id')) \
             if args.get('dataset_id') else None
@@ -252,6 +327,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
 
     def post_add(self, obj):
         Log.log_add(obj, self.model_type, g.user.id)
+        Number.log_number(g.user.username, self.model_type)
         self.add_object_permissions([self.model_type, obj.name])
         self.grant_owner_permissions([self.model_type, obj.name])
 
@@ -302,6 +378,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
 
     def post_delete(self, obj):
         Log.log_delete(obj, self.model_type, g.user.id)
+        Number.log_number(g.user.username, self.model_type)
         self.del_perm_obj([self.model_type, obj.name])
 
     @catch_exception

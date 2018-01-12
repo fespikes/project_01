@@ -29,7 +29,7 @@ from superset.exception import (
 )
 from superset.models import (
     Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric,
-    Query, Log, FavStar, str_to_model
+    Query, Log, FavStar, str_to_model, Number
 )
 from superset.message import *
 from .base import (
@@ -72,13 +72,13 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     str_columns = ['datasource', 'created_on', 'changed_on']
 
     def get_addable_choices(self):
-        data = super().get_addable_choices()
+        data = super(SliceModelView, self).get_addable_choices()
         dashs = self.get_available_dashboards(g.user.id)
         data['available_dashboards'] = self.dashboards_to_dict(dashs)
         return data
 
     def get_show_attributes(self, obj, user_id=None):
-        attributes = super().get_show_attributes(obj, user_id)
+        attributes = super(SliceModelView, self).get_show_attributes(obj, user_id)
         attributes['dashboards'] = self.dashboards_to_dict(obj.dashboards)
         dashs = self.get_available_dashboards(user_id)
         available_dashs = self.dashboards_to_dict(dashs)
@@ -86,7 +86,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         return attributes
 
     def get_edit_attributes(self, data, user_id):
-        attributes = super().get_edit_attributes(data, user_id)
+        attributes = super(SliceModelView, self).get_edit_attributes(data, user_id)
         attributes['dashboards'] = self.get_dashs_in_list(data.get('dashboards'))
         return attributes
 
@@ -101,13 +101,12 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         return objs
 
     def post_delete(self, obj):
+        super(SliceModelView, self).post_delete(obj)
         db.session.query(FavStar) \
             .filter(FavStar.class_name.ilike(self.model_type),
                     FavStar.obj_id == obj.id) \
             .delete(synchronize_session=False)
         db.session.commit()
-        Log.log_delete(obj, self.model_type, g.user.id)
-        self.del_perm_obj([self.model_type, obj.slice_name])
 
     def check_column_values(self, obj):
         if not obj.slice_name:
@@ -175,7 +174,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         slice = self.get_object(id)
-        self.check_delete_perm([self.model_type, id], obj=slice)
+        self.check_delete_perm([self.model_type, slice.name])
         objects = self.delete_affect_objects([id, ])
         info = _("Deleting slice {slice} will remove from these "
                  "dashboards too: {dashboard}")\
@@ -269,9 +268,8 @@ class SliceModelView(SupersetModelView, PermissionManagement):
 
         query = self.query_with_favorite(self.model_type, **kwargs)
 
-        guardian_auth = config.get('GUARDIAN_AUTH', False)
         readable_names = None
-        if guardian_auth:
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             readable_names = \
                 guardian_client.search_model_permissions(g.user.username, self.model_type)
@@ -285,7 +283,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         data = []
         index = 0
         for obj, username, fav_id in rs:
-            if guardian_auth:
+            if self.guardian_auth:
                 if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
@@ -353,7 +351,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     str_columns = ['created_on', 'changed_on']
 
     def get_addable_choices(self):
-        data = super().get_addable_choices()
+        data = super(DashboardModelView, self).get_addable_choices()
         slices = self.get_available_slices(g.user.id)
         data['available_slices'] = self.slices_to_dict(slices)
         return data
@@ -368,13 +366,12 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         self.pre_add(new_obj)
 
     def post_delete(self, obj):
+        super(DashboardModelView, self).post_delete(obj)
         db.session.query(FavStar) \
             .filter(FavStar.class_name.ilike(self.model_type),
                     FavStar.obj_id == obj.id) \
             .delete(synchronize_session=False)
         db.session.commit()
-        Log.log_delete(obj, self.model_type, g.user.id)
-        self.del_perm_obj([self.model_type, obj.dashboard_title])
 
     def check_column_values(self, obj):
         if not obj.dashboard_title:
@@ -393,9 +390,8 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         query = self.query_with_favorite(self.model_type, **kwargs)
 
-        guardian_auth = config.get('GUARDIAN_AUTH', False)
         readable_names = None
-        if guardian_auth:
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             readable_names = \
                 guardian_client.search_model_permissions(g.user.username, self.model_type)
@@ -409,7 +405,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         data = []
         index = 0
         for obj, username, fav_id in rs:
-            if guardian_auth:
+            if self.guardian_auth:
                 if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
@@ -442,19 +438,19 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         return response
 
     def get_show_attributes(self, obj, user_id=None):
-        attributes = super().get_show_attributes(obj)
+        attributes = super(DashboardModelView, self).get_show_attributes(obj)
         attributes['slices'] = self.slices_to_dict(obj.slices)
         available_slices = self.get_available_slices(user_id)
         attributes['available_slices'] = self.slices_to_dict(available_slices)
         return attributes
 
     def get_add_attributes(self, data, user_id):
-        attributes = super().get_add_attributes(data, user_id)
+        attributes = super(DashboardModelView, self).get_add_attributes(data, user_id)
         attributes['slices'] = self.get_slices_in_list(data.get('slices'))
         return attributes
 
     def get_edit_attributes(self, data, user_id):
-        attributes = super().get_edit_attributes(data, user_id)
+        attributes = super(DashboardModelView, self).get_edit_attributes(data, user_id)
         attributes['slices'] = self.get_slices_in_list(data.get('slices'))
         attributes['need_capture'] = True
         return attributes
@@ -633,8 +629,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 class Superset(BaseSupersetView, PermissionManagement):
     route_base = '/p'
 
-    def get_viz(self, slice_id=None, args=None,
-                datasource_type=None, datasource_id=None,
+    def get_viz(self, slice_id=None, args=None, datasource_type=None, datasource_id=None,
                 database_id=None, full_tb_name=None):
         if slice_id:
             slc = db.session.query(Slice).filter_by(id=slice_id).one()
@@ -646,6 +641,8 @@ class Superset(BaseSupersetView, PermissionManagement):
             else:
                 datasource = SourceRegistry.get_datasource(
                     datasource_type, datasource_id, db.session)
+            if not datasource:
+                raise PropertyException('Missing a dataset for slice')
             if not datasource.database:
                 raise PropertyException(
                     'Missing connection for dataset: [{}]'.format(datasource))
@@ -738,6 +735,9 @@ class Superset(BaseSupersetView, PermissionManagement):
                 database_id=database_id,
                 full_tb_name=full_tb_name,
                 args=request.args)
+            if slice_id:
+                slice = db.session.query(Slice).filter_by(id=slice_id).first()
+                self.check_read_perm(['slice', slice.name])
         except Exception as e:
             logging.exception(e)
             return Response(utils.error_msg_from_exception(e), status=500)
@@ -772,18 +772,15 @@ class Superset(BaseSupersetView, PermissionManagement):
         if slice_id:
             slc = db.session.query(Slice).filter_by(id=slice_id).first()
 
-        datasources = db.session.query(Dataset) \
-            .filter(
-                or_(Dataset.created_by_fk == user_id,
-                    Dataset.online == 1)
-            ).all()
-        datasources = sorted(datasources, key=lambda ds: ds.full_name)
-        databases = db.session.query(Database) \
-            .filter(
-                or_(Database.created_by_fk == user_id,
-                    Database.online == 1)
-            ).all()
-        databases = sorted(databases, key=lambda d: d.name)
+        datasets = db.session.query(Dataset).all()
+        datasets = sorted(datasets, key=lambda ds: ds.full_name)
+        if self.guardian_auth:
+            from superset.guardian import guardian_client
+            readable_dataset_names = \
+                guardian_client.search_model_permissions(g.user.username, 'dataset')
+            readable_datasets = [d for d in datasets if d.name in readable_dataset_names]
+            datasets = readable_datasets
+
         viz_obj = None
         try:
             viz_obj = self.get_viz(
@@ -798,24 +795,19 @@ class Superset(BaseSupersetView, PermissionManagement):
 
         # slc perms
         slice_add_perm = True
+        slice_download_perm = True
         if not slc:
             slice_edit_perm = True
         else:
             slice_edit_perm = self.check_edit_perm(['slice', slc.name],
                                                    raise_if_false=False)
-        slice_download_perm = True
-
         # handle save or overwrite
         action = request.args.get('action')
         if action in ('saveas', 'overwrite'):
             return self.save_or_overwrite_slice(
                 request.args, slc, slice_add_perm, slice_edit_perm)
 
-        # find out if user is in explore v2 beta group
-        # and set flag `is_in_explore_v2_beta`
-        #is_in_explore_v2_beta = sm.find_role('explore-v2-beta') in get_user_roles()
         is_in_explore_v2_beta = False
-
         # handle different endpoints
         if request.args.get("csv") == "true":
             payload = viz_obj.get_csv()
@@ -833,7 +825,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 "can_download": slice_download_perm,
                 "can_edit": slice_edit_perm,
                 # TODO: separate endpoint for fetching datasources
-                "datasources": [(d.id, d.full_name) for d in datasources],
+                "datasources": [(d.id, d.full_name) for d in datasets],
                 "datasource_id": datasource_id,
                 "datasource_name": viz_obj.datasource.name,
                 "datasource_type": datasource_type,
@@ -854,8 +846,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 "superset/explore.html",
                 viz=viz_obj,
                 slice=slc,
-                datasources=datasources,
-                databases=databases,
+                datasources=datasets,
                 can_add=slice_add_perm,
                 can_edit=slice_edit_perm,
                 can_download=slice_download_perm,
@@ -940,7 +931,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         slc.slice_name = slice_name or slc.slice_name
         slc.database_id = database_id if database_id else None
         slc.full_table_name = full_tb_name
-        SliceModelView.check_column_values(slc)
+        SliceModelView().check_column_values(slc)
 
         if action in ('saveas') and slice_add_perm:
             self.save_slice(slc)
@@ -995,6 +986,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.commit()
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         Log.log_add(slc, 'slice', g.user.id)
+        Number.log_number(g.user.username, 'slice')
         self.add_object_permissions(['slice', slc.slice_name])
         self.grant_owner_permissions(['slice', slc.slice_name])
 
@@ -1246,6 +1238,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.add(table)
         db.session.commit()
         Log.log_add(table, 'dataset', g.user.id)
+        Number.log_number(g.user.username, 'dataset')
         self.add_object_permissions(['dataset', table.dataset_name])
         self.grant_owner_permissions(['dataset', table.dataset_name])
 

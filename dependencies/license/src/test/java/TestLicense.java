@@ -8,8 +8,7 @@ public class TestLicense extends TestCase {
 
     public void testCheckLicense(){
         CheckLicense check = new CheckLicense();
-        String str = "172.16.2.41:2291";
-        boolean success = check.checkLicense(str);
+        boolean success = check.checkLicense();
         assert success;
     }
 }
