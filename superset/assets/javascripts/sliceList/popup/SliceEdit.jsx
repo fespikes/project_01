@@ -3,10 +3,10 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetchUpdateSlice } from '../actions';
+import { fetchUpdateSlice, fetchDashboardList } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
-import { renderAlertErrorInfo } from '../../../utils/utils';
+import { renderAlertErrorInfo, renderGlobalErrorMsg } from '../../../utils/utils';
 
 class SliceEdit extends React.Component {
     constructor(props) {
@@ -14,9 +14,8 @@ class SliceEdit extends React.Component {
         this.state = {
             exception: {},
             enableConfirm: true,
-            sliceDetail: {
-                description: ''
-            },
+            sliceDetail: {},
+            availableDashboards: [],
             selectedDashboards: initDefaultOptions()
         };
 
@@ -80,13 +79,27 @@ class SliceEdit extends React.Component {
         }
     }
 
-    render() {
+    componentDidMount() {
         const self = this;
-        const Option = Select.Option;
-        const defaultOptions = self.state.selectedDashboards;
-        const options = self.props.sliceDetail.available_dashboards.map(dashboard => {
-            return <Option key={dashboard.dashboard_title}>{dashboard.dashboard_title}</Option>
-        });
+        fetchDashboardList(callback);
+        function callback(success, data) {
+            if(success) {
+                const availableOptions = data.data.map(dashboard => {
+                    return <Option key={dashboard.dashboard_title}>
+                        {dashboard.dashboard_title}</Option>
+                });
+                self.setState({
+                    availableDashboards: availableOptions
+                });
+            }else {
+                renderGlobalErrorMsg(data);
+            }
+        }
+    }
+
+    render() {
+        const sliceDetail = this.props.sliceDetail;
+        const {availableDashboards, selectedDashboards, enableConfirm} = this.state;
 
         return (
             <div className="popup">
@@ -113,7 +126,7 @@ class SliceEdit extends React.Component {
                                 <div className="item-right">
                                     <input
                                         className="tp-input dialog-input"
-                                        value={this.props.sliceDetail.slice_name}
+                                        value={sliceDetail.slice_name}
                                         onChange={this.handleTitleChange}
                                         autoFocus
                                     />
@@ -126,7 +139,7 @@ class SliceEdit extends React.Component {
                                 <div className="item-right">
                                     <textarea
                                         className="tp-textarea dialog-area"
-                                        value={this.props.sliceDetail.description}
+                                        value={sliceDetail.description || ''}
                                         onChange={this.handleDescriptionChange}
                                     />
                                 </div>
@@ -139,11 +152,11 @@ class SliceEdit extends React.Component {
                                     <div id="edit_pop_select">
                                         <Select mode={'multiple'}
                                             style={{ width: '100%' }}
-                                            defaultValue={defaultOptions}
+                                            defaultValue={selectedDashboards}
                                             placeholder="选择仪表板"
                                             onChange={this.onSelectChange}
                                         >
-                                            {options}
+                                            {availableDashboards}
                                         </Select>
                                     </div>
                                     <Tooltip
@@ -160,7 +173,7 @@ class SliceEdit extends React.Component {
                                         <span>创建者：</span>
                                     </div>
                                     <div className="item-right">
-                                        <span>{this.props.sliceDetail.created_by_user}</span>
+                                        <span>{sliceDetail.created_by_user}</span>
                                     </div>
                                 </div>
                                 <div className="sub-item">
@@ -168,7 +181,7 @@ class SliceEdit extends React.Component {
                                         <span>修改者：</span>
                                     </div>
                                     <div className="item-right">
-                                        <span>{this.props.sliceDetail.changed_by_user}</span>
+                                        <span>{sliceDetail.changed_by_user}</span>
                                     </div>
                                 </div>
                             </div>
@@ -178,7 +191,7 @@ class SliceEdit extends React.Component {
                                         <span>创建日期：</span>
                                     </div>
                                     <div className="item-right">
-                                        <span>{this.props.sliceDetail.created_on}</span>
+                                        <span>{sliceDetail.created_on}</span>
                                     </div>
                                 </div>
                                 <div className="sub-item">
@@ -186,7 +199,7 @@ class SliceEdit extends React.Component {
                                         <span>修改时间：</span>
                                     </div>
                                     <div className="item-right">
-                                        <span>{this.props.sliceDetail.changed_on}</span>
+                                        <span>{sliceDetail.changed_on}</span>
                                     </div>
                                 </div>
                             </div>
@@ -196,7 +209,7 @@ class SliceEdit extends React.Component {
                             <button
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.confirm}
-                                disabled={!this.state.enableConfirm}
+                                disabled={!enableConfirm}
                             >
                                 确定
                             </button>

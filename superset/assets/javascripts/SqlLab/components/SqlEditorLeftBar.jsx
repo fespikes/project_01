@@ -46,8 +46,8 @@ class SqlEditorLeftBar extends React.PureComponent {
       this.fetchSchemas(val);
     }
   }
-  dbMutator(data) {
-    data = data.data;
+  dbMutator(resposne) {
+    const data = resposne.data.data;
     const options = data.map((db) => ({ value: db.id, label: db.database_name }));
     this.props.actions.setDatabases(data);
     if (data.length === 0) {
@@ -140,7 +140,7 @@ class SqlEditorLeftBar extends React.PureComponent {
           <div>
             <div className="select-title">连接</div>
             <AsyncSelect
-              dataEndpoint="/table/databases"
+              dataEndpoint="/database/listdata/?page_size=1000"
               onChange={this.onChange.bind(this)}
               value={this.props.queryEditor.dbId}
               valueRenderer={(o) => (

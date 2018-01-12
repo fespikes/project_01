@@ -10,7 +10,7 @@ import {Confirm, CreateHDFSConnect, CreateInceptorConnect} from '../../popup';
 import {fetchSchemaList, datasetTypes} from '../../actions';
 import {constructInceptorDataset, initDatasetData, extractOpeType, getDatasetId, extractDatasetType} from '../../module';
 import {appendTreeData, constructTreeData} from '../../../../utils/common2';
-import {renderLoadingModal, renderAlertTip, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../../utils/utils';
+import {renderLoadingModal, renderAlertTip, renderGlobalErrorMsg, fetchDatabaseList,PILOT_PREFIX} from '../../../../utils/utils';
 
 const $ = window.$ = require('jquery');
 
@@ -119,40 +119,46 @@ class InceptorDetail extends Component {
     }
 
     onSave() {
-        const {
-            history, datasetType, createDataset, saveDatasetId,
-            editDataset, saveInceptorDataset
-        } = this.props;
+        const {datasetType, saveInceptorDataset, history} = this.props;
         const opeType = extractOpeType(window.location.hash);
-        const datasetId = getDatasetId(opeType, window.location.hash);
         const dsInceptor = constructInceptorDataset(this.state.dsInceptor);
         saveInceptorDataset(this.state.dsInceptor);
         if(window.location.hash.indexOf('/edit') > 0) {
-            editDataset(dsInceptor, datasetId, callback);
-            function callback(success, data) {
-                let response = {};
-                if(success) {
-                    const url = '/' + opeType + '/preview/' + datasetType + '/' + datasetId;
-                    history.push(url);
-                }else {
-                    response.type = 'error';
-                    response.message = data;
-                    renderAlertTip(response, 'showAlertDetail', 600);
-                }
-            }
+            this.onEditInceptor(dsInceptor, opeType, datasetType, history);
         }else {
-            createDataset(dsInceptor, callback);
-            function callback(success, data) {
-                let response = {};
-                if(success) {
-                    saveDatasetId(data.object_id);
-                    const url = '/' + opeType + '/preview/' + datasetType + '/';
-                    history.push(url);
-                }else {
-                    response.type = 'error';
-                    response.message = data;
-                    renderAlertTip(response, 'showAlertDetail', 600);
-                }
+            this.onCreateInceptor(dsInceptor, opeType, datasetType, history);
+        }
+    }
+
+    onEditInceptor(inceptor, opeType, datasetType, history) {
+        const datasetId = getDatasetId(opeType, window.location.hash);
+        this.props.editDataset(inceptor, datasetId, callback);
+        function callback(success, data) {
+            let response = {};
+            if(success) {
+                const url = '/' + opeType + '/preview/' + datasetType + '/' + datasetId;
+                history.push(url);
+            }else {
+                response.type = 'error';
+                response.message = data;
+                renderAlertTip(response, 'showAlertDetail', 600);
+            }
+        }
+    }
+
+    onCreateInceptor(inceptor, opeType, datasetType, history) {
+        const {createDataset, saveDatasetId} = this.props;
+        createDataset(inceptor, callback);
+        function callback(success, data) {
+            let response = {};
+            if(success) {
+                saveDatasetId(data.object_id);
+                const url = '/' + opeType + '/preview/' + datasetType + '/';
+                history.push(url);
+            }else {
+                response.type = 'error';
+                response.message = data;
+                renderAlertTip(response, 'showAlertDetail', 600);
             }
         }
     }
@@ -186,14 +192,13 @@ class InceptorDetail extends Component {
     }
 
     doFetchDatabaseList() {
-        const { fetchDatabaseList } = this.props;
         const self = this;
         fetchDatabaseList(callback);
         function callback(success, data) {
             if(success) {
                 let objInceptor = {
                     ...self.state.dsInceptor,
-                    databases: data
+                    databases: data.data
                 };
                 self.setState({
                     dsInceptor: objInceptor

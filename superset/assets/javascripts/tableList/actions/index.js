@@ -1,7 +1,7 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishTableUrl} from '../utils';
 import {constructHDFSPreviewUrl, constructInceptorPreviewUrl} from '../module';
-import {getOnOfflineInfoUrl, renderLoadingModal, renderGlobalErrorMsg} from '../../../utils/utils'
+import {renderLoadingModal, renderGlobalErrorMsg} from '../../../utils/utils'
 import {always, json, callbackHandler} from '../../global.jsx';
 
 export const actionTypes = {
@@ -359,22 +359,6 @@ export function fetchTableDelMulInfo(callback) {
     }
 }
 
-export function fetchDatabaseList(callback) {
-    return (dispatch) => {
-        dispatch(switchFetchingState(true));
-        const url = baseURL + 'databases';
-        return fetch(url, {
-            credentials: 'include',
-            method: 'GET'
-        }).then(always).then(json).then(
-            response => {
-                callbackHandler(response, callback);
-                dispatch(switchFetchingState(false));
-            }
-        );
-    }
-}
-
 export function fetchSchemaList(dbId, callback) {
     return (dispatch) => {
         const url = baseURL + 'schemas/' + dbId;
@@ -669,21 +653,6 @@ export function fetchPublishTable(record, callback) {
                 if(response.status === 200) {
                     dispatch(applyFetch(getState().condition));
                 }
-            }
-        );
-    }
-}
-
-export function fetchOnOfflineInfo(datasetId, published, callback) {
-    const url = getOnOfflineInfoUrl(datasetId, 'table', published);
-    return dispatch => {
-        dispatch(switchFetchingState(true));
-        return fetch(url, {
-            credentials: "same-origin",
-        }).then(always).then(json).then(
-            response => {
-                callbackHandler(response, callback);
-                dispatch(switchFetchingState(false));
             }
         );
     }
