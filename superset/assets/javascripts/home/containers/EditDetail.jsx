@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 import { Redirect } from 'react-router-dom';
 import { Table, Button, Tooltip } from 'antd';
+import { renderGlobalErrorMsg, viewObjectDetail } from '../../../utils/utils';
 import * as utils  from '../../../utils/utils.jsx';
 import intl from "react-intl-universal";
 
@@ -48,6 +49,17 @@ class EditDetail extends Component {
         fetchEditDetail(this.props.currentCatagory, pager.current - 1, sorter.columnKey, direction);
     }
 
+    viewHomeDetail(url) {
+        viewObjectDetail(url, callback);
+        function callback(success, response) {
+            if(success) {
+                window.location.href = url;
+            }else {
+                renderGlobalErrorMsg(response);
+            }
+        }
+    }
+
     loadLocales() {
         utils.loadIntlResources(_ => {
             this.setState({ initDone: true });
@@ -68,7 +80,11 @@ class EditDetail extends Component {
             key: 'name',
             className: "name-column",
             sorter: true,
-            render: (text, record) => (<a href={record.link}>{text}</a>)
+            render: (text, record) => (
+                <a
+                    href="javascript:void(0)"
+                    onClick={() => this.viewHomeDetail(record.link)}>{text}</a>
+            )
         }, {
             title: intl.get('action'),
             dataIndex: 'action',
@@ -88,7 +104,7 @@ class EditDetail extends Component {
         }];
 
         if (this.state.initDone) {
-            return ( 
+            return (
                 <div className="edit-detail-page detail-page">
                     <div className="edit-detail-page-title detail-page-title">
                         <div className="left">

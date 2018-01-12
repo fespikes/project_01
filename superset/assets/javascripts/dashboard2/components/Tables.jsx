@@ -8,13 +8,17 @@ import {
     fetchPosts,
     fetchStateChange,
     setSelectedRow,
-    fetchOnOfflineInfo,
     fetchDashbaordDelInfo
 } from '../actions';
 import {DashboardEdit, DashboardDelete} from '../popup';
 import {ConfirmModal, PermPopup} from '../../common/components';
 import {Table, Tooltip} from 'antd';
-import {sortByInitials, renderGlobalErrorMsg, OBJECT_TYPE} from '../../../utils/utils.jsx';
+import {
+    sortByInitials,
+    renderGlobalErrorMsg,
+    viewObjectDetail,
+    OBJECT_TYPE
+} from '../../../utils/utils.jsx';
 
 class Tables extends React.Component {
     constructor(props) {
@@ -80,6 +84,17 @@ class Tables extends React.Component {
         dispatch(fetchStateChange(record, undefined, "favorite"));
     }
 
+    viewDashDetail(url) {
+        viewObjectDetail(url, callback);
+        function callback(success, response) {
+            if(success) {
+                window.location.href = url;
+            }else {
+                renderGlobalErrorMsg(response);
+            }
+        }
+    }
+
     givePerm(record) {
         render(
             <PermPopup
@@ -117,7 +132,12 @@ class Tables extends React.Component {
                             className="entity-title highlight text-overflow-style"
                             style={{maxWidth: 430}}
                         >
-                            <a href={record.url}>{record.dashboard_title}</a>
+                            <a
+                                href="javascript:void(0)"
+                                onClick={() => this.viewDashDetail(record.url)}
+                            >
+                                {record.dashboard_title}
+                            </a>
                         </div>
                         <div
                             className="entity-description text-overflow-style"

@@ -126,6 +126,23 @@ export function fetchDatabaseList(callback) {
     );
 }
 
+export function viewObjectDetail(url, callback) {
+    return fetch(url, {
+        credentials: "same-origin"
+    })
+    .then(res => res.json())
+    .catch(error => {
+        console.log('Error:', error);
+    })
+    .then(response => {
+        if(!response) {
+            callbackHandler({status: 200}, callback);
+        }else {
+            callbackHandler(response, callback);
+        }
+    });
+}
+
 //load intl resources at the very beginning or from cache
 export function loadIntlResources(callback, path = `/static/assets/locales/`) {
     let currentLocale = intl.determineLocale({
