@@ -170,6 +170,7 @@ class SliceTable extends React.Component {
                             <Tooltip placement="top" title="编辑" arrowPointAtCenter>
                                 <Link
                                     onClick={() => editTable(record)}
+                                    style={{position: 'relative', top: 1}}
                                     to={`/edit/detail/${record.dataset_type===datasetTypes.hdfs?datasetTypes.hdfs:datasetTypes.database}/${record.id}`}
                                 >
                                     <i className="icon icon-edit"/>
@@ -184,7 +185,7 @@ class SliceTable extends React.Component {
                             </Tooltip>
                             <Tooltip placement="top" title="赋权" arrowPointAtCenter>
                                 <i
-                                    className="icon icon-edit"
+                                    className="icon icon-perm"
                                     onClick={() => this.givePerm(record)}
                                 />
                             </Tooltip>

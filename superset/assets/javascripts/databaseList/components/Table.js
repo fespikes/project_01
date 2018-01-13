@@ -176,6 +176,7 @@ class SliceTable extends React.Component {
                             <Tooltip placement="top" title="编辑" arrowPointAtCenter>
                                 <i
                                     className="icon icon-edit"
+                                    style={{position: 'relative', top: 1}}
                                     onClick={() => this.editConnection(record)}
                                 />
                             </Tooltip>
@@ -188,7 +189,7 @@ class SliceTable extends React.Component {
                             </Tooltip>
                             <Tooltip placement="top" title="赋权" arrowPointAtCenter>
                                 <i
-                                    className="icon icon-edit"
+                                    className="icon icon-perm"
                                     onClick={() => this.givePerm(record)}
                                 />
                             </Tooltip>
