@@ -33,3 +33,6 @@ npm-debug.log
 yarn.lock
 
 pilot.egg-info
+
+superset/static/*
+superset/templates/*
