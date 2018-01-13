@@ -1,4 +1,6 @@
 import React from 'react';
+import intl from 'react-intl-universal';
+
 import CopyToClipboard from '../../components/CopyToClipboard';
 import { getShortUrl } from '../../../utils/common';
 
@@ -30,7 +32,7 @@ export default class CopyQueryTabUrl extends React.PureComponent {
             <i className="fa fa-clipboard" /> <span>share query</span>
           </div>
         )}
-        tooltipText="复制URL到粘贴板"
+        tooltipText={intl.get('copy_URL_to_clipboard')}
         shouldShowText={false}
         getText={this.getUrl.bind(this)}
       />

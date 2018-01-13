@@ -2,6 +2,8 @@ const $ = window.$ = require('jquery');
 import React from 'react';
 import Select from 'react-select';
 import {Label, Button} from 'react-bootstrap';
+import intl from 'react-intl-universal';
+
 import TableElement from './TableElement';
 import AsyncSelect from '../../components/AsyncSelect';
 import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
@@ -53,7 +55,7 @@ class SqlEditorLeftBar extends React.PureComponent {
     if (data.length === 0) {
       this.props.actions.addAlert({
         bsStyle: 'danger',
-        msg: "没有可使用的数据库连接",
+        msg: intl.get('no_usable_db_connection'),
       });
     }
     return options;
@@ -138,7 +140,7 @@ class SqlEditorLeftBar extends React.PureComponent {
         <div className="clearfix sql-toolbar scrollbar-content">
           {networkAlert}
           <div>
-            <div className="select-title">连接</div>
+            <div className="select-title">intl.get('connection')</div>
             <AsyncSelect
               dataEndpoint="/table/databases"
               onChange={this.onChange.bind(this)}
@@ -153,7 +155,7 @@ class SqlEditorLeftBar extends React.PureComponent {
             />
           </div>
           <div className="m-t-5">
-            <div className="select-title">数据库 ({this.state.schemaOptions.length})</div>
+            <div className="select-title">({intl.get('database')+this.state.schemaOptions.length})</div>
             <Select
               name="select-schema"
               placeholder={`(${this.state.schemaOptions.length})`}
@@ -170,7 +172,7 @@ class SqlEditorLeftBar extends React.PureComponent {
             />
           </div>
           <div className="m-t-5">
-            <div className="select-title">表 ({this.state.tableOptions.length})</div>
+            <div className="select-title">({intl.get('table') + this.state.tableOptions.length})</div>
             <Select
               name="select-table"
               ref="selectTable"
@@ -199,7 +201,7 @@ class SqlEditorLeftBar extends React.PureComponent {
           </div>
           {shouldShowReset &&
             <Button bsSize="small" bsStyle="danger" onClick={this.resetState.bind(this)}>
-              <i className="fa fa-bomb" /> 重置状态
+              <i className="fa fa-bomb" />intl.get('reset_status')
             </Button>
           }
         </div>

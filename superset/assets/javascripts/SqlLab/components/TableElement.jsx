@@ -1,4 +1,5 @@
 import React from 'react';
+import intl from 'react-intl-universal';
 
 import { ButtonGroup, Collapse, Well } from 'react-bootstrap';
 import shortid from 'shortid';
@@ -65,7 +66,7 @@ class TableElement extends React.PureComponent {
       let partitionClipBoard;
       if (table.partitions.partitionQuery) {
         partitionQuery = table.partitions.partitionQuery;
-        const tt = '复制到粘贴板';
+        const tt = intl.get('copy_to_clipboard');
         partitionClipBoard = (
           <CopyToClipboard
             text={partitionQuery}
@@ -84,7 +85,7 @@ class TableElement extends React.PureComponent {
         <Well bsSize="small">
           <div>
             <small>
-              latest partition: {latest}
+              {intl.get('latest_partition')} {latest}
             </small> {partitionClipBoard}
           </div>
         </Well>
@@ -132,7 +133,7 @@ class TableElement extends React.PureComponent {
         <ModalTrigger
           modalTitle={
             <div>
-              表 <strong>{table.name}</strong> 的主键
+            {intl.get('table_primary_key', {name: table.name})}
             </div>
           }
           modalBody={table.indexes.map((ix, i) => (
@@ -141,7 +142,7 @@ class TableElement extends React.PureComponent {
           triggerNode={
             <Link
               className="fa fa-key pull-left m-l-2"
-              tooltip={`查看主键长度 (${table.indexes.length})`}
+              tooltip={intl.get('view_primary_key_length', {length: table.indexes.length})}
             />
           }
         />
@@ -179,7 +180,7 @@ class TableElement extends React.PureComponent {
                     `fa fa-sort-${!this.state.sortColumns ? 'alpha' : 'numeric'}-asc ` +
                     'pull-left sort-cols m-l-2'}
                   onClick={this.toggleSortColumns.bind(this)}
-                  tooltip={"排序"}
+                  tooltip={intl.get('sort')}
                   href="#"
                 />
                 {table.selectStar &&
@@ -189,13 +190,13 @@ class TableElement extends React.PureComponent {
                     }
                     text={table.selectStar}
                     shouldShowText={false}
-                    tooltipText="复制到粘贴板"
+                    tooltipText={intl.get('copy_to_clipboard')}
                   />
                 }
                 <Link
                   className="fa fa-trash table-remove pull-left m-l-2"
                   onClick={this.removeTable.bind(this)}
-                  tooltip="删除"
+                  tooltip={intl.get('delete')}
                   href="#"
                 />
               </ButtonGroup>

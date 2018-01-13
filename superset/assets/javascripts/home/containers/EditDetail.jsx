@@ -58,10 +58,6 @@ class EditDetail extends Component {
         const {currentCatagory, dataSource, onChangeCatagory, pagination, itemCount } = this.props;
         const redirect = this.state ? this.state.redirect : false;
 
-        const sss = intl.get('name');
-
-        console.log( sss, "in  intl.get('name')" );
-
         const columns = [{
             title: intl.get('name'),
             dataIndex: 'name',

@@ -5,7 +5,6 @@ import { fetchData } from "../actions";
 import { connect } from 'react-redux';
 
 import intl from "react-intl-universal";
-import _ from "lodash";
 import * as utils  from '../../../utils/utils.jsx';
 
 class Home extends Component {

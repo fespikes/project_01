@@ -6,6 +6,7 @@ import {MESSAGE_DURATION} from '../javascripts/global.jsx';
 
 import intl from "react-intl-universal";
 import http from "axios";
+import _ from "lodash";
 import SUPPOER_LOCALES from '../javascripts/support_locales';
 
 export const PILOT_PREFIX = '/p/';
