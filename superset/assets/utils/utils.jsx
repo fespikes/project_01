@@ -145,14 +145,20 @@ export function viewObjectDetail(url, callback) {
 }
 
 //load intl resources at the very beginning or from cache
-export function loadIntlResources(callback, path = `/static/assets/locales/`) {
+export function loadIntlResources(callback, module) {
+    console.log('module=', module);
+    let  localePath = '/static/assets/locales/';
+    if(module) {
+        localePath = localePath + module + '/';
+    }
     let currentLocale = sessionStorage.getItem('pilot:currentLocale');
     if(!currentLocale || !_.find(SUPPOER_LOCALES, { value: currentLocale })) {
         currentLocale = "zh-CN";
     }
-
+    console.log('localePath=', localePath);
+    console.log('currentLocale=', currentLocale);
     //because in the project setting , front end source are only located under assets folder
-    http.get(path + `${currentLocale}.json`)
+    http.get(localePath + `${currentLocale}.json`)
         .then(res => {
             return intl.init({
                 currentLocale,

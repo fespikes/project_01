@@ -4,28 +4,36 @@ import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fetchPosts } from '../actions';
 import { Operations, Tables, Paginations } from '../components';
-import { renderAlertTip } from '../../../utils/utils';
+import intl from 'react-intl-universal';
+import { renderAlertTip, loadIntlResources } from '../../../utils/utils';
 
 class TableContainer extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            initDone: false
+        };
     };
 
     componentDidMount() {
         const { dispatch } = this.props;
         dispatch(fetchPosts());
+        this.loadLocales();
+    }
+
+    loadLocales() {
+        loadIntlResources(_ => this.setState({ initDone: true }), 'dashboard');
     }
 
     render() {
         const { dispatch, posts, configs } = this.props;
-        return (
+        return (this.state.initDone &&
             <div className="pilot-panel dashboard-panel">
                 <div className="panel-top">
                     <div className="left">
                         <i className="icon icon-dashboard"/>
-                        <span>仪表板</span>
-                        <span>记录条目</span>
+                        <span>{intl.get('DASHBOARD.DASHBOARD')}</span>
+                        <span>{intl.get('DASHBOARD.RECORD')}</span>
                         <span>{posts.params.count}</span>
                     </div>
                     <div className="right">

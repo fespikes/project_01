@@ -2,23 +2,12 @@ import React from 'react';
 import {render, ReactDOM} from 'react-dom';
 import {Provider, connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {
-    fetchDashboardDetail,
-    fetchAvailableSlices,
-    fetchPosts,
-    fetchStateChange,
-    setSelectedRow,
-    fetchDashbaordDelInfo
-} from '../actions';
+import * as actions from '../actions';
+import * as utils from '../../../utils/utils';
 import {DashboardEdit, DashboardDelete} from '../popup';
 import {ConfirmModal, PermPopup} from '../../common/components';
 import {Table, Tooltip} from 'antd';
-import {
-    sortByInitials,
-    renderGlobalErrorMsg,
-    viewObjectDetail,
-    OBJECT_TYPE
-} from '../../../utils/utils.jsx';
+import intl from "react-intl-universal";
 
 class Tables extends React.Component {
     constructor(props) {
@@ -36,12 +25,12 @@ class Tables extends React.Component {
         selectedRows.forEach(function(row) {
             selectedRowNames.push(row.dashboard_title);
         });
-        dispatch(setSelectedRow(selectedRowKeys, selectedRowNames));
+        dispatch(actions.setSelectedRow(selectedRowKeys, selectedRowNames));
     };
 
     editDashboard(record) {
         const { dispatch } = this.props;
-        dispatch(fetchDashboardDetail(record.id, callback));
+        dispatch(actions.fetchDashboardDetail(record.id, callback));
         function callback(success, data) {
             if(success) {
                 render(
@@ -52,7 +41,7 @@ class Tables extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
@@ -60,10 +49,11 @@ class Tables extends React.Component {
     deleteDashboard(record) {
 
         const { dispatch } = this.props;
-        dispatch(fetchDashbaordDelInfo(record.id, callback));
+        dispatch(actions.fetchDashbaordDelInfo(record.id, callback));
         function callback(success, data) {
             if(success) {
-                let deleteTips = data + "确定删除" + record.dashboard_title + "?";
+                let deleteTips = data + intl.get('DASHBOARD.CONFIRM') + intl.get('DASHBOARD.DELETE')
+                    + record.dashboard_title + "?";
                 render(
                     <DashboardDelete
                         dispatch={dispatch}
@@ -74,23 +64,23 @@ class Tables extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
 
     favoriteSlice(record) {
         const { dispatch } = this.props;
-        dispatch(fetchStateChange(record, undefined, "favorite"));
+        dispatch(actions.fetchStateChange(record, undefined, "favorite"));
     }
 
     viewDashDetail(url) {
-        viewObjectDetail(url, callback);
+        utils.viewObjectDetail(url, callback);
         function callback(success, response) {
             if(success) {
                 window.location.href = url;
             }else {
-                renderGlobalErrorMsg(response);
+                utils.renderGlobalErrorMsg(response);
             }
         }
     }
@@ -98,7 +88,7 @@ class Tables extends React.Component {
     givePerm(record) {
         render(
             <PermPopup
-                objectType={OBJECT_TYPE.DASHBOARD}
+                objectType={utils.OBJECT_TYPE.DASHBOARD}
                 objectName={record.dashboard_title}
             />,
             document.getElementById('popup_root')
@@ -121,7 +111,7 @@ class Tables extends React.Component {
                 )
             }
         }, {
-            title: '名称',
+            title: intl.get('DASHBOARD.NAME'),
             dataIndex: 'dashboard_title',
             key: 'dashboard_title',
             width: '38%',
@@ -149,23 +139,25 @@ class Tables extends React.Component {
                 )
             },
             sorter(a, b) {
-                return sortByInitials(a.description, b.description);
+                return utils.sortByInitials(a.description, b.description);
             }
         }, {
-            title: '发布状态',
+            title: intl.get('DASHBOARD.PUBLISH_STATE'),
             dataIndex: 'online',
             key: 'online',
             width: '15%',
             render: (text, record) => {
                 return (
-                    <span className="entity-publish">{record.online ? "已发布" : "未发布"}</span>
+                    <span className="entity-publish">
+                        {record.online ? intl.get('DASHBOARD.PUBLISHED') : intl.get('DASHBOARD.UNPUBLISHED')}
+                    </span>
                 )
             },
             sorter(a, b) {
                 return a.online - b.online;
             }
         }, {
-            title: '所有者',
+            title: intl.get('DASHBOARD.OWNER'),
             dataIndex: 'created_by_user',
             key: 'created_by_user',
             width: '15%',
@@ -180,38 +172,36 @@ class Tables extends React.Component {
                 )
             },
             sorter(a, b) {
-                return sortByInitials(a.created_by_user, b.created_by_user);
+                return utils.sortByInitials(a.created_by_user, b.created_by_user);
             }
         }, {
-            title: '最后修改时间',
-            dataIndex: 'changed_on',
-            key: 'changed_on',
+            title: intl.get('DASHBOARD.LAST_MODIFIED_TIME'),
             width: '20%',
             sorter(a, b) {
                 return a.changed_on - b.changed_on ? 1 : -1;
             }
         }, {
-            title: '操作',
+            title: intl.get('DASHBOARD.OPERATION'),
             key: 'action',
             width: '10%',
             render: (record) => {
                 return (
                     <div className="icon-group">
-                        <Tooltip placement="top" title="编辑" arrowPointAtCenter>
+                        <Tooltip placement="top" title={intl.get('DASHBOARD.EDIT')} arrowPointAtCenter>
                             <i
                                 className="icon icon-edit"
                                 style={{position: 'relative', top: 1}}
                                 onClick={() => this.editDashboard(record)}
                             />
                         </Tooltip>
-                        <Tooltip placement="top" title="删除" arrowPointAtCenter>
+                        <Tooltip placement="top" title={intl.get('DASHBOARD.DELETE')} arrowPointAtCenter>
                             <i
                                 className="icon icon-delete"
                                 style={{margin: '0 20'}}
                                 onClick={() => this.deleteDashboard(record)}
                             />
                         </Tooltip>
-                        <Tooltip placement="top" title="赋权" arrowPointAtCenter>
+                        <Tooltip placement="top" title={intl.get('DASHBOARD.PERM')} arrowPointAtCenter>
                             <i
                                 className="icon icon-perm"
                                 onClick={() => this.givePerm(record)}

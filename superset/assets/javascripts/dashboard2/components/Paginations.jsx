@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 import PropTypes from 'prop-types';
-import { fetchPosts, setPageNumber, setPageSize } from '../actions';
+import * as actions from '../actions';
 import { Pagination } from 'antd';
 import 'antd/lib/pagination/style';
 
@@ -17,13 +17,13 @@ class Paginations extends React.Component {
         const { dispatch, pageSize, count, pageNumber} = this.props;
 
         function onChange(page) {
-            dispatch(setPageNumber(page));
-            dispatch(fetchPosts());
+            dispatch(actions.setPageNumber(page));
+            dispatch(actions.fetchPosts());
         }
 
         function onShowSizeChange(current, size) {
-            dispatch(setPageSize(size));
-            dispatch(fetchPosts());
+            dispatch(actions.setPageSize(size));
+            dispatch(actions.fetchPosts());
         }
 
         return (

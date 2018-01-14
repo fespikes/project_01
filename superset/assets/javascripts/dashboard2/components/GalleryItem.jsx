@@ -2,10 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Checkbox, message} from 'antd';
 import {render} from 'react-dom';
-import {fetchStateChange, fetchDashboardDetail, appendRow, removeRow, fetchOnOfflineInfo} from '../actions';
+import * as actions from '../actions';
 import {DashboardEdit, DashboardDelete} from '../popup';
 import {ConfirmModal} from '../../common/components';
-import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import intl from "react-intl-universal";
+import {renderGlobalErrorMsg} from '../../../utils/utils';
 
 class GalleryItem extends React.Component {
     constructor(props) {
@@ -21,7 +22,7 @@ class GalleryItem extends React.Component {
 
     editDashboard() {
         const { dispatch, dashboard } = this.props;
-        dispatch(fetchDashboardDetail(dashboard.id, callback));
+        dispatch(actions.fetchDashboardDetail(dashboard.id, callback));
         function callback(success, data) {
             if(success) {
                 render(
@@ -38,7 +39,7 @@ class GalleryItem extends React.Component {
     publishDashboard() {
         const { dispatch, dashboard } = this.props;
         const self = this;
-        dispatch(fetchOnOfflineInfo(dashboard.id, dashboard.online, callback));
+        dispatch(actions.fetchOnOfflineInfo(dashboard.id, dashboard.online, callback));
         function callback(success, data) {
             if(success) {
                 render(
@@ -58,7 +59,7 @@ class GalleryItem extends React.Component {
 
     onOfflineDashboard() {
         const {dispatch, record} = this;
-        dispatch(fetchStateChange(record, callback,"publish"));
+        dispatch(actions.fetchStateChange(record, callback,"publish"));
         function callback(success, data) {
             if(!success) {
                 render(
@@ -73,7 +74,8 @@ class GalleryItem extends React.Component {
 
     deleteDashboard() {
         const { dispatch, dashboard } = this.props;
-        const deleteTips = "确定删除" + dashboard.dashboard_title + "?";
+        const deleteTips = intl.get('DASHBOARD.CONFIRM') + intl.get('DASHBOARD.DELETE')
+            + dashboard.dashboard_title + "?";
         render(
             <DashboardDelete
                 dispatch={dispatch}
@@ -89,9 +91,9 @@ class GalleryItem extends React.Component {
         const { dispatch, dashboard, selectedRowKeys, selectedRowNames } = self.props;
         function onChange(e) {
             if(e.target.checked) {
-                dispatch(appendRow(dashboard, selectedRowKeys, selectedRowNames));
+                dispatch(actions.appendRow(dashboard, selectedRowKeys, selectedRowNames));
             }else {
-                dispatch(removeRow(dashboard, selectedRowKeys, selectedRowNames));
+                dispatch(actions.removeRow(dashboard, selectedRowKeys, selectedRowNames));
             }
             self.setState({
                 selected: e.target.checked
@@ -113,7 +115,9 @@ class GalleryItem extends React.Component {
                     <div className="item-operation">
                         <div className={this.state.selected ? 'selected' : 'name'}>
                             <Checkbox onChange={onChange}>
-                                <span className="item-title">{dashboard.dashboard_title}</span>
+                                <span className="item-title">
+                                    {dashboard.dashboard_title}
+                                </span>
                             </Checkbox>
                         </div>
                         <div className="icon-group">
