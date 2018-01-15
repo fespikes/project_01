@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Table, Tooltip } from 'antd';
+import { renderGlobalErrorMsg, viewObjectDetail } from '../../../utils/utils';
 import intl from "react-intl-universal";
 
 function Edit(props) {
@@ -30,6 +31,17 @@ export default class EditList extends Component {
         }
     }
 
+    viewHomeDetail(url) {
+        viewObjectDetail(url, callback);
+        function callback(success, response) {
+            if(success) {
+                window.location.href = url;
+            }else {
+                renderGlobalErrorMsg(response);
+            }
+        }
+    }
+
     render() {
         const listDashboard = this.props.dashboard;
         const listSlice = this.props.slice;
@@ -43,7 +55,10 @@ export default class EditList extends Component {
             sorter: (a, b) => a.name.localeCompare(b.name),
             render: (text, record) => (
                 <Tooltip placement="topLeft" title={text} arrowPointAtCenter>
-                    <a href={record.link} >{text}</a>
+                    <a
+                        href="javascript:void(0)"
+                        onClick={() => this.viewHomeDetail(record.link)}
+                    >{text}</a>
                 </Tooltip>)
         }, {
             title: intl.get('action'),

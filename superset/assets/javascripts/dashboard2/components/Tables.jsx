@@ -3,13 +3,22 @@ import {render, ReactDOM} from 'react-dom';
 import {Provider, connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {
-    fetchDashboardDetail, fetchAvailableSlices, fetchPosts, fetchStateChange,
-    setSelectedRow, fetchOnOfflineInfo, fetchDashbaordDelInfo
+    fetchDashboardDetail,
+    fetchAvailableSlices,
+    fetchPosts,
+    fetchStateChange,
+    setSelectedRow,
+    fetchDashbaordDelInfo
 } from '../actions';
 import {DashboardEdit, DashboardDelete} from '../popup';
-import {ConfirmModal} from '../../common/components';
+import {ConfirmModal, PermPopup} from '../../common/components';
 import {Table, Tooltip} from 'antd';
-import {sortByInitials, renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import {
+    sortByInitials,
+    renderGlobalErrorMsg,
+    viewObjectDetail,
+    OBJECT_TYPE
+} from '../../../utils/utils.jsx';
 
 class Tables extends React.Component {
     constructor(props) {
@@ -75,6 +84,26 @@ class Tables extends React.Component {
         dispatch(fetchStateChange(record, undefined, "favorite"));
     }
 
+    viewDashDetail(url) {
+        viewObjectDetail(url, callback);
+        function callback(success, response) {
+            if(success) {
+                window.location.href = url;
+            }else {
+                renderGlobalErrorMsg(response);
+            }
+        }
+    }
+
+    givePerm(record) {
+        render(
+            <PermPopup
+                objectType={OBJECT_TYPE.DASHBOARD}
+                objectName={record.dashboard_title}
+            />,
+            document.getElementById('popup_root')
+        );
+    }
 
     render() {
 
@@ -103,7 +132,12 @@ class Tables extends React.Component {
                             className="entity-title highlight text-overflow-style"
                             style={{maxWidth: 430}}
                         >
-                            <a href={record.url}>{record.dashboard_title}</a>
+                            <a
+                                href="javascript:void(0)"
+                                onClick={() => this.viewDashDetail(record.url)}
+                            >
+                                {record.dashboard_title}
+                            </a>
                         </div>
                         <div
                             className="entity-description text-overflow-style"
@@ -166,13 +200,21 @@ class Tables extends React.Component {
                         <Tooltip placement="top" title="编辑" arrowPointAtCenter>
                             <i
                                 className="icon icon-edit"
+                                style={{position: 'relative', top: 1}}
                                 onClick={() => this.editDashboard(record)}
                             />
                         </Tooltip>
                         <Tooltip placement="top" title="删除" arrowPointAtCenter>
                             <i
                                 className="icon icon-delete"
+                                style={{margin: '0 20'}}
                                 onClick={() => this.deleteDashboard(record)}
+                            />
+                        </Tooltip>
+                        <Tooltip placement="top" title="赋权" arrowPointAtCenter>
+                            <i
+                                className="icon icon-perm"
+                                onClick={() => this.givePerm(record)}
                             />
                         </Tooltip>
                     </div>

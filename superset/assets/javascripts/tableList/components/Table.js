@@ -4,13 +4,22 @@ import {Link}  from 'react-router-dom';
 import {Table, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
 import {
-    selectRows, switchDatasetType, saveDatasetId, fetchPublishTable,
-    fetchOnOfflineInfo, fetchTableDelInfo, datasetTypes, clearDatasetData
+    selectRows,
+    switchDatasetType,
+    saveDatasetId,
+    fetchTableDelInfo,
+    datasetTypes,
+    clearDatasetData
 } from '../actions';
 import {TableDelete} from '../popup';
 import style from '../style/table.scss'
-import {ConfirmModal} from '../../common/components';
-import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import {ConfirmModal, PermPopup} from '../../common/components';
+import {
+    sortByInitials,
+    renderGlobalErrorMsg,
+    viewObjectDetail,
+    OBJECT_TYPE}
+from '../../../utils/utils.jsx';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -29,6 +38,27 @@ class SliceTable extends React.Component {
         dispatch(selectRows(selectedRowKeys, selectedRowNames));
     };
 
+    givePerm(record) {
+        render(
+            <PermPopup
+                objectType={OBJECT_TYPE.DATASET}
+                objectName={record.dataset_name}
+            />,
+            document.getElementById('popup_root')
+        );
+    }
+
+    viewTableDetail(url) {
+        viewObjectDetail(url, callback);
+        function callback(success, response) {
+            if(success) {
+                window.location.href = url;
+            }else {
+                renderGlobalErrorMsg(response);
+            }
+        }
+    }
+
     render() {
 
         const { dispatch, data, selectedRowKeys } = this.props;
@@ -37,40 +67,6 @@ class SliceTable extends React.Component {
             dispatch(switchDatasetType(record.dataset_type));
             dispatch(saveDatasetId(record.id));
             dispatch(clearDatasetData());
-        }
-
-        function publishTable(record) {
-            dispatch(fetchOnOfflineInfo(record.id, record.online, callback));
-            function callback(success, data) {
-                if(success) {
-                    render(
-                        <ConfirmModal
-                            dispatch={dispatch}
-                            record={record}
-                            needCallback={true}
-                            confirmCallback={onOfflineTable}
-                            confirmMessage={data} />,
-                        document.getElementById('popup_root')
-                    );
-                }else {
-                    renderGlobalErrorMsg(data);
-                }
-            }
-        }
-
-        function onOfflineTable() {
-            const {dispatch, record} = this;
-            dispatch(fetchPublishTable(record, callback));
-            function callback(success, data) {
-                if(!success) {
-                    render(
-                        <ConfirmModal
-                            needCallback={false}
-                            confirmMessage={data} />,
-                        document.getElementById('popup_root')
-                    );
-                }
-            }
         }
 
         function deleteTable(record) {
@@ -101,7 +97,6 @@ class SliceTable extends React.Component {
             {
                 width: '2%',
                 render: (text, record) => {
-                    const datasetType = record.dataset_type;
                     return (
                         <i className={'icon ' + record.iconClass} />
                     )
@@ -119,7 +114,13 @@ class SliceTable extends React.Component {
                                 className="entity-title highlight text-overflow-style"
                                 style={{maxWidth: 370}}
                             >
-                                <a href={record.explore_url} target="_blank">{record.dataset_name}</a>
+                                <a
+                                    href="javascript:void(0)"
+                                    target="_blank"
+                                    onClick={() => this.viewTableDetail(record.explore_url)}
+                                >
+                                    {record.dataset_name}
+                                </a>
                             </div>
                             <div
                                 className="entity-description text-overflow-style"
@@ -131,7 +132,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.dataset_name.substring(0, 1).charCodeAt() - b.dataset_name.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.dataset_name, b.dataset_name);
                 }
             }, {
                 title: '所有者',
@@ -149,7 +150,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.created_by_user.substring(0, 1).charCodeAt() - b.created_by_user.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.created_by_user, b.created_by_user);
                 }
             }, {
                 title: '更新时间',
@@ -169,22 +170,23 @@ class SliceTable extends React.Component {
                             <Tooltip placement="top" title="编辑" arrowPointAtCenter>
                                 <Link
                                     onClick={() => editTable(record)}
+                                    style={{position: 'relative', top: 1}}
                                     to={`/edit/detail/${record.dataset_type===datasetTypes.hdfs?datasetTypes.hdfs:datasetTypes.database}/${record.id}`}
                                 >
                                     <i className="icon icon-edit"/>
                                 </Link>
                             </Tooltip>
-                            <Tooltip placement="top" title={record.online?'下线':'发布'} arrowPointAtCenter>
-                                <i
-                                    style={{marginLeft: 20}}
-                                    className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
-                                    onClick={() => publishTable(record)}
-                                />
-                            </Tooltip>
                             <Tooltip placement="top" title="删除" arrowPointAtCenter>
                                 <i
                                     className="icon icon-delete"
+                                    style={{margin: '0 20'}}
                                     onClick={() => deleteTable(record)}
+                                />
+                            </Tooltip>
+                            <Tooltip placement="top" title="赋权" arrowPointAtCenter>
+                                <i
+                                    className="icon icon-perm"
+                                    onClick={() => this.givePerm(record)}
                                 />
                             </Tooltip>
                         </div>

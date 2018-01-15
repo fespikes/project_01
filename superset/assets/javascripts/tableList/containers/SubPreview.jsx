@@ -397,7 +397,7 @@ class SubPreview extends Component {
                                     checked={dsHDFS.next_as_header}
                                     onChange={this.handleChange}
                                 />
-                                <p>下一行为列名</p>
+                                <p>第一行为列名</p>
                                 <Tooltip placement="top" title="自动忽略空白行">
                                     <i
                                         className="icon icon-infor"

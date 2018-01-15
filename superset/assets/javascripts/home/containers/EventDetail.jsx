@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 import { Table, Button, Tooltip } from 'antd';
 import { Redirect } from 'react-router-dom';
+import { renderGlobalErrorMsg, viewObjectDetail } from '../../../utils/utils';
 import * as utils  from '../../../utils/utils.jsx';
 import intl from "react-intl-universal";
 
@@ -42,6 +43,17 @@ class EventDetail extends Component {
         dispatch(fetchEventDetail(pager.current -1, sorter.columnKey, direction));
     }
 
+    viewHomeDetail(url) {
+        viewObjectDetail(url, callback);
+        function callback(success, response) {
+            if(success) {
+                window.location.href = url;
+            }else {
+                renderGlobalErrorMsg(response);
+            }
+        }
+    }
+
     loadLocales() {
         utils.loadIntlResources(_ => {
             console.log('wat ever');
@@ -63,7 +75,11 @@ class EventDetail extends Component {
             sorter: true,
             className: 'user-column',
             render: (text, record) => (
-                <a className="user-td" href='/present_user'>
+                <a
+                    className="user-td"
+                    href='javascript:void(0)'
+                    onClick={() => this.viewHomeDetail('/present_user')}
+                >
                     <i className="icon user-icon"></i>
                     <span>{text}</span>
                 </a>

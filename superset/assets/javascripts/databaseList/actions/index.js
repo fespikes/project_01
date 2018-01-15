@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-fetch';
 import {getPublishConnectionUrl, isCorrectConnection} from '../utils';
-import {getOnOfflineInfoUrl, renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils'
+import {renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils'
 import {always, json, callbackHandler} from '../../global.jsx';
 
 export const actionTypes = {
@@ -178,43 +178,6 @@ export function fetchHDFSConnectAdd(hdfs, callback) {
                 if(response.status === 200) {
                     dispatch(fetchIfNeeded());
                 }
-            }
-        );
-    }
-}
-
-export function fetchPublishConnection(record, callback) {
-    const url = getPublishConnectionUrl(record);
-    return (dispatch) => {
-        dispatch(switchFetchingState(true));
-        return fetch(url, {
-            credentials: "same-origin"
-        }).then(always).then(json).then(
-            response => {
-                callbackHandler(response, callback);
-                dispatch(switchFetchingState(false));
-                if(response.status === 200) {
-                    dispatch(fetchIfNeeded());
-                }
-            }
-        );
-    }
-}
-
-export function fetchOnOfflineInfo(connectionId, published, connectionType, callback) {
-    let prefix = "database";
-    if(connectionType === connectionTypes.hdfs) {
-        prefix = "hdfsconnection";
-    }
-    const url = getOnOfflineInfoUrl(connectionId, prefix, published);
-    return dispatch => {
-        dispatch(switchFetchingState(true));
-        return fetch(url, {
-            credentials: "same-origin",
-        }).then(always).then(json).then(
-            response => {
-                callbackHandler(response, callback);
-                dispatch(switchFetchingState(false));
             }
         );
     }

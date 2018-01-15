@@ -1,9 +1,21 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Table, Tooltip } from 'antd';
+import { renderGlobalErrorMsg, viewObjectDetail } from '../../../utils/utils';
 import intl from "react-intl-universal";
 
 function EventList(props) {
+    const viewHomeDetail = (url)=> {
+        viewObjectDetail(url, callback);
+        function callback(success, response) {
+            if(success) {
+                window.location.href = url;
+            }else {
+                renderGlobalErrorMsg(response);
+            }
+        }
+    };
+
     const dataSource = props.eventList || [];
     const columns = [{
         title: intl.get('users'),
@@ -13,7 +25,12 @@ function EventList(props) {
         sorter: (a, b) => a.user.localeCompare(b.user),
         render: (text, record) => (
             <Tooltip placement="topLeft" title={text} arrowPointAtCenter>
-                <a className="user-td"  style={{display: 'inline-block'}} href='/present_user'>
+                <a
+                    className="user-td"
+                    style={{display: 'inline-block'}}
+                    href="javascript:void(0)"
+                    onClick={() => viewHomeDetail('/present_user')}
+                >
                     {/*<i className="icon user-icon" />*/}
                     <span>{text}</span>
                 </a>

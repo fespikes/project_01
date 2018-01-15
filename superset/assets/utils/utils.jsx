@@ -2,7 +2,8 @@ import ReactDOM, {render} from 'react-dom';
 import React from 'react';
 import {Alert, message} from 'antd';
 import {LoadingModal} from '../javascripts/common/components';
-import {MESSAGE_DURATION} from '../javascripts/global.jsx';
+import {MESSAGE_DURATION, always, json, callbackHandler} from '../javascripts/global.jsx';
+import fetch from 'isomorphic-fetch';
 
 import intl from "react-intl-universal";
 import http from "axios";
@@ -10,6 +11,14 @@ import _ from "lodash";
 import SUPPOER_LOCALES from '../javascripts/support_locales';
 
 export const PILOT_PREFIX = '/p/';
+
+export const OBJECT_TYPE = {
+    DASHBOARD: 'dashboard',
+    SLICE: 'slice',
+    DATABASE: 'database',
+    DATASET: 'dataset',
+    HDFSCONNECTION: 'hdfsconnection'
+};
 
 export function renderLoadingModal() {
     const loadingModal = render(
@@ -91,16 +100,6 @@ export function getUrlParam(name, url) {
     }
 }
 
-export function getOnOfflineInfoUrl(id, moudleType, published) {
-    let url = window.location.origin + '/' + moudleType;
-    if(published) {
-        url += '/offline_info/' + id;
-    }else {
-        url += '/online_info/' + id;
-    }
-    return url;
-}
-
 export function getAjaxErrorMsg(error) {
     const respJSON = error.responseJSON;
     return (respJSON && respJSON.message) ? respJSON.message :
@@ -115,7 +114,35 @@ export function sortByInitials(a, b) {//add null check
     }else {
         return a.charCodeAt(0) - b.charCodeAt(0);
     }
-};
+}
+
+export function fetchDatabaseList(callback) {
+    const url = window.location.origin + '/database/listdata/?page_size=1000';
+    return fetch(url, {
+        credentials: "same-origin"
+    }).then(always).then(json).then(
+        response => {
+            callbackHandler(response, callback);
+        }
+    );
+}
+
+export function viewObjectDetail(url, callback) {
+    return fetch(url, {
+        credentials: "same-origin"
+    })
+    .then(res => res.json())
+    .catch(error => {
+        console.log('Error:', error);
+    })
+    .then(response => {
+        if(!response) {
+            callbackHandler({status: 200}, callback);
+        }else {
+            callbackHandler(response, callback);
+        }
+    });
+}
 
 //load intl resources at the very beginning or from cache
 export function loadIntlResources(callback, path = `/static/assets/locales/`) {
