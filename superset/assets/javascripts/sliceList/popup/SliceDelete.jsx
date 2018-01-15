@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
 import { fetchLists, fetchSliceDelete, fetchSliceDeleteMul } from '../actions';
-import { renderAlertErrorInfo } from '../../../utils/utils';
-
+import { renderAlertErrorInfo, loadIntlResources } from '../../../utils/utils';
+import intl from 'react-intl-universal';
 import { WarningAlert } from '../../common/components/WarningAlert';
 
 class SliceDelete extends React.Component {
@@ -46,6 +46,10 @@ class SliceDelete extends React.Component {
         }
     }
 
+    componentDidMount() {
+        loadIntlResources(_ => this.setState({ initDone: true }), 'slice');
+    }
+
     render() {
         return (
             <div className="popup">
@@ -54,7 +58,7 @@ class SliceDelete extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-trash" />
-                                <span>删除工作表</span>
+                                <span>{intl.get('SLICE.DELETE_SLICE')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -74,7 +78,7 @@ class SliceDelete extends React.Component {
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.confirm}
                             >
-                                确定
+                                {intl.get('SLICE.CONFIRM')}
                             </button>
                         </div>
                     </div>

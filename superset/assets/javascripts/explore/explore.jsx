@@ -14,8 +14,9 @@ import QueryAndSaveBtns from './components/QueryAndSaveBtns.jsx';
 import ExploreActionButtons from './components/ExploreActionButtons.jsx';
 import DisplayOriginalTable from './components/DisplayOriginalTable.jsx';
 import { Radio, Table } from 'antd';
-import { renderLoadingModal, getUrlParam, getAjaxErrorMsg } from '../../utils/utils';
+import { renderLoadingModal, getUrlParam, getAjaxErrorMsg, loadIntlResources } from '../../utils/utils';
 import { getTableWidth } from '../tableList/module';
+import intl from 'react-intl-universal';
 
 require('jquery-ui');
 $.widget.bridge('uitooltip', $.ui.tooltip); // Shutting down jq-ui tooltips
@@ -496,9 +497,9 @@ function renderViewTab() {
     ReactDOM.render(
         <div>
             <RadioGroup onChange={onChange} defaultValue="graph">
-                <RadioButton value="graph">图表</RadioButton>
-                <RadioButton value="result">结果集</RadioButton>
-                <RadioButton value="original">源数据</RadioButton>
+                <RadioButton value="graph">{intl.get('SLICE.CHART')}</RadioButton>
+                <RadioButton value="result">{intl.get('SLICE.RESULT_COLLECTION')}</RadioButton>
+                <RadioButton value="original">{intl.get('SLICE.SOURCE_DATA')}</RadioButton>
             </RadioGroup>
         </div>, viewTabEl
     );
@@ -537,6 +538,7 @@ function initComponents() {
         <QueryAndSaveBtns
             canAdd={queryAndSaveBtnsEl.getAttribute('data-can-add')}
             onQuery={() => query(true)}
+            intl={intl}
         />,
         queryAndSaveBtnsEl
     );
@@ -548,10 +550,10 @@ function initTitle() {
     const titleEl = document.getElementById('slice-title-name');
     const sliceId = titleEl.getAttribute('sliceId');
     if(sliceId !== '') {
-        titleEl.value = "编辑工作表";
+        titleEl.value = intl.get('SLICE.EDIT_SLICE');
         operationType = 'editSlice';
     }else {
-        titleEl.value = "添加工作表";
+        titleEl.value = intl.get('SLICE.ADD_SLICE');
         operationType = 'addSlice';
     }
 }
@@ -604,23 +606,27 @@ exploreController = Object.assign({}, utils.controllerInterface, exploreControll
 
 
 $(document).ready(function () {
-    const data = $('.slice').data('slice');
+    loadIntlResources(callback, 'slice');
 
-    initExploreView();
+    function callback() {
+        const data = $('.slice').data('slice');
 
-    slice = px.Slice(data, exploreController, 'slice');
-    slice.bindResizeToWindowResize();
+        initExploreView();
 
-    initComponents();
-    initTitle();
-    initDatasourceState();
+        slice = px.Slice(data, exploreController, 'slice');
+        slice.bindResizeToWindowResize();
 
-    // call vis render method, which issues ajax
-    // calls render on the slice for the first time
-    if(operationType==='editSlice' && localStorage.getItem('explore:firstEntry') === 'true') {
-        location.search!=='' && query(false, false);
-    }else {
-        document.getElementById('slice-loading-img').style.display = 'none';
+        initComponents();
+        initTitle();
+        initDatasourceState();
+
+        // call vis render method, which issues ajax
+        // calls render on the slice for the first time
+        if(operationType==='editSlice' && localStorage.getItem('explore:firstEntry') === 'true') {
+            location.search!=='' && query(false, false);
+        }else {
+            document.getElementById('slice-loading-img').style.display = 'none';
+        }
     }
 
     $('.nav > li:nth-child(3)').addClass('active');

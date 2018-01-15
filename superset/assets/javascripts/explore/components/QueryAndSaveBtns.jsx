@@ -16,7 +16,7 @@ const defaultProps = {
   disabled: false,
 };
 
-export default function QueryAndSaveBtns({ canAdd, onQuery, onSave, disabled, errorMessage }) {
+export default function QueryAndSaveBtns({ canAdd, onQuery, onSave, disabled, errorMessage, intl }) {
   const saveClasses = classnames({
     'disabled disabledButton': canAdd !== 'True',
   });
@@ -32,7 +32,7 @@ export default function QueryAndSaveBtns({ canAdd, onQuery, onSave, disabled, er
           disabled={qryButtonDisabled}
           bsStyle={qryButtonStyle}
         >
-          <i className="fa fa-bolt" /> 查询
+          <i className="fa fa-bolt" /> {intl.get('SLICE.QUERY')}
         </Button>
         <Button
           id="save_button"
@@ -42,7 +42,7 @@ export default function QueryAndSaveBtns({ canAdd, onQuery, onSave, disabled, er
           disabled={qryButtonDisabled}
           onClick={onSave}
         >
-          <i className="fa fa-plus-circle"></i> 保存
+          <i className="fa fa-plus-circle"></i> {intl.get('SLICE.SAVE')}
         </Button>
       </ButtonGroup>
       {errorMessage &&
