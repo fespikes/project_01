@@ -4,7 +4,12 @@ import PropTypes from 'prop-types';
 import { fetchData } from "../actions";
 import { connect } from 'react-redux';
 
+import intl from "react-intl-universal";
+import * as utils  from '../../../utils/utils.jsx';
+
 class Home extends Component {
+
+    state = { initDone: false };
 
     constructor(props) {
         super(props);
@@ -12,6 +17,7 @@ class Home extends Component {
 
     componentDidMount() {
         const { dispatch } = this.props;
+        this.loadLocales();
         dispatch(fetchData());
     }
 
@@ -19,7 +25,7 @@ class Home extends Component {
 
         const { param, state } = this.props;
 
-        return (
+        return ( this.state.initDone &&
           <div>
                 <DataTendency></DataTendency>
                 <FavouriteAndCountPanel></FavouriteAndCountPanel>
@@ -27,6 +33,11 @@ class Home extends Component {
           </div>
         );
     }
+
+    loadLocales() {
+        utils.loadIntlResources(_ => this.setState({ initDone: true }));
+    }
+
 }
 
 Home.propTypes = {

@@ -2,6 +2,8 @@ import React from 'react';
 import { DropdownButton, MenuItem, Tab, Tabs } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import intl from 'react-intl-universal';
+
 import * as Actions from '../actions';
 import SqlEditor from './SqlEditor';
 import { getParamFromQuery } from '../../../utils/common';
@@ -81,7 +83,7 @@ class TabbedSqlEditors extends React.PureComponent {
   }
   renameTab(qe) {
     /* eslint no-alert: 0 */
-    const newTitle = prompt('给这个标签输入一个新的标题');
+    const newTitle = prompt(intl.get('input_new_title'));
     if (newTitle) {
       this.props.actions.queryEditorSetTitle(qe, newTitle);
     }
@@ -100,7 +102,7 @@ class TabbedSqlEditors extends React.PureComponent {
     queryCount++;
     const activeQueryEditor = this.activeQueryEditor();
     const qe = {
-      title: `未命名的查询 ${queryCount}`,
+      title: (intl.get('unnamed_query') + ` ${queryCount}`),
       dbId: (activeQueryEditor && activeQueryEditor.dbId) ?
         activeQueryEditor.dbId :
         this.props.defaultDbId,
@@ -146,10 +148,10 @@ class TabbedSqlEditors extends React.PureComponent {
             title=""
           >
             <MenuItem eventKey="1" onClick={this.removeQueryEditor.bind(this, qe)}>
-              <i className="fa fa-close" /> close tab
+              <i className="fa fa-close" />{intl.get('close_tab')}
             </MenuItem>
             <MenuItem eventKey="2" onClick={this.renameTab.bind(this, qe)}>
-              <i className="fa fa-i-cursor" /> rename tab
+              <i className="fa fa-i-cursor" />{intl.get('rename_tab')}
             </MenuItem>
             {qe &&
               <CopyQueryTabUrl queryEditor={qe} />
@@ -157,7 +159,7 @@ class TabbedSqlEditors extends React.PureComponent {
             <MenuItem eventKey="4" onClick={this.toggleLeftBar.bind(this)}>
               <i className="fa fa-cogs" />
               &nbsp;
-              {this.state.hideLeftBar ? 'expand tool bar' : 'hide tool bar'}
+              {this.state.hideLeftBar ? intl.get('expand_tool_bar') : intl.get('hide_tool_bar')}
             </MenuItem>
           </DropdownButton>
         </div>

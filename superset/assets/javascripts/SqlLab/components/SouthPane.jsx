@@ -3,8 +3,10 @@ import QueryHistory from './QueryHistory';
 import ResultSet from './ResultSet';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import * as Actions from '../actions';
 import React from 'react';
+import intl from 'react-intl-universal';
+
+import * as Actions from '../actions';
 
 import shortid from 'shortid';
 
@@ -44,7 +46,7 @@ class SouthPane extends React.PureComponent {
 
         const dataPreviewTabs = props.dataPreviewQueries.map((query) => (
             <Tab
-                title={`预览 ${query.tableName}`}
+                title={intl.get('preview')+`${query.tableName}`}
                 eventKey={query.id}
                 key={query.id}
             >
@@ -61,7 +63,7 @@ class SouthPane extends React.PureComponent {
                     onSelect={this.switchTab.bind(this)}
                 >
                     <Tab
-                        title="结果"
+                        title={intl.get('result')}
                         eventKey="Results"
                     >
                         <div style={{ overflow: 'auto' }}>
@@ -69,7 +71,7 @@ class SouthPane extends React.PureComponent {
                         </div>
                     </Tab>
                     <Tab
-                        title="查询历史"
+                        title={intl.get('query_history')}
                         eventKey="History"
                     >
                         <QueryHistory queries={props.editorQueries} actions={props.actions} />

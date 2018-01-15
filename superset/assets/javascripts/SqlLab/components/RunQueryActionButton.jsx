@@ -1,4 +1,6 @@
 import React, { PropTypes } from 'react';
+import intl from 'react-intl-universal';
+
 import Button from '../../components/Button';
 
 const propTypes = {
@@ -11,10 +13,10 @@ const propTypes = {
 };
 
 export default function RunQueryActionButton(props) {
-  const runBtnText = props.selectedText ? '执行选择的查询' : '执行查询';
-  const btnStyle = props.selectedText ? 'warning' : 'primary';
+  const runBtnText = props.selectedText ? intl.get('execute_selected_sql') : intl.get('execute_sql');
+  const btnStyle = props.selectedText ? intl.get('warning') : intl.get('primary');
   const shouldShowStopBtn = ['running', 'pending'].indexOf(props.queryState) > -1;
-  const asyncToolTip = '异步执行查询';
+  const asyncToolTip = intl.get('async_sql');
 
   const commonBtnProps = {
     bsSize: 'small',

@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-fetch';
-import {getOnOfflineInfoUrl, renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils'
+import {renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils'
 import {always, json, callbackHandler} from '../../global.jsx';
 
 export const SHOW_ALL = 'showAll';
@@ -112,21 +112,6 @@ export function fetchStateChange(record, callback, type) {
                 callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
                 dispatch(fetchLists());
-            }
-        );
-    }
-}
-
-export function fetchOnOfflineInfo(sliceId, published, callback) {
-    const url = getOnOfflineInfoUrl(sliceId, 'slice', published);
-    return dispatch => {
-        dispatch(switchFetchingState(true));
-        return fetch(url, {
-            credentials: "same-origin",
-        }).then(always).then(json).then(
-            response => {
-                callbackHandler(response, callback);
-                dispatch(switchFetchingState(false));
             }
         );
     }
@@ -265,6 +250,18 @@ export function switchFetchingState(isFetching) {
         type: LISTS.SWITCH_FETCHING_STATE,
         isFetching: isFetching
     }
+}
+
+export function fetchDashboardList(callback) {
+    const url = window.location.origin + '/dashboard/listdata/?page_size=1000';
+    return fetch(url, {
+        credentials: "include",
+        method: 'GET'
+    }).then(always).then(json).then(
+        response => {
+            callbackHandler(response, callback);
+        }
+    );
 }
 
 function getSliceListUrl(state) {

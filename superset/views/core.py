@@ -268,9 +268,8 @@ class SliceModelView(SupersetModelView, PermissionManagement):
 
         query = self.query_with_favorite(self.model_type, **kwargs)
 
-        guardian_auth = config.get('GUARDIAN_AUTH', False)
         readable_names = None
-        if guardian_auth:
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             readable_names = \
                 guardian_client.search_model_permissions(g.user.username, self.model_type)
@@ -284,7 +283,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         data = []
         index = 0
         for obj, username, fav_id in rs:
-            if guardian_auth:
+            if self.guardian_auth:
                 if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
@@ -391,9 +390,8 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         query = self.query_with_favorite(self.model_type, **kwargs)
 
-        guardian_auth = config.get('GUARDIAN_AUTH', False)
         readable_names = None
-        if guardian_auth:
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             readable_names = \
                 guardian_client.search_model_permissions(g.user.username, self.model_type)
@@ -407,7 +405,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         data = []
         index = 0
         for obj, username, fav_id in rs:
-            if guardian_auth:
+            if self.guardian_auth:
                 if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
@@ -631,8 +629,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 class Superset(BaseSupersetView, PermissionManagement):
     route_base = '/p'
 
-    def get_viz(self, slice_id=None, args=None,
-                datasource_type=None, datasource_id=None,
+    def get_viz(self, slice_id=None, args=None, datasource_type=None, datasource_id=None,
                 database_id=None, full_tb_name=None):
         if slice_id:
             slc = db.session.query(Slice).filter_by(id=slice_id).one()
@@ -644,6 +641,8 @@ class Superset(BaseSupersetView, PermissionManagement):
             else:
                 datasource = SourceRegistry.get_datasource(
                     datasource_type, datasource_id, db.session)
+            if not datasource:
+                raise PropertyException('Missing a dataset for slice')
             if not datasource.database:
                 raise PropertyException(
                     'Missing connection for dataset: [{}]'.format(datasource))
@@ -736,6 +735,9 @@ class Superset(BaseSupersetView, PermissionManagement):
                 database_id=database_id,
                 full_tb_name=full_tb_name,
                 args=request.args)
+            if slice_id:
+                slice = db.session.query(Slice).filter_by(id=slice_id).first()
+                self.check_read_perm(['slice', slice.name])
         except Exception as e:
             logging.exception(e)
             return Response(utils.error_msg_from_exception(e), status=500)
@@ -772,8 +774,7 @@ class Superset(BaseSupersetView, PermissionManagement):
 
         datasets = db.session.query(Dataset).all()
         datasets = sorted(datasets, key=lambda ds: ds.full_name)
-        guardian_auth = config.get('GUARDIAN_AUTH', False)
-        if guardian_auth:
+        if self.guardian_auth:
             from superset.guardian import guardian_client
             readable_dataset_names = \
                 guardian_client.search_model_permissions(g.user.username, 'dataset')
@@ -985,7 +986,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.commit()
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         Log.log_add(slc, 'slice', g.user.id)
-        Number.log_number(g.user.id, g.user.username, 'slice')
+        Number.log_number(g.user.username, 'slice')
         self.add_object_permissions(['slice', slc.slice_name])
         self.grant_owner_permissions(['slice', slc.slice_name])
 

@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail } from '../actions';
 import { sortHDFSFiles } from '../module';
 import style from '../style/hdfs.scss'
+import intl from "react-intl-universal";
 
 class InnerTable extends React.Component {
     constructor(props, context) {
@@ -67,7 +68,7 @@ class InnerTable extends React.Component {
         }
         const columns = [
             {
-                title: '名称', //TODO: title need to i18n
+                title: intl.get('name'), //TODO: title need to i18n
                 width: '5%',
                 render: (text, record) => {
                     const type = record.type;
@@ -127,20 +128,20 @@ class InnerTable extends React.Component {
                     } else { //send request.
                         return (
                             <a
-                                onClick={
-                                    argus => {
-                                        linkToPath({
-                                            path: record.path
-                                        });
-                                    }
-                                }
-                                className={record.name==='.'||record.name==='..'?'folder-sign':''}
+                            onClick={
+                            argus => {
+                                linkToPath({
+                                    path: record.path
+                                });
+                            }
+                            }
+                            className={record.name === '.' || record.name === '..' ? 'folder-sign' : ''}
                             >{name}</a>
                         );
                     }
                 }
             }, {
-                title: '大小',
+                title: intl.get('size'),
                 dataIndex: 'size',
                 key: 'size',
                 width: '16%',
@@ -148,7 +149,7 @@ class InnerTable extends React.Component {
                     return a.size - b.size;
                 }
             }, {
-                title: '用户',
+                title: intl.get('users'),
                 dataIndex: 'user',
                 key: 'user',
                 width: '10%',
@@ -160,7 +161,7 @@ class InnerTable extends React.Component {
                     return (<span>{record.stats ? (record.stats.user || ' ') : ' '}</span>);
                 }
             }, {
-                title: '组',
+                title: intl.get('group'),
                 dataIndex: 'group',
                 key: 'group',
                 width: '10%',
@@ -171,7 +172,7 @@ class InnerTable extends React.Component {
                     return (<span>{record.stats ? (record.stats.group || ' ') : ' '}</span>);
                 }
             }, {
-                title: '权限',
+                title: intl.get('authority'),
                 dataIndex: 'rwx',
                 key: 'rwx',
                 width: '15%',
@@ -182,7 +183,7 @@ class InnerTable extends React.Component {
                     return a.rwx - b.rwx;
                 }
             }, {
-                title: '日期',
+                title: intl.get('date'),
                 dataIndex: 'mtime',
                 key: 'mtime',
                 width: '25%',

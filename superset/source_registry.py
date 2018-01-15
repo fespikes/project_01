@@ -20,7 +20,7 @@ class SourceRegistry(object):
         return (
             session.query(cls.sources[datasource_type])
             .filter_by(id=datasource_id)
-            .one()
+            .first()
         )
 
     @classmethod
@@ -44,8 +44,7 @@ class SourceRegistry(object):
         return db_ds[0]
 
     @classmethod
-    def get_table(cls, session, datasource_type, datasource_name,
-                               schema, database_id):
+    def get_table(cls, session, datasource_type, datasource_name, schema, database_id):
         datasource_class = SourceRegistry.sources[datasource_type]
         query = (
             session.query(datasource_class)
@@ -56,8 +55,7 @@ class SourceRegistry(object):
         return query.first() if query else None
 
     @classmethod
-    def query_datasources_by_name(
-            cls, session, database, datasource_name, schema=None):
+    def query_datasources_by_name(cls, session, database, datasource_name, schema=None):
         datasource_class = SourceRegistry.sources[database.type]
         if database.type == 'table':
             query = (

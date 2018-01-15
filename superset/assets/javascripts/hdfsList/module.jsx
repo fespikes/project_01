@@ -1,4 +1,5 @@
 import React from 'react';
+import intl from "react-intl-universal";
 
 export function getPermColumns(_this) {
 
@@ -8,7 +9,7 @@ export function getPermColumns(_this) {
         key: 'name',
         width: '20%'
     }, {
-        title: '用户',
+        title: intl.get('users'),
         dataIndex: 'user',
         key: 'user',
         width: '20%',
@@ -17,7 +18,7 @@ export function getPermColumns(_this) {
             return (<input type="checkbox" onClick={() => _this.onPermChange(record, 'user')} checked={record.user} />)
         }
     }, {
-        title: '组',
+        title: intl.get('group'),
         dataIndex: 'group',
         key: 'group',
         width: '20%',
@@ -26,7 +27,7 @@ export function getPermColumns(_this) {
             return (<input type="checkbox" onClick={() => _this.onPermChange(record, 'group')} checked={record.group} />)
         }
     }, {
-        title: '其他',
+        title: intl.get('others'),
         dataIndex: 'other',
         key: 'other',
         width: '20%',
@@ -46,19 +47,19 @@ export function getPermData(hdfsItem) {
     }
     const permData = [{
         key: 'perm1',
-        name: '读',
+        name: intl.get('read'),
         user: perms[0][0],
         group: perms[0][1],
         other: perms[0][2]
     }, {
         key: 'perm2',
-        name: '写',
+        name: intl.get('write'),
         user: perms[1][0],
         group: perms[1][1],
         other: perms[1][2]
     }, {
         key: 'perm3',
-        name: '执行',
+        name: intl.get('execute'),
         user: perms[2][0],
         group: perms[2][1],
         other: perms[2][2]

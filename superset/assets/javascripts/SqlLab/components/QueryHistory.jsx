@@ -1,4 +1,5 @@
 import React from 'react';
+import intl from 'react-intl-universal';
 
 import QueryTable from './QueryTable';
 import { Alert } from 'react-bootstrap';
@@ -13,8 +14,10 @@ const QueryHistory = (props) => {
     return (
       <QueryTable
         columns={[
-          '状态', '开始时间', '用时', '进度',
-          '行数', 'sql', '数据库', '操作',
+          intl.get('condition'), intl.get('start_time'), 
+          intl.get('used_time'), intl.get('progress'),
+          intl.get('line_amount'), intl.get('sql'),
+          intl.get('database'), intl.get('action')
         ]}
         queries={props.queries}
         actions={props.actions}

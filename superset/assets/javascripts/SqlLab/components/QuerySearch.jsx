@@ -2,6 +2,8 @@ const $ = window.$ = require('jquery');
 import React from 'react';
 import { Button } from 'react-bootstrap';
 import Select from 'react-select';
+import intl from 'react-intl-universal';
+
 import QueryTable from './QueryTable';
 import { now, epochTimeXHoursAgo,
     epochTimeXDaysAgo, epochTimeXYearsAgo } from '../../modules/dates';
@@ -102,7 +104,7 @@ class QuerySearch extends React.PureComponent {
             if (data.length === 0) {
                 this.props.actions.addAlert({
                     bsStyle: 'danger',
-                    msg: "It seems you don't have access to any database",
+                    msg: intl.get('seem_not_accessed_db'),
                 });
             }
             return options;
@@ -133,7 +135,7 @@ class QuerySearch extends React.PureComponent {
             <div className="query-search-page">
                 <div id="search-header">
                     <div className="page-title">
-                        <span>SQL执行记录</span>
+                        <span>{intl.get('execute_record')}</span>
                     </div>
                     <div className="select-user">
                         <AsyncSelect
@@ -191,7 +193,7 @@ class QuerySearch extends React.PureComponent {
                         />
                     </div>
                     <Button className="search-button" bsSize="small" bsStyle="primary" onClick={this.refreshQueries.bind(this)}>
-                        <i className="fa fa-search" aria-hidden="true"></i>搜索
+                        <i className="fa fa-search" aria-hidden="true"></i>{intl.get('search')}
                     </Button>
                 </div>
                 {this.state.queriesLoading ?
@@ -205,8 +207,10 @@ class QuerySearch extends React.PureComponent {
                             <div className="scrollbar-content">
                                 <QueryTable
                                     columns={[
-                                        '状态', '连接', '用户', '开始时间',
-                                        '进度', '行数', 'sql', '查询链接'
+                                        intl.get('condition'), intl.get('connection'), 
+                                        intl.get('users'), intl.get('start_time'),
+                                        intl.get('progress'), intl.get('line_amount'), 
+                                        intl.get('sql'), intl.get('search_link')
                                     ]}
                                     onUserClicked={this.onUserClicked.bind(this)}
                                     onDbClicked={this.onDbClicked.bind(this)}

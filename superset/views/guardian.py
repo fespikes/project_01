@@ -8,6 +8,7 @@ from flask import request, g
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from superset import db, app
+from superset.utils import GUARDIAN_AUTH
 from superset.models import Database, str_to_model, Log, Number
 from superset.exception import ParameterException, PermissionException
 from .base import BaseSupersetView, PermissionManagement, catch_exception, json_response
@@ -21,7 +22,7 @@ def guardian_entry(f):
     return the response in the JSON format
     """
     def wraps(self, *args, **kwargs):
-        if not config.get('GUARDIAN_AUTH'):
+        if not config.get(GUARDIAN_AUTH):
             raise PermissionException('Not enable guardian authentication')
         return f(self, *args, **kwargs)
 

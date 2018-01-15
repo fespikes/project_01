@@ -3,6 +3,7 @@ import { Alert, Button, ButtonGroup, ProgressBar } from 'react-bootstrap';
 import { Table } from 'reactable';
 import shortid from 'shortid';
 import { Input } from 'antd';
+import intl from 'react-intl-universal';
 
 import VisualizeModal from './VisualizeModal';
 import HighlightedSql from './HighlightedSql';
@@ -67,7 +68,7 @@ class ResultSet extends React.PureComponent {
                         bsSize="small"
                         onClick={this.showModal.bind(this)}
                     >
-                        <i className="fa fa-bar-chart m-l-1" /> 创建工作表
+                        <i className="fa fa-bar-chart m-l-1" />{intl.get('创建工作表')}
                     </Button>
                 );
             }
@@ -167,8 +168,7 @@ class ResultSet extends React.PureComponent {
                             bsSize="small"
                             className="m-r-5"
                             onClick={this.popSelectStar.bind(this)}
-                        >
-                            在新标签中查询
+                        >{intl.get('search_in_tags')}
                         </Button>
                     </Alert>
                 </div>);
@@ -201,7 +201,7 @@ class ResultSet extends React.PureComponent {
                     <div>
                         <Alert bsStyle="warning">This query was run asynchronously &nbsp;
                             <Button bsSize="sm" onClick={this.fetchResults.bind(this, query)}>
-                                获取结果
+                                {intl.get('get_result')}
                             </Button>
                         </Alert>
                     </div>
@@ -214,12 +214,11 @@ class ResultSet extends React.PureComponent {
                     bsSize="sm"
                     bsStyle="primary"
                     onClick={this.reFetchQueryResults.bind(this, query)}
-                >
-                    获取数据预览
+                >{intl.get('get_data_preview')}
                 </Button>
             );
         }
-        return <Alert bsStyle="warning">本次查询没有返回数据</Alert>;
+        return <Alert bsStyle="warning">{intl.get('no_data_current')}</Alert>;
     }
 }
 ResultSet.propTypes = propTypes;

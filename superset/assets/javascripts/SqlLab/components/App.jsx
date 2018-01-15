@@ -1,6 +1,7 @@
 const $ = window.$ = require('jquery');
 import * as Actions from '../actions';
 import React from 'react';
+import * as utils  from '../../../utils/utils.jsx';
 
 import TabbedSqlEditors from './TabbedSqlEditors';
 import QueryAutoRefresh from './QueryAutoRefresh';
@@ -16,11 +17,16 @@ class App extends React.PureComponent {
     this.state = {
       hash: window.location.hash,
       contentHeight: this.getHeight(),
+      initDone: false
     };
+  }
+  loadLocales() {
+    utils.loadIntlResources(_ => this.setState({ initDone: true }));
   }
   componentDidMount() {
     /* eslint-disable react/no-did-mount-set-state */
     this.setState({ contentHeight: this.getHeight() });
+    this.loadLocales();
     window.addEventListener('hashchange', this.onHashChanged.bind(this));
     window.addEventListener('resize', this.handleResize.bind(this));
   }
@@ -62,7 +68,7 @@ class App extends React.PureComponent {
         </div>
       );
     }
-    return (
+    return (this.state.initDone &&
       <div className="App SqlLab">
         <Alerts id="sqllab-alerts" alerts={this.props.alerts} actions={this.props.actions} />
         <div className="container-fluid">

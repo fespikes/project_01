@@ -4,7 +4,9 @@ import { bindActionCreators } from 'redux';
 import * as actions from '../actions';
 import { Pagination, Table, Operate, PopupConnections } from '../components';
 import PropTypes from 'prop-types';
-import { renderLoadingModal } from '../../../utils/utils';
+import { renderLoadingModal, loadIntlResources } from '../../../utils/utils';
+
+import intl from "react-intl-universal";
 
 class Main extends Component {
 
@@ -22,6 +24,7 @@ class Main extends Component {
         const {condition} = this.props;
 
         this.state = {
+            initDone: false,
             breadCrumbEditable: false,
             breadCrumbText: condition.path
         };
@@ -33,7 +36,12 @@ class Main extends Component {
 
     componentDidMount() {
         const {condition} = this.props;
+        this.loadLocales();
         this.props.fetchIfNeeded(condition);
+    }
+
+    loadLocales() {
+        loadIntlResources(_ => this.setState({ initDone: true }));
     }
 
     componentWillReceiveProps(nextProps) {
@@ -156,11 +164,11 @@ class Main extends Component {
             return <a key={idx + 1} data-href={obj.href}>{(idx >= 2 ? '/' : '') + obj.show}</a>;
         });
 
-        return (
+        return (this.state.initDone && 
             <div className="pilot-panel hdfs-panel">
                 <div className="panel-top">
                     <div className="bread-crumb">
-                        <span className="f16">路径:</span>
+                        <span className="f16">{intl.get('path')}</span>
                         <span
                             className="anchor"
                             onClick={ag => this.navigation(ag)}

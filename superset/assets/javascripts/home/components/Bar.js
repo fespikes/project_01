@@ -4,6 +4,9 @@ import Highcharts from 'highcharts';
 import PropTypes from 'prop-types';
 import HighchartsNoData from 'highcharts-no-data-to-display';
 import { Tooltip } from 'antd';
+
+import intl from "react-intl-universal";
+
 const _ = require('lodash');
 
 HighchartsNoData(Highcharts);
@@ -17,19 +20,19 @@ function addLink(categories, urls) {
 }
 
 function makeDummy(data, max) {
-     var dummy = [];
+    var dummy = [];
     _.forEach(data, function(point, i) {
-         dummy.push(max - point);
+        dummy.push(max - point);
     });
     return dummy;
 }
 
 function Bar(props) {
     if (!props.barData) {
-        return <p>数据异常</p>;
+        return <p>{props.intl.get('faulty_data')}</p>;
     }
 
-    const { categories, series, urls } = props.barData || {
+    const {categories, series, urls} = props.barData || {
         categories: [],
         series: {
             name: "",
@@ -43,7 +46,7 @@ function Bar(props) {
     let maxs = [];
     maxs.push(Math.max.apply(null, series.data));
     let max = Math.round(Math.max.apply(null, maxs) * 1.1);
-    let dummyData =  makeDummy(series.data, max);
+    let dummyData = makeDummy(series.data, max);
     let categoryLinks = addLink(categories, urls);
 
     const config = {
@@ -55,7 +58,7 @@ function Bar(props) {
             text: ''
         },
         lang: {
-            noData: "暂无数据"
+            noData: intl.get('no_data')
         },
         xAxis: {
             categories: categories,
@@ -78,8 +81,8 @@ function Bar(props) {
                     maxWidth: "120px",
                     fontFamily: "'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB', 'Heiti SC', 'WenQuanYi Micro Hei', sans-serif",
                 },
-                formatter: function () {
-                    return '<a href="' + categoryLinks[this.value] + '" class="bar-item-link">'  +
+                formatter: function() {
+                    return '<a href="' + categoryLinks[this.value] + '" class="bar-item-link">' +
                         this.value + '</a>';
                 },
                 useHTML: true
@@ -104,7 +107,7 @@ function Bar(props) {
                 },
                 pointPadding: 0,
                 groupPadding: 0,
-                stacking:'normal',
+                stacking: 'normal',
                 borderRadius: 4,
                 pointWidth: 24
             }
@@ -136,11 +139,11 @@ function Bar(props) {
                 data: dummyData,
                 pointWidth: 24,
                 dataLabels: {
-                     enabled: false
+                    enabled: false
                 }
             },
             {
-                stack:'a',
+                stack: 'a',
                 name: series.name,
                 data: series.data,
                 pointWidth: 24,

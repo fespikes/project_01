@@ -5,6 +5,7 @@ import { createSelector } from 'reselect';
 import  { Line } from "../components";
 import { changeCatagory } from "../actions";
 
+import intl from 'react-intl-universal';
 
 const _ = require('lodash');
 
@@ -33,19 +34,19 @@ class DataTendency extends Component {
         let chartTitle = "";
         switch(catagory) {
             case "dashboard":
-                chartTitle = "仪表板"
+                chartTitle = intl.get('dashboard');
                 break;
             case "connection":
-                chartTitle = "连接";
+                chartTitle = intl.get('connection');
                 break;
             case "dataset":
-                chartTitle = "数据集";
+                chartTitle = intl.get('dataset');
                 break;
             case "slice":
-                chartTitle = "工作表";
+                chartTitle = intl.get('slice');
                 break;
             default:
-                chartTitle = "仪表板";
+                chartTitle = intl.get('dashboard');
         }
 
         return (
@@ -59,7 +60,7 @@ class DataTendency extends Component {
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.dashboard ? counts.dashboard : 0}</div>
-                                    <div className={catagory === 'dashboard' ? 'current name' : 'name'}>仪表板</div>
+                                    <div className={catagory === 'dashboard' ? 'current name' : 'name'}>{intl.get('dashboard')}</div>
                                 </dd>
                             </dl>
                         </h2>
@@ -70,7 +71,7 @@ class DataTendency extends Component {
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.slice ? counts.slice : 0}</div>
-                                    <div className={catagory === 'slice' ? 'current name' : 'name'}>工作表</div>
+                                    <div className={catagory === 'slice' ? 'current name' : 'name'}>{intl.get('slice')}</div>
                                 </dd>
 
                             </dl>
@@ -82,7 +83,7 @@ class DataTendency extends Component {
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.connection ? counts.connection : 0}</div>
-                                    <div className={catagory === 'connection' ? 'current name' : 'name'}>连接</div>
+                                    <div className={catagory === 'connection' ? 'current name' : 'name'}>{intl.get('connection')}</div>
                                 </dd>
                             </dl>
                         </h2>
@@ -93,7 +94,7 @@ class DataTendency extends Component {
                                 </dt>
                                 <dd>
                                     <div className="count">{counts.dataset ? counts.dataset : 0}</div>
-                                    <div className={catagory === 'dataset' ? 'current name' : 'name'}>数据集</div>
+                                    <div className={catagory === 'dataset' ? 'current name' : 'name'}>{intl.get('dataset')}</div>
                                 </dd>
                             </dl>
                         </h2>

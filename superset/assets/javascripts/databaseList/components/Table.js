@@ -3,14 +3,17 @@ import {render} from 'react-dom';
 import {message, Table, Icon, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
 import {
-    fetchDBDetail, selectRows, fetchUpdateConnection, fetchPublishConnection,
-    fetchOnOfflineInfo, fetchConnectDelInfo, connectionTypes
+    fetchDBDetail,
+    selectRows,
+    fetchUpdateConnection,
+    fetchConnectDelInfo,
+    connectionTypes
 } from '../actions';
 import {ConnectionDelete, ConnectionEdit} from '../popup';
 import style from '../style/database.scss'
-import {ConfirmModal} from '../../common/components';
+import {ConfirmModal, PermPopup} from '../../common/components';
 import {isCorrectConnection} from '../utils';
-import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import {sortByInitials, renderGlobalErrorMsg, OBJECT_TYPE} from '../../../utils/utils.jsx';
 
 class SliceTable extends React.Component {
     constructor(props, context) {
@@ -19,7 +22,6 @@ class SliceTable extends React.Component {
         //bindings
         this.deleteConnection = this.deleteConnection.bind(this);
         this.editConnection = this.editConnection.bind(this);
-        this.publishConnection = this.publishConnection.bind(this);
 
         this.dispatch = context.dispatch;
     }
@@ -62,40 +64,6 @@ class SliceTable extends React.Component {
         }
     }
 
-    publishConnection(record) {
-        const dispatch = this.dispatch;
-        const self = this;
-        dispatch(fetchOnOfflineInfo(record.id, record.online, record.connection_type, callback));
-        function callback(success, data) {
-            if(success) {
-                render(
-                    <ConfirmModal
-                        dispatch={dispatch}
-                        record={record}
-                        needCallback={true}
-                        confirmCallback={self.onOfflineConnection}
-                        confirmMessage={data} />,
-                    document.getElementById('popup_root')
-                );
-            }
-        }
-    }
-
-    onOfflineConnection() {
-        const {dispatch, record} = this;
-        dispatch(fetchPublishConnection(record, callback));
-        function callback(success, data) {
-            if(!success) {
-                render(
-                    <ConfirmModal
-                        needCallback={false}
-                        confirmMessage={data} />,
-                    document.getElementById('popup_root')
-                );
-            }
-        }
-    }
-
     //delete one of them
     deleteConnection(record) {
         const dispatch = this.dispatch;
@@ -124,6 +92,18 @@ class SliceTable extends React.Component {
         }
     }
 
+    givePerm(record) {
+        const objectType = isCorrectConnection(record.connection_type, connectionTypes)
+            ? OBJECT_TYPE.DATABASE : OBJECT_TYPE.HDFSCONNECTION;
+        render(
+            <PermPopup
+                objectType={objectType}
+                objectName={record.name}
+            />,
+            document.getElementById('popup_root')
+        );
+    }
+
     render() {
         const { data, selectedRowKeys } = this.props;
         const rowSelection = {
@@ -150,7 +130,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.name.substring(0, 1).charCodeAt() - b.name.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.name, b.name);
                 }
             }, {
                 title: '连接类型',
@@ -158,7 +138,7 @@ class SliceTable extends React.Component {
                 key: 'connection_type',
                 width: '20%',
                 sorter(a, b) {
-                    return a.connection_type.substring(0, 1).charCodeAt() - b.connection_type.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.connection_type, b.connection_type);
                 }
             }, {
                 title: '所有者',
@@ -176,7 +156,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return a.owner.substring(0, 1).charCodeAt() - b.owner.substring(0, 1).charCodeAt();
+                    return sortByInitials(a.owner, b.owner);
                 }
             }, {
                 title: '更新时间',
@@ -196,20 +176,21 @@ class SliceTable extends React.Component {
                             <Tooltip placement="top" title="编辑" arrowPointAtCenter>
                                 <i
                                     className="icon icon-edit"
+                                    style={{position: 'relative', top: 1}}
                                     onClick={() => this.editConnection(record)}
-                                />
-                            </Tooltip>
-                            <Tooltip placement="top" title={record.online?'下线':'发布'} arrowPointAtCenter>
-                                <i
-                                    style={{marginLeft: 20}}
-                                    className={record.online ? 'icon icon-online icon-line' : 'icon icon-offline icon-line'}
-                                    onClick={() => this.publishConnection(record)}
                                 />
                             </Tooltip>
                             <Tooltip placement="top" title="删除" arrowPointAtCenter>
                                 <i
                                     className="icon icon-delete"
+                                    style={{margin: '0 20'}}
                                     onClick={() => this.deleteConnection(record)}
+                                />
+                            </Tooltip>
+                            <Tooltip placement="top" title="赋权" arrowPointAtCenter>
+                                <i
+                                    className="icon icon-perm"
+                                    onClick={() => this.givePerm(record)}
                                 />
                             </Tooltip>
                         </div>

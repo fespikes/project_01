@@ -5,8 +5,16 @@ import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 import { Redirect } from 'react-router-dom';
 import { Table, Button, Tooltip } from 'antd';
+import { renderGlobalErrorMsg, viewObjectDetail } from '../../../utils/utils';
+import * as utils  from '../../../utils/utils.jsx';
+import intl from "react-intl-universal";
 
 class EditDetail extends Component {
+
+    state = {
+        initDone: false,
+        redirect: false
+    };
 
     constructor(props) {
         super(props);
@@ -16,9 +24,8 @@ class EditDetail extends Component {
 
     componentDidMount() {
         const { fetchEditDetail } = this.props;
-        this.state = {
-            redirect: false
-        };
+        this.loadLocales();
+        
         fetchEditDetail('dashboard', 0, 'time', 'desc');
     }
 
@@ -42,19 +49,40 @@ class EditDetail extends Component {
         fetchEditDetail(this.props.currentCatagory, pager.current - 1, sorter.columnKey, direction);
     }
 
+    viewHomeDetail(url) {
+        viewObjectDetail(url, callback);
+        function callback(success, response) {
+            if(success) {
+                window.location.href = url;
+            }else {
+                renderGlobalErrorMsg(response);
+            }
+        }
+    }
+
+    loadLocales() {
+        utils.loadIntlResources(_ => {
+            this.setState({ initDone: true });
+        });
+    }
+
     render() {
-        const {currentCatagory, dataSource, onChangeCatagory, pagination, itemCount} = this.props;
+        const {currentCatagory, dataSource, onChangeCatagory, pagination, itemCount } = this.props;
         const redirect = this.state ? this.state.redirect : false;
 
         const columns = [{
-            title: '名称',
+            title: intl.get('name'),
             dataIndex: 'name',
             key: 'name',
             className: "name-column",
             sorter: true,
-            render: (text, record) => (<a href={record.link}>{text}</a>)
+            render: (text, record) => (
+                <a
+                    href="javascript:void(0)"
+                    onClick={() => this.viewHomeDetail(record.link)}>{text}</a>
+            )
         }, {
-            title: '操作',
+            title: intl.get('action'),
             dataIndex: 'action',
             key: 'action',
             className: "action-column",
@@ -62,7 +90,7 @@ class EditDetail extends Component {
             render: (text) => (<span>{text}</span>)
 
         }, {
-            title: '编辑时间',
+            title: intl.get('edit_time'),
             dataIndex: 'time',
             key: 'time',
             className: "time-column",
@@ -71,27 +99,32 @@ class EditDetail extends Component {
             render: (text) => (<span>{text}</span>)
         }];
 
-        return (
-            <div className="edit-detail-page detail-page">
-                <div className="edit-detail-page-title detail-page-title">
-                    <div className="left">
-                        <span className="title">最近编辑</span>
-                        <span className="count-title">记录条目</span>
-                        <span　className="count-value">{itemCount || 0}</span>
-                    </div>
-                    <div className="right">
-                        <div className="title-tab">
-                            <ul>
-                                <li onClick={ () => {onChangeCatagory('dashboard')} } className={currentCatagory==='dashboard'?'current':''}>仪表板</li>
-                                <li onClick={ () => {onChangeCatagory('slice')} } className={currentCatagory==='slice'?'current':''}>工作表</li>
-                            </ul>
+        if (this.state.initDone) {
+            return (
+                <div className="edit-detail-page detail-page">
+                    <div className="edit-detail-page-title detail-page-title">
+                        <div className="left">
+                            <span className="title">{intl.get('recent_edited')}</span>
+                            <span className="count-title">{intl.get('record_amount')}</span>
+                            <span　className="count-value">{itemCount || 0}</span>
                         </div>
-                        <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
+                        <div className="right">
+                            <div className="title-tab">
+                                <ul>
+                                    <li onClick={ () => {onChangeCatagory('dashboard')} } className={currentCatagory==='dashboard'?'current':''}>{intl.get('dashboard')}</li>
+                                    <li onClick={ () => {onChangeCatagory('slice')} } className={currentCatagory==='slice'?'current':''}>{intl.get('slice')}</li>
+                                </ul>
+                            </div>
+                            <BackButton handleOnClick={this.goBack} redirect={redirect}></BackButton>
+                        </div>
                     </div>
+                    <Table onChange={this.tableOnChange} pagination={pagination} className="edit-table" dataSource={dataSource} columns={columns} />
                 </div>
-                <Table onChange={this.tableOnChange} pagination={pagination} className="edit-table" dataSource={dataSource} columns={columns} />
-            </div>
-        );
+            );
+        } else {
+            return <div></div>;
+        }
+
     }
 }
 
@@ -122,9 +155,9 @@ const getEidtListData = createSelector(
                 'link': obj.link
             };
             if(obj.action === 'edit') {
-                item.action = '编辑';
+                item.action = intl.get('edit');
             }else if(obj.action === 'create') {
-                item.action = '创建';
+                item.action = intl.get('create');
             }
             result.push(item);
         });

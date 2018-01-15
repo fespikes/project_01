@@ -1,4 +1,5 @@
 import React from 'react';
+import intl from 'react-intl-universal';
 
 import moment from 'moment';
 import { Table } from 'reactable';
@@ -20,7 +21,7 @@ const propTypes = {
     onDbClicked: React.PropTypes.func,
 };
 const defaultProps = {
-    columns: ['started', 'duration', '行数'],
+    columns: [intl.get('started'), intl.get('duration'), intl.get('line_amount')],
     queries: [],
     onUserClicked: () => {},
     onDbClicked: () => {},

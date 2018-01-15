@@ -32,7 +32,8 @@ function build_pilot
     cd -
 
     cd  pilot/superset/assets/
-    wget http://172.16.1.46/pilot/node_modules.tar.gz
+    #wget http://172.16.1.46/pilot/node_modules.tar.gz
+    curl -u 'jiajie:jiajie' -O http://172.16.1.97:8080/remote.php/webdav/pilot/node_modules.tar.gz
     tar -zxvf node_modules.tar.gz
     rm -f node_modules.tar.gz
     npm run build

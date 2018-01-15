@@ -14,6 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import backref, relationship
 
 from superset import app, db
+from superset.utils import GUARDIAN_AUTH
 from superset.exception import PropertyException
 from .base import QueryStatus
 from .dataset import Dataset
@@ -272,7 +273,7 @@ class Number(Model):
         if obj_type not in cls.LOG_TYPES:
             raise PropertyException(
                 'Error object type: [] when logging number'.format(obj_type))
-        if config.get('GUARDIAN_AUTH'):
+        if config.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_client as client
             if obj_type.lower() == 'connection':
                 db_names = client.search_model_permissions(username, cls.OBJECT_TYPES[3])

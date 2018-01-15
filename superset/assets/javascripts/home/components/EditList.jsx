@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Table, Tooltip } from 'antd';
+import { renderGlobalErrorMsg, viewObjectDetail } from '../../../utils/utils';
+import intl from "react-intl-universal";
 
 function Edit(props) {
     return (
@@ -21,11 +23,22 @@ export default class EditList extends Component {
 
     translateOperation(type) {
         if(type === 'edit') {
-            return '编辑';
+            return intl.get('edit');
         }else if('create') {
-            return '创建';
+            return intl.get('create');
         }else {
             return type;
+        }
+    }
+
+    viewHomeDetail(url) {
+        viewObjectDetail(url, callback);
+        function callback(success, response) {
+            if(success) {
+                window.location.href = url;
+            }else {
+                renderGlobalErrorMsg(response);
+            }
         }
     }
 
@@ -35,24 +48,27 @@ export default class EditList extends Component {
 
         const dataSource = (this.props.catagory === 'dashboard'? listDashboard : listSlice) || [];
         const columns = [{
-            title: '名称',
+            title: intl.get('name'),
             dataIndex: 'name',
             key: 'name',
             className: "name-column",
             sorter: (a, b) => a.name.localeCompare(b.name),
             render: (text, record) => (
                 <Tooltip placement="topLeft" title={text} arrowPointAtCenter>
-                    <a href={record.link} >{text}</a>
+                    <a
+                        href="javascript:void(0)"
+                        onClick={() => this.viewHomeDetail(record.link)}
+                    >{text}</a>
                 </Tooltip>)
         }, {
-            title: '操作',
+            title: intl.get('action'),
             dataIndex: 'action',
             key: 'action',
             className: "action-column",
             sorter: (a, b) => a.action.localeCompare(b.action),
             render: (text) => (<span>{this.translateOperation(text)}</span>)
         }, {
-            title: '编辑时间',
+            title: intl.get('edit_time'),
             dataIndex: 'time',
             key: 'time',
             className: "time-column",

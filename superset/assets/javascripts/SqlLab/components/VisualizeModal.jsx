@@ -1,5 +1,6 @@
 import React from 'react';
 import { Alert, Button, Col, Modal } from 'react-bootstrap';
+import intl from 'react-intl-universal';
 
 import Select from 'react-select';
 import { Table } from 'reactable';
@@ -7,13 +8,6 @@ import shortid from 'shortid';
 import $ from 'jquery';
 
 import {PILOT_PREFIX} from '../../../utils/utils'
-
-const CHART_TYPES = [
-    { value: 'dist_bar', label: 'Distribution - Bar Chart', requiresTime: false },
-    { value: 'pie', label: 'Pie Chart', requiresTime: false },
-    { value: 'line', label: 'Time Series - Line Chart', requiresTime: true },
-    { value: 'bar', label: 'Time Series - Bar Chart', requiresTime: true },
-];
 
 const propTypes = {
     onHide: React.PropTypes.func,
@@ -27,11 +21,13 @@ const defaultProps = {
 };
 
 class VisualizeModal extends React.PureComponent {
+    CHART_TYPES: any[] = [];
+
     constructor(props) {
         super(props);
         const uniqueId = shortid.generate();
         this.state = {
-            chartType: CHART_TYPES[0],
+            chartType: this.CHART_TYPES[0],
             datasourceName: uniqueId,
             columns: {},
             hints: [],
@@ -45,7 +41,17 @@ class VisualizeModal extends React.PureComponent {
         });
     }
     componentDidMount() {
+        this.CHART_TYPES = [
+            { value: 'dist_bar', label: intl.get('Distribution_Bar_Chart'), requiresTime: false },
+            { value: 'pie', label: intl.get('pie_chart'), requiresTime: false },
+            { value: 'line', label: intl.get('time_series_Line_Chart'), requiresTime: true },
+            { value: 'bar', label: intl.get('time_series_Bar_Chart'), requiresTime: true },
+        ];
+
         this.validate();
+        this.setState({
+            chartType: this.CHART_TYPES[0],
+        })
     }
     componentWillReceiveProps(nextProps) {
         this.setStateFromProps(nextProps);
@@ -70,17 +76,11 @@ class VisualizeModal extends React.PureComponent {
         const re = /^(?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]+$/;
         Object.keys(cols).forEach((colName) => {
             if (!re.test(colName)) {
-                hints.push(
-                    <div>
-                        "{colName}" is not right as a column name, please alias it
-                        (as in SELECT count(*) <strong>AS my_alias</strong>) using only
-                        chinese, alphanumeric characters and underscores, and can't start
-                        or end with underscores
-                    </div>);
+                hints.push(<div>{intl.get('hints_paragraph', {colName: colName})}</div>);
             }
         });
         if (this.state.chartType === null) {
-            hints.push('选择一个工作表类型');
+            hints.push(intl.get('select_table_type'));
         } else if (this.state.chartType.requiresTime) {
             let hasTime = false;
             for (const colName in cols) {
@@ -90,7 +90,7 @@ class VisualizeModal extends React.PureComponent {
                 }
             }
             if (!hasTime) {
-                hints.push('使用工作表类型至少需要一个标记日期列');
+                hints.push(intl.get('at_least_tip'));
             }
         }
         this.setState({ hints });
@@ -155,7 +155,7 @@ class VisualizeModal extends React.PureComponent {
                 <div className="VisualizeModal">
                     <Modal show={this.props.show} onHide={this.props.onHide}>
                         <Modal.Body>
-                            本次查询没有合适的结果
+                            {intl.get('no_suitable_results')}
                         </Modal.Body>
                     </Modal>
                 </div>
@@ -203,7 +203,7 @@ class VisualizeModal extends React.PureComponent {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-plus"/>
-                                <span>创建工作表</span>
+                                <span>{intl.get('create_slice')}</span>
                             </div>
                             <div className="header-right">
                                 <i className="icon icon-close" onClick={this.props.onHide}/>
@@ -214,18 +214,18 @@ class VisualizeModal extends React.PureComponent {
                         {alerts}
                         <div className="row">
                             <Col md={6}>
-                                工作表类型
+                                {intl.get('slice_type')}
                                 <Select
                                     name="select-chart-type"
                                     placeholder="[Chart Type]"
-                                    options={CHART_TYPES}
+                                    options={this.CHART_TYPES}
                                     value={(this.state.chartType) ? this.state.chartType.value : null}
                                     autosize={false}
                                     onChange={this.changeChartType.bind(this)}
                                 />
                             </Col>
                             <Col md={6}>
-                                数据集名字
+                                {intl.get('dataset_type')}
                                 <input
                                     type="text"
                                     className="form-control input-sm"
@@ -238,7 +238,10 @@ class VisualizeModal extends React.PureComponent {
                         <hr />
                         <Table
                             className="table table-condensed"
-                            columns={['列', '维度', '日期', '聚合函数']}
+                            columns={[ intl.get('column'),
+                            intl.get('dimension'), 
+                            intl.get('date'), 
+                            intl.get('polymerization_function')]}
                             data={tableData}
                         />
                         <div style={{textAlign: 'center'}}>
@@ -247,7 +250,7 @@ class VisualizeModal extends React.PureComponent {
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 disabled={(this.state.hints.length > 0)}
                             >
-                                <span style={{color: '#fff'}}>创建</span>
+                                <span style={{color: '#fff'}}>{intl.get('create')}</span>
                             </button>
                         </div>
                     </Modal.Body>

@@ -2,7 +2,7 @@
  * Created by haitao on 17-5-18.
  */
 import fetch from 'isomorphic-fetch';
-import {getOnOfflineInfoUrl, renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils';
+import {renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils';
 import {getNewDashboard, getSelectedSlices} from '../../../utils/common2';
 import {always, json, callbackHandler} from '../../global.jsx';
 
@@ -216,7 +216,7 @@ export function fetchDashboardMulDelInfo(callback) {
 }
 
 export function fetchAvailableSlices(callback) {
-    const url = window.location.origin + "/dashboard/addablechoices";
+    const url = window.location.origin + "/slice/listdata/?page_size=1000";
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin"
@@ -280,21 +280,6 @@ export function fetchStateChange(record, callback, type) {
                 callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
                 dispatch(fetchPosts());
-            }
-        );
-    }
-}
-
-export function fetchOnOfflineInfo(dashboardId, published, callback) {
-    const url = getOnOfflineInfoUrl(dashboardId, 'dashboard', published);
-    return dispatch => {
-        dispatch(switchFetchingState(true));
-        return fetch(url, {
-            credentials: "same-origin",
-        }).then(always).then(json).then(
-            response => {
-                callbackHandler(response, callback);
-                dispatch(switchFetchingState(false));
             }
         );
     }
