@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
 import { selectRows, applyDelete } from '../actions';
-import { renderAlertErrorInfo } from '../../../utils/utils';
+import intl from 'react-intl-universal';
+import { renderAlertErrorInfo, loadIntlResources } from '../../../utils/utils';
 
 import { WarningAlert } from '../../common/components/WarningAlert';
 
@@ -45,6 +46,10 @@ class ConnectionDelete extends React.Component {
         }
     }
 
+    componentDidMount() {
+        loadIntlResources(_ => this.setState({ initDone: true }), 'database');
+    }
+
     render() {
         return (
             <div className="popup">
@@ -53,7 +58,7 @@ class ConnectionDelete extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-trash" />
-                                <span>删除连接</span>
+                                <span>{intl.get('DATABASE.DELETE_CONN')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -72,7 +77,7 @@ class ConnectionDelete extends React.Component {
                             <button
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.confirm}>
-                                确定
+                                {intl.get('DATABASE.CONFIRM')}
                             </button>
                         </div>
                     </div>

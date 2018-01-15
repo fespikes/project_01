@@ -13,6 +13,8 @@
     "DATASET": "数据集",
     "OWNER": "所有者",
     "PUBLISH_STATE": "发布状态",
+    "PUBLISHED": "已发布",
+    "UNPUBLISHED": "未发布",
     "LAST_MODIFIED_TIME": "最后修改时间",
     "OPERATION": "操作",
     "CONFIRM": "确定",
@@ -37,6 +39,7 @@
     "RESULT_COLLECTION": "结果集",
     "SOURCE_DATA": "源数据",
     "SAVE": "保存",
-    "QUERY": "查询"
+    "QUERY": "查询",
+    "NO_SELECT_DELETE_TIP": "没有选择任何将要删除的记录，请选择！"
   }
 }

@@ -4,7 +4,8 @@ import { bindActionCreators } from 'redux';
 import { fetchIfNeeded } from '../actions';
 import { Pagination, Table, Operate } from '../components';
 import PropTypes from 'prop-types';
-import { renderLoadingModal, renderAlertTip } from '../../../utils/utils';
+import intl from 'react-intl-universal';
+import { renderLoadingModal, renderAlertTip, loadIntlResources } from '../../../utils/utils';
 
 class App extends Component {
 
@@ -17,12 +18,15 @@ class App extends Component {
 
     constructor (props) {
         super(props);
-        this.state = {};
+        this.state = {
+            initDone: false
+        };
     }
 
     componentDidMount () {
         const { dispatch } = this.props;
         dispatch(fetchIfNeeded());
+        loadIntlResources(_ => this.setState({ initDone: true }), 'database');
     }
 
     componentWillReceiveProps (nextProps) {
@@ -42,7 +46,7 @@ class App extends Component {
 
         const count = response&&response.count ||0;
 
-        return (
+        return (this.state.initDone &&
             <div className="pilot-panel datasource-panel">
                 <div className="panel-top">
                     <div className="left">
@@ -50,9 +54,9 @@ class App extends Component {
                             className="icon icon-database-list"
                             style={{zoom: 0.8}}
                         />
-                        <span>连接</span>
-                        <span>记录</span>
-                        <span>{count}条</span>
+                        <span>{intl.get('DATABASE.CONNECTION')}</span>
+                        <span>{intl.get('DATABASE.RECORD')}</span>
+                        <span>{count}</span>
                     </div>
                     <div className="right">
                         <Operate

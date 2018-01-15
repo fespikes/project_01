@@ -2,18 +2,14 @@ import React from 'react';
 import {render} from 'react-dom';
 import {message, Table, Icon, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
-import {
-    fetchDBDetail,
-    selectRows,
-    fetchUpdateConnection,
-    fetchConnectDelInfo,
-    connectionTypes
-} from '../actions';
+import {connectionTypes} from '../actions';
+import * as actions from '../actions';
+import * as utils from '../../../utils/utils';
+import intl from 'react-intl-universal';
 import {ConnectionDelete, ConnectionEdit} from '../popup';
 import style from '../style/database.scss'
 import {ConfirmModal, PermPopup} from '../../common/components';
 import {isCorrectConnection} from '../utils';
-import {sortByInitials, renderGlobalErrorMsg, OBJECT_TYPE} from '../../../utils/utils.jsx';
 
 class SliceTable extends React.Component {
     constructor(props, context) {
@@ -41,12 +37,12 @@ class SliceTable extends React.Component {
             }
             selectedRowNames.push(row.name);
         });
-        this.dispatch(selectRows(selectedRowKeys, connToBeDeleted, selectedRowNames));
+        this.dispatch(actions.selectRows(selectedRowKeys, connToBeDeleted, selectedRowNames));
     };
 
     editConnection(record) {
         const dispatch = this.dispatch;
-        dispatch(fetchDBDetail(record, callback));
+        dispatch(actions.fetchDBDetail(record, callback));
 
         function callback(success, data) {
             if(success) {
@@ -59,7 +55,7 @@ class SliceTable extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
@@ -67,7 +63,7 @@ class SliceTable extends React.Component {
     //delete one of them
     deleteConnection(record) {
         const dispatch = this.dispatch;
-        dispatch(fetchConnectDelInfo(record, callback));
+        dispatch(actions.fetchConnectDelInfo(record, callback));
         function callback(success, data) {
             if(success) {
                 let deleteTips = data;
@@ -77,7 +73,7 @@ class SliceTable extends React.Component {
                     connectionType = connectionTypes.database;
                 }
                 connToBeDeleted[connectionType] = [record.id];
-                dispatch(selectRows([record.elementId], connToBeDeleted, [record.name]));
+                dispatch(actions.selectRows([record.elementId], connToBeDeleted, [record.name]));
 
                 render(
                     <ConnectionDelete
@@ -87,14 +83,14 @@ class SliceTable extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
 
     givePerm(record) {
         const objectType = isCorrectConnection(record.connection_type, connectionTypes)
-            ? OBJECT_TYPE.DATABASE : OBJECT_TYPE.HDFSCONNECTION;
+            ? utils.OBJECT_TYPE.DATABASE : utils.OBJECT_TYPE.HDFSCONNECTION;
         render(
             <PermPopup
                 objectType={objectType}
@@ -102,6 +98,10 @@ class SliceTable extends React.Component {
             />,
             document.getElementById('popup_root')
         );
+    }
+
+    componentDidMount() {
+        utils.loadIntlResources(_ => this.setState({ initDone: true }), 'database');
     }
 
     render() {
@@ -113,7 +113,7 @@ class SliceTable extends React.Component {
 
         const columns = [
             {
-                title: '名称',  //TODO: title need to i18n
+                title: intl.get('DATABASE.NAME'),
                 key: 'name',
                 dataIndex: 'name',
                 width: '25%',
@@ -130,18 +130,18 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return sortByInitials(a.name, b.name);
+                    return utils.sortByInitials(a.name, b.name);
                 }
             }, {
-                title: '连接类型',
+                title: intl.get('DATABASE.CONN_TYPE'),
                 dataIndex: 'connection_type',
                 key: 'connection_type',
                 width: '20%',
                 sorter(a, b) {
-                    return sortByInitials(a.connection_type, b.connection_type);
+                    return utils.sortByInitials(a.connection_type, b.connection_type);
                 }
             }, {
-                title: '所有者',
+                title: intl.get('DATABASE.OWNER'),
                 dataIndex: 'owner',
                 key: 'owner',
                 width: '15%',
@@ -156,10 +156,10 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return sortByInitials(a.owner, b.owner);
+                    return utils.sortByInitials(a.owner, b.owner);
                 }
             }, {
-                title: '更新时间',
+                title: intl.get('DATABASE.UPDATE_TIME'),
                 dataIndex: 'changed_on',
                 key: 'changed_on',
                 width: '20%',
@@ -167,27 +167,27 @@ class SliceTable extends React.Component {
                     return a.changed_on - b.changed_on ? 1 : -1;
                 }
             }, {
-                title: '操作',
+                title: intl.get('DATABASE.OPERATION'),
                 key: 'action',
                 width: '15%',
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <Tooltip placement="top" title="编辑" arrowPointAtCenter>
+                            <Tooltip placement="top" title={intl.get('DATABASE.EDIT')} arrowPointAtCenter>
                                 <i
                                     className="icon icon-edit"
                                     style={{position: 'relative', top: 1}}
                                     onClick={() => this.editConnection(record)}
                                 />
                             </Tooltip>
-                            <Tooltip placement="top" title="删除" arrowPointAtCenter>
+                            <Tooltip placement="top" title={intl.get('DATABASE.DELETE')} arrowPointAtCenter>
                                 <i
                                     className="icon icon-delete"
                                     style={{margin: '0 20'}}
                                     onClick={() => this.deleteConnection(record)}
                                 />
                             </Tooltip>
-                            <Tooltip placement="top" title="赋权" arrowPointAtCenter>
+                            <Tooltip placement="top" title={intl.get('DATABASE.PERM')} arrowPointAtCenter>
                                 <i
                                     className="icon icon-perm"
                                     onClick={() => this.givePerm(record)}

@@ -4,12 +4,11 @@ import {Tooltip, Alert} from 'antd';
 
 import {Select} from '../components';
 import PropTypes from 'prop-types';
-import {
-    fetchInceptorConnectAdd, fetchHDFSConnectAdd, testConnection,
-    testHDFSConnection, fetchConnectionNames, connectionTypes
-} from '../actions';
+import {connectionTypes} from '../actions';
+import * as actions from '../actions';
+import * as utils from '../../../utils/utils';
+import intl from 'react-intl-universal';
 import {isCorrectConnection, argsValidate, connectDefaultInfo} from '../utils';
-import {renderAlertErrorInfo, renderAlertTip, renderGlobalErrorMsg} from '../../../utils/utils';
 
 class ConnectionAdd extends React.Component {
     constructor (props, context) {
@@ -48,6 +47,7 @@ class ConnectionAdd extends React.Component {
         if(connectionType === connectionTypes.hdfs) {
             this.fetchConnectionNames();
         }
+        utils.loadIntlResources(_ => this.setState({ initDone: true }), 'database');
     }
 
     testConnection(testCallBack) {
@@ -55,35 +55,35 @@ class ConnectionAdd extends React.Component {
         const { dispatch, connectionType } = this.props;
         if(isCorrectConnection(connectionType, connectionTypes)) {
             if(!argsValidate(this.state.database.args)) {
-                renderAlertErrorInfo('连接参数语法错误', 'add-connect-error-tip', '100%', this);
+                utils.renderAlertErrorInfo(intl.get('DATABASE.CONN_GRAMMAR_ERROR'), 'add-connect-error-tip', '100%', this);
                 return;
             }
-            dispatch(testConnection({
+            dispatch(actions.testConnection({
                 database_name: this.state.database.database_name,
                 sqlalchemy_uri: this.state.database.sqlalchemy_uri,
                 args: this.state.database.args
             }, callback));
         }else if(connectionType === connectionTypes.hdfs) {
-            dispatch(testHDFSConnection(this.state.database.httpfs, callback));
+            dispatch(actions.testHDFSConnection(this.state.database.httpfs, callback));
         }
         function callback(success, message) {
             let exception = {};
             let connected;
             if(success) {
                 exception.type = "success";
-                exception.message = "该连接是一个合法连接";
+                exception.message = intl.get('DATABASE.CONN_IS_ILLEGAL');
                 connected = true;
             }else {
                 exception.type = "error";
-                exception.message = "该连接是一个不合法连接";
+                exception.message = intl.get('DATABASE.CONN_IS_UNILLEGAL');
                 connected = false;
-                renderAlertErrorInfo(message, 'add-connect-error-tip', '100%', self);
+                utils.renderAlertErrorInfo(message, 'add-connect-error-tip', '100%', self);
             }
             self.setState({
                 connected: connected
             });
             self.formValidate(self.state.database);
-            renderAlertTip(exception, 'test-add-connect-tip', '100%');
+            utils.renderAlertTip(exception, 'test-add-connect-tip', '100%');
         }
         if(typeof testCallBack === 'function') {
             testCallBack(self.state.connected);
@@ -144,8 +144,8 @@ class ConnectionAdd extends React.Component {
     argsOnBlur() {
         const args = this.state.database.args;
         if(!argsValidate(args)) {
-            renderAlertErrorInfo(
-                '连接参数语法错误',
+            utils.renderAlertErrorInfo(
+                intl.get('DATABASE.CONN_GRAMMAR_ERROR'),
                 'add-connect-error-tip',
                 '100%',
                 this
@@ -160,11 +160,11 @@ class ConnectionAdd extends React.Component {
             if(success) {
                 self.closeAlert('popup_root');
             }else {
-                renderAlertErrorInfo(message, 'add-connect-error-tip', '100%', self);
+                utils.renderAlertErrorInfo(message, 'add-connect-error-tip', '100%', self);
             }
         }
         if(isCorrectConnection(connectionType, connectionTypes)) {
-            dispatch(fetchInceptorConnectAdd({
+            dispatch(actions.fetchInceptorConnectAdd({
                 database_name: this.state.database.database_name,
                 database_type: connectionType,
                 description: this.state.database.description,
@@ -172,7 +172,7 @@ class ConnectionAdd extends React.Component {
                 args: this.state.database.args
             }, callback) );
         }else if(connectionType === connectionTypes.hdfs) {
-            dispatch(fetchHDFSConnectAdd({
+            dispatch(actions.fetchHDFSConnectAdd({
                 connection_name: this.state.database.connection_name,
                 description: this.state.database.description,
                 httpfs: this.state.database.httpfs,
@@ -191,7 +191,7 @@ class ConnectionAdd extends React.Component {
                 if(success) {
                     self.addConnection();
                 }else {
-                    renderGlobalErrorMsg(data);
+                    utils.renderGlobalErrorMsg(data);
                 }
             }
         }
@@ -211,11 +211,11 @@ class ConnectionAdd extends React.Component {
                 });
                 self.setState({connectionNames:connectionNames});
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
 
         };
-        dispatch(fetchConnectionNames(callback));
+        dispatch(actions.fetchConnectionNames(callback));
     }
 
     render () {
@@ -229,7 +229,7 @@ class ConnectionAdd extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className='icon icon-connect'/>
-                                <span>添加{connectionType}连接</span>
+                                <span>{intl.get('DATABASE.ADD')}{connectionType}{intl.get('DATABASE.CONNECTION')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -243,7 +243,7 @@ class ConnectionAdd extends React.Component {
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
-                                        <span>连接名称：</span>
+                                        <span>{intl.get('DATABASE.CONN_NAME')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <input
@@ -257,7 +257,7 @@ class ConnectionAdd extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>描述：</span>
+                                        <span>{intl.get('DATABASE.DESCRIPTION')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <textarea
@@ -271,7 +271,7 @@ class ConnectionAdd extends React.Component {
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
-                                        <span>连接串：</span>
+                                        <span>{intl.get('DATABASE.CONN_URI')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <input
@@ -293,7 +293,7 @@ class ConnectionAdd extends React.Component {
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
-                                        <span>连接参数：</span>
+                                        <span>{intl.get('DATABASE.CONN_PARAMS')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <textarea
@@ -324,7 +324,7 @@ class ConnectionAdd extends React.Component {
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
-                                        <span>连接名称：</span>
+                                        <span>{intl.get('DATABASE.CONN_NAME')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <input
@@ -339,7 +339,7 @@ class ConnectionAdd extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>描述：</span>
+                                        <span>{intl.get('DATABASE.DESCRIPTION')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <textarea
@@ -356,12 +356,12 @@ class ConnectionAdd extends React.Component {
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
-                                        <span>httpfs地址：</span>
+                                        <span>{intl.get('DATABASE.HTTPFS_ADDRESS')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <input
                                             defaultValue=''
-                                            placeholder="httpfs地址"
+                                            placeholder={intl.get('DATABASE.HTTPFS_ADDRESS')}
                                             required="required"
                                             name="httpfs"
                                             className="tp-input dialog-input"
@@ -377,7 +377,7 @@ class ConnectionAdd extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>默认inceptor连接：</span>
+                                        <span>{intl.get('DATABASE.DEFAULT')}inceptor{intl.get('DATABASE.CONNECTION')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <Select
@@ -403,7 +403,7 @@ class ConnectionAdd extends React.Component {
                                         className="test-connect"
                                         onClick={ag=> self.testConnection(ag)}>
                                         <i className="icon icon-connect-test"/>
-                                        <span>测试连接</span>
+                                        <span>{intl.get('DATABASE.TEST_CONN')}</span>
                                     </button>
                                     <div
                                         id="test-add-connect-tip"
@@ -417,8 +417,9 @@ class ConnectionAdd extends React.Component {
                             <button
                                 disabled={this.state.disabled}
                                 className="tp-btn tp-btn-middle tp-btn-primary"
-                                onClick={this.submit}>
-                                确定
+                                onClick={this.submit}
+                            >
+                                {intl.get('DATABASE.CONFIRM')}
                             </button>
                         </div>
                     </div>

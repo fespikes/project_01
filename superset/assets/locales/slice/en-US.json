@@ -13,6 +13,8 @@
     "DATASET": "Dataset",
     "OWNER": "Owner",
     "PUBLISH_STATE": "Publish State",
+    "PUBLISHED": "Published",
+    "UNPUBLISHED": "Unpublished",
     "LAST_MODIFIED_TIME": "Last Modified Time",
     "OPERATION": "Operation",
     "CONFIRM": "Confirm",
@@ -37,6 +39,7 @@
     "RESULT_COLLECTION": "Result Collection",
     "SOURCE_DATA": "Source Data",
     "SAVE": "Save",
-    "QUERY": "Query"
+    "QUERY": "Query",
+    "NO_SELECT_DELETE_TIP": "No select delete record, please select!"
   }
 }

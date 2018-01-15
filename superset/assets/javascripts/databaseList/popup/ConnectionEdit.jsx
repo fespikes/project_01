@@ -1,15 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {render} from 'react-dom';
-import {
-    connectionTypes, fetchUpdateConnection, testConnection,
-    testHDFSConnection, fetchConnectionNames
-} from '../actions';
+import {connectionTypes} from '../actions';
+import * as actions from '../actions';
+import * as utils from '../../../utils/utils';
+import intl from 'react-intl-universal';
 import {Alert, Tooltip, message} from 'antd';
 import {Select} from '../components';
 import PropTypes from 'prop-types';
 import {isCorrectConnection, argsValidate, connectDefaultInfo} from '../utils';
-import {renderAlertErrorInfo, renderAlertTip, renderGlobalErrorMsg} from '../../../utils/utils';
 
 class ConnectionEdit extends React.Component {
     constructor(props) {
@@ -53,6 +52,8 @@ class ConnectionEdit extends React.Component {
         this.setState({
             database: database
         });
+
+        utils.loadIntlResources(_ => this.setState({ initDone: true }), 'database');
     }
 
     fetchConnectionNames () {
@@ -68,11 +69,11 @@ class ConnectionEdit extends React.Component {
                 });
                 self.setState({connectionNames:connectionNames});
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
 
         };
-        this.props.dispatch(fetchConnectionNames(callback));
+        this.props.dispatch(actions.fetchConnectionNames(callback));
     }
 
     closeAlert(id) {
@@ -84,10 +85,13 @@ class ConnectionEdit extends React.Component {
         const { dispatch, connectionType } = self.props;
         if(isCorrectConnection(connectionType, connectionTypes)) {
             if(!argsValidate(this.state.database.databaseArgs)) {
-                renderAlertErrorInfo('连接参数语法错误', 'edit-connect-error-tip', '100%', this);
+                utils.renderAlertErrorInfo(
+                    intl.get('DATABASE.CONN_GRAMMAR_ERROR'),
+                    'edit-connect-error-tip', '100%', this
+                );
                 return;
             }
-            dispatch(testConnection(
+            dispatch(actions.testConnection(
                 {
                     database_name: self.state.database.database_name,
                     sqlalchemy_uri: self.state.database.sqlalchemy_uri,
@@ -95,20 +99,20 @@ class ConnectionEdit extends React.Component {
                 }, callback)
             );
         }else if(connectionType === connectionTypes.hdfs) {
-            dispatch(testHDFSConnection(this.state.database.httpfs, callback));
+            dispatch(actions.testHDFSConnection(this.state.database.httpfs, callback));
         }
         function callback(success, message) {
             let exception = {};
             let connected;
             if(success) {
                 exception.type = "success";
-                exception.message = "该连接是一个合法连接";
+                exception.message = intl.get('DATABASE.CONN_IS_ILLEGAL');
                 connected = true;
             } else {
                 exception.type = "error";
-                exception.message = "该连接是一个不合法连接";
+                exception.message = intl.get('DATABASE.CONN_IS_UNILLEGAL');
                 connected = false;
-                renderAlertErrorInfo(message, 'edit-connect-error-tip', '100%', self);
+                utils.renderAlertErrorInfo(message, 'edit-connect-error-tip', '100%', self);
             }
             self.setState({
                 exception: exception,
@@ -118,7 +122,7 @@ class ConnectionEdit extends React.Component {
             if(isCorrectConnection(connectionType, connectionTypes)) {
                 connectType = connectionTypes.inceptor;
             }
-            renderAlertTip(exception, 'test-connect-tip-' + connectType, '100%');
+            utils.renderAlertTip(exception, 'test-connect-tip-' + connectType, '100%');
             if(typeof testCallBack === 'function') {
                 testCallBack(self.state.connected);
             }
@@ -165,8 +169,8 @@ class ConnectionEdit extends React.Component {
     argsOnBlur() {
         const args = this.state.database.databaseArgs;
         if(!argsValidate(args)) {
-            renderAlertErrorInfo(
-                '连接参数语法错误',
+            utils.renderAlertErrorInfo(
+                intl.get('DATABASE.CONN_GRAMMAR_ERROR'),
                 'edit-connect-error-tip',
                 '100%',
                  this
@@ -187,12 +191,12 @@ class ConnectionEdit extends React.Component {
     doUpdateConnection() {
         const {dispatch} = this.props;
         const self = this;
-        dispatch(fetchUpdateConnection(self.state.database, callback));
+        dispatch(actions.fetchUpdateConnection(self.state.database, callback));
         function callback(success, message) {
             if(success) {
                 self.closeAlert("popup_root");
             }else {
-                renderAlertErrorInfo(message, 'edit-connect-error-tip', '100%', self);
+                utils.renderAlertErrorInfo(message, 'edit-connect-error-tip', '100%', self);
             }
         }
     }
@@ -207,7 +211,7 @@ class ConnectionEdit extends React.Component {
                 if(success) {
                     self.doUpdateConnection();
                 }else {
-                    renderGlobalErrorMsg(data);
+                    utils.renderGlobalErrorMsg(data);
                 }
             }
         }
@@ -224,7 +228,7 @@ class ConnectionEdit extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-connect" />
-                                <span>编辑{connectionType}连接</span>
+                                <span>{intl.get('DATABASE.EDIT')}{connectionType}{intl.get('DATABASE.CONNECTION')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -238,7 +242,7 @@ class ConnectionEdit extends React.Component {
                             <div className={isCorrectConnection(connectionType, connectionTypes)?'':'none'} >
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>连接类型：</span>
+                                        <span>{intl.get('DATABASE.CONN_TYPE')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <span>{connectionType}</span>
@@ -247,7 +251,7 @@ class ConnectionEdit extends React.Component {
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
-                                        <span>连接名称：</span>
+                                        <span>{intl.get('DATABASE.CONN_TYPE')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <input
@@ -262,7 +266,7 @@ class ConnectionEdit extends React.Component {
 
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>描述：</span>
+                                        <span>{intl.get('DATABASE.DESCRIPTION')}：</span>
                                     </div>
                                     <div className="item-right">
                                     <textarea
@@ -277,7 +281,7 @@ class ConnectionEdit extends React.Component {
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
-                                        <span>连接串：</span>
+                                        <span>{intl.get('DATABASE.CONN_URI')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <input
@@ -298,7 +302,7 @@ class ConnectionEdit extends React.Component {
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
-                                        <span>连接参数：</span>
+                                        <span>{intl.get('DATABASE.CONN_PARAMS')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <textarea
@@ -326,7 +330,7 @@ class ConnectionEdit extends React.Component {
                                     <div className="item-right item-connect-test">
                                         <button className="test-connect" onClick={this.testConnection}>
                                             <i className="icon icon-connect-test" />
-                                            <span>测试连接</span>
+                                            <span>{intl.get('DATABASE.TEST_CONN')}</span>
                                         </button>
                                         <div id='test-connect-tip-INCEPTOR'></div>
                                     </div>
@@ -334,7 +338,7 @@ class ConnectionEdit extends React.Component {
                                 <div className="dialog-item">
                                     <div className="sub-item">
                                         <div className="item-left">
-                                            <span>创建者：</span>
+                                            <span>{intl.get('DATABASE.CREATOR')}：</span>
                                         </div>
                                         <div className="item-right">
                                             <span>{database.created_by_user}</span>
@@ -342,7 +346,7 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                     <div className="sub-item">
                                         <div className="item-left">
-                                            <span>修改者：</span>
+                                            <span>{intl.get('DATABASE.MODIFIER')}：</span>
                                         </div>
                                         <div className="item-right">
                                             <span>{database.changed_by_user}</span>
@@ -352,7 +356,7 @@ class ConnectionEdit extends React.Component {
                                 <div className="dialog-item">
                                     <div className="sub-item">
                                         <div className="item-left">
-                                            <span>创建日期：</span>
+                                            <span>{intl.get('DATABASE.CREATE_DATE')}：</span>
                                         </div>
                                         <div className="item-right">
                                             <span>{database.created_on}</span>
@@ -360,7 +364,7 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                     <div className="sub-item">
                                         <div className="item-left">
-                                            <span>修改时间：</span>
+                                            <span>{intl.get('DATABASE.MODIFY_TIME')}：</span>
                                         </div>
                                         <div className="item-right">
                                             <span>{database.changed_on}</span>
@@ -374,7 +378,7 @@ class ConnectionEdit extends React.Component {
                             <div className={connectionType===connectionTypes.hdfs?'':'none'} >
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>连接类型：</span>
+                                        <span>{intl.get('DATABASE.CONN_TYPE')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <span>{connectionType}</span>
@@ -383,7 +387,7 @@ class ConnectionEdit extends React.Component {
                                 <div className="dialog-item">
                                     <div className="item-left">
                                         <i>*</i>
-                                        <span>连接名称：</span>
+                                        <span>{intl.get('DATABASE.CONN_NAME')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <input
@@ -397,7 +401,7 @@ class ConnectionEdit extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>描述：</span>
+                                        <span>{intl.get('DATABASE.DESCRIPTION')}：</span>
                                     </div>
                                     <div className="item-right">
                                     <textarea
@@ -433,14 +437,14 @@ class ConnectionEdit extends React.Component {
                                     <div className="item-right item-connect-test">
                                         <button className="test-connect" onClick={this.testConnection}>
                                             <i className="icon icon-connect-test" />
-                                            <span>测试连接</span>
+                                            <span>{intl.get('DATABASE.TEST_CONN')}</span>
                                         </button>
                                         <div id='test-connect-tip-HDFS'></div>
                                     </div>
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>inceptor连接：</span>{/*默认inceptor连接*/}
+                                        <span>inceptor{intl.get('DATABASE.CONNECTION')}：</span>{/*默认inceptor连接*/}
                                     </div>
                                     <div className="item-right">
                                         <Select
@@ -460,7 +464,7 @@ class ConnectionEdit extends React.Component {
                                 <div className="dialog-item">
                                     <div className="sub-item">
                                         <div className="item-left">
-                                            <span>创建者：</span>
+                                            <span>{intl.get('DATABASE.CREATOR')}：</span>
                                         </div>
                                         <div className="item-right">
                                             <span>{database.created_by_user}</span>
@@ -468,7 +472,7 @@ class ConnectionEdit extends React.Component {
                                     </div>
                                     <div className="sub-item">
                                         <div className="item-left">
-                                            <span>修改者：</span>
+                                            <span>{intl.get('DATABASE.MODIFIER')}：</span>
                                         </div>
                                         <div className="item-right">
                                             <span>{database.changed_by_user}</span>
@@ -484,7 +488,7 @@ class ConnectionEdit extends React.Component {
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.confirm}
                                 disabled={this.state.disabled}
-                            >确定</button>
+                            >{intl.get('DATABASE.CONFIRM')}</button>
                         </div>
                     </div>
                 </div>
