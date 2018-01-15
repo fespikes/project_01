@@ -4,17 +4,22 @@ import { bindActionCreators } from 'redux';
 import { fetchIfNeeded, invalidateCondition, saveDatasetId, clearDatasetData } from '../actions';
 import { Pagination, Table, Operate } from '../components';
 import PropTypes from 'prop-types';
-import { renderAlertTip } from '../../../utils/utils';
+import intl from 'react-intl-universal';
+import { renderAlertTip, loadIntlResources } from '../../../utils/utils';
 
 class App extends Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            initDone: false
+        };
     }
 
     componentDidMount() {
         const { dispatch, condition } = this.props;
         dispatch(fetchIfNeeded(condition));
+
+        loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
     }
 
     componentWillReceiveProps(nextProps) {
@@ -34,7 +39,7 @@ class App extends Component {
         const {dispatch, response, condition} = this.props;
         const count = response.count;
 
-        return (
+        return (this.state.initDone &&
             <div className="pilot-panel datasource-panel">
                 <div className="panel-top">
                     <div className="left">
@@ -42,8 +47,8 @@ class App extends Component {
                             className="icon icon-table"
                             style={{zoom: 0.8}}
                         />
-                        <span>数据集</span>
-                        <span>记录条目</span>
+                        <span>{intl.get('DATASET.DATASET')}</span>
+                        <span>{intl.get('DATASET.RECORD')}</span>
                         <span>{count +''}</span>
                     </div>
                     <div className="right">

@@ -10,7 +10,8 @@ import {Confirm, CreateHDFSConnect, CreateInceptorConnect} from '../../popup';
 import {fetchSchemaList, datasetTypes} from '../../actions';
 import {constructInceptorDataset, initDatasetData, extractOpeType, getDatasetId, extractDatasetType} from '../../module';
 import {appendTreeData, constructTreeData} from '../../../../utils/common2';
-import {renderLoadingModal, renderAlertTip, renderGlobalErrorMsg, fetchDatabaseList,PILOT_PREFIX} from '../../../../utils/utils';
+import {renderLoadingModal, renderAlertTip, renderGlobalErrorMsg, fetchDatabaseList,PILOT_PREFIX,loadIntlResources} from '../../../../utils/utils';
+import intl from 'react-intl-universal';
 
 const $ = window.$ = require('jquery');
 
@@ -20,7 +21,8 @@ class InceptorDetail extends Component {
         super(props);
         this.state = {
             dsInceptor: props.dsInceptor,
-            disabled: 'disabled'
+            disabled: 'disabled',
+            initDone: false
         };
         //bindings
         this.onSave = this.onSave.bind(this);
@@ -189,6 +191,7 @@ class InceptorDetail extends Component {
                 this.doDatasetEdit();
             }
         }
+        loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
     }
 
     doFetchDatabaseList() {
@@ -260,6 +263,7 @@ class InceptorDetail extends Component {
                 dsInceptor: nextProps.dsInceptor
             });
         }
+        loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
     };
 
     render () {
@@ -271,12 +275,12 @@ class InceptorDetail extends Component {
                 return <Option key={database.id}>{database.database_name}</Option>
             });
         }
-        return (
+        return (this.state.initDone &&
             <div className="inceptor-detail">
                 <div className="data-detail-item">
                     <div>
                         <i>*</i>
-                        <span>数据集名称：</span>
+                        <span>{intl.get('DATASET.DATASET_NAME')}：</span>
                     </div>
                     <input
                         type="text"
@@ -288,7 +292,7 @@ class InceptorDetail extends Component {
                     />
                 </div>
                 <div className="data-detail-item">
-                    <span>描述：</span>
+                    <span>{intl.get('DATASET.DESCRIPTION')}：</span>
                     <textarea
                         name="description"
                         className="tp-textarea"
@@ -300,7 +304,7 @@ class InceptorDetail extends Component {
                 <div className="data-detail-item">
                     <div>
                         <i>*</i>
-                        <span>选择连接：</span>
+                        <span>{intl.get('DATASET.SELECT_CONN')}：</span>
                     </div>
                     <Select
                         style={{ width: 230 }}
@@ -321,7 +325,7 @@ class InceptorDetail extends Component {
                 <div className="data-detail-item">
                     <div>
                         <i>*</i>
-                        <span>选择表：</span>
+                        <span>{intl.get('DATASET.SELECT_TABLE')}：</span>
                     </div>
                     <TreeSelect
                         showSearch
@@ -350,19 +354,19 @@ class InceptorDetail extends Component {
                         name="sql"
                         onChange={this.handleChange}
                     />
-                    <Tooltip title="如果添加了SQL，则上面选择的表将失效，工作表的查询将作为该SQL的子查询">
+                    <Tooltip title={intl.get('DATASET.ADD_SQL_TIP')}>
                         <i
                             className="icon icon-info"
                             style={{right: '-5px', position: 'relative'}}
                         />
                     </Tooltip>
                     <a href={ window.location.origin + PILOT_PREFIX + 'sqllab' } target="_blank">
-                        切换至SQL LAB编辑
+                        {intl.get('DATASET.SWITCH_SQL_LAB_EDIT')}
                     </a>
                 </div>
                 <div className="sub-btn">
                     <button onClick={this.onSave} disabled={this.state.disabled}>
-                        保存
+                        {intl.get('DATASET.SAVE')}
                     </button>
                 </div>
             </div>

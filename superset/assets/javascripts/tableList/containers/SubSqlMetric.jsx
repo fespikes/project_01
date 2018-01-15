@@ -9,7 +9,8 @@ import { Table, Input, Button, Icon, message, Select } from 'antd';
 import { SQLMetricAdd, SQLMetricDelete } from '../popup';
 import * as actionCreators from '../actions';
 const _ = require('lodash');
-import {renderAlertTip, renderLoadingModal, renderGlobalErrorMsg} from '../../../utils/utils';
+import intl from 'react-intl-universal';
+import {loadIntlResources, renderGlobalErrorMsg} from '../../../utils/utils';
 import {getMetricTypeOptions} from '../module';
 
 class SubSqlMetric extends Component {
@@ -30,6 +31,8 @@ class SubSqlMetric extends Component {
         if (datasetId) {
             getSQLMetric(datasetId);
         }
+
+        loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
     }
 
     componentWillReceiveProps(nextProps) {
@@ -48,7 +51,7 @@ class SubSqlMetric extends Component {
         const { datasetId, fetchSQLMetricAdd } =  this.props;
         render(
             <SQLMetricAdd
-                title="添加SQL度量"
+                title={intl.get('DATASET.ADD_SQL_METRIC')}
                 datasetId={datasetId}
                 fetchSQLMetricAdd={fetchSQLMetricAdd} />,
             document.getElementById('popup_root')
@@ -57,7 +60,7 @@ class SubSqlMetric extends Component {
 
     removeMetric (metric) {
         const { fetchSQLMetricDelete } = this.props;
-        let deleteTips = "确定删除" + metric.metric_name + "?";
+        let deleteTips = intl.get('DATASET.CONFIRM') + intl.get('DATASET.DELETE') + metric.metric_name + "?";
         render(
             <SQLMetricDelete
                 fetchSQLMetricDelete={fetchSQLMetricDelete}
@@ -114,19 +117,19 @@ class SubSqlMetric extends Component {
 
     formValidate(metric) {
         if(!(metric.metric_name && metric.metric_name.length > 0)) {
-            renderGlobalErrorMsg('度量名不能为空！');
+            renderGlobalErrorMsg(intl.get('DATASET.METRIC_NOT_NULL'));
             return;
         }
         if(!(metric.metric_type && metric.metric_type.length > 0)) {
-            renderGlobalErrorMsg('类型不能为空！');
+            renderGlobalErrorMsg(intl.get('DATASET.TYPE_NOT_NULL'));
             return;
         }
         if(!(metric.expression && metric.expression.length > 0)) {
-            renderGlobalErrorMsg('表达式不能为空！');
+            renderGlobalErrorMsg(intl.get('DATASET.EXPRESSION_NOT_NULL'));
             return;
         }
         if(!this.props.datasetId) {
-            renderGlobalErrorMsg('数据集ID不能为空！');
+            renderGlobalErrorMsg(intl.get('DATASET.ID_NOT_NULL'));
             return;
         }else {
             metric.dataset_id = this.props.datasetId;
@@ -152,7 +155,7 @@ class SubSqlMetric extends Component {
         const options = getMetricTypeOptions();
 
         const columns = [{
-            title: '度量',
+            title: intl.get('DATASET.METRIC'),
             dataIndex: 'metric_name',
             key: 'metric_name',
             width: '30%',
@@ -169,7 +172,7 @@ class SubSqlMetric extends Component {
                 )
             }
         }, {
-            title: '表达式',
+            title: intl.get('DATASET.EXPRESSION'),
             dataIndex: 'expression',
             key: 'expression',
             width: '40%',
@@ -186,7 +189,7 @@ class SubSqlMetric extends Component {
                 )
             }
         }, {
-            title: '类型',
+            title: intl.get('DATASET.TYPE'),
             dataIndex: 'metric_type',
             key: 'metric_type',
             width: '20%',
@@ -203,7 +206,7 @@ class SubSqlMetric extends Component {
                 )
             }
         }, {
-            title: '操作',
+            title: intl.get('DATASET.OPERATION'),
             dataIndex: 'operation',
             key: 'operation',
             width: '10%',
@@ -225,7 +228,7 @@ class SubSqlMetric extends Component {
                         className='btn-blue tab-btn-ps'
                         onClick={me.addSQLMetric}
                         disabled={me.props.datasetId === '' ? true : false}
-                    >+&nbsp; 添加</button>
+                    >+&nbsp; {intl.get('DATASET.ADD')}</button>
                 </div>
                 <Table
                     columns={columns}

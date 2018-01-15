@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { Select, Checkbox, Tooltip, Alert } from 'antd';
 import PropTypes from 'prop-types';
 const _ = require('lodash');
+import intl from 'react-intl-universal';
 
 class TableColumnAdd extends React.Component {
     constructor(props) {
@@ -117,35 +118,35 @@ class TableColumnAdd extends React.Component {
         const CheckboxGroup = Checkbox.Group;
         const checkboxOptions = [
             {
-                label: '可分组',
+                label: intl.get('DATASET.GROUP'),
                 value: 'groupby'
             },
             {
-                label: '可筛选',
+                label: intl.get('DATASEET.FILTER'),
                 value: 'filterable'
             },
             {
-                label: '可计数',
+                label: intl.get('DATASEET.COUNT'),
                 value: 'count_distinct'
             },
             {
-                label: '可表示时间',
+                label: intl.get('DATASEET.SHOW_TIME'),
                 value: 'is_dttm'
             },
             {
-                label: '可求最小值',
+                label: intl.get('DATASEET.MIN'),
                 value: 'min'
             },
             {
-                label: '可求最大值',
+                label: intl.get('DATASEET.MAX'),
                 value: 'max'
             },
             {
-                label: '可求和',
+                label: intl.get('DATASEET.SUM'),
                 value: 'sum'
             },
             {
-                label: '可求平均值',
+                label: intl.get('DATASEET.ADVANTAGE'),
                 value: 'avg'
             }
         ];
@@ -179,7 +180,7 @@ class TableColumnAdd extends React.Component {
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <i>*</i>
-                                    <span className="item-label">列：</span>
+                                    <span className="item-label">{intl.get('DATASET.COLUMN')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <input
@@ -193,7 +194,7 @@ class TableColumnAdd extends React.Component {
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <i>*</i>
-                                    <span className="item-label">表达式：</span>
+                                    <span className="item-label">{intl.get('DATASET.EXPRESSION')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <textarea
@@ -202,7 +203,7 @@ class TableColumnAdd extends React.Component {
                                         value={column.expression}
                                         onChange={this.handleInputChange}
                                     />
-                                    <Tooltip placement="topRight" title="生成新列的SQL语法，比如：col+1">
+                                    <Tooltip placement="topRight" title={intl.get('DATASET.COLUMN_EXPRESSION_TIP')}>
                                         <i
                                             className="icon icon-info after-textarea-icon"
                                             style={{top: 35}}
@@ -213,7 +214,7 @@ class TableColumnAdd extends React.Component {
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <i>*</i>
-                                    <span className="item-label">类型：</span>
+                                    <span className="item-label">{intl.get('DATASET.TYPE')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <input
@@ -227,14 +228,14 @@ class TableColumnAdd extends React.Component {
                             <div className="dialog-item">
                                 <div className="item-left"></div>
                                 <div className="item-right">
-                                    <Checkbox name="groupby" checked={groupby} onChange={this.handleCheckboxChange}>可分组</Checkbox>
-                                    <Checkbox name="filterable" checked={filterable} onChange={this.handleCheckboxChange}>可筛选</Checkbox>
-                                    <Checkbox name="count_distinct" checked={count_distinct} onChange={this.handleCheckboxChange}>可计数</Checkbox>
-                                    <Checkbox name="is_dttm" checked={is_dttm} onChange={this.handleCheckboxChange}>可表示时间：</Checkbox>
-                                    <Checkbox name="sum" checked={sum} onChange={this.handleCheckboxChange}>可求和</Checkbox>
-                                    <Checkbox name="avg" checked={avg} onChange={this.handleCheckboxChange}>可求平均值</Checkbox>
-                                    <Checkbox name="min" checked={min} onChange={this.handleCheckboxChange}>可求最小值</Checkbox>
-                                    <Checkbox name="max" checked={max} onChange={this.handleCheckboxChange}>可求最大值</Checkbox>
+                                    <Checkbox name="groupby" checked={groupby} onChange={this.handleCheckboxChange}>{intl.get('DATASET.GROUP')}</Checkbox>
+                                    <Checkbox name="filterable" checked={filterable} onChange={this.handleCheckboxChange}>{intl.get('DATASET.FILTER')}</Checkbox>
+                                    <Checkbox name="count_distinct" checked={count_distinct} onChange={this.handleCheckboxChange}>{intl.get('DATASET.COUNT')}</Checkbox>
+                                    <Checkbox name="is_dttm" checked={is_dttm} onChange={this.handleCheckboxChange}>{intl.get('DATASET.SHOW_TIME')}</Checkbox>
+                                    <Checkbox name="sum" checked={sum} onChange={this.handleCheckboxChange}>{intl.get('DATASET.SUM')}</Checkbox>
+                                    <Checkbox name="avg" checked={avg} onChange={this.handleCheckboxChange}>{intl.get('DATASET.AVERAGE')}</Checkbox>
+                                    <Checkbox name="min" checked={min} onChange={this.handleCheckboxChange}>{intl.get('DATASET.MIN')}</Checkbox>
+                                    <Checkbox name="max" checked={max} onChange={this.handleCheckboxChange}>{intl.get('DATASET.MAX')}</Checkbox>
                                 </div>
                             </div>
                             <div className="error" ref="alertRef" style={{display: 'none'}}>
@@ -253,7 +254,7 @@ class TableColumnAdd extends React.Component {
                                 onClick={this.confirm}
                                 disabled={!this.state.enableConfirm}
                             >
-                                保存
+                                {intl.get('DATASET.SAVE')}
                             </button>
                         </div>
                     </div>
