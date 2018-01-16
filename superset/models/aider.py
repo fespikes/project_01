@@ -17,7 +17,7 @@ from superset import app, db
 from superset.utils import GUARDIAN_AUTH
 from superset.exception import PropertyException
 from .base import QueryStatus
-from .dataset import Dataset
+from .dataset import Dataset, TableColumn, SqlMetric
 from .connection import Database, HDFSConnection, Connection
 from .core import Slice, Dashboard
 
@@ -30,6 +30,16 @@ str_to_model = {
     'database': Database,
     'hdfsconnection': HDFSConnection,
     'connection': Connection
+}
+
+model_name_columns = {
+    'slice': Slice.slice_name,
+    'dashboard': Dashboard.dashboard_title,
+    'dataset': Dataset.dataset_name,
+    'tablecolumn': TableColumn.column_name,
+    'sqlmetric': SqlMetric.metric_name,
+    'database': Database.database_name,
+    'hdfsconnection': HDFSConnection.connection_name,
 }
 
 
