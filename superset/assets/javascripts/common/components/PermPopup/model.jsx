@@ -43,19 +43,19 @@ export function makeTableDataSource(data) {
     return dataSource;
 }
 
-export function makeTableColumns(_this) {
+export function makeTableColumns(_this, intl) {
     const columns = [{
-        title: '用户名',
+        title: intl.get('SLICE.USER_NAME'),
         dataIndex: 'name',
         key: 'name',
         width: '40%'
     }, {
-        title: '权限',
+        title: intl.get('SLICE.PERM'),
         dataIndex: 'perm',
         key: 'perm',
         width: '40%'
     }, {
-        title: '操作',
+        title: intl.get('SLICE.OPERATION'),
         key: 'action',
         width: '20%',
         render: (text, record) => {

@@ -8,7 +8,7 @@ const propTypes = {
     expandedSlices: PropTypes.object,
 };
 
-function SliceCell({ expandedSlices, removeSlice, slice }) {
+function SliceCell({ expandedSlices, removeSlice, slice, intl }) {
     return (
         <div className="slice-cell" id={`${slice.token}-cell`}>
             <div className="chart-header">
@@ -18,13 +18,13 @@ function SliceCell({ expandedSlices, removeSlice, slice }) {
                     </div>
                     <div className="col-md-12 chart-controls">
                         <div className="pull-right">
-                            <Tooltip title="拖动" placement="top">
+                            <Tooltip title={intl.get('DASHBOARD.DRAG_SLICE')} placement="top">
                                 <a>
                                     <i className="fa fa-arrows drag" />
                                 </a>
                             </Tooltip>
 
-                            <Tooltip title="点击强制刷新" placement="top">
+                            <Tooltip title={intl.get('DASHBOARD.FORCE_REFRESH')} placement="top">
                                 <a className="refresh">
                                     <i className="fa fa-repeat" />
                                 </a>
@@ -40,13 +40,13 @@ function SliceCell({ expandedSlices, removeSlice, slice }) {
                             </Tooltip>
                             }
 
-                            <Tooltip title="编辑工作表" placement="top">
+                            <Tooltip title={intl.get('DASHBOARD.EDIT_DASHBOARD')} placement="top">
                                 <a href={slice.slice_url}>
                                     <i className="fa fa-pencil" />
                                 </a>
                             </Tooltip>
 
-                            <Tooltip title="从该仪表盘移除" placement="top">
+                            <Tooltip title={intl.get('DASHBOARD.REMOVE_SLICE')} placement="top">
                                 <a className="remove-chart">
                                     <i
                                         className="fa fa-close"

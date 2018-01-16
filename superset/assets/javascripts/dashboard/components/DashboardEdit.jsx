@@ -3,6 +3,8 @@ import React, { PropTypes } from 'react';
 import ModalTrigger from '../../components/ModalTrigger';
 require('react-bootstrap-table/css/react-bootstrap-table.css');
 import { Select } from 'antd';
+import { loadIntlResources } from '../../../utils/utils';
+import intl from 'react-intl-universal';
 
 const propTypes = {
     dashboard: PropTypes.object.isRequired,
@@ -56,6 +58,8 @@ class DashboardEdit extends React.Component {
             });
             return defaultOptions;
         }
+
+        loadIntlResources(_ => this.setState({ initDone: true }), 'dashboard');
     }
 
     componentWillUnmount() {
@@ -98,7 +102,7 @@ class DashboardEdit extends React.Component {
                 selectedSlices: value
             });
         }
-        const modalTitle = "编辑仪表板";
+        const modalTitle = intl.get('DASHBOARD.EDIT_DASHBOARD');
         const modalIcon = "icon icon-dashboard-popup";
         const modalContent = (
             <div>
@@ -112,7 +116,7 @@ class DashboardEdit extends React.Component {
                 </div>
                 <div className="dialog-item">
                     <div className="item-left">
-                        <span>标题：</span>
+                        <span>{intl.get('DASHBOARD.TITLE')}：</span>
                     </div>
                     <div className="item-right">
                         <input
@@ -124,7 +128,7 @@ class DashboardEdit extends React.Component {
                 </div>
                 <div className="dialog-item">
                     <div className="item-left">
-                        <span>描述：</span>
+                        <span>{intl.get('DASHBOARD.DESCRIPTION')}：</span>
                     </div>
                     <div className="item-right">
                         <textarea
@@ -136,7 +140,7 @@ class DashboardEdit extends React.Component {
                 </div>
                 <div className="dialog-item">
                     <div className="item-left">
-                        <span>工作表：</span>
+                        <span>{intl.get('DASHBOARD.SLICE')}：</span>
                     </div>
                     <div className="item-right">
                         <div id="edit_pop_select">
@@ -144,7 +148,7 @@ class DashboardEdit extends React.Component {
                                 mode={'multiple'}
                                 style={{ width: '100%' }}
                                 defaultValue={this.state.selectedSlices}
-                                placeholder="select the slices..."
+                                placeholder={intl.get('DASHBOARD.SELECT_SLICE')}
                                 onChange={onChange}
                             >
                             {options}
@@ -154,7 +158,7 @@ class DashboardEdit extends React.Component {
                 </div>
                 <div className="dialog-item">
                     <div className="item-left">
-                        <span>数据集：</span>
+                        <span>{intl.get('DASHBOARD.DATASET')}：</span>
                     </div>
                     <div className="item-right">
                         <input
@@ -174,7 +178,7 @@ class DashboardEdit extends React.Component {
                     onClick={this.editDashboard}
                     disabled={!this.state.enableConfirm}
                 >
-                    确定
+                    {intl.get('DASHBOARD.CONFIRM')}
                 </button>
             </div>
         );

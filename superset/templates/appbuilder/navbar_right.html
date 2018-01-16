@@ -1,31 +1,39 @@
 
-{#{% set locale = session['locale'] %}#}
-{#{% if not locale %}#}
-{#    {% set locale = 'en' %}#}
-{#{% endif %}#}
-{#{% if languages.keys()|length > 1 %}#}
-{#<li class="dropdown">#}
-{#    <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)">#}
-{#       <div class="f16"><i class="icon"></i>#}
-{#       </div>#}
-{#    </a>#}
-{#    <ul class="dropdown-menu">#}
-{#      <li class="dropdown ">#}
-{#        {% for lang in languages %}#}
-{#            {% if lang != locale %}#}
-{#                <a tabindex="-1" href="{{appbuilder.get_url_for_locale(lang)}}">#}
-{#                  <div class="f16">#}
-{#                   - {{languages[lang].get('name')}}#}
-{#                  </div>#}
-{#                </a>#}
-{#            {% endif %}#}
-{#        {% endfor %}#}
-{#      </li>#}
-{#    </ul>#}
-{#</li>#}
-{#{% endif %}#}
-
-
+{% set locale = session['locale'] %}
+{% if not locale %}
+    {% set locale = 'en' %}
+{% endif %}
+{% if languages.keys()|length > 1 %}
+<script type="text/javascript">
+    function setCurrentLocale() {
+        const locale = document.getElementById('lan-switch-id').getAttribute('name');
+        sessionStorage.setItem('pilot:currentLocale', locale);
+    }
+</script>
+<li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)">
+       <div class="f16"><i class="icon"></i>
+       </div>
+    </a>
+    <ul class="dropdown-menu">
+      <li class="dropdown ">
+        {% for lang in languages %}
+            {% if lang != locale %}
+                <a tabindex="-1" href="{{appbuilder.get_url_for_locale(lang)}}">
+                  <div
+                      id="lan-switch-id" class="f16"
+                      name={{languages[lang].get('value')}}
+                      onclick="javascript:setCurrentLocale()"
+                  >
+                      - {{languages[lang].get('name')}}
+                  </div>
+                </a>
+            {% endif %}
+        {% endfor %}
+      </li>
+    </ul>
+</li>
+{% endif %}
 
 {% if not current_user.is_anonymous() %}
     <li class="dropdown">

@@ -3,6 +3,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import SliceCell from './SliceCell';
+import intl from 'react-intl-universal';
+import { loadIntlResources } from '../../../utils/utils';
 
 require('react-grid-layout/css/styles.css');
 require('react-resizable/css/styles.css');
@@ -80,6 +82,10 @@ class GridLayout extends React.Component {
     }));
   }
 
+  componentDidMount() {
+    loadIntlResources(_ => this.setState({ initDone: true }), 'dashboard');
+  }
+
   render() {
     return (
       <ResponsiveReactGridLayout
@@ -103,6 +109,7 @@ class GridLayout extends React.Component {
           >
             <SliceCell
               slice={slice}
+              intl={intl}
               removeSlice={this.removeSlice.bind(this, slice.slice_id)}
               expandedSlices={this.props.dashboard.metadata.expanded_slices}
             />

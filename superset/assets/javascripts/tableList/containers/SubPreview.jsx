@@ -9,7 +9,8 @@ import {datasetTypes} from '../actions';
 import {Table, Select, Tooltip} from 'antd';
 import * as datasetModule from '../module';
 import {DetailType} from '../popup';
-import {renderAlertTip, renderGlobalErrorMsg} from '../../../utils/utils';
+import intl from 'react-intl-universal';
+import {renderAlertTip, renderGlobalErrorMsg, loadIntlResources} from '../../../utils/utils';
 
 class SubPreview extends Component {
 
@@ -19,6 +20,7 @@ class SubPreview extends Component {
             tableWidth: '100%',
             columnNames: [],
             operatorChange: false,
+            initDone: false,
             dsHDFS: this.initHDFSDataset(props)
         };
         //bindings
@@ -57,6 +59,8 @@ class SubPreview extends Component {
                 this.doFetchHDFSPreviewData(dsHDFS, false);
             }
         }
+
+        loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
     }
 
     componentWillReceiveProps(nextProps) {
@@ -269,35 +273,38 @@ class SubPreview extends Component {
     }
 
     saveHDFSDataset() {
-        const self = this;
-        const { createDataset, editDataset } = this.props;
-        const dsHDFS = datasetModule.constructHDFSDataset(
-            this.state.dsHDFS, this.state.columnNames
-        );
+        const dsHDFS = datasetModule.constructHDFSDataset(this.state.dsHDFS, this.state.columnNames);
         const opeType = datasetModule.extractOpeType(window.location.hash);
-
         if(opeType === 'add') {
-            createDataset(dsHDFS, callback);
-            function callback(success, data) {
-                if(success) {
-                    let url = '/' + opeType + '/columns/HDFS/';
-                    self.props.history.push(url);
-                }else {
-                    renderGlobalErrorMsg(data);
-                }
-            }
+            this.createHDFS(opeType, dsHDFS);
         }else if(opeType === 'edit') {
-            let hdfsId = datasetModule.getDatasetId(
-                opeType, window.location.hash
-            );
-            editDataset(dsHDFS, hdfsId, callback);
-            function callback(success, data) {
-                if(success) {
-                    let url = '/' + opeType + '/columns/HDFS/' + hdfsId;
-                    self.props.history.push(url);
-                }else {
-                    renderGlobalErrorMsg(data);
-                }
+            this.editHDFS(opeType, dsHDFS);
+        }
+    }
+
+    createHDFS(opeType, hdfs) {
+        const self = this;
+        this.props.createDataset(hdfs, callback);
+        function callback(success, data) {
+            if(success) {
+                let url = '/' + opeType + '/columns/HDFS/';
+                self.props.history.push(url);
+            }else {
+                renderGlobalErrorMsg(data);
+            }
+        }
+    }
+
+    editHDFS(opeType, hdfs) {
+        const self = this;
+        const hdfsId = datasetModule.getDatasetId(opeType, window.location.hash);
+        this.props.editDataset(hdfs, hdfsId, callback);
+        function callback(success, data) {
+            if(success) {
+                let url = '/' + opeType + '/columns/HDFS/' + hdfsId;
+                self.props.history.push(url);
+            }else {
+                renderGlobalErrorMsg(data);
             }
         }
     }
@@ -311,7 +318,7 @@ class SubPreview extends Component {
         const dsHDFS = this.state.dsHDFS;
         const tableWidth = this.state.tableWidth;
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
-        return (
+        return (this.state.initDone &&
             <div id="data-preview-id" className="data-preview-box">
                 <div className="preview-table">
                     <div
@@ -364,7 +371,7 @@ class SubPreview extends Component {
                 >
                     <div className="data-detail-border">
                         <div className="data-detail-item">
-                            <span>文件类型：</span>
+                            <span>{intl.get('DATASET.FILE_TYPE')}：</span>
                             <input
                                 type="text" value={dsHDFS.file_type}
                                 className="tp-input" name="file_type"
@@ -372,7 +379,7 @@ class SubPreview extends Component {
                             />
                         </div>
                         <div className="data-detail-item">
-                            <span>分隔符：</span>
+                            <span>{intl.get('DATASET.SEPARATOR')}：</span>
                             <input
                                 type="text" value={dsHDFS.separator}
                                 className="tp-input" name="separator"
@@ -380,7 +387,7 @@ class SubPreview extends Component {
                             />
                         </div>
                         <div className="data-detail-item">
-                            <span>引号符：</span>
+                            <span>{intl.get('DATASET.QUOTE')}：</span>
                             <input
                                 type="text" value={dsHDFS.quote}
                                 className="tp-input" name="quote"
@@ -397,8 +404,8 @@ class SubPreview extends Component {
                                     checked={dsHDFS.next_as_header}
                                     onChange={this.handleChange}
                                 />
-                                <p>第一行为列名</p>
-                                <Tooltip placement="top" title="自动忽略空白行">
+                                <p>{intl.get('DATASET.FIRST_ROW_AS_COLUMN_NAME')}</p>
+                                <Tooltip placement="top" title={intl.get('DATASET.IGNORE_BLANK_LINE')}>
                                     <i
                                         className="icon icon-infor"
                                         style={{marginLeft: '8px'}}
@@ -407,7 +414,7 @@ class SubPreview extends Component {
                             </div>
                         </div>
                         <div className="data-detail-item">
-                            <span>字符集：</span>
+                            <span>{intl.get('DATASET.CHARSET')}：</span>
                             <Select
                                 style={{width: 312}}
                                 value={dsHDFS.charset}
@@ -425,10 +432,10 @@ class SubPreview extends Component {
                             onClick={this.previewHDFSDataset}
                             style={{marginRight: 20}}
                         >
-                            预览
+                            {intl.get('DATASET.PREVIEW')}
                         </button>
                         <button onClick={this.saveHDFSDataset}>
-                            保存
+                            {intl.get('DATASET.SAVE')}
                         </button>
                     </div>
                     <div id="showAlertPreview" className="alert-tip"></div>

@@ -5,6 +5,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Select, Alert } from 'antd';
 import PropTypes from 'prop-types';
+import intl from 'react-intl-universal';
 
 class DetailType extends React.Component {
     constructor(props) {
@@ -31,7 +32,7 @@ class DetailType extends React.Component {
 
     render() {
         const {dataType} = this.props;
-        const title = "设置" + dataType + "精度";
+        const title = intl.get('DATASET.SET') + dataType + intl.get('DATASET.PRECISION');
         return (
             <div className="popup" ref="popupDetailType">
                 <div className="popup-dialog popup-sm">
@@ -49,7 +50,7 @@ class DetailType extends React.Component {
                             <div className={dataType.indexOf('varchar')>-1?'':'none'}>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span style={{display: 'inline-block'}}>最大字符串长度：</span>
+                                        <span style={{display: 'inline-block'}}>{intl.get('DATASET.MAX_STRING_LENGTH')}：</span>
                                     </div>
                                     <div className="item-right" style={{width: 300}}>
                                         <input className="form-control dialog-input" defaultValue="20" ref="maxLen"/>
@@ -59,7 +60,7 @@ class DetailType extends React.Component {
                             <div className={dataType.indexOf('decimal')>-1?'':'none'}>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>有效位数：</span>
+                                        <span>{intl.get('DATASET.VALID_NUM')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <input className="form-control dialog-input" defaultValue="10" ref="effectiveNum"/>
@@ -67,7 +68,7 @@ class DetailType extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>小数位数：</span>
+                                        <span>{intl.get('DATASET.DECIMAL_NUM')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <input className="form-control dialog-input" defaultValue="2" ref="decimalNum"/>
@@ -77,7 +78,7 @@ class DetailType extends React.Component {
                         </div>
                         <div className="popup-footer">
                             <button className="tp-btn tp-btn-middle tp-btn-primary" onClick={this.confirm}>
-                                确定
+                                {intl.get('DATASET.CONFIRM')}
                             </button>
                         </div>
                     </div>

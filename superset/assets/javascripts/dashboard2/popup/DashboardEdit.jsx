@@ -7,6 +7,7 @@ import { fetchAvailableSlices, fetchUpdateDashboard } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
 import { renderAlertErrorInfo } from '../../../utils/utils';
+import intl from 'react-intl-universal';
 
 class DashboardEdit extends React.Component {
     constructor(props) {
@@ -96,7 +97,7 @@ class DashboardEdit extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-dashboard-popup" />
-                                <span>编辑仪表板</span>
+                                <span>{intl.get('DASHBOARD.EDIT_DASHBOARD')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -109,7 +110,7 @@ class DashboardEdit extends React.Component {
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <i>*</i>
-                                    <span>标题：</span>
+                                    <span>{intl.get('DASHBOARD.TITLE')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <input
@@ -122,7 +123,7 @@ class DashboardEdit extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
-                                    <span>描述：</span>
+                                    <span>{intl.get('DASHBOARD.DESCRIPTION')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <textarea
@@ -134,21 +135,21 @@ class DashboardEdit extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
-                                    <span>工作表：</span>
+                                    <span>{intl.get('DASHBOARD.SLICE')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <div id="edit_pop_select">
                                         <Select mode={'multiple'}
                                             style={{ width: '100%' }}
                                             defaultValue={defaultOptions}
-                                            placeholder="选择工作表"
+                                            placeholder={intl.get('DASHBOARD.SELECT_SLICE')}
                                             onChange={this.onSelectChange}
                                         >
                                             {options}
                                         </Select>
                                     </div>
                                     <Tooltip
-                                        title="添加或移除该仪表盘包含的工作表"
+                                        title={intl.get('DASHBOARD.SELECT_SLICE_TIP')}
                                         placement="topRight"
                                     >
                                         <i className="icon icon-info after-icon" />
@@ -157,7 +158,7 @@ class DashboardEdit extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
-                                    <span>数据集：</span>
+                                    <span>{intl.get('DASHBOARD.DATASET')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <input
@@ -175,7 +176,7 @@ class DashboardEdit extends React.Component {
                                 onClick={this.confirm}
                                 disabled={!this.state.enableConfirm}
                             >
-                                确定
+                                {intl.get('DASHBOARD.CONFIRM')}
                             </button>
                         </div>
                     </div>

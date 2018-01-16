@@ -5,9 +5,10 @@ import ReactDOM from 'react-dom';
 import {render} from 'react-dom';
 import {Button, FormControl, FormGroup, Radio} from 'react-bootstrap';
 import {getAjaxErrorMsg} from '../../modules/utils';
-import {PILOT_PREFIX, renderLoadingModal} from '../../../utils/utils';
+import {PILOT_PREFIX, renderLoadingModal, loadIntlResources} from '../../../utils/utils';
 import ModalTrigger from '../../components/ModalTrigger';
 import {ConfirmModal} from '../../common/components';
+import intl from 'react-intl-universal';
 
 const propTypes = {
     css: React.PropTypes.string,
@@ -65,7 +66,7 @@ class SaveModal extends React.PureComponent {
                 saveModal.close();
                 loadingModal.hide();
                 const errorMsg = getAjaxErrorMsg(error);
-                const confirmMessage = '仪表板保存失败' +'  '+ errorMsg;
+                const confirmMessage = intl.get('DASHBOARD.SAVE_ERROR') +'  '+ errorMsg;
                 render(
                     <ConfirmModal
                         confirmType='error'
@@ -102,7 +103,7 @@ class SaveModal extends React.PureComponent {
                 render(
                     <ConfirmModal
                         confirmType='error'
-                        confirmMessage='必须为新的仪表板选择一个名字'
+                        confirmMessage={intl.get('DASHBOARD.SELECT_NAME_FOR_NEW_DASHBOARD')}
                     />,
                     document.getElementById('popup_root')
                 );
@@ -113,13 +114,18 @@ class SaveModal extends React.PureComponent {
             }
         }
     }
+
+    componentDidMount() {
+        loadIntlResources(_ => this.setState({ initDone: true }), 'dashboard');
+    }
+
     render() {
         return (
             <ModalTrigger
                 ref={(modal) => { this.modal = modal; }}
                 triggerNode={this.props.triggerNode}
                 isButton
-                modalTitle="保存仪表板"
+                modalTitle={intl.get('DASHBOARD.SAVE_DASHBOARD')}
                 modalIcon="icon icon-save"
                 className="popup-modal-save-dashboard"
                 modalBody={
@@ -128,17 +134,17 @@ class SaveModal extends React.PureComponent {
                             value="overwrite"
                             onChange={this.handleSaveTypeChange}
                             checked={this.state.saveType === 'overwrite'}>
-                            覆盖仪表板 [{this.props.dashboard.dashboard_title}]
+                            {intl.get('DASHBOARD.OVERRIDE_DASHBOARD')} [{this.props.dashboard.dashboard_title}]
                         </Radio>
                         <Radio
                             value="newDashboard"
                             onChange={this.handleSaveTypeChange}
                             checked={this.state.saveType === 'newDashboard'}>
-                            另存为:
+                            {intl.get('DASHBOARD.SAVE_AS')}:
                         </Radio>
                         <FormControl
                             type="text"
-                            placeholder="仪表板名字"
+                            placeholder={intl.get('DASHBOARD.DASHBOARD_NAME')}
                             onFocus={this.handleNameChange}
                             onChange={this.handleNameChange}
                         />
@@ -152,7 +158,7 @@ class SaveModal extends React.PureComponent {
                             data-dismiss="modal"
                             onClick={() => { this.saveDashboard(this.state.saveType, this.state.newDashName); }}
                             >
-                            保存
+                            {}
                         </Button>
                     </div>
                 }

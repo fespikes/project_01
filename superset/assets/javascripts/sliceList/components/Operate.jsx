@@ -3,7 +3,8 @@ import {render} from 'react-dom';
 import PropTypes from 'prop-types';
 import {fetchLists, switchFavorite, setKeyword, navigateTo, fetchSliceDelMulInfo} from '../actions';
 import {SliceDelete} from '../popup';
-import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import intl from 'react-intl-universal';
+import {renderGlobalErrorMsg, loadIntlResources} from '../../../utils/utils.jsx';
 
 const SHOW_ALL = "showAll";
 const SHOW_FAVORITE = "showFavorite";
@@ -75,6 +76,10 @@ class SliceOperate extends React.Component {
         dispatch(fetchLists());
     }
 
+    componentDidMount() {
+        loadIntlResources(_ => this.setState({ initDone: true }), 'slice');
+    }
+
     render() {
 
         const { typeName } = this.props;
@@ -85,14 +90,33 @@ class SliceOperate extends React.Component {
                     <li onClick={this.onDelete}><i className="icon icon-trash"/></li>
                 </ul>
                 <div className="tab-btn">
-                    <button className={typeName === SHOW_ALL ? 'active' : ''} onClick={()=>this.onFilter(SHOW_ALL)}>全部</button>
-                    <button className={typeName === SHOW_FAVORITE ? 'active' : ''} onClick={()=>this.onFilter(SHOW_FAVORITE)}>
-                        <i className={typeName === SHOW_FAVORITE ? 'icon icon-star-active' : 'icon icon-star'}/>收藏
+                    <button
+                        className={typeName === SHOW_ALL ? 'active' : ''}
+                        onClick={()=>this.onFilter(SHOW_ALL)}
+                    >
+                        {intl.get('SLICE.ALL')}
+                    </button>
+                    <button
+                        className={typeName === SHOW_FAVORITE ? 'active' : ''}
+                        onClick={()=>this.onFilter(SHOW_FAVORITE)}
+                    >
+                        <i className={typeName === SHOW_FAVORITE ? 'icon icon-star-active' : 'icon icon-star'}/>
+                        {intl.get('SLICE.FAVORITE')}
                     </button>
                 </div>
                 <div className="search-input">
-                    <input onKeyUp={this.onEnterSearch} onChange={this.onChange} className="tp-input" ref="searchField" placeholder="搜索..." />
-                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"/>
+                    <input
+                        onKeyUp={this.onEnterSearch}
+                        onChange={this.onChange}
+                        className="tp-input"
+                        ref="searchField"
+                        placeholder={intl.get('SLICE.SEARCH')}
+                    />
+                    <i
+                        className="icon icon-search"
+                        onClick={this.onSearch}
+                        ref="searchIcon"
+                    />
                 </div>
             </div>
         );

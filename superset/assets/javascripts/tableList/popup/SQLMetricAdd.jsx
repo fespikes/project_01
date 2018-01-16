@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { Select, Checkbox, Tooltip, Alert } from 'antd';
 import PropTypes from 'prop-types';
 import { getMetricTypeOptions } from '../module';
+import intl from 'react-intl-universal';
 
 class SQLMetricAdd extends React.Component {
     constructor(props) {
@@ -136,7 +137,7 @@ class SQLMetricAdd extends React.Component {
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <i>*</i>
-                                    <span className="item-label">度量：</span>
+                                    <span className="item-label">{intl.get('DATASET.METRIC')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <input
@@ -150,7 +151,7 @@ class SQLMetricAdd extends React.Component {
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <i>*</i>
-                                    <span className="item-label">类型：</span>
+                                    <span className="item-label">{intl.get('DATASET.TYPE')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <Select
@@ -162,7 +163,7 @@ class SQLMetricAdd extends React.Component {
                                     </Select>
                                     <Tooltip
                                         placement="topRight"
-                                        title="比如：count, avg, sum, max, min"
+                                        title={intl.get('DATASET.METRIC_TYPE_TIP')}
                                     >
                                         <i className="icon icon-info after-icon"/>
                                     </Tooltip>
@@ -171,7 +172,7 @@ class SQLMetricAdd extends React.Component {
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <i>*</i>
-                                    <span className="item-label">表达式：</span>
+                                    <span className="item-label">{intl.get('DATASET.EXPRESSION')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <textarea
@@ -182,7 +183,7 @@ class SQLMetricAdd extends React.Component {
                                     />
                                     <Tooltip
                                         placement="topRight"
-                                        title="SQL函数，比如：COUNT(col), AVG(col), SUM(col), MAX(col), MIN(col), COUNT(DISTINCT (col))"
+                                        title={intl.get('DATASET.METRIC_EXPRESSION_TIP')}
                                     >
                                         <i
                                             className="icon icon-info after-icon"
@@ -207,7 +208,7 @@ class SQLMetricAdd extends React.Component {
                                 onClick={this.confirm}
                                     disabled={!this.state.enableConfirm}
                             >
-                                保存
+                                {intl.get('DATASET.SAVE')}
                             </button>
                         </div>
                     </div>
