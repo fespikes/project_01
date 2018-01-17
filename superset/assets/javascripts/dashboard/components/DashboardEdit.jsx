@@ -3,7 +3,8 @@ import React, { PropTypes } from 'react';
 import ModalTrigger from '../../components/ModalTrigger';
 require('react-bootstrap-table/css/react-bootstrap-table.css');
 import { Select } from 'antd';
-import { loadIntlResources } from '../../../utils/utils';
+import { loadIntlResources, renderGlobalErrorMsg } from '../../../utils/utils';
+import { fetchAvailableSlices } from '../../dashboard2/actions/index';
 import intl from 'react-intl-universal';
 
 const propTypes = {
@@ -26,20 +27,29 @@ class DashboardEdit extends React.Component {
 
         this.editDashboard = this.editDashboard.bind(this);
         this.handleTitleChange = this.handleTitleChange.bind(this);
+        this.onChange = this.onChange.bind(this);
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
     }
 
     componentDidMount() {
+        this.getDefaultSlices();
+        this.getAvailableSlices();
+    }
+
+    getDefaultSlices() {
         const { dashboard } = this.props;
         const url = '/dashboard/show/' + dashboard.id;
-        this.slicesRequest = $.ajax({
+        $.ajax({
             url: url,
             type: 'GET',
             success: response => {
+                const defaultOptions = [];
+                response.data.slices.map(slice => {
+                    defaultOptions.push(slice.slice_name);
+                });
                 this.setState({
                     dashboard: response.data,
-                    selectedSlices: initDefaultOptions(response.data.slices),
-                    availableSlices: response.data.available_slices,
+                    selectedSlices: defaultOptions,
                     slicesLoaded: true,
                 });
             },
@@ -50,20 +60,29 @@ class DashboardEdit extends React.Component {
                 });
             },
         });
-
-        function initDefaultOptions(slices) {
-            let defaultOptions = [];
-            slices.map(slice => {
-                defaultOptions.push(slice.slice_name);
-            });
-            return defaultOptions;
-        }
-
-        loadIntlResources(_ => this.setState({ initDone: true }), 'dashboard');
     }
 
-    componentWillUnmount() {
-        this.slicesRequest.abort();
+    getAvailableSlices() {
+        const url = "/slice/listdata/?page_size=1000";
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: response => {
+                const Option = Select.Option;
+                const options = response.data.data.map(slice => {
+                    return <Option key={slice.slice_name}>{slice.slice_name}</Option>
+                });
+                this.setState({
+                    availableSlices: response.data.data
+                });
+            },
+            error: error => {
+                this.errored = true;
+                this.setState({
+                    errorMsg: this.props.dashboard.getAjaxErrorMsg(error.message),
+                });
+            },
+        });
     }
 
     handleTitleChange(e) {
@@ -89,19 +108,21 @@ class DashboardEdit extends React.Component {
         this.props.dashboard.editDashboard(this.state.dashboard, this.state.selectedSlices);
     }
 
+    onChange(value) {
+        this.setState({
+            selectedSlices: value
+        });
+    }
+
     render() {
         const self = this;
         const hideLoad = self.state.slicesLoaded || self.errored;
+
         const Option = Select.Option;
         const options = self.state.availableSlices.map(slice => {
             return <Option key={slice.slice_name}>{slice.slice_name}</Option>
         });
 
-        function onChange(value) {
-            self.setState({
-                selectedSlices: value
-            });
-        }
         const modalTitle = intl.get('DASHBOARD.EDIT_DASHBOARD');
         const modalIcon = "icon icon-dashboard-popup";
         const modalContent = (
@@ -149,7 +170,7 @@ class DashboardEdit extends React.Component {
                                 style={{ width: '100%' }}
                                 defaultValue={this.state.selectedSlices}
                                 placeholder={intl.get('DASHBOARD.SELECT_SLICE')}
-                                onChange={onChange}
+                                onChange={this.onChange}
                             >
                             {options}
                             </Select>
