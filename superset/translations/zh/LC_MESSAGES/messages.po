@@ -1858,6 +1858,13 @@ msgstr "不存在默认的HDFS连接[{hconn}]"
 
 
 #========================
+# views/guardian.py
+#========================
+msgid "Can revoke your own permissions"
+msgstr "不能收回你自己的权限"
+
+
+#========================
 # models/connection.py
 #========================
 msgid "You do not have account for connection [{conn}]"

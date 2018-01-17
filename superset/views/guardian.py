@@ -132,6 +132,8 @@ class GuardianView(BaseSupersetView, PermissionManagement):
         object_type = args.get('object_type')
         object_name = args.get('object_name')
         actions = args.get('actions')
+        if username == g.user.username:
+            raise PermissionException(_('Can revoke your own permissions'))
         self.check_revoke_perm([object_type, object_name])
         self.do_revoke(username, [object_type, object_name], actions)
         obj = self.get_object(object_type, object_name)
