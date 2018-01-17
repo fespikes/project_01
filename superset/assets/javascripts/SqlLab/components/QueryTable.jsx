@@ -74,24 +74,24 @@ class QueryTable extends React.PureComponent {
         const data = this.props.queries.map((query) => {
             const q = Object.assign({}, query);
             if (q.endDttm) {
-                q.用时 = fDuration(q.startDttm, q.endDttm);
+                q[intl.get('used_time')] = fDuration(q.startDttm, q.endDttm);
             }
             const time = moment(q.startDttm).format().split('T');
-            q.开始时间 = (
+            q[intl.get('start_time')] = (
                 <div>
                   <span>
                     {time[0]} <br /> {time[1]}
                   </span>
                 </div>
             );
-            q.用户 = (
+            q[intl.get('users')] = (
                 <span>{q.user}</span>
             );
-            q.连接 = (
+            q[intl.get('connection')] = (
                 <span>{q.db}</span>
             );
-            q.开始 = moment(q.startDttm).format('HH:mm:ss');
-            q.查询链接 = (
+            q[intl.get('begin')] = moment(q.startDttm).format('HH:mm:ss');
+            q[intl.get('search_link')] = (
                 <div style={{ width: '100px' }}>
                     <a
                         href={this.getQueryLink(q.dbId, q.sql)}
@@ -106,9 +106,9 @@ class QueryTable extends React.PureComponent {
                     <HighlightedSql sql={q.sql} rawSql={q.executedSql} shrink maxWidth={60} />
                 </Well>
             );
-            q.行数 = q.rows || 0;
+            q[intl.get('line_amount')] = q.rows || 0;
             if (q.resultsKey) {
-                q.数据库 = (
+                q[intl.get('database')] = (
                     <ModalTrigger
                         bsSize="large"
                         className="ResultsModal"
@@ -130,9 +130,9 @@ class QueryTable extends React.PureComponent {
                 // if query was run using ctas and force_ctas_schema was set
                 // tempTable will have the schema
                 const schemaUsed = q.ctas && q.tempTable.includes('.') ? '' : q.schema;
-                q.数据库 = [schemaUsed, q.tempTable].filter((v) => (v)).join('.');
+                q[intl.get('database')] = [schemaUsed, q.tempTable].filter((v) => (v)).join('.');
             }
-            q.进度 = (
+            q[intl.get('progress')] = (
                 <ProgressBar
                     style={{ width: '75px' }}
                     striped
@@ -148,36 +148,36 @@ class QueryTable extends React.PureComponent {
                     </Link>
                 );
             }
-            q.状态 = (
+            q[intl.get('condition')] = (
                 <div>
                   <span className={'m-r-3 label label-' + STATE_BSSTYLE_MAP[q.state]}>
                     {q.state}
                   </span>
-                  {errorTooltip}
+                    {errorTooltip}
                 </div>
             );
-            q.操作 = (
+            q[intl.get('action')] = (
                 <div style={{ width: '75px' }}>
                     <Link
                         className="fa fa-bar-chart m-r-3"
-                        tooltip="可视化本次查询的数据"
+                        tooltip={intl.get('visualize_this_query_data')}
                         onClick={this.showVisualizeModal.bind(this, query)}
                     />
                     <Link
                         className="fa fa-plus m-r-3"
                         onClick={this.openQueryInNewTab.bind(this, query)}
-                        tooltip="在新的标签中执行查询"
+                        tooltip={intl.get('execute_this_query_in_new_tag')}
                         placement="top"
                     />
                     <Link
                         className="fa fa-pencil-square-o m-r-3"
                         onClick={this.restoreSql.bind(this, query)}
-                        tooltip="用该查询sql覆盖编辑框中的sql"
+                        tooltip={intl.get('use_this_sql_to_override_previous')}
                         placement="top"
                     />
                     <Link
                         className="fa fa-trash m-r-3"
-                        tooltip="从日志中移除本次查询"
+                        tooltip={intl.get('remove_this_query_from_log')}
                         onClick={this.removeQuery.bind(this, query)}
                     />
                 </div>
