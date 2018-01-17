@@ -12,6 +12,8 @@ const rootMountId = 'popup_root';
 const alertMountId = 'grant-perm-error-tip';
 const checkboxMountId = 'grant-perm-checkbox-container';
 
+const PREFIX = 'GRANT_PERM_';
+
 class PermPopup extends React.Component {
     constructor(props) {
         super(props);
@@ -60,19 +62,34 @@ class PermPopup extends React.Component {
     }
 
     handleChange(e) {
-        const grantedPerms = this.state.grantedActions.slice(0);
+        let grantedPerms = this.state.grantedActions.slice(0);
         const checkbox = e.target;
         const name = checkbox.name;
         const checked = checkbox.checked;
         const index = grantedPerms.indexOf(name);
         if(checked && index === -1) {
             grantedPerms.push(name);
+            if(name === 'EDIT') {
+                grantedPerms = this.setCheckboxState(PREFIX + 'READ', 'READ', grantedPerms);
+            }else if(name === 'ADMIN') {
+                grantedPerms = this.setCheckboxState(PREFIX + 'READ', 'READ', grantedPerms);
+                grantedPerms = this.setCheckboxState(PREFIX + 'EDIT', 'EDIT', grantedPerms)
+            }
         }else if(!checked && index > -1) {
             grantedPerms.splice(index, 1);
         }
         this.setState({
             grantedActions: grantedPerms
         });
+    }
+
+    setCheckboxState(id, name, perms) {
+        const checkboxEl = document.getElementById(id);
+        if(checkboxEl && !checkboxEl.checked) {
+            checkboxEl.checked = true;
+            perms.push(name);
+        }
+        return perms;
     }
 
     onSelectChange(value) {
@@ -122,7 +139,7 @@ class PermPopup extends React.Component {
                 self.clearCheckboxState(data.permissions);
                 self.setState({
                     grantedActions: [],
-                    permCheckboxes: makePermCheckboxes(data.permissions, self)
+                    permCheckboxes: makePermCheckboxes(data.permissions, self, PREFIX)
                 });
             }else {
                 renderGlobalErrorMsg(data);
