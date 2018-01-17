@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import { getDatasetTab2Name, getDatasetTitle, getDatasetId, extractDatasetType, extractOpeType, extractOpeName,
-    judgeEnableClick, judgeEnableClickHDFSPreview } from '../module.jsx';
+import * as module from '../module';
 import { HashRouter, Route, NavLink, Switch } from 'react-router-dom';
 import { connect, Provider } from 'react-redux';
 import { SubDetail, SubPreview, SubColumns, SubSqlMetric } from './';
 import '../style/tableAdd.css';
-import { isActive } from '../module';
+import {loadIntlResources} from '../../../utils/utils';
+import intl from 'react-intl-universal';
 
 class TableAdd extends Component {
     constructor(props) {
@@ -13,28 +13,33 @@ class TableAdd extends Component {
         this.state = {};
     }
 
+    componentDidMount() {
+        console.log('componentDidMount...');
+        loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
+    }
+
     render() {
         const { datasetId, HDFSConfigured } = this.props;
         const path = window.location.hash;
-        const datasetType = extractDatasetType(path);
-        const tab2Name = getDatasetTab2Name(datasetType);
-        const opeType = extractOpeType(path);
-        const title = getDatasetTitle(opeType, datasetType);
-        const id = getDatasetId(opeType, path);
-        const enableClick = judgeEnableClick(opeType, datasetId);
-        const enableClickHDFSPreview = judgeEnableClickHDFSPreview(
+        const datasetType = module.extractDatasetType(path);
+        const tab2Name = module.getDatasetTab2Name(datasetType, intl);
+        const opeType = module.extractOpeType(path);
+        const title = module.getDatasetTitle(opeType, datasetType, intl);
+        const id = module.getDatasetId(opeType, path);
+        const enableClick = module.judgeEnableClick(opeType, datasetId);
+        const enableClickHDFSPreview = module.judgeEnableClickHDFSPreview(
             opeType, datasetType, datasetId, HDFSConfigured);
         const isDetailActive = (match, location) => {
-            return isActive('detail', location);
+            return module.isActive('detail', location);
         };
         const isPreviewActive = (match, location) => {
-            return isActive('preview', location);
+            return module.isActive('preview', location);
         };
         const isColumnsActive = (match, location) => {
-            return isActive('columns', location);
+            return module.isActive('columns', location);
         };
         const isSqlMetricActive = (match, location) => {
-            return isActive('sqlMetric', location);
+            return module.isActive('sqlMetric', location);
         };
         return (
             <div className="data-detail">
@@ -47,7 +52,7 @@ class TableAdd extends Component {
                             <ul>
                                 <li>
                                     <NavLink to={`/${opeType}/detail/${datasetType}/${id}`} activeClassName="active" isActive={isDetailActive}>
-                                        基本信息
+                                        {intl.get('DATASET.BASIC_INFO')}
                                     </NavLink>
                                 </li>
                                 <li>
@@ -57,12 +62,12 @@ class TableAdd extends Component {
                                 </li>
                                 <li>
                                     <NavLink to={`/${opeType}/columns/${datasetType}/${id}`} activeClassName="active" className={enableClick?'':'link-disabled'} isActive={isColumnsActive}>
-                                        列属性
+                                        {intl.get('DATASET.COLUMN_ATTRIBUTE')}
                                     </NavLink>
                                 </li>
                                 <li>
                                     <NavLink to={`/${opeType}/sqlMetric/${datasetType}/${id}`} activeClassName="active" className={enableClick?'':'link-disabled'} isActive={isSqlMetricActive}>
-                                        度量
+                                        {intl.get('DATASET.METRIC')}
                                     </NavLink>
                                 </li>
                             </ul>

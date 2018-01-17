@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { fetchPosts, fetchDashboardDelete, fetchDashboardDeleteMul } from '../actions';
 import { renderAlertErrorInfo } from '../../../utils/utils';
-
 import { WarningAlert } from '../../common/components/WarningAlert';
+import intl from 'react-intl-universal';
 
 class DashboardDelete extends React.Component {
     constructor(props) {
@@ -46,13 +46,13 @@ class DashboardDelete extends React.Component {
 
     render() {
         return (
-            <div className="popup" ref="popupDashboardDelete">
+            <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-trash" />
-                                <span>删除仪表板</span>
+                                <span>{intl.get('DASHBOARD.DELETE_DASHBOARD')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -72,7 +72,7 @@ class DashboardDelete extends React.Component {
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.confirm}
                             >
-                                确定
+                                {intl.get('DASHBOARD.CONFIRM')}
                             </button>
                         </div>
                     </div>

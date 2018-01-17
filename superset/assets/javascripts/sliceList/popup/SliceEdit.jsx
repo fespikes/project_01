@@ -6,7 +6,8 @@ import ReactDOM from 'react-dom';
 import { fetchUpdateSlice, fetchDashboardList } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
-import { renderAlertErrorInfo, renderGlobalErrorMsg } from '../../../utils/utils';
+import intl from 'react-intl-universal';
+import { renderAlertErrorInfo, renderGlobalErrorMsg, loadIntlResources } from '../../../utils/utils';
 
 class SliceEdit extends React.Component {
     constructor(props) {
@@ -95,6 +96,8 @@ class SliceEdit extends React.Component {
                 renderGlobalErrorMsg(data);
             }
         }
+
+        loadIntlResources(_ => this.setState({ initDone: true }), 'slice');
     }
 
     render() {
@@ -108,7 +111,7 @@ class SliceEdit extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-slice-popup" />
-                                <span>编辑工作表</span>
+                                <span>{intl.get('SLICE.EDIT_SLICE')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -121,7 +124,7 @@ class SliceEdit extends React.Component {
                             <div className="dialog-item">
                                 <div className="item-left">
                                     <i>*</i>
-                                    <span>名称：</span>
+                                    <span>{intl.get('SLICE.NAME')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <input
@@ -134,7 +137,7 @@ class SliceEdit extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
-                                    <span>描述：</span>
+                                    <span>{intl.get('SLICE.DESCRIPTION')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <textarea
@@ -146,21 +149,21 @@ class SliceEdit extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
-                                    <span>仪表板：</span>
+                                    <span>{intl.get('SLICE.DASHBOARD')}：</span>
                                 </div>
                                 <div className="item-right">
                                     <div id="edit_pop_select">
                                         <Select mode={'multiple'}
                                             style={{ width: '100%' }}
                                             defaultValue={selectedDashboards}
-                                            placeholder="选择仪表板"
+                                            placeholder={intl.get('SLICE.SELECT_DASHBOARD')}
                                             onChange={this.onSelectChange}
                                         >
                                             {availableDashboards}
                                         </Select>
                                     </div>
                                     <Tooltip
-                                        title="添加该工作表到仪表板或从仪表板移除该工作表"
+                                        title={intl.get('SLICE.SELECT_DASHBOARD_TIP')}
                                         placement="topRight"
                                     >
                                         <i className="icon icon-info after-icon"/>
@@ -170,7 +173,7 @@ class SliceEdit extends React.Component {
                             <div className="dialog-item">
                                 <div className="sub-item">
                                     <div className="item-left">
-                                        <span>创建者：</span>
+                                        <span>{intl.get('SLICE.CREATOR')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <span>{sliceDetail.created_by_user}</span>
@@ -178,7 +181,7 @@ class SliceEdit extends React.Component {
                                 </div>
                                 <div className="sub-item">
                                     <div className="item-left">
-                                        <span>修改者：</span>
+                                        <span>{intl.get('SLICE.MODIFIER')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <span>{sliceDetail.changed_by_user}</span>
@@ -188,7 +191,7 @@ class SliceEdit extends React.Component {
                             <div className="dialog-item">
                                 <div className="sub-item">
                                     <div className="item-left">
-                                        <span>创建日期：</span>
+                                        <span>{intl.get('SLICE.CREATE_DATE')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <span>{sliceDetail.created_on}</span>
@@ -196,7 +199,7 @@ class SliceEdit extends React.Component {
                                 </div>
                                 <div className="sub-item">
                                     <div className="item-left">
-                                        <span>修改时间：</span>
+                                        <span>{intl.get('SLICE.MODIFY_TIME')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <span>{sliceDetail.changed_on}</span>
@@ -211,7 +214,7 @@ class SliceEdit extends React.Component {
                                 onClick={this.confirm}
                                 disabled={!enableConfirm}
                             >
-                                确定
+                                {intl.get('SLICE.CONFIRM')}
                             </button>
                         </div>
                     </div>

@@ -104,7 +104,7 @@ export function getTbTitleHDFS(commonTitle, _this, data, isFirst) {
                     defaultValue={types[index]?types[index]:'string'}
                     style={{ width: '100%'}}
                     onSelect={ (value)=>_this.onTypeSelect(value, column) }
-                    placeholder='选择数据类型'
+                    placeholder='Selet Data Type'
                     getPopupContainer={() => document.getElementById('data-preview-id')}
                 >
                     {options}
@@ -276,20 +276,20 @@ export function findTreeNode(treeNodes, path) {
     return node;
 }
 
-export function getDatasetTitle(opeType, datasetType) {
+export function getDatasetTitle(opeType, datasetType, intl) {
     let opeName = '';
     if(opeType === 'add') {
-        opeName = "添加";
+        opeName = intl.get('DATASET.ADD');
     }else if(opeType === 'edit') {
-        opeName = "编辑";
+        opeName = intl.get('DATASET.EDIT');
     }
-    return opeName + datasetType + '数据集';
+    return opeName + datasetType + intl.get('DATASET.DATASET');
 }
 
-export function getDatasetTab2Name(datasetType) {
-    let tab2Name = "配置";
+export function getDatasetTab2Name(datasetType, intl) {
+    let tab2Name = intl.get('DATASET.CONFIG');
     if(datasetType === datasetTypes.database) {
-        tab2Name = '数据预览';
+        tab2Name = intl.get('DATASET.DATA_PREVIEW');
     }
     return tab2Name;
 }

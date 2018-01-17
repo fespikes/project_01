@@ -9,7 +9,8 @@ import { Table, Input, Button, Icon, message } from 'antd';
 import { TableColumnAdd, TableColumnDelete } from '../popup';
 import * as actionCreators from '../actions';
 const _ = require('lodash');
-import {renderAlertTip, renderLoadingModal, renderGlobalErrorMsg} from '../../../utils/utils';
+import intl from 'react-intl-universal';
+import {renderGlobalErrorMsg, loadIntlResources} from '../../../utils/utils';
 
 class SubColumns extends Component {
     constructor(props) {
@@ -27,6 +28,8 @@ class SubColumns extends Component {
         if (datasetId) {
             getTableColumn(datasetId);
         }
+
+        loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
     }
 
     componentWillReceiveProps(nextProps) {
@@ -89,19 +92,19 @@ class SubColumns extends Component {
 
     formValidate(column) {
         if(!(column.column_name && column.column_name.length > 0)) {
-            renderGlobalErrorMsg('列名不能为空！');
+            renderGlobalErrorMsg(intl.get('DATASET.METRIC_NOT_NULL'));
             return;
         }
         if(!(column.expression && column.expression.length > 0)) {
-            renderGlobalErrorMsg('表达式不能为空！');
+            renderGlobalErrorMsg(intl.get('DATASET.EXPRESSION_NOT_NULL'));
             return;
         }
         if(!(column.type && column.type.length > 0)) {
-            renderGlobalErrorMsg('类型不能为空！');
+            renderGlobalErrorMsg(intl.get('DATASET.TYPE_NOT_NULL'));
             return;
         }
         if(!this.props.datasetId) {
-            renderGlobalErrorMsg('数据集ID不能为空！');
+            renderGlobalErrorMsg(intl.get('DATASET.ID_NOT_NULL'));
             return;
         }
         this.editTableColumn(column);
@@ -135,7 +138,7 @@ class SubColumns extends Component {
 
     deleteTableColumn(record) {
         const { fetchTableColumnDelete } = this.props;
-        let deleteTips = "确定删除" + record.column_name + "?";
+        let deleteTips = intl.get('DATASET.CONFIRM') + intl.get('DATASET.DELETE') + record.column_name + "?";
         render(
             <TableColumnDelete
                 fetchTableColumnDelete={fetchTableColumnDelete}
@@ -157,7 +160,7 @@ class SubColumns extends Component {
         });
 
         const columns = [{
-            title: '列',
+            title: intl.get('DATASET.COLUMN'),
             dataIndex: 'column_name',
             key: 'column_name',
             width: '15%',
@@ -174,7 +177,7 @@ class SubColumns extends Component {
                 )
             }
         }, {
-            title: '表达式',
+            title: intl.get('DATASET.EXPRESSION'),
             dataIndex: 'expression',
             key: 'expression',
             width: '15%',
@@ -191,7 +194,7 @@ class SubColumns extends Component {
                 )
             }
         }, {
-            title: '类型',
+            title: intl.get('DATASET.TYPE'),
             dataIndex: 'type',
             key: 'type',
             width: '10%',
@@ -208,7 +211,7 @@ class SubColumns extends Component {
                 )
             }
         }, {
-            title: '可分组',
+            title: intl.get('DATASET.GROUP'),
             dataIndex: 'groupAble',
             key: 'groupAble',
             width: '7%',
@@ -224,7 +227,7 @@ class SubColumns extends Component {
                 )
             }
         }, {
-            title: '可筛选',
+            title: intl.get('DATASET.FILTER'),
             dataIndex: 'filterAble',
             key: 'filterAble',
             width: '7%',
@@ -240,7 +243,7 @@ class SubColumns extends Component {
                 )
             }
         }, {
-            title: '可计数',
+            title: intl.get('DATASET.COUNT'),
             dataIndex: 'accountAble',
             key: 'accountAble',
             width: '7%',
@@ -256,7 +259,7 @@ class SubColumns extends Component {
                 )
             }
         },{
-            title: '可求和',
+            title: intl.get('DATASET.SUM'),
             dataIndex: 'sumAble',
             key: 'sumAble',
             width: '7%',
@@ -272,7 +275,7 @@ class SubColumns extends Component {
                 )
             }
         },{
-            title: '可求平均值',
+            title: intl.get('DATASET.AVERAGE'),
             dataIndex: 'avgAble',
             key: 'avgAble',
             width: '7%',
@@ -288,7 +291,7 @@ class SubColumns extends Component {
                 )
             }
         },{
-            title: '可求最小值',
+            title: intl.get('DATASET.MIN'),
             dataIndex: 'minimumSeekAble',
             key: 'minimumSeekAble',
             width: '7%',
@@ -304,7 +307,7 @@ class SubColumns extends Component {
                 )
             }
         },{
-            title: '可求最大值',
+            title: intl.get('DATASET.MAX'),
             dataIndex: 'maximumSeekAble',
             key: 'maximumSeekAble',
             width: '7%',
@@ -320,7 +323,7 @@ class SubColumns extends Component {
                 )
             }
         },{
-            title: '可表示时间',
+            title: intl.get('DATASET.SHOW_TIME'),
             dataIndex: 'timeExpressAble',
             key: 'timeExpressAble',
             width: '7%',
@@ -336,7 +339,7 @@ class SubColumns extends Component {
                 )
             }
         },{
-            title: '操作',
+            title: intl.get('DATASET.OPERATION'),
             dataIndex: 'operation',
             key: 'operation',
             width: '4%',
@@ -358,7 +361,7 @@ class SubColumns extends Component {
                         onClick={this.addTableColumn}
                         className='btn-blue tab-btn-ps'
                         disabled={this.props.datasetId === '' ? true : false}
-                    >+&nbsp; 添加</button>
+                    >+&nbsp; {intl.get('DATASET.ADD')}</button>
                 </div>
                 <Table
                     columns={columns}

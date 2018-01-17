@@ -4,12 +4,10 @@ import {Link}  from 'react-router-dom';
 import {Select} from 'antd';
 import {OperationSelect} from '../../common/components';
 import PropTypes from 'prop-types';
-import {
-    switchDatasetType, fetchAddTypeList, fetchFilterTypeList, fetchTableDelMulInfo,
-    selectType,search
-} from '../actions';
+import * as actions from '../actions';
 import {TableDelete} from '../popup';
-import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import intl from 'react-intl-universal';
+import {renderGlobalErrorMsg, loadIntlResources} from '../../../utils/utils';
 
 class SliceOperate extends React.Component {
     constructor(props) {
@@ -41,14 +39,14 @@ class SliceOperate extends React.Component {
 
     onDelete () {
         const { dispatch, selectedRowNames } = this.props;
-        dispatch(fetchTableDelMulInfo(callback));
+        dispatch(actions.fetchTableDelMulInfo(callback));
         function callback(success, data) {
             if(success) {
                 let deleteType = 'multiple';
                 let deleteTips = data;
                 if(selectedRowNames.length === 0) {
                     deleteType = 'none';
-                    deleteTips = '没有选择任何将要删除的记录，请选择！';
+                    deleteTips = intl.get('DATASET.NO_SELECT_DELETE_TIP');
                 }
                 render(
                     <TableDelete
@@ -67,16 +65,16 @@ class SliceOperate extends React.Component {
         const { dispatch, saveDatasetId, clearDatasetData } = this.props;
         dispatch(saveDatasetId(''));
         dispatch(clearDatasetData());
-        dispatch(switchDatasetType(value));
+        dispatch(actions.switchDatasetType(value));
     }
 
     handleSelectChange (argus) {
-        this.props.dispatch(selectType(argus));
+        this.props.dispatch(actions.selectType(argus));
     }
 
     onSearch () {
         const filter = this.refs.searchField.value;
-        this.props.dispatch(search(filter));
+        this.props.dispatch(actions.search(filter));
     }
 
     onEnterSearch(event) {
@@ -88,8 +86,8 @@ class SliceOperate extends React.Component {
     componentDidMount() {
         const self = this;
         const { dispatch } = self.props;
-        dispatch(fetchAddTypeList(addCallback));
-        dispatch(fetchFilterTypeList(filterCallback));
+        dispatch(actions.fetchAddTypeList(addCallback));
+        dispatch(actions.fetchFilterTypeList(filterCallback));
         function addCallback(success, data) {
             if(success) {
                 self.setState({
@@ -145,7 +143,7 @@ class SliceOperate extends React.Component {
                         onChange={this.onChange}
                         className="tp-input"
                         ref="searchField"
-                        placeholder="搜索..."
+                        placeholder={intl.get('DATASET.SEARCH')}
                     />
                     <i
                         className="icon icon-search"

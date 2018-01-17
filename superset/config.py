@@ -167,8 +167,9 @@ BABEL_DEFAULT_LOCALE = 'zh'
 BABEL_DEFAULT_FOLDER = 'babel/translations'
 # The allowed translation for you app
 LANGUAGES = {
-    #'en': {'flag': 'us', 'name': 'English'},
-     'zh': {'flag': 'cn', 'name': 'Chinese'},
+
+    'en': {'flag': 'us', 'name': 'English', 'value': 'en-US'},
+    'zh': {'flag': 'cn', 'name': 'Chinese', 'value': 'zh-CN'},
 }
 # ---------------------------------------------------
 # Image and file configuration

@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
 import { fetchTableDelete,  fetchTableDeleteMul } from '../actions';
-
 import { WarningAlert } from '../../common/components/WarningAlert';
+import intl from 'react-intl-universal';
 
 class TableDelete extends React.Component {
     constructor(props) {
@@ -47,7 +47,7 @@ class TableDelete extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-trash" />
-                                <span>删除数据集</span>
+                                <span>{intl.get('DATASET.DELETE')}{intl.get('DATASET.DATASET')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -67,7 +67,7 @@ class TableDelete extends React.Component {
                             <button
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.confirm}>
-                                确定
+                                {intl.get('DATASET.CONFIRM')}
                             </button>
                         </div>
                     </div>

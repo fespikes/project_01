@@ -4,15 +4,12 @@ import {render} from 'react-dom';
 import {Link}  from 'react-router-dom';
 import {ConnectionDelete, ConnectionAdd} from '../popup';
 import PropTypes from 'prop-types';
-import {
-    selectType, search, applyAdd, testConnection,fetchTypes, setPopupParam,
-    applyDelete, popupActions, fetchConnectDelMulInfo
-} from '../actions';
-
+import * as actions from '../actions';
 import {Select}  from './';
+import intl from 'react-intl-universal';
 import {OperationSelect} from '../../common/components';
 import {transformObjectToArray} from '../utils';
-import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import {renderGlobalErrorMsg, loadIntlResources} from '../../../utils/utils.jsx';
 
 class Operate extends React.Component {
     constructor(props, context) {
@@ -33,6 +30,7 @@ class Operate extends React.Component {
 
     componentDidMount () {
         this.fetchTypes();
+        loadIntlResources(_ => this.setState({ initDone: true }), 'database');
     }
 
     fetchTypes () {
@@ -49,7 +47,7 @@ class Operate extends React.Component {
             }
         };
 
-        self.dispatch(fetchTypes(callback));
+        self.dispatch(actions.fetchTypes(callback));
     }
 
     onChange () {
@@ -60,7 +58,7 @@ class Operate extends React.Component {
             this.refs.searchIcon.setAttribute('disabled', 'disabled');
             this.timer && clearTimeout(this.timer);
             this.timer = setTimeout(function(){
-                dispatch(search(''));
+                dispatch(actions.search(''));
             }, 300);
         }
     }
@@ -80,14 +78,14 @@ class Operate extends React.Component {
     onDelete () {
         const dispatch = this.dispatch;
         const { selectedRowNames } = this.props;
-        dispatch(fetchConnectDelMulInfo(callback));
+        dispatch(actions.fetchConnectDelMulInfo(callback));
         function callback(success, data) {
             if(success) {
                 let deleteType;
                 let deleteTips = data;
                 if(selectedRowNames.length === 0) {
                     deleteType = 'none';
-                    deleteTips = '没有选择任何将要删除的记录，请选择！';
+                    deleteTips = intl.get('DATABASE.NO_SELECT_DELETE_TIP');
                 }
                 render(
                     <ConnectionDelete
@@ -105,7 +103,7 @@ class Operate extends React.Component {
 
     onSearch () {
         const filter = this.refs.searchField.value;
-        this.dispatch(search(filter));
+        this.dispatch(actions.search(filter));
     }
 
     onEnterSearch(event) {
@@ -136,9 +134,18 @@ class Operate extends React.Component {
                     </li>
                 </ul>
                 <div className="search-input" style={{ marginRight: 0 }}>
-                    <input  onKeyUp={this.onEnterSearch} onChange={this.onChange} className="tp-input" ref="searchField" placeholder="搜索..." />
-                    <i className="icon icon-search" onClick={this.onSearch} ref="searchIcon"/>
-
+                    <input
+                        onKeyUp={this.onEnterSearch}
+                        onChange={this.onChange}
+                        className="tp-input"
+                        ref="searchField"
+                        placeholder={intl.get('DATABASE.SEARCH')}
+                    />
+                    <i
+                        className="icon icon-search"
+                        onClick={this.onSearch}
+                        ref="searchIcon"
+                    />
                 </div>
             </div>
         );

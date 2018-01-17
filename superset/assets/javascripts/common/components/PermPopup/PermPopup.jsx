@@ -4,7 +4,8 @@ import PropTypes from 'prop-types';
 import {Table, Select} from 'antd';
 
 import * as perm from '../../../perm/actions';
-import {renderGlobalErrorMsg, renderAlertErrorInfo, renderAlertTip} from '../../../../utils/utils';
+import intl from 'react-intl-universal';
+import {renderGlobalErrorMsg, renderAlertErrorInfo, renderAlertTip, loadIntlResources} from '../../../../utils/utils';
 import {makeSelectOptions, makePermCheckboxes, makeTableColumns, makeTableDataSource} from './model';
 
 const rootMountId = 'popup_root';
@@ -49,7 +50,7 @@ class PermPopup extends React.Component {
                 self.searchPermissions();
                 const response = {
                     type: 'success',
-                    message: '配置权限成功！'
+                    message: intl.get('SLICE.CONFIG_SUCCESS')
                 };
                 renderAlertTip(response, alertMountId, '100%');
             }else {
@@ -148,7 +149,7 @@ class PermPopup extends React.Component {
         function callback(success, data) {
             if(success) {
                 const tbDataSource = makeTableDataSource(data);
-                const tbColumns = makeTableColumns(self);
+                const tbColumns = makeTableColumns(self, intl);
                 self.setState({
                     tableDataSource: tbDataSource,
                     tableColumns: tbColumns
@@ -163,6 +164,8 @@ class PermPopup extends React.Component {
         this.getGuardianUsers();
         this.getPermTypes();
         this.searchPermissions();
+
+        loadIntlResources(_ => this.setState({ initDone: true }), 'slice');
     }
 
     render() {
@@ -181,7 +184,7 @@ class PermPopup extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-dashboard-popup" />
-                                <span>权限设置</span>
+                                <span>{intl.get('SLICE.PERM_GRANT')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -193,12 +196,12 @@ class PermPopup extends React.Component {
                         <div className="popup-body">
                             <div className="dialog-item">
                                 <div className="item-left" style={{width: 60}}>
-                                    <span>用户名</span>
+                                    <span>{intl.get('SLICE.USER_NAME')}</span>
                                 </div>
                                 <div className="item-right" style={{width: 515}}>
                                     <Select
                                         style={{width: '100%'}}
-                                        placeholder="请选择"
+                                        placeholder={intl.get('SLICE.PLEASE_SELECT')}
                                         onChange={this.onSelectChange}
                                     >
                                         {selectOptions}
@@ -207,7 +210,7 @@ class PermPopup extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left" style={{width: 60}}>
-                                    <span>设置权限</span>
+                                    <span>{intl.get('SLICE.GRANT_PERM')}</span>
                                 </div>
                                 <div
                                     id={checkboxMountId}
@@ -222,7 +225,7 @@ class PermPopup extends React.Component {
                                     className="tp-btn tp-btn-middle tp-btn-primary"
                                     onClick={this.grantPerm}
                                     disabled={!selectedUser || grantedActions.length === 0}
-                                >配置权限</button>
+                                >{intl.get('SLICE.CONFIG_PERM')}</button>
                             </div>
                             <div className="table-grant-perm" style={{margin: '10 20'}}>
                                 <Table

@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
-
 import { WarningAlert } from '../../common/components/WarningAlert';
+import intl from 'react-intl-universal';
 
 class TableColumnDelete extends React.Component {
     constructor(props) {
@@ -39,7 +39,7 @@ class TableColumnDelete extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-trash"/>
-                                <span>Delete Table Column</span>
+                                <span>{intl.get('DATASET.COLUMN_ATTRIBUTE')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -58,7 +58,7 @@ class TableColumnDelete extends React.Component {
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.confirm}
                             >
-                                确定
+                                {intl.get('DATASET.CONFIRM')}
                             </button>
                         </div>
                     </div>

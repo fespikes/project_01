@@ -4,11 +4,9 @@ import {Provider, connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Link } from 'react-router-dom';
 import {DashboardAdd, DashboardDelete} from '../popup';
-import {
-    fetchAvailableSlices, fetchPosts, fetchDashboardDeleteMul, setShowType,
-    setKeyword, setPageNumber, setViewMode, fetchDashboardMulDelInfo
-} from '../actions';
-import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
+import * as actions from '../actions';
+import intl from 'react-intl-universal';
+import {renderGlobalErrorMsg} from '../../../utils/utils';
 
 class Operations extends React.Component {
     constructor(props) {
@@ -29,15 +27,16 @@ class Operations extends React.Component {
     addDashboard() {
 
         const { dispatch } = this.props;
-        dispatch(fetchAvailableSlices(callback));
+        dispatch(actions.fetchAvailableSlices(callback));
         function callback(success, data) {
             if(success) {
-                var dashboard = {dashboard_title: '', description: ''};
+                const dashboard = {dashboard_title: '', description: ''};
+                console.log('data=', data);
                 render(
                     <DashboardAdd
                         dispatch={dispatch}
                         dashboard={dashboard}
-                        availableSlices={data.data.available_slices}
+                        availableSlices={data.data}
                         enableConfirm={false}/>,
                     document.getElementById('popup_root')
                 );
@@ -47,14 +46,15 @@ class Operations extends React.Component {
 
     deleteDashboardMul() {
         const { dispatch, selectedRowNames } = this.props;
-        dispatch(fetchDashboardMulDelInfo(callback));
+        dispatch(actions.fetchDashboardMulDelInfo(callback));
         function callback(success, data) {
             if(success) {
                 let deleteType = "multiple";
-                let deleteTips = data.length===0 ? '确定删除' + selectedRowNames + '?' : data;
+                let deleteTips = data.length===0 ? intl.get('DASHBOARD.CONFIRM') + intl.get('DASHBOARD.DELETE')
+                    + selectedRowNames + '?' : data;
                 if(selectedRowNames.length === 0) {
                     deleteType = 'none';
-                    deleteTips = '没有选择任何将要删除的记录，请选择！';
+                    deleteTips = intl.get('DELETE_TIP');
                 }
                 render(
                     <DashboardDelete
@@ -72,51 +72,51 @@ class Operations extends React.Component {
 
     switchTableMode() {
         const {dispatch} = this.props;
-        dispatch(setViewMode('table'));
+        dispatch(actions.setViewMode('table'));
     }
 
     switchGraphMode() {
         const {dispatch} = this.props;
-        dispatch(setViewMode('graph'));
+        dispatch(actions.setViewMode('graph'));
     }
 
     searchDashboard(event) {
         if(event.keyCode === 13) {
             const { dispatch } = this.props;
-            dispatch(fetchPosts());
-            dispatch(setPageNumber(1));
+            dispatch(actions.fetchPosts());
+            dispatch(actions.setPageNumber(1));
         }
     }
 
     clickSearchDashboard() {
         const {dispatch} = this.props;
-        dispatch(fetchPosts());
-        dispatch(setPageNumber(1));
+        dispatch(actions.fetchPosts());
+        dispatch(actions.setPageNumber(1));
     }
 
     keywordChange(event) {
         const { dispatch } = this.props;
-        dispatch(setKeyword(event.target.value));
+        dispatch(actions.setKeyword(event.target.value));
         if(event.target.value === "") {
-            dispatch(fetchPosts());
-            dispatch(setPageNumber(1));
+            dispatch(actions.fetchPosts());
+            dispatch(actions.setPageNumber(1));
         }
     }
 
     showAll() {
         const { dispatch } = this.props;
-        dispatch(setPageNumber(1));
-        dispatch(setShowType('show_all'));
-        dispatch(setKeyword(''));
-        dispatch(fetchPosts());
+        dispatch(actions.setPageNumber(1));
+        dispatch(actions.setShowType('show_all'));
+        dispatch(actions.setKeyword(''));
+        dispatch(actions.fetchPosts());
     }
 
     showFavorite() {
         const { dispatch } = this.props;
-        dispatch(setPageNumber(1));
-        dispatch(setShowType('show_favorite'));
-        dispatch(setKeyword(''));
-        dispatch(fetchPosts());
+        dispatch(actions.setPageNumber(1));
+        dispatch(actions.setShowType('show_favorite'));
+        dispatch(actions.setKeyword(''));
+        dispatch(actions.fetchPosts());
     }
 
     componentDidMount() {
@@ -132,13 +132,19 @@ class Operations extends React.Component {
                     <li onClick={this.deleteDashboardMul}><i className="icon icon-trash"/></li>
                 </ul>
                 <div className="tab-btn">
-                    <button className={typeName === 'show_all' ? 'active' : ''} onClick={this.showAll}>全部</button>
+                    <button className={typeName === 'show_all' ? 'active' : ''} onClick={this.showAll}>
+                        {intl.get('DASHBOARD.ALL')}
+                    </button>
                     <button className={typeName === 'show_favorite' ? 'active' : ''} onClick={this.showFavorite}>
-                        <i className={typeName === 'show_favorite' ? 'icon icon-star-active' : 'icon icon-star'}/>收藏
+                        <i className={typeName === 'show_favorite' ? 'icon icon-star-active' : 'icon icon-star'}/>
+                        {intl.get('DASHBOARD.FAVORITE')}
                     </button>
                 </div>
                 <div className="search-input">
-                    <input onKeyUp={this.searchDashboard} onChange={this.keywordChange} className="tp-input" placeholder="搜索..." />
+                    <input
+                        onKeyUp={this.searchDashboard} onChange={this.keywordChange}
+                        className="tp-input" placeholder={intl.get('DASHBOARD.SEARCH')}
+                    />
                     <i className="icon icon-search" onClick={this.clickSearchDashboard}/>
                 </div>
                 {/*<div className="view-btn">

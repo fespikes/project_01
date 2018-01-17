@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
-
 import { WarningAlert } from '../../common/components/WarningAlert';
+import intl from 'react-intl-universal';
 
 class SQLMetricDelete extends React.Component {
     constructor(props) {
@@ -39,7 +39,7 @@ class SQLMetricDelete extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-trash"/>
-                                <span>Delete SQLMetric</span>
+                                <span>{intl.get('DATASET.METRIC')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -58,7 +58,7 @@ class SQLMetricDelete extends React.Component {
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.confirm}
                             >
-                                确定
+                                {intl.get('DATASET.CONFIRM')}
                             </button>
                         </div>
                     </div>

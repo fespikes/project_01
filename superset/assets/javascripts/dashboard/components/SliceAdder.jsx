@@ -5,7 +5,8 @@ import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import ModalTrigger from '../../components/ModalTrigger';
 import { Table, Pagination } from 'antd';
 require('react-bootstrap-table/css/react-bootstrap-table.css');
-import {sortByInitials} from '../../../utils/utils.jsx';
+import {sortByInitials, loadIntlResources} from '../../../utils/utils.jsx';
+import intl from 'react-intl-universal';
 
 const propTypes = {
     dashboard: PropTypes.object.isRequired,
@@ -110,6 +111,7 @@ class SliceAdder extends React.Component {
     componentDidMount() {
         //first load list
         this.getSliceList(1, '');
+        loadIntlResources(_ => this.setState({ initDone: true }), 'dashboard');
     }
 
     componentWillUnmount() {
@@ -128,7 +130,7 @@ class SliceAdder extends React.Component {
 
         const columns = [
             {
-                title: '名称',
+                title: intl.get('DASHBOARD.NAME'),
                 key: 'slice_name',
                 dataIndex: 'slice_name',
                 width: '40%',
@@ -156,7 +158,7 @@ class SliceAdder extends React.Component {
                     return sortByInitials(a.slice_name, b.slice_name);
                 }
             }, {
-                title: '图表类型',
+                title: intl.get('DASHBOARD.CHART_TYPE'),
                 dataIndex: 'viz_type',
                 key: 'viz_type',
                 width: '20%',
@@ -164,7 +166,7 @@ class SliceAdder extends React.Component {
                     return sortByInitials(a.viz_type, b.viz_type);
                 }
             }, {
-                title: '数据集',
+                title: intl.get('DASHBOARD.DATASET'),
                 dataIndex: 'datasource',
                 key: 'datasource',
                 width: '20%',
@@ -172,7 +174,7 @@ class SliceAdder extends React.Component {
                     return sortByInitials(a.datasource, b.datasource);
                 }
             }, {
-                title: '所有者',
+                title: intl.get('DASHBOARD.OWNER'),
                 dataIndex: 'created_by_user',
                 key: 'created_by_user',
                 width: '20%',
@@ -182,7 +184,7 @@ class SliceAdder extends React.Component {
             }
         ];
 
-        const modalTitle = "添加工作表";
+        const modalTitle = intl.get('DASHBOARD.ADD_SLICE');
         const modalIcon = "icon icon-plus";
         const modalContent = (
             <div className="table-add-slice">
@@ -199,7 +201,7 @@ class SliceAdder extends React.Component {
                         <input
                             className="tp-input"
                             onChange={this.keywordChange}
-                            placeholder="搜索..."
+                            placeholder={intl.get('DASHBOARD.SEARCH')}
                         />
                         <i className="icon icon-search"/>
                     </div>

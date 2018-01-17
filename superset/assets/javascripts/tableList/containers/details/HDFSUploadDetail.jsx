@@ -7,10 +7,9 @@ import {Link, withRouter} from 'react-router-dom';
 import {Select, Tooltip, TreeSelect} from 'antd';
 import {Confirm, CreateHDFSConnect, CreateInceptorConnect} from '../../popup';
 import {datasetTypes} from '../../actions';
-import {constructFileBrowserData, appendTreeChildren, initDatasetData,
-    extractOpeType, getDatasetId, extractDatasetType} from '../../module';
-import {renderLoadingModal, renderAlertTip, renderGlobalErrorMsg} from '../../../../utils/utils';
-
+import * as module from '../../module';
+import * as utils from '../../../../utils/utils';
+import intl from 'react-intl-universal';
 import {ConfirmModal} from '../../../common/components';
 
 class HDFSUploadDetail extends Component {
@@ -20,7 +19,8 @@ class HDFSUploadDetail extends Component {
         this.state={
             dsHDFS: props.dsHDFS,
             disabledConfig: 'disabled',
-            disabledUpload: 'disabled'
+            disabledUpload: 'disabled',
+            initDone: false
         };
         //bindings
         this.onConfig = this.onConfig.bind(this);
@@ -102,7 +102,7 @@ class HDFSUploadDetail extends Component {
         return this.props.fetchHDFSFileBrowser(hdfsPath, hdfsConnectId, callback);
         function callback(success, data) {
             if(success) {
-                let treeData = appendTreeChildren(
+                let treeData = module.appendTreeChildren(
                     hdfsPath, data,
                     JSON.parse(JSON.stringify(self.state.dsHDFS.fileBrowserData))
                 );
@@ -114,7 +114,7 @@ class HDFSUploadDetail extends Component {
                     dsHDFS: objHDFS
                 });
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
@@ -146,7 +146,7 @@ class HDFSUploadDetail extends Component {
             render(
                 <ConfirmModal
                     needCallback={false}
-                    confirmMessage="没有上传文件，请先上传！"
+                    confirmMessage={intl.get('DATASET.NO_UPLOAD_FILE')}
                 />,
                 document.getElementById('popup_root')
             );
@@ -164,7 +164,7 @@ class HDFSUploadDetail extends Component {
             if(success) {
                 response.type = 'success';
                 fileUploaded = true;
-                response.message = '上传成功';
+                response.message = intl.get('DATASET.UPLOAD_SUCCESS');
             }else {
                 response.type = 'error';
                 fileUploaded = false;
@@ -177,20 +177,20 @@ class HDFSUploadDetail extends Component {
             self.setState({
                 dsHDFS: objUpload
             });
-            renderAlertTip(response, 'showAlertDetail', 600);
+            utils.renderAlertTip(response, 'showAlertDetail', 600);
         }
     }
 
     onConfig() {
         const {saveHDFSDataset, datasetType, datasetId, history} = this.props;
-        const opeType = extractOpeType(window.location.hash);
+        const opeType = module.extractOpeType(window.location.hash);
         saveHDFSDataset(this.state.dsHDFS);
         const url = '/' + opeType + '/preview/' + datasetType + '/' + datasetId;
         history.push(url);
     }
 
     checkIfSubmit() {
-        const datasetType = extractDatasetType(window.location.hash);
+        const datasetType = module.extractDatasetType(window.location.hash);
         var fields = $(".hdfs-detail input[required]");
         let disabled = null;
 
@@ -218,7 +218,7 @@ class HDFSUploadDetail extends Component {
     }
 
     componentDidMount() {
-        const datasetType = extractDatasetType(window.location.hash);
+        const datasetType = module.extractDatasetType(window.location.hash);
         if(datasetType === datasetTypes.hdfs
             || datasetType === datasetTypes.uploadFile) {//for exclude inceptor
 
@@ -228,6 +228,7 @@ class HDFSUploadDetail extends Component {
                 this.doDatasetEdit();
             }
         }
+        utils.loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
     }
 
     componentWillReceiveProps(nextProps) {
@@ -239,6 +240,7 @@ class HDFSUploadDetail extends Component {
                 dsHDFS: nextProps.dsHDFS
             });
         }
+        utils.loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
     };
 
     doFetchInceptorList() {
@@ -254,7 +256,7 @@ class HDFSUploadDetail extends Component {
                     dsHDFS: objHDFS
                 });
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
@@ -264,7 +266,6 @@ class HDFSUploadDetail extends Component {
         const self = this;
         fetchHDFSConnectList(hdfsCallback);
         function hdfsCallback(success, data) {
-            console.log('data-hdfs=', data);
             if(success) {
                 let objHDFS = {
                     ...self.state.dsHDFS,
@@ -279,7 +280,7 @@ class HDFSUploadDetail extends Component {
                     switchHDFSConnected(false);
                 }
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
@@ -289,7 +290,7 @@ class HDFSUploadDetail extends Component {
         this.props.fetchHDFSFileBrowser(path, hdfsConnectId, fileCallback);
         function fileCallback(success, data) {
             if(success) {
-                const browserData = constructFileBrowserData(data);
+                const browserData = module.constructFileBrowserData(data);
                 let objHDFS = {
                     ...self.state.dsHDFS,
                     fileBrowserData: browserData
@@ -298,7 +299,7 @@ class HDFSUploadDetail extends Component {
                     dsHDFS: objHDFS
                 });
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
@@ -306,7 +307,7 @@ class HDFSUploadDetail extends Component {
     doDatasetEdit() {
         const self = this;
         const {fetchDatasetDetail, fetchDBDetail, fetchHDFSDetail} = self.props;
-        const datasetId = getDatasetId('edit', window.location.hash);
+        const datasetId = module.getDatasetId('edit', window.location.hash);
         fetchDatasetDetail(datasetId, callback);
         function callback(success, data) {
             if(success) {
@@ -322,12 +323,12 @@ class HDFSUploadDetail extends Component {
                             inceptorConnectId: dbData.id
                         };
                         self.setState({
-                            dsHDFS: initDatasetData(
+                            dsHDFS: module.initDatasetData(
                                 datasetTypes.hdfs, data, objHDFS
                             )
                         });
                     }else {
-                        renderGlobalErrorMsg(dbData);
+                        utils.renderGlobalErrorMsg(dbData);
                     }
                 }
 
@@ -339,13 +340,13 @@ class HDFSUploadDetail extends Component {
                             hdfsConnectId: hdfsData.id
                         };
                         self.setState({
-                            dsHDFS: initDatasetData(
+                            dsHDFS: module.initDatasetData(
                                 datasetTypes.hdfs,
                                 data, objHDFS
                             )
                         });
                     }else {
-                        renderGlobalErrorMsg(hdfsData);
+                        utils.renderGlobalErrorMsg(hdfsData);
                     }
                 }
             }
@@ -373,12 +374,12 @@ class HDFSUploadDetail extends Component {
                 }
             );
         }
-        return (
+        return (this.state.initDone &&
             <div className="data-detail-centent hdfs-detail">
                 <div className="data-detail-item">
                     <div>
                         <i>*</i>
-                        <span>数据集名称：</span>
+                        <span>{intl.get('DATASET.DATASET_NAME')}：</span>
                     </div>
                     <input
                         type="text"
@@ -390,7 +391,7 @@ class HDFSUploadDetail extends Component {
                     />
                 </div>
                 <div className="data-detail-item">
-                    <span>描述：</span>
+                    <span>{intl.get('DATASET.DESCRIPTION')}：</span>
                     <textarea
                         name="description"
                         value={dsHDFS.description}
@@ -410,7 +411,7 @@ class HDFSUploadDetail extends Component {
                             htmlFor="xFile"
                             style={{width: 200}}
                         >
-                            <span>选择文件</span>
+                            <span>{intl.get('DATASET.SELECT_FILE')}</span>
                         </label>
                         <div className="file-name">
                             <i className="icon icon-file"/>
@@ -431,18 +432,18 @@ class HDFSUploadDetail extends Component {
                     <div className="data-detail-item">
                         <span></span>
                         <div className="data-connect-status">
-                            <span>尚未建立HDFS连接</span>
+                            <span>{intl.get('DATASET.NOT_CREATE_HDFS_CONN')}</span>
                             <Tooltip
                                 placement="top"
-                                title="需要到连接页面创建HDFS连接"
+                                title={intl.get('DATASET.CREATE_CONN_IN_CONN_PAGE')}
                             >
-                                <button>建立HDFS连接</button>
+                                <button>{intl.get('DATASET.CREATE_HDFS_CONN')}</button>
                             </Tooltip>
                             {/*<button onClick={this.createHDFSConnect}>建立HDFS连接</button>*/}
                         </div>
                     </div>
                     <div className="data-detail-item">
-                        <span>描述：</span>
+                        <span>{intl.get('DATASET.DESCRIPTION')}：</span>
                         <textarea className="tp-textarea" cols="30" rows="10"/>
                     </div>
                 </div>
@@ -450,7 +451,7 @@ class HDFSUploadDetail extends Component {
                     <div className="data-detail-item">
                         <div>
                             <i>*</i>
-                            <span>HDFS连接：</span>
+                            <span>HDFS{intl.get('DATASET.CONNECTION')}：</span>
                         </div>
                         <Select
                             style={{ width: 300 }}
@@ -469,7 +470,7 @@ class HDFSUploadDetail extends Component {
                 <div className="data-detail-item">
                     <div>
                         <i>*</i>
-                        <span>数据目录：</span>
+                        <span>{intl.get('DATASET.DATA_FOLDER')}：</span>
                     </div>
                     <div
                         className="dataset-detail"
@@ -495,7 +496,7 @@ class HDFSUploadDetail extends Component {
                             value={dsHDFS.hdfsPath}
                         />
                     </div>
-                    <Tooltip title="选择创建外表的文件目录">
+                    <Tooltip title={intl.get('DATASET.SELECT_FOLDER_TIP')}>
                         <i
                             className="icon icon-info"
                             style={{right: '-5px', position: 'relative'}}
@@ -505,7 +506,7 @@ class HDFSUploadDetail extends Component {
                 <div className="data-detail-item">
                     <div>
                         <i>*</i>
-                        <span>关联inceptor连接：</span>
+                        <span>{intl.get('DATASET.ASSOCIATE')}inceptor{intl.get('DATASET.CONNECTION')}：</span>
                     </div>
                     <Select
                         style={{ width: 300 }}
@@ -514,7 +515,7 @@ class HDFSUploadDetail extends Component {
                     >
                         {inceptorOptions}
                     </Select>
-                    <Tooltip title="会在该连接下创建HDFS文件的外表">
+                    <Tooltip title={intl.get('DATASET.CREATE_TABLE_IN_THIS_CONN')}>
                         <i
                             className="icon icon-info"
                             style={{right: '-5px', position: 'relative'}}
@@ -533,11 +534,11 @@ class HDFSUploadDetail extends Component {
                         style={{marginRight: 20}}
                         disabled={this.state.disabledUpload}
                     >
-                        上传文件
+                        {intl.get('DATASET.UPLOAD_FILE')}
                     </button>
                     <button onClick={this.onConfig}
                             disabled={this.state.disabledConfig}>
-                        配置
+                        {intl.get('DATASET.CONFIG')}
                     </button>
                 </div>
             </div>

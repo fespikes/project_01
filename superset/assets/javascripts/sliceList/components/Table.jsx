@@ -2,21 +2,11 @@ import React from 'react';
 import {render} from 'react-dom';
 import {message, Table, Icon, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
-import {
-    fetchStateChange,
-    setSelectedRows,
-    fetchSliceDelete,
-    fetchSliceDetail,
-    fetchSliceDelInfo
-} from '../actions';
 import {SliceDelete, SliceEdit} from '../popup';
 import {ConfirmModal, PermPopup} from '../../common/components';
-import {
-    sortByInitials,
-    renderGlobalErrorMsg,
-    viewObjectDetail,
-    OBJECT_TYPE
-} from '../../../utils/utils.jsx';
+import * as actions from '../actions';
+import * as utils from '../../../utils/utils';
+import intl from 'react-intl-universal';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -34,12 +24,12 @@ class SliceTable extends React.Component {
         selectedRows.forEach(function(row) {
             selectedRowNames.push(row.slice_name);
         });
-        dispatch(setSelectedRows(selectedRowKeys, selectedRowNames));
+        dispatch(actions.setSelectedRows(selectedRowKeys, selectedRowNames));
     };
 
     editSlice(record) {
         const { dispatch } = this.props;
-        dispatch(fetchSliceDetail(record.id, callback));
+        dispatch(actions.fetchSliceDetail(record.id, callback));
         function callback(success, data) {
             if(success) {
                 render(
@@ -50,14 +40,14 @@ class SliceTable extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
 
     deleteSlice(record) {
         const { dispatch } = this.props;
-        dispatch(fetchSliceDelInfo(record.id, callback));
+        dispatch(actions.fetchSliceDelInfo(record.id, callback));
         function callback(success, data) {
             if(success) {
                 const deleteTips = data;
@@ -71,24 +61,24 @@ class SliceTable extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
 
     favoriteSlice(record) {
         const { dispatch } = this.props;
-        dispatch(fetchStateChange(record, undefined, "favorite"));
+        dispatch(actions.fetchStateChange(record, undefined, "favorite"));
     }
 
     sliceDetail(url) {
-        viewObjectDetail(url, callback);
+        utils.viewObjectDetail(url, callback);
         function callback(success, response) {
             if(success) {
                 localStorage.setItem('explore:firstEntry', 'true');
                 window.location.href = url;
             }else {
-                renderGlobalErrorMsg(response);
+                utils.renderGlobalErrorMsg(response);
             }
         }
     }
@@ -96,11 +86,15 @@ class SliceTable extends React.Component {
     givePerm(record) {
         render(
             <PermPopup
-                objectType={OBJECT_TYPE.SLICE}
+                objectType={utils.OBJECT_TYPE.SLICE}
                 objectName={record.slice_name}
             />,
             document.getElementById('popup_root')
         );
+    }
+
+    componentDidMount() {
+        utils.loadIntlResources(_ => this.setState({ initDone: true }), 'slice');
     }
 
     render() {
@@ -126,7 +120,7 @@ class SliceTable extends React.Component {
                 }
             },
             {
-                title: '名称',  //TODO: title need to i18n
+                title: intl.get('SLICE.NAME'),
                 key: 'slice_name',
                 dataIndex: 'slice_name',
                 width: '25%',
@@ -154,10 +148,10 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return sortByInitials(a.description, b.description);
+                    return utils.sortByInitials(a.description, b.description);
                 }
             }, {
-                title: '图表类型',
+                title: intl.get('SLICE.CHART_TYPE'),
                 dataIndex: 'viz_type',
                 key: 'viz_type',
                 width: '13%',
@@ -172,11 +166,11 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return sortByInitials(a.viz_type, b.viz_type);
+                    return utils.sortByInitials(a.viz_type, b.viz_type);
                 }
 
             }, {
-                title: '数据集',
+                title: intl.get('SLICE.DATASET'),
                 dataIndex: 'datasource',
                 key: 'datasource',
                 width: '15%',
@@ -192,10 +186,10 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return sortByInitials(a.datasource, b.datasource);
+                    return utils.sortByInitials(a.datasource, b.datasource);
                 }
             }, {
-                title: '所有者',
+                title: intl.get('SLICE.OWNER'),
                 dataIndex: 'created_by_user',
                 key: 'created_by_user',
                 width: '10%',
@@ -210,21 +204,21 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return sortByInitials(a.created_by_user, b.created_by_user);
+                    return utils.sortByInitials(a.created_by_user, b.created_by_user);
                 }
             }, {
-                title: '发布状态',
+                title: intl.get('SLICE.PUBLISH_STATE'),
                 dataIndex: 'online',
                 key: 'online',
                 width: '10%',
                 sorter: (a, b) => a.online - b.online,
                 render: (text, record) => {
                     return (
-                        <span className="entity-publish">{record.online ? "已发布" : "未发布"}</span>
+                        <span className="entity-publish">{record.online ? intl.get('SLICE.PUBLISHED') : intl.get('SLICE.UNPUBLISHED')}</span>
                     )
                 }
             }, {
-                title: '最后修改时间',
+                title: intl.get('SLICE.LAST_MODIFIED_TIME'),
                 dataIndex: 'changed_on',
                 key: 'changed_on',
                 width: '15%',
@@ -232,27 +226,27 @@ class SliceTable extends React.Component {
                     return a.changed_on - b.changed_on ? 1 : -1;
                 }
             }, {
-                title: '操作',
+                title: intl.get('SLICE.OPERATION'),
                 key: 'action',
                 width: '10%',
                 render: (record) => {
                     return (
                         <div className="icon-group">
-                            <Tooltip placement="top" title="编辑" arrowPointAtCenter>
+                            <Tooltip placement="top" title={intl.get('SLICE.EDIT')} arrowPointAtCenter>
                                 <i
                                     className="icon icon-edit"
                                     style={{position: 'relative', top: 1}}
                                     onClick={() => this.editSlice(record)}
                                 />
                             </Tooltip>
-                            <Tooltip placement="top" title="删除" arrowPointAtCenter>
+                            <Tooltip placement="top" title={intl.get('SLICE.DELETE')} arrowPointAtCenter>
                                 <i
                                     className="icon icon-delete"
                                     style={{margin: '0 20'}}
                                     onClick={() => this.deleteSlice(record)}
                                 />
                             </Tooltip>
-                            <Tooltip placement="top" title="赋权" arrowPointAtCenter>
+                            <Tooltip placement="top" title={intl.get('SLICE.PERM')} arrowPointAtCenter>
                                 <i
                                     className="icon icon-perm"
                                     onClick={() => this.givePerm(record)}
