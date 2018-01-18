@@ -96,9 +96,9 @@ class QuerySearch extends React.PureComponent {
         }
         return options;
     }
-    dbMutator(data) {
+    dbMutator(response) {
         try {
-            data = JSON.parse(data).data;
+            const data = response.data.data;
             const options = data.map((db) => ({ value: db.id, label: db.database_name }));
             this.props.actions.setDatabases(data);
             if (data.length === 0) {
@@ -210,7 +210,7 @@ class QuerySearch extends React.PureComponent {
                                         intl.get('condition'), intl.get('connection'), 
                                         intl.get('users'), intl.get('start_time'),
                                         intl.get('progress'), intl.get('line_amount'), 
-                                        intl.get('sql'), intl.get('search_link')
+                                        'sql', intl.get('search_link')
                                     ]}
                                     onUserClicked={this.onUserClicked.bind(this)}
                                     onDbClicked={this.onDbClicked.bind(this)}

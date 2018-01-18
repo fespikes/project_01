@@ -140,7 +140,7 @@ class SqlEditorLeftBar extends React.PureComponent {
         <div className="clearfix sql-toolbar scrollbar-content">
           {networkAlert}
           <div>
-            <div className="select-title">intl.get('connection')</div>
+            <div className="select-title">{intl.get('connection')}</div>
             <AsyncSelect
               dataEndpoint="/database/listdata/?page_size=1000"
               onChange={this.onChange.bind(this)}

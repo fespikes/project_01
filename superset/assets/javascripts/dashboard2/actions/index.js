@@ -217,15 +217,13 @@ export function fetchDashboardMulDelInfo(callback) {
 
 export function fetchAvailableSlices(callback) {
     const url = window.location.origin + "/slice/listdata/?page_size=1000";
-    return dispatch => {
-        return fetch(url, {
-            credentials: "same-origin"
-        }).then(always).then(json).then(
-            response => {
-                callbackHandler(response, callback);
-            }
-        );
-    }
+    return fetch(url, {
+        credentials: "same-origin"
+    }).then(always).then(json).then(
+        response => {
+            callbackHandler(response, callback);
+        }
+    );
 }
 
 export function fetchUpdateDashboard(state, dashboard, callback) {

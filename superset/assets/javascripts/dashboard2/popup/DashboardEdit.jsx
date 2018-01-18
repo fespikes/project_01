@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom';
 import { fetchAvailableSlices, fetchUpdateDashboard } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
-import { renderAlertErrorInfo } from '../../../utils/utils';
+import { renderAlertErrorInfo, renderGlobalErrorMsg, fetchDatabaseList } from '../../../utils/utils';
 import intl from 'react-intl-universal';
 
 class DashboardEdit extends React.Component {
@@ -18,6 +18,7 @@ class DashboardEdit extends React.Component {
             dashboardDetail: {
                 description: ''
             },
+            sliceOptions: [],
             selectedSlices: initDefaultOptions()
         };
 
@@ -82,13 +83,26 @@ class DashboardEdit extends React.Component {
         }
     }
 
+    componentDidMount() {
+        const callback = (success, response) => {
+            if(success) {
+                const Option = Select.Option;
+                const options = response.data.map(slice => {
+                    return <Option key={slice.slice_name}>{slice.slice_name}</Option>
+                });
+                this.setState({
+                    sliceOptions: options
+                });
+            }else {
+                renderGlobalErrorMsg(response);
+            }
+        };
+        fetchAvailableSlices(callback);
+    }
+
     render() {
-        const self = this;
-        const Option = Select.Option;
-        const options = self.props.dashboardDetail.available_slices.map(slice => {
-            return <Option key={slice.slice_name}>{slice.slice_name}</Option>
-        });
-        const defaultOptions = this.state.selectedSlices;
+
+        const { selectedSlices, sliceOptions } = this.state;
 
         return (
             <div className="popup">
@@ -141,11 +155,11 @@ class DashboardEdit extends React.Component {
                                     <div id="edit_pop_select">
                                         <Select mode={'multiple'}
                                             style={{ width: '100%' }}
-                                            defaultValue={defaultOptions}
+                                            defaultValue={selectedSlices}
                                             placeholder={intl.get('DASHBOARD.SELECT_SLICE')}
                                             onChange={this.onSelectChange}
                                         >
-                                            {options}
+                                            {sliceOptions}
                                         </Select>
                                     </div>
                                     <Tooltip

@@ -1904,6 +1904,41 @@ msgstr "依赖的HDFS连接[{conn}]已被其他用户下线"
 msgid "Parse file error: {msg}"
 msgstr "解析文件错误：{msg}"
 
+msgid "Data Sources"
+msgstr "数据来源"
+
+msgid "Original Table"
+msgstr "原始表"
+
+msgid "Chart Type"
+msgstr "图标类型"
+
+msgid "Save Slice"
+msgstr "保存工作表"
+
+msgid "Override Slice"
+msgstr "覆盖工作表"
+
+msgid "Save As"
+msgstr "另存为"
+
+msgid "Slice Name"
+msgstr "工作表名字"
+
+msgid "Not Add Dashboard"
+msgstr "不填加到仪表板"
+
+msgid "Add Slice To Existed Dashboard"
+msgstr "添加工作表到存在的仪表板"
+
+msgid "Add Slice To New Dashboard"
+msgstr "添加到新的仪表板"
+
+msgid "Dashboard Name"
+msgstr "仪表板名字"
+
+msgid "Save And Jump"
+msgstr "保存并跳转"
 
 #========================
 # models/core.py
