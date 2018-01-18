@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { Alert } from 'antd';
 import { fetchLists, fetchSliceDelete, fetchSliceDeleteMul } from '../actions';
-import { renderAlertErrorInfo, loadIntlResources } from '../../../utils/utils';
+import { renderAlertErrorInfo } from '../../../utils/utils';
 import intl from 'react-intl-universal';
 import { WarningAlert } from '../../common/components/WarningAlert';
 
@@ -44,10 +44,6 @@ class SliceDelete extends React.Component {
                 );
             }
         }
-    }
-
-    componentDidMount() {
-        loadIntlResources(_ => this.setState({ initDone: true }), 'slice');
     }
 
     render() {

@@ -100,10 +100,6 @@ class SliceTable extends React.Component {
         );
     }
 
-    componentDidMount() {
-        utils.loadIntlResources(_ => this.setState({ initDone: true }), 'database');
-    }
-
     render() {
         const { data, selectedRowKeys } = this.props;
         const rowSelection = {
@@ -187,7 +183,7 @@ class SliceTable extends React.Component {
                                     onClick={() => this.deleteConnection(record)}
                                 />
                             </Tooltip>
-                            <Tooltip placement="top" title={intl.get('DATABASE.PERM')} arrowPointAtCenter>
+                            <Tooltip placement="top" title={intl.get('DATABASE.GRANT_PERM')} arrowPointAtCenter>
                                 <i
                                     className="icon icon-perm"
                                     onClick={() => this.givePerm(record)}

@@ -49,10 +49,6 @@ class SliceTable extends React.Component {
         }
     }
 
-    componentDidMount() {
-        utils.loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
-    }
-
     render() {
 
         const { dispatch, data, selectedRowKeys } = this.props;
@@ -177,7 +173,7 @@ class SliceTable extends React.Component {
                                     onClick={() => deleteTable(record)}
                                 />
                             </Tooltip>
-                            <Tooltip placement="top" title={intl.get('DATASET.PERM')} arrowPointAtCenter>
+                            <Tooltip placement="top" title={intl.get('DATASET.GRANT_PERM')} arrowPointAtCenter>
                                 <i
                                     className="icon icon-perm"
                                     onClick={() => this.givePerm(record)}

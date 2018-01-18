@@ -5,10 +5,15 @@ import PropTypes from 'prop-types';
 
 import {WarningAlert} from './WarningAlert';
 import {ErrorAlert} from './ErrorAlert';
+import {loadIntlResources} from '../../../utils/utils';
+import intl from 'react-intl-universal';
 
 class ConfirmModal extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            initDone: false
+        };
         // bindings
         this.confirm = this.confirm.bind(this);
         this.closeDialog = this.closeDialog.bind(this);
@@ -25,20 +30,24 @@ class ConfirmModal extends React.Component {
         this.closeDialog();
     }
 
+    componentDidMount() {
+        loadIntlResources(_ => this.setState({ initDone: true }), 'popup');
+    }
+
     render() {
         const {confirmMessage, confirmType} = this.props;
         let alert = <WarningAlert message={confirmMessage}/>;
         if(confirmType === 'error') {
             alert = <ErrorAlert message={confirmMessage}/>
         }
-        return (
+        return (this.state.initDone &&
             <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-dashboard-popup" />
-                                <span>确认</span>
+                                <span>{intl.get('POPUP.CONFIRM')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -55,7 +64,7 @@ class ConfirmModal extends React.Component {
                                 className="tp-btn tp-btn-middle tp-btn-primary"
                                 onClick={this.confirm}
                             >
-                                确定
+                                {intl.get('POPUP.CONFIRM')}
                             </button>
                         </div>
                     </div>

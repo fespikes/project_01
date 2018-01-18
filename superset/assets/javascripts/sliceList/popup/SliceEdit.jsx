@@ -7,7 +7,7 @@ import { fetchUpdateSlice, fetchDashboardList } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
 import intl from 'react-intl-universal';
-import { renderAlertErrorInfo, renderGlobalErrorMsg, loadIntlResources } from '../../../utils/utils';
+import { renderAlertErrorInfo, renderGlobalErrorMsg } from '../../../utils/utils';
 
 class SliceEdit extends React.Component {
     constructor(props) {
@@ -96,8 +96,6 @@ class SliceEdit extends React.Component {
                 renderGlobalErrorMsg(data);
             }
         }
-
-        loadIntlResources(_ => this.setState({ initDone: true }), 'slice');
     }
 
     render() {

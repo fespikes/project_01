@@ -52,8 +52,6 @@ class ConnectionEdit extends React.Component {
         this.setState({
             database: database
         });
-
-        utils.loadIntlResources(_ => this.setState({ initDone: true }), 'database');
     }
 
     fetchConnectionNames () {

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { Alert } from 'antd';
 import { selectRows, applyDelete } from '../actions';
 import intl from 'react-intl-universal';
-import { renderAlertErrorInfo, loadIntlResources } from '../../../utils/utils';
+import { renderAlertErrorInfo } from '../../../utils/utils';
 
 import { WarningAlert } from '../../common/components/WarningAlert';
 
@@ -44,10 +44,6 @@ class ConnectionDelete extends React.Component {
         } else {
             dispatch(applyDelete(callback));
         }
-    }
-
-    componentDidMount() {
-        loadIntlResources(_ => this.setState({ initDone: true }), 'database');
     }
 
     render() {

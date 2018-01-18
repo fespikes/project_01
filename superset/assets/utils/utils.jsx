@@ -157,10 +157,11 @@ export function loadIntlResources(callback, module) {
     //because in the project setting , front end source are only located under assets folder
     http.get(localePath + `${currentLocale}.json`)
         .then(res => {
+            const localeResource = Object.assign(intl.options.locales[currentLocale] || {}, res.data);
             return intl.init({
                 currentLocale,
                 locales: {
-                    [currentLocale]: res.data
+                    [currentLocale]: localeResource
                 }
             });
         })
