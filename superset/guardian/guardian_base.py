@@ -37,7 +37,6 @@ class GuardianBase(object):
     datasource_root = 'OBJECT'
 
     def __init__(self):
-        self.start_jvm()
         self.client = None
         self.component = None
         self.service_type = conf.get('GUARDIAN_SERVICE_TYPE', self.service_type)
@@ -47,21 +46,6 @@ class GuardianBase(object):
         self.PrincipalType = self.models.PrincipalType
         self.UserVo = self.models.UserVo
         self.PermObjVo = self.models.PermObjVo
-
-    def start_jvm(self):
-        if not isJVMStarted():
-            jar = conf.get('GUARDIAN_CLIENT_JAR', self.client_jar)
-            site_path = conf.get('GUARDIAN_SITE_PATH', self.site_path)
-            if not os.path.exists(jar):
-                logging.error('Guardian client jar [{}] is not existed.'.format(jar))
-                raise IOError
-            startJVM(getDefaultJVMPath(), '-ea',
-                     '-Djava.class.path={}:{}'.format(jar, site_path))
-            if not isThreadAttachedToJVM():
-                attachThreadToJVM()
-
-    def shutdomn_jvm(self):
-        shutdownJVM()
 
     @catch_guardian_exception
     def login(self, username=None, password=None):
