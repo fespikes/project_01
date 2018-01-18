@@ -21,7 +21,8 @@ def start_jvm():
 
 
 def shutdown_jvm():
-    shutdownJVM()
+    if isJVMStarted():
+        shutdownJVM()
 
 
 def get_java_paths():

@@ -78,9 +78,9 @@ if app.config.get('ENABLE_TIME_ROTATE'):
     logging.getLogger().addHandler(handler)
 
 
-start_jvm()
+if conf.get('LICENSE_CHECK') or conf.get('GUARDIAN_AUTH'):
+    start_jvm()
 
-# License check
 if conf.get('LICENSE_CHECK'):
     check_license()
 

@@ -21,7 +21,9 @@ from sqlalchemy import and_, or_
 
 from superset import app, db, models, utils, conf
 from superset.utils import GUARDIAN_AUTH
-from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log, Number
+from superset.models import (
+    Dataset, Database, Dashboard, Slice, HDFSConnection, FavStar, Log, Number
+)
 from superset.message import *
 from superset.exception import (
     SupersetException, LoginException, PermissionException, ParameterException,
@@ -205,17 +207,17 @@ class PermissionManagement(object):
         """Grant READ perm of example data to present user"""
         if not self.guardian_auth:
             return
-        example_types = {'dashboard': Dashboard, 'slice': Slice, 'dataset': Dataset}
+        example_types = {'dashboard': Dashboard, 'slice': Slice, 'dataset': Dataset,
+                         'hdfsconnection': HDFSConnection}
         for obj_type, model in example_types.items():
             objs = db.session.query(model).filter(model.created_by_fk == None).all()
-            if objs and self.check_read_perm([obj_type, objs[0].name],
-                                             raise_if_false=False):
-                return
-            for obj in objs:
-                self.add_object_permissions([obj_type, obj.name])
-                self.grant_read_permissions([obj_type, obj.name])
-                logging.info('Grant {} [READ] perm on {}: [{}]'
-                             .format(g.user.username, obj_type, obj.name))
+            if objs and not self.check_read_perm([obj_type, objs[0].name],
+                                                 raise_if_false=False):
+                for obj in objs:
+                    self.add_object_permissions([obj_type, obj.name])
+                    self.grant_read_permissions([obj_type, obj.name])
+                    logging.info('Grant {} [READ] perm on {}: [{}]'
+                                 .format(g.user.username, obj_type, obj.name))
 
 
 class BaseSupersetView(BaseView):
