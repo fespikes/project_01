@@ -31,7 +31,7 @@ def catch_guardian_exception(f):
 
 
 class GuardianBase(object):
-    client_jar = '/usr/local/lib/guardian-client-2.0-transwarp-5.2.0-SNAPSHOT.jar'
+    client_jar = '/usr/local/lib/guardian-client-2.0-transwarp-5.2.0.jar'
     site_path = '/etc/pilot/conf/'
     service_type = 'PILOT'
     datasource_root = 'OBJECT'

@@ -9,7 +9,7 @@ from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from superset import db, app
 from superset.utils import GUARDIAN_AUTH
-from superset.models import Database, str_to_model, Log, Number
+from superset.models import Database, str_to_model, Log, Number, model_name_columns
 from superset.exception import ParameterException, PermissionException
 from .base import BaseSupersetView, PermissionManagement, catch_exception, json_response
 
@@ -132,6 +132,8 @@ class GuardianView(BaseSupersetView, PermissionManagement):
         object_type = args.get('object_type')
         object_name = args.get('object_name')
         actions = args.get('actions')
+        if username == g.user.username:
+            raise PermissionException(_('Can revoke your own permissions'))
         self.check_revoke_perm([object_type, object_name])
         self.do_revoke(username, [object_type, object_name], actions)
         obj = self.get_object(object_type, object_name)
@@ -142,17 +144,8 @@ class GuardianView(BaseSupersetView, PermissionManagement):
 
     def get_object(self, obj_type, obj_name):
         model = str_to_model.get(obj_type)
-        obj = None
-        if obj_type == 'dashboard':
-            obj = db.session.query(model).filter_by(dashboard_title=obj_name).first()
-        elif obj_type == 'slice':
-            obj = db.session.query(model).filter_by(slice_name=obj_name).first()
-        elif obj_type == 'dataset':
-            obj = db.session.query(model).filter_by(dataset_name=obj_name).first()
-        elif obj_type == 'database':
-            obj = db.session.query(model).filter_by(database_name=obj_name).first()
-        elif obj_type == 'hdfsconnection':
-            obj = db.session.query(model).filter_by(connection_name=obj_name).first()
+        name_column = model_name_columns.get(obj_type)
+        obj = db.session.query(model).filter(name_column == obj_name).first()
         if not obj:
             raise ParameterException(_("Not found the {model} by name: [{name}]")
                                      .format(model=obj_type, name=obj_name))

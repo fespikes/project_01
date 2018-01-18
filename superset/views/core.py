@@ -663,17 +663,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 .format(model=cls.__name__, id=id)
             logging.error(msg)
             return json_response(status=400, message=msg)
-        if model.lower() == 'dashboard':
-            name = obj.dashboard_title
-        elif model.lower() == 'slice':
-            name = obj.slice_name
-        elif model.lower() == 'dataset':
-            name = obj.dataset_name
-        elif model.lower() == 'database':
-            name = obj.database_name
-        elif model.lower() == 'hdfsconnection':
-            name = obj.connection_name
-        self.check_release_perm([model, name])
+        self.check_release_perm([model, obj.name])
 
         if action.lower() == 'online':
             if obj.online is True:

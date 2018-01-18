@@ -40,7 +40,7 @@ CUSTOM_SECURITY_MANAGER = None
 
 # Guardian
 GUARDIAN_AUTH = True
-GUARDIAN_CLIENT_JAR = '/usr/local/lib/guardian-client-2.0-transwarp-5.2.0-SNAPSHOT.jar'
+GUARDIAN_CLIENT_JAR = '/usr/local/lib/guardian-client-2.0-transwarp-5.2.0.jar'
 GUARDIAN_SITE_PATH = '/etc/pilot/conf/'
 GUARDIAN_SERVICE_TYPE = 'PILOT'
 
@@ -330,5 +330,3 @@ SMTP_MAIL_FROM = 'pilot@pilot.com'
 
 if not CACHE_DEFAULT_TIMEOUT:
     CACHE_DEFAULT_TIMEOUT = CACHE_CONFIG.get('CACHE_DEFAULT_TIMEOUT')
-
-#GUARDIAN_AUTH = False
