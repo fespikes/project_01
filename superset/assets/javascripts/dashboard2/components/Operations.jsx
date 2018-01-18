@@ -27,7 +27,7 @@ class Operations extends React.Component {
     addDashboard() {
 
         const { dispatch } = this.props;
-        dispatch(actions.fetchAvailableSlices(callback));
+        actions.fetchAvailableSlices(callback);
         function callback(success, data) {
             if(success) {
                 const dashboard = {dashboard_title: '', description: ''};

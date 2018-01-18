@@ -27,7 +27,7 @@ class VisualizeModal extends React.PureComponent {
         super(props);
         const uniqueId = shortid.generate();
         this.state = {
-            chartType: this.CHART_TYPES[0],
+            chartType: { value: 'dist_bar', requiresTime: false },
             datasourceName: uniqueId,
             columns: {},
             hints: [],

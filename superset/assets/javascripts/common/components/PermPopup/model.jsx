@@ -11,11 +11,12 @@ export function makeSelectOptions(userList) {
     return options;
 }
 
-export function makePermCheckboxes(permList, _this) {
+export function makePermCheckboxes(permList, _this, prefix) {
     const perms = permList.map(
         perm => {
             return <div key={perm}>
                     <input
+                        id={prefix + perm}
                         type="checkbox"
                         name={perm}
                         onChange={_this.handleChange}
@@ -28,18 +29,15 @@ export function makePermCheckboxes(permList, _this) {
 }
 
 export function makeTableDataSource(data) {
-    const userPermList = makeUserPermList(data);
     const dataSource = [];
-    userPermList.map(
-        (perm, index) => {
-            const userPerm = {
-                key: index,
-                name: perm.name,
-                perm: perm.value
-            };
-            dataSource.push(userPerm);
-        }
-    );
+    for(let attr in data) {
+        const userPerm = {
+            key: attr,
+            name: attr,
+            perm: (data[attr]).join(', ')
+        };
+        dataSource.push(userPerm);
+    }
     return dataSource;
 }
 
@@ -68,18 +66,4 @@ export function makeTableColumns(_this, intl) {
         }
     }];
     return columns;
-}
-
-function makeUserPermList(data) {
-    const userPermList = [];
-    for(let attr in data) {
-        const userPerms = data[attr];
-        for(let index = 0; index < userPerms.length; index++) {
-            userPermList.push({
-                name: attr,
-                value: userPerms[index]
-            });
-        }
-    }
-    return userPermList;
 }

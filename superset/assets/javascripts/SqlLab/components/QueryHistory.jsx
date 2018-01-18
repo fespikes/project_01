@@ -16,7 +16,7 @@ const QueryHistory = (props) => {
         columns={[
           intl.get('condition'), intl.get('start_time'), 
           intl.get('used_time'), intl.get('progress'),
-          intl.get('line_amount'), intl.get('sql'),
+          intl.get('line_amount'), 'sql',
           intl.get('database'), intl.get('action')
         ]}
         queries={props.queries}
