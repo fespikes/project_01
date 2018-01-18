@@ -832,6 +832,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 slice=slc,
                 table_name=table_name)
         else:
+            self.update_redirect()
             return self.render_template(
                 "superset/explore.html",
                 viz=viz_obj,
@@ -1179,6 +1180,7 @@ class Superset(BaseSupersetView, PermissionManagement):
     @expose("/dashboard/<dashboard_id>/")
     def dashboard(self, dashboard_id):
         """Server side rendering for a dashboard"""
+        self.update_redirect()
         session = db.session()
         qry = session.query(Dashboard)
         if dashboard_id.isdigit():
@@ -1540,6 +1542,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         d = {
             'defaultDbId': config.get('SQLLAB_DEFAULT_DBID'),
         }
+        self.update_redirect()
         return self.render_template(
             'superset/sqllab.html',
             bootstrap_data=json.dumps(d, default=utils.json_iso_dttm_ser)

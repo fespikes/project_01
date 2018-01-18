@@ -109,6 +109,7 @@ class PresentUserView(BaseSupersetView):
     @catch_exception
     @expose('/')
     def home(self):
+        self.update_redirect()
         return self.render_template('superset/user.html')
 
     @catch_exception

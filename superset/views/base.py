@@ -294,6 +294,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
 
     @expose('/list/')
     def list(self):
+        self.update_redirect()
         return self.render_template(self.list_template)
 
     @catch_exception
