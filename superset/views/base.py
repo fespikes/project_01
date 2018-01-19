@@ -225,6 +225,8 @@ class BaseSupersetView(BaseView):
     def __init__(self):
         super(BaseSupersetView, self).__init__()
         self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
+        self.MAIN_DATABASE_NAME = config.get('METADATA_CONN_NAME')
+        self.MAIN_DATABASE = self.get_main_database()
 
     def check_value_pattern(self, value):
         match = re.search(self.NAME_RESTRICT_PATTERN, value)
@@ -248,6 +250,10 @@ class BaseSupersetView(BaseView):
             "Content-Disposition": content_disp,
         }
         return headers
+
+    def get_main_database(self):
+        return db.session.query(Database)\
+            .filter_by(database_name=self.MAIN_DATABASE_NAME).first()
 
 
 class PageMixin(object):

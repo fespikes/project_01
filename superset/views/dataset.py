@@ -337,7 +337,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
 
     def grant_affect_objects(self, dataset):
         conns = []
-        if dataset.database:
+        if dataset.database and dataset.database != self.MAIN_DATABASE:
             conns.append(dataset.database)
         if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
             conns.append(dataset.hdfs_table.hdfs_connection)

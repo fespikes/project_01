@@ -246,6 +246,8 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @catch_exception
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
+        database = self.get_object(id)
+        self.check_grant_perm([self.model_type, database.name])
         return json_response(data="")
 
 
@@ -411,6 +413,8 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @catch_exception
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
+        hdfs = self.get_object(id)
+        self.check_grant_perm([self.model_type, hdfs.name])
         return json_response(data="")
 
     @catch_hdfs_exception

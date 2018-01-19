@@ -218,11 +218,11 @@ class SliceModelView(SupersetModelView, PermissionManagement):
             dataset = slice.datasource
 
         conns = []
-        if slice.database_id:
+        if slice.database_id and slice.database_id != self.MAIN_DATABASE.id:
             database = db.session.query(Database) \
                 .filter(Database.id == slice.database_id).first()
             conns.append(database)
-        if dataset and dataset.database:
+        if dataset and dataset.database and dataset.database != self.MAIN_DATABASE:
             conns.append(dataset.database)
         if dataset and dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
             conns.append(dataset.hdfs_table.hdfs_connection)
@@ -513,7 +513,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         dash = self.get_object(id)
-        self.check_grant_perm([self.model_type, dash.dashboard])
+        self.check_grant_perm([self.model_type, dash.dashboard_title])
         objects = self.grant_affect_objects(dash)
         info = _("Granting permissions of [{dashboard}] to this user, will grant "
                  "permissions of dependencies to this user too: "
@@ -536,12 +536,13 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         connections = []
         for d in datasets:
-            if d.database:
+            if d.database and d.database.name != self.MAIN_DATABASE_NAME:
                 connections.append(d.database)
             if d.hdfs_table and d.hdfs_table.hdfs_connection:
                 connections.append(d.hdfs_table.hdfs_connection)
         databases = db.session.query(Database) \
-            .filter(Database.id.in_(database_ids)) \
+            .filter(Database.id.in_(database_ids),
+                    Database.database_name != self.MAIN_DATABASE_NAME) \
             .all()
         connections.extend(databases)
         return {'slice': set(slices),
