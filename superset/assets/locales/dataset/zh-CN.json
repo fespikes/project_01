@@ -5,7 +5,7 @@
     "SEARCH": "搜索",
     "DELETE": "删除",
     "EDIT": "编辑",
-    "PERM": "赋权",
+    "GRANT_PERM": "赋权",
     "ADD": "添加",
     "CONFIRM": "确定",
     "PLEASE_SELECT": "请选择",

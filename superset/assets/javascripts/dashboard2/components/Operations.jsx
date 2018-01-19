@@ -119,10 +119,6 @@ class Operations extends React.Component {
         dispatch(actions.fetchPosts());
     }
 
-    componentDidMount() {
-
-    }
-
     render() {
         const { typeName, viewMode } = this.props;
         return (

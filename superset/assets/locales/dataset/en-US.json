@@ -5,7 +5,7 @@
     "SEARCH": "Search",
     "DELETE": "Delete",
     "EDIT": "Edit",
-    "PERM": "Perm",
+    "GRANT_PERM": "Grant Perm",
     "ADD": "Add",
     "CONFIRM": "Confirm",
     "PLEASE_SELECT": "Please Select",

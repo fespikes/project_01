@@ -9,7 +9,7 @@ import {Select}  from './';
 import intl from 'react-intl-universal';
 import {OperationSelect} from '../../common/components';
 import {transformObjectToArray} from '../utils';
-import {renderGlobalErrorMsg, loadIntlResources} from '../../../utils/utils.jsx';
+import {renderGlobalErrorMsg} from '../../../utils/utils.jsx';
 
 class Operate extends React.Component {
     constructor(props, context) {
@@ -30,7 +30,6 @@ class Operate extends React.Component {
 
     componentDidMount () {
         this.fetchTypes();
-        loadIntlResources(_ => this.setState({ initDone: true }), 'database');
     }
 
     fetchTypes () {
