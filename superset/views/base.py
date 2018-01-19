@@ -214,7 +214,6 @@ class PermissionManagement(object):
             if objs and not self.check_read_perm([obj_type, objs[0].name],
                                                  raise_if_false=False):
                 for obj in objs:
-                    self.add_object_permissions([obj_type, obj.name])
                     self.grant_read_permissions([obj_type, obj.name])
                     logging.info('Grant {} [READ] perm on {}: [{}]'
                                  .format(g.user.username, obj_type, obj.name))
@@ -331,7 +330,6 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     def post_add(self, obj):
         Log.log_add(obj, self.model_type, g.user.id)
         Number.log_number(g.user.username, self.model_type)
-        self.add_object_permissions([self.model_type, obj.name])
         self.grant_owner_permissions([self.model_type, obj.name])
 
     @catch_exception

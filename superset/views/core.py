@@ -978,7 +978,6 @@ class Superset(BaseSupersetView, PermissionManagement):
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         Log.log_add(slc, 'slice', g.user.id)
         Number.log_number(g.user.username, 'slice')
-        self.add_object_permissions(['slice', slc.slice_name])
         self.grant_owner_permissions(['slice', slc.slice_name])
 
     def overwrite_slice(self, slc):
@@ -1047,7 +1046,6 @@ class Superset(BaseSupersetView, PermissionManagement):
         session.commit()
         dash_json = dash.json_data
         Log.log_add(dash, 'dashboard', g.user.id)
-        self.add_object_permissions(['dashboard', dash.dashboard_title])
         self.grant_owner_permissions(['dashboard', dash.dashboard_title])
         return json_response(data=dash_json)
 
@@ -1231,7 +1229,6 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.commit()
         Log.log_add(table, 'dataset', g.user.id)
         Number.log_number(g.user.username, 'dataset')
-        self.add_object_permissions(['dataset', table.dataset_name])
         self.grant_owner_permissions(['dataset', table.dataset_name])
 
         cols = []
