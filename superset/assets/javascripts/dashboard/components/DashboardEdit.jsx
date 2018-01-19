@@ -3,7 +3,7 @@ import React, { PropTypes } from 'react';
 import ModalTrigger from '../../components/ModalTrigger';
 require('react-bootstrap-table/css/react-bootstrap-table.css');
 import { Select } from 'antd';
-import { loadIntlResources, renderGlobalErrorMsg } from '../../../utils/utils';
+import { renderGlobalErrorMsg } from '../../../utils/utils';
 import { fetchAvailableSlices } from '../../dashboard2/actions/index';
 import intl from 'react-intl-universal';
 

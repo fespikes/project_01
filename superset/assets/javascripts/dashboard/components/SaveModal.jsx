@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import {render} from 'react-dom';
 import {Button, FormControl, FormGroup, Radio} from 'react-bootstrap';
 import {getAjaxErrorMsg} from '../../modules/utils';
-import {PILOT_PREFIX, renderLoadingModal, loadIntlResources} from '../../../utils/utils';
+import {PILOT_PREFIX, renderLoadingModal} from '../../../utils/utils';
 import ModalTrigger from '../../components/ModalTrigger';
 import {ConfirmModal} from '../../common/components';
 import intl from 'react-intl-universal';
@@ -113,10 +113,6 @@ class SaveModal extends React.PureComponent {
                 this.saveDashboardRequest(data, url, saveType);
             }
         }
-    }
-
-    componentDidMount() {
-        loadIntlResources(_ => this.setState({ initDone: true }), 'dashboard');
     }
 
     render() {

@@ -5,7 +5,7 @@ import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import ModalTrigger from '../../components/ModalTrigger';
 import { Table, Pagination } from 'antd';
 require('react-bootstrap-table/css/react-bootstrap-table.css');
-import {sortByInitials, loadIntlResources} from '../../../utils/utils.jsx';
+import {sortByInitials} from '../../../utils/utils';
 import intl from 'react-intl-universal';
 
 const propTypes = {
@@ -111,7 +111,6 @@ class SliceAdder extends React.Component {
     componentDidMount() {
         //first load list
         this.getSliceList(1, '');
-        loadIntlResources(_ => this.setState({ initDone: true }), 'dashboard');
     }
 
     componentWillUnmount() {

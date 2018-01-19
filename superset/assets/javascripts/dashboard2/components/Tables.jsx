@@ -176,6 +176,8 @@ class Tables extends React.Component {
             }
         }, {
             title: intl.get('DASHBOARD.LAST_MODIFIED_TIME'),
+            dataIndex: 'changed_on',
+            key: 'changed_on',
             width: '20%',
             sorter(a, b) {
                 return a.changed_on - b.changed_on ? 1 : -1;
@@ -201,7 +203,7 @@ class Tables extends React.Component {
                                 onClick={() => this.deleteDashboard(record)}
                             />
                         </Tooltip>
-                        <Tooltip placement="top" title={intl.get('DASHBOARD.PERM')} arrowPointAtCenter>
+                        <Tooltip placement="top" title={intl.get('DASHBOARD.GRANT_PERM')} arrowPointAtCenter>
                             <i
                                 className="icon icon-perm"
                                 onClick={() => this.givePerm(record)}

@@ -18,6 +18,7 @@ class PermPopup extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            initDone: false,
             selectOptions: [],
             tableColumns: [],
             tableDataSource: [],
@@ -52,7 +53,7 @@ class PermPopup extends React.Component {
                 self.searchPermissions();
                 const response = {
                     type: 'success',
-                    message: intl.get('SLICE.CONFIG_SUCCESS')
+                    message: intl.get('POPUP.CONFIG_SUCCESS')
                 };
                 renderAlertTip(response, alertMountId, '100%');
             }else {
@@ -70,13 +71,19 @@ class PermPopup extends React.Component {
         if(checked && index === -1) {
             grantedPerms.push(name);
             if(name === 'EDIT') {
-                grantedPerms = this.setCheckboxState(PREFIX + 'READ', 'READ', grantedPerms);
+                this.setCheckboxState(PREFIX + 'READ', 'READ', grantedPerms);
             }else if(name === 'ADMIN') {
-                grantedPerms = this.setCheckboxState(PREFIX + 'READ', 'READ', grantedPerms);
-                grantedPerms = this.setCheckboxState(PREFIX + 'EDIT', 'EDIT', grantedPerms)
+                this.setCheckboxState(PREFIX + 'READ', 'READ', grantedPerms);
+                this.setCheckboxState(PREFIX + 'EDIT', 'EDIT', grantedPerms);
             }
         }else if(!checked && index > -1) {
             grantedPerms.splice(index, 1);
+            if(name === 'READ') {
+                this.cancelCheckboxState(PREFIX + 'EDIT', 'EDIT', grantedPerms);
+                this.cancelCheckboxState(PREFIX + 'ADMIN', 'ADMIN', grantedPerms);
+            }else if(name === 'EDIT') {
+                this.cancelCheckboxState(PREFIX + 'ADMIN', 'ADMIN', grantedPerms);
+            }
         }
         this.setState({
             grantedActions: grantedPerms
@@ -89,7 +96,15 @@ class PermPopup extends React.Component {
             checkboxEl.checked = true;
             perms.push(name);
         }
-        return perms;
+    }
+
+    cancelCheckboxState(id, name, perms) {
+        const checkboxEl = document.getElementById(id);
+        const index = perms.indexOf(name);
+        if(checkboxEl && checkboxEl.checked && index > -1) {
+            checkboxEl.checked = false;
+            perms.splice(index, 1);
+        }
     }
 
     onSelectChange(value) {
@@ -106,7 +121,7 @@ class PermPopup extends React.Component {
             username: record.name,
             object_type: objectType,
             object_name: objectName,
-            actions: [record.perm]
+            actions: record.perm.split(', ')
         }, callback);
         function callback(success, data) {
             if(success) {
@@ -182,7 +197,11 @@ class PermPopup extends React.Component {
         this.getPermTypes();
         this.searchPermissions();
 
-        loadIntlResources(_ => this.setState({ initDone: true }), 'slice');
+        const callback = () => {
+            this.searchPermissions();
+            this.setState({ initDone: true });
+        };
+        loadIntlResources(callback, 'popup');
     }
 
     render() {
@@ -194,14 +213,14 @@ class PermPopup extends React.Component {
             selectedUser,
             grantedActions
         } = this.state;
-        return (
+        return (this.state.initDone &&
             <div className="popup">
                 <div className="popup-dialog popup-md">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-dashboard-popup" />
-                                <span>{intl.get('SLICE.PERM_GRANT')}</span>
+                                <span>{intl.get('POPUP.PERM_GRANT')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -213,12 +232,12 @@ class PermPopup extends React.Component {
                         <div className="popup-body">
                             <div className="dialog-item">
                                 <div className="item-left" style={{width: 60}}>
-                                    <span>{intl.get('SLICE.USER_NAME')}</span>
+                                    <span>{intl.get('POPUP.USER_NAME')}</span>
                                 </div>
                                 <div className="item-right" style={{width: 515}}>
                                     <Select
                                         style={{width: '100%'}}
-                                        placeholder={intl.get('SLICE.PLEASE_SELECT')}
+                                        placeholder={intl.get('POPUP.PLEASE_SELECT')}
                                         onChange={this.onSelectChange}
                                     >
                                         {selectOptions}
@@ -227,7 +246,7 @@ class PermPopup extends React.Component {
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left" style={{width: 60}}>
-                                    <span>{intl.get('SLICE.GRANT_PERM')}</span>
+                                    <span>{intl.get('POPUP.PERM')}</span>
                                 </div>
                                 <div
                                     id={checkboxMountId}
@@ -242,7 +261,7 @@ class PermPopup extends React.Component {
                                     className="tp-btn tp-btn-middle tp-btn-primary"
                                     onClick={this.grantPerm}
                                     disabled={!selectedUser || grantedActions.length === 0}
-                                >{intl.get('SLICE.CONFIG_PERM')}</button>
+                                >{intl.get('POPUP.CONFIG_PERM')}</button>
                             </div>
                             <div className="table-grant-perm" style={{margin: '10 20'}}>
                                 <Table

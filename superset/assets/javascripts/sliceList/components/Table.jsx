@@ -93,10 +93,6 @@ class SliceTable extends React.Component {
         );
     }
 
-    componentDidMount() {
-        utils.loadIntlResources(_ => this.setState({ initDone: true }), 'slice');
-    }
-
     render() {
 
         const { sliceList, selectedRowKeys, loading } = this.props;
@@ -246,7 +242,7 @@ class SliceTable extends React.Component {
                                     onClick={() => this.deleteSlice(record)}
                                 />
                             </Tooltip>
-                            <Tooltip placement="top" title={intl.get('SLICE.PERM')} arrowPointAtCenter>
+                            <Tooltip placement="top" title={intl.get('SLICE.GRANT_PERM')} arrowPointAtCenter>
                                 <i
                                     className="icon icon-perm"
                                     onClick={() => this.givePerm(record)}

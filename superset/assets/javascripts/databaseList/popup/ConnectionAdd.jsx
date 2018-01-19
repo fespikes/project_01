@@ -47,7 +47,6 @@ class ConnectionAdd extends React.Component {
         if(connectionType === connectionTypes.hdfs) {
             this.fetchConnectionNames();
         }
-        utils.loadIntlResources(_ => this.setState({ initDone: true }), 'database');
     }
 
     testConnection(testCallBack) {

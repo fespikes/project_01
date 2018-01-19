@@ -34,26 +34,40 @@ export function makeTableDataSource(data) {
         const userPerm = {
             key: attr,
             name: attr,
-            perm: (data[attr]).join(', ')
+            perm: sortPerms(data[attr])
         };
         dataSource.push(userPerm);
     }
     return dataSource;
 }
 
+function sortPerms(perms) {
+    const sortedPerms = [];
+    if(perms.indexOf('READ') > -1) {
+        sortedPerms.push('READ');
+    }
+    if(perms.indexOf('EDIT') > -1) {
+        sortedPerms.push('EDIT');
+    }
+    if(perms.indexOf('ADMIN') > -1) {
+        sortedPerms.push('ADMIN');
+    }
+    return sortedPerms.join(', ');
+}
+
 export function makeTableColumns(_this, intl) {
     const columns = [{
-        title: intl.get('SLICE.USER_NAME'),
+        title: intl.get('POPUP.USER_NAME'),
         dataIndex: 'name',
         key: 'name',
         width: '40%'
     }, {
-        title: intl.get('SLICE.PERM'),
+        title: intl.get('POPUP.PERM'),
         dataIndex: 'perm',
         key: 'perm',
         width: '40%'
     }, {
-        title: intl.get('SLICE.OPERATION'),
+        title: intl.get('POPUP.OPERATION'),
         key: 'action',
         width: '20%',
         render: (text, record) => {

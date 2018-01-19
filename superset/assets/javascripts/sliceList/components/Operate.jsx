@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {fetchLists, switchFavorite, setKeyword, navigateTo, fetchSliceDelMulInfo} from '../actions';
 import {SliceDelete} from '../popup';
 import intl from 'react-intl-universal';
-import {renderGlobalErrorMsg, loadIntlResources} from '../../../utils/utils.jsx';
+import {renderGlobalErrorMsg} from '../../../utils/utils';
 
 const SHOW_ALL = "showAll";
 const SHOW_FAVORITE = "showFavorite";
@@ -74,10 +74,6 @@ class SliceOperate extends React.Component {
         const { dispatch } = this.props;
         dispatch(switchFavorite(type));
         dispatch(fetchLists());
-    }
-
-    componentDidMount() {
-        loadIntlResources(_ => this.setState({ initDone: true }), 'slice');
     }
 
     render() {
