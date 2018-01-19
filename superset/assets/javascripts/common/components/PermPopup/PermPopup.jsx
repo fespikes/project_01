@@ -121,7 +121,7 @@ class PermPopup extends React.Component {
             username: record.name,
             object_type: objectType,
             object_name: objectName,
-            actions: [record.perm]
+            actions: record.perm.split(', ')
         }, callback);
         function callback(success, data) {
             if(success) {
