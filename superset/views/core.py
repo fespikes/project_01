@@ -48,12 +48,10 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     datamodel = SQLAInterface(Slice)
     route_base = '/slice'
     can_add = False
-    list_columns = ['id', 'slice_name', 'description', 'slice_url',
-                    'viz_type', 'online', 'changed_on']
+    list_columns = ['id', 'slice_name', 'description', 'slice_url', 'viz_type',
+                    'changed_on']
     edit_columns = ['slice_name', 'description']
     show_columns = ['id', 'slice_name', 'description', 'created_on', 'changed_on']
-    base_order = ('changed_on', 'desc')
-    description_columns = {}
 
     list_template = "superset/list.html"
 
@@ -71,18 +69,9 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     bool_columns = ['online']
     str_columns = ['datasource', 'created_on', 'changed_on']
 
-    def get_addable_choices(self):
-        data = super(SliceModelView, self).get_addable_choices()
-        dashs = self.get_available_dashboards(g.user.id)
-        data['available_dashboards'] = self.dashboards_to_dict(dashs)
-        return data
-
     def get_show_attributes(self, obj, user_id=None):
         attributes = super(SliceModelView, self).get_show_attributes(obj, user_id)
         attributes['dashboards'] = self.dashboards_to_dict(obj.dashboards)
-        dashs = self.get_available_dashboards(user_id)
-        available_dashs = self.dashboards_to_dict(dashs)
-        attributes['available_dashboards'] = available_dashs
         return attributes
 
     def get_edit_attributes(self, data, user_id):
@@ -330,13 +319,10 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     model_type = 'dashboard'
     datamodel = SQLAInterface(Dashboard)
     route_base = '/dashboard'
-    list_columns = ['id', 'dashboard_title', 'url', 'description',
-                    'online',  'changed_on']
+    list_columns = ['id', 'dashboard_title', 'url', 'description', 'changed_on']
     edit_columns = ['dashboard_title', 'description']
     show_columns = ['id', 'dashboard_title', 'description', 'table_names']
     add_columns = edit_columns
-    base_order = ('changed_on', 'desc')
-    description_columns = {}
     list_template = "superset/partials/dashboard/dashboard.html"
 
     str_to_column = {
@@ -349,12 +335,6 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     int_columns = ['id', 'created_by_fk', 'changed_by_fk']
     bool_columns = ['online']
     str_columns = ['created_on', 'changed_on']
-
-    def get_addable_choices(self):
-        data = super(DashboardModelView, self).get_addable_choices()
-        slices = self.get_available_slices(g.user.id)
-        data['available_slices'] = self.slices_to_dict(slices)
-        return data
 
     def pre_add(self, obj):
         self.check_column_values(obj)
@@ -440,8 +420,6 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     def get_show_attributes(self, obj, user_id=None):
         attributes = super(DashboardModelView, self).get_show_attributes(obj)
         attributes['slices'] = self.slices_to_dict(obj.slices)
-        available_slices = self.get_available_slices(user_id)
-        attributes['available_slices'] = self.slices_to_dict(available_slices)
         return attributes
 
     def get_add_attributes(self, data, user_id):

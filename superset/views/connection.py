@@ -40,7 +40,6 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
                     'args', 'backend',  'created_on', 'changed_on']
     add_columns = ['database_name', 'description', 'sqlalchemy_uri', 'args']
     edit_columns = add_columns
-    readme_columns = ['sqlalchemy_uri']
     add_template = "superset/models/database/add.html"
     edit_template = "superset/models/database/edit.html"
     base_order = ('changed_on', 'desc')

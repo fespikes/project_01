@@ -46,8 +46,6 @@ class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
         'count_distinct', 'sum', 'avg', 'min', 'max', 'expression', 'dataset_id']
     show_columns = edit_columns + ['id', 'dataset']
     add_columns = edit_columns
-    readme_columns = ['is_dttm', 'expression']
-    description_columns = {}
 
     bool_columns = ['is_dttm', 'is_active', 'groupby', 'count_distinct',
                     'sum', 'avg', 'max', 'min', 'filterable']
@@ -69,11 +67,6 @@ class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
                     line[col] = getattr(row, col, None)
             data.append(line)
         return {'data': data}
-
-    def get_addable_choices(self):
-        data = super(TableColumnInlineView, self).get_addable_choices()
-        data['available_dataset'] = self.get_available_datasets(g.user.id)
-        return data
 
     def pre_add(self, column):
         self.check_column_values(column)
@@ -101,16 +94,9 @@ class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
     show_columns = list_columns + ['dataset_id', 'dataset']
     edit_columns = ['metric_name', 'metric_type', 'expression', 'dataset_id']
     add_columns = edit_columns
-    readme_columns = ['expression', 'd3format']
-    description_columns = {}
 
     bool_columns = ['is_restricted', ]
     str_columns = ['dataset', ]
-
-    def get_addable_choices(self):
-        data = super(SqlMetricInlineView, self).get_addable_choices()
-        data['available_dataset'] = self.get_available_datasets(g.user.id)
-        return data
 
     def get_object_list_data(self, **kwargs):
         dataset_id = kwargs.get('dataset_id')
@@ -159,13 +145,14 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     datamodel = SQLAInterface(Dataset)
     route_base = '/table'
     list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url',
-                    'connection', 'changed_on', 'online']
-    add_columns = ['dataset_name', 'database_id', 'description',
-                   'schema', 'table_name', 'sql']
-    show_columns = add_columns + ['id', 'dataset_type']
+                    'connection', 'changed_on']
+    add_columns = ['dataset_name', 'database_id', 'description', 'schema',
+                   'table_name', 'sql']
+    show_columns = ['id', 'dataset_type', 'dataset_name', 'database_id',
+                    'description', 'schema', 'table_name', 'sql']
     edit_columns = ['dataset_name', 'database_id', 'description', 'schema',
                     'table_name', 'sql']
-    description_columns = {}
+
     str_to_column = {
         'title': Dataset.dataset_name,
         'time': Dataset.changed_on,
@@ -178,16 +165,6 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     str_columns = ['database', 'created_on', 'changed_on']
 
     list_template = "superset/tableList.html"
-
-    def get_addable_choices(self):
-        data = super(DatasetModelView, self).get_addable_choices()
-        data['available_databases'] = self.get_available_connections(g.user.id)
-        return data
-
-    @catch_exception
-    @expose('/databases/', methods=['GET', ])
-    def addable_databases(self):
-        return json_response(data=self.get_available_databases(g.user.id))
 
     @catch_exception
     @expose('/schemas/<database_id>/', methods=['GET', ])

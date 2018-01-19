@@ -397,11 +397,6 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
             self._delete(obj)
         return json_response(message=DELETE_SUCCESS)
 
-    def get_addable_choices(self):
-        data = {}
-        # data['readme'] = self.get_column_readme()
-        return data
-
     def get_object_list_data(self, **kwargs):
         pass
 
@@ -439,13 +434,6 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
         attributes['changed_by_user'] = obj.changed_by.username \
             if obj.changed_by else None
         return attributes
-
-    def get_column_readme(self):
-        readme = {}
-        if hasattr(self, 'readme_columns'):
-            for col in self.readme_columns:
-                readme[col] = self.description_columns.get(col)
-        return readme
 
     def get_add_attributes(self, data, user_id):
         attributes = {}
@@ -540,70 +528,12 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
         return query
 
     @staticmethod
-    def get_available_datasets(user_id):
-        datasets = (
-            db.session.query(Dataset)
-            .filter(
-                or_(Dataset.created_by_fk == user_id,
-                    Dataset.online == 1)
-            )
-            .order_by(Dataset.changed_on.desc())
-            .all()
-        )
-        return datasets
-
-    def get_available_connections(self, user_id):
-        return self.get_available_databases(user_id)
-
-    @staticmethod
-    def get_available_databases(user_id):
-        """TODO just return connection_type=='inceptor'"""
-        dbs = (
-            db.session.query(Database)
-            .filter(Database.database_name != config.get('METADATA_CONN_NAME'),
-                    or_(Database.created_by_fk == user_id,
-                        Database.online == 1)
-            )
-            .order_by(Database.database_name)
-            .all()
-        )
-        dbs_list = [{'id': d.id, 'database_name': d.database_name}
-                    for d in dbs]
-        return dbs_list
-
-    @staticmethod
-    def get_available_dashboards(user_id):
-        dashs = (
-            db.session.query(Dashboard)
-            .filter(
-                or_(Dashboard.created_by_fk == user_id,
-                    Dashboard.online == 1)
-            )
-            .order_by(Dashboard.changed_on.desc())
-            .all()
-        )
-        return dashs
-
-    @staticmethod
     def dashboards_to_dict(dashs):
         dashs_list = []
         for dash in dashs:
             row = {'id': dash.id, 'dashboard_title': dash.dashboard_title}
             dashs_list.append(row)
         return dashs_list
-
-    @staticmethod
-    def get_available_slices(user_id):
-        slices = (
-            db.session.query(Slice)
-            .filter(
-                or_(Slice.created_by_fk == user_id,
-                    Slice.online == 1)
-            )
-            .order_by(Slice.changed_on.desc())
-            .all()
-        )
-        return slices
 
     @staticmethod
     def slices_to_dict(slices):
