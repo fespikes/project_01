@@ -144,6 +144,11 @@ export function viewObjectDetail(url, callback) {
     });
 }
 
+export function getAntdLocale(zhCN, enUS) {
+    const locale = sessionStorage.getItem('pilot:currentLocale') || 'zh-CN';
+    return locale === 'zh-CN' ? zhCN : enUS;
+}
+
 //load intl resources at the very beginning or from cache
 export function loadIntlResources(callback, module) {
     let  localePath = '/static/assets/locales/';
