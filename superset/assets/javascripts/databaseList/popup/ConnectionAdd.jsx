@@ -400,8 +400,9 @@ class ConnectionAdd extends React.Component {
                                 <div className="item-right">
                                     <button
                                         className="test-connect"
+                                        className="tp-btn tp-btn-middle tp-btn-primary"
                                         onClick={ag=> self.testConnection(ag)}>
-                                        <i className="icon icon-connect-test"/>
+                                        {/*<i className="icon icon-connect-test"/>*/}
                                         <span>{intl.get('DATABASE.TEST_CONN')}</span>
                                     </button>
                                     <div
