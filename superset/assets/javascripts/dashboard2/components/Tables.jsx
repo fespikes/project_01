@@ -142,25 +142,10 @@ class Tables extends React.Component {
                 return utils.sortByInitials(a.description, b.description);
             }
         }, {
-            title: intl.get('DASHBOARD.PUBLISH_STATE'),
-            dataIndex: 'online',
-            key: 'online',
-            width: '15%',
-            render: (text, record) => {
-                return (
-                    <span className="entity-publish">
-                        {record.online ? intl.get('DASHBOARD.PUBLISHED') : intl.get('DASHBOARD.UNPUBLISHED')}
-                    </span>
-                )
-            },
-            sorter(a, b) {
-                return a.online - b.online;
-            }
-        }, {
             title: intl.get('DASHBOARD.OWNER'),
             dataIndex: 'created_by_user',
             key: 'created_by_user',
-            width: '15%',
+            width: '20%',
             render: (text, record) => {
                 return (
                     <div
@@ -185,7 +170,7 @@ class Tables extends React.Component {
         }, {
             title: intl.get('DASHBOARD.OPERATION'),
             key: 'action',
-            width: '10%',
+            width: '20%',
             render: (record) => {
                 return (
                     <div className="icon-group">

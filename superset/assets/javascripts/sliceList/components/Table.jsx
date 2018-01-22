@@ -114,12 +114,11 @@ class SliceTable extends React.Component {
                            onClick={() => this.favoriteSlice(record)}/>
                     )
                 }
-            },
-            {
+            }, {
                 title: intl.get('SLICE.NAME'),
                 key: 'slice_name',
                 dataIndex: 'slice_name',
-                width: '25%',
+                width: '23%',
                 render: (text, record) => {
                     return (
                         <div className="entity-name">
@@ -150,7 +149,7 @@ class SliceTable extends React.Component {
                 title: intl.get('SLICE.CHART_TYPE'),
                 dataIndex: 'viz_type',
                 key: 'viz_type',
-                width: '13%',
+                width: '15%',
                 render: (text, record) => {
                     return (
                         <div
@@ -188,7 +187,7 @@ class SliceTable extends React.Component {
                 title: intl.get('SLICE.OWNER'),
                 dataIndex: 'created_by_user',
                 key: 'created_by_user',
-                width: '10%',
+                width: '15%',
                 render: (text, record) => {
                     return (
                         <div
@@ -203,17 +202,6 @@ class SliceTable extends React.Component {
                     return utils.sortByInitials(a.created_by_user, b.created_by_user);
                 }
             }, {
-                title: intl.get('SLICE.PUBLISH_STATE'),
-                dataIndex: 'online',
-                key: 'online',
-                width: '10%',
-                sorter: (a, b) => a.online - b.online,
-                render: (text, record) => {
-                    return (
-                        <span className="entity-publish">{record.online ? intl.get('SLICE.PUBLISHED') : intl.get('SLICE.UNPUBLISHED')}</span>
-                    )
-                }
-            }, {
                 title: intl.get('SLICE.LAST_MODIFIED_TIME'),
                 dataIndex: 'changed_on',
                 key: 'changed_on',
@@ -224,7 +212,7 @@ class SliceTable extends React.Component {
             }, {
                 title: intl.get('SLICE.OPERATION'),
                 key: 'action',
-                width: '10%',
+                width: '15%',
                 render: (record) => {
                     return (
                         <div className="icon-group">
