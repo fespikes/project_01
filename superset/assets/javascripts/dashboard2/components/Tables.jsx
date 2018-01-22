@@ -85,7 +85,7 @@ class Tables extends React.Component {
         }
     }
 
-    givePerm(record) {
+    empower(record) {
         render(
             <PermPopup
                 objectType={utils.OBJECT_TYPE.DASHBOARD}
@@ -206,7 +206,7 @@ class Tables extends React.Component {
                         <Tooltip placement="top" title={intl.get('DASHBOARD.GRANT_PERM')} arrowPointAtCenter>
                             <i
                                 className="icon icon-perm"
-                                onClick={() => this.givePerm(record)}
+                                onClick={() => this.empower(record)}
                             />
                         </Tooltip>
                     </div>
