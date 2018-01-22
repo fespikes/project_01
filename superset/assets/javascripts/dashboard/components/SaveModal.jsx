@@ -154,7 +154,7 @@ class SaveModal extends React.PureComponent {
                             data-dismiss="modal"
                             onClick={() => { this.saveDashboard(this.state.saveType, this.state.newDashName); }}
                             >
-                            {}
+                            {intl.get('DASHBOARD.SAVE')}
                         </Button>
                     </div>
                 }
