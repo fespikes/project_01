@@ -30,8 +30,8 @@
     "CREATE_DATE": "Create Date",
     "MODIFY_TIME": "Modify Time",
     "CHART": "Chart",
-    "RESULT_COLLECTION": "Result Collection",
-    "SOURCE_DATA": "Source Data",
+    "RESULT_COLLECTION": "Results",
+    "SOURCE_DATA": "Origin",
     "SAVE": "Save",
     "QUERY": "Query",
     "NO_SELECT_DELETE_TIP": "No select delete record, please select!"
