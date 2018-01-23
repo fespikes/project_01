@@ -12,6 +12,14 @@ function calHeatmap(slice) {
         const div = d3.select(slice.selector);
         div.style('overflow', 'visible');
 
+        $('.react-grid-item').hover(
+            _ => {
+                $(_.target).closest('.react-grid-item').css('zIndex', 1);
+                _.stopImmediatePropagation();
+            },
+            _ => $('.react-grid-item').css('zIndex', 0)
+        );
+
         d3.json(slice.jsonEndpoint(), function(error, json) {
             const data = json.data;
             if (error !== null) {
