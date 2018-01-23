@@ -3,7 +3,7 @@ import {render} from 'react-dom';
 import {message, Table, Icon, Tooltip} from 'antd';
 import PropTypes from 'prop-types';
 import {SliceDelete, SliceEdit} from '../popup';
-import {ConfirmModal, PermPopup} from '../../common/components';
+import {getPermInfo} from '../../perm/actions';
 import * as actions from '../actions';
 import * as utils from '../../../utils/utils';
 import intl from 'react-intl-universal';
@@ -61,7 +61,7 @@ class SliceTable extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                utils.renderGlobalErrorMsg(data);
+                utils.renderConfirmModal(data);
             }
         }
     }
@@ -84,13 +84,18 @@ class SliceTable extends React.Component {
     }
 
     givePerm(record) {
-        render(
-            <PermPopup
-                objectType={utils.OBJECT_TYPE.SLICE}
-                objectName={record.slice_name}
-            />,
-            document.getElementById('popup_root')
-        );
+        const callback = (success, response) => {
+            if(success) {
+                utils.renderPermModal(record.id, record.slice_name, utils.OBJECT_TYPE.SLICE);
+            }else {
+                utils.renderConfirmModal(response);
+            }
+        };
+
+        getPermInfo({
+            type: utils.OBJECT_TYPE.SLICE,
+            id: record.id
+        }, callback);
     }
 
     render() {

@@ -1,7 +1,8 @@
 import fetch from 'isomorphic-fetch';
 import {always, json, callbackHandler} from '../global.jsx';
 
-const prefix = window.location.origin + '/guardian/';
+const winOri = window.location.origin;
+const prefix = winOri + '/guardian/';
 
 export function getGuardianUsers(callback) {
     const url = prefix + 'users/';
@@ -57,6 +58,18 @@ export function revokePermission(data, callback) {
         credentials: "same-origin",
         method: "POST",
         body: JSON.stringify(data)
+    }).then(always).then(json).then(
+        response => {
+            callbackHandler(response, callback);
+        }
+    );
+}
+
+export function getPermInfo(object, callback) {
+    const url = `${winOri}/${object.type}/grant_info/${object.id}/`;
+    return fetch(url, {
+        credentials: "same-origin",
+        method: "GET"
     }).then(always).then(json).then(
         response => {
             callbackHandler(response, callback);

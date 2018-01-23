@@ -6,6 +6,7 @@ import * as actions from '../actions';
 import * as utils from '../../../utils/utils';
 import {DashboardEdit, DashboardDelete} from '../popup';
 import {ConfirmModal, PermPopup} from '../../common/components';
+import {getPermInfo} from '../../perm/actions';
 import {Table, Tooltip} from 'antd';
 import intl from "react-intl-universal";
 
@@ -64,7 +65,7 @@ class Tables extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                utils.renderGlobalErrorMsg(data);
+                utils.renderConfirmModal(data);
             }
         }
     }
@@ -80,19 +81,24 @@ class Tables extends React.Component {
             if(success) {
                 window.location.href = url;
             }else {
-                utils.renderGlobalErrorMsg(response);
+                utils.renderConfirmModal(response);
             }
         }
     }
 
-    empower(record) {
-        render(
-            <PermPopup
-                objectType={utils.OBJECT_TYPE.DASHBOARD}
-                objectName={record.dashboard_title}
-            />,
-            document.getElementById('popup_root')
-        );
+    givePerm(record) {
+        const callback = (success, response) => {
+            if(success) {
+                utils.renderPermModal(record.id, record.dashboard_title, utils.OBJECT_TYPE.DASHBOARD);
+            }else {
+                utils.renderConfirmModal(response);
+            }
+        };
+
+        getPermInfo({
+            type: utils.OBJECT_TYPE.DASHBOARD,
+            id: record.id
+        }, callback);
     }
 
     render() {
@@ -191,7 +197,7 @@ class Tables extends React.Component {
                         <Tooltip placement="top" title={intl.get('DASHBOARD.GRANT_PERM')} arrowPointAtCenter>
                             <i
                                 className="icon icon-perm"
-                                onClick={() => this.empower(record)}
+                                onClick={() => this.givePerm(record)}
                             />
                         </Tooltip>
                     </div>

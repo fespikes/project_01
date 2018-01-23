@@ -6,10 +6,9 @@ import PropTypes from 'prop-types';
 import {datasetTypes} from '../actions';
 import * as actions from '../actions';
 import {TableDelete} from '../popup';
-import style from '../style/table.scss'
-import {ConfirmModal, PermPopup} from '../../common/components';
 import * as utils from '../../../utils/utils';
 import intl from 'react-intl-universal';
+import {getPermInfo} from '../../perm/actions';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -29,13 +28,18 @@ class SliceTable extends React.Component {
     };
 
     givePerm(record) {
-        render(
-            <PermPopup
-                objectType={utils.OBJECT_TYPE.DATASET}
-                objectName={record.dataset_name}
-            />,
-            document.getElementById('popup_root')
-        );
+        const callback = (success, response) => {
+            if(success) {
+                utils.renderPermModal(record.id, record.dataset_name, utils.OBJECT_TYPE.TABLE);
+            }else {
+                utils.renderConfirmModal(response);
+            }
+        };
+
+        getPermInfo({
+            type: utils.OBJECT_TYPE.TABLE,
+            id: record.id
+        }, callback);
     }
 
     viewTableDetail(url) {
@@ -73,7 +77,7 @@ class SliceTable extends React.Component {
                         document.getElementById('popup_root')
                     );
                 }else {
-                    utils.renderGlobalErrorMsg(data);
+                    utils.renderConfirmModal(data);
                 }
             }
         }
