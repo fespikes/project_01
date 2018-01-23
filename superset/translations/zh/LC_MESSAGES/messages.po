@@ -1907,7 +1907,7 @@ msgstr "解析文件错误：{msg}"
 msgid "Data Sources"
 msgstr "数据来源"
 
-msgid "Original Table"
+msgid "DB Table"
 msgstr "原始表"
 
 msgid "Chart Type"
