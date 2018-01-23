@@ -182,9 +182,9 @@ export function loadIntlResources(callback, module) {
     if(!currentLocale || !_.find(SUPPOER_LOCALES, { value: currentLocale })) {
         currentLocale = "zh-CN";
     }
-    const version = '2018-1-23:11:33';//force update locale manually
+    const timestamp = new Date().getTime();
     //because in the project setting , front end source are only located under assets folder
-    http.get(`${localePath}${currentLocale}.json?version=${version}`)
+    http.get(`${localePath}${currentLocale}.json?timestamp=${timestamp}`)
         .then(res => {
             const localeResource = Object.assign(intl.options.locales[currentLocale] || {}, res.data);
             return intl.init({
