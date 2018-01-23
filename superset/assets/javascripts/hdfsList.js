@@ -2,15 +2,9 @@ import React from 'react';
 import { render } from 'react-dom';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
-import {
-    Main,
-    FileBrowser
-} from './hdfsList/containers';
+import { Main, FileBrowser } from './hdfsList/containers';
 import configureStore from './hdfsList/stores/configureStore';
-import {
-    Route,
-    HashRouter
-} from 'react-router-dom';
+import { Route, HashRouter } from 'react-router-dom';
 import './hdfsList/style/hdfs.scss';
 
 const $ = window.$ = require('jquery');
