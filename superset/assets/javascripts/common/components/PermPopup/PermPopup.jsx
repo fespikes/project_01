@@ -1,16 +1,18 @@
 import React from 'react';
 import ReactDOM, {render} from 'react-dom';
 import PropTypes from 'prop-types';
-import {Table, Select} from 'antd';
+import {Table, Select, Tooltip} from 'antd';
 
 import * as perm from '../../../perm/actions';
 import intl from 'react-intl-universal';
-import {renderGlobalErrorMsg, renderAlertErrorInfo, renderAlertTip, loadIntlResources} from '../../../../utils/utils';
-import {makeSelectOptions, makePermCheckboxes, makeTableColumns, makeTableDataSource} from './model';
+import * as utils from '../../../../utils/utils';
+import * as model from './model';
+import {PermInfo} from './PermInfo';
 
 const rootMountId = 'popup_root';
 const alertMountId = 'grant-perm-error-tip';
 const checkboxMountId = 'grant-perm-checkbox-container';
+const grantInfoMountId = 'grant-info-mount-container';
 
 const PREFIX = 'GRANT_PERM_';
 
@@ -19,6 +21,7 @@ class PermPopup extends React.Component {
         super(props);
         this.state = {
             initDone: false,
+            grantInfo: '',
             selectOptions: [],
             tableColumns: [],
             tableDataSource: [],
@@ -31,6 +34,7 @@ class PermPopup extends React.Component {
         this.handleChange = this.handleChange.bind(this);
         this.onSelectChange = this.onSelectChange.bind(this);
         this.revokePerm = this.revokePerm.bind(this);
+        this.switchGrantInfo = this.switchGrantInfo.bind(this);
     };
 
     closeAlert(id) {
@@ -55,9 +59,9 @@ class PermPopup extends React.Component {
                     type: 'success',
                     message: intl.get('POPUP.CONFIG_SUCCESS')
                 };
-                renderAlertTip(response, alertMountId, '100%');
+                utils.renderAlertTip(response, alertMountId, '100%');
             }else {
-                renderAlertErrorInfo(data, alertMountId, '100%', self);
+                utils.renderAlertErrorInfo(data, alertMountId, '100%', self);
             }
         }
     }
@@ -127,7 +131,7 @@ class PermPopup extends React.Component {
             if(success) {
                 self.searchPermissions();
             }else {
-                renderAlertErrorInfo(data, alertMountId, '100%', self);
+                utils.renderAlertErrorInfo(data, alertMountId, '100%', self);
             }
         }
     }
@@ -138,10 +142,10 @@ class PermPopup extends React.Component {
         function callback(success, data) {
             if(success) {
                 self.setState({
-                    selectOptions: makeSelectOptions(data.usernames)
+                    selectOptions: model.makeSelectOptions(data.usernames)
                 });
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
@@ -154,10 +158,10 @@ class PermPopup extends React.Component {
                 self.clearCheckboxState(data.permissions);
                 self.setState({
                     grantedActions: [],
-                    permCheckboxes: makePermCheckboxes(data.permissions, self, PREFIX)
+                    permCheckboxes: model.makePermCheckboxes(data.permissions, self, PREFIX)
                 });
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
     }
@@ -180,28 +184,78 @@ class PermPopup extends React.Component {
         }, callback);
         function callback(success, data) {
             if(success) {
-                const tbDataSource = makeTableDataSource(data);
-                const tbColumns = makeTableColumns(self, intl);
+                const tbDataSource = model.makeTableDataSource(data);
+                const tbColumns = model.makeTableColumns(self, intl);
                 self.setState({
                     tableDataSource: tbDataSource,
                     tableColumns: tbColumns
                 });
             }else {
-                renderGlobalErrorMsg(data);
+                utils.renderGlobalErrorMsg(data);
             }
         }
+    }
+
+    loadIntlResource() {
+        const callback = () => {
+            this.searchPermissions();
+            this.setState({ initDone: true });
+        };
+        utils.loadIntlResources(callback, 'popup');
+    }
+
+    getPermInfo() {
+        const { objectType, objectId } = this.props;
+        const callback = (success, data) => {
+            if(success) {
+                this.setState({
+                    grantInfoShow: true,
+                    grantInfo: data.split('\n')
+                });
+                this.showGrantInfo(grantInfoMountId);
+            }else {
+                utils.renderGlobalErrorMsg(data);
+            }
+        };
+
+        perm.getPermInfo({
+            type: objectType,
+            id: objectId
+        }, callback);
+    }
+
+    switchGrantInfo(mountId) {
+        const showed = this.state.grantInfoShow;
+        this.setState({
+            grantInfoShow: !showed
+        });
+        if(!showed) {
+            this.showGrantInfo(mountId);
+        }else {
+            this.hideGrantInfo(mountId);
+        }
+
+    }
+
+    showGrantInfo(mountId) {
+        render(
+            <PermInfo
+                infos={this.state.grantInfo}
+            />,
+            document.getElementById(mountId)
+        );
+    }
+
+    hideGrantInfo(mountId) {
+        ReactDOM.unmountComponentAtNode(document.getElementById(mountId));
     }
 
     componentDidMount() {
         this.getGuardianUsers();
         this.getPermTypes();
         this.searchPermissions();
-
-        const callback = () => {
-            this.searchPermissions();
-            this.setState({ initDone: true });
-        };
-        loadIntlResources(callback, 'popup');
+        this.getPermInfo();
+        this.loadIntlResource();
     }
 
     render() {
@@ -211,6 +265,7 @@ class PermPopup extends React.Component {
             tableDataSource,
             permCheckboxes,
             selectedUser,
+            grantInfoShow,
             grantedActions
         } = this.state;
         return (this.state.initDone &&
@@ -262,7 +317,18 @@ class PermPopup extends React.Component {
                                     onClick={this.grantPerm}
                                     disabled={!selectedUser || grantedActions.length === 0}
                                 >{intl.get('POPUP.CONFIG_PERM')}</button>
+                                <Tooltip
+                                    placement="top"
+                                    title={grantInfoShow ? intl.get('POPUP.CLICK_HIDE_GRANT_INFO') : intl.get('POPUP.CLICK_SHOW_GRANT_INFO')}
+                                >
+                                    <i
+                                        style={{marginLeft: 10}}
+                                        className="icon icon-info"
+                                        onClick={argus => this.switchGrantInfo(grantInfoMountId)}
+                                    />
+                                </Tooltip>
                             </div>
+                            <div id={grantInfoMountId} className="dialog-item"></div>
                             <div className="table-grant-perm" style={{margin: '10 20'}}>
                                 <Table
                                     dataSource={tableDataSource}

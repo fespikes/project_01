@@ -7,9 +7,8 @@ import * as actions from '../actions';
 import * as utils from '../../../utils/utils';
 import intl from 'react-intl-universal';
 import {ConnectionDelete, ConnectionEdit} from '../popup';
-import style from '../style/database.scss'
-import {ConfirmModal, PermPopup} from '../../common/components';
 import {isCorrectConnection} from '../utils';
+import {getPermInfo} from '../../perm/actions';
 
 class SliceTable extends React.Component {
     constructor(props, context) {
@@ -60,7 +59,6 @@ class SliceTable extends React.Component {
         }
     }
 
-    //delete one of them
     deleteConnection(record) {
         const dispatch = this.dispatch;
         dispatch(actions.fetchConnectDelInfo(record, callback));
@@ -83,7 +81,7 @@ class SliceTable extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                utils.renderGlobalErrorMsg(data);
+                utils.renderConfirmModal(data);
             }
         }
     }
@@ -91,13 +89,18 @@ class SliceTable extends React.Component {
     givePerm(record) {
         const objectType = isCorrectConnection(record.connection_type, connectionTypes)
             ? utils.OBJECT_TYPE.DATABASE : utils.OBJECT_TYPE.HDFSCONNECTION;
-        render(
-            <PermPopup
-                objectType={objectType}
-                objectName={record.name}
-            />,
-            document.getElementById('popup_root')
-        );
+        const callback = (success, response) => {
+            if(success) {
+                utils.renderPermModal(record.id, record.name, objectType);
+            }else {
+                utils.renderConfirmModal(response);
+            }
+        };
+
+        getPermInfo({
+            type: objectType,
+            id: record.id
+        }, callback);
     }
 
     render() {

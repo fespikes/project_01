@@ -6,6 +6,7 @@ import * as actions from '../actions';
 import * as utils from '../../../utils/utils';
 import {DashboardEdit, DashboardDelete} from '../popup';
 import {ConfirmModal, PermPopup} from '../../common/components';
+import {getPermInfo} from '../../perm/actions';
 import {Table, Tooltip} from 'antd';
 import intl from "react-intl-universal";
 
@@ -64,7 +65,7 @@ class Tables extends React.Component {
                     document.getElementById('popup_root')
                 );
             }else {
-                utils.renderGlobalErrorMsg(data);
+                utils.renderConfirmModal(data);
             }
         }
     }
@@ -80,19 +81,24 @@ class Tables extends React.Component {
             if(success) {
                 window.location.href = url;
             }else {
-                utils.renderGlobalErrorMsg(response);
+                utils.renderConfirmModal(response);
             }
         }
     }
 
     givePerm(record) {
-        render(
-            <PermPopup
-                objectType={utils.OBJECT_TYPE.DASHBOARD}
-                objectName={record.dashboard_title}
-            />,
-            document.getElementById('popup_root')
-        );
+        const callback = (success, response) => {
+            if(success) {
+                utils.renderPermModal(record.id, record.dashboard_title, utils.OBJECT_TYPE.DASHBOARD);
+            }else {
+                utils.renderConfirmModal(response);
+            }
+        };
+
+        getPermInfo({
+            type: utils.OBJECT_TYPE.DASHBOARD,
+            id: record.id
+        }, callback);
     }
 
     render() {
@@ -142,25 +148,10 @@ class Tables extends React.Component {
                 return utils.sortByInitials(a.description, b.description);
             }
         }, {
-            title: intl.get('DASHBOARD.PUBLISH_STATE'),
-            dataIndex: 'online',
-            key: 'online',
-            width: '15%',
-            render: (text, record) => {
-                return (
-                    <span className="entity-publish">
-                        {record.online ? intl.get('DASHBOARD.PUBLISHED') : intl.get('DASHBOARD.UNPUBLISHED')}
-                    </span>
-                )
-            },
-            sorter(a, b) {
-                return a.online - b.online;
-            }
-        }, {
             title: intl.get('DASHBOARD.OWNER'),
             dataIndex: 'created_by_user',
             key: 'created_by_user',
-            width: '15%',
+            width: '20%',
             render: (text, record) => {
                 return (
                     <div
@@ -185,7 +176,7 @@ class Tables extends React.Component {
         }, {
             title: intl.get('DASHBOARD.OPERATION'),
             key: 'action',
-            width: '10%',
+            width: '20%',
             render: (record) => {
                 return (
                     <div className="icon-group">

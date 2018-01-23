@@ -1,7 +1,7 @@
 import ReactDOM, {render} from 'react-dom';
 import React from 'react';
 import {Alert, message} from 'antd';
-import {LoadingModal} from '../javascripts/common/components';
+import {LoadingModal, ConfirmModal, PermPopup} from '../javascripts/common/components';
 import {MESSAGE_DURATION, always, json, callbackHandler} from '../javascripts/global.jsx';
 import fetch from 'isomorphic-fetch';
 
@@ -17,7 +17,8 @@ export const OBJECT_TYPE = {
     SLICE: 'slice',
     DATABASE: 'database',
     DATASET: 'dataset',
-    HDFSCONNECTION: 'hdfsconnection'
+    HDFSCONNECTION: 'hdfsconnection',
+    TABLE: 'table'
 };
 
 export function renderLoadingModal() {
@@ -62,6 +63,28 @@ export function renderAlertErrorInfo(description, mountId, width='100%', _this) 
 
 export function renderGlobalErrorMsg(errorMsg) {
     message.error(errorMsg, MESSAGE_DURATION);
+}
+
+export function renderConfirmModal(msg, type='warning', callback=false) {
+    render(
+        <ConfirmModal
+            needCallback={callback}
+            confirmMessage={msg}
+            confirmType={type}
+        />,
+        document.getElementById('popup_root')
+    );
+}
+
+export function renderPermModal(id, name, type) {
+    render(
+        <PermPopup
+            objectType={type}
+            objectName={name}
+            objectId={id}
+        />,
+        document.getElementById('popup_root')
+    );
 }
 
 export function getEleOffsetLeft(element) {
@@ -144,6 +167,11 @@ export function viewObjectDetail(url, callback) {
     });
 }
 
+export function getAntdLocale(zhCN, enUS) {
+    const locale = sessionStorage.getItem('pilot:currentLocale') || 'zh-CN';
+    return locale === 'zh-CN' ? zhCN : enUS;
+}
+
 //load intl resources at the very beginning or from cache
 export function loadIntlResources(callback, module) {
     let  localePath = '/static/assets/locales/';
@@ -154,8 +182,9 @@ export function loadIntlResources(callback, module) {
     if(!currentLocale || !_.find(SUPPOER_LOCALES, { value: currentLocale })) {
         currentLocale = "zh-CN";
     }
+    const timestamp = new Date().getTime();
     //because in the project setting , front end source are only located under assets folder
-    http.get(localePath + `${currentLocale}.json`)
+    http.get(`${localePath}${currentLocale}.json?timestamp=${timestamp}`)
         .then(res => {
             const localeResource = Object.assign(intl.options.locales[currentLocale] || {}, res.data);
             return intl.init({

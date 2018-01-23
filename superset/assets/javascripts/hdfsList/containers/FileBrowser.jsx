@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import * as actions from '../actions';
 import { CONSTANT } from '../actions';
-import { renderLoadingModal } from '../../../utils/utils';
+import * as utils from '../../../utils/utils';
 import intl from "react-intl-universal";
 
 import '../style/file-browser.scss';
@@ -36,7 +36,7 @@ class FileBrowser extends Component {
         const {emitFetch} = nextProps;
 
         if (emitFetch.isFetching !== this.props.emitFetch.isFetching) {
-            const loadingModal = renderLoadingModal();
+            const loadingModal = utils.renderLoadingModal();
             if (emitFetch.isFetching) {
                 loadingModal.show();
             } else {

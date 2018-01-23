@@ -7,6 +7,8 @@
     "PLEASE_SELECT": "请选择",
     "PERM": "权限",
     "OPERATION": "操作",
-    "CONFIRM": "确定"
+    "CONFIRM": "确定",
+    "CLICK_SHOW_GRANT_INFO": "点击显示赋权信息",
+    "CLICK_HIDE_GRANT_INFO": "点击隐藏赋权信息"
   }
 }

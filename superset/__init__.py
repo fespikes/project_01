@@ -29,7 +29,7 @@ CONFIG_MODULE = os.environ.get('SUPERSET_CONFIG', 'superset.config')
 
 app = Flask(__name__)
 app.config.from_object(CONFIG_MODULE)
-
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 Compress(app)
 
 conf = app.config

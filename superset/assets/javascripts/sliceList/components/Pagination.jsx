@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Pagination } from 'antd';
+import { Pagination, LocaleProvider } from 'antd';
+import enUS from 'antd/lib/locale-provider/en_US';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
+import { getAntdLocale } from '../../../utils/utils';
 import PropTypes from 'prop-types';
 import { fetchLists,  navigateTo, setPageSize} from '../actions';
 
@@ -24,15 +27,17 @@ class SlicePagination extends React.Component {
       }
 
       return (
-          <Pagination
-              showQuickJumper
-              showSizeChanger
-              pageSize={pageSize}
-              total={count}
-              current={pageNumber}
-              onChange={onChange}
-              onShowSizeChange={onShowSizeChange}
-          />
+          <LocaleProvider locale={getAntdLocale(zhCN,enUS)}>
+              <Pagination
+                  showQuickJumper
+                  showSizeChanger
+                  pageSize={pageSize}
+                  total={count}
+                  current={pageNumber}
+                  onChange={onChange}
+                  onShowSizeChange={onShowSizeChange}
+              />
+          </LocaleProvider>
       );
   }
 }

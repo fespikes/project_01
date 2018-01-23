@@ -1,6 +1,10 @@
 import React from 'react';
 import { render } from 'react-dom';
 
+const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
+require('bootstrap');
+
+
 import fetch from 'isomorphic-fetch';
 
 const _ = require('lodash');
