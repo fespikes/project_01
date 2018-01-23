@@ -492,7 +492,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         dash = self.get_object(id)
-        self.check_release_perm([self.model_type, dash.dashboard])
+        self.check_release_perm([self.model_type, dash.dashboard_title])
         info = _("Changing dashboard {dashboard} to offline will make it invisible "
                  "for other users").format(dashboard=[dash, ])
         return json_response(data=info)
@@ -1170,7 +1170,8 @@ class Superset(BaseSupersetView, PermissionManagement):
         def dashboard(**kwargs):  # noqa
             pass
         dashboard(dashboard_id=dash.id)
-        dash_edit_perm = self.check_edit_perm(['dashboard', dash.dashboard_title])
+        dash_edit_perm = self.check_edit_perm(['dashboard', dash.dashboard_title],
+                                              raise_if_false=False)
         dash_save_perm = dash_edit_perm
         standalone = request.args.get("standalone") == "true"
         context = dict(
