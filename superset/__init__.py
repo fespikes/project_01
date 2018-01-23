@@ -22,7 +22,8 @@ from flask_cas import CAS, login_required
 from superset.source_registry import SourceRegistry
 from werkzeug.contrib.fixers import ProxyFix
 from superset import utils, config
-from superset.check_license import CheckLicense
+from superset.jvm import start_jvm, shutdown_jvm
+from superset.check_license import check_license
 
 
 APP_DIR = os.path.dirname(__file__)
@@ -77,10 +78,15 @@ if app.config.get('ENABLE_TIME_ROTATE'):
     logging.getLogger().addHandler(handler)
 
 
-# License check
-if conf.get('LICENSE_CHECK') is True:
-    license_jar = conf.get('LICENSE_CHECK_JAR')
-    CheckLicense.check(license_jar)
+if conf.get('LICENSE_CHECK') or conf.get('GUARDIAN_AUTH'):
+    start_jvm()
+
+if conf.get('LICENSE_CHECK'):
+    check_license()
+
+if not conf.get('GUARDIAN_AUTH'):
+    shutdown_jvm()
+
 
 if app.config.get('ENABLE_CORS'):
     from flask_cors import CORS
@@ -139,3 +145,4 @@ module_datasource_map.update(app.config.get("ADDITIONAL_MODULE_DS_MAP"))
 SourceRegistry.register_sources(module_datasource_map)
 
 from superset import views, config  # noqa
+

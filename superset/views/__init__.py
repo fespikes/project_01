@@ -76,7 +76,7 @@ appbuilder.add_view_no_menu(hdfs.HDFSBrowser)
 appbuilder.add_link(
     'HDFS Browser',
     href='/hdfs/',
-    label=__("HDFS Browser"),
+    label=__("HDFS"),
     icon="fa-flask",
     category='',
     category_icon='')

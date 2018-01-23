@@ -21,7 +21,9 @@ from sqlalchemy import and_, or_
 
 from superset import app, db, models, utils, conf
 from superset.utils import GUARDIAN_AUTH
-from superset.models import Dataset, Database, Dashboard, Slice, FavStar, Log, Number
+from superset.models import (
+    Dataset, Database, Dashboard, Slice, HDFSConnection, FavStar, Log, Number
+)
 from superset.message import *
 from superset.exception import (
     SupersetException, LoginException, PermissionException, ParameterException,
@@ -205,17 +207,16 @@ class PermissionManagement(object):
         """Grant READ perm of example data to present user"""
         if not self.guardian_auth:
             return
-        example_types = {'dashboard': Dashboard, 'slice': Slice, 'dataset': Dataset}
+        example_types = {'dashboard': Dashboard, 'slice': Slice, 'dataset': Dataset,
+                         'hdfsconnection': HDFSConnection}
         for obj_type, model in example_types.items():
             objs = db.session.query(model).filter(model.created_by_fk == None).all()
-            if objs and self.check_read_perm([obj_type, objs[0].name],
-                                             raise_if_false=False):
-                return
-            for obj in objs:
-                self.add_object_permissions([obj_type, obj.name])
-                self.grant_read_permissions([obj_type, obj.name])
-                logging.info('Grant {} [READ] perm on {}: [{}]'
-                             .format(g.user.username, obj_type, obj.name))
+            if objs and not self.check_read_perm([obj_type, objs[0].name],
+                                                 raise_if_false=False):
+                for obj in objs:
+                    self.grant_read_permissions([obj_type, obj.name])
+                    logging.info('Grant {} [READ] perm on {}: [{}]'
+                                 .format(g.user.username, obj_type, obj.name))
 
 
 class BaseSupersetView(BaseView):
@@ -224,6 +225,8 @@ class BaseSupersetView(BaseView):
     def __init__(self):
         super(BaseSupersetView, self).__init__()
         self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
+        self.MAIN_DATABASE_NAME = config.get('METADATA_CONN_NAME')
+        self.MAIN_DATABASE = self.get_main_database()
 
     def check_value_pattern(self, value):
         match = re.search(self.NAME_RESTRICT_PATTERN, value)
@@ -247,6 +250,10 @@ class BaseSupersetView(BaseView):
             "Content-Disposition": content_disp,
         }
         return headers
+
+    def get_main_database(self):
+        return db.session.query(Database)\
+            .filter_by(database_name=self.MAIN_DATABASE_NAME).first()
 
 
 class PageMixin(object):
@@ -292,6 +299,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
 
     @expose('/list/')
     def list(self):
+        self.update_redirect()
         return self.render_template(self.list_template)
 
     @catch_exception
@@ -328,7 +336,6 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     def post_add(self, obj):
         Log.log_add(obj, self.model_type, g.user.id)
         Number.log_number(g.user.username, self.model_type)
-        self.add_object_permissions([self.model_type, obj.name])
         self.grant_owner_permissions([self.model_type, obj.name])
 
     @catch_exception
@@ -396,11 +403,6 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
             self._delete(obj)
         return json_response(message=DELETE_SUCCESS)
 
-    def get_addable_choices(self):
-        data = {}
-        # data['readme'] = self.get_column_readme()
-        return data
-
     def get_object_list_data(self, **kwargs):
         pass
 
@@ -438,13 +440,6 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
         attributes['changed_by_user'] = obj.changed_by.username \
             if obj.changed_by else None
         return attributes
-
-    def get_column_readme(self):
-        readme = {}
-        if hasattr(self, 'readme_columns'):
-            for col in self.readme_columns:
-                readme[col] = self.description_columns.get(col)
-        return readme
 
     def get_add_attributes(self, data, user_id):
         attributes = {}
@@ -539,70 +534,12 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
         return query
 
     @staticmethod
-    def get_available_datasets(user_id):
-        datasets = (
-            db.session.query(Dataset)
-            .filter(
-                or_(Dataset.created_by_fk == user_id,
-                    Dataset.online == 1)
-            )
-            .order_by(Dataset.changed_on.desc())
-            .all()
-        )
-        return datasets
-
-    def get_available_connections(self, user_id):
-        return self.get_available_databases(user_id)
-
-    @staticmethod
-    def get_available_databases(user_id):
-        """TODO just return connection_type=='inceptor'"""
-        dbs = (
-            db.session.query(Database)
-            .filter(Database.database_name != config.get('METADATA_CONN_NAME'),
-                    or_(Database.created_by_fk == user_id,
-                        Database.online == 1)
-            )
-            .order_by(Database.database_name)
-            .all()
-        )
-        dbs_list = [{'id': d.id, 'database_name': d.database_name}
-                    for d in dbs]
-        return dbs_list
-
-    @staticmethod
-    def get_available_dashboards(user_id):
-        dashs = (
-            db.session.query(Dashboard)
-            .filter(
-                or_(Dashboard.created_by_fk == user_id,
-                    Dashboard.online == 1)
-            )
-            .order_by(Dashboard.changed_on.desc())
-            .all()
-        )
-        return dashs
-
-    @staticmethod
     def dashboards_to_dict(dashs):
         dashs_list = []
         for dash in dashs:
             row = {'id': dash.id, 'dashboard_title': dash.dashboard_title}
             dashs_list.append(row)
         return dashs_list
-
-    @staticmethod
-    def get_available_slices(user_id):
-        slices = (
-            db.session.query(Slice)
-            .filter(
-                or_(Slice.created_by_fk == user_id,
-                    Slice.online == 1)
-            )
-            .order_by(Slice.changed_on.desc())
-            .all()
-        )
-        return slices
 
     @staticmethod
     def slices_to_dict(slices):

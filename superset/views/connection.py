@@ -40,7 +40,6 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
                     'args', 'backend',  'created_on', 'changed_on']
     add_columns = ['database_name', 'description', 'sqlalchemy_uri', 'args']
     edit_columns = add_columns
-    readme_columns = ['sqlalchemy_uri']
     add_template = "superset/models/database/add.html"
     edit_template = "superset/models/database/edit.html"
     base_order = ('changed_on', 'desc')
@@ -247,6 +246,8 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @catch_exception
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
+        database = self.get_object(id)
+        self.check_grant_perm([self.model_type, database.name])
         return json_response(data="")
 
 
@@ -412,6 +413,8 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @catch_exception
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
+        hdfs = self.get_object(id)
+        self.check_grant_perm([self.model_type, hdfs.name])
         return json_response(data="")
 
     @catch_hdfs_exception

@@ -48,12 +48,10 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     datamodel = SQLAInterface(Slice)
     route_base = '/slice'
     can_add = False
-    list_columns = ['id', 'slice_name', 'description', 'slice_url',
-                    'viz_type', 'online', 'changed_on']
+    list_columns = ['id', 'slice_name', 'description', 'slice_url', 'viz_type',
+                    'changed_on']
     edit_columns = ['slice_name', 'description']
     show_columns = ['id', 'slice_name', 'description', 'created_on', 'changed_on']
-    base_order = ('changed_on', 'desc')
-    description_columns = {}
 
     list_template = "superset/list.html"
 
@@ -71,18 +69,9 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     bool_columns = ['online']
     str_columns = ['datasource', 'created_on', 'changed_on']
 
-    def get_addable_choices(self):
-        data = super(SliceModelView, self).get_addable_choices()
-        dashs = self.get_available_dashboards(g.user.id)
-        data['available_dashboards'] = self.dashboards_to_dict(dashs)
-        return data
-
     def get_show_attributes(self, obj, user_id=None):
         attributes = super(SliceModelView, self).get_show_attributes(obj, user_id)
         attributes['dashboards'] = self.dashboards_to_dict(obj.dashboards)
-        dashs = self.get_available_dashboards(user_id)
-        available_dashs = self.dashboards_to_dict(dashs)
-        attributes['available_dashboards'] = available_dashs
         return attributes
 
     def get_edit_attributes(self, data, user_id):
@@ -229,11 +218,11 @@ class SliceModelView(SupersetModelView, PermissionManagement):
             dataset = slice.datasource
 
         conns = []
-        if slice.database_id:
+        if slice.database_id and slice.database_id != self.MAIN_DATABASE.id:
             database = db.session.query(Database) \
                 .filter(Database.id == slice.database_id).first()
             conns.append(database)
-        if dataset and dataset.database:
+        if dataset and dataset.database and dataset.database != self.MAIN_DATABASE:
             conns.append(dataset.database)
         if dataset and dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
             conns.append(dataset.hdfs_table.hdfs_connection)
@@ -330,13 +319,10 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     model_type = 'dashboard'
     datamodel = SQLAInterface(Dashboard)
     route_base = '/dashboard'
-    list_columns = ['id', 'dashboard_title', 'url', 'description',
-                    'online',  'changed_on']
+    list_columns = ['id', 'dashboard_title', 'url', 'description', 'changed_on']
     edit_columns = ['dashboard_title', 'description']
     show_columns = ['id', 'dashboard_title', 'description', 'table_names']
     add_columns = edit_columns
-    base_order = ('changed_on', 'desc')
-    description_columns = {}
     list_template = "superset/partials/dashboard/dashboard.html"
 
     str_to_column = {
@@ -349,12 +335,6 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     int_columns = ['id', 'created_by_fk', 'changed_by_fk']
     bool_columns = ['online']
     str_columns = ['created_on', 'changed_on']
-
-    def get_addable_choices(self):
-        data = super(DashboardModelView, self).get_addable_choices()
-        slices = self.get_available_slices(g.user.id)
-        data['available_slices'] = self.slices_to_dict(slices)
-        return data
 
     def pre_add(self, obj):
         self.check_column_values(obj)
@@ -440,8 +420,6 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     def get_show_attributes(self, obj, user_id=None):
         attributes = super(DashboardModelView, self).get_show_attributes(obj)
         attributes['slices'] = self.slices_to_dict(obj.slices)
-        available_slices = self.get_available_slices(user_id)
-        attributes['available_slices'] = self.slices_to_dict(available_slices)
         return attributes
 
     def get_add_attributes(self, data, user_id):
@@ -535,7 +513,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         dash = self.get_object(id)
-        self.check_grant_perm([self.model_type, dash.dashboard])
+        self.check_grant_perm([self.model_type, dash.dashboard_title])
         objects = self.grant_affect_objects(dash)
         info = _("Granting permissions of [{dashboard}] to this user, will grant "
                  "permissions of dependencies to this user too: "
@@ -558,12 +536,13 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         connections = []
         for d in datasets:
-            if d.database:
+            if d.database and d.database.name != self.MAIN_DATABASE_NAME:
                 connections.append(d.database)
             if d.hdfs_table and d.hdfs_table.hdfs_connection:
                 connections.append(d.hdfs_table.hdfs_connection)
         databases = db.session.query(Database) \
-            .filter(Database.id.in_(database_ids)) \
+            .filter(Database.id.in_(database_ids),
+                    Database.database_name != self.MAIN_DATABASE_NAME) \
             .all()
         connections.extend(databases)
         return {'slice': set(slices),
@@ -832,6 +811,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 slice=slc,
                 table_name=table_name)
         else:
+            self.update_redirect()
             return self.render_template(
                 "superset/explore.html",
                 viz=viz_obj,
@@ -977,7 +957,6 @@ class Superset(BaseSupersetView, PermissionManagement):
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         Log.log_add(slc, 'slice', g.user.id)
         Number.log_number(g.user.username, 'slice')
-        self.add_object_permissions(['slice', slc.slice_name])
         self.grant_owner_permissions(['slice', slc.slice_name])
 
     def overwrite_slice(self, slc):
@@ -1046,7 +1025,6 @@ class Superset(BaseSupersetView, PermissionManagement):
         session.commit()
         dash_json = dash.json_data
         Log.log_add(dash, 'dashboard', g.user.id)
-        self.add_object_permissions(['dashboard', dash.dashboard_title])
         self.grant_owner_permissions(['dashboard', dash.dashboard_title])
         return json_response(data=dash_json)
 
@@ -1179,6 +1157,7 @@ class Superset(BaseSupersetView, PermissionManagement):
     @expose("/dashboard/<dashboard_id>/")
     def dashboard(self, dashboard_id):
         """Server side rendering for a dashboard"""
+        self.update_redirect()
         session = db.session()
         qry = session.query(Dashboard)
         if dashboard_id.isdigit():
@@ -1229,7 +1208,6 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.commit()
         Log.log_add(table, 'dataset', g.user.id)
         Number.log_number(g.user.username, 'dataset')
-        self.add_object_permissions(['dataset', table.dataset_name])
         self.grant_owner_permissions(['dataset', table.dataset_name])
 
         cols = []
@@ -1540,6 +1518,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         d = {
             'defaultDbId': config.get('SQLLAB_DEFAULT_DBID'),
         }
+        self.update_redirect()
         return self.render_template(
             'superset/sqllab.html',
             bootstrap_data=json.dumps(d, default=utils.json_iso_dttm_ser)

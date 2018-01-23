@@ -80,6 +80,7 @@ class HDFSBrowser(BaseSupersetView):
     @catch_exception
     @expose('/')
     def render_html(self):
+        self.update_redirect()
         return self.render_template('superset/hdfsList.html')
 
     @catch_hdfs_exception

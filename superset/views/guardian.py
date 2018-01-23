@@ -82,6 +82,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
         object_type = args.get('object_type')
         object_name = args.get('object_name')
         actions = args.get('actions')
+        self.check_actions(actions)
         self.check_grant_perm([object_type, object_name])
         obj = self.get_object(object_type, object_name)
         self.grant_relations(username, obj, object_type, actions)
@@ -102,12 +103,13 @@ class GuardianView(BaseSupersetView, PermissionManagement):
             if obj.datasource_id and obj.datasource:
                 self.grant_relations(
                     username, obj.datasource, self.OBJECT_TYPES[2], actions)
-            elif obj.database_id:
-                database = db.session.query(Database).filter_by(id=obj.database_id).first()
+            elif obj.database_id and obj.database_id != self.MAIN_DATABASE.id:
+                database = db.session.query(Database)\
+                    .filter_by(id=obj.database_id).first()
                 self.grant_relations(
                     username, database, self.OBJECT_TYPES[3], actions)
         elif object_type == self.OBJECT_TYPES[2]:
-            if obj.database:
+            if obj.database and obj.database != self.MAIN_DATABASE:
                 self.grant_relations(
                     username, obj.database, self.OBJECT_TYPES[3], actions)
             if obj.hdfs_table and obj.hdfs_table.hdfs_connection:
@@ -134,6 +136,7 @@ class GuardianView(BaseSupersetView, PermissionManagement):
         actions = args.get('actions')
         if username == g.user.username:
             raise PermissionException(_('Can revoke your own permissions'))
+        self.check_actions(actions)
         self.check_revoke_perm([object_type, object_name])
         self.do_revoke(username, [object_type, object_name], actions)
         obj = self.get_object(object_type, object_name)
@@ -150,3 +153,13 @@ class GuardianView(BaseSupersetView, PermissionManagement):
             raise ParameterException(_("Not found the {model} by name: [{name}]")
                                      .format(model=obj_type, name=obj_name))
         return obj
+
+    def check_actions(self, actions):
+        if isinstance(actions, list):
+            if not set(actions).issubset(set(self.ALL_PERMS)):
+                raise PermissionException(
+                    _('Error permission action: {action}').format(action=actions))
+        else:
+            if actions not in self.ALL_PERMS:
+                raise PermissionException(
+                    _('Error permission action: {action}').format(action=actions))

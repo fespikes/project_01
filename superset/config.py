@@ -40,8 +40,6 @@ CUSTOM_SECURITY_MANAGER = None
 
 # Guardian
 GUARDIAN_AUTH = True
-GUARDIAN_CLIENT_JAR = '/usr/local/lib/guardian-client-2.0-transwarp-5.2.0.jar'
-GUARDIAN_SITE_PATH = '/etc/pilot/conf/'
 GUARDIAN_SERVICE_TYPE = 'PILOT'
 
 # The default username and password when guardian is not opened
@@ -63,9 +61,6 @@ LOAD_EXAMPLES = True
 
 # License check
 LICENSE_CHECK = True
-# The jar has default path.
-# if you have not moved it, then no need to changed it.
-LICENSE_CHECK_JAR = '/usr/local/lib/pilot-license-1.0-transwarp-5.2.0.jar'
 
 # Your App secret key
 SECRET_KEY = '=== Transwarp Studio Pilot ==='  # noqa
