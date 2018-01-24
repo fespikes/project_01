@@ -60,6 +60,7 @@ class CAS(object):
         app.config.setdefault('CAS_PROXY_ROUTE', '/cas/proxy')
         app.config.setdefault('CAS_PROXY_CALLBACK_ROUTE', '/cas/proxyCallback')
         # Requires CAS 2.0
+        app.config.setdefault('CAS_AFTER_LOGIN', '/')
         app.config.setdefault('CAS_AFTER_LOGOUT', None)
         # Register Blueprint
         app.register_blueprint(routing.blueprint, url_prefix=url_prefix)
