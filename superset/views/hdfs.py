@@ -232,13 +232,26 @@ class HDFSBrowser(BaseSupersetView):
                 else:
                     return HDFSBrowser.get_default_httpfs()
 
+            def get_pt(httpfs):
+                pt = None
+                if app.config.get('CAS_AUTH'):
+                    from superset.cas.routing import get_proxy_ticket
+                    if ':' not in httpfs:
+                        httpfs = '{}:14000'.format(httpfs)
+                    if 'http://' not in httpfs:
+                        httpfs = 'http://{}'.format(httpfs)
+                    pt = get_proxy_ticket(httpfs)
+                return pt
+
             httpfs = get_httpfs(hdfs_conn_id, httpfs)
+            proxy_ticket = get_pt(httpfs)
             return {'server': app.config.get('FILE_ROBOT_SERVER'),
                     'username': g.user.username,
                     'password': g.user.password2,
-                    'httpfs': httpfs}
+                    'httpfs': httpfs,
+                    'proxy_ticket': proxy_ticket}
 
-        def do_login(server='', username='', password='', httpfs=''):
+        def do_login(server='', username='', password='', httpfs='', proxy_ticket=None):
             if not server:
                 raise ParameterException(NO_FILEROBOT_SERVER)
             if not password:
@@ -246,7 +259,7 @@ class HDFSBrowser(BaseSupersetView):
             conf = FileRobotConfiguartion()
             conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
             client = fileRobotClientFactory.getInstance(conf)
-            response = client.login(username, password, httpfs)
+            response = client.login(username, password, httpfs, proxy_ticket)
             return client, response
 
         args = get_login_args(hdfs_conn_id, httpfs)
