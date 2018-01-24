@@ -16,8 +16,7 @@ def start_jvm():
         logging.info('Java class paths: {}'.format(paths))
         startJVM(get_default_jvm_path(), '-ea',
                  '-Djava.class.path={}'.format(':'.join(paths)))
-        if not isThreadAttachedToJVM():
-            attachThreadToJVM()
+        attachThreadToJVM()
 
 
 def shutdown_jvm():
