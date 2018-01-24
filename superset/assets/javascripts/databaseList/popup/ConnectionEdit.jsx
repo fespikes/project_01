@@ -326,8 +326,9 @@ class ConnectionEdit extends React.Component {
                                 <div className="dialog-item" style={{ position: 'relative' }}>
                                     <div className="item-left"></div>
                                     <div className="item-right item-connect-test">
-                                        <button className="test-connect" onClick={this.testConnection}>
-                                            <i className="icon icon-connect-test" />
+                                        <button 
+                                            className="tp-btn tp-btn-middle tp-btn-primary"
+                                            onClick={this.testConnection}>
                                             <span>{intl.get('DATABASE.TEST_CONN')}</span>
                                         </button>
                                         <div id='test-connect-tip-INCEPTOR'></div>
@@ -433,8 +434,9 @@ class ConnectionEdit extends React.Component {
                                 <div className="dialog-item" style={{ position: 'relative' }}>
                                     <div className="item-left"></div>
                                     <div className="item-right item-connect-test">
-                                        <button className="test-connect" onClick={this.testConnection}>
-                                            <i className="icon icon-connect-test" />
+                                        <button 
+                                            className="tp-btn tp-btn-middle tp-btn-primary"
+                                            onClick={this.testConnection}>
                                             <span>{intl.get('DATABASE.TEST_CONN')}</span>
                                         </button>
                                         <div id='test-connect-tip-HDFS'></div>

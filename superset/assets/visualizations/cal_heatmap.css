@@ -1,3 +1,7 @@
 .cal_heatmap .slice_container {
   padding: 10px;
 }
+
+.react-grid-item{
+	z-index: 0;
+}

@@ -120,7 +120,7 @@ class Tables extends React.Component {
             title: intl.get('DASHBOARD.NAME'),
             dataIndex: 'dashboard_title',
             key: 'dashboard_title',
-            width: '38%',
+            width: '33%',
             render: (text, record) => {
                 return (
                     <div className="entity-name">
@@ -151,7 +151,7 @@ class Tables extends React.Component {
             title: intl.get('DASHBOARD.OWNER'),
             dataIndex: 'created_by_user',
             key: 'created_by_user',
-            width: '20%',
+            width: '25%',
             render: (text, record) => {
                 return (
                     <div
@@ -169,14 +169,14 @@ class Tables extends React.Component {
             title: intl.get('DASHBOARD.LAST_MODIFIED_TIME'),
             dataIndex: 'changed_on',
             key: 'changed_on',
-            width: '20%',
+            width: '25%',
             sorter(a, b) {
                 return a.changed_on - b.changed_on ? 1 : -1;
             }
         }, {
             title: intl.get('DASHBOARD.OPERATION'),
             key: 'action',
-            width: '20%',
+            width: '15%',
             render: (record) => {
                 return (
                     <div className="icon-group">
