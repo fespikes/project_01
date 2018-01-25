@@ -218,11 +218,12 @@ class SliceModelView(SupersetModelView, PermissionManagement):
             dataset = slice.datasource
 
         conns = []
-        if slice.database_id and slice.database_id != self.MAIN_DATABASE.id:
+        main_db = self.get_main_db()
+        if slice.database_id and slice.database_id != main_db.id:
             database = db.session.query(Database) \
                 .filter(Database.id == slice.database_id).first()
             conns.append(database)
-        if dataset and dataset.database and dataset.database != self.MAIN_DATABASE:
+        if dataset and dataset.database and dataset.database.id != main_db.id:
             conns.append(dataset.database)
         if dataset and dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
             conns.append(dataset.hdfs_table.hdfs_connection)
@@ -536,13 +537,13 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         connections = []
         for d in datasets:
-            if d.database and d.database.name != self.MAIN_DATABASE_NAME:
+            if d.database and d.database.name != self.main_db_name:
                 connections.append(d.database)
             if d.hdfs_table and d.hdfs_table.hdfs_connection:
                 connections.append(d.hdfs_table.hdfs_connection)
         databases = db.session.query(Database) \
             .filter(Database.id.in_(database_ids),
-                    Database.database_name != self.MAIN_DATABASE_NAME) \
+                    Database.database_name != self.main_db_name) \
             .all()
         connections.extend(databases)
         return {'slice': set(slices),
@@ -1159,17 +1160,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         """Server side rendering for a dashboard"""
         self.update_redirect()
         session = db.session()
-        qry = session.query(Dashboard)
-        if dashboard_id.isdigit():
-            qry = qry.filter_by(id=int(dashboard_id))
-        else:
-            qry = qry.filter_by(slug=dashboard_id)
-        dash = qry.one()
-
-        # Hack to log the dashboard_id properly, even when getting a slug
-        def dashboard(**kwargs):  # noqa
-            pass
-        dashboard(dashboard_id=dash.id)
+        dash = session.query(Dashboard).filter_by(id=int(dashboard_id)).one()
         dash_edit_perm = self.check_edit_perm(['dashboard', dash.dashboard_title],
                                               raise_if_false=False)
         dash_save_perm = dash_edit_perm
