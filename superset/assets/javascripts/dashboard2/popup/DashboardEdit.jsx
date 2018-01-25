@@ -18,6 +18,7 @@ class DashboardEdit extends React.Component {
             dashboardDetail: {
                 description: ''
             },
+            availableSlices: [],
             sliceOptions: [],
             selectedSlices: initDefaultOptions()
         };
@@ -91,6 +92,7 @@ class DashboardEdit extends React.Component {
                     return <Option key={slice.slice_name}>{slice.slice_name}</Option>
                 });
                 this.setState({
+                    availableSlices: response.data,
                     sliceOptions: options
                 });
             }else {
