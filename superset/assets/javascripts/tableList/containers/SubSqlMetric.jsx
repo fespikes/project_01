@@ -9,6 +9,7 @@ import { Table, Input, Button, Icon, message, Select } from 'antd';
 import { SQLMetricAdd, SQLMetricDelete } from '../popup';
 import * as actionCreators from '../actions';
 const _ = require('lodash');
+import '../style/table.scss';
 import intl from 'react-intl-universal';
 import {loadIntlResources, renderGlobalErrorMsg} from '../../../utils/utils';
 import {getMetricTypeOptions} from '../module';
@@ -139,7 +140,7 @@ class SubSqlMetric extends Component {
 
     editCallback(success, message) {
         if(!success) {
-            message.error(message, 5);
+            message.warning(message, 5);
         }
     }
 

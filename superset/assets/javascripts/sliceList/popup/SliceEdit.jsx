@@ -17,6 +17,7 @@ class SliceEdit extends React.Component {
             enableConfirm: true,
             sliceDetail: {},
             availableDashboards: [],
+            dashboardOptions: [],
             selectedDashboards: initDefaultOptions()
         };
 
@@ -90,7 +91,8 @@ class SliceEdit extends React.Component {
                         {dashboard.dashboard_title}</Option>
                 });
                 self.setState({
-                    availableDashboards: availableOptions
+                    availableDashboards: data.data,
+                    dashboardOptions: availableOptions
                 });
             }else {
                 renderGlobalErrorMsg(data);
@@ -100,7 +102,7 @@ class SliceEdit extends React.Component {
 
     render() {
         const sliceDetail = this.props.sliceDetail;
-        const {availableDashboards, selectedDashboards, enableConfirm} = this.state;
+        const {dashboardOptions, selectedDashboards, enableConfirm} = this.state;
 
         return (
             <div className="popup">
@@ -157,7 +159,7 @@ class SliceEdit extends React.Component {
                                             placeholder={intl.get('SLICE.SELECT_DASHBOARD')}
                                             onChange={this.onSelectChange}
                                         >
-                                            {availableDashboards}
+                                            {dashboardOptions}
                                         </Select>
                                     </div>
                                     <Tooltip
