@@ -52,7 +52,7 @@ class CAS(object):
         app.config.setdefault('CAS_TOKEN_SESSION_KEY', '_CAS_TOKEN')
         app.config.setdefault('CAS_USERNAME_SESSION_KEY', 'CAS_USERNAME')
         app.config.setdefault('CAS_ATTRIBUTES_SESSION_KEY', 'CAS_ATTRIBUTES')
-        app.config.setdefault('CAS_PGT_SESSION_KEY', 'CAS_PGT')
+        app.config.setdefault('CAS_PGTIOU_SESSION_KEY', 'CAS_PGTIOU')
         app.config.setdefault('CAS_LOGIN_ROUTE', '/cas')
         app.config.setdefault('CAS_LOGOUT_ROUTE', '/cas/logout')
         app.config.setdefault('CAS_SERVICE_VALIDATE_ROUTE', '/cas/p3/serviceValidate')
@@ -93,6 +93,11 @@ class CAS(object):
     def token(self):
         return flask.session.get(
             self.app.config['CAS_TOKEN_SESSION_KEY'], None)
+
+    @property
+    def pgtiou(self):
+        return flask.session.get(
+            self.app.config['CAS_PGTIOU_SESSION_KEY'], None)
 
 
 def login():

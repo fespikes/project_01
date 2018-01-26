@@ -1,4 +1,5 @@
 import flask
+import logging
 import requests
 from xmltodict import parse
 from flask import current_app, Response
@@ -7,6 +8,7 @@ from .cas_urls import create_cas_logout_url
 from .cas_urls import create_cas_validate_url
 from .cas_urls import create_cas_proxy_url
 from .cas_urls import create_cas_callback_url
+from .pgt_file import PgtFile
 
 
 try:
@@ -15,9 +17,6 @@ except ImportError:
     from urllib.request import urlopen
 
 blueprint = flask.Blueprint('cas', __name__)
-
-
-pgt_dict = {}
 
 
 @blueprint.route('/login/')
@@ -55,7 +54,7 @@ def login():
         else:
             del flask.session[cas_token_session_key]
 
-    current_app.logger.debug('Redirecting to: {0}'.format(redirect_url))
+    logging.info('Redirecting to: {0}'.format(redirect_url))
     return flask.redirect(redirect_url)
 
 
@@ -84,7 +83,7 @@ def logout():
             current_app.config['CAS_SERVER'],
             current_app.config['CAS_LOGOUT_ROUTE'])
 
-    current_app.logger.debug('Redirecting to: {0}'.format(redirect_url))
+    logging.info('Redirecting to: {0}'.format(redirect_url))
     return flask.redirect(redirect_url)
 
 
@@ -98,10 +97,10 @@ def validate(ticket):
     """
 
     cas_username_session_key = current_app.config['CAS_USERNAME_SESSION_KEY']
-    cas_pgt_session_key = current_app.config['CAS_PGT_SESSION_KEY']
     cas_attributes_session_key = current_app.config['CAS_ATTRIBUTES_SESSION_KEY']
+    cas_pgtiou_session_key = current_app.config['CAS_PGTIOU_SESSION_KEY']
 
-    current_app.logger.debug("validating token {0}".format(ticket))
+    logging.info("Validating token {0}".format(ticket))
 
     cas_callback_url = create_cas_callback_url(
         flask.request.url_root,
@@ -114,24 +113,25 @@ def validate(ticket):
         None,
         cas_callback_url)
 
-    current_app.logger.debug("Making GET request to {0}".format(cas_validate_url))
+    logging.info("Making GET request to {0}".format(cas_validate_url))
 
-    xml_from_dict = {}
+    xml_from = {}
     isValid = False
 
     try:
         xmldump = urlopen(cas_validate_url).read().strip().decode('utf8', 'ignore')
-        xml_from_dict = parse(xmldump)
-        isValid = True if "cas:authenticationSuccess" in xml_from_dict["cas:serviceResponse"] else False
+        xml_from = parse(xmldump)
+        isValid = True \
+            if "cas:authenticationSuccess" in xml_from["cas:serviceResponse"] else False
     except ValueError:
-        current_app.logger.error("CAS returned unexpected result")
+        logging.error("CAS returned unexpected result")
 
     if isValid:
-        current_app.logger.debug("valid")
-        xml_from_dict = xml_from_dict["cas:serviceResponse"]["cas:authenticationSuccess"]
-        username = xml_from_dict["cas:user"]
-        pgtiou = xml_from_dict['cas:proxyGrantingTicket']
-        attributes = xml_from_dict.get("cas:attributes", {})
+        logging.info("Valid Service Ticket: {}...".format(ticket[:20]))
+        xml_from = xml_from["cas:serviceResponse"]["cas:authenticationSuccess"]
+        username = xml_from["cas:user"]
+        pgtiou = xml_from["cas:proxyGrantingTicket"]
+        attributes = xml_from.get("cas:attributes", {})
 
         if "cas:memberOf" in attributes:
             attributes["cas:memberOf"] = \
@@ -141,10 +141,10 @@ def validate(ticket):
                     attributes['cas:memberOf'][group_number].lstrip(' ').rstrip(' ')
 
         flask.session[cas_username_session_key] = username
-        flask.session[cas_pgt_session_key] = pgt_dict[pgtiou]
         flask.session[cas_attributes_session_key] = attributes
+        flask.session[cas_pgtiou_session_key] = pgtiou
     else:
-        current_app.logger.debug("invalid")
+        logging.info("Invalid Service Ticket: {}...".format(ticket[:20]))
 
     return isValid
 
@@ -157,28 +157,36 @@ def pgt_callback():
     """
     pgtid = flask.request.args.get('pgtId')
     pgtiou = flask.request.args.get('pgtIou')
-    pgt_dict[pgtiou] = pgtid
     if not pgtid:
-        current_app.logger.info('Not received pgtIou and pgtId')
+        logging.info('Not received pgtIou and pgtId')
     else:
-        current_app.logger.info('Received pgtIou: [{}...] and pgtId: [{}...]'
-                                .format(pgtiou[0:30], pgtid[0:30]))
+        PgtFile.add_pgt_to_file(pgtiou, pgtid)
+        logging.info(
+            'Received pgtIou: {}... and pgtId: {}...'.format(pgtiou[:20], pgtid[:20]))
     return Response()
 
 
 def get_proxy_ticket(target_service):
     """
-    Called by other APP, such as pilot, to get 'proxy ticket for' 'target_service'.
+    Get 'proxy ticket for' 'target_service'.
     """
-    cas_pgt_session_key = current_app.config['CAS_PGT_SESSION_KEY']
-    pgt = flask.session[cas_pgt_session_key]
+    cas_pgtiou_session_key = current_app.config['CAS_PGTIOU_SESSION_KEY']
+    pgtiou = flask.session[cas_pgtiou_session_key]
+    if not pgtiou:
+        logging.error('No CAS_PGTIOU in session')
+        return None
+    pgt = PgtFile.get_pgt(pgtiou)
+    if not pgt:
+        logging.error('Not found pgt in file by pgtiou: {}...'.format(pgtiou[:20]))
+        return None
     cas_proxy_url = create_cas_proxy_url(
         current_app.config['CAS_SERVER'],
         current_app.config['CAS_PROXY_ROUTE'],
         target_service,
         pgt)
-    current_app.logger.info('Try to get proxy ticket for service: [{}] by PGT: [{}...]'
-                            .format(target_service, pgt[0:30]))
+    logging.info('Try to get proxy ticket for service: {} by PGT: {}...'
+                 .format(target_service, pgt[0:20]))
+
     pt = None
     try:
         xmldump = urlopen(cas_proxy_url).read().strip().decode('utf8', 'ignore')
@@ -186,26 +194,26 @@ def get_proxy_ticket(target_service):
         xml_from = xml_from['cas:serviceResponse']
         if 'cas:proxySuccess' in xml_from:
             pt = xml_from['cas:proxySuccess']['cas:proxyTicket']
-            current_app.logger.info(
-                'Success to get proxy ticket: [{}...]'.format(pt[0:30]))
+            logging.info('Success to get proxy ticket: {}...'.format(pt[0:20]))
         elif 'cas:proxyFailure' in xml_from:
-            current_app.logger.error(
+            logging.error(
                 'Failed to get proxy ticket: ' + str(dict(xml_from['cas:proxyFailure'])))
         else:
-            current_app.logger.error(
-                'Error response when getting proxy ticket: ' + xml_from)
+            logging.error('Error response when getting proxy ticket: ' + xml_from)
     except ValueError:
-        current_app.logger.error("CAS returned unexpected result")
+        logging.error("CAS returned unexpected result")
 
     return pt
 
 
-@blueprint.route('/test_pt/')
-def proxy_ticket():
-    target_service = 'http://172.16.1.190:8380/api/v1/users'
+@blueprint.route('/test_proxy_ticket/')
+def test_proxy_ticket():
+    target_service = 'http://172.16.1.190:8380'
     target_service = flask.request.args.get('targetService', target_service)
     pt = get_proxy_ticket(target_service)
+    if not pt:
+        return Response('Failed to get proxy ticket')
     url = '{}?ticket={}'.format(target_service, pt)
     resp = requests.get(url)
-    current_app.logger.info(url)
+    logging.info(url)
     return Response(resp.text)
