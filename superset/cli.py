@@ -101,7 +101,7 @@ def register_in_guardian():
 
 def init_pilot():
     register_in_guardian()
-    init_tables_and_roles()
+    # init_tables_and_roles()
     create_default_user()
     init_examples()
     create_default_hdfs_conn()
