@@ -287,7 +287,7 @@ class Popup extends React.Component {
 
                             <div className="item-right">
                                 <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
-                                    <span>{intl.get('select_file')}</span>
+                                    <span style={{color: '#fff'}}>{intl.get('select_file')}</span>
                                 </label>
                                 <div className="file-name">
                                     <i className="icon icon-file"/>
