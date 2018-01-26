@@ -118,7 +118,7 @@ class PermissionManagement(object):
         can = self.do_check(g.user.username, finite_obj, self.ALL_PERMS)
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to read {name}').format(name=finite_obj[-1]))
+                _('No privilege to read [{name}]').format(name=finite_obj[-1]))
         else:
             return can
 
@@ -126,7 +126,7 @@ class PermissionManagement(object):
         can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to edit {name}').format(name=finite_obj[-1]))
+                _('No privilege to edit [{name}]').format(name=finite_obj[-1]))
         else:
             return can
 
@@ -134,7 +134,7 @@ class PermissionManagement(object):
         can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to delete {name}').format(name=finite_obj[-1]))
+                _('No privilege to delete [{name}]').format(name=finite_obj[-1]))
         else:
             return can
 
@@ -142,7 +142,7 @@ class PermissionManagement(object):
         can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege ADMIN of {name}').format(name=finite_obj[-1]))
+                _('No privilege ADMIN of [{name}]').format(name=finite_obj[-1]))
         else:
             return can
 

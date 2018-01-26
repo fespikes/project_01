@@ -760,7 +760,6 @@ class Superset(BaseSupersetView, PermissionManagement):
                 full_tb_name=full_tb_name,
                 args=request.args)
         except Exception as e:
-            flash('{}'.format(e), "alert")
             raise e
 
         # slc perms
