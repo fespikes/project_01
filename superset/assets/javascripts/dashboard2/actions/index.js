@@ -228,7 +228,7 @@ export function fetchAvailableSlices(callback) {
 
 export function fetchUpdateDashboard(state, dashboard, callback) {
     const url = window.location.origin + "/dashboard/edit/" + dashboard.id + '/';
-    const newDashboard = getNewDashboard(dashboard, state.selectedSlices, dashboard.available_slices);
+    const newDashboard = getNewDashboard(dashboard, state.selectedSlices, state.availableSlices);
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin",

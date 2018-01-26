@@ -221,7 +221,7 @@ export function fetchSliceDetail(sliceId, callback) {
 
 export function fetchUpdateSlice(state, slice, callback) {
     const url = baseURL + "edit/" + slice.id + "/";
-    const newSlice = getNewSlice(slice, state.selectedDashboards, slice.available_dashboards);
+    const newSlice = getNewSlice(slice, state.selectedDashboards, state.availableDashboards);
     return dispatch => {
         return fetch(url, {
             credentials: "include",

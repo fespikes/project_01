@@ -9,6 +9,7 @@ import { Table, Input, Button, Icon, message } from 'antd';
 import { TableColumnAdd, TableColumnDelete } from '../popup';
 import * as actionCreators from '../actions';
 const _ = require('lodash');
+import '../style/table.scss';
 import intl from 'react-intl-universal';
 import {renderGlobalErrorMsg, loadIntlResources} from '../../../utils/utils';
 
@@ -120,7 +121,7 @@ class SubColumns extends Component {
 
     editCallback(success, message) {
         if(!success) {
-            message.error(message, 5);
+            message.warning(message, 5);
         }
     }
 
