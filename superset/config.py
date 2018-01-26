@@ -54,6 +54,7 @@ COMMUNITY_PASSWORD = DEFAULT_PASSWORD
 # CAS
 CAS_AUTH = False
 CAS_SERVER = 'https://localhost:8393'
+CAS_URL_PREFIX = '/cas'
 
 # if load examples data when start server
 LOAD_EXAMPLES = True

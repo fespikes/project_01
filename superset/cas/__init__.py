@@ -29,17 +29,17 @@ class CAS(object):
 
     Optional Configs:
 
-    |Key                        | Default               |
-    |---------------------------|-----------------------|
-    |CAS_TOKEN_SESSION_KEY      | _CAS_TOKEN            |
-    |CAS_USERNAME_SESSION_KEY   | CAS_USERNAME          |
-    |CAS_ATTRIBUTES_SESSION_KEY | CAS_ATTRIBUTES        |
-    |CAS_LOGIN_ROUTE            | '/cas'                |
-    |CAS_LOGOUT_ROUTE           | '/cas/logout'         |
-    |CAS_SERVICE_VALIDATE_ROUTE | '/cas/p3/serviceValidate'|
-    |CAS_PROXY_ROUTE            | '/cas/sproxy'|
-    |CAS_PROXY_VALIDATE_ROUTE   | '/cas/p3/proxyValidate'|
-    |CAS_AFTER_LOGOUT           | None                  |
+    |Key                        | Default                         |
+    |---------------------------|---------------------------------|
+    |CAS_TOKEN_SESSION_KEY      | _CAS_TOKEN                      |
+    |CAS_USERNAME_SESSION_KEY   | CAS_USERNAME                    |
+    |CAS_ATTRIBUTES_SESSION_KEY | CAS_ATTRIBUTES                  |
+    |CAS_LOGIN_ROUTE            | 'url_prefix/login'             |
+    |CAS_LOGOUT_ROUTE           | 'url_prefix/logout'            |
+    |CAS_SERVICE_VALIDATE_ROUTE | 'url_prefix/p3/serviceValidate'|
+    |CAS_PROXY_ROUTE            | 'url_prefix/proxy'             |
+    |CAS_PROXY_VALIDATE_ROUTE   | 'url_prefix/p3/proxyValidate'  |
+    |CAS_AFTER_LOGOUT           | None                            |
     """
 
     def __init__(self, app=None, url_prefix=None):
@@ -47,18 +47,18 @@ class CAS(object):
         if app is not None:
             self.init_app(app, url_prefix)
 
-    def init_app(self, app, url_prefix=None):
+    def init_app(self, app, url_prefix='/cas'):
         # Configuration defaults
         app.config.setdefault('CAS_TOKEN_SESSION_KEY', '_CAS_TOKEN')
         app.config.setdefault('CAS_USERNAME_SESSION_KEY', 'CAS_USERNAME')
         app.config.setdefault('CAS_ATTRIBUTES_SESSION_KEY', 'CAS_ATTRIBUTES')
         app.config.setdefault('CAS_PGTIOU_SESSION_KEY', 'CAS_PGTIOU')
-        app.config.setdefault('CAS_LOGIN_ROUTE', '/cas')
-        app.config.setdefault('CAS_LOGOUT_ROUTE', '/cas/logout')
-        app.config.setdefault('CAS_SERVICE_VALIDATE_ROUTE', '/cas/p3/serviceValidate')
-        app.config.setdefault('CAS_PROXY_VALIDATE_ROUTE', '/cas/p3/proxyValidate')
-        app.config.setdefault('CAS_PROXY_ROUTE', '/cas/proxy')
-        app.config.setdefault('CAS_PROXY_CALLBACK_ROUTE', '/cas/proxyCallback')
+        app.config.setdefault('CAS_LOGIN_ROUTE', '{}/login'.format(url_prefix))
+        app.config.setdefault('CAS_LOGOUT_ROUTE', '{}/logout'.format(url_prefix))
+        app.config.setdefault('CAS_PROXY_ROUTE', '{}/proxy'.format(url_prefix))
+        app.config.setdefault('CAS_SERVICE_VALIDATE_ROUTE', '{}/p3/serviceValidate'.format(url_prefix))
+        app.config.setdefault('CAS_PROXY_VALIDATE_ROUTE', '{}/p3/proxyValidate'.format(url_prefix))
+        app.config.setdefault('CAS_PROXY_CALLBACK_ROUTE', '{}/proxyCallback'.format(url_prefix))
         # Requires CAS 2.0
         app.config.setdefault('CAS_AFTER_LOGIN', '/')
         app.config.setdefault('CAS_AFTER_LOGOUT', None)

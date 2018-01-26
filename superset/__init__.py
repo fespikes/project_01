@@ -37,7 +37,7 @@ conf = app.config
 # CAS
 cas = None
 if conf.get('CAS_AUTH'):
-    cas = CAS(app, '/cas')
+    cas = CAS(app, conf.get('CAS_URL_PREFIX'))
 ssl._create_default_https_context = ssl._create_unverified_context
 
 
