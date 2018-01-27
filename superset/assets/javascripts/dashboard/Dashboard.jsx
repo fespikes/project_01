@@ -371,7 +371,7 @@ export function dashboardContainer(dashboard) {
                 },
             });
         },
-        editDashboard(dashboard, selectedSlices) {
+        editDashboard(state) {
             const loadingModal = renderLoadingModal();
             loadingModal.show();
             $.ajax({
@@ -379,7 +379,7 @@ export function dashboardContainer(dashboard) {
                 url: `/dashboard/edit/${dashboard.id}/`,
                 contentType: 'application/json',
                 data: JSON.stringify(getNewDashboard(
-                    dashboard, selectedSlices, dashboard.available_slices
+                    state.dashboard, state.selectedSlices, state.availableSlices
                 )),
                 success() {
                     loadingModal.hide();
