@@ -10,6 +10,7 @@ import pickle
 import sys
 import time
 import zlib
+import copy
 from datetime import datetime, timedelta
 
 from flask import g, request, redirect, flash, Response
@@ -29,7 +30,7 @@ from superset.exception import (
 )
 from superset.models import (
     Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric,
-    Query, Log, FavStar, str_to_model, Number
+    Query, Log, FavStar, str_to_model, Number, HDFSConnection, model_name_columns
 )
 from superset.message import *
 from .base import (
@@ -563,22 +564,63 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         return json_response(message="Update dashboard [{}] success".format(dash))
 
     @catch_exception
+    @expose("/before_import/", methods=['POST'])
+    def check_same_names(self):
+        """Before import, check same names of objects in file and database."""
+        f = request.data
+        data = pickle.loads(f)
+        import_objs = {}
+        for obj_type in self.OBJECT_TYPES:
+            import_objs[obj_type] = []
+        same_objs = copy.deepcopy(import_objs)
+
+        for dataset in data['datasets']:
+            import_objs[self.OBJECT_TYPES[2]].append(dataset.name)
+            if dataset.database:
+                import_objs[self.OBJECT_TYPES[0]].append(dataset.database.name)
+            if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
+                import_objs[self.OBJECT_TYPES[1]].append(
+                    dataset.hdfs_table.hdfs_connection.name)
+        for dashboard in data['dashboards']:
+            import_objs[self.OBJECT_TYPES[4]].append(dashboard.name)
+            for slice in dashboard.slices:
+                import_objs[self.OBJECT_TYPES[3]].append(slice.name)
+                if slice.database_id and slice.database:
+                    import_objs[self.OBJECT_TYPES[0]].append(slice.database.name)
+
+        for obj_type, obj_names in import_objs.items():
+            if obj_names:
+                model = str_to_model[obj_type]
+                name_column = model_name_columns[obj_type]
+                sames = db.session.query(model).filter(name_column.in_(obj_names)).all()
+                for o in sames:
+                    can_overwrite = self.check_edit_perm([obj_type, o.name],
+                                                         raise_if_false=False)
+                    same_objs[obj_type].append(
+                        {'name': o.name, 'can_overwrite': can_overwrite})
+
+        data = None
+        for obj_type, obj_names in same_objs.items():
+            if obj_names:
+                data = same_objs
+                break
+        return json_response(data=data)
+
+    @catch_exception
     @expose("/import/", methods=['GET', 'POST'])
     def import_dashboards(self):
-        """Overrides the dashboards using pickled instances from the file."""
-        f = request.data
+        """Import dashboards and dependencies"""
+        f = self.get_request_data()
         if request.method == 'POST' and f:
             current_tt = int(time.time())
-            data = pickle.loads(f)
-            for table in data['datasources']:
-                if table.type == 'table':
-                    Dataset.import_obj(table, import_time=current_tt)
-                else:
-                    pass
+            file = f.get('file')
+            solution = f.get('solution')
+            data = pickle.loads(file)
+            for dataset in data['datasets']:
+                pass
             db.session.commit()
             for dashboard in data['dashboards']:
-                Dashboard.import_obj(
-                    dashboard, import_time=current_tt)
+                Dashboard.import_obj(dashboard, import_time=current_tt)
                 Log.log('import', dashboard, 'dashboard', g.user.id)
             db.session.commit()
         return redirect('/dashboard/list/')

@@ -78,11 +78,7 @@ class PermissionManagement(object):
     READ_PERMS = ALL_PERMS
     EDIT_PERMS = [EDIT_PERM, ADMIN_PERM]
     ADMIN_PERMS = [ADMIN_PERM, ]
-    DATASOURCE_TYPE = {'database': 'database',
-                       'hdfsconnection': 'hdfsconnection',
-                       'dataset': 'dataset',
-                       'slice': 'slice',
-                       'dashboard': 'dashboard'}
+    OBJECT_TYPES = ['database', 'hdfsconnection', 'dataset', 'slice', 'dashboard']
 
     def __init__(self):
         self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
