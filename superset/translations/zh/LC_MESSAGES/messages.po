@@ -1452,10 +1452,10 @@ msgstr "创建视图"
 msgid "Home"
 msgstr "首页"
 
-msgid "Dashboards"
+msgid "Dashboard"
 msgstr "仪表板"
 
-msgid "Slices"
+msgid "Slice"
 msgstr "工作表"
 
 msgid "SQL Lab"
@@ -1467,10 +1467,10 @@ msgstr "SQL编辑器"
 msgid "HDFS Browser"
 msgstr "HDFS浏览器"
 
-msgid "Databases"
+msgid "Database"
 msgstr "连接"
 
-msgid "Sources"
+msgid "Datasource"
 msgstr "数据源"
 
 msgid "Tables"
