@@ -6,19 +6,17 @@ from __future__ import unicode_literals
 
 import logging
 import os
-import json
 import ssl
-import requests
 from logging.handlers import TimedRotatingFileHandler
 
 from sqlalchemy_utils.functions import database_exists, create_database
-from flask import g, Flask, redirect, request
+from flask import Flask, redirect
 from flask_appbuilder import SQLA, AppBuilder, IndexView
 from flask_appbuilder.baseviews import expose
 from flask_cache import Cache
 from flask_migrate import Migrate
 from flask_compress import Compress
-from flask_cas import CAS, login_required
+from superset.cas import CAS, login_required
 from superset.source_registry import SourceRegistry
 from werkzeug.contrib.fixers import ProxyFix
 from superset import utils, config
@@ -39,7 +37,7 @@ conf = app.config
 # CAS
 cas = None
 if conf.get('CAS_AUTH'):
-    cas = CAS(app, '/cas')
+    cas = CAS(app, conf.get('CAS_URL_PREFIX'))
 ssl._create_default_https_context = ssl._create_unverified_context
 
 

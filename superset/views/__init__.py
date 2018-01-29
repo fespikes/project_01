@@ -22,14 +22,14 @@ appbuilder.add_view_no_menu(core.Superset)
 appbuilder.add_view(
     core.DashboardModelView,
     "Dashboards",
-    label=__("Dashboards"),
+    label=__("Dashboard"),
     icon="fa-dashboard",
     category='',
     category_icon='')
 appbuilder.add_view(
     core.SliceModelView,
     "Slices",
-    label=__("Slices"),
+    label=__("Slice"),
     icon="fa-bar-chart",
     category="",
     category_icon='')
@@ -39,10 +39,10 @@ appbuilder.add_view_no_menu(connection.HDFSConnectionModelView)
 appbuilder.add_view(
     connection.DatabaseView,
     "Databases",
-    label=__("Databases"),
+    label=__("Database"),
     icon="fa-database",
     category="Sources",
-    category_label=__("Sources"),
+    category_label=__("Datasource"),
     category_icon='fa-database',)
 
 appbuilder.add_view_no_menu(dataset.HDFSTableModelView)
@@ -53,7 +53,7 @@ appbuilder.add_view(
     "Dataset",
     label=__("Dataset"),
     category="Sources",
-    category_label=__("Sources"),
+    category_label=__("Datasource"),
     icon='fa-table',)
 
 appbuilder.add_view_no_menu(sql_lab.QueryView)

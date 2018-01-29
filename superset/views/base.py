@@ -78,11 +78,7 @@ class PermissionManagement(object):
     READ_PERMS = ALL_PERMS
     EDIT_PERMS = [EDIT_PERM, ADMIN_PERM]
     ADMIN_PERMS = [ADMIN_PERM, ]
-    DATASOURCE_TYPE = {'database': 'database',
-                       'hdfsconnection': 'hdfsconnection',
-                       'dataset': 'dataset',
-                       'slice': 'slice',
-                       'dashboard': 'dashboard'}
+    OBJECT_TYPES = ['database', 'hdfsconnection', 'dataset', 'slice', 'dashboard']
 
     def __init__(self):
         self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
@@ -118,7 +114,7 @@ class PermissionManagement(object):
         can = self.do_check(g.user.username, finite_obj, self.ALL_PERMS)
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to read {name}').format(name=finite_obj[-1]))
+                _('No privilege to read [{name}]').format(name=finite_obj[-1]))
         else:
             return can
 
@@ -126,7 +122,7 @@ class PermissionManagement(object):
         can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to edit {name}').format(name=finite_obj[-1]))
+                _('No privilege to edit [{name}]').format(name=finite_obj[-1]))
         else:
             return can
 
@@ -134,7 +130,7 @@ class PermissionManagement(object):
         can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to delete {name}').format(name=finite_obj[-1]))
+                _('No privilege to delete [{name}]').format(name=finite_obj[-1]))
         else:
             return can
 
@@ -142,7 +138,7 @@ class PermissionManagement(object):
         can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege ADMIN of {name}').format(name=finite_obj[-1]))
+                _('No privilege ADMIN of [{name}]').format(name=finite_obj[-1]))
         else:
             return can
 
@@ -225,8 +221,7 @@ class BaseSupersetView(BaseView):
     def __init__(self):
         super(BaseSupersetView, self).__init__()
         self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
-        self.MAIN_DATABASE_NAME = config.get('METADATA_CONN_NAME')
-        self.MAIN_DATABASE = self.get_main_database()
+        self.main_db_name = config.get('METADATA_CONN_NAME')
 
     def check_value_pattern(self, value):
         match = re.search(self.NAME_RESTRICT_PATTERN, value)
@@ -251,9 +246,9 @@ class BaseSupersetView(BaseView):
         }
         return headers
 
-    def get_main_database(self):
-        return db.session.query(Database)\
-            .filter_by(database_name=self.MAIN_DATABASE_NAME).first()
+    def get_main_db(self):
+        return db.session.query(Database) \
+            .filter_by(database_name=self.main_db_name).first()
 
 
 class PageMixin(object):

@@ -101,7 +101,7 @@ def register_in_guardian():
 
 def init_pilot():
     register_in_guardian()
-    init_tables_and_roles()
+    # init_tables_and_roles()
     create_default_user()
     init_examples()
     create_default_hdfs_conn()
@@ -131,8 +131,7 @@ def runserver(debug, address, port, timeout, workers):
             host='0.0.0.0',
             port=int(port),
             threaded=True,
-            debug=True,
-            use_reloader=False)
+            debug=True)
     else:
         cmd = (
             "gunicorn "

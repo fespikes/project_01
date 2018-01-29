@@ -10,6 +10,7 @@ import pickle
 import sys
 import time
 import zlib
+import copy
 from datetime import datetime, timedelta
 
 from flask import g, request, redirect, flash, Response
@@ -29,7 +30,7 @@ from superset.exception import (
 )
 from superset.models import (
     Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric,
-    Query, Log, FavStar, str_to_model, Number
+    Query, Log, FavStar, str_to_model, Number, HDFSConnection, model_name_columns
 )
 from superset.message import *
 from .base import (
@@ -218,11 +219,12 @@ class SliceModelView(SupersetModelView, PermissionManagement):
             dataset = slice.datasource
 
         conns = []
-        if slice.database_id and slice.database_id != self.MAIN_DATABASE.id:
+        main_db = self.get_main_db()
+        if slice.database_id and slice.database_id != main_db.id:
             database = db.session.query(Database) \
                 .filter(Database.id == slice.database_id).first()
             conns.append(database)
-        if dataset and dataset.database and dataset.database != self.MAIN_DATABASE:
+        if dataset and dataset.database and dataset.database.id != main_db.id:
             conns.append(dataset.database)
         if dataset and dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
             conns.append(dataset.hdfs_table.hdfs_connection)
@@ -492,7 +494,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         dash = self.get_object(id)
-        self.check_release_perm([self.model_type, dash.dashboard])
+        self.check_release_perm([self.model_type, dash.dashboard_title])
         info = _("Changing dashboard {dashboard} to offline will make it invisible "
                  "for other users").format(dashboard=[dash, ])
         return json_response(data=info)
@@ -536,13 +538,13 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         connections = []
         for d in datasets:
-            if d.database and d.database.name != self.MAIN_DATABASE_NAME:
+            if d.database and d.database.name != self.main_db_name:
                 connections.append(d.database)
             if d.hdfs_table and d.hdfs_table.hdfs_connection:
                 connections.append(d.hdfs_table.hdfs_connection)
         databases = db.session.query(Database) \
             .filter(Database.id.in_(database_ids),
-                    Database.database_name != self.MAIN_DATABASE_NAME) \
+                    Database.database_name != self.main_db_name) \
             .all()
         connections.extend(databases)
         return {'slice': set(slices),
@@ -562,22 +564,63 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         return json_response(message="Update dashboard [{}] success".format(dash))
 
     @catch_exception
+    @expose("/before_import/", methods=['POST'])
+    def check_same_names(self):
+        """Before import, check same names of objects in file and database."""
+        f = request.data
+        data = pickle.loads(f)
+        import_objs = {}
+        for obj_type in self.OBJECT_TYPES:
+            import_objs[obj_type] = []
+        same_objs = copy.deepcopy(import_objs)
+
+        for dataset in data['datasets']:
+            import_objs[self.OBJECT_TYPES[2]].append(dataset.name)
+            if dataset.database:
+                import_objs[self.OBJECT_TYPES[0]].append(dataset.database.name)
+            if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
+                import_objs[self.OBJECT_TYPES[1]].append(
+                    dataset.hdfs_table.hdfs_connection.name)
+        for dashboard in data['dashboards']:
+            import_objs[self.OBJECT_TYPES[4]].append(dashboard.name)
+            for slice in dashboard.slices:
+                import_objs[self.OBJECT_TYPES[3]].append(slice.name)
+                if slice.database_id and slice.database:
+                    import_objs[self.OBJECT_TYPES[0]].append(slice.database.name)
+
+        for obj_type, obj_names in import_objs.items():
+            if obj_names:
+                model = str_to_model[obj_type]
+                name_column = model_name_columns[obj_type]
+                sames = db.session.query(model).filter(name_column.in_(obj_names)).all()
+                for o in sames:
+                    can_overwrite = self.check_edit_perm([obj_type, o.name],
+                                                         raise_if_false=False)
+                    same_objs[obj_type].append(
+                        {'name': o.name, 'can_overwrite': can_overwrite})
+
+        data = None
+        for obj_type, obj_names in same_objs.items():
+            if obj_names:
+                data = same_objs
+                break
+        return json_response(data=data)
+
+    @catch_exception
     @expose("/import/", methods=['GET', 'POST'])
     def import_dashboards(self):
-        """Overrides the dashboards using pickled instances from the file."""
-        f = request.data
+        """Import dashboards and dependencies"""
+        f = self.get_request_data()
         if request.method == 'POST' and f:
             current_tt = int(time.time())
-            data = pickle.loads(f)
-            for table in data['datasources']:
-                if table.type == 'table':
-                    Dataset.import_obj(table, import_time=current_tt)
-                else:
-                    pass
+            file = f.get('file')
+            solution = f.get('solution')
+            data = pickle.loads(file)
+            for dataset in data['datasets']:
+                pass
             db.session.commit()
             for dashboard in data['dashboards']:
-                Dashboard.import_obj(
-                    dashboard, import_time=current_tt)
+                Dashboard.import_obj(dashboard, import_time=current_tt)
                 Log.log('import', dashboard, 'dashboard', g.user.id)
             db.session.commit()
         return redirect('/dashboard/list/')
@@ -759,7 +802,6 @@ class Superset(BaseSupersetView, PermissionManagement):
                 full_tb_name=full_tb_name,
                 args=request.args)
         except Exception as e:
-            flash('{}'.format(e), "alert")
             raise e
 
         # slc perms
@@ -1159,18 +1201,9 @@ class Superset(BaseSupersetView, PermissionManagement):
         """Server side rendering for a dashboard"""
         self.update_redirect()
         session = db.session()
-        qry = session.query(Dashboard)
-        if dashboard_id.isdigit():
-            qry = qry.filter_by(id=int(dashboard_id))
-        else:
-            qry = qry.filter_by(slug=dashboard_id)
-        dash = qry.one()
-
-        # Hack to log the dashboard_id properly, even when getting a slug
-        def dashboard(**kwargs):  # noqa
-            pass
-        dashboard(dashboard_id=dash.id)
-        dash_edit_perm = self.check_edit_perm(['dashboard', dash.dashboard_title])
+        dash = session.query(Dashboard).filter_by(id=int(dashboard_id)).one()
+        dash_edit_perm = self.check_edit_perm(['dashboard', dash.dashboard_title],
+                                              raise_if_false=False)
         dash_save_perm = dash_edit_perm
         standalone = request.args.get("standalone") == "true"
         context = dict(

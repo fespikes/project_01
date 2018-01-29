@@ -1452,10 +1452,10 @@ msgstr "创建视图"
 msgid "Home"
 msgstr "首页"
 
-msgid "Dashboards"
+msgid "Dashboard"
 msgstr "仪表板"
 
-msgid "Slices"
+msgid "Slice"
 msgstr "工作表"
 
 msgid "SQL Lab"
@@ -1467,10 +1467,10 @@ msgstr "SQL编辑器"
 msgid "HDFS Browser"
 msgstr "HDFS浏览器"
 
-msgid "Databases"
+msgid "Database"
 msgstr "连接"
 
-msgid "Sources"
+msgid "Datasource"
 msgstr "数据源"
 
 msgid "Tables"
@@ -1672,23 +1672,26 @@ msgstr "没有找到对象：类名={model}, id={id}"
 msgid "Can not edit a online object"
 msgstr "不能编辑已发布的对象，请先取消发布"
 
-msgid "No privilege to edit {name}"
-msgstr "没有权限编辑{name}"
+msgid "No privilege to read [{name}]"
+msgstr "没有权限访问[{name}]"
 
-msgid "'No privilege to delete {name}'"
-msgstr "没有权限删除{name}"
+msgid "No privilege to edit [{name}]"
+msgstr "没有权限编辑[{name}]"
 
-msgid "No privilege ADMIN of {name}"
-msgstr "没有{name} ADMIN权限"
+msgid "No privilege to delete [{name}]"
+msgstr "没有权限删除[{name}]"
+
+msgid "No privilege ADMIN of [{name}]"
+msgstr "没有[{name}] 的ADMIN权限"
 
 msgid "No privilege to grant permission on {obj_type}: [{name}]"
-msgstr "没有权限对其他用户赋予{obj_type}: [{name}]的权限"
+msgstr "没有权限对其他用户赋予[{name}]的权限"
 
 msgid "No privilege to revoke permissions from {obj_type}: [{name}]"
-msgstr "没有权限回收其他用户在{obj_type}: [{name}]上的权限"
+msgstr "没有权限回收其他用户在[{name}]上的权限"
 
-msgid "No privilege to release {name}"
-msgstr "没有权限发布或下线{name}"
+msgid "No privilege to release [{name}]"
+msgstr "没有权限发布或下线[{name}]"
 
 
 #========================
@@ -1907,7 +1910,7 @@ msgstr "解析文件错误：{msg}"
 msgid "Data Sources"
 msgstr "数据来源"
 
-msgid "Original Table"
+msgid "DB Table"
 msgstr "原始表"
 
 msgid "Chart Type"
@@ -1925,7 +1928,7 @@ msgstr "另存为"
 msgid "Slice Name"
 msgstr "工作表名字"
 
-msgid "Not Add Dashboard"
+msgid "Not Add To Dashboard"
 msgstr "不填加到仪表板"
 
 msgid "Add Slice To Existed Dashboard"
