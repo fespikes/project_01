@@ -33,6 +33,7 @@ from superset.models import (
     Query, Log, FavStar, str_to_model, Number, HDFSConnection, model_name_columns
 )
 from superset.message import *
+from superset.viz import viz_verbose_names
 from .base import (
     SupersetModelView, BaseSupersetView, PermissionManagement, catch_exception,
     json_response
@@ -291,7 +292,8 @@ class SliceModelView(SupersetModelView, PermissionManagement):
                     line[col] = getattr(obj, col, None)
 
             viz_type = line.get('viz_type', None)
-            line['viz_type'] = str(_(viz_type)) if viz_type else viz_type
+            viz_type = viz_verbose_names.get(viz_type) if viz_type else None
+            line['viz_type'] = str(viz_type) if viz_type else None
             if obj.database_id and obj.full_table_name:
                 line['datasource'] = obj.full_table_name
                 line['explore_url'] = obj.source_table_url

@@ -494,7 +494,7 @@ class TableViz(BaseViz):
     """A basic html table that is sortable and searchable"""
 
     viz_type = "table"
-    verbose_name = _("Table View")
+    verbose_name = _("Table")
     credits = 'a <a href="https://github.com/airbnb/superset">Superset</a> original'
     fieldsets = ({
         'label': _("GROUP BY"),
@@ -1459,7 +1459,7 @@ class DistributionPieViz(NVD3Viz):
     """Annoy visualization snobs with this controversial pie chart"""
 
     viz_type = "pie"
-    verbose_name = _("Distribution - NVD3 - Pie Chart")
+    verbose_name = _("Distribution - Pie Chart")
     is_timeseries = False
     fieldsets = ({
         'label': None,
@@ -1608,7 +1608,7 @@ class DistributionBarViz(DistributionPieViz):
     def get_data(self):
         df, df_dict = self.get_df()
         chart_data = []
-        for name, ys in df.iteritems():
+        for name, ys in df.items():
             if df[name].dtype.kind not in "biufc":
                 continue
             if isinstance(name, string_types):
@@ -1622,7 +1622,7 @@ class DistributionBarViz(DistributionPieViz):
                 "key": series_title,
                 "values": [
                     {'x': str(i), 'y': v}
-                    for i, v in ys.iteritems()]
+                    for i, v in ys.items()]
             }
             chart_data.append(d)
         return chart_data, df_dict
@@ -2067,7 +2067,7 @@ class FilterBoxViz(BaseViz):
     def get_data(self):
         qry = self.query_obj()
         filters = [g for g in self.form_data['groupby']]
-        d = {}
+        d, df_dict = {}, {}
         for flt in filters:
             qry['groupby'] = [flt]
             df, df_dict = super(FilterBoxViz, self).get_df(qry)
@@ -2425,3 +2425,6 @@ viz_types_list = [
 
 viz_types = OrderedDict([(v.viz_type, v) for v in viz_types_list
                          if v.viz_type not in config.get('VIZ_TYPE_BLACKLIST')])
+
+viz_verbose_names = OrderedDict([(v.viz_type, v.verbose_name) for v in viz_types_list
+                                if v.viz_type not in config.get('VIZ_TYPE_BLACKLIST')])
