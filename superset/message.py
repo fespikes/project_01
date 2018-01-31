@@ -60,3 +60,6 @@ NONE_SLICE_NAME = _("Slice name can't be none")
 NONE_DASHBOARD_NAME = _("Dashboard name can't be none")
 
 CONNECTION_TIMEOUT = _("Connecting timeout")
+
+# models.py/connection
+DISABLE_GUARDIAN_FOR_KEYTAB = _('Not enable Guardian, can not download keytab file')

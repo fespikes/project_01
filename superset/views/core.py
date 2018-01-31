@@ -612,19 +612,22 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/import/", methods=['GET', 'POST'])
     def import_dashboards(self):
         """Import dashboards and dependencies"""
-        f = self.get_request_data()
+        f = request.data
         if request.method == 'POST' and f:
-            current_tt = int(time.time())
+            # TODO get pickle file and solution meanwhile
             file = f.get('file')
             solution = f.get('solution')
             data = pickle.loads(file)
+
+            session = db.session
+            Dashboard.check_solution(solution, db.session, str_to_model)
             for dataset in data['datasets']:
-                pass
-            db.session.commit()
+                Dataset.import_obj(
+                    session, dataset, solution, self.grant_owner_permissions)
             for dashboard in data['dashboards']:
-                Dashboard.import_obj(dashboard, import_time=current_tt)
+                Dashboard.import_obj(
+                    session, dashboard, solution, self.grant_owner_permissions)
                 Log.log('import', dashboard, 'dashboard', g.user.id)
-            db.session.commit()
         return redirect('/dashboard/list/')
 
     @catch_exception

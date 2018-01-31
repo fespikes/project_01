@@ -13,10 +13,13 @@ from sqlalchemy import Column, DateTime, Integer, ForeignKey, or_
 from sqlalchemy.ext.declarative import declared_attr
 
 from flask import escape, Markup
+from flask_babel import lazy_gettext as _
 from flask_appbuilder.models.mixins import AuditMixin
 from flask_appbuilder.models.decorators import renders
 from superset import app, db
 from superset.utils import QueryStatus
+from superset.exception import ParameterException
+from superset.message import NAME_RESTRICT_ERROR
 
 config = app.config
 
@@ -38,6 +41,20 @@ class QueryResult(object):
 
 
 class ImportMixin(object):
+    NAME_RESTRICT_PATTERN = '^(?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]+$'
+
+    class Policy(object):
+        """
+        When import, the objects could have same names between objects in file
+        and in database. So need user give a 'solution':
+         {"database": {"name1": {"policy": "skip", "new_name": null}, {...}},
+         "dataset": {...}}
+        """
+        SKIP = 'skip'
+        OVERWRITE = 'overwrite'
+        RENAME = 'rename'
+        POLICY_DICT = {'SKIP': SKIP, 'OVERWRITE': OVERWRITE, 'RENAME': RENAME}
+
     def override(self, obj):
         """Overrides the plain fields of the dashboard."""
         for field in obj.__class__.export_fields:
@@ -62,6 +79,64 @@ class ImportMixin(object):
             return json.loads(params)
         else:
             return {}
+
+    @classmethod
+    def get_policy(cls, obj_type, obj_name, solution):
+        policy, new_name = cls.Policy.SKIP, None
+        if solution.get(obj_type) and solution.get(obj_type).get(obj_name):
+            policy = solution[obj_type][obj_name]['policy']
+            if policy == cls.Policy.RENAME:
+                new_name = solution[obj_type][obj_name]['new_name']
+        return policy, new_name
+
+    @classmethod
+    def lookup_object(cls, obj_name, solution):
+        policy, new_name = cls.get_policy(cls.model_type, obj_name, solution)
+        obj_name = new_name if new_name else obj_name
+        return cls.get_object(name=obj_name)
+
+    @classmethod
+    def check_solution(cls, solution, session, models_dict):
+        """
+        :param solution: The soultion to solve the problem of same names between
+        objects in imported file and in database. It's a dict:
+        {"database": {"name1": {"policy": "skip", "new_name": None},
+                      "name2": {"policy": "rename", "new_name": "name22"},...}
+         "dataset": {...},...}
+        :return:
+        """
+        new_names = {}
+        for obj_type, sames in solution.items():
+            new_names[obj_type] = []
+            for name, policy_dict in sames.items():
+                policy = policy_dict.get('policy')
+                new_name = policy_dict.get('new_name')
+                if policy not in cls.Policy.POLICY_DICT.values():
+                    raise ParameterException(
+                        _('Error policy string: [{policy}]').format(policy=policy))
+                if policy == cls.Policy.RENAME:
+                    if not new_name:
+                        raise ParameterException(
+                            _('Want to rename [{name}], but new name is None')
+                                .format(name=name))
+                    match = re.search(cls.NAME_RESTRICT_PATTERN, new_name)
+                    if not match:
+                        raise ParameterException(NAME_RESTRICT_ERROR)
+                    if new_name in new_names[obj_type]:
+                        raise ParameterException(
+                            _('Duplicated {obj_type} new name [{name}]')
+                                .format(obj_type=obj_type, name=name))
+                    new_names[obj_type].append(new_name)
+
+        for obj_type, names in new_names.items():
+            model = models_dict[obj_type]
+            if names:
+                objs = session.query(model).filter(model.name_column().in_(names)).all()
+                if objs:
+                    names_str = [o.name for o in objs]
+                    raise ParameterException(
+                        _('The [{obj_type}] new name [{name}] is existed in database')
+                            .format(obj_type=obj_type, name=names_str))
 
 
 class AuditMixinNullable(AuditMixin):
@@ -122,6 +197,13 @@ class AuditMixinNullable(AuditMixin):
     @classmethod
     def count(cls):
         return db.session.query(cls).count()
+
+    @classmethod
+    def get_object(cls, id=None, name=None):
+        if id:
+            return db.session.query(cls).filter_by(id=id).first()
+        else:
+            return db.session.query(cls).filter(cls.name_column() == name).first()
 
 
 class Queryable(object):

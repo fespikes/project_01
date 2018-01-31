@@ -12,7 +12,7 @@ import pandas as pd
 from flask import g
 from itertools import groupby
 from collections import OrderedDict
-
+from flask_babel import lazy_gettext as _
 from flask_appbuilder import Model
 
 import sqlalchemy as sqla
@@ -25,25 +25,26 @@ from sqlalchemy import (
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import TextAsFrom
+from sqlalchemy.orm.session import make_transient
 
 from superset import db, app, db_engine_specs, conf
 from superset.utils import GUARDIAN_AUTH
-from superset.exception import ParameterException
-from superset.message import MISS_PASSWORD_FOR_GUARDIAN
-from .base import AuditMixinNullable
+from superset.exception import ParameterException, GuardianException
+from superset.message import MISS_PASSWORD_FOR_GUARDIAN, DISABLE_GUARDIAN_FOR_KEYTAB
+from .base import AuditMixinNullable, ImportMixin
 
 config = app.config
 
 
-class Database(Model, AuditMixinNullable):
+class Database(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = 'dbs'
     type = "table"
+    model_type = 'database'
 
     id = Column(Integer, primary_key=True)
     database_name = Column(String(128), nullable=False, unique=True)
     description = Column(Text)
     online = Column(Boolean, default=False)
-    # database_type = Column(String(32), nullable=False)
     sqlalchemy_uri = Column(String(1024))
     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
     cache_timeout = Column(Integer)
@@ -63,6 +64,8 @@ class Database(Model, AuditMixinNullable):
     __table_args__ = (
         UniqueConstraint('database_name', name='database_name_uc'),
     )
+    export_fields = ('database_name', 'description', 'online', 'sqlalchemy_uri',
+                     'args', 'password', 'expose')
 
     database_types = ['INCEPTOR', 'MYSQL', 'ORACLE', 'MSSQL']
     addable_types = database_types
@@ -73,6 +76,10 @@ class Database(Model, AuditMixinNullable):
     @property
     def name(self):
         return self.database_name
+
+    @classmethod
+    def name_column(cls):
+        return cls.database_name
 
     @property
     def database_type(self):
@@ -265,12 +272,14 @@ class Database(Model, AuditMixinNullable):
     def get_keytab(cls, user, passwd, dir):
         if not os.path.exists(dir):
             os.makedirs(dir)
-        path = os.path.join(dir, 'tmp.keytab')
+        path = os.path.join(dir, 'pilot_tmp.keytab')
         if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_client
             guardian_client.login(user, passwd)
             guardian_client.download_keytab(user, path)
-        return path
+            return path
+        else:
+            raise GuardianException(DISABLE_GUARDIAN_FOR_KEYTAB)
 
     @classmethod
     def count(cls):
@@ -278,10 +287,44 @@ class Database(Model, AuditMixinNullable):
             .filter(cls.database_name != config.get("METADATA_CONN_NAME"))\
             .count()
 
+    @classmethod
+    def import_obj(cls, session, i_db, solution, grant_owner_permissions):
+        make_transient(i_db)
+        i_db.id = None
+        existed_db = cls.get_object(name=i_db.name)
+        new_db = existed_db
 
-class HDFSConnection(Model, AuditMixinNullable):
+        if not existed_db:
+            logging.info('Importing database connection: [{}] (add)'.format(i_db))
+            new_db = i_db.copy()
+            session.add(new_db)
+            session.commit()
+            grant_owner_permissions([cls.model_type, new_db.database_name])
+        else:
+            policy, new_name = cls.get_policy(cls.model_type, i_db.name, solution)
+            if policy == cls.Policy.OVERWRITE:
+                logging.info('Importing database connection: [{}] (overwrite)'
+                             .format(i_db))
+                existed_db.override(i_db)
+                session.commit()
+            elif policy == cls.Policy.RENAME:
+                logging.info('Importing database connection: [{}] (rename to [{}])'
+                             .format(i_db, new_name))
+                new_db = i_db.copy()
+                new_db.database_name = new_name
+                session.add(new_db)
+                session.commit()
+                grant_owner_permissions([cls.model_type, new_db.database_name])
+            elif policy == cls.Policy.SKIP:
+                logging.info('Importing (skip) database connection: [{}]'.format(i_db))
+
+        return new_db
+
+
+class HDFSConnection(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = 'hdfs_connection'
     type = 'table'
+    model_type = 'hdfsconnection'
 
     id = Column(Integer, primary_key=True)
     connection_name = Column(String(128), nullable=False, unique=True)
@@ -297,6 +340,7 @@ class HDFSConnection(Model, AuditMixinNullable):
     __table_args__ = (
         UniqueConstraint('connection_name', name='hdfs_connection_name_uc'),
     )
+    export_fields = ('connection_name', 'description', 'online', 'database_id', 'httpfs')
 
     connection_types = ['HDFS', ]
     addable_types = connection_types
@@ -307,6 +351,43 @@ class HDFSConnection(Model, AuditMixinNullable):
     @property
     def name(self):
         return self.connection_name
+
+    @classmethod
+    def name_column(cls):
+        return cls.connection_name
+
+    @classmethod
+    def import_obj(cls, session, i_hdfsconn, solution, grant_owner_permissions):
+        make_transient(i_hdfsconn)
+        i_hdfsconn.id = None
+        existed_hdfsconn = cls.get_object(name=i_hdfsconn.name)
+        new_hdfsconn = existed_hdfsconn
+
+        if not existed_hdfsconn:
+            logging.info('Importing hdfs connection: [{}] (add)'.format(i_hdfsconn))
+            new_hdfsconn = i_hdfsconn.copy()
+            session.add(new_hdfsconn)
+            session.commit()
+            grant_owner_permissions([cls.model_type, new_hdfsconn.connection_name])
+        else:
+            policy, new_name = cls.get_policy(cls.model_type, i_hdfsconn.name, solution)
+            if policy == cls.Policy.OVERWRITE:
+                logging.info('Importing hdfs connection: [{}] (overwrite)'
+                             .format(i_hdfsconn))
+                existed_hdfsconn.override(i_hdfsconn)
+                session.commit()
+            elif policy == cls.Policy.RENAME:
+                logging.info('Importing hdfs connection: [{}] (rename to [{}])'
+                             .format(i_hdfsconn, new_name))
+                new_hdfsconn = i_hdfsconn.copy()
+                new_hdfsconn.connection_name = new_name
+                session.add(new_hdfsconn)
+                session.commit()
+                grant_owner_permissions([cls.model_type, new_hdfsconn.connection_name])
+            elif policy == cls.Policy.SKIP:
+                logging.info('Importing hdfs connection: [{}] (skip)'.format(i_hdfsconn))
+
+        return new_hdfsconn
 
 
 class Connection(object):

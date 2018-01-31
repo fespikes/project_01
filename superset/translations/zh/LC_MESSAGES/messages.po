@@ -1868,6 +1868,22 @@ msgstr "不能收回你自己的权限"
 
 
 #========================
+# models/base.py
+#========================
+msgid "Error policy string: [{policy}]"
+msgstr "错误的策略字符串：[{policy}]"
+
+msgid "Duplicated {obj_type} new name [{name}]"
+msgstr "重复的[{obj_type}]新名字：[{name}]"
+
+msgid "Want to rename [{name}], but new name is None"
+msgstr "想重命名[{name}]，但是新名字是空的"
+
+msgid "The [{obj_type}] new name [{name}] is existed in database"
+msgstr "同名的[{obj_type}] [{name}]已存在于数据库中"
+
+
+#========================
 # models/connection.py
 #========================
 msgid "You do not have account for connection [{conn}]"
@@ -1881,6 +1897,9 @@ msgstr "测试httpfs [{httpfs}]成功"
 
 msgid "Httpfs [{httpfs}] is unavailable"
 msgstr "测试httpfs [{httpfs}]失败"
+
+msgid "Not enable Guardian, can not download keytab file"
+msgstr "没有开启Guardian，不能下载keytab"
 
 
 #========================
