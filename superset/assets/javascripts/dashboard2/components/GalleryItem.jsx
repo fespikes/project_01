@@ -7,6 +7,8 @@ import {DashboardEdit, DashboardDelete} from '../popup';
 import {ConfirmModal} from '../../common/components';
 import intl from "react-intl-universal";
 import {renderGlobalErrorMsg} from '../../../utils/utils';
+import * as utils from '../../../utils/utils';
+import {getPermInfo} from '../../perm/actions';
 
 class GalleryItem extends React.Component {
     constructor(props) {
@@ -86,6 +88,21 @@ class GalleryItem extends React.Component {
         );
     }
 
+    authorize(record) {
+        const callback = (success, response) => {
+            if(success) {
+                utils.renderPermModal(record.id, record.dashboard_title, utils.OBJECT_TYPE.DASHBOARD);
+            }else {
+                utils.renderConfirmModal(response);
+            }
+        };
+
+        getPermInfo({
+            type: utils.OBJECT_TYPE.DASHBOARD,
+            id: record.id
+        }, callback);
+    }
+
     render() {
         const self = this;
         const { dispatch, dashboard, selectedRowKeys, selectedRowNames } = self.props;
@@ -125,20 +142,24 @@ class GalleryItem extends React.Component {
                                 className="icon icon-edit"
                                 onClick={this.editDashboard}
                             />
-                            <i
+                            {/*<i
                                 className={dashboard.online ? 'icon icon-online' : 'icon icon-offline'}
                                 onClick={this.publishDashboard}
-                            />
+                            />*/}
                             <i
                                 className="icon icon-delete"
                                 onClick={this.deleteDashboard}
                             />
+                            <i
+                                className="icon icon-perm"
+                                onClick={() => this.authorize(dashboard)}
+                            />
                         </div>
                     </div>
                     <hr className="divider"/>
-                    <div className="item-description">
+                    {/*<div className="item-description">
                         {dashboard.description}
-                    </div>
+                    </div>*/}
                 </div>
             </div>
         );
