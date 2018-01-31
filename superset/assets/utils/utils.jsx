@@ -168,7 +168,7 @@ export function viewObjectDetail(url, callback) {
 }
 
 export function getAntdLocale(zhCN, enUS) {
-    const locale = sessionStorage.getItem('pilot:currentLocale') || 'zh-CN';
+    const locale = localStorage.getItem('pilot:currentLocale') || 'zh-CN';
     return locale === 'zh-CN' ? zhCN : enUS;
 }
 
@@ -178,7 +178,7 @@ export function loadIntlResources(callback, module) {
     if(module) {
         localePath = localePath + module + '/';
     }
-    let currentLocale = sessionStorage.getItem('pilot:currentLocale');
+    let currentLocale = localStorage.getItem('pilot:currentLocale');
     if(!currentLocale || !_.find(SUPPOER_LOCALES, { value: currentLocale })) {
         currentLocale = "zh-CN";
     }
