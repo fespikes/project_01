@@ -154,12 +154,12 @@ class SliceTable extends React.Component {
                 title: intl.get('SLICE.CHART_TYPE'),
                 dataIndex: 'viz_type',
                 key: 'viz_type',
-                width: '15%',
+                width: '18%',
                 render: (text, record) => {
                     return (
                         <div
                             className="text-overflow-style"
-                            style={{maxWidth: 140}}
+                            style={{maxWidth: 180}}
                             >
                             {record.viz_type}
                         </div>
@@ -192,7 +192,7 @@ class SliceTable extends React.Component {
                 title: intl.get('SLICE.OWNER'),
                 dataIndex: 'created_by_user',
                 key: 'created_by_user',
-                width: '15%',
+                width: '12%',
                 render: (text, record) => {
                     return (
                         <div

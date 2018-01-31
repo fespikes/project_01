@@ -993,7 +993,7 @@ msgstr "本视图需要`访问所有数据`的权限"
 ###
 ###: superset/viz.py:367
 ###
-msgid "Table View"
+msgid "Table"
 msgstr "二维表"
 
 msgid "table"
@@ -1121,7 +1121,7 @@ msgstr "时间序列-堆积图"
 msgid "area"
 msgstr "时间序列-堆积图"
 
-msgid "Distribution - NVD3 - Pie Chart"
+msgid "Distribution - Pie Chart"
 msgstr "分布-饼图"
 
 msgid "pie"
