@@ -70,11 +70,11 @@ function Line(props) {
                 var result = '<div class="line-tooltip">';
                 result += '<div class="tooltip-header" style="text-align:center">' + this.key + '</div>';
                 result += '<div class="tooltip-body">'
-                if (this.point.index > 1) {
+                /*if (this.point.index > 1) {
                     result += '<div class="yesterday"><span class="key">' + intl.get('changes_yesterday') + '</span><span class="value">' + (this.series.data[this.point.index - 1].y - this.series.data[this.point.index - 2].y) + "</span></div>";
                 } else {
                     result += '<div class="yesterday"><span class="key">' + intl.get('changes_yesterday') + '</span><span class="value">' + 0 + "</span></div>";
-                }
+                }*/
 
                 if (this.point.index > 0) {
                     result += '<div class="today"><span class="key">' + intl.get('changes_today') + '</span><span class="value">' + (this.series.data[this.point.index].y - this.series.data[this.point.index - 1].y) + "</span></div>";

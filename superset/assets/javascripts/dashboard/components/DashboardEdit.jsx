@@ -22,6 +22,7 @@ class DashboardEdit extends React.Component {
             enableConfirm: true,
             selectedSlices: [],
             availableSlices: [],
+            availableOptions: [],
             slicesLoaded: false
         };
 
@@ -43,13 +44,13 @@ class DashboardEdit extends React.Component {
             url: url,
             type: 'GET',
             success: response => {
-                const defaultOptions = [];
+                const selectedSlices = [];
                 response.data.slices.map(slice => {
-                    defaultOptions.push(slice.slice_name);
+                    selectedSlices.push(slice.slice_name);
                 });
                 this.setState({
                     dashboard: response.data,
-                    selectedSlices: defaultOptions,
+                    selectedSlices: selectedSlices,
                     slicesLoaded: true,
                 });
             },
@@ -73,7 +74,8 @@ class DashboardEdit extends React.Component {
                     return <Option key={slice.slice_name}>{slice.slice_name}</Option>
                 });
                 this.setState({
-                    availableSlices: response.data.data
+                    availableSlices: response.data.data,
+                    availableOptions: options
                 });
             },
             error: error => {
@@ -105,7 +107,7 @@ class DashboardEdit extends React.Component {
     }
 
     editDashboard() {
-        this.props.dashboard.editDashboard(this.state.dashboard, this.state.selectedSlices);
+        this.props.dashboard.editDashboard(this.state);
     }
 
     onChange(value) {
@@ -115,13 +117,7 @@ class DashboardEdit extends React.Component {
     }
 
     render() {
-        const self = this;
-        const hideLoad = self.state.slicesLoaded || self.errored;
-
-        const Option = Select.Option;
-        const options = self.state.availableSlices.map(slice => {
-            return <Option key={slice.slice_name}>{slice.slice_name}</Option>
-        });
+        const hideLoad = this.state.slicesLoaded || this.errored;
 
         const modalTitle = intl.get('DASHBOARD.EDIT_DASHBOARD');
         const modalIcon = "icon icon-dashboard-popup";
@@ -172,7 +168,7 @@ class DashboardEdit extends React.Component {
                                 placeholder={intl.get('DASHBOARD.SELECT_SLICE')}
                                 onChange={this.onChange}
                             >
-                            {options}
+                            {this.state.availableOptions}
                             </Select>
                         </div>
                     </div>
