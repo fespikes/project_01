@@ -30,7 +30,7 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql import table, literal_column, text, column
 from sqlalchemy.sql.expression import ColumnClause, TextAsFrom
 
-from superset import db, app, import_util, utils
+from superset import db, app, utils
 from superset.utils import wrap_clause_in_parens, DTTM_ALIAS
 from superset.exception import (
     ParameterException, PropertyException, DatabaseException, OfflineException,
@@ -162,14 +162,6 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
             expr = grain.function.format(col=expr)
         return literal_column(expr, type_=DateTime).label(DTTM_ALIAS)
 
-    @classmethod
-    def import_obj(cls, i_column):
-        def lookup_obj(lookup_column):
-            return db.session.query(TableColumn).filter(
-                TableColumn.table_id == lookup_column.table_id,
-                TableColumn.column_name == lookup_column.column_name).first()
-        return import_util.import_simple_obj(db.session, i_column, lookup_obj)
-
     def dttm_sql_literal(self, dttm):
         """Convert datetime object to a SQL expression string
 
@@ -245,14 +237,6 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
             "{parent_name}.[{obj.metric_name}](id:{obj.id})"
         ).format(obj=self,
                  parent_name=self.dataset.full_name) if self.dataset else None
-
-    @classmethod
-    def import_obj(cls, i_metric):
-        def lookup_obj(lookup_metric):
-            return db.session.query(SqlMetric).filter(
-                SqlMetric.table_id == lookup_metric.table_id,
-                SqlMetric.metric_name == lookup_metric.metric_name).first()
-        return import_util.import_simple_obj(db.session, i_metric, lookup_obj)
 
 
 class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
