@@ -15,7 +15,7 @@ function build_pilot
     sudo mkdir -p $REPO_DIR
     sudo chmod 777 -R $REPO_DIR
 
-    RPM_DIR="${WORKSPACE}/pilot-docker/rpm"
+    RPM_DIR="${WORKSPACE}/pilot/dependencies/docker/rpm"
     NODE_MODULES="/home/pilot/docker/node_modules"
 
     mkdir -p ${RPM_DIR}
@@ -49,7 +49,7 @@ function build_pilot
     find . -type f -iname "fileRobot*client*whl" -exec cp {} ${RPM_DIR} \;
     cd -
 
-    cd pilot-docker
+    cd pilot/dependencies/docker
     docker build -t ${DOCKER_REPO_URL}/${BUILDER}/pilot:${IMAGE_TAG} .
     docker push ${DOCKER_REPO_URL}/${BUILDER}/pilot:${IMAGE_TAG}
 
