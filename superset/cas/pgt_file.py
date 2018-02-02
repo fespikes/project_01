@@ -8,7 +8,7 @@ lock = threading.Lock()
 
 class PgtFile(object):
 
-    pgt_file = '/tmp/pilot.cas'
+    pgt_file = '/tmp/pilot/pilot.cas'
     read_max_bytes = 16 * 1024
 
     @classmethod

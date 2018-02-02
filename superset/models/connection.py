@@ -260,7 +260,7 @@ class Database(Model, AuditMixinNullable, ImportMixin):
     @classmethod
     def args_append_keytab(cls, connect_args):
         if connect_args.get('mech', '').lower() == 'kerberos':
-            dir = config.get('KETTAB_TMP_DIR', '/tmp/keytab')
+            dir = config.get('GLOBAL_FOLDER', '/tmp/pilot')
             username = g.user.username
             password = g.user.password2
             if not password:
@@ -272,7 +272,7 @@ class Database(Model, AuditMixinNullable, ImportMixin):
     def get_keytab(cls, user, passwd, dir):
         if not os.path.exists(dir):
             os.makedirs(dir)
-        path = os.path.join(dir, 'pilot_tmp.keytab')
+        path = os.path.join(dir, 'tmp.keytab')
         if conf.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_client
             guardian_client.login(user, passwd)

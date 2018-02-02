@@ -162,7 +162,6 @@ BABEL_DEFAULT_LOCALE = 'zh'
 BABEL_DEFAULT_FOLDER = 'babel/translations'
 # The allowed translation for you app
 LANGUAGES = {
-
     'en': {'flag': 'us', 'name': 'English', 'value': 'en-US'},
     'zh': {'flag': 'cn', 'name': 'Chinese', 'value': 'zh-CN'},
 }
@@ -180,10 +179,14 @@ IMG_UPLOAD_URL = '/static/uploads/'
 # Setup image size default is (300, 200, True)
 # IMG_SIZE = (300, 200, True)
 
+
+# Global folder for slice cache, keytab, cas file
+GLOBAL_FOLDER = '/tmp/pilot'
+
 CACHE_DEFAULT_TIMEOUT = 86400
 CACHE_CONFIG = {'CACHE_TYPE': 'filesystem',
                 'CACHE_THRESHOLD': 500,
-                'CACHE_DIR': '/tmp/pilot_cache'}
+                'CACHE_DIR': '{}/cache'.format(GLOBAL_FOLDER)}
 
 # CORS Options
 ENABLE_CORS = False
@@ -292,9 +295,6 @@ JINJA_CONTEXT_ADDONS = {}
 # by humans.
 ROBOT_PERMISSION_ROLES = ['Public', 'Gamma', 'Alpha', 'Admin', 'sql_lab']
 
-
-# keytab defaull temp folder
-KETTAB_TMP_DIR = '/tmp/keytab/'
 
 # The config for file robot microservice
 FILE_ROBOT_SERVER = 'localhost:5000'
