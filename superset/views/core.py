@@ -26,7 +26,8 @@ from superset.timeout_decorator import connection_timeout
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
 from superset.exception import (
-    ParameterException, PropertyException, DatabaseException, ErrorUrlException
+    ParameterException, PropertyException, DatabaseException, ErrorUrlException,
+    GuardianException
 )
 from superset.models import (
     Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric,
@@ -232,21 +233,26 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         return {'dataset': [dataset, ] if dataset else [],
                 'connection': set(conns)}
 
-    @expose('/add/', methods=['GET', 'POST'])
+    @catch_exception
+    @expose('/add/', methods=['GET'])
     def add(self):
-        dataset = (
-            db.session.query(Dataset)
-            .filter(
-                or_(Dataset.created_by_fk == g.user.id,
-                    Dataset.online == 1))
-            .order_by(Dataset.id)
-            .first()
-        )
-        if dataset:
-            redirect_url = dataset.explore_url
+        if self.guardian_auth:
+            from superset.guardian import guardian_client
+            readable_names = \
+                guardian_client.search_model_permissions(g.user.username, self.model_type)
+            if not readable_names:
+                raise GuardianException(NO_USEABLE_DATASETS)
+            dataset = db.session.query(Dataset)\
+                .filter(Dataset.dataset_name.in_(readable_names))\
+                .order_by(Dataset.id.asc())\
+                .first()
         else:
-            redirect_url = '/p/explore/table/0/?datasource_id=datasource_type=table'
-        return redirect(redirect_url)
+            dataset = db.session.query(Dataset).order_by(Dataset.id).first()
+
+        if dataset:
+            return redirect(dataset.explore_url)
+        else:
+            raise PropertyException(NO_USEABLE_DATASETS)
 
     def get_object_list_data(self, **kwargs):
         """

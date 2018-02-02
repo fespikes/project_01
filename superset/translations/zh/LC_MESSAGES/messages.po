@@ -1653,6 +1653,9 @@ msgstr "连接超时"
 msgid "Name should consist of chinese, alphanumeric characters and underscores, and can't start or end with underscores"
 msgstr "名字只能由中文、字母、数字和下划线组成，且不能以下划线开始或结束"
 
+msgid "No useable datasets"
+msgstr "没有可用的数据集"
+
 
 #========================
 # views/base.py
