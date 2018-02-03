@@ -35,8 +35,13 @@ class Main extends Component {
     }
 
     componentDidMount() {
-        const {condition} = this.props;
+        const {condition, changePath} = this.props;
         this.loadLocales();
+        const current_path = location.search.replace('?current_path=', '');
+
+        current_path && changePath({
+            path: current_path
+        });
         this.props.fetchIfNeeded(condition);
     }
 

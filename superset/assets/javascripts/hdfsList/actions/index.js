@@ -1,8 +1,8 @@
 import fetch from 'isomorphic-fetch';
 
-import {constructFileBrowserData, appendTreeChildren, findTreeNode} from '../../tableList/module';
-import {getSelectedPath} from '../module';
-import {renderLoadingModal, renderGlobalErrorMsg} from '../../../utils/utils'
+import { constructFileBrowserData, appendTreeChildren, findTreeNode } from '../../tableList/module';
+import { getSelectedPath } from '../module';
+import { renderLoadingModal, renderGlobalErrorMsg } from '../../../utils/utils'
 
 export const actionTypes = {
     sendRequest: 'SEND_REQUEST',
@@ -78,7 +78,7 @@ const popupHandler = (response, popupNormalParam, dispatch, condition) => {
     dispatch(setPopupNormalParams(obj));
     dispatch(setSelectedRows([], [], []));
     dispatch(switchFetchingStatus(false));
-    if(popupNormalParam.popupType !== "noSelect") {
+    if (popupNormalParam.popupType !== "noSelect") {
         dispatch(fetchIfNeeded(condition));
     }
 };
@@ -473,9 +473,9 @@ export function swapResponse(json) {
 
 export function switchFetchingStatus(isFetching) {
     const loadingModal = renderLoadingModal();
-    if(isFetching) {
+    if (isFetching) {
         loadingModal.show();
-    }else {
+    } else {
         loadingModal.hide();
     }
     return {

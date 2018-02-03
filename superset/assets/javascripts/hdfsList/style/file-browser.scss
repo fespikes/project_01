@@ -121,9 +121,13 @@ ul,li{
     }
 }
 .file-name {
+    width: 400px;
+    height: auto;
+    padding: 10px 0;
     justify-content: flex-start;
     span {
         margin-left: 5px;
+        overflow: auto;
     }
 }
 .file-upload {

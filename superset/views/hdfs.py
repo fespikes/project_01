@@ -3,11 +3,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import os
 import logging
 import json
 import functools
 import requests
-from flask import g, request
+from flask import g, request, redirect, url_for
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 
@@ -24,6 +25,8 @@ from .base import BaseSupersetView, catch_exception, json_response
 
 config = app.config
 
+UPLOAD_FOLDER = '/home/rockwang/Desktop/transwarp_python/saveFromPython/'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def catch_hdfs_exception(f):
     """
@@ -124,12 +127,13 @@ class HDFSBrowser(BaseSupersetView):
     @ensure_logined
     @expose('/upload/', methods=['POST'])
     def upload(self):
-        f = request.data
         dest_path = request.args.get('dest_path')
-        file_name = request.args.get('file_name')
-        response = self.client.upload(dest_path, [('files', (file_name, f))])
-        return json_response(message=eval(response.text).get("message"),
-                             status=response.status_code)
+        files = {}
+        for f in request.files.getlist('list_file'):
+            files[f.filename] = f.read()
+        files_struct = [('files', (name, data)) for name, data in files.items()]
+        self.client.upload(dest_path, files_struct)
+        return redirect('/hdfs/?current_path={}'.format(dest_path))
 
     @catch_hdfs_exception
     @ensure_logined
