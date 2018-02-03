@@ -157,9 +157,9 @@ class GalleryItem extends React.Component {
                         </div>
                     </div>
                     <hr className="divider"/>
-                    {/*<div className="item-description">
+                    <div className="item-description">
                         {dashboard.description}
-                    </div>*/}
+                    </div>
                 </div>
             </div>
         );
