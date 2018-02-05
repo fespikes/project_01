@@ -129,11 +129,19 @@ class HDFSBrowser(BaseSupersetView):
     def upload(self):
         dest_path = request.args.get('dest_path')
         files = {}
-        for f in request.files.getlist('list_file'):
-            files[f.filename] = f.read()
-        files_struct = [('files', (name, data)) for name, data in files.items()]
-        self.client.upload(dest_path, files_struct)
-        return redirect('/hdfs/?current_path={}'.format(dest_path))
+        redirect_url = '/hdfs/?current_path={}'.format(dest_path)
+        try:
+            for f in request.files.getlist('list_file'):
+                files[f.filename] = f.read()
+            files_struct = [('files', (name, data)) for name, data in files.items()]
+            self.client.upload(dest_path, files_struct)
+        except FileRobotException as fe:
+            logging.exception(fe)
+            redirect_url = '{}&error_message={}'.format(redirect_url, fe.message)
+        except Exception as e:
+            logging.exception(e)
+            redirect_url = '{}&error_message={}'.format(redirect_url, str(e))
+        return redirect(redirect_url)
 
     @catch_hdfs_exception
     @ensure_logined
