@@ -25,11 +25,12 @@ from sqlalchemy import (
     DateTime, desc, asc, select, and_, UniqueConstraint
 )
 from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm.session import make_transient
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql import table, literal_column, text, column
 from sqlalchemy.sql.expression import ColumnClause, TextAsFrom
 
-from superset import db, app, import_util, utils
+from superset import db, app, utils
 from superset.utils import wrap_clause_in_parens, DTTM_ALIAS
 from superset.exception import (
     ParameterException, PropertyException, DatabaseException, OfflineException,
@@ -37,7 +38,7 @@ from superset.exception import (
 )
 from superset.jinja_context import get_template_processor
 from .base import AuditMixinNullable, ImportMixin, Queryable, QueryResult, QueryStatus
-from .connection import Database
+from .connection import Database, HDFSConnection
 
 config = app.config
 
@@ -50,6 +51,8 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
     """ORM object for table columns, each table can have multiple columns"""
 
     __tablename__ = 'table_columns'
+    model_type = 'column'
+
     id = Column(Integer, primary_key=True)
     dataset_id = Column(Integer, ForeignKey('dataset.id'))
     ref_dataset = relationship(
@@ -83,7 +86,7 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
     date_types = ('DATE', 'TIME', 'YEAR')
     str_types = ('VARCHAR', 'STRING', 'CHAR')
     export_fields = (
-        'table_id', 'column_name', 'verbose_name', 'is_dttm', 'is_active',
+        'dataset_id', 'column_name', 'verbose_name', 'is_dttm', 'is_active',
         'type', 'groupby', 'count_distinct', 'sum', 'avg', 'max', 'min',
         'filterable', 'expression', 'description', 'python_date_format',
         'database_expression'
@@ -159,14 +162,6 @@ class TableColumn(Model, AuditMixinNullable, ImportMixin):
             expr = grain.function.format(col=expr)
         return literal_column(expr, type_=DateTime).label(DTTM_ALIAS)
 
-    @classmethod
-    def import_obj(cls, i_column):
-        def lookup_obj(lookup_column):
-            return db.session.query(TableColumn).filter(
-                TableColumn.table_id == lookup_column.table_id,
-                TableColumn.column_name == lookup_column.column_name).first()
-        return import_util.import_simple_obj(db.session, i_column, lookup_obj)
-
     def dttm_sql_literal(self, dttm):
         """Convert datetime object to a SQL expression string
 
@@ -195,6 +190,8 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
     """ORM object for metrics, each table can have multiple metrics"""
 
     __tablename__ = 'sql_metrics'
+    model_type = 'metric'
+
     id = Column(Integer, primary_key=True)
     metric_name = Column(String(128), nullable=False)
     verbose_name = Column(String(128))
@@ -214,7 +211,7 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
     )
 
     export_fields = (
-        'metric_name', 'verbose_name', 'metric_type', 'table_id', 'expression',
+        'metric_name', 'verbose_name', 'metric_type', 'dataset_id', 'expression',
         'description', 'is_restricted', 'd3format')
     temp_dataset = None
 
@@ -241,19 +238,12 @@ class SqlMetric(Model, AuditMixinNullable, ImportMixin):
         ).format(obj=self,
                  parent_name=self.dataset.full_name) if self.dataset else None
 
-    @classmethod
-    def import_obj(cls, i_metric):
-        def lookup_obj(lookup_metric):
-            return db.session.query(SqlMetric).filter(
-                SqlMetric.table_id == lookup_metric.table_id,
-                SqlMetric.metric_name == lookup_metric.metric_name).first()
-        return import_util.import_simple_obj(db.session, i_metric, lookup_obj)
-
 
 class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     """An ORM object for SqlAlchemy table references"""
     type = "table"
     __tablename__ = 'dataset'
+    model_type = 'dataset'
 
     id = Column(Integer, primary_key=True)
     dataset_name = Column(String(128), nullable=False, unique=True)
@@ -290,9 +280,8 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     temp_columns = []      # for creating slice with source table
     temp_metrics = []
     export_fields = (
-        'table_name', 'main_dttm_col', 'description', 'default_endpoint',
-        'database_id', 'is_featured', 'offset', 'cache_timeout', 'schema',
-        'sql', 'params')
+        'dataset_name', 'table_name', 'schema', 'sql', 'description', 'online',
+        'main_dttm_col', 'database_id',  'params')
 
     dataset_types = Database.database_types
     filter_types = dataset_types
@@ -304,6 +293,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     @property
     def name(self):
         return self.dataset_name
+
+    @classmethod
+    def name_column(cls):
+        return cls.dataset_name
 
     @property
     def dataset_type(self):
@@ -937,29 +930,113 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         return True
 
     @classmethod
-    def import_obj(cls, i_datasource, import_time=None):
-        """Imports the datasource from the object to the database.
-
-         Metrics and columns and datasource will be overrided if exists.
-         This function can be used to import/export dashboards between multiple
-         superset instances. Audit metadata isn't copies over.
+    def import_obj(cls, session, i_dataset, solution, grant_owner_permissions):
+        """Imports the dataset from the object to the database.
         """
-        def lookup_dataset(table):
-            return db.session.query(Dataset).join(Database).filter(
-                Dataset.table_name == table.table_name,
-                Dataset.schema == table.schema,
-                Database.id == table.database_id,
-                ).first()
+        def add_dataset(session, i_dataset, new_dataset, database, hdfsconn):
+            if database:
+                new_dataset.database_id = database.id
+                new_dataset.database = database
+            session.add(new_dataset)
+            session.commit()
+            if i_dataset.hdfs_table:
+                i_hdfs_table = i_dataset.hdfs_table
+                new_hdfs_table = i_hdfs_table.copy()
+                make_transient(new_hdfs_table)
+                new_hdfs_table.id = None
+                new_hdfs_table.dataset_id = new_dataset.id
+                if hdfsconn:
+                    new_hdfs_table.hdfs_connection_id = hdfsconn.id
+                session.add(new_hdfs_table)
+                session.commit()
+            return new_dataset
 
-        def lookup_database(table):
-            return db.session.query(Database).filter_by(
-                database_name=table.params_dict['database_name']).one()
-        return import_util.import_datasource(
-            db.session, i_datasource, lookup_database, lookup_dataset,
-            import_time)
+        def overwrite_dataset(session, i_dataset, existed_dataset, database, hdfsconn):
+            existed_dataset.override(i_dataset)
+            if database:
+                existed_dataset.database_id = database.id
+                existed_dataset.database = database
+            if existed_dataset.hdfs_table:
+                existed_hdfs_table = existed_dataset.hdfs_table
+                existed_hdfs_table.override(i_dataset.hdfs_table)
+                existed_hdfs_table.dataset_id = existed_dataset.id
+                existed_hdfs_table.dataset = existed_dataset
+                if hdfsconn:
+                    existed_hdfs_table.hdfs_connection_id = hdfsconn.id
+                    existed_hdfs_table.hdfs_connection = hdfsconn
+            session.commit()
+            return existed_dataset
+
+        def overwrite_columns_metrics(session, dataset, columns, metrics):
+            for c in dataset.ref_columns:
+                session.delete(c)
+            session.commit()
+            for c in columns:
+                new_c = c.copy()
+                new_c.dataset_id = dataset.id
+                session.add(new_c)
+                dataset.ref_columns.append(new_c)
+            session.commit()
+
+            for m in dataset.ref_metrics:
+                session.delete(m)
+            session.commit()
+            for m in metrics:
+                new_m = m.copy()
+                new_m.dataset_id = dataset.id
+                session.add(new_m)
+                dataset.ref_metrics.append(new_m)
+            session.commit()
+
+        # Import dependencies
+        new_database, new_hdfsconn = None, None
+        if i_dataset.database:
+            database = i_dataset.database
+            new_database = Database.import_obj(
+                session, database, solution, grant_owner_permissions)
+        if i_dataset.hdfs_table and i_dataset.hdfs_table.hdfs_connection:
+            hdfsconn = i_dataset.hdfs_table.hdfs_connection
+            new_hdfsconn = HDFSConnection.import_obj(
+                session, hdfsconn, solution, grant_owner_permissions)
+
+        # Import dataset
+        make_transient(i_dataset)
+        i_dataset.id = None
+        existed_dataset = cls.get_object(name=i_dataset.name)
+        new_dataset = existed_dataset
+
+        if not existed_dataset:
+            logging.info('Importing dataset: [{}] (add)'.format(i_dataset))
+            new_dataset = i_dataset.copy()
+            new_dataset = add_dataset(
+                session, i_dataset, new_dataset, new_database, new_hdfsconn)
+            overwrite_columns_metrics(
+                session, new_dataset, i_dataset.ref_columns, i_dataset.ref_metrics)
+            grant_owner_permissions([cls.model_type, new_dataset.dataset_name])
+        else:
+            policy, new_name = cls.get_policy(cls.model_type, i_dataset.name, solution)
+            if policy == cls.Policy.OVERWRITE:
+                logging.info('Importing dataset: [{}] (overwrite)'.format(i_dataset))
+                new_dataset = overwrite_dataset(
+                    session, i_dataset, new_dataset, new_database, new_hdfsconn)
+                overwrite_columns_metrics(
+                    session, new_dataset, i_dataset.ref_columns, i_dataset.ref_metrics)
+            elif policy == cls.Policy.RENAME:
+                logging.info('Importing dataset: [{}] (rename to [{}])'
+                             .format(i_dataset, new_name))
+                new_dataset = i_dataset.copy()
+                new_dataset.dataset_name = new_name
+                new_dataset = add_dataset(
+                    session, i_dataset, new_dataset, new_database, new_hdfsconn)
+                overwrite_columns_metrics(
+                    session, new_dataset, i_dataset.ref_columns, i_dataset.ref_metrics)
+                grant_owner_permissions([cls.model_type, new_dataset.dataset_name])
+            elif policy == cls.Policy.SKIP:
+                logging.info('Importing dataset: [{}] (skip)'.format(i_dataset))
+        return new_dataset
 
 
-class HDFSTable(Model, AuditMixinNullable):
+class HDFSTable(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = "hdfs_table"
     type = 'table'
     hdfs_table_type = 'HDFS'
@@ -980,7 +1057,7 @@ class HDFSTable(Model, AuditMixinNullable):
     hdfs_connection_id = Column(Integer, ForeignKey('hdfs_connection.id'))
     hdfs_connection = relationship(
         'HDFSConnection',
-        backref=backref('hdfs_table', lazy='joined'),
+        backref=backref('hdfs_table'),
         foreign_keys=[hdfs_connection_id]
     )
     dataset_id = Column(Integer, ForeignKey('dataset.id'))
@@ -989,6 +1066,10 @@ class HDFSTable(Model, AuditMixinNullable):
         backref=backref('hdfs_table', uselist=False, cascade='all, delete-orphan'),
         foreign_keys=[dataset_id]
     )
+
+    export_fields = ('hdfs_path', 'file_type', 'separator', 'quote', 'skip_rows',
+                     'next_as_header', 'skip_more_rows', 'nrows', 'charset',
+                     'hdfs_connection_id', 'dataset_id')
 
     cache = {}
 

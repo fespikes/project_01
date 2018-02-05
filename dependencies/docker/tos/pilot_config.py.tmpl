@@ -1,0 +1,23 @@
+PILOT_WORKERS = {{ getenv "PILOT_WORKERS" "4"}}
+PILOT_WEBSERVER_PORT = {{ getenv "PILOT_WEBSERVER_PORT" "8086"}}
+
+ROW_LIMIT = {{ getenv "PILOT_ROW_LIMIT" "5000"}}
+SQL_MAX_ROW = {{ getenv "PILOT_SQL_MAX_ROW" "10000"}}
+
+SQLALCHEMY_DATABASE_URI = "{{ getenv "PILOT_SQLALCHEMY_DATABASE_URI" "mysql://root:123456@localhost:3306/pilot?charset=utf8"}}"
+
+GUARDIAN_AUTH = {{ getenv "PILOT_GUARDIAN_AUTH" "False"}}
+GUARDIAN_CLIENT_JAR = '/usr/local/lib/guardian-client-2.0-transwarp-5.2.0.jar'
+GUARDIAN_SITE_PATH = '/etc/pilot/conf/'
+
+LICENSE_CHECK = {{ getenv "PILOT_LICENSE_CHECK" "False"}}
+LICENSE_CHECK_SERVER = "{{ getenv "PILOT_LICENSE_CHECK_SERVER" "localhost:2291"}}"
+
+FILE_ROBOT_SERVER = "{{ getenv "PILOT_FILEROBOT_SERVER" "localhost:5005"}}"
+
+MAPBOX_API_KEY = "{{ getenv "PILOT_MAPBOX_API_KEY" "See www.mapbox.com"}}"
+
+DEFAULT_HTTPFS = "{{ getenv "PILOT_DEFAULT_HTTPFS" "localhost"}}"
+DEFAULT_HDFS_CONN_NAME = 'default_{}'.format(DEFAULT_HTTPFS)
+
+LOAD_EXAMPLES = {{ getenv "PILOT_LOAD_EXAMPLES" "True"}}

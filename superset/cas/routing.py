@@ -217,3 +217,17 @@ def test_proxy_ticket():
     resp = requests.get(url)
     logging.info(url)
     return Response(resp.text)
+
+
+@blueprint.route('/test_webhdfs/')
+def test_webhdfs():
+    target_service = 'http://172.16.132.56:14000'
+    target_service = flask.request.args.get('targetService', target_service)
+    pt = get_proxy_ticket(target_service)
+    if not pt:
+        return Response('Failed to get proxy ticket')
+    url = '{}/webhdfs/v1/?user.name=admin&op=GETFILESTATUS&ticket={}'\
+        .format(target_service, pt)
+    resp = requests.get(url)
+    logging.info(url)
+    return Response(resp.text)
