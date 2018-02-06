@@ -108,17 +108,23 @@ class Popup extends React.Component {
     }
 
     handleFile(e) {
-        this.refs.fileName.innerText = this.refs.fileSelect.files[0].name;
-        this.onInputChange(e, 'selectFile');
-
         const me = this;
-        let reader = new FileReader();
-        reader.readAsArrayBuffer(this.refs.fileSelect.files[0]);
-        reader.onload = function(event) {
-            event.currentTarget.name = 'binaryFile';
-            event.currentTarget.value = event.target.result;
-            me.onInputChange(event);
+        let files = this.refs.fileSelect.files;
+        let length = files.length;
+        let names = '';
+        let reader;
+        for(let i=length-1; i>=0; i--) {
+            reader = new FileReader();
+            names = files[i].name + ' \n' + names;
+            reader.readAsArrayBuffer(files[0]);
+/*            reader.onload = function(event) {
+                event.currentTarget.name = 'binaryFile';
+                event.currentTarget.value = event.target.result;
+                me.onInputChange(event);
+            }*/
         }
+        this.refs.fileName.innerText = names;
+        // this.onInputChange(e, 'selectFile');
     }
 
     onPermChange(record, type) {
@@ -186,6 +192,9 @@ class Popup extends React.Component {
         }
 
         const config = getConfig(popupType);
+
+        const origin = window.location.origin;
+        const actionURL = `${origin}/hdfs/upload/?dest_path=${dest_path}`;
 
         const getChildren = (popupType) => {
             switch (popupType) {
@@ -264,7 +273,6 @@ class Popup extends React.Component {
                     break;
                 case CONSTANT.upload:
                     return <div className="popup-body">
-
                         <div className="dialog-item">
                             <div className="item-left">
                                 <span>{intl.get('upload_to')}</span>
@@ -274,7 +282,6 @@ class Popup extends React.Component {
                                     type="text"
                                     value={dest_path}
                                     required="required"
-                                    onChange={this.onInputChange}
                                     className="tp-input dialog-input"
                                     disabled
                                 />
@@ -286,24 +293,27 @@ class Popup extends React.Component {
                             </div>
 
                             <div className="item-right">
+                            <form action={actionURL} method="post" encType="multipart/form-data">
                                 <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
                                     <span style={{color: '#fff'}}>{intl.get('select_file')}</span>
                                 </label>
                                 <div className="file-name">
                                     <i className="icon icon-file"/>
-                                    <span ref="fileName">{file_name}</span>
+                                    <span className="file-names" ref="fileName">{file_name}</span>
                                     <input type="hidden" required="required" value={file_name}/>
                                 </div>
                                 <div className="file-upload" style={{display: 'none'}}>
-                                    <input
-                                        type="file"
-                                        id="xFile"
-                                        name="file_name"
-                                        className="file-select"
-                                        required="required"
-                                        onChange={this.handleFile}
-                                        ref="fileSelect"/>
+                                  <input 
+                                    multiple="multiple" 
+                                    className="file-select" 
+                                    required="required" 
+                                    type="file" id="xFile" 
+                                    onChange={this.handleFile} 
+                                    name="list_file" 
+                                    ref="fileSelect" /> 
                                 </div>
+                                <input type="submit" value={btnTitle} className="tp-btn tp-btn-middle tp-btn-primary" />
+                            </form>
                             </div>
                         </div>
                     </div>;
@@ -371,39 +381,64 @@ class Popup extends React.Component {
             }
         }
 
-        return (
-            <div className="popup" ref="popupContainer" style={{
-                display: status
-            }}>
-                <div className="popup-dialog popup-md">
-                    <div className="popup-content">
-                        <div className="popup-header">
-                            <div className="header-left">
-                                <i className={'icon '}/>
-                                <span>{config.title}</span>
+        if(popupType === CONSTANT.upload) {
+            return (
+                <div className="popup" ref="popupContainer" style={{
+                    display: status
+                }}>
+                    <div className="popup-dialog popup-md">
+                        <div className="popup-content">
+                            <div className="popup-header">
+                                <div className="header-left">
+                                    <i className={'icon '}/>
+                                    <span>{config.title}</span>
+                                </div>
+                                <div className="header-right">
+                                    <i className="icon icon-close" onClick={this.closeDialog}/>
+                                </div>
                             </div>
-                            <div className="header-right">
-                                <i className="icon icon-close" onClick={this.closeDialog}/>
+                            {getChildren(popupType)}
+                            <div className={alertStatus + ' alert-wrapper'}>
+                                <Alert message={alertMsg} type={alertType} closable={true} showIcon />
                             </div>
-                        </div>
-                        {getChildren(popupType)}
-
-                        <div className={alertStatus + ' alert-wrapper'}>
-                            <Alert message={alertMsg} type={alertType} closable={true} showIcon />
-                        </div>
-
-                        <div className="popup-footer">
-                            <button
-                                disabled={disabled}
-                                className="tp-btn tp-btn-middle tp-btn-primary"
-                                onClick={me.submit}>
-                                {btnTitle}
-                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
-        );
+            );
+        } else {
+            return (
+                <div className="popup" ref="popupContainer" style={{
+                    display: status
+                }}>
+                    <div className="popup-dialog popup-md">
+                        <div className="popup-content">
+                            <div className="popup-header">
+                                <div className="header-left">
+                                    <i className={'icon '}/>
+                                    <span>{config.title}</span>
+                                </div>
+                                <div className="header-right">
+                                    <i className="icon icon-close" onClick={this.closeDialog}/>
+                                </div>
+                            </div>
+                            {getChildren(popupType)}
+                            <div className={alertStatus + ' alert-wrapper'}>
+                                <Alert message={alertMsg} type={alertType} closable={true} showIcon />
+                            </div>
+                            <div className="popup-footer">
+                                <button
+                                    disabled={disabled}
+                                    className="tp-btn tp-btn-middle tp-btn-primary"
+                                    onClick={me.submit}>
+                                    {btnTitle}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
     }
 }
 
