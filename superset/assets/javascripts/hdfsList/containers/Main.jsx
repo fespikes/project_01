@@ -4,7 +4,12 @@ import { bindActionCreators } from 'redux';
 import * as actions from '../actions';
 import { Pagination, Table, Operate, PopupConnections } from '../components';
 import PropTypes from 'prop-types';
-import { renderLoadingModal, loadIntlResources } from '../../../utils/utils';
+import { 
+    renderLoadingModal, 
+    loadIntlResources, 
+    getUrlParam, 
+    renderGlobalErrorMsg 
+} from '../../../utils/utils';
 
 import intl from "react-intl-universal";
 
@@ -37,12 +42,15 @@ class Main extends Component {
     componentDidMount() {
         const {condition, changePath} = this.props;
         this.loadLocales();
-        const current_path = location.search.replace('?current_path=', '');
+        const current_path = getUrlParam('current_path').replace('#/', '');
 
         current_path && changePath({
             path: current_path
         });
         this.props.fetchIfNeeded(condition);
+
+        const error_message = getUrlParam('error_message').replace('#/', '');
+        error_message && renderGlobalErrorMsg(decodeURIComponent(error_message));
     }
 
     loadLocales() {
