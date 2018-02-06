@@ -2,9 +2,11 @@
  * Created by haitao on 17-5-18.
  */
 import fetch from 'isomorphic-fetch';
-import {renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils';
-import {getNewDashboard, getSelectedSlices} from '../../../utils/common2';
-import {always, json, callbackHandler} from '../../global.jsx';
+import intl from "react-intl-universal";
+
+import { renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX } from '../../../utils/utils';
+import { getNewDashboard, getSelectedSlices } from '../../../utils/common2';
+import { always, json, callbackHandler } from '../../global.jsx';
 
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
@@ -25,9 +27,9 @@ export const CONFIG_PARAMS = {
 };
 
 const handler = (response, dispatch) => {
-    if(response.status === 200) {
+    if (response.status === 200) {
         dispatch(receivePosts(response.data));
-    }else {
+    } else {
         renderGlobalErrorMsg(response.message);
     }
 };
@@ -134,9 +136,9 @@ export function setTableLoadingStatus(loading) {
 
 export function switchFetchingState(isFetching) {
     const loadingModal = renderLoadingModal();
-    if(isFetching) {
+    if (isFetching) {
         loadingModal.show();
-    }else {
+    } else {
         loadingModal.hide();
     }
     return {
@@ -153,7 +155,7 @@ export function fetchDashboardDelete(dashboardId, callback) {
         }).then(always).then(json).then(
             response => {
                 callbackHandler(response, callback);
-                if(response.status === 200) {
+                if (response.status === 200) {
                     dispatch(fetchPosts());
                 }
             }
@@ -180,7 +182,9 @@ export function fetchDashboardDeleteMul(callback) {
     const url = window.location.origin + "/dashboard/muldelete/";
     return (dispatch, getState) => {
         const selectedRowKeys = getState().configs.selectedRowKeys;
-        let data = {selectedRowKeys: selectedRowKeys};
+        let data = {
+            selectedRowKeys: selectedRowKeys
+        };
         return fetch(url, {
             credentials: "same-origin",
             method: "POST",
@@ -188,7 +192,7 @@ export function fetchDashboardDeleteMul(callback) {
         }).then(always).then(json).then(
             response => {
                 callbackHandler(response, callback);
-                if(response.status === 200) {
+                if (response.status === 200) {
                     dispatch(fetchPosts());
                 }
             }
@@ -196,11 +200,49 @@ export function fetchDashboardDeleteMul(callback) {
     }
 }
 
+export function fetchBeforeImport(callback) {
+    return (dispatch, getState) => {
+
+        const url = window.location.origin + "/dashboard/before_import/";
+
+        return fetch(url, {
+            credentials: "same-origin",
+        }).then(always).then(
+            response => {
+                callbackHandler(response, callback);
+            }
+        );
+
+    }
+}
+
+export function fetchDashboardExport(callback) {
+    return (dispatch, getState) => {
+        const selectedRowKeys = getState().configs.selectedRowKeys;
+
+        if (selectedRowKeys.length > 0) {
+            const url = window.location.origin + "/dashboard/export/?ids=" + selectedRowKeys;
+
+            return fetch(url, {
+                credentials: "same-origin",
+            }).then(always); /*.then(
+                response => {
+                    callbackHandler(response, callback);
+                }
+            );*/
+        } else {
+            renderGlobalErrorMsg(intl.get('DASHBOARD.SELECT_SOMEONE'));
+        }
+    }
+}
+
 export function fetchDashboardMulDelInfo(callback) {
     const url = window.location.origin + "/dashboard/muldelete_info/";
     return (dispatch, getState) => {
         const selectedRowKeys = getState().configs.selectedRowKeys;
-        let data = {selectedRowKeys: selectedRowKeys};
+        let data = {
+            selectedRowKeys: selectedRowKeys
+        };
         dispatch(switchFetchingState(true));
         return fetch(url, {
             credentials: "same-origin",
@@ -238,7 +280,7 @@ export function fetchUpdateDashboard(state, dashboard, callback) {
             response => {
                 callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
-                if(response.status === 200) {
+                if (response.status === 200) {
                     dispatch(fetchPosts());
                 }
             }
@@ -259,7 +301,7 @@ export function fetchAddDashboard(state, availableSlices, callback) {
             response => {
                 callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
-                if(response.status === 200) {
+                if (response.status === 200) {
                     dispatch(fetchPosts());
                 }
             }
@@ -313,27 +355,27 @@ export function fetchPosts() {
 
 function getDashboardListUrl(state) {
     let url = window.location.origin + "/dashboard/listdata/?page=" + (state.configs.pageNumber - 1) +
-        "&page_size=" + state.configs.pageSize + "&filter=" + state.configs.keyword;
-    if(state.configs.type === "show_favorite") {
+    "&page_size=" + state.configs.pageSize + "&filter=" + state.configs.keyword;
+    if (state.configs.type === "show_favorite") {
         url += "&only_favorite=1";
     }
     return url;
 }
 
 function getStateChangeUrl(record, type) {
-    if(type === "favorite") {
+    if (type === "favorite") {
         let url_favorite = window.location.origin + PILOT_PREFIX + "favstar/Dashboard/" + record.id;
-        if(record.favorite) {
+        if (record.favorite) {
             url_favorite += "/unselect";
-        }else {
+        } else {
             url_favorite += "/select";
         }
         return url_favorite;
-    }else if(type === "publish") {
+    } else if (type === "publish") {
         let url_publish = window.location.origin + PILOT_PREFIX + "release/dashboard/";
-        if(record.online) {
+        if (record.online) {
             url_publish += "offline/" + record.id;
-        }else {
+        } else {
             url_publish += "online/" + record.id;
         }
         return url_publish;
@@ -342,20 +384,20 @@ function getStateChangeUrl(record, type) {
 
 function getSelectedRows(dashboard, selectedRowKeys, selectedRowNames, type) {
     let row = {};
-    if(type === "append") {
+    if (type === "append") {
         let existed = false;
         selectedRowKeys.map((key) => {
-            if(key === dashboard.id) {
+            if (key === dashboard.id) {
                 existed = true;
             }
         });
-        if(!existed) {
+        if (!existed) {
             selectedRowKeys.push(dashboard.id);
             selectedRowNames.push(dashboard.dashboard_title);
         }
-    }else if(type === "remove") {
+    } else if (type === "remove") {
         selectedRowKeys.map((key, index) => {
-            if(key === dashboard.id) {
+            if (key === dashboard.id) {
                 selectedRowKeys.splice(index, 1);
                 selectedRowNames.splice(index, 1);
             }

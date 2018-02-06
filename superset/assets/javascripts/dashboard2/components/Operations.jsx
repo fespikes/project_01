@@ -3,7 +3,7 @@ import {render} from 'react-dom';
 import {Provider, connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Link } from 'react-router-dom';
-import {DashboardAdd, DashboardDelete} from '../popup';
+import {DashboardAdd, DashboardDelete, ImportDashboard} from '../popup';
 import * as actions from '../actions';
 import intl from 'react-intl-universal';
 import {renderGlobalErrorMsg} from '../../../utils/utils';
@@ -15,6 +15,8 @@ class Operations extends React.Component {
         // bindings
         this.addDashboard = this.addDashboard.bind(this);
         this.deleteDashboardMul = this.deleteDashboardMul.bind(this);
+        this.importDashboard = this.importDashboard.bind(this);
+        this.exportDashboard = this.exportDashboard.bind(this);
         this.showAll = this.showAll.bind(this);
         this.showFavorite = this.showFavorite.bind(this);
         this.searchDashboard = this.searchDashboard.bind(this);
@@ -27,11 +29,9 @@ class Operations extends React.Component {
     addDashboard() {
 
         const { dispatch } = this.props;
-        actions.fetchAvailableSlices(callback);
-        function callback(success, data) {
+        const callback = (success, data) => {
             if(success) {
                 const dashboard = {dashboard_title: '', description: ''};
-                console.log('data=', data);
                 render(
                     <DashboardAdd
                         dispatch={dispatch}
@@ -42,12 +42,12 @@ class Operations extends React.Component {
                 );
             }
         }
+        actions.fetchAvailableSlices(callback);
     }
 
     deleteDashboardMul() {
         const { dispatch, selectedRowNames } = this.props;
-        dispatch(actions.fetchDashboardMulDelInfo(callback));
-        function callback(success, data) {
+        const callback = function(success, data) {
             if(success) {
                 let deleteType = "multiple";
                 let deleteTips = data.length===0 ? intl.get('DASHBOARD.CONFIRM') + intl.get('DASHBOARD.DELETE')
@@ -68,6 +68,26 @@ class Operations extends React.Component {
                 renderGlobalErrorMsg(data);
             }
         }
+        dispatch(actions.fetchDashboardMulDelInfo(callback));
+    }
+
+    importDashboard() {
+        const { dispatch } = this.props;
+        const callback = (success, data) => {
+            if(success) {
+                render(
+                    <ImportDashboard dispatch={dispatch} />,
+                    document.getElementById('popup_root')
+                );
+            }
+        }
+        actions.fetchAvailableSlices(callback);
+    }
+
+    exportDashboard() {
+        this.props.dispatch(actions.fetchDashboardExport(_ => {
+            console.log('exportDashboard succeed')
+        }));
     }
 
     switchTableMode() {
@@ -126,6 +146,8 @@ class Operations extends React.Component {
                 <ul className="icon-list">
                     <li onClick={this.addDashboard}><i className="icon icon-plus"/></li>
                     <li onClick={this.deleteDashboardMul}><i className="icon icon-trash"/></li>
+                    <li onClick={this.importDashboard}><i className="icon icon-import"/></li>
+                    <li onClick={this.exportDashboard}><i className="icon icon-export"/></li>
                 </ul>
                 <div className="tab-btn">
                     <button className={typeName === 'show_all' ? 'active' : ''} onClick={this.showAll}>

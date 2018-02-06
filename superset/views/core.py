@@ -639,7 +639,8 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @catch_exception
     @expose("/export/")
     def export_dashboards(self):
-        ids = request.args.getlist('id')
+        ids = request.args.get('ids')
+        ids = list(eval(ids))
         return Response(
             Dashboard.export_dashboards(ids),
             headers=self.generate_download_headers("pickle"),
