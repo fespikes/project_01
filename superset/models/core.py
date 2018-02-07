@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import json
 import logging
 import pickle
+import re
 from copy import copy
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -22,12 +23,12 @@ from sqlalchemy.orm import relationship, subqueryload, backref
 from sqlalchemy.orm.session import make_transient
 
 from superset import app, db, utils
-from superset.source_registry import SourceRegistry
 from superset.viz import viz_types
 from superset.exception import ParameterException, OfflineException
+from superset.message import NAME_RESTRICT_ERROR, FOLDER_END_ERROR
 from .base import AuditMixinNullable, ImportMixin
 from .dataset import Dataset
-from .connection import Database, HDFSConnection
+from .connection import Database
 
 config = app.config
 

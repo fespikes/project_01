@@ -103,7 +103,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     def check_column_values(self, obj):
         if not obj.slice_name:
             raise ParameterException(NONE_SLICE_NAME)
-        self.check_value_pattern(obj.slice_name)
+        self.model.check_name(obj.slice_name)
 
     @catch_exception
     @expose("/online_info/<id>/", methods=['GET'])
@@ -366,7 +366,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     def check_column_values(self, obj):
         if not obj.dashboard_title:
             raise ParameterException(NONE_DASHBOARD_NAME)
-        self.check_value_pattern(obj.dashboard_title)
+        self.model.check_name(obj.dashboard_title)
 
     def get_object_list_data(self, **kwargs):
         """
@@ -1003,7 +1003,7 @@ class Superset(BaseSupersetView, PermissionManagement):
             return redirect(slc.slice_url)
 
     def save_slice(self, slc):
-        self.check_value_pattern(slc.slice_name)
+        Slice.check_name(slc.slice_name)
         db.session.expunge_all()
         db.session.add(slc)
         db.session.commit()
