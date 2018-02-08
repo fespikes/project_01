@@ -577,10 +577,10 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         """Before import, check same names of objects in file and database."""
         f = request.data
         data = pickle.loads(f)
-        import_objs = {}
+        import_objs, same_objs = {}, {}
         for obj_type in self.OBJECT_TYPES:
             import_objs[obj_type] = []
-        same_objs = copy.deepcopy(import_objs)
+            same_objs[obj_type] = {}
 
         for dataset in data['datasets']:
             import_objs[self.OBJECT_TYPES[2]].append(dataset.name)
@@ -604,8 +604,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
                 for o in sames:
                     can_overwrite = self.check_edit_perm([obj_type, o.name],
                                                          raise_if_false=False)
-                    same_objs[obj_type].append(
-                        {'name': o.name, 'can_overwrite': can_overwrite})
+                    same_objs[obj_type][o.name] = {'can_overwrite': can_overwrite}
 
         data = None
         for obj_type, obj_names in same_objs.items():
