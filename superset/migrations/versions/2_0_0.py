@@ -1,4 +1,4 @@
-"""add dashboard thumbnail
+"""modify unique constraint, add table 'number', add three columns for dashboard
 
 Revision ID: 2_0_0
 Revises: None
@@ -26,8 +26,16 @@ def upgrade():
     op.create_unique_constraint('database_name_uc', 'dbs', ['database_name'])
     op.create_unique_constraint('hdfs_connection_name_uc', 'hdfs_connection', ['connection_name'])
 
+    op.create_table('folders',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('name', sa.String(length=128), nullable=False),
+        sa.Column('path', sa.String(length=128), nullable=False),
+        sa.PrimaryKeyConstraint('id')
+    )
+
     op.add_column('dashboards', sa.Column('image', sa.LargeBinary(length=(2**32)-1)))
     op.add_column('dashboards', sa.Column('need_capture', sa.Boolean(), server_default="1"))
+    op.add_column('dashboards', sa.Column('folder_id', sa.Integer(), sa.ForeignKey("folders.id"), nullable=False))
     op.add_column('logs', sa.Column('username', sa.String(length=128)))
 
     op.create_table('number',
@@ -46,8 +54,11 @@ def downgrade():
     op.drop_table('number')
 
     op.drop_column('logs', 'username')
+    op.drop_column('dashboards', 'folder_id')
     op.drop_column('dashboards', 'image')
     op.drop_column('dashboards', 'need_capture')
+
+    op.drop_table('folders')
 
     op.drop_constraint('database_name_uc', 'dbs', type_='unique')
     op.drop_constraint('hdfs_connection_name_uc', 'hdfs_connection', type_='unique')

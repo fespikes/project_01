@@ -37,6 +37,7 @@ NO_FILEROBOT_SERVER = _("Failed to get FileRobot server from config")
 # views/base.py
 NAME_RESTRICT_ERROR = _("Name should consist of chinese, alphanumeric characters "
                         "and underscores, and can't start or end with underscores")
+FOLDER_END_ERROR = _("Folder path should be not end with '/'")
 
 # views/connection.py
 NONE_CONNECTION_NAME = _("Connection name can't be none")
@@ -61,6 +62,11 @@ NONE_DASHBOARD_NAME = _("Dashboard name can't be none")
 
 CONNECTION_TIMEOUT = _("Connecting timeout")
 NO_USEABLE_DATASETS = _("No useable datasets")
+
+MOVE_DASHBOARD_SUCCESS = _("Success to move dashboard")
+MOVE_FOLDER_SUCCESS = _("Success to move folder")
+MOVE_FOLDER_TO_CHILD_ERROR = _('Cannot move a folder to its child folder')
+NO_PERM_EDIT_ROOT_FOLDER = _('No privilege to edit root path')
 
 # models.py/connection
 DISABLE_GUARDIAN_FOR_KEYTAB = _('Not enable Guardian, can not download keytab file')

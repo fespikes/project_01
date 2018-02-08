@@ -1780,6 +1780,18 @@ msgid ""
 "your query as a `CREATE TABLE AS` to prevent timeouts."
 msgstr "查询时间超过了设置的[{SQLLAB_TIMEOUT}]秒"
 
+msgid "Success to move dashboard"
+msgstr "成功移动仪表板"
+
+msgid "Success to move folder"
+msgstr "成功移动文件夹"
+
+msgid "Cannot move a folder to its child folder"
+msgstr "不能移动文件夹到其子目录"
+
+msgid "No privilege to edit root path"
+msgstr "不能编辑根目录"
+
 
 #========================
 # views/dataset.py
@@ -1973,6 +1985,12 @@ msgstr "没有找到id为[{id}]的工作表"
 
 msgid "Slice [{slice}] is offline"
 msgstr "工作表[{slice}]已被其他用户下线"
+
+msgid "Folders' depth is limited to [{depth}]"
+msgstr "限制了文件夹的深度为[{depth}]"
+
+msgid "Error materialized path [{path}] for folder(id={id})"
+msgstr "文件夹(id={id})有错误的物化路径:[{path}]"
 
 
 #========================
