@@ -205,26 +205,6 @@ function fetchAuth() {
     }
 }
 
-function fetchUpload() {
-    return (dispatch, getState) => {
-        const popupNormalParam = getState().popupNormalParam;
-        const destPath = popupNormalParam.dest_path;
-        const fileName = popupNormalParam.file_name;
-        const binaryFile = popupNormalParam.binaryFile;
-        const url = baseURL + 'upload/?dest_path=' + destPath + '&file_name=' + fileName;
-        dispatch(switchFetchingStatus(true));
-        return fetch(url, {
-            credentials: 'include',
-            method: "POST",
-            body: binaryFile
-        }).then(always).then(json).then(
-            response => {
-                popupHandler(response, popupNormalParam, dispatch, getState().condition);
-            }
-        );
-    }
-}
-
 
 function fetchMakedir() {
     return (dispatch, getState) => {

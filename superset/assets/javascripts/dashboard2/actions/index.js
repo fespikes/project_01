@@ -10,6 +10,8 @@ import { always, json, callbackHandler } from '../../global.jsx';
 
 export const REQUEST_POSTS = 'REQUEST_POSTS';
 export const RECEIVE_POSTS = 'RECEIVE_POSTS';
+export const setBinary = 'set_binary';
+export const setImportParams = 'set_import_params';
 
 export const REQUEST_DASHBOARD_DETAIL = 'REQUEST_DASHBOARD_DETAIL';
 export const RECEIVE_DASHBOARD_DETAIL = 'RECEIVE_DASHBOARD_DETAIL';
@@ -200,14 +202,55 @@ export function fetchDashboardDeleteMul(callback) {
     }
 }
 
+
+function fetchUpload() {
+    return (dispatch, getState) => {
+        const popupNormalParam = getState().popupNormalParam;
+
+        const binaryFile = popupNormalParam.binaryFile;
+
+
+        const url = baseURL + 'upload/?dest_path=' + destPath + '&file_name=' + fileName;
+        dispatch(switchFetchingStatus(true));
+        return fetch(url, {
+            credentials: 'include',
+            method: "POST",
+            body: binaryFile
+        }).then(always).then(json).then(
+            response => {
+                popupHandler(response, popupNormalParam, dispatch, getState().condition);
+            }
+        );
+    }
+}
+
+export function setBinaryFile(binaryFile) {
+    return {
+        type: setBinary,
+        binaryFile: binaryFile
+    }
+}
+export function setupImportParams(paramData) {
+    return {
+        type: setImportParams,
+        paramData: paramData
+    }
+}
+
+
+// fetch if the imported file has duplicated dashboard
 export function fetchBeforeImport(callback) {
     return (dispatch, getState) => {
 
+        const importDashboard = getState().importDashboard;
+        const binaryFile = importDashboard.binaryFile;
         const url = window.location.origin + "/dashboard/before_import/";
 
         return fetch(url, {
-            credentials: "same-origin",
-        }).then(always).then(
+            credentials: 'include',
+            method: "POST",
+            body: binaryFile
+        }).then(always).then(json).then(
             response => {
                 callbackHandler(response, callback);
             }

@@ -294,8 +294,8 @@ class Popup extends React.Component {
 
                             <div className="item-right">
                             <form action={actionURL} method="post" encType="multipart/form-data">
-                                <label className="file-browser" htmlFor="xFile" style={{width: 200}}>
-                                    <span style={{color: '#fff'}}>{intl.get('select_file')}</span>
+                                <label className="file-browser" htmlFor="xFile" style={{width: 200, color: '#fff'}}>
+                                    {intl.get('select_file')}
                                 </label>
                                 <div className="file-name">
                                     <i className="icon icon-file"/>

@@ -86,7 +86,8 @@ class Operations extends React.Component {
 
     exportDashboard() {
         this.props.dispatch(actions.fetchDashboardExport(_ => {
-            console.log('exportDashboard succeed')
+            console.log('exportDashboard succeed');
+            //TODO: notification 
         }));
     }
 

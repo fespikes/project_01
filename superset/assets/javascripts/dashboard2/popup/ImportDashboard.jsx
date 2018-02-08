@@ -3,25 +3,32 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetchAddDashboard, setDashAddConfirmState } from '../actions';
 import { Select, Alert, Tooltip } from 'antd';
-import PropTypes from 'prop-types';
 import intl from 'react-intl-universal';
+import PropTypes from 'prop-types';
+
+import NestedTable from '../components/NestedTable';
+import { 
+    fetchAddDashboard, 
+    setDashAddConfirmState, 
+    setBinaryFile, 
+    fetchBeforeImport } from '../actions';
 import { renderAlertErrorInfo } from '../../../utils/utils';
 
 class ImportDashboard extends React.Component {
-    constructor(props) {
+    constructor(props, context, updater) {
         super(props);
+        console.log(props, context, updater);
+
         this.state = {
-            selectedSlices: [],
             enableConfirm: false,
-            exception: {}
+            duplicatedList: null
         };
         // bindings
         this.confirm = this.confirm.bind(this);
         this.closeAlert = this.closeAlert.bind(this);
 
-        this.handleTitleChange = this.handleTitleChange.bind(this);
+        this.handleFile = this.handleFile.bind(this);
     };
 
     closeAlert(id) {
@@ -43,22 +50,50 @@ class ImportDashboard extends React.Component {
         this.closeAlert('add-dashboard-error-tip');
     }
 
+    handleFile(e) {
+        const me = this;
+        const { dispatch } = me.props;
+        let file = this.refs.fileSelect.files[0];
+        let name = file.name;
+        this.refs.fileName.value = name;
+
+        let reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+        reader.onload = function(event) {
+            event.currentTarget.name = 'binaryFile';
+            event.currentTarget.value = event.target.result;
+            dispatch(setBinaryFile(event.target.result));
+            dispatch(fetchBeforeImport((status, data) => {
+                if (status) {
+                    me.setState({
+                        enableConfirm: true,
+                        duplicatedList: data
+                    });                    
+                } else {
+                    renderAlertErrorInfo(data, 'add-dashboard-error-tip', '100%', me);
+                }
+            }));
+        }
+    }
+
     confirm() {
-        const self = this;
-        const { dispatch, availableSlices } = self.props;
-        dispatch(fetchAddDashboard(self.state, availableSlices, callback));
+        const me = this;
+        const { dispatch, availableSlices } = me.props;
+        dispatch(fetchAddDashboard(me.state, availableSlices, callback));
         function callback(success, message) {
             if(success) {
-                self.closeAlert("popup_root");
+                me.closeAlert("popup_root");
             }else {
-                renderAlertErrorInfo(message, 'add-dashboard-error-tip', '100%', self);
+                //TODO:
+                renderAlertErrorInfo(message, 'add-dashboard-error-tip', '100%', me);
             }
         }
     }
 
     render() {
-        const self = this;
+        const me = this;
         const Option = Select.Option;
+        const duplicatedList = this.state.duplicatedList;
 
         return (
             <div className="popup">
@@ -82,14 +117,41 @@ class ImportDashboard extends React.Component {
                                     <span>{intl.get('DASHBOARD.SELECT_FILE')}：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input
+                                    <input 
                                         className="tp-input dialog-input"
-                                        onChange={this.handleTitleChange}
-                                        autoFocus
+                                        type="text"  
+                                        ref="fileName"
                                     />
+                                    <label 
+                                        className="file-browser" 
+                                        htmlFor="xFile" 
+                                        style={{
+                                            position: 'absolute', 
+                                            left: 0, top: 0,
+                                            width: '100%', height: '100%',
+                                            background: 'transparent'
+                                        }}
+                                    >
+                                    </label>
+                                    <input 
+                                        style={{display: 'none'}}
+                                        multiple="multiple" 
+                                        className="file-select" 
+                                        required="required" 
+                                        type="file" id="xFile" 
+                                        onChange={this.handleFile} 
+                                        name="list_file" 
+                                        ref="fileSelect" /> 
                                 </div>
                             </div>
                             <div>
+                                { 
+                                    duplicatedList && 
+                                    <NestedTable 
+                                        dispatch={this.props.dispatch}
+                                        duplicatedList={duplicatedList}
+                                    />
+                                }
                             </div>
                         </div>
                         <div className="error" id="add-dashboard-error-tip"></div>
