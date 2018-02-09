@@ -309,8 +309,8 @@ export function fetchDashboardImport(callback) {
         const paramData = importParams.paramData
         const binaryFile = importParams.binaryFile;
 
-        const search = $.param(paramData);
-        url = url + '?' + search;
+        // const search = $.param(paramData);
+        url = url + '?param=' + JSON.stringify(paramData);
 
         return fetch(url, {
             credentials: 'include',
