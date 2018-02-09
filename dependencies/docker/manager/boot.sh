@@ -20,6 +20,7 @@ source /etc/pilot/conf/pilot-env.sh
 case $1 in
   PILOT_SERVER)
     pilot db upgrade
+    pilot init
     pilot runserver -p $PILOT_EXPOSE_PORT
   ;;
 esac

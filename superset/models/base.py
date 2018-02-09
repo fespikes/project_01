@@ -18,7 +18,7 @@ from flask_appbuilder.models.mixins import AuditMixin
 from flask_appbuilder.models.decorators import renders
 from superset import app, db
 from superset.utils import QueryStatus
-from superset.exception import ParameterException
+from superset.exception import ParameterException, PropertyException
 from superset.message import NAME_RESTRICT_ERROR
 
 config = app.config
@@ -40,8 +40,17 @@ class QueryResult(object):
         self.error_message = error_message
 
 
-class ImportMixin(object):
+class ValueRestrict(object):
     NAME_RESTRICT_PATTERN = '^(?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]+$'
+
+    @classmethod
+    def check_name(cls, name):
+        match = re.search(cls.NAME_RESTRICT_PATTERN, name)
+        if not match:
+            raise PropertyException(NAME_RESTRICT_ERROR)
+
+
+class ImportMixin(ValueRestrict):
 
     class Policy(object):
         """

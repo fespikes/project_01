@@ -14,8 +14,7 @@ from flask_migrate import MigrateCommand, upgrade
 from flask_script import Manager
 
 from superset import app, sm, db, data, security
-from superset.models import HDFSConnection, Log
-
+from superset.models import HDFSConnection, Log, Dashboard, Folder
 
 
 config = app.config
@@ -99,12 +98,18 @@ def register_in_guardian():
         logging.info("Finish to register service in Guardian")
 
 
+def set_default_folder():
+    root = Folder.create_root_folder()
+    Dashboard.set_default_folder(root.id)
+
+
 def init_pilot():
     register_in_guardian()
     # init_tables_and_roles()
     create_default_user()
     init_examples()
     create_default_hdfs_conn()
+    set_default_folder()
 
 
 @manager.option(

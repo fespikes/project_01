@@ -22,4 +22,5 @@ fi
 confd -onetime
 
 pilot db upgrade
+pilot init
 pilot runserver
