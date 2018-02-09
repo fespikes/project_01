@@ -242,14 +242,15 @@ export function setupImportParams(paramData) {
 export function fetchBeforeImport(callback) {
     return (dispatch, getState) => {
 
-        const importDashboard = getState().importDashboard;
-        const binaryFile = importDashboard.binaryFile;
+        const importParams = getState().importParams;
+        const binaryFile = importParams.binaryFile;
         const url = window.location.origin + "/dashboard/before_import/";
 
         return fetch(url, {
             credentials: 'include',
             method: "POST",
-            body: binaryFile
+            body: binaryFile,
+            cache: 'no-store'
         }).then(always).then(json).then(
             response => {
                 callbackHandler(response, callback);
@@ -265,17 +266,58 @@ export function fetchDashboardExport(callback) {
 
         if (selectedRowKeys.length > 0) {
             const url = window.location.origin + "/dashboard/export/?ids=" + selectedRowKeys;
+            const sentTime = new Date();
+            const name = 'dashboard_' + sentTime.getUTCDate() + sentTime.getUTCMilliseconds() + '.pickle';
+
 
             return fetch(url, {
-                credentials: "same-origin",
-            }).then(always); /*.then(
+                // credentials: "same-origin",
+                // credentials: "omit",
+                credentials: 'include',
+                method: 'GET'
+            }).then(
                 response => {
-                    callbackHandler(response, callback);
+                    if (response.status === 200) {
+                        let aLink = document.createElement('a');
+                        const data = response.data;
+                        let blob = new Blob([data], {
+                            type: 'plain/text',
+                            endings: 'native'
+                        });
+                        let url = window.URL.createObjectURL(blob);
+                        aLink.href = url;
+                        aLink.download = name;
+                        aLink.click();
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        renderGlobalErrorMsg(response.message);
+                    }
                 }
-            );*/
+            );
         } else {
             renderGlobalErrorMsg(intl.get('DASHBOARD.SELECT_SOMEONE'));
         }
+    }
+}
+
+export function fetchDashboardImport(callback) {
+
+    return (dispatch, getState) => {
+        const url = window.location.origin + "/dashboard/import/";
+        const state = getState();
+        const importParams = state.importParams;
+
+        return fetch(url, {
+            credentials: 'include',
+            method: 'POST',
+            body: importParams
+        }).then(always).then(json).then(
+            response => {
+                console.log('fuck you here');
+                callbackHandler(response, callback);
+                dispatch(switchFetchingState(false));
+            }
+        )
     }
 }
 

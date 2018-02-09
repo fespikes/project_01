@@ -103,8 +103,7 @@ function details(state = {
 }
 
 
-function importDashboard(state = {
-        isFetching: false,
+function importParams(state = {
         paramData: {}
     }, action) {
     switch (action.type) {
@@ -125,7 +124,7 @@ const rootReducer = combineReducers({
     configs,
     posts,
     details,
-    importDashboard
+    importParams
 });
 
 export default rootReducer;

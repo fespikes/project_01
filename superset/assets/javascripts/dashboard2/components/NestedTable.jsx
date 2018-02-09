@@ -29,18 +29,21 @@ export default class NestedTable extends React.Component {
   componentDidMount() {
     this.adjustState();
   }
+  componentWillReceiveProps(nextProps) {
+    this.adjustState(nextProps.duplicatedList);
+  }
 
   adjustState(stateParamData?, callback?) {
     const {renderData, paramData} = this.getData(stateParamData);
 
+    this.props.dispatch(setupImportParams(paramData));
     this.setState({
       renderData: renderData,
       paramData: paramData
     }, _ => {
-      this.props.dispatch(setupImportParams(paramData));
       callback && setTimeout(function() {
         callback();
-      }, 16.7);
+      }, 1000);
     });
   }
 
@@ -146,36 +149,37 @@ export default class NestedTable extends React.Component {
     let paramData = {};
 
     // similar to the data in response
-    const responseData = stateParamData || this.props.duplicatedList || {
-      "hdfsconnection": {
-        "test_import_hdfs01": {
-          "can_overwrite": true
-        },
-        "test_import_hdfs02": {
-          "can_overwrite": false
-        }
-      }, 
-      "database": {
-        "test_import_hdfs02": { 
-          "can_overwrite": true
-        }, 
-      },
-      "slice": {
-        "test_import_hdfs03":{ 
-          "can_overwrite": true
-        }, 
-      },
-      "dataset": {
-        "test_import_hdfs04":{
-          "can_overwrite": true
-        },
-      }, 
-      "dashboard": {
-        "test_import_hdfs05":{
-          "can_overwrite": true
-        },
-      }
-    };
+    const responseData = stateParamData || this.props.duplicatedList;
+    // || {
+    //   "hdfsconnection": {
+    //     "test_import_hdfs01": {
+    //       "can_overwrite": true
+    //     },
+    //     "test_import_hdfs02": {
+    //       "can_overwrite": false
+    //     }
+    //   }, 
+    //   "database": {
+    //     "test_import_hdfs02": { 
+    //       "can_overwrite": true
+    //     }, 
+    //   },
+    //   "slice": {
+    //     "test_import_hdfs03":{ 
+    //       "can_overwrite": true
+    //     }, 
+    //   },
+    //   "dataset": {
+    //     "test_import_hdfs04":{
+    //       "can_overwrite": true
+    //     },
+    //   }, 
+    //   "dashboard": {
+    //     "test_import_hdfs05":{
+    //       "can_overwrite": true
+    //     },
+    //   }
+    // };
 
     let policy;
 

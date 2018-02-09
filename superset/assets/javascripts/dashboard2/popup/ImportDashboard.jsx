@@ -9,8 +9,7 @@ import PropTypes from 'prop-types';
 
 import NestedTable from '../components/NestedTable';
 import { 
-    fetchAddDashboard, 
-    setDashAddConfirmState, 
+    fetchDashboardImport, 
     setBinaryFile, 
     fetchBeforeImport } from '../actions';
 import { renderAlertErrorInfo } from '../../../utils/utils';
@@ -68,9 +67,14 @@ class ImportDashboard extends React.Component {
                     me.setState({
                         enableConfirm: true,
                         duplicatedList: data
-                    });                    
+                    });
+                    me.closeAlert('add-dashboard-error-tip');
                 } else {
                     renderAlertErrorInfo(data, 'add-dashboard-error-tip', '100%', me);
+                    me.setState({
+                        enableConfirm: false,
+                        duplicatedList: []
+                    });
                 }
             }));
         }
@@ -78,16 +82,14 @@ class ImportDashboard extends React.Component {
 
     confirm() {
         const me = this;
-        const { dispatch, availableSlices } = me.props;
-        dispatch(fetchAddDashboard(me.state, availableSlices, callback));
-        function callback(success, message) {
+        const { dispatch } = me.props;
+        dispatch(fetchDashboardImport((success, message) => {
             if(success) {
                 me.closeAlert("popup_root");
             }else {
-                //TODO:
                 renderAlertErrorInfo(message, 'add-dashboard-error-tip', '100%', me);
             }
-        }
+        }));
     }
 
     render() {

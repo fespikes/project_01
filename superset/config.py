@@ -44,7 +44,7 @@ GUARDIAN_SERVICE_TYPE = 'PILOT'
 
 # The default username and password when guardian is not opened
 DEFAULT_USERNAME = 'admin'
-DEFAULT_PASSWORD = '123456'
+DEFAULT_PASSWORD = '123'
 
 # The Community Edition will abandon guardian module, and embed user management module
 COMMUNITY_EDITION = False

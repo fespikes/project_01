@@ -639,11 +639,15 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/export/")
     def export_dashboards(self):
         ids = request.args.get('ids')
-        ids = list(eval(ids))
+        ids = eval(ids)
+        if isinstance(ids, int):
+            ids = [ids, ]
         return Response(
             Dashboard.export_dashboards(ids),
             headers=self.generate_download_headers("pickle"),
             mimetype="application/text")
+        # data = Dashboard.export_dashboards(ids)
+        # return json_response(data=data)
 
     def add_slices_api(self, dashboard_id, slice_ids):
         """Add and save slices to a dashboard"""
