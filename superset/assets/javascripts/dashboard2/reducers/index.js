@@ -104,6 +104,7 @@ function details(state = {
 
 
 function importParams(state = {
+        binaryFile: '',
         paramData: {}
     }, action) {
     switch (action.type) {

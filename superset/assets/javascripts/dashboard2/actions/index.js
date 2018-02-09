@@ -303,14 +303,19 @@ export function fetchDashboardExport(callback) {
 export function fetchDashboardImport(callback) {
 
     return (dispatch, getState) => {
-        const url = window.location.origin + "/dashboard/import/";
+        let url = window.location.origin + "/dashboard/import/";
         const state = getState();
         const importParams = state.importParams;
+        const paramData = importParams.paramData
+        const binaryFile = importParams.binaryFile;
+
+        const search = $.param(paramData);
+        url = url + '?' + search;
 
         return fetch(url, {
             credentials: 'include',
             method: 'POST',
-            body: importParams
+            body: binaryFile
         }).then(always).then(json).then(
             response => {
                 console.log('fuck you here');
