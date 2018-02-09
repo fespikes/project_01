@@ -83,7 +83,7 @@ class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
     def check_column_values(self, obj):
         if not obj.column_name:
             raise ParameterException(NONE_COLUMN_NAME)
-        self.check_value_pattern(obj.column_name)
+        self.model.check_name(obj.column_name)
 
 
 class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
@@ -125,7 +125,7 @@ class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
     def pre_update(self, old_metric, new_metric):
         if not new_metric.dataset:
             raise PropertyException('Metric [{}] misses dataset'.format(new_metric))
-        self.check_edit_perm(['dataset', old_metric.dataset.dataset_name])
+        self.check_edit_perm(['dataset', new_metric.dataset.dataset_name])
         self.pre_add(new_metric)
 
     def pre_delete(self, metric):
@@ -134,7 +134,7 @@ class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
     def check_column_values(self, obj):
         if not obj.metric_name:
             raise ParameterException(NONE_METRIC_NAME)
-        self.check_value_pattern(obj.metric_name)
+        self.model.check_name(obj.metric_name)
         if not obj.expression:
             raise ParameterException(NONE_METRIC_EXPRESSION)
 
@@ -587,7 +587,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     def check_column_values(self, obj):
         if not obj.dataset_name:
             raise ParameterException(NONE_DATASET_NAME)
-        self.check_value_pattern(obj.dataset_name)
+        self.model.check_name(obj.dataset_name)
         if not obj.database_id:
             raise ParameterException(NONE_CONNECTION)
         if not obj.schema and not obj.table_namej and not obj.sql:

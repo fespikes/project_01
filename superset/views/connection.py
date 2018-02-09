@@ -65,7 +65,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     def check_column_values(self, obj):
         if not obj.database_name:
             raise ParameterException(NONE_CONNECTION_NAME)
-        self.check_value_pattern(obj.database_name)
+        self.model.check_name(obj.database_name)
         if not obj.sqlalchemy_uri:
             raise ParameterException(NONE_SQLALCHEMY_URI)
         if not obj.args:
@@ -311,7 +311,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     def check_column_values(self, obj):
         if not obj.connection_name:
             raise ParameterException(NONE_CONNECTION_NAME)
-        self.check_value_pattern(obj.connection_name)
+        self.model.check_name(obj.connection_name)
         if not obj.httpfs:
             raise ParameterException(NONE_HTTPFS)
         if not obj.database_id:
