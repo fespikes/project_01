@@ -606,12 +606,8 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
                                                          raise_if_false=False)
                     same_objs[obj_type][o.name] = {'can_overwrite': can_overwrite}
 
-        data = None
-        for obj_type, obj_names in same_objs.items():
-            if obj_names:
-                data = same_objs
-                break
-        return json_response(data=data)
+        same_objs = dict((k, v) for k, v in same_objs.items() if v)
+        return json_response(data=same_objs)
 
     @catch_exception
     @expose("/import/", methods=['GET', 'POST'])
