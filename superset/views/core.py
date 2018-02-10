@@ -613,22 +613,19 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/import/", methods=['GET', 'POST'])
     def import_dashboards(self):
         """Import dashboards and dependencies"""
-        f = request.data
-        if request.method == 'POST' and f:
-            # TODO get pickle file and solution meanwhile
-            file = f.get('file')
-            solution = f.get('solution')
-            data = pickle.loads(file)
+        solution = json.loads(request.args.get('param', '{}'))
+        session = db.session
+        Dashboard.check_solution(solution, db.session, str_to_model)
 
-            session = db.session
-            Dashboard.check_solution(solution, db.session, str_to_model)
-            for dataset in data['datasets']:
-                Dataset.import_obj(
-                    session, dataset, solution, self.grant_owner_permissions)
-            for dashboard in data['dashboards']:
-                Dashboard.import_obj(
-                    session, dashboard, solution, self.grant_owner_permissions)
-                Log.log('import', dashboard, 'dashboard', g.user.id)
+        f = request.data
+        objects = pickle.loads(f)
+        for dataset in objects['datasets']:
+            Dataset.import_obj(
+                session, dataset, solution, self.grant_owner_permissions)
+        for dashboard in objects['dashboards']:
+            Dashboard.import_obj(
+                session, dashboard, solution, self.grant_owner_permissions)
+            Log.log('import', dashboard, 'dashboard', g.user.id)
         return redirect('/dashboard/list/')
 
     @catch_exception
