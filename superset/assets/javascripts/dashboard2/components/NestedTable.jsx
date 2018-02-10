@@ -15,7 +15,7 @@ const POLICY = {
 export default class NestedTable extends React.Component {
   
   state = {};
-  renameCurrentId = null;
+  renameInfo = null;
   renameTimer;
 
   constructor(props, context, updater) {
@@ -47,17 +47,16 @@ export default class NestedTable extends React.Component {
 
   componentDidUpdate() {
     const ctn = document.querySelector('.nested-table');
-    let config 
+    let id;
     ctn && (ctn.onclick = ctn.onclick || this.eventHandler.bind(this));
 
-    if(this.renameCurrentId) {
-      const ele = document.querySelector(this.renameCurrentId);
-      if(ele) {
-        ele.focus();      
-        ele.value = this.state.paramData[
-          this.renameCurrentId.replace('#dashboard_child_'), ''
-        ];
-      }
+    if(this.renameInfo) {
+      id = this.renameInfo.prefix + this.renameInfo.id;
+      const ele = document.querySelector(id);
+      ele.focus();      
+      ele.value = this.state.paramData[
+        this.renameCurrentId.replace(this.renameInfo.prefix, '')
+      ];
     }
   }
 
@@ -81,7 +80,11 @@ export default class NestedTable extends React.Component {
     this.adjustState(paramData);
     e.stopPropagation();
 
-    this.renameCurrentId = '#dashboard_child_' + value;
+    this.renameCurrentId = value;
+    this.renameInfo = {
+      id: value,
+      prefix: '#' + config.parent + '_child_'
+    } 
   }
 
   eventHandler(e) {
