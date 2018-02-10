@@ -94,6 +94,7 @@ export default class NestedTable extends React.Component {
     let parentData = {};
     let childData = {};
     let policy = '';
+    let can_overwrite;
 
     if(target.type === 'radio') {
       e.stopPropagation();
@@ -107,7 +108,7 @@ export default class NestedTable extends React.Component {
         console.log(index, config, paramData, isParent);
       }
       // 做父级事件绑定，子集中同栏变换
-      if(!config.parent) {
+      if(!parent) {
         // 做父级数据改变
         switch(index) {
           case 1:
@@ -124,11 +125,14 @@ export default class NestedTable extends React.Component {
             console.log('default that');
         }
         parentData = paramData[config.name];
-        delete parentData['policy'];
+        can_overwrite = parentData.can_overwrite;
+        delete parentData.policy;
+        delete parentData.can_overwrite;
         for(var i in parentData) {      // set children
           paramData[config.name][i].policy = policy;
         }
-        parentData['policy'] = policy;
+        paramData[config.name].can_overwrite = can_overwrite;
+        parentData.policy = policy;
       } else {
         // 做子级数据改变
         // 1.取出子集数据
@@ -149,11 +153,8 @@ export default class NestedTable extends React.Component {
           default:
             console.log('default that');
         }
-
-        parentData = paramData[parent];
-        childData = parentData[config.name];
-        parentData.policy = null;
-        childData.policy = policy;
+        paramData[parent][config.name].policy = policy;
+        delete paramData[parent].policy;
       }
       this.adjustState(paramData);
     }
@@ -165,38 +166,8 @@ export default class NestedTable extends React.Component {
 
     // similar to the data in response
     const responseData = stateParamData || this.props.duplicatedList;
-    // || {
-    //   "hdfsconnection": {
-    //     "test_import_hdfs01": {
-    //       "can_overwrite": true
-    //     },
-    //     "test_import_hdfs02": {
-    //       "can_overwrite": false
-    //     }
-    //   }, 
-    //   "database": {
-    //     "test_import_hdfs02": { 
-    //       "can_overwrite": true
-    //     }, 
-    //   },
-    //   "slice": {
-    //     "test_import_hdfs03":{ 
-    //       "can_overwrite": true
-    //     }, 
-    //   },
-    //   "dataset": {
-    //     "test_import_hdfs04":{
-    //       "can_overwrite": true
-    //     },
-    //   }, 
-    //   "dashboard": {
-    //     "test_import_hdfs05":{
-    //       "can_overwrite": true
-    //     },
-    //   }
-    // };
-
     let policy;
+    let canOverwrite;
 
     for (let i in responseData) {
 
@@ -207,26 +178,41 @@ export default class NestedTable extends React.Component {
       let can_overwrite = true;
       let dream = {};
       policy = o.policy;
+      canOverwrite = o.can_overwrite;
+      let sufix = '_1';
       delete o.policy;
+      delete o.can_overwrite;
 
       for (var j in o){
         dream = {
           key: i + '_child_' + j,
           name: j,
+          new_name: j + sufix,
+          policy: (o[j].policy || policy || POLICY.skip),
           can_overwrite: o[j].can_overwrite,
           parent: i,
         };
         children.push(dream);
-        objChildren[j] =  {
+        objChildren[j] =  {     // do the data adjustment here,
+                                // need to get it back to param in action
           name: j,
-          policy: POLICY.skip
+          new_name: j + sufix,
+          policy: (o[j].policy || policy || POLICY.skip),
+          can_overwrite: o[j].can_overwrite
         };
         if (o[j].can_overwrite === false) {
           can_overwrite = false;
         }
+
+        paramData[i] = {
+          can_overwrite: can_overwrite,
+          policy: policy,
+          [j]: objChildren[j]
+        };
       };
 
       o.policy = policy;
+      o.can_overwrite = canOverwrite;
 
       renderData.push({
         key: i + '_parent',
@@ -236,14 +222,12 @@ export default class NestedTable extends React.Component {
         policy: policy
       });
 
-      paramData[i] = {
-        can_overwrite: can_overwrite,
-        children: objChildren
-      };
+      // paramData[i] = objChildren;
     };
+
     return {
       renderData: renderData,
-      paramData: responseData
+      paramData: paramData      // used in events handling / request
     };
   }
 
@@ -442,20 +426,20 @@ export default class NestedTable extends React.Component {
       
       const children = renderData.map((object, key) => {
         let obj = {...object};
-        let children = obj.children;
+        console.log(obj);
+
+        let subs = obj.children;
 
         // *******S: please notice that: wasted half day here*******
         // dataSource mustn't content a key children
+        // if not deleted, it will overlap with antd setting.
         delete obj.children;
         // *******E: please notice that: wasted half day here*******
 
         return <Table
           key={key}
           className="components-table-demo-nested"
-          expandedRowRender={me.expandedRowRender(children)}
-          onExpand={() => {
-            console.log('on expand here')
-          }}
+          expandedRowRender={me.expandedRowRender(subs)}
           columns={columns}
           dataSource={[obj]}
           

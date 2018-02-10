@@ -202,28 +202,6 @@ export function fetchDashboardDeleteMul(callback) {
     }
 }
 
-
-function fetchUpload() {
-    return (dispatch, getState) => {
-        const popupNormalParam = getState().popupNormalParam;
-
-        const binaryFile = popupNormalParam.binaryFile;
-
-
-        const url = baseURL + 'upload/?dest_path=' + destPath + '&file_name=' + fileName;
-        dispatch(switchFetchingStatus(true));
-        return fetch(url, {
-            credentials: 'include',
-            method: "POST",
-            body: binaryFile
-        }).then(always).then(json).then(
-            response => {
-                popupHandler(response, popupNormalParam, dispatch, getState().condition);
-            }
-        );
-    }
-}
-
 export function setBinaryFile(binaryFile) {
     return {
         type: setBinary,
@@ -306,8 +284,27 @@ export function fetchDashboardImport(callback) {
         let url = window.location.origin + "/dashboard/import/";
         const state = getState();
         const importParams = state.importParams;
-        const paramData = importParams.paramData
+        const paramData = {
+            ...importParams.paramData
+        };
         const binaryFile = importParams.binaryFile;
+
+        let parent;
+        let child;
+        for (let i in paramData) {
+            parent = paramData[i];
+            delete paramData[i].policy;
+            delete paramData[i].can_overwrite;
+            for (let j in parent) {
+                child = parent[j];
+                delete child.can_overwrite;
+                child.new_name = child.name;
+                delete child.name;
+                parent[j] = child;
+            }
+            delete paramData[i].children;
+        }
+        console.log(paramData);
 
         // const search = $.param(paramData);
         url = url + '?param=' + JSON.stringify(paramData);
@@ -316,9 +313,8 @@ export function fetchDashboardImport(callback) {
             credentials: 'include',
             method: 'POST',
             body: binaryFile
-        }).then(always).then(json).then(
+        }).then(always).then(
             response => {
-
                 callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
             }
