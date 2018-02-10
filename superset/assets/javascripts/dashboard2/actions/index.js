@@ -318,7 +318,7 @@ export function fetchDashboardImport(callback) {
             body: binaryFile
         }).then(always).then(json).then(
             response => {
-                console.log('fuck you here');
+
                 callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
             }

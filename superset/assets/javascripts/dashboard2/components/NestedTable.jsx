@@ -15,6 +15,8 @@ const POLICY = {
 export default class NestedTable extends React.Component {
   
   state = {};
+  renameCurrentId = null;
+  renameTimer;
 
   constructor(props, context, updater) {
     super(props);
@@ -40,36 +42,46 @@ export default class NestedTable extends React.Component {
     this.setState({
       renderData: renderData,
       paramData: paramData
-    }, _ => {
-      callback && setTimeout(function() {
-        callback();
-      }, 1000);
     });
   }
 
   componentDidUpdate() {
     const ctn = document.querySelector('.nested-table');
+    let config 
     ctn && (ctn.onclick = ctn.onclick || this.eventHandler.bind(this));
 
+    if(this.renameCurrentId) {
+      const ele = document.querySelector(this.renameCurrentId);
+      if(ele) {
+        ele.focus();      
+        ele.value = this.state.paramData[
+          this.renameCurrentId.replace('#dashboard_child_'), ''
+        ];
+      }
+    }
   }
 
   textHandler(e) {
+    e.persist();
     const target = e.target;
+    const value = target.value;
     let config;
     config = target.getAttribute("data-config");
     config = JSON.parse(config);
+
+    this.renameTimer && clearTimeout(this.renameTimer);
 
     let paramData = new Object(this.state.paramData);
     let parentData = paramData[config.parent];
     let childData = parentData[config.name];
 
-    childData.name = target.value;
+    childData.name = value;
     delete parentData[config.name];
-    parentData[target.value] = childData;
+    parentData[value] = childData;
+    this.adjustState(paramData);
     e.stopPropagation();
-    this.adjustState(paramData,  _ => {
-      target.focus()
-    });
+
+    this.renameCurrentId = '#dashboard_child_' + value;
   }
 
   eventHandler(e) {
@@ -106,7 +118,7 @@ export default class NestedTable extends React.Component {
             policy = 'rename';
             break;
           default:
-            console.log('fuck that');
+            console.log('default that');
         }
         parentData = paramData[config.name];
         delete parentData['policy'];
@@ -132,7 +144,7 @@ export default class NestedTable extends React.Component {
             // enable the brother afterward in template
             break;
           default:
-            console.log('fuck that');
+            console.log('default that');
         }
 
         parentData = paramData[parent];
@@ -202,7 +214,10 @@ export default class NestedTable extends React.Component {
           parent: i,
         };
         children.push(dream);
-        objChildren[j] = dream;
+        objChildren[j] =  {
+          name: j,
+          policy: POLICY.skip
+        };
         if (o[j].can_overwrite === false) {
           can_overwrite = false;
         }
@@ -219,8 +234,6 @@ export default class NestedTable extends React.Component {
       });
 
       paramData[i] = {
-        key: i + '_parent',
-        name: i,
         can_overwrite: can_overwrite,
         children: objChildren
       };
