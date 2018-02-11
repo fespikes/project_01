@@ -247,31 +247,7 @@ export function fetchDashboardExport(callback) {
             const sentTime = new Date();
             const name = 'dashboard_' + sentTime.getUTCDate() + sentTime.getUTCMilliseconds() + '.pickle';
 
-
-            return fetch(url, {
-                // credentials: "same-origin",
-                // credentials: "omit",
-                credentials: 'include',
-                method: 'GET'
-            }).then(
-                response => {
-                    if (response.status === 200) {
-                        let aLink = document.createElement('a');
-                        const data = response.data;
-                        let blob = new Blob([data], {
-                            type: 'plain/text',
-                            endings: 'native'
-                        });
-                        let url = window.URL.createObjectURL(blob);
-                        aLink.href = url;
-                        aLink.download = name;
-                        aLink.click();
-                        window.URL.revokeObjectURL(url);
-                    } else {
-                        renderGlobalErrorMsg(response.message);
-                    }
-                }
-            );
+            window.open(url, '_blank', 'toolbar=yes, location=yes, status=yes, menubar=yes, scrollbars=yes');
         } else {
             renderGlobalErrorMsg(intl.get('DASHBOARD.SELECT_SOMEONE'));
         }
