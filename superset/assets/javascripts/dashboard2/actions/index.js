@@ -248,6 +248,7 @@ export function fetchDashboardExport(callback) {
             const name = 'dashboard_' + sentTime.getUTCDate() + sentTime.getUTCMilliseconds() + '.pickle';
 
             window.open(url, '_blank', 'toolbar=yes, location=yes, status=yes, menubar=yes, scrollbars=yes');
+
         } else {
             renderGlobalErrorMsg(intl.get('DASHBOARD.SELECT_SOMEONE'));
         }
@@ -274,14 +275,11 @@ export function fetchDashboardImport(callback) {
             for (let j in parent) {
                 child = parent[j];
                 delete child.can_overwrite;
-                child.new_name = child.name;
                 delete child.name;
                 parent[j] = child;
             }
             delete paramData[i].children;
         }
-        console.log(paramData);
-
         // const search = $.param(paramData);
         url = url + '?param=' + JSON.stringify(paramData);
 

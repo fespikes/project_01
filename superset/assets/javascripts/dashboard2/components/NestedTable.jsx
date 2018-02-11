@@ -16,7 +16,6 @@ export default class NestedTable extends React.Component {
   
   state = {};
   renameInfo = null;
-  renameTimer;
 
   constructor(props, context, updater) {
     super(props);
@@ -53,10 +52,10 @@ export default class NestedTable extends React.Component {
     if(this.renameInfo) {
       id = this.renameInfo.prefix + this.renameInfo.id;
       const ele = document.querySelector(id);
-      ele.focus();      
+/*      ele.focus();      
       ele.value = this.state.paramData[
         this.renameCurrentId.replace(this.renameInfo.prefix, '')
-      ];
+      ];*/
     }
   }
 
@@ -68,21 +67,18 @@ export default class NestedTable extends React.Component {
     config = target.getAttribute("data-config");
     config = JSON.parse(config);
 
-    this.renameTimer && clearTimeout(this.renameTimer);
-
     let paramData = new Object(this.state.paramData);
     let parentData = paramData[config.parent];
     let childData = parentData[config.name];
 
-    childData.name = value;
-    delete parentData[config.name];
-    parentData[value] = childData;
+    childData.new_name = value;
+
     this.adjustState(paramData);
     e.stopPropagation();
 
     this.renameCurrentId = value;
     this.renameInfo = {
-      id: value,
+      id: config.name,
       prefix: '#' + config.parent + '_child_'
     } 
   }
@@ -187,7 +183,7 @@ export default class NestedTable extends React.Component {
         dream = {
           key: i + '_child_' + j,
           name: j,
-          new_name: j + sufix,
+          new_name: o[j].new_name || (j + sufix),
           policy: (o[j].policy || policy || POLICY.skip),
           can_overwrite: o[j].can_overwrite,
           parent: i,
@@ -196,7 +192,7 @@ export default class NestedTable extends React.Component {
         objChildren[j] =  {     // do the data adjustment here,
                                 // need to get it back to param in action
           name: j,
-          new_name: j + sufix,
+          new_name: o[j].new_name || (j + sufix),
           policy: (o[j].policy || policy || POLICY.skip),
           can_overwrite: o[j].can_overwrite
         };
@@ -370,7 +366,7 @@ export default class NestedTable extends React.Component {
             type="text" 
             disabled={(policy===POLICY.rename)?null:'disabled'}
             id={record.key}
-            value={record.name}
+            value={record.new_name}
             data-config={JSON.stringify({
               index:3, 
               parent:record.parent, 
@@ -426,8 +422,6 @@ export default class NestedTable extends React.Component {
       
       const children = renderData.map((object, key) => {
         let obj = {...object};
-        console.log(obj);
-
         let subs = obj.children;
 
         // *******S: please notice that: wasted half day here*******

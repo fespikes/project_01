@@ -11,7 +11,8 @@ import NestedTable from '../components/NestedTable';
 import { 
     fetchDashboardImport, 
     setBinaryFile, 
-    fetchBeforeImport } from '../actions';
+    fetchBeforeImport,
+    fetchPosts } from '../actions';
 import { renderAlertErrorInfo } from '../../../utils/utils';
 
 class ImportDashboard extends React.Component {
@@ -86,6 +87,7 @@ class ImportDashboard extends React.Component {
         dispatch(fetchDashboardImport((success, message) => {
             if(success) {
                 me.closeAlert("popup_root");
+                dispatch(fetchPosts());
             }else {
                 renderAlertErrorInfo(message, 'add-dashboard-error-tip', '100%', me);
             }
