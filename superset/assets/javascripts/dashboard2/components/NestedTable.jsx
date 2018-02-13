@@ -171,10 +171,9 @@ export default class NestedTable extends React.Component {
       let obj = {};
       let children = [];
       let objChildren = {};
-      let can_overwrite = true;
       let dream = {};
       policy = o.policy;
-      canOverwrite = o.can_overwrite;
+      canOverwrite = o.can_overwrite || true;
       let sufix = '_1';
       delete o.policy;
       delete o.can_overwrite;
@@ -197,28 +196,23 @@ export default class NestedTable extends React.Component {
           can_overwrite: o[j].can_overwrite
         };
         if (o[j].can_overwrite === false) {
-          can_overwrite = false;
+          canOverwrite = false;
         }
-
-        paramData[i] = {
-          can_overwrite: can_overwrite,
-          policy: policy,
-          [j]: objChildren[j]
-        };
+        objChildren['policy'] = policy;
       };
 
-      o.policy = policy;
-      o.can_overwrite = canOverwrite;
+      // o.policy = policy;
+      // o.can_overwrite = canOverwrite;
 
       renderData.push({
         key: i + '_parent',
         name: i,
-        can_overwrite: can_overwrite,
+        can_overwrite: canOverwrite,
         children: children,
         policy: policy
       });
 
-      // paramData[i] = objChildren;
+      paramData[i] = objChildren;
     };
 
     return {
