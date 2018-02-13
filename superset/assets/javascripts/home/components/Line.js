@@ -76,10 +76,12 @@ function Line(props) {
                     result += '<div class="yesterday"><span class="key">' + intl.get('changes_yesterday') + '</span><span class="value">' + 0 + "</span></div>";
                 }*/
 
+                let changed = this.series.data[this.point.index].y - this.series.data[this.point.index - 1].y;
+
                 if (this.point.index > 0) {
-                    result += '<div class="today"><span class="key">' + intl.get('changes_today') + '</span><span class="value">' + (this.series.data[this.point.index].y - this.series.data[this.point.index - 1].y) + "</span></div>";
+                    result += '<div class="today"><span class="key">' + (changed >= 0 ? ' + ' : ' - ') + '</span><span class="value">' + Math.abs(changed) + "</span></div>";
                 } else {
-                    result += '<div class="today"><span class="key">' + intl.get('changes_today') + '</span><span class="value">' + 0 + "</span></div>";
+                    result += '<div class="today"><span class="key"> + </span><span class="value">' + 0 + "</span></div>";
                 }
 
                 result += '</div>';
