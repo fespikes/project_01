@@ -13,5 +13,5 @@ export const always = (response) => {
     return Promise.resolve(response);
 };
 export const json = (response) => {
-    return response.json();
+	return response.redirected ? response : response.json();
 };
