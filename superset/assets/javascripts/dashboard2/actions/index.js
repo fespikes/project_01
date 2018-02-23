@@ -287,7 +287,7 @@ export function fetchDashboardImport(callback) {
             credentials: 'include',
             method: 'POST',
             body: binaryFile
-        }).then(always).then(
+        }).then(always).then(json).then(
             response => {
                 callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));

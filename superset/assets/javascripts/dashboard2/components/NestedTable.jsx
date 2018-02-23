@@ -166,28 +166,34 @@ export default class NestedTable extends React.Component {
     let canOverwrite;
 
     // bad solution here. need to get it back to BE
-    const getOrder = (item) => {
+    const getOrderAndAbbr = (item) => {
       let order = 10;
+      let abbr = '';
       switch(item) {
         case 'dashboard':
           order = 1;
+          abbr = '仪表板';
           break;
         case 'slice':
           order = 2;
+          abbr = '工作表';
           break;
         case 'dataset':
           order = 3;
+          abbr = '数据集';
           break;
         case 'database':
           order = 4;
+          abbr = '数据库连接';
           break;
         case 'hdfsconnection':
           order = 5;
+          abbr = 'HDFS连接';
           break;
         default:
           break;
       }
-      return order;
+      return {order, abbr};
     }
 
 
@@ -201,6 +207,7 @@ export default class NestedTable extends React.Component {
       policy = o.policy;
       canOverwrite = o.can_overwrite || true;
       let sufix = '_1';
+      let abbrAndOrder = getOrderAndAbbr(i);
       delete o.policy;
       delete o.can_overwrite;
 
@@ -236,7 +243,8 @@ export default class NestedTable extends React.Component {
         can_overwrite: canOverwrite,
         children: children,
         policy: policy,
-        order: getOrder(i)
+        order: o.order|| abbrAndOrder.order,
+        abbr: o.abbr || abbrAndOrder.abbr,
       });
 
       paramData[i] = objChildren;
@@ -434,7 +442,7 @@ export default class NestedTable extends React.Component {
       return <div>no data !</div>
     } else {
       const columns = [
-        { title: 'Name', dataIndex: 'name', key: 'name' },
+        { title: 'abbr', dataIndex: 'abbr', key: 'abbr' },
         { 
           title: 'Action', 
           key: 'operation', 
