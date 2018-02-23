@@ -165,6 +165,32 @@ export default class NestedTable extends React.Component {
     let policy;
     let canOverwrite;
 
+    // bad solution here. need to get it back to BE
+    const getOrder = (item) => {
+      let order = 10;
+      switch(item) {
+        case 'dashboard':
+          order = 1;
+          break;
+        case 'slice':
+          order = 2;
+          break;
+        case 'dataset':
+          order = 3;
+          break;
+        case 'database':
+          order = 4;
+          break;
+        case 'hdfsconnection':
+          order = 5;
+          break;
+        default:
+          break;
+      }
+      return order;
+    }
+
+
     for (let i in responseData) {
 
       let o = responseData[i];
@@ -209,14 +235,16 @@ export default class NestedTable extends React.Component {
         name: i,
         can_overwrite: canOverwrite,
         children: children,
-        policy: policy
+        policy: policy,
+        order: getOrder(i)
       });
 
       paramData[i] = objChildren;
     };
 
+    const resultArray = renderData.sort((a,b)=> a.order-b.order);
     return {
-      renderData: renderData,
+      renderData: resultArray,
       paramData: paramData      // used in events handling / request
     };
   }
