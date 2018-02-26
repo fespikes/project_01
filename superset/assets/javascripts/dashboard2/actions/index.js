@@ -270,15 +270,13 @@ export function fetchDashboardImport(callback) {
         let child;
         for (let i in paramData) {
             parent = paramData[i];
-            delete paramData[i].policy;
-            delete paramData[i].can_overwrite;
-            for (let j in parent) {
-                child = parent[j];
+            for (let j in parent.names) {
+                child = parent.names[j];
                 delete child.can_overwrite;
                 delete child.name;
-                parent[j] = child;
+                parent.names[j] = child;
             }
-            delete paramData[i].children;
+            paramData[i] = paramData[i].names;
         }
         // const search = $.param(paramData);
         url = url + '?param=' + JSON.stringify(paramData);
