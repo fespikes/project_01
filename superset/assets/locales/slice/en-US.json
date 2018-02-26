@@ -34,6 +34,9 @@
     "SOURCE_DATA": "Origin",
     "SAVE": "Save",
     "QUERY": "Query",
-    "NO_SELECT_DELETE_TIP": "No select delete record, please select!"
+    "PICK_NAME_FOR_NEW_SLICE": "You must pick a name for the new slice",
+    "NO_SELECT_DELETE_TIP": "No select delete record, please select!",
+    "PICK_EXISTING_DASHBOARD": "You must pick an existing dashboard",
+    "ENTER_NAME_FOR_NEW_DASHBOARD": "Please enter a name for the new dashboard"
   }
 }

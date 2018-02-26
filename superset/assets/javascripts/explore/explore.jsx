@@ -16,6 +16,8 @@ import DisplayOriginalTable from './components/DisplayOriginalTable.jsx';
 import { Radio, Table } from 'antd';
 import { renderLoadingModal, getUrlParam, getAjaxErrorMsg, loadIntlResources } from '../../utils/utils';
 import { getTableWidth } from '../tableList/module';
+import { ConfirmModal } from '../common/components';
+import { renderConfirmModal } from '../../utils/utils';
 import intl from 'react-intl-universal';
 
 require('jquery-ui');
@@ -96,26 +98,17 @@ function saveSlice() {
     if (action === 'saveas') {
         const sliceName = $('input[name=new_slice_name]').val();
         if (sliceName === '') {
-            utils.showModal({
-                title: 'Error',
-                body: 'You must pick a name for the new slice',
-            });
+            renderConfirmModal(intl.get('SLICE.PICK_NAME_FOR_NEW_SLICE'));
             return;
         }
         document.getElementById('slice_name').value = sliceName;
     }
-    const addToDash = $('input[name=addToDash]:checked').val();
+    const addToDash = $('input[name=add_to_dash]:checked').val();
     if (addToDash === 'existing' && $('#save_to_dashboard_id').val() === '') {
-        utils.showModal({
-            title: 'Error',
-            body: 'You must pick an existing dashboard',
-        });
+        renderConfirmModal(intl.get('SLICE.PICK_EXISTING_DASHBOARD'));
         return;
     } else if (addToDash === 'new' && $('input[name=new_dashboard_name]').val() === '') {
-        utils.showModal({
-            title: 'Error',
-            body: 'Please enter a name for the new dashboard',
-        });
+        renderConfirmModal(intl.get('SLICE.ENTER_NAME_FOR_NEW_DASHBOARD'));
         return;
     }
     $('#action').val(action);
@@ -373,6 +366,8 @@ function initExploreView() {
 
         $('#btn_modal_save_goto_dash').click(() => {
             document.getElementById('goto_dash').value = 'true';
+            console.log('save goto dash');
+            console.log(document.getElementById('goto_dash').value);
             saveSlice();
         });
     }
