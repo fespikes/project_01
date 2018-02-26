@@ -640,7 +640,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
             Dashboard.import_obj(
                 session, dashboard, solution, self.grant_owner_permissions)
             Log.log('import', dashboard, 'dashboard', g.user.id)
-        return redirect('/dashboard/list/')
+        return json_response('Import success')
 
     @catch_exception
     @expose("/export/")
