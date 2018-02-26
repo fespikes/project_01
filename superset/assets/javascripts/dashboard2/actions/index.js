@@ -285,9 +285,7 @@ export function fetchDashboardImport(callback) {
             credentials: 'include',
             method: 'POST',
             body: binaryFile
-        }).then(always).then((response) => {
-            return response.redirected ? response : response.json();
-        }).then(
+        }).then(always).then(json).then(
             response => {
                 callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
