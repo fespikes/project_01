@@ -155,7 +155,7 @@ class SqlEditorLeftBar extends React.PureComponent {
             />
           </div>
           <div className="m-t-5">
-            <div className="select-title">({intl.get('database')+this.state.schemaOptions.length})</div>
+            <div className="select-title">{intl.get('database')+ ' (' + this.state.schemaOptions.length + ')'}</div>
             <Select
               name="select-schema"
               placeholder={`(${this.state.schemaOptions.length})`}
@@ -172,7 +172,7 @@ class SqlEditorLeftBar extends React.PureComponent {
             />
           </div>
           <div className="m-t-5">
-            <div className="select-title">({intl.get('table') + this.state.tableOptions.length})</div>
+            <div className="select-title">{intl.get('table') + ' (' + this.state.tableOptions.length + ')'}</div>
             <Select
               name="select-table"
               ref="selectTable"

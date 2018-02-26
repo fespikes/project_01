@@ -53,7 +53,7 @@ class Tables extends React.Component {
         dispatch(actions.fetchDashbaordDelInfo(record.id, callback));
         function callback(success, data) {
             if(success) {
-                let deleteTips = data + intl.get('DASHBOARD.CONFIRM') + intl.get('DASHBOARD.DELETE')
+                let deleteTips = data + ' ' + intl.get('DASHBOARD.CONFIRM_TO_DELETE') + ' '
                     + record.dashboard_title + "?";
                 render(
                     <DashboardDelete

@@ -133,7 +133,7 @@ class TableElement extends React.PureComponent {
         <ModalTrigger
           modalTitle={
             <div>
-            {intl.get('table_primary_key', {name: table.name})}
+            {intl.getHTML('table_primary_key', {name: table.name})}
             </div>
           }
           modalBody={table.indexes.map((ix, i) => (
@@ -142,7 +142,7 @@ class TableElement extends React.PureComponent {
           triggerNode={
             <Link
               className="fa fa-key pull-left m-l-2"
-              tooltip={intl.get('view_primary_key_length', {length: table.indexes.length})}
+              tooltip={intl.getHTML('view_primary_key_length', {length: table.indexes.length})}
             />
           }
         />
