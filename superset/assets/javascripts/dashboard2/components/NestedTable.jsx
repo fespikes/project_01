@@ -120,15 +120,15 @@ export default class NestedTable extends React.Component {
           default:
             console.log('default that');
         }
-        parentData = paramData[config.name];
+        parentData = paramData[config.name].names;
         can_overwrite = parentData.can_overwrite;
         delete parentData.policy;
         delete parentData.can_overwrite;
         for(var i in parentData) {      // set children
-          paramData[config.name][i].policy = policy;
+          paramData[config.name].names[i].policy = policy;
         }
         paramData[config.name].can_overwrite = can_overwrite;
-        parentData.policy = policy;
+        paramData[config.name].policy = policy;
       } else {
         // 做子级数据改变
         // 1.取出子集数据
@@ -149,7 +149,7 @@ export default class NestedTable extends React.Component {
           default:
             console.log('default that');
         }
-        paramData[parent][config.name].policy = policy;
+        paramData[parent].names[config.name].policy = policy;
         delete paramData[parent].policy;
       }
       this.adjustState(paramData);
@@ -166,7 +166,7 @@ export default class NestedTable extends React.Component {
     let canOverwrite;
 
     // bad solution here. need to get it back to BE
-    const getOrderAndAbbr = (item) => {
+    /*const getOrderAndAbbr = (item) => {
       let order = 10;
       let abbr = '';
       switch(item) {
@@ -194,7 +194,7 @@ export default class NestedTable extends React.Component {
           break;
       }
       return {order, abbr};
-    }
+    }*/
 
 
     for (let i in responseData) {
@@ -207,35 +207,30 @@ export default class NestedTable extends React.Component {
       policy = o.policy;
       canOverwrite = o.can_overwrite || true;
       let sufix = '_1';
-      let abbrAndOrder = getOrderAndAbbr(i);
       delete o.policy;
       delete o.can_overwrite;
 
-      for (var j in o){
+      for (var j in o.names){
         dream = {
           key: i + '_child_' + j,
           name: j,
-          new_name: o[j].new_name || (j + sufix),
-          policy: (o[j].policy || policy || POLICY.skip),
-          can_overwrite: o[j].can_overwrite,
+          new_name: o.names[j].new_name || (j + sufix),
+          policy: (o.names[j].policy || policy || POLICY.skip),
+          can_overwrite: o.names[j].can_overwrite,
           parent: i,
         };
         children.push(dream);
-        objChildren[j] =  {     // do the data adjustment here,
+        objChildren[j] = {     // do the data adjustment here,
                                 // need to get it back to param in action
           name: j,
-          new_name: o[j].new_name || (j + sufix),
-          policy: (o[j].policy || policy || POLICY.skip),
-          can_overwrite: o[j].can_overwrite
+          new_name: o.names[j].new_name || (j + sufix),
+          policy: (o.names[j].policy || policy || POLICY.skip),
+          can_overwrite: o.names[j].can_overwrite
         };
-        if (o[j].can_overwrite === false) {
+        if (o.names[j].can_overwrite === false) {
           canOverwrite = false;
         }
-        objChildren['policy'] = policy;
       };
-
-      // o.policy = policy;
-      // o.can_overwrite = canOverwrite;
 
       renderData.push({
         key: i + '_parent',
@@ -243,11 +238,16 @@ export default class NestedTable extends React.Component {
         can_overwrite: canOverwrite,
         children: children,
         policy: policy,
-        order: o.order|| abbrAndOrder.order,
-        abbr: o.abbr || abbrAndOrder.abbr,
+        order: o.order,
+        abbr: o.abbr
       });
 
-      paramData[i] = objChildren;
+      paramData[i] = {
+        order: o.order,
+        abbr: o.abbr,
+        names: objChildren,
+        policy: policy
+      };
     };
 
     const resultArray = renderData.sort((a,b)=> a.order-b.order);
@@ -325,7 +325,7 @@ export default class NestedTable extends React.Component {
   renderExpanded(text, record, index) {
 
     const paramData = this.state.paramData;
-    const childData = paramData[record.parent][record.name];
+    const childData = paramData[record.parent].names[record.name];
     const policy = childData['policy'];
 
     const skipId = record.key + '_skip',
