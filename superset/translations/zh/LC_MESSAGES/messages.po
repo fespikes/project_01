@@ -1467,6 +1467,9 @@ msgstr "SQL编辑器"
 msgid "HDFS Browser"
 msgstr "HDFS浏览器"
 
+msgid "Connection"
+msgstr "连接"
+
 msgid "Database"
 msgstr "连接"
 
