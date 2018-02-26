@@ -144,7 +144,7 @@ class ImportMixin(ValueRestrict):
                 if objs:
                     names_str = [o.name for o in objs]
                     raise ParameterException(
-                        _('The [{obj_type}] new name [{name}] is existed in database')
+                        _('The {obj_type} new name {name} is existed')
                             .format(obj_type=obj_type, name=names_str))
 
 
