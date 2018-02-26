@@ -4,7 +4,7 @@
   "dataset": "Dataset",
   "slice": "Slice",
   "events": "Events",
-  "recent_edited": "Edites",
+  "recent_edited": "Edited",
   "name": "Name",
   "action": "Action",
   "edit_time": "Time",
@@ -19,7 +19,7 @@
   "no_data": "No data",
   "changes_yesterday": "Changes yesterday",
   "changes_today": "Changes today",
-  "go_back": "Go back",
+  "go_back": "Back",
 
   "_below are for hdfs module": "",
   "move": "Move",
@@ -125,6 +125,7 @@
   "dataset_type": "Dataset_type",
   "column": "Column",
   "dimension": "Dimension",
-  "polymerization_function": "Polymerization function"
+  "polymerization_function": "Polymerization function",
 
+  "please_select": "Please Select"
 }

@@ -127,6 +127,7 @@
   "dataset_type": "数据集名字",
   "column": "列",
   "dimension": "维度",
-  "polymerization_function": "聚合函数"
+  "polymerization_function": "聚合函数",
 
+  "please_select": "请选择"
 }

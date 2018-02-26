@@ -133,7 +133,7 @@ function BackButton(props) {
         return <Redirect push to="/" />;
     }
     else {
-        return <Button onClick={props.handleOnClick} className="back-button" icon="left">返回</Button>;
+        return <Button onClick={props.handleOnClick} className="back-button" icon="left">{intl.get('go_back')}</Button>;
     }
 }
 

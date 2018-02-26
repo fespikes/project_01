@@ -10,6 +10,7 @@
     "GRANT_PERM": "赋权",
     "NAME": "名称",
     "CONFIRM": "确定",
+    "CONFIRM_TO_DELETE": "确定删除",
     "SAVE": "保存",
     "SAVE_AS": "另存为",
     "SAVE_ERROR": "仪表板保存失败",

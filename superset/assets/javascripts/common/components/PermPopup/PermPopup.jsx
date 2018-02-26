@@ -241,6 +241,7 @@ class PermPopup extends React.Component {
         render(
             <PermInfo
                 infos={this.state.grantInfo}
+                key={+new Date()}
             />,
             document.getElementById(mountId)
         );
@@ -286,10 +287,10 @@ class PermPopup extends React.Component {
                         </div>
                         <div className="popup-body">
                             <div className="dialog-item">
-                                <div className="item-left" style={{width: 60}}>
+                                <div className="item-left" style={{width: 80, 'padding-left': 20}}>
                                     <span>{intl.get('POPUP.USER_NAME')}</span>
                                 </div>
-                                <div className="item-right" style={{width: 515}}>
+                                <div className="item-right" style={{width: 480}}>
                                     <Select
                                         style={{width: '100%'}}
                                         placeholder={intl.get('POPUP.PLEASE_SELECT')}
@@ -300,7 +301,7 @@ class PermPopup extends React.Component {
                                 </div>
                             </div>
                             <div className="dialog-item">
-                                <div className="item-left" style={{width: 60}}>
+                                <div className="item-left" style={{width: 80, 'padding-left': 20}}>
                                     <span>{intl.get('POPUP.PERM')}</span>
                                 </div>
                                 <div

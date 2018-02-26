@@ -521,7 +521,9 @@
 
             .title-tab {
                 li {
-                    width: 95px;
+                    float: left;
+                    display: inline-block;
+                    width: 120px;
                     text-align: center;
                     background-color: #fff;
                 }

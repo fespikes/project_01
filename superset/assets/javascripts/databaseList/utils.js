@@ -1,18 +1,18 @@
-import {PILOT_PREFIX} from '../../utils/utils'
+import { PILOT_PREFIX } from '../../utils/utils';
 import { connectionTypes } from './actions';
 
 export default {
-	getAbsUrl: relativePath => window.location.origin + relativePath
+    getAbsUrl: relativePath => window.location.origin + relativePath
 }
 
 export function argsValidate(args) {
     let validate = true;
-    if(!(args && args.length > 0)) {
+    if (!(args && args.length > 0)) {
         validate = false;
     }
     try {
         JSON.parse(args);
-    }catch (e) {
+    } catch ( e ) {
         validate = false;
     }
     return validate;
@@ -26,38 +26,39 @@ export function transformObjectToArray(objectArray, attr) {
     return array;
 }
 
-export function isCorrectConnection(connectionType, connectionTypes) {/* include inceptor,mysql,oracle,mssql connection */
-    if(connectionType === connectionTypes.inceptor || connectionType === connectionTypes.mysql
-        || connectionType === connectionTypes.oracle || connectionType === connectionTypes.mssql) {
+export function isCorrectConnection(connectionType, connectionTypes) { /* include inceptor,mysql,oracle,mssql connection */
+    if (connectionType === connectionTypes.inceptor || connectionType === connectionTypes.mysql
+            || connectionType === connectionTypes.oracle || connectionType === connectionTypes.mssql) {
         return true;
-    }else {
+    } else {
         return false;
     }
-};
+}
+;
 
 export const connectDefaultInfo = {
     'HDFS': {
         'httpfs': {
             'defaultValue': '',
-            'tip': 'HDFS httpf服务IP地址'
+            'tip': 'HDFS_HTTPFS'
         },
         'defaultIncConnect': {
             'defaultValue': '',
-            'tip': '如果HDFS数据集没有选择Inceptor连接，则将使用该Inceptor连接。'
+            'tip': 'HDFS_DEFAULTINCCONNECT'
         },
         'str': {
             'defaultValue': '',
-            'tip': ''
+            'tip': 'HDFS_STR'
         },
         'args': {
             'defaultValue': '',
-            'tip': ''
+            'tip': 'HDFS_ARGS'
         }
     },
     'INCEPTOR': {
         'str': {
             'defaultValue': 'inceptor://172.0.0.1:10000/database',
-            'tip': '如果认证方式是LDAP，需要加上用户名和密码：inceptor://username:password@172.0.0.1:10000/database'
+            'tip': 'INCEPTOR_STR'
         },
         'args': {
             'defaultValue': {
@@ -70,21 +71,21 @@ export const connectDefaultInfo = {
                     'fqdn': 'tw-node1360'
                 }
             },
-            'tip': 'ODBC连接串的参数。（1）keytab文件通过Guardian获取；（2）支持LDAP认证，连接串需要添加用户名和密码'
+            'tip': 'INCEPTOR_ARGS'
         },
         'httpfs': {
             'defaultValue': '',
-            'tip': ''
+            'tip': 'INCEPTOR_HTTPFS'
         },
         'defaultIncConnect': {
             'defaultValue': '',
-            'tip': ''
+            'tip': 'INCEPTOR_DEFAULTINCCONNECT'
         }
     },
     'MYSQL': {
         'str': {
             'defaultValue': 'mysql://username:password@172.0.0.1:3306/database?charset=utf8',
-            'tip': '参数’charset=utf8’是必须的'
+            'tip': 'MYSQL_STR'
         },
         'args': {
             'defaultValue': {
@@ -92,21 +93,21 @@ export const connectDefaultInfo = {
 
                 }
             },
-            'tip': '不再需要修改连接参数'
+            'tip': 'NO_NEED_CONN_PARAMS'
         },
         'httpfs': {
             'defaultValue': '',
-            'tip': ''
+            'tip': 'MYSQL_HTTPFS'
         },
         'defaultIncConnect': {
             'defaultValue': '',
-            'tip': ''
+            'tip': 'MYSQL_DEFAULTINCCONNECT'
         }
     },
     'ORACLE': {
         'str': {
             'defaultValue': 'oracle://username:password@172.0.0.1:1521/sid',
-            'tip': ''
+            'tip': 'ORACLE_STR'
         },
         'args': {
             'defaultValue': {
@@ -114,21 +115,21 @@ export const connectDefaultInfo = {
 
                 }
             },
-            'tip': '不再需要修改连接参数'
+            'tip': 'NO_NEED_CONN_PARAMS'
         },
         'httpfs': {
             'defaultValue': '',
-            'tip': ''
+            'tip': 'ORACLE_HTTPFS'
         },
         'defaultIncConnect': {
             'defaultValue': '',
-            'tip': ''
+            'tip': 'ORACLE_DEFAULTINCCONNECT'
         }
     },
     'MSSQL': {
         'str': {
             'defaultValue': 'mssql+pymssql://username:password@172.0.0.1.109:1433/pilot?charset=utf8',
-            'tip': '参数’charset=utf8’是必须的'
+            'tip': 'MYSQL_STR'
         },
         'args': {
             'defaultValue': {
@@ -136,15 +137,15 @@ export const connectDefaultInfo = {
 
                 }
             },
-            'tip': '不再需要修改连接参数'
+            'tip': 'NO_NEED_CONN_PARAMS'
         },
         'httpfs': {
             'defaultValue': '',
-            'tip': ''
+            'tip': 'MSSQL_HTTPFS'
         },
         'defaultIncConnect': {
             'defaultValue': '',
-            'tip': ''
+            'tip': 'MSSQL_DEFAULTINCCONNECT'
         }
     }
 };

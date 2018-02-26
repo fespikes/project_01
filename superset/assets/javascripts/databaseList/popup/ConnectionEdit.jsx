@@ -219,6 +219,15 @@ class ConnectionEdit extends React.Component {
         const connectionType = this.props.connectionType;
         const {connectionNames, database}= this.state;
 
+/*        console.log(connectionType);
+        console.log(connectDefaultInfo[connectionType]);
+        console.log(connectDefaultInfo[connectionType].str.tip);
+        console.log('DATABASE.' + connectDefaultInfo[connectionType].str.tip);
+
+        console.log('value is:', intl.get('DATABASE.' + connectDefaultInfo[connectionType].str.tip));
+        console.log(intl.get('DATABASE.' + connectDefaultInfo[connectionType].args.tip));
+        console.log('----------------------------------');*/
+
         return (
             <div className="popup">
                 <div className="popup-dialog popup-md">
@@ -226,7 +235,7 @@ class ConnectionEdit extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className="icon icon-connect" />
-                                <span>{intl.get('DATABASE.EDIT')}{connectionType}{intl.get('DATABASE.CONNECTION')}</span>
+                                <span>{intl.get('DATABASE.EDIT') + ' '}{connectionType}{' '+ intl.get('DATABASE.CONNECTION')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -290,7 +299,7 @@ class ConnectionEdit extends React.Component {
                                         />
                                         <Tooltip
                                             placement="topRight"
-                                            title={connectDefaultInfo[connectionType].str.tip}
+                                            title={intl.get('DATABASE.' + connectDefaultInfo[connectionType].str.tip)}
                                         >
                                             <i className="icon icon-info after-icon" />
                                         </Tooltip>
@@ -314,7 +323,7 @@ class ConnectionEdit extends React.Component {
                                         />
                                         <Tooltip
                                             placement="topRight"
-                                            title={connectDefaultInfo[connectionType].args.tip}
+                                            title={intl.get('DATABASE.' + connectDefaultInfo[connectionType].args.tip)}
                                          >
                                             <i
                                                 className="icon icon-info after-textarea-icon"
@@ -425,7 +434,7 @@ class ConnectionEdit extends React.Component {
                                         />
                                         <Tooltip
                                             placement="topRight"
-                                            title={connectDefaultInfo[connectionType].httpfs.tip}
+                                            title={intl.get('DATABASE.'+ connectDefaultInfo[connectionType].httpfs.tip)}
                                         >
                                             <i className="icon icon-info after-icon" />
                                         </Tooltip>
@@ -444,7 +453,7 @@ class ConnectionEdit extends React.Component {
                                 </div>
                                 <div className="dialog-item">
                                     <div className="item-left">
-                                        <span>inceptor{intl.get('DATABASE.CONNECTION')}：</span>{/*默认inceptor连接*/}
+                                        <span style={{whiteSpace:'nowrap'}}>{intl.get('DATABASE.INCEPTOR_CONNECTION')}：</span>{/*默认inceptor连接*/}
                                     </div>
                                     <div className="item-right">
                                         <Select
@@ -455,7 +464,7 @@ class ConnectionEdit extends React.Component {
                                         />
                                         <Tooltip
                                             placement="topRight"
-                                            title={connectDefaultInfo[connectionType].defaultIncConnect.tip}
+                                            title={intl.get('DATABASE.' + connectDefaultInfo[connectionType].defaultIncConnect.tip)}
                                         >
                                             <i className="icon icon-info after-icon" />
                                         </Tooltip>

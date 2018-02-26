@@ -50,11 +50,10 @@ class Operations extends React.Component {
         const callback = function(success, data) {
             if(success) {
                 let deleteType = "multiple";
-                let deleteTips = data.length===0 ? intl.get('DASHBOARD.CONFIRM') + intl.get('DASHBOARD.DELETE')
-                    + selectedRowNames + '?' : data;
+                let deleteTips = data.length===0 ? intl.get('DASHBOARD.CONFIRM_TO_DELETE') + selectedRowNames + '?' : data;
                 if(selectedRowNames.length === 0) {
                     deleteType = 'none';
-                    deleteTips = intl.get('DELETE_TIP');
+                    deleteTips = intl.get('DASHBOARD.DELETE_TIP');
                 }
                 render(
                     <DashboardDelete

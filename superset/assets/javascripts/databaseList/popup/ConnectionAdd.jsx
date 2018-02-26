@@ -228,7 +228,7 @@ class ConnectionAdd extends React.Component {
                         <div className="popup-header">
                             <div className="header-left">
                                 <i className='icon icon-connect'/>
-                                <span>{intl.get('DATABASE.ADD')}{connectionType}{intl.get('DATABASE.CONNECTION')}</span>
+                                <span>{intl.get('DATABASE.ADD') + ' '}{connectionType}{' ' + intl.get('DATABASE.CONNECTION')}</span>
                             </div>
                             <div className="header-right">
                                 <i
@@ -282,7 +282,7 @@ class ConnectionAdd extends React.Component {
                                         />
                                         <Tooltip
                                             placement="topRight"
-                                            title={connectDefaultInfo[connectionType].str.tip}
+                                            title={intl.get('DATABASE.'+ connectDefaultInfo[connectionType].str.tip)}
                                         >
                                             <i className="icon icon-infor after-icon"/>
                                         </Tooltip>
@@ -309,7 +309,7 @@ class ConnectionAdd extends React.Component {
                                         </textarea>
                                         <Tooltip
                                             placement="topRight"
-                                            title={connectDefaultInfo[connectionType].args.tip}
+                                            title={intl.get('DATABASE.'+ connectDefaultInfo[connectionType].args.tip)}
                                         >
                                             <i
                                                 className="icon icon-infor after-textarea-icon"
@@ -368,7 +368,7 @@ class ConnectionAdd extends React.Component {
                                         />
                                         <Tooltip
                                             placement="topRight"
-                                            title={connectDefaultInfo[connectionTypes.hdfs].httpfs.tip}
+                                            title={intl.get('DATABASE.'+ connectDefaultInfo[connectionTypes.hdfs].httpfs.tip)}
                                         >
                                             <i className="icon icon-infor after-icon"/>
                                         </Tooltip>
@@ -386,7 +386,7 @@ class ConnectionAdd extends React.Component {
                                         />
                                         <Tooltip
                                             placement="topRight"
-                                            title={connectDefaultInfo[connectionTypes.hdfs].defaultIncConnect.tip}
+                                            title={intl.get('DATABASE.'+ connectDefaultInfo[connectionTypes.hdfs].defaultIncConnect.tip)}
                                         >
                                             <i className="icon icon-infor after-icon"/>
                                         </Tooltip>

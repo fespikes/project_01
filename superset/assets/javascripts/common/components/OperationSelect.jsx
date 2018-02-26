@@ -5,7 +5,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import PropTypes from 'prop-types';
 import { Link }  from 'react-router-dom';
-import { getEleOffsetLeft, getEleOffsetTop } from '../../../utils/utils'
+import intl from 'react-intl-universal';
+import { getEleOffsetLeft, getEleOffsetTop, loadIntlResources } from '../../../utils/utils'
 
 const $ = window.$ = require('jquery');
 
@@ -17,6 +18,12 @@ class OperationSelect extends React.Component {
             selected: props.defaultValue
         };
         this.onToggle = this.onToggle.bind(this);
+    }
+
+    componentDidMount() {
+        loadIntlResources(_ => this.setState({
+            initDone: true
+        }));
     }
 
     onToggle(event) {
@@ -93,12 +100,12 @@ class OperationSelect extends React.Component {
                 </li>
             });
         }
-
+        
         return (
             <div className="common-select">
                 <div id={opeType} className="selection-toggle" onClick={this.onToggle}>
                     <i className={iconClass}/>
-                    <span>{this.state.selected ||  placeholder || "请选择"}</span>
+                    <span>{this.state.selected ||  placeholder || intl.get('please_select')}</span>
                     <i className={this.state.opened?'icon icon-open-sign':'icon icon-close-sign'}/>
                 </div>
                 <div className={this.state.opened===true?'selection-section':'none'}>

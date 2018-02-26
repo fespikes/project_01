@@ -283,7 +283,7 @@ export function getDatasetTitle(opeType, datasetType, intl) {
     }else if(opeType === 'edit') {
         opeName = intl.get('DATASET.EDIT');
     }
-    return opeName + datasetType + intl.get('DATASET.DATASET');
+    return opeName + ' ' + datasetType + ' ' + intl.get('DATASET.DATASET');
 }
 
 export function getDatasetTab2Name(datasetType, intl) {
