@@ -573,14 +573,28 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
     @catch_exception
     @expose("/before_import/", methods=['POST'])
-    def check_same_names(self):
-        """Before import, check same names of objects in file and database."""
+    def before_import(self):
+        """Before import, check same names of objects in file and database.
+        #:return {'dashboard': {'order': 1,
+                                'abbr': 'Dashboard',  # translation
+                                'names': {'n1': {'can_overwrite': true},
+                                          'n2': {'can_overwrite': false},
+                                        }
+                                }
+                'slice' : {...}
+                 }
+        """
         f = request.data
         data = pickle.loads(f)
         import_objs, same_objs = {}, {}
         for obj_type in self.OBJECT_TYPES:
             import_objs[obj_type] = []
-            same_objs[obj_type] = {}
+        same_objs = {'dashboard': {'order': 1, 'abbr': str(_('Dashboard')), 'names': {}},
+                     'slice': {'order': 2, 'abbr': str(_('Slice')), 'names': {}},
+                     'dataset': {'order': 3, 'abbr': str(_('Dataset')), 'names': {}},
+                     'database': {'order': 4, 'abbr': str(_('DB connection')), 'names': {}},
+                     'hdfsconnection': {'order': 5, 'abbr': str(_('HDFS connection')), 'names': {}},
+                     }
 
         for dataset in data['datasets']:
             import_objs[self.OBJECT_TYPES[2]].append(dataset.name)
@@ -602,11 +616,11 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
                 name_column = model_name_columns[obj_type]
                 sames = db.session.query(model).filter(name_column.in_(obj_names)).all()
                 for o in sames:
-                    can_overwrite = self.check_edit_perm([obj_type, o.name],
-                                                         raise_if_false=False)
-                    same_objs[obj_type][o.name] = {'can_overwrite': can_overwrite}
+                    editable = self.check_edit_perm([obj_type, o.name],
+                                                    raise_if_false=False)
+                    same_objs[obj_type]['names'][o.name] = {'can_overwrite': editable}
 
-        same_objs = dict((k, v) for k, v in same_objs.items() if v)
+        same_objs = dict((k, v) for k, v in same_objs.items() if v['names'])
         return json_response(data=same_objs)
 
     @catch_exception
@@ -626,7 +640,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
             Dashboard.import_obj(
                 session, dashboard, solution, self.grant_owner_permissions)
             Log.log('import', dashboard, 'dashboard', g.user.id)
-        return redirect('/dashboard/list/')
+        return json_response('Import success')
 
     @catch_exception
     @expose("/export/")

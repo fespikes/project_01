@@ -1470,6 +1470,12 @@ msgstr "HDFS浏览器"
 msgid "Database"
 msgstr "连接"
 
+msgid "DB connection"
+msgstr "数据库连接"
+
+msgid "HDFS connection"
+msgstr "HDFS连接"
+
 msgid "Datasource"
 msgstr "数据源"
 
