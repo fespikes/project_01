@@ -66,7 +66,7 @@ class TableElement extends React.PureComponent {
       let partitionClipBoard;
       if (table.partitions.partitionQuery) {
         partitionQuery = table.partitions.partitionQuery;
-        const tt = intl.get('copy_to_clipboard');
+        const tt = intl.get('copy_clipboard');
         partitionClipBoard = (
           <CopyToClipboard
             text={partitionQuery}
@@ -190,7 +190,7 @@ class TableElement extends React.PureComponent {
                     }
                     text={table.selectStar}
                     shouldShowText={false}
-                    tooltipText={intl.get('copy_to_clipboard')}
+                    tooltipText={intl.get('copy_clipboard')}
                   />
                 }
                 <Link

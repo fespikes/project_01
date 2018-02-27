@@ -161,9 +161,10 @@ class VisualizeModal extends React.PureComponent {
                 </div>
             );
         }
+
         const tableData = this.props.query.results.columns.map((col) => ({
-            列: col.name,
-            维度: (
+            [intl.get('column')]: col.name,
+            [intl.get('dimension')]: (
                 <input
                     type="checkbox"
                     onChange={this.changeCheckbox.bind(this, 'is_dim', col.name)}
@@ -171,7 +172,7 @@ class VisualizeModal extends React.PureComponent {
                     className="form-control"
                 />
             ),
-            日期: (
+            [intl.get('date')]: (
                 <input
                     type="checkbox"
                     className="form-control"
@@ -179,7 +180,7 @@ class VisualizeModal extends React.PureComponent {
                     checked={(this.state.columns[col.name]) ? this.state.columns[col.name].is_date : false}
                 />
             ),
-            聚合函数: (
+            [intl.get('polymerization_function')]: (
                 <Select
                     options={[
                         { value: 'sum', label: 'SUM(x)' },
@@ -238,10 +239,12 @@ class VisualizeModal extends React.PureComponent {
                         <hr />
                         <Table
                             className="table table-condensed"
-                            columns={[ intl.get('column'),
-                            intl.get('dimension'), 
-                            intl.get('date'), 
-                            intl.get('polymerization_function')]}
+                            columns={[
+                                intl.get('column'),
+                                intl.get('dimension'), 
+                                intl.get('date'), 
+                                intl.get('polymerization_function')
+                            ]}
                             data={tableData}
                         />
                         <div style={{textAlign: 'center'}}>

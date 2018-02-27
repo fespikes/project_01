@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import { Tooltip, OverlayTrigger, MenuItem } from 'react-bootstrap';
+import intl from 'react-intl-universal';
 
 const propTypes = {
   copyNode: PropTypes.node,
@@ -8,7 +9,6 @@ const propTypes = {
   shouldShowText: PropTypes.bool,
   text: PropTypes.string,
   inMenu: PropTypes.bool,
-  tooltipText: PropTypes.string,
 };
 
 const defaultProps = {
@@ -16,7 +16,6 @@ const defaultProps = {
   onCopyEnd: () => {},
   shouldShowText: true,
   inMenu: false,
-  tooltipText: 'Copy to clipboard',
 };
 
 export default class CopyToClipboard extends React.Component {
@@ -74,9 +73,9 @@ export default class CopyToClipboard extends React.Component {
 
   tooltipText() {
     if (this.state.hasCopied) {
-      return '已复制!';
+      return intl.get('copyed');
     }
-    return this.props.tooltipText;
+    return intl.get('copy_clipboard');;
   }
 
   renderLink() {

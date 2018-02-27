@@ -108,6 +108,8 @@
   "rename_tab": "Rename tab",
   "expand_tool_bar": "Expand tool bar",
   "hide_tool_bar": "Hide tool bar",
+  "copy_clipboard": "Copy to clipboard",
+  "copyed": "Copied already",
   "latest_partition": "Latest partition:",
   "table_primary_key": "Table <strong>{name}</strong> 's primary key",
   "view_primary_key_length": "View primary key length ({length})",
