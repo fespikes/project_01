@@ -211,7 +211,7 @@ class VisualizeModal extends React.PureComponent {
                             </div>
                         </div>
                     </Modal.Header>
-                    <Modal.Body>
+                    <Modal.Body style={{maxHeight: 500}}>
                         {alerts}
                         <div className="row">
                             <Col md={6}>
