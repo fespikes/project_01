@@ -1467,6 +1467,9 @@ msgstr "SQL编辑器"
 msgid "HDFS Browser"
 msgstr "HDFS浏览器"
 
+msgid "Connection"
+msgstr "连接"
+
 msgid "Database"
 msgstr "连接"
 
@@ -1900,8 +1903,8 @@ msgstr "重复的[{obj_type}]新名字：[{name}]"
 msgid "Want to rename [{name}], but new name is None"
 msgstr "想重命名[{name}]，但是新名字是空的"
 
-msgid "The [{obj_type}] new name [{name}] is existed in database"
-msgstr "同名的[{obj_type}] [{name}]已存在于数据库中"
+msgid "The {obj_type} new name {name} is existed"
+msgstr "同名的{obj_type} {name}已存在于数据库中"
 
 
 #========================

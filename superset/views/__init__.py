@@ -39,7 +39,7 @@ appbuilder.add_view_no_menu(connection.HDFSConnectionModelView)
 appbuilder.add_view(
     connection.DatabaseView,
     "Databases",
-    label=__("Database"),
+    label=__("Connection"),
     icon="fa-database",
     category="Sources",
     category_label=__("Datasource"),

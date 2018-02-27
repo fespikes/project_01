@@ -316,7 +316,7 @@ class Database(Model, AuditMixinNullable, ImportMixin):
                 session.commit()
                 grant_owner_permissions([cls.model_type, new_db.database_name])
             elif policy == cls.Policy.SKIP:
-                logging.info('Importing (skip) database connection: [{}]'.format(i_db))
+                logging.info('Importing database connection: [{}] (skip)'.format(i_db))
 
         return new_db
 
@@ -396,46 +396,3 @@ class Connection(object):
     @classmethod
     def count(cls):
         return Database.count() + HDFSConnection.count()
-
-
-# class DatabaseAccount(Model):
-#     """ORM object to store the account info of database"""
-#     __tablename__ = 'database_account'
-#     type = "table"
-#
-#     id = Column(Integer, primary_key=True)
-#     user_id = Column(Integer, ForeignKey('ab_user.id'), nullable=True)
-#     database_id = Column(Integer, ForeignKey('dbs.id'))
-#     username = Column(String(64))
-#     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
-#     database = relationship(
-#         'Database',
-#         backref=backref('database_account', cascade='all, delete-orphan'),
-#         foreign_keys=[database_id]
-#     )
-#
-#     @classmethod
-#     def insert_or_update_account(cls, user_id, db_id, username, password):
-#         record = (
-#             db.session.query(cls)
-#                 .filter(cls.user_id == user_id,
-#                         cls.database_id == db_id)
-#                 .first()
-#         )
-#         if record:
-#             record.username = username if username else record.username
-#             record.password = password if password else record.password
-#             db.session.commit()
-#         else:
-#             if not username or not password:
-#                 logging.error("The username or password of database account can't be none.")
-#                 return False
-#             new_record = cls(user_id=user_id,
-#                              database_id=db_id,
-#                              username=username,
-#                              password=password)
-#             db.session.add(new_record)
-#         db.session.commit()
-#         logging.info("Update username or password of user:{} and database:{} success."
-#                      .format(user_id, db_id))
-#         return True
