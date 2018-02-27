@@ -1,14 +1,8 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-import os
 import logging
 import json
 import functools
 import requests
-from flask import g, request, redirect, url_for
+from flask import g, request, redirect
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 
@@ -25,8 +19,6 @@ from .base import BaseSupersetView, catch_exception, json_response
 
 config = app.config
 
-UPLOAD_FOLDER = '/home/rockwang/Desktop/transwarp_python/saveFromPython/'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def catch_hdfs_exception(f):
     """

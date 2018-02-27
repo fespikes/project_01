@@ -1,9 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-import json
 import re
 from datetime import datetime, date
 from flask_appbuilder import Model
@@ -19,7 +13,9 @@ from superset.exception import PropertyException
 from .base import QueryStatus
 from .dataset import Dataset, TableColumn, SqlMetric
 from .connection import Database, HDFSConnection, Connection
-from .core import Slice, Dashboard
+from .slice import Slice
+from .dashboard import Dashboard
+
 
 config = app.config
 

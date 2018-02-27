@@ -5,6 +5,8 @@ from . import home
 from . import core
 from . import connection
 from . import dataset
+from . import slice
+from . import dashboard
 from . import sql_lab
 from . import hdfs
 from . import user
@@ -20,14 +22,14 @@ appbuilder.add_view(
 
 appbuilder.add_view_no_menu(core.Superset)
 appbuilder.add_view(
-    core.DashboardModelView,
+    dashboard.DashboardModelView,
     "Dashboards",
     label=__("Dashboard"),
     icon="fa-dashboard",
     category='',
     category_icon='')
 appbuilder.add_view(
-    core.SliceModelView,
+    slice.SliceModelView,
     "Slices",
     label=__("Slice"),
     icon="fa-bar-chart",
