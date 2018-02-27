@@ -23,8 +23,11 @@
     width: 29%; padding: 0;
   }
 
-  .components-table-demo-nested .ant-table-expanded-row .ant-table-row:last-child td {
+  .components-table-demo-nested .ant-table-expanded-row .ant-table-row td {
     border: none;
+  }
+  .components-table-demo-nested .ant-table-expanded-row .ant-table-row:hover td:first-child {
+    border-left: 2px #089af1 solid;
   }
 
   .components-table-demo-nested .ant-table-expanded-row .ant-table-thead > tr > th {
