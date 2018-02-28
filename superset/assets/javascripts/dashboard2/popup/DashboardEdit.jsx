@@ -44,7 +44,7 @@ class DashboardEdit extends React.Component {
     }
 
     handleTitleChange(e) {
-        this.props.dashboardDetail.dashboard_title = e.currentTarget.value;
+        this.props.dashboardDetail.name = e.currentTarget.value;
         let enableConfirm = false;
         if(e.currentTarget.value && e.currentTarget.value.length > 0) {
             enableConfirm = true;
@@ -131,7 +131,7 @@ class DashboardEdit extends React.Component {
                                 <div className="item-right">
                                     <input
                                         className="tp-input dialog-input"
-                                        value={this.props.dashboardDetail.dashboard_title}
+                                        value={this.props.dashboardDetail.name}
                                         onChange={this.handleTitleChange}
                                         autoFocus
                                     />

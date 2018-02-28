@@ -25,7 +25,7 @@ export function getSelectedDashboards(selectedDashboards, availableDashboards) {
 export function getNewDashboard(dashboard, selectedSlices, available_slices) {
     let obj = {};
     obj.id = dashboard.id;
-    obj.dashboard_title = dashboard.dashboard_title;
+    obj.name = dashboard.name;
     obj.description = dashboard.description;
     obj.slices = getSelectedSlices(selectedSlices, available_slices);
     return obj;
