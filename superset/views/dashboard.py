@@ -5,12 +5,12 @@ from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.security.sqla.models import User
+from sqlalchemy import and_, or_
 
 from superset import app, db, utils
 from superset.exception import ParameterException, GuardianException
 from superset.models import (
-    Database, Dataset, Slice, Dashboard, Log, FavStar, str_to_model,
-    model_name_columns
+    Database, Dataset, Slice, Dashboard, Log, FavStar, str_to_model, model_name_columns
 )
 from superset.message import *
 from .base import (
@@ -24,17 +24,17 @@ QueryStatus = utils.QueryStatus
 
 class DashboardModelView(SupersetModelView, PermissionManagement):
     model = Dashboard
-    model_type = 'dashboard'
+    model_type = model.model_type
     datamodel = SQLAInterface(Dashboard)
     route_base = '/dashboard'
-    list_columns = ['id', 'dashboard_title', 'url', 'description', 'changed_on']
-    edit_columns = ['dashboard_title', 'description']
-    show_columns = ['id', 'dashboard_title', 'description', 'table_names']
+    list_columns = ['id', 'name', 'url', 'description', 'changed_on']
+    edit_columns = ['name', 'description']
+    show_columns = ['id', 'name', 'description', 'datasets']
     add_columns = edit_columns
     list_template = "superset/partials/dashboard/dashboard.html"
 
     str_to_column = {
-        'title': Dashboard.dashboard_title,
+        'title': Dashboard.name,
         'description': Dashboard.description,
         'changed_on': Dashboard.changed_on,
         'owner': User.username,
@@ -50,7 +50,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         utils.validate_json(obj.position_json)
 
     def pre_update(self, old_obj, new_obj):
-        self.check_edit_perm([self.model_type, old_obj.dashboard_title])
+        self.check_edit_perm(old_obj.guardian_datasource)
         self.pre_add(new_obj)
 
     def post_delete(self, obj):
@@ -62,9 +62,9 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         db.session.commit()
 
     def check_column_values(self, obj):
-        if not obj.dashboard_title:
+        if not obj.name:
             raise ParameterException(NONE_DASHBOARD_NAME)
-        self.model.check_name(obj.dashboard_title)
+        self.model.check_name(obj.name)
 
     def get_object_list_data(self, **kwargs):
         """
@@ -77,6 +77,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         only_favorite = kwargs.get('only_favorite')
 
         query = self.query_with_favorite(self.model_type, **kwargs)
+        query = query.filter(Dashboard.type == Dashboard.data_types[0])
 
         readable_names = None
         if self.guardian_auth:
@@ -159,7 +160,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         connections online.
         """
         dashboard = self.get_object(id)
-        self.check_release_perm([self.model_type, dashboard.dashboard_title])
+        self.check_release_perm(dashboard.guardian_datasource)
 
         slices = dashboard.slices
         datasets = []
@@ -200,7 +201,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         dash = self.get_object(id)
-        self.check_release_perm([self.model_type, dash.dashboard_title])
+        self.check_release_perm(dash.guardian_datasource)
         info = _("Changing dashboard {dashboard} to offline will make it invisible "
                  "for other users").format(dashboard=[dash, ])
         return json_response(data=info)
@@ -209,7 +210,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         dash = self.get_object(id)
-        self.check_delete_perm([self.model_type, dash.dashboard_title])
+        self.check_delete_perm(dash.guardian_datasource)
         return json_response(data='')
 
     @catch_exception
@@ -221,7 +222,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         dash = self.get_object(id)
-        self.check_grant_perm([self.model_type, dash.dashboard_title])
+        self.check_grant_perm(dash.guardian_datasource)
         objects = self.grant_affect_objects(dash)
         info = _("Granting permissions of [{dashboard}] to this user, will grant "
                  "permissions of dependencies to this user too: "
@@ -314,7 +315,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
                 name_column = model_name_columns[obj_type]
                 sames = db.session.query(model).filter(name_column.in_(obj_names)).all()
                 for o in sames:
-                    editable = self.check_edit_perm([obj_type, o.name],
+                    editable = self.check_edit_perm(o.guardian_datasource,
                                                     raise_if_false=False)
                     same_objs[obj_type]['names'][o.name] = {'can_overwrite': editable}
 
@@ -358,7 +359,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         """Add and save slices to a dashboard"""
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        self.check_edit_perm([self.model_type, dash.dashboard_title])
+        self.check_edit_perm(dash.guardian_datasource)
         new_slices = session.query(Slice).filter(
             Slice.id.in_(slice_ids))
         dash.slices += new_slices
@@ -366,3 +367,174 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         session.commit()
         session.close()
         return True
+
+    @catch_exception
+    @expose("/folder/listdata/", methods=['GET'])
+    def list_folder_data(self):
+        folder_id = request.args.get('folder_id')
+        present_folder = None
+        if folder_id:
+            present_folder = Dashboard.get_folder(folder_id)
+        data = {'folder_id': folder_id,
+                'folder_name': present_folder.name if present_folder else None,
+                'folders': [],
+                'dashboards': []}
+
+        if not folder_id:
+            query = db.session.query(Dashboard) \
+                .filter(
+                    or_(
+                        and_(
+                            Dashboard.type == Dashboard.data_types[0],
+                            Dashboard.path == None
+                        ),
+                        and_(
+                            Dashboard.type == Dashboard.data_types[1],
+                            ~Dashboard.path.like('%/%')
+                        )
+                    )
+                )
+        else:
+            query = db.session.query(Dashboard) \
+                .filter(
+                    or_(
+                        and_(
+                            Dashboard.type == Dashboard.data_types[0],
+                            Dashboard.path == folder_id
+                        ),
+                        and_(
+                            Dashboard.type == Dashboard.data_types[1],
+                            Dashboard.path.like('%{}/%'.format(folder_id)),
+                            Dashboard.path.like('%/{}/%'.format(folder_id)),
+                            ~Dashboard.path.like('{}/%/%'.format(folder_id)),
+                            ~Dashboard.path.like('%/{}/%/%'.format(folder_id)),
+                        )
+                    )
+                )
+        query = query.order_by(Dashboard.name.desc())
+
+        for d in query.all():
+            if d.type == Dashboard.data_types[0]:  # dashboard
+                if self.check_read_perm(d.guardian_datasource, raise_if_false=False):
+                    data['dashboards'].append({'id': d.id, 'name': d.name})
+            elif d.type == Dashboard.data_types[1]:  # folder
+                data['folders'].append({'id': d.id, 'name': d.name})
+
+        return json_response(data=data)
+
+    @catch_exception
+    @expose("/folder/add/", methods=['GET'])
+    def add_folder(self):
+        parent_id = request.args.get('parent_id')
+        name = request.args.get('name')
+
+        Dashboard.check_name(name)
+        parent = None
+        if parent_id:
+            parent = Dashboard.get_folder(parent_id)
+            Dashboard.check_path_depth(parent.path)
+
+        new_folder = Dashboard(name=name, type=Dashboard.data_types[1])
+        db.session.add(new_folder)
+        db.session.commit()
+
+        if parent:
+            path = '{}/{}'.format(parent.path, new_folder.id)
+        else:
+            path = '{}'.format(new_folder.id)
+        new_folder.path = path
+        db.session.commit()
+        return json_response(message=ADD_SUCCESS)
+
+    @catch_exception
+    @expose("/folder/rename/", methods=['GET'])
+    def rename_folder(self):
+        folder_id = request.args.get('folder_id')
+        new_name = request.args.get('new_name')
+        folder = Dashboard.get_folder(folder_id)
+        if folder.name != new_name:
+            self.check_folder_perm(folder, 'rename')
+            folder.name = new_name
+            db.session.commit()
+        return json_response(message=UPDATE_SUCCESS)
+
+    @catch_exception
+    @expose("/folder/delete/", methods=['GET'])
+    def delete_folder(self):
+        folder_id = request.args.get('folder_id')
+        folder = Dashboard.get_folder(folder_id)
+        folders, dashs = self.check_folder_perm(folder, 'delete')
+
+        for dash in dashs:
+            self._delete(dash)
+        for f in folders:
+            db.session.delete(f)
+        db.session.commit()
+        return json_response(message=DELETE_SUCCESS)
+
+    @catch_exception
+    @expose("/folder/move/dashboard/", methods=['GET'])
+    def move_dashboard(self):
+        dash_id = request.args.get('dashboard_id')
+        folder_id = request.args.get('folder_id')
+
+        dash = Dashboard.get_object(id=dash_id)
+        self.check_edit_perm(dash.guardian_datasource)
+        Dashboard.get_folder(folder_id)  # ensure folder is existed
+        dash.path = folder_id
+        db.session.commit()
+        return json_response(message=MOVE_DASHBOARD_SUCCESS)
+
+    @catch_exception
+    @expose("/folder/move/folder/", methods=['GET'])
+    def move_folder(self):
+        folder_id = request.args.get('folder_id')
+        parent_folder_id = request.args.get('parent_folder_id')
+
+        folder = Dashboard.get_folder(folder_id)
+        parent_folder = Dashboard.get_folder(parent_folder_id)
+        if parent_folder.path.startswith(folder.path):
+            raise ParameterException(MOVE_FOLDER_TO_CHILD_ERROR)
+
+        related_folders, _ = self.check_folder_perm(folder, 'move')
+        old_parent_path = folder.get_parent_path()
+        if old_parent_path != parent_folder.path:
+            for rf in related_folders:
+                rf.path = rf.path.replace(old_parent_path, parent_folder.path)
+            db.session.commit()
+        return json_response(message=MOVE_FOLDER_SUCCESS)
+
+    def check_folder_perm(self, folder, action):
+        """
+        :param folder: the folder object
+        :param action: could be 'rename', 'move', 'delete'
+        :return: folders including present and children folders, and dashboards in
+        these folders
+        """
+        folders = db.session.query(Dashboard)\
+            .filter(
+                Dashboard.type == Dashboard.data_types[1],
+                or_(Dashboard.path.like('{}'.format(folder.id)),
+                    Dashboard.path.like('{}/%'.format(folder.id)),
+                    Dashboard.path.like('%/{}'.format(folder.id)),
+                    Dashboard.path.like('%/{}/%'.format(folder.id)))
+            )\
+            .all()
+        folder_ids = ['{}'.format(f.id) for f in folders]
+
+        dashs = db.session.query(Dashboard).filter(Dashboard.path.in_(folder_ids)).all()
+        if action in ['rename', 'move']:
+            for dash in dashs:
+                if not self.check_edit_perm(dash.guardian_datasource,
+                                            raise_if_false=False):
+                    raise GuardianException(
+                        _('No privilege to edit [{dash}], so cannot edit folder [{folder}]')
+                            .format(dash=dash, folder=folder))
+        elif action in ['delete', ]:
+            for dash in dashs:
+                if not self.check_delete_perm(dash.guardian_datasource,
+                                              raise_if_false=False):
+                    raise GuardianException(
+                        _('No privilege to delete [{dash}], so cannot delete folder [{folder}]')
+                            .format(dash=dash, folder=folder))
+        return folders, dashs

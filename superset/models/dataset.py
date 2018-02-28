@@ -293,6 +293,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         return cls.dataset_name
 
     @property
+    def guardian_datasource(self):
+        return [self.model_type, self.name]
+
+    @property
     def dataset_type(self):
         if self.hdfs_table:
             return self.hdfs_table.hdfs_table_type

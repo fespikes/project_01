@@ -151,6 +151,10 @@ class AuditMixinNullable(AuditMixin):
     changed_on = Column(DateTime, default=datetime.now,
                         onupdate=datetime.now, nullable=True)
 
+    @property
+    def guardian_datasource(self):
+        return [self.model_type, self.name]
+
     @declared_attr
     def created_by_fk(cls):  # noqa
         return Column(Integer, ForeignKey('ab_user.id'),

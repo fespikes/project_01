@@ -30,7 +30,7 @@ str_to_model = {
 
 model_name_columns = {
     'slice': Slice.slice_name,
-    'dashboard': Dashboard.dashboard_title,
+    'dashboard': Dashboard.name,
     'dataset': Dataset.dataset_name,
     'tablecolumn': TableColumn.column_name,
     'sqlmetric': SqlMetric.metric_name,
