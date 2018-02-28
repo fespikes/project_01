@@ -1,823 +1,34 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-
 import json
 import logging
-import pickle
 import sys
-import time
 import zlib
-import copy
 from datetime import datetime, timedelta
-
 from flask import g, request, redirect, flash, Response
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
-from flask_appbuilder.models.sqla.interface import SQLAInterface
-from flask_appbuilder.security.sqla.models import User
-
-from sqlalchemy import create_engine, or_
+from sqlalchemy import create_engine
 
 from superset import app, cache, db, sql_lab, results_backend, viz, utils
 from superset.timeout_decorator import connection_timeout
 from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
+from superset.message import *
 from superset.exception import (
     ParameterException, PropertyException, DatabaseException, ErrorUrlException,
-    GuardianException
 )
 from superset.models import (
-    Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric,
-    Query, Log, FavStar, str_to_model, Number, Folder, model_name_columns
+    Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric, Query, Log,
+    FavStar, str_to_model, Number
 )
-from superset.message import *
-from superset.viz import viz_verbose_names
 from .base import (
-    SupersetModelView, BaseSupersetView, PermissionManagement, catch_exception,
-    json_response
+    BaseSupersetView, PermissionManagement, catch_exception, json_response
 )
+from .slice import SliceModelView
+from .dashboard import DashboardModelView
 
 
 config = app.config
 QueryStatus = utils.QueryStatus
-
-
-class SliceModelView(SupersetModelView, PermissionManagement):
-    model = Slice
-    model_type = 'slice'
-    datamodel = SQLAInterface(Slice)
-    route_base = '/slice'
-    can_add = False
-    list_columns = ['id', 'slice_name', 'description', 'slice_url', 'viz_type',
-                    'changed_on']
-    edit_columns = ['slice_name', 'description']
-    show_columns = ['id', 'slice_name', 'description', 'created_on', 'changed_on']
-
-    list_template = "superset/list.html"
-
-    str_to_column = {
-        'title': Slice.slice_name,
-        'description': Slice.description,
-        'viz_type': Slice.viz_type,
-        'table': Slice.datasource_name,
-        'changed_on': Slice.changed_on,
-        'owner': User.username,
-        'created_by_user': User.username
-    }
-    int_columns = ['id', 'datasource_id', 'database_id', 'cache_timeout',
-                   'created_by_fk', 'changed_by_fk']
-    bool_columns = ['online']
-    str_columns = ['datasource', 'created_on', 'changed_on']
-
-    def get_show_attributes(self, obj, user_id=None):
-        attributes = super(SliceModelView, self).get_show_attributes(obj, user_id)
-        attributes['dashboards'] = self.dashboards_to_dict(obj.dashboards)
-        return attributes
-
-    def get_edit_attributes(self, data, user_id):
-        attributes = super(SliceModelView, self).get_edit_attributes(data, user_id)
-        attributes['dashboards'] = self.get_dashs_in_list(data.get('dashboards'))
-        return attributes
-
-    def get_dashs_in_list(self, dashs_list):
-        ids = [dash_dict.get('id') for dash_dict in dashs_list]
-        objs = db.session.query(Dashboard) \
-            .filter(Dashboard.id.in_(ids)).all()
-        if len(ids) != len(objs):
-            msg = _("Error parameter ids: {ids}, queried {num} dashboard(s)")\
-                .format(ids=ids, num=len(objs))
-            self.handle_exception(404, Exception, msg)
-        return objs
-
-    def post_delete(self, obj):
-        super(SliceModelView, self).post_delete(obj)
-        db.session.query(FavStar) \
-            .filter(FavStar.class_name.ilike(self.model_type),
-                    FavStar.obj_id == obj.id) \
-            .delete(synchronize_session=False)
-        db.session.commit()
-
-    def check_column_values(self, obj):
-        if not obj.slice_name:
-            raise ParameterException(NONE_SLICE_NAME)
-        self.model.check_name(obj.slice_name)
-
-    @catch_exception
-    @expose("/online_info/<id>/", methods=['GET'])
-    def online_info(self, id):  # Deprecated
-        slice = self.get_object(id)
-        self.check_release_perm([self.model_type, slice.slice_name])
-        objects = self.online_affect_objects(id)
-        info = _("Releasing slice {slice} will release these too: "
-                 "\nDataset: {dataset}, \nConnection: {conn}, "
-                 "\nand make it invisible in these dashboards: {dashboard}")\
-            .format(slice=objects.get('slice'),
-                    dataset=objects.get('dataset'),
-                    conn=objects.get('connection'),
-                    dashboard=objects.get('dashboard'),
-                    )
-        return json_response(data=info)
-
-    def online_affect_objects(self, slice):  # Deprecated
-        """
-        Changing slice to online will make offline dataset and connections online,
-        and make it usable in others' dashboard.
-        Changing slice to offline will make it unusable in others' dashboard.
-        """
-        user_id = g.user.id
-        dashboards = [d for d in slice.dashboards
-                      if d.online is True and d.created_by_fk != user_id]
-        dataset = None
-        if slice.datasource_id and slice.datasource:
-            dataset = slice.datasource
-
-        conns = []
-        if slice.database_id:
-            database = db.session.query(Database) \
-                .filter(Database.id == slice.database_id).first()
-            if database and database.online is False:
-                conns.append(database)
-        if dataset and dataset.database:
-            conns.append(dataset.database)
-        if dataset and dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
-            conns.append(dataset.hdfs_table.hdfs_connection)
-        connections = [c for c in set(conns) if c.online is False]
-        return {'slice': [slice, ],
-                'dashboard': dashboards,
-                'dataset': [dataset, ] if dataset else [],
-                'connection': connections}
-
-    @catch_exception
-    @expose("/offline_info/<id>/", methods=['GET'])
-    def offline_info(self, id):  # Deprecated
-        slice = self.get_object(id)
-        self.check_release_perm([self.model_type, slice.slice_name])
-        dashboards = [d for d in slice.dashboards
-                      if d.online is True and d.created_by_fk != g.user.id]
-        info = _("Changing slice {slice} to offline will make it invisible "
-                 "in these dashboards: {dashboard}")\
-            .format(slice=[slice, ], dashboard=dashboards)
-        return json_response(data=info)
-
-    @catch_exception
-    @expose("/delete_info/<id>/", methods=['GET'])
-    def delete_info(self, id):
-        slice = self.get_object(id)
-        self.check_delete_perm([self.model_type, slice.name])
-        objects = self.delete_affect_objects([id, ])
-        info = _("Deleting slice {slice} will remove from these "
-                 "dashboards too: {dashboard}")\
-            .format(slice=objects.get('slice'), dashboard=objects.get('dashboard'))
-        return json_response(data=info)
-
-    @catch_exception
-    @expose("/muldelete_info/", methods=['POST'])
-    def muldelete_info(self):
-        json_data = self.get_request_data()
-        ids = json_data.get('selectedRowKeys')
-        objects = self.delete_affect_objects(ids)
-        info = _("Deleting slice {slice} will remove from these "
-                 "dashboards too: {dashboard}") \
-            .format(slice=objects.get('slice'), dashboard=objects.get('dashboard'))
-        return json_response(data=info)
-
-    def delete_affect_objects(self, ids):
-        """
-        Deleting slice will remove if from myself and online dashboards.
-        """
-        slices = db.session.query(Slice).filter(Slice.id.in_(ids)).all()
-        if len(slices) != len(ids):
-            raise ParameterException(_(
-                'Error parameter ids: {ids}, queried {num} slice(s)')
-                .format(ids=ids, num=len(slices))
-            )
-        dashs = []
-        for s in slices:
-            for d in s.dashboards:
-                if d.created_by_fk == g.user.id or d.online == 1:
-                    dashs.append(d)
-        return {'slice': slices, 'dashboard': dashs}
-
-    @catch_exception
-    @expose("/grant_info/<id>/", methods=['GET'])
-    def grant_info(self, id):
-        slice = self.get_object(id)
-        self.check_grant_perm([self.model_type, slice.slice_name])
-        objects = self.grant_affect_objects(slice)
-        info = _("Granting permissions of [{slice}] to this user, will grant "
-                 "permissions of dependencies to this user too: "
-                 "\nDataset: {dataset}, \nConnection: {connection}") \
-            .format(slice=slice,
-                    dataset=objects.get('dataset'),
-                    connection=objects.get('connection'))
-        return json_response(data=info)
-
-    def grant_affect_objects(self, slice):
-        dataset = None
-        if slice.datasource_id and slice.datasource:
-            dataset = slice.datasource
-
-        conns = []
-        main_db = self.get_main_db()
-        if slice.database_id and slice.database_id != main_db.id:
-            database = db.session.query(Database) \
-                .filter(Database.id == slice.database_id).first()
-            conns.append(database)
-        if dataset and dataset.database and dataset.database.id != main_db.id:
-            conns.append(dataset.database)
-        if dataset and dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
-            conns.append(dataset.hdfs_table.hdfs_connection)
-        return {'dataset': [dataset, ] if dataset else [],
-                'connection': set(conns)}
-
-    @catch_exception
-    @expose('/add/', methods=['GET'])
-    def add(self):
-        if self.guardian_auth:
-            from superset.guardian import guardian_client
-            readable_names = \
-                guardian_client.search_model_permissions(g.user.username, self.model_type)
-            if not readable_names:
-                raise GuardianException(NO_USEABLE_DATASETS)
-            dataset = db.session.query(Dataset)\
-                .filter(Dataset.dataset_name.in_(readable_names))\
-                .order_by(Dataset.id.asc())\
-                .first()
-        else:
-            dataset = db.session.query(Dataset).order_by(Dataset.id).first()
-
-        if dataset:
-            return redirect(dataset.explore_url)
-        else:
-            raise PropertyException(NO_USEABLE_DATASETS)
-
-    def get_object_list_data(self, **kwargs):
-        """
-        Return the slices with column 'favorite' and 'online'
-        """
-        order_column = kwargs.get('order_column')
-        order_direction = kwargs.get('order_direction')
-        page = kwargs.get('page')
-        page_size = kwargs.get('page_size')
-        only_favorite = kwargs.get('only_favorite')
-
-        query = self.query_with_favorite(self.model_type, **kwargs)
-
-        readable_names = None
-        if self.guardian_auth:
-            from superset.guardian import guardian_client
-            readable_names = \
-                guardian_client.search_model_permissions(g.user.username, self.model_type)
-            count = len(readable_names)
-        else:
-            count = query.count()
-            if page is not None and page >= 0 and page_size and page_size > 0:
-                query = query.limit(page_size).offset(page * page_size)
-
-        rs = query.all()
-        data = []
-        index = 0
-        for obj, username, fav_id in rs:
-            if self.guardian_auth:
-                if obj.name in readable_names:
-                    index += 1
-                    if index <= page * page_size:
-                        continue
-                    elif index > (page+1) * page_size:
-                        break
-                else:
-                    continue
-            line = {}
-            for col in self.list_columns:
-                if col in self.str_columns:
-                    line[col] = str(getattr(obj, col, None))
-                else:
-                    line[col] = getattr(obj, col, None)
-
-            viz_type = line.get('viz_type', None)
-            viz_type = viz_verbose_names.get(viz_type) if viz_type else None
-            line['viz_type'] = str(viz_type) if viz_type else None
-            if obj.database_id and obj.full_table_name:
-                line['datasource'] = obj.full_table_name
-                line['explore_url'] = obj.source_table_url
-            elif obj.datasource_id and obj.datasource:
-                line['datasource'] = str(obj.datasource)
-                line['explore_url'] = obj.datasource.explore_url
-            else:
-                line['datasource'] = None
-                line['explore_url'] = None
-            line['created_by_user'] = username
-            line['favorite'] = True if fav_id else False
-            data.append(line)
-
-        response = {}
-        response['count'] = count
-        response['order_column'] = order_column
-        response['order_direction'] = 'desc' if order_direction == 'desc' else 'asc'
-        response['page'] = page
-        response['page_size'] = page_size
-        response['only_favorite'] = only_favorite
-        response['data'] = data
-        return response
-
-
-class DashboardModelView(SupersetModelView, PermissionManagement):
-    model = Dashboard
-    model_type = 'dashboard'
-    datamodel = SQLAInterface(Dashboard)
-    route_base = '/dashboard'
-    list_columns = ['id', 'dashboard_title', 'url', 'description', 'changed_on']
-    edit_columns = ['dashboard_title', 'description']
-    show_columns = ['id', 'dashboard_title', 'description', 'table_names']
-    add_columns = edit_columns
-    list_template = "superset/partials/dashboard/dashboard.html"
-
-    str_to_column = {
-        'title': Dashboard.dashboard_title,
-        'description': Dashboard.description,
-        'changed_on': Dashboard.changed_on,
-        'owner': User.username,
-        'created_by_user': User.username
-    }
-    int_columns = ['id', 'created_by_fk', 'changed_by_fk']
-    bool_columns = ['online']
-    str_columns = ['created_on', 'changed_on']
-
-    def pre_add(self, obj):
-        self.check_column_values(obj)
-        utils.validate_json(obj.json_metadata)
-        utils.validate_json(obj.position_json)
-
-    def pre_update(self, old_obj, new_obj):
-        self.check_edit_perm([self.model_type, old_obj.dashboard_title])
-        self.pre_add(new_obj)
-
-    def post_delete(self, obj):
-        super(DashboardModelView, self).post_delete(obj)
-        db.session.query(FavStar) \
-            .filter(FavStar.class_name.ilike(self.model_type),
-                    FavStar.obj_id == obj.id) \
-            .delete(synchronize_session=False)
-        db.session.commit()
-
-    def check_column_values(self, obj):
-        if not obj.dashboard_title:
-            raise ParameterException(NONE_DASHBOARD_NAME)
-        self.model.check_name(obj.dashboard_title)
-
-    def get_object_list_data(self, **kwargs):
-        """
-        Return the dashbaords with column 'favorite' and 'online'
-        """
-        order_column = kwargs.get('order_column')
-        order_direction = kwargs.get('order_direction')
-        page = kwargs.get('page')
-        page_size = kwargs.get('page_size')
-        only_favorite = kwargs.get('only_favorite')
-
-        query = self.query_with_favorite(self.model_type, **kwargs)
-
-        readable_names = None
-        if self.guardian_auth:
-            from superset.guardian import guardian_client
-            readable_names = \
-                guardian_client.search_model_permissions(g.user.username, self.model_type)
-            count = len(readable_names)
-        else:
-            count = query.count()
-            if page is not None and page >= 0 and page_size and page_size > 0:
-                query = query.limit(page_size).offset(page * page_size)
-
-        rs = query.all()
-        data = []
-        index = 0
-        for obj, username, fav_id in rs:
-            if self.guardian_auth:
-                if obj.name in readable_names:
-                    index += 1
-                    if index <= page * page_size:
-                        continue
-                    elif index > (page+1) * page_size:
-                        break
-                else:
-                    continue
-            line = {}
-            for col in self.list_columns:
-                if col in self.str_columns:
-                    line[col] = str(getattr(obj, col, None))
-                else:
-                    line[col] = getattr(obj, col, None)
-            image_bytes = getattr(obj, 'image', None)
-            image_bytes = b'' if image_bytes is None else image_bytes
-            line['image'] = str(image_bytes, encoding='utf8')
-            line['created_by_user'] = username
-            line['favorite'] = True if fav_id else False
-            data.append(line)
-
-        response = {}
-        response['count'] = count
-        response['order_column'] = order_column
-        response['order_direction'] = 'desc' if order_direction == 'desc' else 'asc'
-        response['page'] = page
-        response['page_size'] = page_size
-        response['only_favorite'] = only_favorite
-        response['data'] = data
-        return response
-
-    def get_show_attributes(self, obj, user_id=None):
-        attributes = super(DashboardModelView, self).get_show_attributes(obj)
-        attributes['slices'] = self.slices_to_dict(obj.slices)
-        return attributes
-
-    def get_add_attributes(self, data, user_id):
-        attributes = super(DashboardModelView, self).get_add_attributes(data, user_id)
-        attributes['slices'] = self.get_slices_in_list(data.get('slices'))
-        return attributes
-
-    def get_edit_attributes(self, data, user_id):
-        attributes = super(DashboardModelView, self).get_edit_attributes(data, user_id)
-        attributes['slices'] = self.get_slices_in_list(data.get('slices'))
-        attributes['need_capture'] = True
-        return attributes
-
-    def get_slices_in_list(self, slices_list):
-        ids = [slice_dict.get('id') for slice_dict in slices_list]
-        objs = db.session.query(Slice) \
-            .filter(Slice.id.in_(ids)).all()
-        if len(ids) != len(objs):
-            msg = _("Error parameter ids: {ids}, queried {num} slice(s)")\
-                .format(ids=ids, num=len(objs))
-            self.handle_exception(404, Exception, msg)
-        return objs
-
-    @catch_exception
-    @expose("/online_info/<id>/", methods=['GET'])
-    def online_info(self, id):  # Deprecated
-        """
-        Changing dashboard to online will make myself slices,_datasets and
-        connections online.
-        """
-        dashboard = self.get_object(id)
-        self.check_release_perm([self.model_type, dashboard.dashboard_title])
-
-        slices = dashboard.slices
-        datasets = []
-        database_ids = []
-        for s in slices:
-            if s.datasource_id and s.datasource:
-                datasets.append(s.datasource)
-            elif s.database_id:
-                database_ids.append(s.database_id)
-
-        connections = []
-        for d in datasets:
-            if d.database:
-                connections.append(d.database)
-            if d.hdfs_table and d.hdfs_table.hdfs_connection:
-                connections.append(d.hdfs_table.hdfs_connection)
-        databases = db.session.query(Database)\
-            .filter(Database.id.in_(database_ids))\
-            .all()
-        connections.extend(databases)
-
-        offline_slices = [s for s in slices
-                          if s.online is False and s.created_by_fk == g.user.id]
-        offline_datasets = [d for d in datasets
-                            if d.online is False and d.created_by_fk == g.user.id]
-        offline_connections = [c for c in connections
-                               if c.online is False and c.created_by_fk == g.user.id]
-
-        info = _("Releasing dashboard {dashboard} will release these too: "
-                 "\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}")\
-            .format(dashboard=[dashboard, ],
-                    slice=offline_slices,
-                    dataset=offline_datasets,
-                    connection=offline_connections)
-        return json_response(data=info)
-
-    @catch_exception
-    @expose("/offline_info/<id>/", methods=['GET'])
-    def offline_info(self, id):  # Deprecated
-        dash = self.get_object(id)
-        self.check_release_perm([self.model_type, dash.dashboard_title])
-        info = _("Changing dashboard {dashboard} to offline will make it invisible "
-                 "for other users").format(dashboard=[dash, ])
-        return json_response(data=info)
-
-    @catch_exception
-    @expose("/delete_info/<id>/", methods=['GET'])
-    def delete_info(self, id):
-        dash = self.get_object(id)
-        self.check_delete_perm([self.model_type, dash.dashboard_title])
-        return json_response(data='')
-
-    @catch_exception
-    @expose("/muldelete_info/", methods=['POST'])
-    def muldelete_info(self):
-        return json_response(data='')
-
-    @catch_exception
-    @expose("/grant_info/<id>/", methods=['GET'])
-    def grant_info(self, id):
-        dash = self.get_object(id)
-        self.check_grant_perm([self.model_type, dash.dashboard_title])
-        objects = self.grant_affect_objects(dash)
-        info = _("Granting permissions of [{dashboard}] to this user, will grant "
-                 "permissions of dependencies to this user too: "
-                 "\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}") \
-            .format(dashboard=dash,
-                    slice=objects.get('slice'),
-                    dataset=objects.get('dataset'),
-                    connection=objects.get('connection'))
-        return json_response(data=info)
-
-    def grant_affect_objects(self, dash):
-        slices = dash.slices
-        datasets = []
-        database_ids = []
-        for s in slices:
-            if s.datasource_id and s.datasource:
-                datasets.append(s.datasource)
-            elif s.database_id:
-                database_ids.append(s.database_id)
-
-        connections = []
-        for d in datasets:
-            if d.database and d.database.name != self.main_db_name:
-                connections.append(d.database)
-            if d.hdfs_table and d.hdfs_table.hdfs_connection:
-                connections.append(d.hdfs_table.hdfs_connection)
-        databases = db.session.query(Database) \
-            .filter(Database.id.in_(database_ids),
-                    Database.database_name != self.main_db_name) \
-            .all()
-        connections.extend(databases)
-        return {'slice': set(slices),
-                'dataset': set(datasets),
-                'connection': set(connections)}
-
-    @catch_exception
-    @expose("/upload_image/<id>/", methods=['POST'])
-    def upload_image(self, id):
-        dash = self.get_object(id)
-        data = request.form.get('image')
-        dash.image = bytes(data, encoding='utf8')
-        dash.need_capture = False
-        db.session.merge(dash)
-        db.session.commit()
-        Log.log_update(dash, 'dashboard', g.user.id)
-        return json_response(message="Update dashboard [{}] success".format(dash))
-
-    @catch_exception
-    @expose("/before_import/", methods=['POST'])
-    def before_import(self):
-        """Before import, check same names of objects in file and database.
-        #:return {'dashboard': {'order': 1,
-                                'abbr': 'Dashboard',  # translation
-                                'names': {'n1': {'can_overwrite': true},
-                                          'n2': {'can_overwrite': false},
-                                        }
-                                }
-                'slice' : {...}
-                 }
-        """
-        f = request.data
-        data = pickle.loads(f)
-        import_objs, same_objs = {}, {}
-        for obj_type in self.OBJECT_TYPES:
-            import_objs[obj_type] = []
-        same_objs = {'dashboard': {'order': 1, 'abbr': str(_('Dashboard')), 'names': {}},
-                     'slice': {'order': 2, 'abbr': str(_('Slice')), 'names': {}},
-                     'dataset': {'order': 3, 'abbr': str(_('Dataset')), 'names': {}},
-                     'database': {'order': 4, 'abbr': str(_('DB connection')), 'names': {}},
-                     'hdfsconnection': {'order': 5, 'abbr': str(_('HDFS connection')), 'names': {}},
-                     }
-
-        for dataset in data['datasets']:
-            import_objs[self.OBJECT_TYPES[2]].append(dataset.name)
-            if dataset.database:
-                import_objs[self.OBJECT_TYPES[0]].append(dataset.database.name)
-            if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
-                import_objs[self.OBJECT_TYPES[1]].append(
-                    dataset.hdfs_table.hdfs_connection.name)
-        for dashboard in data['dashboards']:
-            import_objs[self.OBJECT_TYPES[4]].append(dashboard.name)
-            for slice in dashboard.slices:
-                import_objs[self.OBJECT_TYPES[3]].append(slice.name)
-                if slice.database_id and slice.database:
-                    import_objs[self.OBJECT_TYPES[0]].append(slice.database.name)
-
-        for obj_type, obj_names in import_objs.items():
-            if obj_names:
-                model = str_to_model[obj_type]
-                name_column = model_name_columns[obj_type]
-                sames = db.session.query(model).filter(name_column.in_(obj_names)).all()
-                for o in sames:
-                    editable = self.check_edit_perm([obj_type, o.name],
-                                                    raise_if_false=False)
-                    same_objs[obj_type]['names'][o.name] = {'can_overwrite': editable}
-
-        same_objs = dict((k, v) for k, v in same_objs.items() if v['names'])
-        return json_response(data=same_objs)
-
-    @catch_exception
-    @expose("/import/", methods=['GET', 'POST'])
-    def import_dashboards(self):
-        """Import dashboards and dependencies"""
-        solution = json.loads(request.args.get('param', '{}'))
-        session = db.session
-        Dashboard.check_solution(solution, db.session, str_to_model)
-
-        f = request.data
-        objects = pickle.loads(f)
-        for dataset in objects['datasets']:
-            Dataset.import_obj(
-                session, dataset, solution, self.grant_owner_permissions)
-        for dashboard in objects['dashboards']:
-            Dashboard.import_obj(
-                session, dashboard, solution, self.grant_owner_permissions)
-            Log.log('import', dashboard, 'dashboard', g.user.id)
-        return json_response('Import success')
-
-    @catch_exception
-    @expose("/export/")
-    def export_dashboards(self):
-        ids = request.args.get('ids')
-        ids = eval(ids)
-        if isinstance(ids, int):
-            ids = [ids, ]
-        return Response(
-            Dashboard.export_dashboards(ids),
-            headers=self.generate_download_headers("pickle"),
-            mimetype="application/text")
-        # data = Dashboard.export_dashboards(ids)
-        # return json_response(data=data)
-
-    def add_slices_api(self, dashboard_id, slice_ids):
-        """Add and save slices to a dashboard"""
-        session = db.session()
-        dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        self.check_edit_perm([self.model_type, dash.dashboard_title])
-        new_slices = session.query(Slice).filter(
-            Slice.id.in_(slice_ids))
-        dash.slices += new_slices
-        session.merge(dash)
-        session.commit()
-        session.close()
-        return True
-
-    @catch_exception
-    @expose("/folder/listdata/", methods=['GET'])
-    def list_folder_data(self):
-        folder_id = request.args.get('folder_id')
-        if not folder_id:
-            present_folder = Folder.get_root_folder()
-            folder_id = present_folder.id
-        else:
-            present_folder = db.session.query(Folder).filter_by(id=folder_id).first()
-
-        data = {'folder_id': folder_id,
-                'folder_name': present_folder.name,
-                'children': [],
-                'dashboards': []}
-
-        if present_folder.path == Folder.ROOT:
-            like_str = '{}_'.format(Folder.ROOT)
-            notlike_str = '{}_%/%'.format(Folder.ROOT)
-        else:
-            like_str = '{}/_'.format(present_folder.path)
-            notlike_str = '{}/_%/%'.format(present_folder.path)
-
-        children = db.session.query(Folder)\
-            .filter(Folder.path.like(like_str), ~Folder.path.like(notlike_str))\
-            .all()
-        for child in children:
-            data['children'].append({'id': child.id, 'name': child.name})
-        data['children'].sort(key=lambda k: (k.get('name', '')))
-
-        dashs = db.session.query(Dashboard)\
-            .filter(Dashboard.folder_id == folder_id)\
-            .order_by(Dashboard.dashboard_title.desc())\
-            .all()
-        for dash in dashs:
-            if self.check_read_perm([self.model_type, dash.name], raise_if_false=False):
-                data['dashboards'].append({'id': dash.id, 'name': dash.name})
-
-        return json_response(data=data)
-
-    @catch_exception
-    @expose("/folder/add/", methods=['GET'])
-    def add_folder(self):
-        parent_folder_id = request.args.get('parent_folder_id')
-        name = request.args.get('name')
-
-        if not parent_folder_id:
-            parent = Folder.get_root_folder()
-        else:
-            parent = db.session.query(Folder).filter_by(id=parent_folder_id).first()
-
-        Folder.check_name(name)
-        Folder.check_path_depth(parent.path)
-        folder = Folder(path='', name=name)
-        db.session.add(folder)
-        db.session.commit()
-
-        if parent.path == Folder.ROOT:
-            path = '{}{}'.format(Folder.ROOT, folder.id)
-        else:
-            path = '{}/{}'.format(parent.path, folder.id)
-        folder.path = path
-        db.session.commit()
-        return json_response(message=ADD_SUCCESS)
-
-    @catch_exception
-    @expose("/folder/rename/", methods=['GET'])
-    def rename_folder(self):
-        folder_id = request.args.get('folder_id')
-        new_name = request.args.get('new_name')
-        folder = db.session.query(Folder).filter_by(id=folder_id).first()
-        if folder.path == Folder.ROOT:
-            raise GuardianException(NO_PERM_EDIT_ROOT_FOLDER)
-        if folder.name != new_name:
-            self.check_folder_perm(folder, 'rename')
-            folder.name = new_name
-            db.session.commit()
-        return json_response(message=UPDATE_SUCCESS)
-
-    @catch_exception
-    @expose("/folder/delete/", methods=['GET'])
-    def delete_folder(self):
-        folder_id = request.args.get('folder_id')
-        folder = db.session.query(Folder).filter_by(id=folder_id).first()
-        related_folders, dashs = self.check_folder_perm(folder, 'delete')
-
-        for dash in dashs:
-            self._delete(dash)
-        for folder in related_folders:
-            db.session.delete(folder)
-        db.session.commit()
-        return json_response(message=DELETE_SUCCESS)
-
-    @catch_exception
-    @expose("/folder/move/dashboard/", methods=['GET'])
-    def move_dashboard(self):
-        dash_id = request.args.get('dashboard_id')
-        folder_id = request.args.get('folder_id')
-        dash = self.model.get_object(id=dash_id)
-        self.check_edit_perm([self.model_type, dash.name])
-        dash.folder_id = folder_id
-        db.session.commit()
-        return json_response(message=MOVE_DASHBOARD_SUCCESS)
-
-    @catch_exception
-    @expose("/folder/move/folder/", methods=['GET'])
-    def move_folder(self):
-        folder_id = request.args.get('folder_id')
-        parent_folder_id = request.args.get('parent_folder_id')
-        folder = db.session.query(Folder).filter_by(id=folder_id).first()
-
-        parent_folder = db.session.query(Folder).filter_by(id=parent_folder_id).first()
-        if parent_folder.path.startswith(folder.path):
-            raise ParameterException(MOVE_FOLDER_TO_CHILD_ERROR)
-
-        related_folders, _ = self.check_folder_perm(folder, 'move')
-        old_parent_path = folder.get_parent_path()
-        for rf in related_folders:
-            rf.path = rf.path.replace(old_parent_path, parent_folder.path)
-        db.session.commit()
-        return json_response(message=MOVE_FOLDER_SUCCESS)
-
-    def check_folder_perm(self, folder, action):
-        """
-        :param folder: the Folder object
-        :param action: could be 'rename', 'move', 'delete'
-        :return: folders including present and children folders, and dashboards in
-        these folders
-        """
-        related_folders = db.session.query(Folder)\
-            .filter(Folder.path.like(folder.path)).all()
-        folder_ids = [f.id for f in related_folders]
-
-        dashs = db.session.query(Dashboard) \
-            .filter(Dashboard.folder_id.in_(folder_ids)).all()
-        if action in ['rename', 'move']:
-            for dash in dashs:
-                if not self.check_edit_perm([self.model_type, dash.name],
-                                              raise_if_false=False):
-                    raise GuardianException(
-                        _('No privilege to edit [{dash}], so cannot edit folder [{folder}]')
-                            .format(dash=dash, folder=folder))
-        else:  # action == 'delete'
-            for dash in dashs:
-                if not self.check_delete_perm([self.model_type, dash.name],
-                                              raise_if_false=False):
-                    raise GuardianException(
-                        _('No privilege to delete [{dash}], so cannot delete folder [{folder}]')
-                            .format(dash=dash, folder=folder))
-        return related_folders, dashs
 
 
 class Superset(BaseSupersetView, PermissionManagement):
@@ -857,7 +68,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 .format(model=cls.__name__, id=id)
             logging.error(msg)
             return json_response(status=400, message=msg)
-        self.check_release_perm([model, obj.name])
+        self.check_release_perm(obj.guardian_datasource)
 
         if action.lower() == 'online':
             if obj.online is True:
@@ -921,7 +132,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 args=request.args)
             if slice_id:
                 slice = db.session.query(Slice).filter_by(id=slice_id).first()
-                self.check_read_perm(['slice', slice.name])
+                self.check_read_perm(slice.guardian_datasource)
         except Exception as e:
             logging.exception(e)
             return Response(utils.error_msg_from_exception(e), status=500)
@@ -982,7 +193,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         if not slc:
             slice_edit_perm = True
         else:
-            slice_edit_perm = self.check_edit_perm(['slice', slc.name],
+            slice_edit_perm = self.check_edit_perm(slc.guardian_datasource,
                                                    raise_if_false=False)
         # handle save or overwrite
         action = request.args.get('action')
@@ -1141,16 +352,16 @@ class Superset(BaseSupersetView, PermissionManagement):
             flash(
                 _("Slice [{slice}] was added to dashboard [{dashboard}]").format(
                     slice=slc.slice_name,
-                    dashboard=dash.dashboard_title),
+                    dashboard=dash.name),
                 "info")
         elif request.args.get('add_to_dash') == 'new':
-            dash = Dashboard(dashboard_title=request.args.get('new_dashboard_name'))
+            dash = Dashboard(name=request.args.get('new_dashboard_name'))
             if dash and slc not in dash.slices:
                 dash.slices.append(slc)
                 dash_view = DashboardModelView()
                 dash_view._add(dash)
             flash(_("Dashboard [{dashboard}] just got created and slice [{slice}] "
-                    "was added to it").format(dashboard=dash.dashboard_title,
+                    "was added to it").format(dashboard=dash.name,
                                               slice=slc.slice_name),
                   "info")
 
@@ -1171,7 +382,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         Log.log_add(slc, 'slice', g.user.id)
         Number.log_number(g.user.username, 'slice')
-        self.grant_owner_permissions(['slice', slc.slice_name])
+        self.grant_owner_permissions(slc.guardian_datasource)
 
     def overwrite_slice(self, slc):
         db.session.expunge_all()
@@ -1230,7 +441,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         data = json.loads(request.form.get('data'))
         dash = Dashboard()
         original_dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        dash.dashboard_title = data['dashboard_title']
+        dash.name = data['name']
         dash.slices = original_dash.slices
         dash.params = original_dash.params
 
@@ -1239,7 +450,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         session.commit()
         dash_json = dash.json_data
         Log.log_add(dash, 'dashboard', g.user.id)
-        self.grant_owner_permissions(['dashboard', dash.dashboard_title])
+        self.grant_owner_permissions(dash.guardian_datasource)
         return json_response(data=dash_json)
 
     @catch_exception
@@ -1248,7 +459,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         """Save a dashboard's metadata"""
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        self.check_edit_perm(['dashboard', dash.dashboard_title])
+        self.check_edit_perm(dash.guardian_datasource)
         data = json.loads(request.form.get('data'))
         self._set_dash_metadata(dash, data)
         dash.need_capture = True
@@ -1281,7 +492,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         data = json.loads(request.form.get('data'))
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        self.check_edit_perm(['dashboard', dash.dashboard_title])
+        self.check_edit_perm(dash.guardian_datasource)
         new_slices = session.query(Slice).filter(Slice.id.in_(data['slice_ids']))
         dash.slices += new_slices
         dash.need_capture = True
@@ -1374,7 +585,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         self.update_redirect()
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=int(dashboard_id)).one()
-        dash_edit_perm = self.check_edit_perm(['dashboard', dash.dashboard_title],
+        dash_edit_perm = self.check_edit_perm(dash.guardian_datasource,
                                               raise_if_false=False)
         dash_save_perm = dash_edit_perm
         standalone = request.args.get("standalone") == "true"
@@ -1413,7 +624,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.commit()
         Log.log_add(table, 'dataset', g.user.id)
         Number.log_number(g.user.username, 'dataset')
-        self.grant_owner_permissions(['dataset', table.dataset_name])
+        self.grant_owner_permissions(table.guardian_datasource)
 
         cols = []
         dims = []

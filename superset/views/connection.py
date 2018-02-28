@@ -1,9 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-
 import json
 import requests
 from flask import g, request
@@ -32,7 +26,7 @@ config = app.config
 
 class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     model = models.Database
-    model_type = 'database'
+    model_type = model.model_type
     datamodel = SQLAInterface(models.Database)
     route_base = '/database'
     list_columns = ['id', 'database_name', 'description', 'backend', 'changed_on']
@@ -160,7 +154,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):  # Deprecated
         database = self.get_object(id)
-        self.check_release_perm([self.model_type, database.database_name])
+        self.check_release_perm(database.guardian_datasource)
         objects = self.release_affect_objects(database)
         info = _("Releasing connection {conn} will make these usable "
                  "for other users: \nDataset: {dataset}, \nSlice: {slice}")\
@@ -173,7 +167,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         database = self.get_object(id)
-        self.check_release_perm([self.model_type, database.database_name])
+        self.check_release_perm(database.guardian_datasource)
         objects = self.release_affect_objects(database)
         info = _("Changing connection {conn} to offline will make these "
                  "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}")\
@@ -204,7 +198,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         database = self.get_object(id)
-        self.check_delete_perm([self.model_type, database.database_name])
+        self.check_delete_perm(database.guardian_datasource)
         objects = self.delete_affect_objects(database)
         info = _("Deleting connection {conn} will make these unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}")\
@@ -247,13 +241,13 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         database = self.get_object(id)
-        self.check_grant_perm([self.model_type, database.name])
+        self.check_grant_perm(database.guardian_datasource)
         return json_response(data="")
 
 
 class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     model = models.HDFSConnection
-    model_type = 'hdfsconnection'
+    model_type = model.model_type
     datamodel = SQLAInterface(models.HDFSConnection)
     route_base = '/hdfsconnection'
     list_columns = ['id', 'connection_name']
@@ -321,7 +315,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):  # Deprecated
         hdfs_conn = self.get_object(id)
-        self.check_release_perm([self.model_type, hdfs_conn.connection_name])
+        self.check_release_perm(hdfs_conn.guardian_datasource)
         objects = self.release_affect_objects(hdfs_conn)
         info = _("Releasing connection {conn} will make these usable "
                  "for other users: \nDataset: {dataset}, \nSlice: {slice}") \
@@ -334,7 +328,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         hdfs_conn = self.get_object(id)
-        self.check_release_perm([self.model_type, hdfs_conn.connection_name])
+        self.check_release_perm(hdfs_conn.guardian_datasource)
         objects = self.release_affect_objects(hdfs_conn)
         info = _("Changing connection {conn} to offline will make these "
                  "unusable for other users: \nDataset: {dataset}, \nSlice: {slice}") \
@@ -367,7 +361,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         hdfs_conn = self.get_object(id)
-        self.check_delete_perm([self.model_type, hdfs_conn.connection_name])
+        self.check_delete_perm(hdfs_conn.guardian_datasource)
         objects = self.delete_affect_objects(hdfs_conn)
         info = _("Deleting connection {conn} will make these unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}") \
@@ -414,7 +408,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         hdfs = self.get_object(id)
-        self.check_grant_perm([self.model_type, hdfs.name])
+        self.check_grant_perm(hdfs.guardian_datasource)
         return json_response(data="")
 
     @catch_hdfs_exception

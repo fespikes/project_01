@@ -1,9 +1,3 @@
-"""A collection of ORM sqlalchemy models for Superset"""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import json
 import re
 import humanize
@@ -156,6 +150,10 @@ class AuditMixinNullable(AuditMixin):
     created_on = Column(DateTime, default=datetime.now, nullable=True)
     changed_on = Column(DateTime, default=datetime.now,
                         onupdate=datetime.now, nullable=True)
+
+    @property
+    def guardian_datasource(self):
+        return [self.model_type, self.name]
 
     @declared_attr
     def created_by_fk(cls):  # noqa

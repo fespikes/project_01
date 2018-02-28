@@ -1,16 +1,9 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-import re
 from datetime import datetime
 import json
 import logging
 import copy
 from distutils.util import strtobool
 import functools
-
 from flask import g, request, Response
 from flask_babel import lazy_gettext as _
 from flask_babel.speaklater import LazyString
@@ -93,12 +86,12 @@ class PermissionManagement(object):
             from superset.guardian import guardian_admin
             guardian_admin.del_perm_obj(finite_obj)
 
-    def rename_perm_obj(self, model, old_name, new_name):
+    def rename_perm_obj(self, old_datasource, new_datasource):
         if self.guardian_auth:
             from superset.guardian import guardian_admin
-            if old_name == new_name:
+            if old_datasource == new_datasource:
                 return
-            guardian_admin.rename_perm_obj([model, old_name], [model, new_name])
+            guardian_admin.rename_perm_obj(old_datasource, new_datasource)
 
     def grant_owner_permissions(self, finite_obj):
         if self.guardian_auth:
@@ -325,7 +318,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     def post_add(self, obj):
         Log.log_add(obj, self.model_type, g.user.id)
         Number.log_number(g.user.username, self.model_type)
-        self.grant_owner_permissions([self.model_type, obj.name])
+        self.grant_owner_permissions(obj.guardian_datasource)
 
     @catch_exception
     @expose('/show/<pk>/', methods=['GET'])
@@ -349,12 +342,12 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
         self.post_update(old_obj, new_obj)
 
     def pre_update(self, old_obj, new_obj):
-        self.check_edit_perm([self.model_type, old_obj.name])
+        self.check_edit_perm(old_obj.guardian_datasource)
         self.pre_add(new_obj)
 
     def post_update(self, old_obj, new_obj):
         Log.log_update(new_obj, self.model_type, g.user.id)
-        self.rename_perm_obj(self.model_type, old_obj.name, new_obj.name)
+        self.rename_perm_obj(old_obj.guardian_datasource, new_obj.guardian_datasource)
 
     @catch_exception
     @expose('/delete/<pk>/')
@@ -370,12 +363,12 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
         self.post_delete(obj)
 
     def pre_delete(self, obj):
-        self.check_delete_perm([self.model_type, obj.name])
+        self.check_delete_perm(obj.guardian_datasource)
 
     def post_delete(self, obj):
         Log.log_delete(obj, self.model_type, g.user.id)
         Number.log_number(g.user.username, self.model_type)
-        self.del_perm_obj([self.model_type, obj.name])
+        self.del_perm_obj(obj.guardian_datasource)
 
     @catch_exception
     @expose('/muldelete/', methods=['GET', 'POST'])
@@ -500,7 +493,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
             filter_str = '%{}%'.format(filter.lower())
             if class_name.lower() == 'dashbaord':
                 query = query.filter(
-                    or_(Dashboard.dashboard_title.ilike(filter_str),
+                    or_(Dashboard.name.ilike(filter_str),
                         User.username.ilike(filter_str))
                 )
             elif class_name.lower() == 'slice':
@@ -526,7 +519,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     def dashboards_to_dict(dashs):
         dashs_list = []
         for dash in dashs:
-            row = {'id': dash.id, 'dashboard_title': dash.dashboard_title}
+            row = {'id': dash.id, 'name': dash.name}
             dashs_list.append(row)
         return dashs_list
 

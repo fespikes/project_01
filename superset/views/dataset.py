@@ -1,13 +1,6 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-
 import json
 import requests
 import copy
-from distutils.util import strtobool
 from flask import request, g
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
@@ -74,11 +67,11 @@ class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
     def pre_update(self, old_column, new_column):
         if not new_column.dataset:
             raise PropertyException('Column [{}] misses dataset'.format(new_column))
-        self.check_edit_perm(['dataset', new_column.dataset.dataset_name])
+        self.check_edit_perm(new_column.dataset.guardian_datasource)
         self.pre_add(new_column)
 
     def pre_delete(self, column):
-        self.check_delete_perm(['dataset', column.dataset.dataset_name])
+        self.check_delete_perm(column.dataset.guardian_datasource)
 
     def check_column_values(self, obj):
         if not obj.column_name:
@@ -125,11 +118,11 @@ class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
     def pre_update(self, old_metric, new_metric):
         if not new_metric.dataset:
             raise PropertyException('Metric [{}] misses dataset'.format(new_metric))
-        self.check_edit_perm(['dataset', new_metric.dataset.dataset_name])
+        self.check_edit_perm(new_metric.dataset.guardian_datasource)
         self.pre_add(new_metric)
 
     def pre_delete(self, metric):
-        self.check_delete_perm(['dataset', metric.dataset.dataset_name])
+        self.check_delete_perm(metric.dataset.guardian_datasource)
 
     def check_column_values(self, obj):
         if not obj.metric_name:
@@ -141,7 +134,7 @@ class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
 
 class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     model = Dataset
-    model_type = 'dataset'
+    model_type = model.model_type
     datamodel = SQLAInterface(Dataset)
     route_base = '/table'
     list_columns = ['id', 'dataset_name', 'dataset_type', 'explore_url',
@@ -232,7 +225,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):  # Deprecated
         dataset = self.get_object(id)
-        self.check_release_perm([self.model_type, dataset.dataset_name])
+        self.check_release_perm(dataset.guardian_datasource)
         objects = self.release_affect_objects(dataset)
         info = _("Releasing dataset {dataset} will release connection {connection}, "
                  "\nand make these slices usable for others: {slice}")\
@@ -246,7 +239,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         dataset = self.get_object(id)
-        self.check_release_perm([self.model_type, dataset.dataset_name])
+        self.check_release_perm(dataset.guardian_datasource)
         objects = self.release_affect_objects(dataset)
         info = _("Changing dataset {dataset} to offline will make these "
                  "slices unusable for others: {slice}")\
@@ -280,7 +273,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         dataset = self.get_object(id)
-        self.check_delete_perm([self.model_type, dataset.dataset_name])
+        self.check_delete_perm(dataset.guardian_datasource)
         objects = self.delete_affect_objects([id, ])
         info = _("Deleting datasets {dataset} will make these slices unusable: {slice}")\
             .format(dataset=objects.get('dataset'),
@@ -327,7 +320,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         dataset = self.get_object(id)
-        self.check_grant_perm([self.model_type, dataset.dataset_name])
+        self.check_grant_perm(dataset.guardian_datasource)
         objects = self.grant_affect_objects(dataset)
         info = _("Granting permissions of [{dataset}] to this user, will grant "
                  "permissions of dependencies to this user too: "
@@ -573,7 +566,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         table.fetch_metadata()
 
     def pre_update(self, old_table, new_table):
-        self.check_edit_perm([self.model_type, old_table.dataset_name])
+        self.check_edit_perm(old_table.guardian_datasource)
         self.pre_add(new_table)
         TableColumnInlineView.datamodel.delete_all(new_table.ref_columns)
         SqlMetricInlineView.datamodel.delete_all(new_table.ref_metrics)
@@ -581,8 +574,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     def post_update(self, old_table, new_table):
         new_table.fetch_metadata()
         Log.log_update(new_table, self.model_type, g.user.id)
-        self.rename_perm_obj(self.model_type, old_table.dataset_name,
-                             new_table.dataset_name)
+        self.rename_perm_obj(old_table.guardian_datasource, new_table.guardian_datasource)
 
     def check_column_values(self, obj):
         if not obj.dataset_name:

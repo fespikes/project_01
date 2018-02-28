@@ -1,9 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-
 import re
 import random
 import string
@@ -297,6 +291,10 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     @classmethod
     def name_column(cls):
         return cls.dataset_name
+
+    @property
+    def guardian_datasource(self):
+        return [self.model_type, self.name]
 
     @property
     def dataset_type(self):

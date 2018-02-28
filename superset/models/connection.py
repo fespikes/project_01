@@ -1,8 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import os
 import json
 import textwrap
@@ -12,7 +7,6 @@ import pandas as pd
 from flask import g
 from itertools import groupby
 from collections import OrderedDict
-from flask_babel import lazy_gettext as _
 from flask_appbuilder import Model
 
 import sqlalchemy as sqla
