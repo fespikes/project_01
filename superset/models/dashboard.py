@@ -16,12 +16,12 @@ from sqlalchemy import (
     Column, Integer, String, ForeignKey, Text, Boolean, LargeBinary, Table,
     MetaData, UniqueConstraint
 )
-from sqlalchemy.orm import relationship, subqueryload, backref
+from sqlalchemy.orm import relationship, subqueryload
 from sqlalchemy.orm.session import make_transient
 
 from superset import app, db
 from superset.exception import ParameterException, PropertyException
-from .base import AuditMixinNullable, ImportMixin, ValueRestrict
+from .base import AuditMixinNullable, ImportMixin
 from .slice import Slice
 from .dataset import Dataset
 
@@ -36,67 +36,14 @@ dashboard_slices = Table(
 )
 
 
-class Folder(Model, ValueRestrict):
-    __tablename__ = 'folders'
-
-    MAX_DEPTH = 4
-    ROOT = '/'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(128), nullable=False)
-    path = Column(String(128), nullable=False)  # Materialized path like /1/2/3
-
-    def __repr__(self):
-        return self.name
-
-    @property
-    def ancestors(self):
-        if self.name == self.ROOT:
-            return []
-        ances = self.path.lstrip('/').split('/')
-        del ances[-1]
-        ances.insert(0, self.ROOT)
-        return ances
-
-    def get_parent_path(self):
-        if self.name == self.ROOT:
-            return None
-        match_str = '/{}'.format(self.id)
-        if not self.path.endswith(match_str):
-            raise PropertyException(
-                _('Error materialized path [{path}] for folder(id={id})')
-                    .format(path=self.path, id=self.id))
-        index = self.path.find(match_str)
-        return self.path[:index]
-
-    @classmethod
-    def check_path_depth(cls, path):
-        depth = path.count('/')
-        if depth >= cls.MAX_DEPTH:
-            raise ParameterException(
-                _("Folders' depth is limited to [{depth}]").format(depth=cls.MAX_DEPTH))
-
-    @classmethod
-    def create_root_folder(cls):
-        root = db.session.query(cls).filter_by(name=cls.ROOT).first()
-        if not root:
-            root = cls(name='/', path='/')
-            db.session.add(root)
-            db.session.commit()
-            logging.info('Created dashboard root folder')
-        return root
-
-    @classmethod
-    def get_root_folder(cls):
-        return cls.create_root_folder()
-
-
 class Dashboard(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = 'dashboards'
     model_type = 'dashboard'
+    data_types = ['dashboard', 'folder']
+    max_depth = 4
 
     id = Column(Integer, primary_key=True)
-    dashboard_title = Column(String(128), unique=True)
+    name = Column(String(128), nullable=False)
     position_json = Column(Text)
     description = Column(Text)
     department = Column(String(256))
@@ -106,38 +53,38 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     slug = Column(String(128))
     image = Column(LargeBinary(length=(2**32)-1), nullable=True)  # dashboard thumbnail
     need_capture = Column(Boolean, default=True)  # if need new thumbnail
-    folder_id = Column(Integer, ForeignKey('folders.id'), nullable=False)
-    folder = relationship(
-        'Folder', backref=backref('dashboards'), foreign_keys=[folder_id]
-    )
-    slices = relationship(
-        'Slice', secondary=dashboard_slices, backref='dashboards')
+    type = Column(String(12), default='dashboard')  # values in ['dashboard', 'folder']
+    path = Column(String(128))
+    slices = relationship('Slice', secondary=dashboard_slices, backref='dashboards')
 
     __table_args__ = (
-        UniqueConstraint('dashboard_title', name='dashboard_title_uc'),
+        UniqueConstraint('name', 'path', name='dashboard_title_uc'),
     )
 
-    export_fields = ('dashboard_title', 'position_json', 'description', 'online',
+    export_fields = ('name', 'position_json', 'description', 'online',
                      'json_metadata', 'image', 'need_capture')
 
     def __repr__(self):
-        return self.dashboard_title
-
-    @property
-    def name(self):
-        return self.dashboard_title
+        return self.name
 
     @classmethod
     def name_column(cls):
-        return cls.dashboard_title
+        return cls.name
 
     @property
-    def table_names(self):
-        tables = []
+    def datasets(self):
+        d = []
         for s in self.slices:
             if s.datasource:
-                tables.append(str(s.datasource))
-        return ", ".join(set(tables))
+                d.append(str(s.datasource))
+        return ", ".join(set(d))
+
+    @property
+    def guardian_datasource(self):
+        if self.type != self.data_types[0]:
+            raise PropertyException(
+                'This record is not a dashboard (type={})'.format(self.type))
+        return [self.model_type, self.path, self.name]
 
     @property
     def url(self):
@@ -153,7 +100,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
         return metadata.reflect()
 
     def dashboard_link(self):
-        title = escape(self.dashboard_title)
+        title = escape(self.name)
         return Markup(
             '<a href="{self.url}">{title}</a>'.format(**locals()))
 
@@ -166,7 +113,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             'id': self.id,
             'metadata': self.params_dict,
             'css': self.css,
-            'dashboard_title': self.dashboard_title,
+            'name': self.name,
             'slug': self.slug,
             'slices': [slc.data for slc in self.slices],
             'position_json': positions,
@@ -251,7 +198,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             new_dash = i_dash.copy()
             new_dash.slices = new_slices
             session.commit()
-            grant_owner_permissions([cls.model_type, new_dash.dashboard_title])
+            grant_owner_permissions([cls.model_type, new_dash.name])
         else:
             policy, new_name = cls.get_policy(cls.model_type, i_dash.name, solution)
             if policy == cls.Policy.OVERWRITE:
@@ -263,10 +210,10 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
                 logging.info('Importing dashboard: [{}] (rename to [{}])'
                              .format(i_dash, new_name))
                 new_dash = i_dash.copy()
-                new_dash.dashboard_title = new_name
+                new_dash.name = new_name
                 new_dash.slices = new_slices
                 session.commit()
-                grant_owner_permissions([cls.model_type, new_dash.dashboard_title])
+                grant_owner_permissions([cls.model_type, new_dash.name])
             elif policy == cls.Policy.SKIP:
                 logging.info('Importing dashboard: [{}] (skip)'.format(i_dash))
 
@@ -308,8 +255,43 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
         })
 
     @classmethod
-    def set_default_folder(cls, folder_id):
-        db.session.query(cls) \
-            .filter(cls.folder_id == None) \
-            .update({'folder_id': folder_id})
-        db.session.commit()
+    def count(cls):
+        return db.session.query(cls).filter(cls.type == cls.data_types[0]).count()
+
+    def get_ancestors(self):
+        if self.type == self.data_types[0]:
+            raise PropertyException('Cannot get ancestors for [{}]'.format(self.type))
+        ances = self.path.split('/')
+        del ances[-1]
+        return ances
+
+    def get_parent_path(self):
+        if self.type == self.data_types[0]:
+            raise PropertyException('Cannot get parent path for [{}]'.format(self.type))
+        match_str = '{}'.format(self.id)
+        if not self.path.endswith(match_str):
+            raise PropertyException(
+                _('Error materialized path [{path}] for folder(id={id})')
+                    .format(path=self.path, id=self.id))
+        index = self.path.find(match_str)
+        if self.path == match_str:
+            return None
+        else:
+            return self.path[:index-1]
+
+    @classmethod
+    def get_folder(cls, id):
+        folder = db.session.query(Dashboard).filter_by(id=id).first()
+        if not folder:
+            raise ParameterException('Not existed the folder with id={}'.format(id))
+        if folder.type != cls.data_types[1]:
+            raise PropertyException(
+                "The record's type ({}) is not 'folder'".format(folder.type))
+        return folder
+
+    @classmethod
+    def check_path_depth(cls, path):
+        depth = path.count('/')
+        if depth >= cls.max_depth:
+            raise ParameterException(
+                _("Folders' depth is limited to [{depth}]").format(depth=cls.MAX_DEPTH))

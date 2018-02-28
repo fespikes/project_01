@@ -20,7 +20,7 @@ QueryStatus = utils.QueryStatus
 
 class SliceModelView(SupersetModelView, PermissionManagement):
     model = Slice
-    model_type = 'slice'
+    model_type = model.model_type
     datamodel = SQLAInterface(Slice)
     route_base = '/slice'
     can_add = False
@@ -82,7 +82,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/online_info/<id>/", methods=['GET'])
     def online_info(self, id):  # Deprecated
         slice = self.get_object(id)
-        self.check_release_perm([self.model_type, slice.slice_name])
+        self.check_release_perm(slice.guardian_datasource)
         objects = self.online_affect_objects(id)
         info = _("Releasing slice {slice} will release these too: "
                  "\nDataset: {dataset}, \nConnection: {conn}, "
@@ -127,7 +127,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         slice = self.get_object(id)
-        self.check_release_perm([self.model_type, slice.slice_name])
+        self.check_release_perm(slice.guardian_datasource)
         dashboards = [d for d in slice.dashboards
                       if d.online is True and d.created_by_fk != g.user.id]
         info = _("Changing slice {slice} to offline will make it invisible "
@@ -139,7 +139,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         slice = self.get_object(id)
-        self.check_delete_perm([self.model_type, slice.name])
+        self.check_delete_perm(slice.guardian_datasource)
         objects = self.delete_affect_objects([id, ])
         info = _("Deleting slice {slice} will remove from these "
                  "dashboards too: {dashboard}") \
@@ -178,7 +178,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         slice = self.get_object(id)
-        self.check_grant_perm([self.model_type, slice.slice_name])
+        self.check_grant_perm(slice.guardian_datasource)
         objects = self.grant_affect_objects(slice)
         info = _("Granting permissions of [{slice}] to this user, will grant "
                  "permissions of dependencies to this user too: "

@@ -489,7 +489,7 @@ def load_world_bank_health_n_pop(user_id=None):
     for i, pos in enumerate(l):
         pos['slice_id'] = str(slices[i].id)
 
-    dash.dashboard_title = dash_name
+    dash.name = dash_name
     dash.position_json = json.dumps(l, indent=4)
     dash.online = True
     dash.slices = slices[:-1]
@@ -797,7 +797,7 @@ def load_birth_names(user_id=None):
         merge_slice(slc, user_id=user_id)
 
     logging.info("Creating a dashboard")
-    dash = db.session.query(Dash).filter_by(dashboard_title="Births").first()
+    dash = db.session.query(Dash).filter_by(name="Births").first()
 
     if not dash:
         dash = Dash()
@@ -871,7 +871,7 @@ def load_birth_names(user_id=None):
     l = json.loads(js)
     for i, pos in enumerate(l):
         pos['slice_id'] = str(slices[i].id)
-    dash.dashboard_title = "新生婴儿"
+    dash.name = "新生婴儿"
     dash.position_json = json.dumps(l, indent=4)
     dash.online = True
     dash.slices = slices[:-1]
@@ -954,7 +954,7 @@ def load_unicode_test_data(user_id=None):
     logging.info("Creating a dashboard")
     dash = (
         db.session.query(Dash)
-        .filter_by(dashboard_title="Unicode Test")
+        .filter_by(name="Unicode Test")
         .first()
     )
 
@@ -967,7 +967,7 @@ def load_unicode_test_data(user_id=None):
         "row": 1,
         "slice_id": slc.id,
     }
-    dash.dashboard_title = "Unicode Test"
+    dash.name = "Unicode Test"
     dash.position_json = json.dumps([pos], indent=4)
     dash.online = True
     dash.slices = [slc]
@@ -1265,7 +1265,7 @@ def load_misc_dashboard(user_id=None):
     slices = sorted(slices, key=lambda x: x.id)
     for i, pos in enumerate(l):
         pos['slice_id'] = str(slices[i].id)
-    dash.dashboard_title = "其他类型的工作表"
+    dash.name = "其他类型的工作表"
     dash.position_json = json.dumps(l, indent=4)
     dash.online = True
     dash.slices = slices

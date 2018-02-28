@@ -51,7 +51,7 @@ class Home(BaseSupersetView, PermissionManagement):
         'time': Log.dttm
     }
     str_to_column_in_edits = {
-        'name': {'slice': Slice.slice_name, 'dashboard': Dashboard.dashboard_title},
+        'name': {'slice': Slice.slice_name, 'dashboard': Dashboard.name},
         'time': {'slice': Slice.changed_on, 'dashboard': Dashboard.changed_on}
     }
 
@@ -333,7 +333,7 @@ class Home(BaseSupersetView, PermissionManagement):
                 else:
                     continue
             action = 'create' if obj.changed_on == obj.created_on else 'edit'
-            line = {'name': obj.dashboard_title,
+            line = {'name': obj.name,
                     'description': obj.description,
                     'action': action,
                     'time': str(obj.changed_on),
