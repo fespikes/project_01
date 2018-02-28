@@ -36,61 +36,6 @@ dashboard_slices = Table(
 )
 
 
-class Folder(Model, ValueRestrict):
-    __tablename__ = 'folders'
-
-    MAX_DEPTH = 4
-    ROOT = '/'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(128), nullable=False)
-    path = Column(String(128), nullable=False)  # Materialized path like /1/2/3
-
-    def __repr__(self):
-        return self.name
-
-    @property
-    def ancestors(self):
-        if self.name == self.ROOT:
-            return []
-        ances = self.path.lstrip('/').split('/')
-        del ances[-1]
-        ances.insert(0, self.ROOT)
-        return ances
-
-    def get_parent_path(self):
-        if self.name == self.ROOT:
-            return None
-        match_str = '/{}'.format(self.id)
-        if not self.path.endswith(match_str):
-            raise PropertyException(
-                _('Error materialized path [{path}] for folder(id={id})')
-                    .format(path=self.path, id=self.id))
-        index = self.path.find(match_str)
-        return self.path[:index]
-
-    @classmethod
-    def check_path_depth(cls, path):
-        depth = path.count('/')
-        if depth >= cls.MAX_DEPTH:
-            raise ParameterException(
-                _("Folders' depth is limited to [{depth}]").format(depth=cls.MAX_DEPTH))
-
-    @classmethod
-    def create_root_folder(cls):
-        root = db.session.query(cls).filter_by(name=cls.ROOT).first()
-        if not root:
-            root = cls(name='/', path='/')
-            db.session.add(root)
-            db.session.commit()
-            logging.info('Created dashboard root folder')
-        return root
-
-    @classmethod
-    def get_root_folder(cls):
-        return cls.create_root_folder()
-
-
 class Dashboard(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = 'dashboards'
     model_type = 'dashboard'
@@ -106,10 +51,6 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     slug = Column(String(128))
     image = Column(LargeBinary(length=(2**32)-1), nullable=True)  # dashboard thumbnail
     need_capture = Column(Boolean, default=True)  # if need new thumbnail
-    folder_id = Column(Integer, ForeignKey('folders.id'), nullable=False)
-    folder = relationship(
-        'Folder', backref=backref('dashboards'), foreign_keys=[folder_id]
-    )
     slices = relationship(
         'Slice', secondary=dashboard_slices, backref='dashboards')
 
@@ -306,10 +247,3 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             'dashboards': copied_dashs,
             'datasets': copied_datasets,
         })
-
-    @classmethod
-    def set_default_folder(cls, folder_id):
-        db.session.query(cls) \
-            .filter(cls.folder_id == None) \
-            .update({'folder_id': folder_id})
-        db.session.commit()
