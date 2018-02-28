@@ -36,7 +36,7 @@ class ImportDashboard extends React.Component {
     }
 
     handleTitleChange(e) {
-        this.props.dashboard.dashboard_title = e.currentTarget.value;
+        this.props.dashboard.name = e.currentTarget.value;
         let enableConfirm;
         if(!e.currentTarget.value || e.currentTarget.value.length === 0) {
             enableConfirm = false;

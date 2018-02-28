@@ -23,7 +23,7 @@ class Header extends React.PureComponent {
                         className="name text-overflow-style"
                         style={{maxWidth: 260, display: 'inline-block'}}
                     >
-                        {dashboard.dashboard_title}
+                        {dashboard.name}
                     </span>
                     <span is class="favstar" class_name="Dashboard" obj_id={dashboard.id} />
                     <Tooltip title={dashboard.description} placement="bottom">

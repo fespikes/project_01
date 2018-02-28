@@ -35,7 +35,7 @@ class Add extends React.Component {
     }
 
     handleTitleChange(e) {
-        this.props.dashboard.dashboard_title = e.currentTarget.value;
+        this.props.dashboard.name = e.currentTarget.value;
         this.setState({
             dashboard: this.props.dashboard
         });
@@ -111,7 +111,7 @@ class Add extends React.Component {
                                     <span>标题：</span>
                                 </div>
                                 <div className="item-right">
-                                    <input className="form-control dialog-input" value={this.props.dashboard.dashboard_title}
+                                    <input className="form-control dialog-input" value={this.props.dashboard.name}
                                            onChange={this.handleTitleChange} />
                                 </div>
                             </div>

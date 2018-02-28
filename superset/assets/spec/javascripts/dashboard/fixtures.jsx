@@ -58,7 +58,7 @@ export const dashboardData = {
   ],
   id: 2,
   slices: [slice],
-  dashboard_title: 'Births',
+  name: 'Births',
 };
 
 export const contextData = {

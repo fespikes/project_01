@@ -24,7 +24,7 @@ class Tables extends React.Component {
         const { dispatch } = this.props;
         let selectedRowNames = [];
         selectedRows.forEach(function(row) {
-            selectedRowNames.push(row.dashboard_title);
+            selectedRowNames.push(row.name);
         });
         dispatch(actions.setSelectedRow(selectedRowKeys, selectedRowNames));
     };
@@ -54,7 +54,7 @@ class Tables extends React.Component {
         function callback(success, data) {
             if(success) {
                 let deleteTips = data + ' ' + intl.get('DASHBOARD.CONFIRM_TO_DELETE') + ' '
-                    + record.dashboard_title + "?";
+                    + record.name + "?";
                 render(
                     <DashboardDelete
                         dispatch={dispatch}
@@ -89,7 +89,7 @@ class Tables extends React.Component {
     givePerm(record) {
         const callback = (success, response) => {
             if(success) {
-                utils.renderPermModal(record.id, record.dashboard_title, utils.OBJECT_TYPE.DASHBOARD);
+                utils.renderPermModal(record.id, record.name, utils.OBJECT_TYPE.DASHBOARD);
             }else {
                 utils.renderConfirmModal(response);
             }
@@ -118,8 +118,8 @@ class Tables extends React.Component {
             }
         }, {
             title: intl.get('DASHBOARD.NAME'),
-            dataIndex: 'dashboard_title',
-            key: 'dashboard_title',
+            dataIndex: 'name',
+            key: 'name',
             width: '33%',
             render: (text, record) => {
                 return (
@@ -132,7 +132,7 @@ class Tables extends React.Component {
                                 href="javascript:void(0)"
                                 onClick={() => this.viewDashDetail(record.url)}
                             >
-                                {record.dashboard_title}
+                                {record.name}
                             </a>
                         </div>
                         <div

@@ -168,7 +168,7 @@ export function fetchDashboards(userId) {
       if (status === 'success') {
         const choices = [];
         for (let i = 0; i < data.pks.length; i++) {
-          choices.push({ value: data.pks[i], label: data.result[i].dashboard_title });
+          choices.push({ value: data.pks[i], label: data.result[i].name });
         }
         dispatch(fetchDashboardsSucceeded(choices));
       } else {

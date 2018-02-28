@@ -24,7 +24,7 @@ class SliceEdit extends React.Component {
         function initDefaultOptions() {
             let defaultOptions = [];
             props.sliceDetail.dashboards.map(dashboard => {
-                defaultOptions.push(dashboard.dashboard_title);
+                defaultOptions.push(dashboard.name);
             });
             return defaultOptions;
         }
@@ -87,8 +87,8 @@ class SliceEdit extends React.Component {
         function callback(success, data) {
             if(success) {
                 const availableOptions = data.data.map(dashboard => {
-                    return <Option key={dashboard.dashboard_title}>
-                        {dashboard.dashboard_title}</Option>
+                    return <Option key={dashboard.name}>
+                        {dashboard.name}</Option>
                 });
                 self.setState({
                     availableDashboards: data.data,

@@ -108,7 +108,7 @@ class SaveModal extends React.PureComponent {
                     document.getElementById('popup_root')
                 );
             } else {
-                data.dashboard_title = newDashboardTitle;
+                data.name = newDashboardTitle;
                 url = PILOT_PREFIX + 'copy_dash/' + dashboard.id + '/';
                 this.saveDashboardRequest(data, url, saveType);
             }
@@ -130,7 +130,7 @@ class SaveModal extends React.PureComponent {
                             value="overwrite"
                             onChange={this.handleSaveTypeChange}
                             checked={this.state.saveType === 'overwrite'}>
-                            {intl.get('DASHBOARD.OVERRIDE_DASHBOARD')} [{this.props.dashboard.dashboard_title}]
+                            {intl.get('DASHBOARD.OVERRIDE_DASHBOARD')} [{this.props.dashboard.name}]
                         </Radio>
                         <Radio
                             value="newDashboard"

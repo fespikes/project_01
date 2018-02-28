@@ -88,7 +88,7 @@ class DashboardEdit extends React.Component {
     }
 
     handleTitleChange(e) {
-        this.state.dashboard.dashboard_title = e.currentTarget.value;
+        this.state.dashboard.name = e.currentTarget.value;
         let enableConfirm = false;
         if(e.currentTarget.value && e.currentTarget.value.length > 0) {
             enableConfirm = true;
@@ -138,7 +138,7 @@ class DashboardEdit extends React.Component {
                     <div className="item-right">
                         <input
                             className="tp-input dialog-input"
-                            value={this.state.dashboard.dashboard_title}
+                            value={this.state.dashboard.name}
                             onChange={this.handleTitleChange}
                         />
                     </div>

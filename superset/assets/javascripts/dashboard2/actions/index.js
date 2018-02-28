@@ -451,7 +451,7 @@ function getSelectedRows(dashboard, selectedRowKeys, selectedRowNames, type) {
         });
         if (!existed) {
             selectedRowKeys.push(dashboard.id);
-            selectedRowNames.push(dashboard.dashboard_title);
+            selectedRowNames.push(dashboard.name);
         }
     } else if (type === "remove") {
         selectedRowKeys.map((key, index) => {
