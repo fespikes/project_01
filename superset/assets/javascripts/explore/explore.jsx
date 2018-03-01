@@ -341,7 +341,7 @@ function initExploreView() {
             const choices = [];
             const data = respose.data;
             for (let i = 0; i < data.data.length; i++) {
-                choices.push({ id: data.data[i].id, text: data.data[i].dashboard_title });
+                choices.push({ id: data.data[i].id, text: data.data[i].name });
             }
             $('#save_to_dashboard_id').select2({
                 data: choices,

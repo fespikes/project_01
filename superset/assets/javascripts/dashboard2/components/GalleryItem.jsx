@@ -77,7 +77,7 @@ class GalleryItem extends React.Component {
     deleteDashboard() {
         const { dispatch, dashboard } = this.props;
         const deleteTips = intl.get('DASHBOARD.CONFIRM') + intl.get('DASHBOARD.DELETE')
-            + dashboard.dashboard_title + "?";
+            + dashboard.name + "?";
         render(
             <DashboardDelete
                 dispatch={dispatch}
@@ -91,7 +91,7 @@ class GalleryItem extends React.Component {
     authorize(record) {
         const callback = (success, response) => {
             if(success) {
-                utils.renderPermModal(record.id, record.dashboard_title, utils.OBJECT_TYPE.DASHBOARD);
+                utils.renderPermModal(record.id, record.name, utils.OBJECT_TYPE.DASHBOARD);
             }else {
                 utils.renderConfirmModal(response);
             }
@@ -133,7 +133,7 @@ class GalleryItem extends React.Component {
                         <div className={this.state.selected ? 'selected' : 'name'}>
                             <Checkbox onChange={onChange}>
                                 <span className="item-title">
-                                    {dashboard.dashboard_title}
+                                    {dashboard.name}
                                 </span>
                             </Checkbox>
                         </div>

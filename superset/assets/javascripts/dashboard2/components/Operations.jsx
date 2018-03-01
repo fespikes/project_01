@@ -31,7 +31,7 @@ class Operations extends React.Component {
         const { dispatch } = this.props;
         const callback = (success, data) => {
             if(success) {
-                const dashboard = {dashboard_title: '', description: ''};
+                const dashboard = {name: '', description: ''};
                 render(
                     <DashboardAdd
                         dispatch={dispatch}
