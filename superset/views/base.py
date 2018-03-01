@@ -44,7 +44,10 @@ def catch_exception(f):
             return json_response(status=500, message=e.message, code=e.code)
         except Exception as e:
             logging.exception(e)
-            return json_response(status=500, message=str(e), code=1)
+            if 'AnonymousUserMixin' in str(e):
+                return json_response(status=500, message=NO_USER, code=1)
+            else:
+                return json_response(status=500, message=str(e), code=1)
     return functools.update_wrapper(wraps, f)
 
 

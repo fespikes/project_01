@@ -6,7 +6,7 @@ DATASOURCE_MISSING_ERR = _("The datasource seems to have been deleted")
 DATASOURCE_ACCESS_ERR = _("You don't have access to this datasource")
 
 OBJECT_NOT_FOUND = _("Not found this object")
-NO_USER = _("Can't get user's information")
+NO_USER = _("Can't get user's information. Maybe session is expired. Try login again.")
 
 ONLINE_SUCCESS = _("Success to be online")
 OFFLINE_SUCCESS = _("Success to be offline")

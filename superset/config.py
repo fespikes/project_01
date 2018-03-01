@@ -65,6 +65,9 @@ LICENSE_CHECK = True
 # Your App secret key
 SECRET_KEY = '=== Transwarp Studio Pilot ==='  # noqa
 
+# Session timeout
+PERMANENT_SESSION_LIFETIME = 15 * 60
+
 
 METADATA_CONN_NAME = 'main'
 

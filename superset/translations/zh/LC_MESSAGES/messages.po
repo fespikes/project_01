@@ -1557,7 +1557,7 @@ msgstr "行为"
 ###
 ###: messages.py
 ###
-msgid "Can't get user's information"
+msgid "Can't get user's information. Maybe session is expired. Try login again."
 msgstr "获取不到当前用户信息，可能会话过期，请尝试重新登陆"
 
 msgid "Success to be online"
