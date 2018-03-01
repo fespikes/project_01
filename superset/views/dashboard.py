@@ -332,12 +332,18 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         f = request.data
         objects = pickle.loads(f)
+        folders_dict = objects.get('folders', None)
+
+        folder_ids_dict = None
+        if folders_dict:
+            folder_ids_dict = Dashboard.import_folders(folders_dict)
+
         for dataset in objects['datasets']:
             Dataset.import_obj(
                 session, dataset, solution, self.grant_owner_permissions)
         for dashboard in objects['dashboards']:
-            Dashboard.import_obj(
-                session, dashboard, solution, self.grant_owner_permissions)
+            Dashboard.import_obj(session, dashboard, solution,
+                                 self.grant_owner_permissions, folder_ids_dict)
             Log.log('import', dashboard, 'dashboard', g.user.id)
         return json_response('Import success')
 
@@ -352,8 +358,6 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
             Dashboard.export_dashboards(ids),
             headers=self.generate_download_headers("pickle"),
             mimetype="application/text")
-        # data = Dashboard.export_dashboards(ids)
-        # return json_response(data=data)
 
     def add_slices_api(self, dashboard_id, slice_ids):
         """Add and save slices to a dashboard"""
@@ -427,23 +431,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     def add_folder(self):
         parent_id = request.args.get('parent_id')
         name = request.args.get('name')
-
-        Dashboard.check_name(name)
-        parent = None
-        if parent_id:
-            parent = Dashboard.get_folder(parent_id)
-            Dashboard.check_path_depth(parent.path)
-
-        new_folder = Dashboard(name=name, type=Dashboard.data_types[1])
-        db.session.add(new_folder)
-        db.session.commit()
-
-        if parent:
-            path = '{}/{}'.format(parent.path, new_folder.id)
-        else:
-            path = '{}'.format(new_folder.id)
-        new_folder.path = path
-        db.session.commit()
+        Dashboard.add_folder(name, parent_id)
         return json_response(message=ADD_SUCCESS)
 
     @catch_exception
@@ -480,8 +468,11 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         dash = Dashboard.get_object(id=dash_id)
         self.check_edit_perm(dash.guardian_datasource)
-        Dashboard.get_folder(folder_id)  # ensure folder is existed
-        dash.path = folder_id
+        if folder_id:
+            Dashboard.get_folder(folder_id)  # ensure folder is existed
+            dash.path = folder_id
+        else:  # is None, move to root path
+            dash.path = None
         db.session.commit()
         return json_response(message=MOVE_DASHBOARD_SUCCESS)
 
@@ -492,15 +483,19 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         parent_folder_id = request.args.get('parent_folder_id')
 
         folder = Dashboard.get_folder(folder_id)
-        parent_folder = Dashboard.get_folder(parent_folder_id)
-        if parent_folder.path.startswith(folder.path):
-            raise ParameterException(MOVE_FOLDER_TO_CHILD_ERROR)
+        if parent_folder_id:
+            parent_folder = Dashboard.get_folder(parent_folder_id)
+            if parent_folder.path.startswith(folder.path):
+                raise ParameterException(MOVE_FOLDER_TO_CHILD_ERROR)
 
-        related_folders, _ = self.check_folder_perm(folder, 'move')
-        old_parent_path = folder.get_parent_path()
-        if old_parent_path != parent_folder.path:
-            for rf in related_folders:
-                rf.path = rf.path.replace(old_parent_path, parent_folder.path)
+            related_folders, _ = self.check_folder_perm(folder, 'move')
+            old_parent_path = folder.get_parent_path()
+            if old_parent_path != parent_folder.path:
+                for rf in related_folders:
+                    rf.path = rf.path.replace(old_parent_path, parent_folder.path)
+                db.session.commit()
+        else:  # move to root
+            folder.path = '{}'.format(folder_id)
             db.session.commit()
         return json_response(message=MOVE_FOLDER_SUCCESS)
 
@@ -538,3 +533,10 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
                         _('No privilege to delete [{dash}], so cannot delete folder [{folder}]')
                             .format(dash=dash, folder=folder))
         return folders, dashs
+
+    @catch_exception
+    @expose("/folder/tree/", methods=['GET'])
+    def directory_tree(self):
+        folder_id = request.args.get('folder_id', None)
+        tree = Dashboard.tree_dict(folder_id)
+        return json_response(data=tree)

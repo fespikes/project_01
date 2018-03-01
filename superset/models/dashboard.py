@@ -135,7 +135,8 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
         return []
 
     @classmethod
-    def import_obj(cls, session, i_dash, solution, grant_owner_permissions):
+    def import_obj(cls, session, i_dash, solution, grant_owner_permissions,
+                   folder_ids_dict):
         """Imports the dashboard from the object to the database.
         """
         def alter_positions(dashboard, old_to_new_slc_id_dict):
@@ -188,6 +189,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
         new_slices = session.query(Slice) \
             .filter(Slice.id.in_(old_to_new_slc_id_dict.values())) \
             .all()
+        new_path = folder_ids_dict.get(i_dash.path, None)
 
         i_dash.id = None
         existed_dash = cls.get_object(name=i_dash.name)
@@ -197,6 +199,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             logging.info('Importing dashboard: [{}] (add)'.format(i_dash))
             new_dash = i_dash.copy()
             new_dash.slices = new_slices
+            new_dash.path = new_path
             session.commit()
             grant_owner_permissions([cls.model_type, new_dash.name])
         else:
@@ -205,6 +208,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
                 logging.info('Importing dashboard: [{}] (overwrite)'.format(i_dash))
                 new_dash.override(i_dash)
                 new_dash.slices = new_slices
+                new_dash.path = new_path
                 session.commit()
             elif policy == cls.Policy.RENAME:
                 logging.info('Importing dashboard: [{}] (rename to [{}])'
@@ -212,6 +216,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
                 new_dash = i_dash.copy()
                 new_dash.name = new_name
                 new_dash.slices = new_slices
+                new_dash.path = new_path
                 session.commit()
                 grant_owner_permissions([cls.model_type, new_dash.name])
             elif policy == cls.Policy.SKIP:
@@ -222,7 +227,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     @classmethod
     def export_dashboards(cls, dashboard_ids):
         copied_dashs, copied_datasets = [],  []
-        dataset_ids = set()
+        dataset_ids, folder_ids = set(), set()
 
         for dashboard_id in dashboard_ids:
             dashboard_id = int(dashboard_id)
@@ -238,6 +243,9 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
                     dataset_ids.add(dataset.id)
 
             copied_dashs.append(copied_dashboard)
+            if copied_dashboard.type == Dashboard.data_types[0] and \
+                    copied_dashboard.path:
+                folder_ids.add(copied_dashboard.path)
 
         for id in dataset_ids:
             dataset = (
@@ -249,7 +257,9 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             make_transient(dataset)
             copied_datasets.append(dataset)
 
+        folders = cls.get_ancestors_tree(folder_ids)
         return pickle.dumps({
+            'folders': folders,
             'dashboards': copied_dashs,
             'datasets': copied_datasets,
         })
@@ -283,10 +293,31 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     def get_folder(cls, id):
         folder = db.session.query(Dashboard).filter_by(id=id).first()
         if not folder:
-            raise ParameterException('Not existed the folder with id={}'.format(id))
+            raise ParameterException('Not existed the folder with id [{}]'.format(id))
         if folder.type != cls.data_types[1]:
             raise PropertyException(
                 "The record's type ({}) is not 'folder'".format(folder.type))
+        return folder
+
+    @classmethod
+    def add_folder(cls, name, parent_id=None):
+        """Add child folder with 'name'"""
+        cls.check_name(name)
+        parent = None
+        if parent_id:
+            parent = cls.get_folder(parent_id)
+            cls.check_path_depth(parent.path)
+
+        folder = Dashboard(name=name, type=Dashboard.data_types[1])
+        db.session.add(folder)
+        db.session.commit()
+
+        if parent:
+            path = '{}/{}'.format(parent.path, folder.id)
+        else:
+            path = '{}'.format(folder.id)
+        folder.path = path
+        db.session.commit()
         return folder
 
     @classmethod
@@ -295,3 +326,116 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
         if depth >= cls.max_depth:
             raise ParameterException(
                 _("Folders' depth is limited to [{depth}]").format(depth=cls.MAX_DEPTH))
+
+    @classmethod
+    def tree_dict(cls, folder_id=None):
+        """Get the tree of folder with 'folder_id' or root"""
+        tree = []
+        if folder_id:
+            folder = cls.get_folder(folder_id)
+            d = {'id': folder.id,
+                 'name': folder.name,
+                 'children': cls.children_dict(folder)}
+            tree.append(d)
+        else:
+            tree = cls.children_dict()
+        return tree
+
+    @classmethod
+    def children_dict(cls, folder=None):
+        """Recursive method to get children tree as dict"""
+        children_list = []
+        children = cls.get_children(folder)
+        for child in children:
+            d = {'id': child.id,
+                 'name': child.name,
+                 'children': cls.children_dict(child)}
+            children_list.append(d)
+        return children_list
+
+    @classmethod
+    def get_children(cls, folder):
+        """Query the children of folder"""
+        if not folder:
+            query = db.session.query(Dashboard) \
+                .filter(
+                Dashboard.type == Dashboard.data_types[1],
+                ~Dashboard.path.like('%/%')
+            )
+        else:
+            query = db.session.query(Dashboard) \
+                .filter(
+                Dashboard.type == Dashboard.data_types[1],
+                Dashboard.path.like('{}/%'.format(folder.path)),
+                ~Dashboard.path.like('{}/%/%'.format(folder.path)),
+                )
+        return query.all()
+
+    @classmethod
+    def get_ancestors_tree(cls, folder_ids):
+        """Get thr tree which contains the paths from root to folders with ids"""
+        folder_ids = [int(i) for i in folder_ids]
+        bottom_folders = db.session.query(Dashboard)\
+            .filter(
+                Dashboard.type == Dashboard.data_types[1],
+                Dashboard.id.in_(folder_ids)
+            ).all()
+
+        all_ids, routes = [], []
+        for f in bottom_folders:
+            route = f.path.split('/')
+            route = [int(r) for r in route]
+            routes.append(route)
+            all_ids.extend(route)
+
+        all_ids = set(all_ids)
+        all_folders = db.session.query(Dashboard) \
+            .filter(
+                Dashboard.type == Dashboard.data_types[1],
+                Dashboard.id.in_(all_ids)
+            ).all()
+        folder_names = {f.id: f.name for f in all_folders}
+
+        tree = []
+        layer_ids = [[], ]
+        for route in routes:
+            layer_folders = tree
+            for i, folder_id in enumerate(route):
+                if i >= len(layer_ids):
+                    layer_ids.append([])
+                if folder_id not in layer_ids[i]:
+                    layer_ids[i].append(folder_id)
+                    layer_folders.append({'id': folder_id,
+                                          'name': folder_names.get(folder_id),
+                                          'children': []})
+                for d in layer_folders:
+                    if d['id'] == folder_id:
+                        layer_folders = d['children']
+                        break
+        return tree
+
+    @classmethod
+    def import_folders(cls, i_tree):
+        def import_layer(i_layer, existed_layer, parent_id, folder_ids_dict):
+            for i_folder in i_layer:
+                for existed_folder in existed_layer:
+                    if existed_folder['name'] == i_folder['name']:
+                        folder_ids_dict[i_folder['id']] = existed_folder['id']
+                        if i_folder['children']:
+                            import_layer(i_folder['children'], existed_folder['children'],
+                                         existed_folder['id'], folder_ids_dict)
+                        break
+
+                if i_folder['id'] not in folder_ids_dict.keys():
+                    new_folder = cls.add_folder(i_folder['name'], parent_id)
+                    folder_ids_dict[i_folder['id']] = new_folder.id
+                    if i_folder['children']:
+                        import_layer(i_folder['children'], [], new_folder.id,
+                                     folder_ids_dict)
+
+        folder_ids_dict = {}
+        existed_tree = cls.tree_dict()
+        import_layer(i_tree, existed_tree, None, folder_ids_dict)
+        folder_ids_dict = {'{}'.format(k): '{}'.format(v)
+                           for k, v in folder_ids_dict.items()}
+        return folder_ids_dict
