@@ -81,6 +81,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
 
         query = db.session.query(Database, User) \
                 .outerjoin(User, Database.created_by_fk == User.id)
+        query = query.filter(Database.database_name != config.get('METADATA_CONN_NAME'))
 
         if database_type:
             match_str = '{}%'.format(database_type)

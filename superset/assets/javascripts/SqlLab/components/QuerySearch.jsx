@@ -104,7 +104,7 @@ class QuerySearch extends React.PureComponent {
             if (data.length === 0) {
                 this.props.actions.addAlert({
                     bsStyle: 'danger',
-                    msg: intl.get('seem_not_accessed_db'),
+                    msg: intl.get('no_usable_db_connection'),
                 });
             }
             return options;

@@ -83,7 +83,6 @@
   "execute_this_query_in_new_tag": "在新的标签中执行查询",
   "use_this_sql_to_override_previous": "用该查询sql覆盖编辑框中的sql",
   "remove_this_query_from_log": "从日志中移除本次查询",
-  "seem_not_accessed_db": "It seems you don't have access to any database",
   "execute_record": "SQL执行记录",
   "search_link": "查询链接",
   "started": "已开始",
