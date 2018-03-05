@@ -334,7 +334,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         objects = pickle.loads(f)
         folders_dict = objects.get('folders', None)
 
-        folder_ids_dict = None
+        folder_ids_dict = {}
         if folders_dict:
             folder_ids_dict = Dashboard.import_folders(folders_dict)
 

@@ -181,7 +181,7 @@ IMG_UPLOAD_FOLDER = BASE_DIR + '/app/static/uploads/'
 IMG_UPLOAD_URL = '/static/uploads/'
 # Setup image size default is (300, 200, True)
 # IMG_SIZE = (300, 200, True)
-
+MAX_CONTENT_LENGTH = 64 * 1024 * 1024
 
 # Global folder for slice cache, keytab, cas file
 GLOBAL_FOLDER = '/tmp/pilot'
