@@ -680,8 +680,6 @@ class Superset(BaseSupersetView, PermissionManagement):
         schema = None if schema in ('null', 'undefined') else schema
         mydb = db.session.query(Database).filter_by(id=database_id).one()
         cols = []
-        indexes = []
-        t = mydb.get_columns(table_name, schema)
         try:
             t = mydb.get_columns(table_name, schema)
             indexes = mydb.get_indexes(table_name, schema)
@@ -736,18 +734,6 @@ class Superset(BaseSupersetView, PermissionManagement):
         payload = mydb.db_engine_spec.extra_table_metadata(
             mydb, table_name, schema)
         return json_response(data=payload)
-
-    @catch_exception
-    @expose("/select_star/<database_id>/<table_name>/")
-    def select_star(self, database_id, table_name):
-        mydb = db.session.query(Database).filter_by(id=database_id).first()
-        quote = mydb.get_quoter()
-        t = mydb.get_table(table_name)
-
-        fields = ", ".join(
-            [quote(c.name) for c in t.columns] or "*")
-        s = "SELECT\n{}\nFROM {}".format(fields, table_name)
-        return self.render_template("superset/ajah.html", content=s)
 
     @expose("/theme/")
     def theme(self):
@@ -843,21 +829,6 @@ class Superset(BaseSupersetView, PermissionManagement):
         response.headers['Content-Disposition'] = (
             'attachment; filename={}.csv'.format(query.name))
         return response
-
-    @catch_exception
-    @expose("/fetch_datasource_metadata/")
-    def fetch_datasource_metadata(self):
-        datasource_type = request.args.get('datasource_type')
-        datasource_class = SourceRegistry.sources[datasource_type]
-        datasource = (
-            db.session.query(datasource_class)
-            .filter_by(id=request.args.get('datasource_id'))
-            .first()
-        )
-        # Check if datasource exists
-        if not datasource:
-            raise PropertyException(DATASOURCE_MISSING_ERR)
-        return json_response(data=datasource.data)
 
     @catch_exception
     @expose("/queries/<last_updated_ms>/")
