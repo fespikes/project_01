@@ -4,10 +4,10 @@ import os
 from jpype import *
 
 JAR_PATH = '/usr/local/lib'
-JAR_SUFFIX = 'transwarp-5.2.0.jar'
+JAR_SUFFIX = 'transwarp-6.0.0.jar'
 GUARDIAN_SITE_PATH = '/etc/pilot/conf/'
-# LICENSE_JAR = 'pilot-license-1.0-transwarp-5.2.0.jar'
-# GAURDIAN_JAR = 'guardian-client-2.0-transwarp-5.2.0.jar'
+# LICENSE_JAR = 'pilot-license-1.0-transwarp-6.0.0.jar'
+# GAURDIAN_JAR = 'guardian-client-2.0-transwarp-6.0.0.jar'
 
 
 def start_jvm():
