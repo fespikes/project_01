@@ -41,8 +41,8 @@ class ConfirmModal extends React.Component {
             alert = <ErrorAlert message={confirmMessage}/>
         }
         return (this.state.initDone &&
-            <div className="popup">
-                <div className="popup-dialog popup-md">
+            <div className="popup" style={{zIndex: 1250}}>
+                <div className="popup-dialog popup-sm">
                     <div className="popup-content">
                         <div className="popup-header">
                             <div className="header-left">

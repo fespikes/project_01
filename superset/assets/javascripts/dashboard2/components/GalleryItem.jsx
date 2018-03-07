@@ -4,7 +4,6 @@ import {Checkbox, message} from 'antd';
 import {render} from 'react-dom';
 import * as actions from '../actions';
 import {DashboardEdit, DashboardDelete} from '../popup';
-import {ConfirmModal} from '../../common/components';
 import intl from "react-intl-universal";
 import {renderGlobalErrorMsg} from '../../../utils/utils';
 import * as utils from '../../../utils/utils';
@@ -18,7 +17,6 @@ class GalleryItem extends React.Component {
         };
         // bindings
         this.editDashboard = this.editDashboard.bind(this);
-        this.publishDashboard = this.publishDashboard.bind(this);
         this.deleteDashboard = this.deleteDashboard.bind(this);
     };
 
@@ -38,42 +36,6 @@ class GalleryItem extends React.Component {
         }
     }
 
-    publishDashboard() {
-        const { dispatch, dashboard } = this.props;
-        const self = this;
-        dispatch(actions.fetchOnOfflineInfo(dashboard.id, dashboard.online, callback));
-        function callback(success, data) {
-            if(success) {
-                render(
-                    <ConfirmModal
-                        dispatch={dispatch}
-                        record={dashboard}
-                        needCallback={true}
-                        confirmCallback={self.onOfflineDashboard}
-                        confirmMessage={data} />,
-                    document.getElementById('popup_root')
-                );
-            }else {
-                renderGlobalErrorMsg(data);
-            }
-        }
-    }
-
-    onOfflineDashboard() {
-        const {dispatch, record} = this;
-        dispatch(actions.fetchStateChange(record, callback,"publish"));
-        function callback(success, data) {
-            if(!success) {
-                render(
-                    <ConfirmModal
-                        needCallback={false}
-                        confirmMessage={data} />,
-                    document.getElementById('popup_root')
-                );
-            }
-        }
-    }
-
     deleteDashboard() {
         const { dispatch, dashboard } = this.props;
         const deleteTips = intl.get('DASHBOARD.CONFIRM') + intl.get('DASHBOARD.DELETE')
@@ -86,6 +48,10 @@ class GalleryItem extends React.Component {
                 dashboard={dashboard}/>,
             document.getElementById('popup_root')
         );
+    }
+
+    viewDashboard(dashboard) {
+        window.location.href = dashboard.url;
     }
 
     authorize(record) {
@@ -119,9 +85,10 @@ class GalleryItem extends React.Component {
         return (
             <div className="items">
                 <div className="item">
-                    <div className='item-img-wrapper'>
-                        <div className={'item-img dashboard-thumbnail-' + (dashboard.id%5 + 1)}>
-                            <a href={dashboard.url}>
+                    <div className='item-img-wrapper' onClick={() => this.viewDashboard(dashboard)}>
+                        <div className='item-img' style={{backgroundImage: dashboard.image ? 'url(' + dashboard.image + ')'
+                            : 'url(/static/assets/images/dashboard-gallery-default.png)'}}>
+                            <a>
                                 <i
                                     className="fa fa-search"
                                     aria-hidden="true"
@@ -142,10 +109,6 @@ class GalleryItem extends React.Component {
                                 className="icon icon-edit"
                                 onClick={this.editDashboard}
                             />
-                            {/*<i
-                                className={dashboard.online ? 'icon icon-online' : 'icon icon-offline'}
-                                onClick={this.publishDashboard}
-                            />*/}
                             <i
                                 className="icon icon-delete"
                                 onClick={this.deleteDashboard}
