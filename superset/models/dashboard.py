@@ -82,9 +82,22 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     @property
     def guardian_datasource(self):
         if self.type != self.data_types[0]:
-            raise PropertyException(
-                'This record is not a dashboard (type={})'.format(self.type))
-        return [self.model_type, self.path, self.name]
+            logging.exception('No guardian datasource for dashboard (type={})'
+                              .format(self.type))
+            return None
+        elif not self.path:
+            return [self.model_type, self.name]
+        else:
+            folder = db.session.query(Dashboard)\
+                .filter(Dashboard.id == self.path,
+                        Dashboard.type == Dashboard.data_types[1]
+                ).first()
+            if not folder:
+                logging.exception('Not existed dashboard(folder) with id={}'
+                                  .format(self.path))
+                return [self.model_type, self.name]
+            else:
+                return folder.real_path()
 
     @property
     def url(self):
@@ -268,13 +281,6 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     def count(cls):
         return db.session.query(cls).filter(cls.type == cls.data_types[0]).count()
 
-    def get_ancestors(self):
-        if self.type == self.data_types[0]:
-            raise PropertyException('Cannot get ancestors for [{}]'.format(self.type))
-        ances = self.path.split('/')
-        del ances[-1]
-        return ances
-
     def get_parent_path(self):
         if self.type == self.data_types[0]:
             raise PropertyException('Cannot get parent path for [{}]'.format(self.type))
@@ -291,12 +297,12 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
     @classmethod
     def get_folder(cls, id):
-        folder = db.session.query(Dashboard).filter_by(id=id).first()
+        folder = db.session.query(Dashboard)\
+            .filter(Dashboard.id == id,
+                    Dashboard.type == Dashboard.data_types[1])\
+            .first()
         if not folder:
             raise ParameterException('Not existed the folder with id [{}]'.format(id))
-        if folder.type != cls.data_types[1]:
-            raise PropertyException(
-                "The record's type ({}) is not 'folder'".format(folder.type))
         return folder
 
     @classmethod
@@ -326,6 +332,23 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
         if depth >= cls.max_depth:
             raise ParameterException(
                 _("Folders' depth is limited to [{depth}]").format(depth=cls.MAX_DEPTH))
+
+    def real_path(self):
+        if self.type != self.data_types[1]:
+            raise PropertyException('Dashboard does not have path')
+        if str(self.id) == self.path:
+            return [self.name, ]
+        else:
+            ids = self.path.split('/')
+            ids = [int(i) for i in ids]
+            folders = db.session.query(Dashboard)\
+                .filter(Dashboard.id.in_(ids),
+                        Dashboard.type == Dashboard.data_types[1])\
+                .all()
+            names_dict = {}
+            for f in folders:
+                names_dict[f.id] = f.path
+            return [names_dict.get(i) for i in ids]
 
     @classmethod
     def tree_dict(cls, folder_id=None):

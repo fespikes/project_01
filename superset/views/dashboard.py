@@ -444,6 +444,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
             self.check_folder_perm(folder, 'rename')
             folder.name = new_name
             db.session.commit()
+        # TODO rename guardian datasource
         return json_response(message=UPDATE_SUCCESS)
 
     @catch_exception
@@ -474,6 +475,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         else:  # is None, move to root path
             dash.path = None
         db.session.commit()
+        # TODO modify guardian datasource
         return json_response(message=MOVE_DASHBOARD_SUCCESS)
 
     @catch_exception
@@ -497,6 +499,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         else:  # move to root
             folder.path = '{}'.format(folder_id)
             db.session.commit()
+        # TODO modify guardian datasource
         return json_response(message=MOVE_FOLDER_SUCCESS)
 
     def check_folder_perm(self, folder, action):
