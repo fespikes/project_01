@@ -171,7 +171,7 @@ export function dashboardContainer(dashboard) {
                     .tooltip('fixTitle');
             }
             this.renderCount++;
-            if (dashboard.context.need_capture && this.renderCount === this.sliceObjects.length && this.sliceObjects.length > 0) {
+            if (dashboard.context.need_capture && (this.renderCount + 1) === this.sliceObjects.length && this.sliceObjects.length > 0) {
                 this.screenShot();
             }
         },
