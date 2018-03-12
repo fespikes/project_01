@@ -141,7 +141,8 @@ class HDFSBrowser(BaseSupersetView):
     def remove(self):
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
-        response = self.client.remove(paths)
+        forever = args.get('forever', 'false')
+        response = self.client.remove(paths, forever)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
