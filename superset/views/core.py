@@ -68,7 +68,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 .format(model=cls.__name__, id=id)
             logging.error(msg)
             return json_response(status=400, message=msg)
-        self.check_release_perm(obj.guardian_datasource)
+        self.check_release_perm(obj.guardian_datasource())
 
         if action.lower() == 'online':
             if obj.online is True:
@@ -132,7 +132,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 args=request.args)
             if slice_id:
                 slice = db.session.query(Slice).filter_by(id=slice_id).first()
-                self.check_read_perm(slice.guardian_datasource)
+                self.check_read_perm(slice.guardian_datasource())
         except Exception as e:
             logging.exception(e)
             return Response(utils.error_msg_from_exception(e), status=500)
@@ -193,7 +193,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         if not slc:
             slice_edit_perm = True
         else:
-            slice_edit_perm = self.check_edit_perm(slc.guardian_datasource,
+            slice_edit_perm = self.check_edit_perm(slc.guardian_datasource(),
                                                    raise_if_false=False)
         # handle save or overwrite
         action = request.args.get('action')
@@ -382,7 +382,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
         Log.log_add(slc, 'slice', g.user.id)
         Number.log_number(g.user.username, 'slice')
-        self.grant_owner_permissions(slc.guardian_datasource)
+        self.grant_owner_permissions(slc.guardian_datasource())
 
     def overwrite_slice(self, slc):
         db.session.expunge_all()
@@ -450,7 +450,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         session.commit()
         dash_json = dash.json_data
         Log.log_add(dash, 'dashboard', g.user.id)
-        self.grant_owner_permissions(dash.guardian_datasource)
+        self.grant_owner_permissions(dash.guardian_datasource())
         return json_response(data=dash_json)
 
     @catch_exception
@@ -459,7 +459,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         """Save a dashboard's metadata"""
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        self.check_edit_perm(dash.guardian_datasource)
+        self.check_edit_perm(dash.guardian_datasource())
         data = json.loads(request.form.get('data'))
         self._set_dash_metadata(dash, data)
         dash.need_capture = True
@@ -492,7 +492,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         data = json.loads(request.form.get('data'))
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        self.check_edit_perm(dash.guardian_datasource)
+        self.check_edit_perm(dash.guardian_datasource())
         new_slices = session.query(Slice).filter(Slice.id.in_(data['slice_ids']))
         dash.slices += new_slices
         dash.need_capture = True
@@ -585,7 +585,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         self.update_redirect()
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=int(dashboard_id)).one()
-        dash_edit_perm = self.check_edit_perm(dash.guardian_datasource,
+        dash_edit_perm = self.check_edit_perm(dash.guardian_datasource(),
                                               raise_if_false=False)
         dash_save_perm = dash_edit_perm
         standalone = request.args.get("standalone") == "true"
@@ -624,7 +624,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.commit()
         Log.log_add(table, 'dataset', g.user.id)
         Number.log_number(g.user.username, 'dataset')
-        self.grant_owner_permissions(table.guardian_datasource)
+        self.grant_owner_permissions(table.guardian_datasource())
 
         cols = []
         dims = []

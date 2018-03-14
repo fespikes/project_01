@@ -321,7 +321,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     def post_add(self, obj):
         Log.log_add(obj, self.model_type, g.user.id)
         Number.log_number(g.user.username, self.model_type)
-        self.grant_owner_permissions(obj.guardian_datasource)
+        self.grant_owner_permissions(obj.guardian_datasource())
 
     @catch_exception
     @expose('/show/<pk>/', methods=['GET'])
@@ -345,12 +345,13 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
         self.post_update(old_obj, new_obj)
 
     def pre_update(self, old_obj, new_obj):
-        self.check_edit_perm(old_obj.guardian_datasource)
+        self.check_edit_perm(old_obj.guardian_datasource())
         self.pre_add(new_obj)
 
     def post_update(self, old_obj, new_obj):
         Log.log_update(new_obj, self.model_type, g.user.id)
-        self.rename_perm_obj(old_obj.guardian_datasource, new_obj.guardian_datasource)
+        self.rename_perm_obj(old_obj.guardian_datasource(),
+                             new_obj.guardian_datasource())
 
     @catch_exception
     @expose('/delete/<pk>/')
@@ -366,12 +367,12 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
         self.post_delete(obj)
 
     def pre_delete(self, obj):
-        self.check_delete_perm(obj.guardian_datasource)
+        self.check_delete_perm(obj.guardian_datasource())
 
     def post_delete(self, obj):
         Log.log_delete(obj, self.model_type, g.user.id)
         Number.log_number(g.user.username, self.model_type)
-        self.del_perm_obj(obj.guardian_datasource)
+        self.del_perm_obj(obj.guardian_datasource())
 
     @catch_exception
     @expose('/muldelete/', methods=['GET', 'POST'])

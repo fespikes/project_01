@@ -50,7 +50,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         utils.validate_json(obj.position_json)
 
     def pre_update(self, old_obj, new_obj):
-        self.check_edit_perm(old_obj.guardian_datasource)
+        self.check_edit_perm(old_obj.guardian_datasource())
         self.pre_add(new_obj)
 
     def post_delete(self, obj):
@@ -160,7 +160,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         connections online.
         """
         dashboard = self.get_object(id)
-        self.check_release_perm(dashboard.guardian_datasource)
+        self.check_release_perm(dashboard.guardian_datasource())
 
         slices = dashboard.slices
         datasets = []
@@ -201,7 +201,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/offline_info/<id>/", methods=['GET'])
     def offline_info(self, id):  # Deprecated
         dash = self.get_object(id)
-        self.check_release_perm(dash.guardian_datasource)
+        self.check_release_perm(dash.guardian_datasource())
         info = _("Changing dashboard {dashboard} to offline will make it invisible "
                  "for other users").format(dashboard=[dash, ])
         return json_response(data=info)
@@ -210,7 +210,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         dash = self.get_object(id)
-        self.check_delete_perm(dash.guardian_datasource)
+        self.check_delete_perm(dash.guardian_datasource())
         return json_response(data='')
 
     @catch_exception
@@ -222,7 +222,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     @expose("/grant_info/<id>/", methods=['GET'])
     def grant_info(self, id):
         dash = self.get_object(id)
-        self.check_grant_perm(dash.guardian_datasource)
+        self.check_grant_perm(dash.guardian_datasource())
         objects = self.grant_affect_objects(dash)
         info = _("Granting permissions of [{dashboard}] to this user, will grant "
                  "permissions of dependencies to this user too: "
@@ -315,7 +315,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
                 name_column = model_name_columns[obj_type]
                 sames = db.session.query(model).filter(name_column.in_(obj_names)).all()
                 for o in sames:
-                    editable = self.check_edit_perm(o.guardian_datasource,
+                    editable = self.check_edit_perm(o.guardian_datasource(),
                                                     raise_if_false=False)
                     same_objs[obj_type]['names'][o.name] = {'can_overwrite': editable}
 
@@ -363,7 +363,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         """Add and save slices to a dashboard"""
         session = db.session()
         dash = session.query(Dashboard).filter_by(id=dashboard_id).first()
-        self.check_edit_perm(dash.guardian_datasource)
+        self.check_edit_perm(dash.guardian_datasource())
         new_slices = session.query(Slice).filter(
             Slice.id.in_(slice_ids))
         dash.slices += new_slices
@@ -419,7 +419,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         for d in query.all():
             if d.type == Dashboard.data_types[0]:  # dashboard
-                if self.check_read_perm(d.guardian_datasource, raise_if_false=False):
+                if self.check_read_perm(d.guardian_datasource(), raise_if_false=False):
                     data['dashboards'].append({'id': d.id, 'name': d.name})
             elif d.type == Dashboard.data_types[1]:  # folder
                 data['folders'].append({'id': d.id, 'name': d.name})
@@ -468,7 +468,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         folder_id = request.args.get('folder_id')
 
         dash = Dashboard.get_object(id=dash_id)
-        self.check_edit_perm(dash.guardian_datasource)
+        self.check_edit_perm(dash.guardian_datasource())
         if folder_id:
             Dashboard.get_folder(folder_id)  # ensure folder is existed
             dash.path = folder_id
@@ -523,14 +523,14 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         dashs = db.session.query(Dashboard).filter(Dashboard.path.in_(folder_ids)).all()
         if action in ['rename', 'move']:
             for dash in dashs:
-                if not self.check_edit_perm(dash.guardian_datasource,
+                if not self.check_edit_perm(dash.guardian_datasource(),
                                             raise_if_false=False):
                     raise GuardianException(
                         _('No privilege to edit [{dash}], so cannot edit folder [{folder}]')
                             .format(dash=dash, folder=folder))
         elif action in ['delete', ]:
             for dash in dashs:
-                if not self.check_delete_perm(dash.guardian_datasource,
+                if not self.check_delete_perm(dash.guardian_datasource(),
                                               raise_if_false=False):
                     raise GuardianException(
                         _('No privilege to delete [{dash}], so cannot delete folder [{folder}]')

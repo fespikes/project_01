@@ -79,14 +79,13 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
                 d.append(str(s.datasource))
         return ", ".join(set(d))
 
-    @property
     def guardian_datasource(self):
         if self.type != self.data_types[0]:
             logging.exception('No guardian datasource for dashboard (type={})'
                               .format(self.type))
             return None
         elif not self.path:
-            return [self.model_type, self.name]
+            return [self.model_type.upper(), self.name]
         else:
             folder = db.session.query(Dashboard)\
                 .filter(Dashboard.id == self.path,
@@ -95,9 +94,9 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             if not folder:
                 logging.exception('Not existed dashboard(folder) with id={}'
                                   .format(self.path))
-                return [self.model_type, self.name]
+                return [self.model_type.upper(), self.name]
             else:
-                return folder.real_path()
+                return [self.model_type.upper(), ] + folder.real_path() + [self.name, ]
 
     @property
     def url(self):
