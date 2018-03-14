@@ -53,7 +53,41 @@ class BaseEngineSpec(object):
     @classmethod
     def extra_table_metadata(cls, database, schema, table):
         """Returns engine-specific table metadata"""
-        return {}
+        columns = database.get_columns(table, schema)
+        indexes = database.get_indexes(table, schema)
+        primary_key = database.get_pk_constraint(table, schema)
+        foreign_keys = database.get_foreign_keys(table, schema)
+
+        for c in columns:
+            c['type'] = '{}'.format(c['type'])
+
+        keys = []
+        if primary_key and primary_key.get('constrained_columns'):
+            primary_key['column_names'] = primary_key.pop('constrained_columns')
+            primary_key['type'] = 'pk'
+            keys += [primary_key]
+        for fk in foreign_keys:
+            fk['column_names'] = fk.pop('constrained_columns')
+            fk['type'] = 'fk'
+        keys += foreign_keys
+        for idx in indexes:
+            idx['type'] = 'index'
+        keys += indexes
+
+        return {'columns': columns,
+                'primary_key': primary_key,
+                'foreign_keys': foreign_keys,
+                'indexes': keys}
+
+    @classmethod
+    def extra_column_metadata(cls, database, schema, table, column):
+        """Returns engine-specific column metadata"""
+        column = database.get_column(table, column, schema)
+        metadata = {}
+        if column:
+            column['type'] = '{}'.format(column['type'])
+            metadata = column
+        return metadata
 
     @classmethod
     def convert_dttm(cls, target_type, dttm):

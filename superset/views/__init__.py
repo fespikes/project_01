@@ -59,6 +59,7 @@ appbuilder.add_view(
     icon='fa-table',)
 
 appbuilder.add_view_no_menu(sql_lab.QueryView)
+appbuilder.add_view_no_menu(sql_lab.SQLLab)
 appbuilder.add_link(
     'SQL Editor',
     href='/p/sqllab',
