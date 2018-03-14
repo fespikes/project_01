@@ -46,7 +46,12 @@ class BaseEngineSpec(object):
         return cls.epoch_to_dttm().replace('{col}', '({col}/1000.0)')
 
     @classmethod
-    def extra_table_metadata(cls, database, table_name, schema_name):
+    def extra_schema_metadata(cls, database, schema):
+        """Returns engine-specific schema metadata"""
+        raise NotImplementedError()
+
+    @classmethod
+    def extra_table_metadata(cls, database, schema, table):
         """Returns engine-specific table metadata"""
         return {}
 
@@ -142,6 +147,7 @@ class SqliteEngineSpec(BaseEngineSpec):
 
 class MySQLEngineSpec(BaseEngineSpec):
     engine = 'mysql'
+    meta_schema = 'information_schema'
     time_grains = (
         Grain('Time Column', _('Time Column'), '{col}'),
         Grain("second", _('second'), "DATE_ADD(DATE({col}), "
@@ -166,6 +172,18 @@ class MySQLEngineSpec(BaseEngineSpec):
     )
 
     @classmethod
+    def extra_schema_metadata(cls, database, schema):
+        engine = database.get_sqla_engine()
+        query = engine.execute(
+            "SELECT DEFAULT_CHARACTER_SET_NAME FROM {}.SCHEMATA WHERE SCHEMA_NAME='{}'"
+                .format(cls.meta_schema, schema))
+        rs = query.fetchone()
+        metadata = {}
+        if rs:
+            metadata['charset'] = rs[0]
+        return metadata
+
+    @classmethod
     def convert_dttm(cls, target_type, dttm):
         if target_type.upper() in ('DATETIME', 'DATE'):
             return "STR_TO_DATE('{}', '%Y-%m-%d %H:%i:%s')".format(
@@ -186,6 +204,19 @@ class MySQLEngineSpec(BaseEngineSpec):
 class InceptorEngineSpec(BaseEngineSpec):
     engine = 'inceptor'
     time_grains = tuple()
+
+    @classmethod
+    def extra_schema_metadata(cls, database, schema):
+        engine = database.get_sqla_engine()
+        query = engine.execute(
+            "SELECT commentstring, owner_name FROM system.databases_v "
+            "WHERE database_name='{}'".format(schema))
+        rs = query.fetchone()
+        metadata = {}
+        if rs:
+            metadata['comment'] = rs[0]
+            metadata['owner'] = rs[1]
+        return metadata
 
 
 class PrestoEngineSpec(BaseEngineSpec):
@@ -254,7 +285,7 @@ class PrestoEngineSpec(BaseEngineSpec):
         """).format(**locals())
 
     @classmethod
-    def extra_table_metadata(cls, database, table_name, schema_name):
+    def extra_table_metadata(cls, database, schema_name, table_name):
         indexes = database.get_indexes(table_name, schema_name)
         if not indexes:
             return {}
@@ -308,6 +339,7 @@ class PrestoEngineSpec(BaseEngineSpec):
 
 class MssqlEngineSpec(BaseEngineSpec):
     engine = 'mssql'
+    meta_schema = 'information_schema'
     epoch_to_dttm = "dateadd(S, {col}, '1970-01-01')"
 
     time_grains = (
@@ -333,6 +365,18 @@ class MssqlEngineSpec(BaseEngineSpec):
         Grain("year", _('year'), "DATEADD(year, "
               "DATEDIFF(year, 0, {col}), 0)"),
     )
+
+    @classmethod
+    def extra_schema_metadata(cls, database, schema):
+        engine = database.get_sqla_engine()
+        query = engine.execute(
+            "SELECT SCHEMA_OWNER FROM {}.SCHEMATA WHERE SCHEMA_NAME='{}'"
+                .format(cls.meta_schema, schema))
+        rs = query.fetchone()
+        metadata = {}
+        if rs:
+            metadata['owner'] = rs[0]
+        return metadata
 
     @classmethod
     def convert_dttm(cls, target_type, dttm):
@@ -363,6 +407,19 @@ class OracleEngineSpec(PostgresEngineSpec):
         Grain('year', _('year'),
               "TRUNC(TO_DATE({col}), 'YEAR')"),
     )
+
+    @classmethod
+    def extra_schema_metadata(cls, database, schema):
+        engine = database.get_sqla_engine()
+        query = engine.execute(
+            "SELECT DEFAULT_TABLESPACE, TO_CHAR(CREATED, 'YYYY-MM-DD') "
+            "FROM dba_users WHERE USERNAME='{}'".format(schema))
+        rs = query.fetchone()
+        metadata = {}
+        if rs:
+            metadata['tablespace'] = rs[0]
+            metadata['created'] = rs[1]
+        return metadata
 
     @classmethod
     def convert_dttm(cls, target_type, dttm):
