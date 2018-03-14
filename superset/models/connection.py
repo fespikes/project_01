@@ -5,12 +5,11 @@ import logging
 import sqlparse
 import pandas as pd
 from flask import g
-from itertools import groupby
-from collections import OrderedDict
 from flask_appbuilder import Model
 
 import sqlalchemy as sqla
 from sqlalchemy.orm import backref, relationship
+from sqlalchemy.pool import QueuePool
 from sqlalchemy_utils import EncryptedType
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, Text, Boolean, Table,
@@ -101,7 +100,7 @@ class Database(Model, AuditMixinNullable, ImportMixin):
         url = make_url(self.sqlalchemy_uri_decrypted)
         connect_args = self.args_append_keytab(self.get_args().get('connect_args', {}))
         url = self.db_engine_spec.adjust_database_uri(url, schema)
-        return create_engine(url, connect_args=connect_args)
+        return create_engine(url, connect_args=connect_args, pool_size=10)
 
     def get_reserved_words(self):
         return self.get_sqla_engine().dialect.preparer.reserved_words
@@ -122,14 +121,13 @@ class Database(Model, AuditMixinNullable, ImportMixin):
         compiled = qry.compile(eng, compile_kwargs={"literal_binds": True})
         return '{}'.format(compiled)
 
-    def select_star(
-            self, table_name, schema=None, limit=100, show_cols=False,
+    def select_star(self, table_name, schema=None, limit=100, show_cols=False,
             indent=True):
         """Generates a ``select *`` statement in the proper dialect"""
         quote = self.get_quoter()
         fields = '*'
-        table = self.get_table(table_name, schema=schema)
         if show_cols:
+            table = self.get_table(table_name, schema=schema)
             fields = [quote(c.name) for c in table.columns]
         if schema:
             table_name = schema + '.' + table_name
@@ -171,23 +169,6 @@ class Database(Model, AuditMixinNullable, ImportMixin):
     def all_schema_names(self):
         return sorted(self.inspector.get_schema_names())
 
-    def all_schema_table_names(self):
-        st_list = self.inspector.get_schema_and_table_names()
-        # from sqlalchemy.dialects.inceptor.base import InceptorDialect
-        # inceptor = InceptorDialect()
-        # engine = self.get_sqla_engine()
-        # conn = engine.connect()
-        # st_list = inceptor.get_schema_and_table_names(conn)
-
-        st_group = groupby(st_list, lambda item: item[0])
-        st = {}
-        for schema, tb_group in st_group:
-            tables = []
-            for i in list(tb_group):
-                tables.append(i[1])
-            st[schema] = tables
-        return OrderedDict(sorted(st.items(), key=lambda s: s[0]))
-
     @property
     def db_engine_spec(self):
         return db_engine_specs.engines.get(
@@ -227,6 +208,14 @@ class Database(Model, AuditMixinNullable, ImportMixin):
 
     def get_columns(self, table_name, schema=None):
         return self.inspector.get_columns(table_name, schema)
+
+    def get_column(self, table_name, column_name, schema=None):
+        columns = self.inspector.get_columns(table_name, schema)
+        if columns:
+            for c in columns:
+                if c.get('name', '') == column_name:
+                    return c
+        return {}
 
     def get_indexes(self, table_name, schema=None):
         return self.inspector.get_indexes(table_name, schema)
