@@ -718,7 +718,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         tbl = {
             'name': table_name,
             'columns': cols,
-            'selectStar': mydb.select_star(
+            'selectStar': mydb.select_sql(
                 table_name, schema=schema, show_cols=True, indent=True),
             'primaryKey': primary_key,
             'foreignKeys': foreign_keys,

@@ -12,10 +12,12 @@ from sqlalchemy.orm import sessionmaker
 
 from superset import (
     app, db, models, utils, dataframe, results_backend)
+from superset.models import Database
 from superset.sql_parse import SupersetQuery
 from superset.db_engine_specs import LimitMethod
 from superset.jinja_context import get_template_processor
 from superset.timeout_decorator import sql_timeout
+
 QueryStatus = models.QueryStatus
 
 celery_app = celery.Celery(config_source=app.config.get('CELERY_CONFIG'))
@@ -135,7 +137,7 @@ def get_sql_results(self, query_id, return_results=True, store_results=False):
         # Presto doesn't provide result_proxy.row_count
         query.rows = cdf.size
     if query.select_as_cta:
-        query.select_sql = '{}'.format(database.select_star(
+        query.select_sql = '{}'.format(database.select_sql(
             query.tmp_table_name,
             limit=query.limit,
             schema=database.force_ctas_schema
@@ -164,3 +166,29 @@ def get_sql_results(self, query_id, return_results=True, store_results=False):
 
     if return_results:
         return payload
+
+
+@sql_timeout
+def execute_sql(database_id, sql, schema=None):
+    database = Database.get_object(database_id)
+    engine = database.get_sqla_engine(schema=schema)
+
+    query = SupersetQuery(sql)
+    if query.is_select():
+        sql = database.wrap_sql_limit(sql, int(app.config.get('SQL_MAX_ROW', 100)))
+
+    result_proxy = engine.execute(sql)
+    cdf = None
+    column_names = []
+    if result_proxy.cursor:
+        column_names = [col[0] for col in result_proxy.cursor.description]
+        column_names = dedup(column_names)
+        data = result_proxy.fetchall()
+        cdf = dataframe.SupersetDataFrame(pd.DataFrame(data, columns=column_names))
+
+    payload = {
+        'data': cdf.data if cdf else [],
+        'columns': column_names,
+        'sql': sql
+    }
+    return payload

@@ -121,12 +121,14 @@ class Database(Model, AuditMixinNullable, ImportMixin):
         compiled = qry.compile(eng, compile_kwargs={"literal_binds": True})
         return '{}'.format(compiled)
 
-    def select_star(self, table_name, schema=None, limit=100, show_cols=False,
-            indent=True):
+    def select_sql(self, table_name, schema=None, limit=100, show_cols=False,
+                   indent=True, columns=set()):
         """Generates a ``select *`` statement in the proper dialect"""
         quote = self.get_quoter()
         fields = '*'
-        if show_cols:
+        if columns:
+            fields = [quote(c) for c in columns]
+        elif show_cols:
             table = self.get_table(table_name, schema=schema)
             fields = [quote(c.name) for c in table.columns]
         if schema:
