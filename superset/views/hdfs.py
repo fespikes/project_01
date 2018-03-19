@@ -48,10 +48,15 @@ def ensure_logined(f):
     filerobot, and re_login if session is timeout.
     """
     def wraps(self, *args, **kwargs):
-        if self.client is None or self.logined_user != g.user.username:
+        username = g.user.username
+        if self.client is None or self.logined_user != username:
             client, response = self.login_filerobot(self.hdfs_conn_id)
             self.handle_login_result(client, response, self.hdfs_conn_id)
-
+            try:
+                self.client.mkdir('/user', username)
+            except Exception as e:
+                logging.error('Failed to create default user path for [{}]. '
+                              .format(username) + str(e))
         try:
             return f(self, *args, **kwargs)
         except FileRobotException as fe:
