@@ -516,7 +516,7 @@ class Superset(BaseSupersetView, PermissionManagement):
             if database and uri == database.safe_sqlalchemy_uri():
                 uri = database.sqlalchemy_uri_decrypted
         connect_args = eval(args.get('args', {})).get('connect_args', {})
-        connect_args = Database.args_append_keytab(connect_args)
+        connect_args = Database.append_args(connect_args)
         engine = create_engine(uri, connect_args=connect_args)
         try:
             engine.connect()

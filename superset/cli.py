@@ -14,7 +14,7 @@ from flask_migrate import MigrateCommand, upgrade
 from flask_script import Manager
 
 from superset import app, sm, db, data, security
-from superset.models import HDFSConnection, Log, Dashboard
+from superset.models import HDFSConnection, Log, Database
 
 
 config = app.config
@@ -75,6 +75,22 @@ def create_default_user():
     logging.info("Finish to add or edit default admin user.")
 
 
+def create_default_inceptor_conn():
+    name = config.get('DEFAULT_INCEPTOR_CONN_NAME')
+    database = db.session.query(Database).filter_by(database_name=name).first()
+    if not database:
+        logging.info("Begin to add default inceptor connection...")
+        uri = 'inceptor://{}/default'.format(config.get('DEFAULT_INCEPTOR_SERVER'))
+        database = Database(database_name=name,
+                            sqlalchemy_uri=uri,
+                            args='{"connect_args": {"hive": "Hive Server 2", "mech": "Token"}}',
+                            description='Default inceptor connection.')
+        db.session.add(database)
+        db.session.commit()
+        logging.info("Finish to add default inceptor connection.")
+        Log.log_add(database, 'database', None)
+
+
 def create_default_hdfs_conn():
     name = config.get('DEFAULT_HDFS_CONN_NAME')
     hconn = db.session.query(HDFSConnection).filter_by(connection_name=name).first()
@@ -103,6 +119,7 @@ def init_pilot():
     # init_tables_and_roles()
     create_default_user()
     init_examples()
+    create_default_inceptor_conn()
     create_default_hdfs_conn()
 
 

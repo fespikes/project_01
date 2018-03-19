@@ -9,7 +9,6 @@ from flask_appbuilder import Model
 
 import sqlalchemy as sqla
 from sqlalchemy.orm import backref, relationship
-from sqlalchemy.pool import QueuePool
 from sqlalchemy_utils import EncryptedType
 from sqlalchemy import (
     Column, Integer, String, ForeignKey, Text, Boolean, Table,
@@ -21,9 +20,10 @@ from sqlalchemy.sql.expression import TextAsFrom
 from sqlalchemy.orm.session import make_transient
 
 from superset import db, app, db_engine_specs, conf
+from superset.cas.access_token import get_token
 from superset.utils import GUARDIAN_AUTH
-from superset.exception import ParameterException, GuardianException
-from superset.message import MISS_PASSWORD_FOR_GUARDIAN, DISABLE_GUARDIAN_FOR_KEYTAB
+from superset.exception import GuardianException
+from superset.message import DISABLE_GUARDIAN_FOR_KEYTAB
 from .base import AuditMixinNullable, ImportMixin
 
 config = app.config
@@ -98,7 +98,7 @@ class Database(Model, AuditMixinNullable, ImportMixin):
 
     def get_sqla_engine(self, schema=None):
         url = make_url(self.sqlalchemy_uri_decrypted)
-        connect_args = self.args_append_keytab(self.get_args().get('connect_args', {}))
+        connect_args = self.append_args(self.get_args().get('connect_args', {}))
         url = self.db_engine_spec.adjust_database_uri(url, schema)
         return create_engine(url, connect_args=connect_args, pool_size=10)
 
@@ -243,28 +243,32 @@ class Database(Model, AuditMixinNullable, ImportMixin):
         return sqla_url.get_dialect()()
 
     @classmethod
-    def args_append_keytab(cls, connect_args):
-        if connect_args.get('mech', '').lower() == 'kerberos':
+    def append_args(cls, connect_args):
+        def get_keytab(username, passwd):
             dir = config.get('GLOBAL_FOLDER', '/tmp/pilot')
-            username = g.user.username
-            password = g.user.password2
-            if not password:
-                raise ParameterException(MISS_PASSWORD_FOR_GUARDIAN)
-            connect_args['keytab'] = cls.get_keytab(username, password, dir)
-        return connect_args
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            path = os.path.join(dir, '{}.keytab'.format(username))
+            if conf.get('CAS_AUTH'):
+                pass
+            elif conf.get(GUARDIAN_AUTH):
+                from superset.guardian import guardian_client
+                guardian_client.login(username, passwd)
+                guardian_client.download_keytab(username, path)
+                return path
+            else:
+                raise GuardianException(DISABLE_GUARDIAN_FOR_KEYTAB)
 
-    @classmethod
-    def get_keytab(cls, user, passwd, dir):
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-        path = os.path.join(dir, 'tmp.keytab')
-        if conf.get(GUARDIAN_AUTH):
-            from superset.guardian import guardian_client
-            guardian_client.login(user, passwd)
-            guardian_client.download_keytab(user, path)
-            return path
-        else:
-            raise GuardianException(DISABLE_GUARDIAN_FOR_KEYTAB)
+        def get_ticket():
+            raise NotImplementedError
+
+        if connect_args.get('mech', '').lower() == 'kerberos':
+            connect_args['keytab'] = get_keytab(g.user.username, g.user.password2)
+        elif connect_args.get('mech', '').lower() == 'token':
+            connect_args['guardianToken'] = get_token(g.user.username)
+        elif connect_args.get('mech', '').lower() == 'ticket':
+            connect_args['casTicket'] = get_ticket()
+        return connect_args
 
     @classmethod
     def count(cls):

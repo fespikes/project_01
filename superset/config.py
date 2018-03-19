@@ -55,6 +55,7 @@ COMMUNITY_PASSWORD = DEFAULT_PASSWORD
 CAS_AUTH = False
 CAS_SERVER = 'https://localhost:8393'
 CAS_URL_PREFIX = '/cas'
+GUARDIAN_SERVICE = 'https://localhost:8380'  # Used for proxy ticket and access token
 
 # if load examples data when start server
 LOAD_EXAMPLES = True
@@ -79,6 +80,9 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(DATA_DIR, 'pilot.db')
 # and 'charset=utf8' should be in uri
 #SQLALCHEMY_DATABASE_URI = 'mysql://username:password@localhost:3306/db?charset=utf8'
 
+# inceptor
+DEFAULT_INCEPTOR_CONN_NAME = 'default_inceptor'
+DEFAULT_INCEPTOR_SERVER = 'node01:10000'  # should be <node01>[,node02]:<port>
 
 # hdfs
 DEFAULT_HTTPFS = '172.0.0.1'

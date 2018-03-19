@@ -10,7 +10,7 @@ import ssl
 from logging.handlers import TimedRotatingFileHandler
 
 from sqlalchemy_utils.functions import database_exists, create_database
-from flask import Flask, redirect
+from flask import g, Flask, redirect
 from flask_appbuilder import SQLA, AppBuilder, IndexView
 from flask_appbuilder.baseviews import expose
 from flask_cache import Cache
@@ -117,12 +117,21 @@ def index_view():
 
                 ### login here
                 utils.login_app(appbuilder, cas.username, conf.get('DEFAULT_PASSWORD'))
-                return redirect('/home')
+
+                url = self.get_redirect()
+                if url == self.appbuilder.get_url_for_index:
+                    url = '/home'
+                return redirect(url)
     else:
         class MyIndexView(IndexView):
             @expose('/')
             def index(self):
-                return redirect('/home')
+                from superset.views import hdfs
+                hdfs.create_user_folder()
+                url = self.get_redirect()
+                if url == self.appbuilder.get_url_for_index:
+                    url = '/home'
+                return redirect(url)
     return MyIndexView
 
 
