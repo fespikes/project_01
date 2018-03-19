@@ -2,13 +2,14 @@ import flask
 import logging
 import requests
 from xmltodict import parse
-from flask import current_app, Response
+from flask import current_app, Response, g
 from .cas_urls import create_cas_login_url
 from .cas_urls import create_cas_logout_url
 from .cas_urls import create_cas_validate_url
-from .cas_urls import create_cas_proxy_url
 from .cas_urls import create_cas_callback_url
+from .access_token import get_token
 from .pgt_file import PgtFile
+from .proxy_ticket import get_proxy_ticket
 
 
 try:
@@ -166,46 +167,6 @@ def pgt_callback():
     return Response()
 
 
-def get_proxy_ticket(target_service):
-    """
-    Get 'proxy ticket for' 'target_service'.
-    """
-    cas_pgtiou_session_key = current_app.config['CAS_PGTIOU_SESSION_KEY']
-    pgtiou = flask.session[cas_pgtiou_session_key]
-    if not pgtiou:
-        logging.error('No CAS_PGTIOU in session')
-        return None
-    pgt = PgtFile.get_pgt(pgtiou)
-    if not pgt:
-        logging.error('Not found pgt in file by pgtiou: {}...'.format(pgtiou[:20]))
-        return None
-    cas_proxy_url = create_cas_proxy_url(
-        current_app.config['CAS_SERVER'],
-        current_app.config['CAS_PROXY_ROUTE'],
-        target_service,
-        pgt)
-    logging.info('Try to get proxy ticket for service: {} by PGT: {}...'
-                 .format(target_service, pgt[0:20]))
-
-    pt = None
-    try:
-        xmldump = urlopen(cas_proxy_url).read().strip().decode('utf8', 'ignore')
-        xml_from = parse(xmldump)
-        xml_from = xml_from['cas:serviceResponse']
-        if 'cas:proxySuccess' in xml_from:
-            pt = xml_from['cas:proxySuccess']['cas:proxyTicket']
-            logging.info('Success to get proxy ticket: {}...'.format(pt[0:20]))
-        elif 'cas:proxyFailure' in xml_from:
-            logging.error(
-                'Failed to get proxy ticket: ' + str(dict(xml_from['cas:proxyFailure'])))
-        else:
-            logging.error('Error response when getting proxy ticket: ' + xml_from)
-    except ValueError:
-        logging.error("CAS returned unexpected result")
-
-    return pt
-
-
 @blueprint.route('/test_proxy_ticket/')
 def test_proxy_ticket():
     target_service = 'http://172.16.1.190:8380'
@@ -219,15 +180,7 @@ def test_proxy_ticket():
     return Response(resp.text)
 
 
-@blueprint.route('/test_webhdfs/')
-def test_webhdfs():
-    target_service = 'http://172.16.132.56:14000'
-    target_service = flask.request.args.get('targetService', target_service)
-    pt = get_proxy_ticket(target_service)
-    if not pt:
-        return Response('Failed to get proxy ticket')
-    url = '{}/webhdfs/v1/?user.name=admin&op=GETFILESTATUS&ticket={}'\
-        .format(target_service, pt)
-    resp = requests.get(url)
-    logging.info(url)
-    return Response(resp.text)
+@blueprint.route('/test_token/')
+def test_token():
+    token = get_token(g.user.username)
+    return Response(token)
