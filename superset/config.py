@@ -55,7 +55,7 @@ COMMUNITY_PASSWORD = DEFAULT_PASSWORD
 CAS_AUTH = False
 CAS_SERVER = 'https://localhost:8393'
 CAS_URL_PREFIX = '/cas'
-GUARDIAN_SERVICE = 'https://localhost:8380'  # Used for proxy ticket and access token
+GUARDIAN_SERVER = 'https://localhost:8380'  # Used for proxy ticket and access token
 
 # if load examples data when start server
 LOAD_EXAMPLES = True

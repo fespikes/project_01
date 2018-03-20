@@ -9,18 +9,18 @@ from .proxy_ticket import get_proxy_ticket
 TOKEN_NAME = 'pilot-token'
 
 
-def guardian_service():
-    guardian_service = current_app.config.get('GUARDIAN_SERVICE')
-    if 'http://' not in guardian_service and 'https://' not in guardian_service:
-        if '8080' in guardian_service:
-            guardian_service = 'http://{}'.format(guardian_service())
+def guardian_server():
+    server = current_app.config.get('GUARDIAN_SERVER')
+    if 'http://' not in server and 'https://' not in server:
+        if '8080' in server:
+            server = 'http://{}'.format(server)
         else:
-            guardian_service = 'https://{}'.format(guardian_service())
-    return guardian_service
+            server = 'https://{}'.format(server)
+    return server
 
 
 def get_token(username):
-    target_service = guardian_service()
+    target_service = guardian_server()
     pt = get_proxy_ticket(target_service)
     url = '{}/api/v1/accessToken?owner={}&ticket={}'.format(target_service, username, pt)
     logging.info(url)
