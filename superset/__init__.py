@@ -126,8 +126,6 @@ def index_view():
         class MyIndexView(IndexView):
             @expose('/')
             def index(self):
-                from superset.views import hdfs
-                hdfs.create_user_folder()
                 url = self.get_redirect()
                 if url == self.appbuilder.get_url_for_index:
                     url = '/home'
