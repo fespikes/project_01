@@ -199,7 +199,10 @@ class PermissionManagement(object):
         """Grant READ perm of example data to present user"""
         if not self.guardian_auth:
             return
-        example_types = {'dashboard': Dashboard, 'slice': Slice, 'dataset': Dataset,
+        example_types = {'dashboard': Dashboard,
+                         'slice': Slice,
+                         'dataset': Dataset,
+                         'database': Database,
                          'hdfsconnection': HDFSConnection}
         for obj_type, model in example_types.items():
             objs = db.session.query(model).filter(model.created_by_fk == None).all()
