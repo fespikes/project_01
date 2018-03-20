@@ -38,6 +38,7 @@ class GuardianBase(object):
     def __init__(self):
         self.client = None
         self.component = None
+        self.global_datasource = self._datasource(['GLOBAL', ])
         self.service_type = conf.get('GUARDIAN_SERVICE_TYPE', self.service_type)
         self.models = JPackage('io.transwarp.guardian.common.model')
         self.PermissionVo = self.models.PermissionVo

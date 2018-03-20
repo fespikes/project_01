@@ -130,7 +130,7 @@ class GuardianClient(GuardianBase):
         :return: set of ids which has any permissions
         """
         component = component if component else self.component
-        datasource = self._datasource([model, ])
+        datasource = self._datasource([model.upper(), ])
         entity_perms = self.client.searchPermissions(
             username, self.PrincipalType.USER, component, datasource, True
         )

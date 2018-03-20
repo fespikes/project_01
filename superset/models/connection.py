@@ -265,7 +265,9 @@ class Database(Model, AuditMixinNullable, ImportMixin):
         if connect_args.get('mech', '').lower() == 'kerberos':
             connect_args['keytab'] = get_keytab(g.user.username, g.user.password2)
         elif connect_args.get('mech', '').lower() == 'token':
-            connect_args['guardianToken'] = get_token(g.user.username)
+            keys = [k.lower() for k in connect_args.keys()]
+            if 'guardiantoken' not in keys:
+                connect_args['guardianToken'] = get_token(g.user.username)
         elif connect_args.get('mech', '').lower() == 'ticket':
             connect_args['casTicket'] = get_ticket()
         return connect_args

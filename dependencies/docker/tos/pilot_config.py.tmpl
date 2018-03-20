@@ -26,7 +26,6 @@ MAPBOX_API_KEY = "{{ getenv "PILOT_MAPBOX_API_KEY" "See www.mapbox.com"}}"
 
 
 DEFAULT_HTTPFS = "{{ getenv "PILOT_DEFAULT_HTTPFS" "localhost"}}"
-DEFAULT_HDFS_CONN_NAME = 'default_{}'.format(DEFAULT_HTTPFS)
 
 
 LOAD_EXAMPLES = {{ getenv "PILOT_LOAD_EXAMPLES" "True"}}

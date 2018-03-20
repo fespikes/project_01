@@ -85,8 +85,8 @@ DEFAULT_INCEPTOR_CONN_NAME = 'default_inceptor'
 DEFAULT_INCEPTOR_SERVER = 'node01:10000'  # should be <node01>[,node02]:<port>
 
 # hdfs
+DEFAULT_HDFS_CONN_NAME = 'default_hdfs'
 DEFAULT_HTTPFS = '172.0.0.1'
-DEFAULT_HDFS_CONN_NAME = 'default_{}'.format(DEFAULT_HTTPFS)
 
 # The limit of queries fetched for query search
 QUERY_SEARCH_LIMIT = 1000

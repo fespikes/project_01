@@ -78,31 +78,40 @@ def create_default_user():
 def create_default_inceptor_conn():
     name = config.get('DEFAULT_INCEPTOR_CONN_NAME')
     database = db.session.query(Database).filter_by(database_name=name).first()
-    if not database:
-        logging.info("Begin to add default inceptor connection...")
-        uri = 'inceptor://{}/default'.format(config.get('DEFAULT_INCEPTOR_SERVER'))
+    uri = 'inceptor://{}/default'.format(config.get('DEFAULT_INCEPTOR_SERVER'))
+    if database:
+        database.sqlalchemy_uri = uri
+        db.session.commit()
+        logging.info("Success to edit default inceptor connection.")
+        Log.log_update(database, 'database', None)
+    else:
         database = Database(database_name=name,
                             sqlalchemy_uri=uri,
                             args='{"connect_args": {"hive": "Hive Server 2", "mech": "Token"}}',
                             description='Default inceptor connection.')
         db.session.add(database)
         db.session.commit()
-        logging.info("Finish to add default inceptor connection.")
+        logging.info("Success to add default inceptor connection.")
         Log.log_add(database, 'database', None)
 
 
 def create_default_hdfs_conn():
     name = config.get('DEFAULT_HDFS_CONN_NAME')
     hconn = db.session.query(HDFSConnection).filter_by(connection_name=name).first()
-    if not hconn:
-        logging.info("Begin to add default hdfs connection: [{}]...".format(name))
+    if hconn:
+        hconn.httpfs = config.get('DEFAULT_HTTPFS')
+        db.session.add(hconn)
+        db.session.commit()
+        logging.info("Success to edit default hdfs connection.")
+        Log.log_update(hconn, 'hdfsconnection', None)
+    else:
         hconn = HDFSConnection(connection_name=name,
                                httpfs=config.get('DEFAULT_HTTPFS'),
                                online=True,
                                description='Default hdfs connection for hdfs browser.')
         db.session.add(hconn)
         db.session.commit()
-        logging.info("Finish to add default hdfs connection.")
+        logging.info("Success to add default hdfs connection.")
         Log.log_add(hconn, 'hdfsconnection', None)
 
 

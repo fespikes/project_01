@@ -199,19 +199,23 @@ class PermissionManagement(object):
         """Grant READ perm of example data to present user"""
         if not self.guardian_auth:
             return
-        example_types = {'dashboard': Dashboard,
-                         'slice': Slice,
-                         'dataset': Dataset,
-                         'database': Database,
-                         'hdfsconnection': HDFSConnection}
+        example_types = {'DASHBOARD': Dashboard,
+                         'SLICE': Slice,
+                         'DATASET': Dataset,
+                         'DATABASE': Database,
+                         'HDFSCONNECTION': HDFSConnection}
         for obj_type, model in example_types.items():
             objs = db.session.query(model).filter(model.created_by_fk == None).all()
             if objs and not self.check_read_perm([obj_type, objs[0].name],
                                                  raise_if_false=False):
                 for obj in objs:
-                    self.grant_read_permissions([obj_type, obj.name])
-                    logging.info('Grant {} [READ] perm on {}: [{}]'
-                                 .format(g.user.username, obj_type, obj.name))
+                    if obj_type == 'DATABASE' \
+                            and obj.database_name == config.get("METADATA_CONN_NAME"):
+                        pass
+                    else:
+                        self.grant_read_permissions([obj_type, obj.name])
+                        logging.info('Grant {} [READ] perm on {}: [{}]'
+                                     .format(g.user.username, obj_type, obj.name))
 
 
 class BaseSupersetView(BaseView):

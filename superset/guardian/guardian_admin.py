@@ -80,5 +80,25 @@ class GuardianAdmin(GuardianBase):
                 self._entity_permission(name, principal_type, finite_obj, action)
             self.client.revoke(entity_perm)
 
+    @catch_guardian_exception
+    def clean_perm_objs(self, finite_obj=None):
+        """
+        :param finite_obj: finite_obj=None, will delete all perm objects
+        except [GLOBAL]; finite_obj=['SLICE', ], will delete all perm objects of
+        type 'SLICE'; finite_obj=['SLICE', 'name'], will delete ['SLICE', 'name']
+        :return:
+        """
+        client_factory = JClass('io.transwarp.guardian.client.GuardianClientFactory')
+        client = client_factory.getInstance()
+        if not finite_obj:
+            perms = client.listPermissions(self.component)
+        else:
+            datasource = self._datasource(finite_obj)
+            perms = client.listPermissions(self.component, datasource)
+        for perm in perms:
+            if perm.getDataSource() != self.global_datasource:
+                perm_obj = self._perm_obj(perm.getDataSource())
+                self.client.delPermObj(perm_obj)
+
 
 guardian_admin = GuardianAdmin()
