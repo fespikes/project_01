@@ -18,6 +18,7 @@ from superset.exception import (
     SupersetException, ParameterException, LoginException, HDFSException
 )
 from superset.models import HDFSConnection
+from superset.utils import human_size
 from .base import BaseSupersetView, catch_exception, json_response
 
 config = app.config
@@ -112,6 +113,8 @@ class HDFSBrowser(BaseSupersetView):
         page_size = request.args.get('page_size')
         response = self.client.list(path, page_num, page_size)
         data = json.loads(response.text)
+        for file in data['files']:
+            file['size'] = human_size(file['size'])
         return json_response(data=data, status=response.status_code)
 
     @catch_hdfs_exception

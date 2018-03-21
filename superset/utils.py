@@ -87,6 +87,29 @@ class memoized(object):  # noqa
         return functools.partial(self.__call__, obj)
 
 
+SIZE_UNITS = ['B', 'K', 'M', 'G', 'T']
+
+
+def human_size(size):
+    """
+    :param size: the number of bytes
+    :return: a string of size with unit (B, K, M, G, T)
+    """
+    size = int(size)
+    index = 0
+    if size == 0:
+        return '{}'.format(size)
+    elif size < 1024:
+        return '{}B'.format(size)
+    else:
+        while size >= 1024:
+            size /= 1024
+            index += 1
+            if index + 1 >= len(SIZE_UNITS):
+                break
+        return '{:.1f}{}'.format(size, SIZE_UNITS[index])
+
+
 def list_minus(l, minus):
     """Returns l without what is in minus
 
