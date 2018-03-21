@@ -12,6 +12,7 @@ from fileRobot_common.conf.FileRobotVars import FileRobotVars
 from fileRobot_common.exception.FileRobotException import FileRobotException
 
 from superset import app, db
+from superset.cas.access_token import get_token
 from superset.message import *
 from superset.exception import SupersetException, ParameterException, LoginException
 from superset.models import HDFSConnection
@@ -242,26 +243,29 @@ class HDFSBrowser(BaseSupersetView):
                 else:
                     return HDFSBrowser.get_default_httpfs()
 
-            def get_pt(httpfs):
-                pt = None
-                if app.config.get('CAS_AUTH'):
-                    from superset.cas.routing import get_proxy_ticket
-                    if ':' not in httpfs:
-                        httpfs = '{}:14000'.format(httpfs)
-                    if 'http://' not in httpfs:
-                        httpfs = 'http://{}'.format(httpfs)
-                    pt = get_proxy_ticket(httpfs)
-                return pt
+            # def get_pt(httpfs):
+            #     pt = None
+            #     if app.config.get('CAS_AUTH'):
+            #         from superset.cas.routing import get_proxy_ticket
+            #         if ':' not in httpfs:
+            #             httpfs = '{}:14000'.format(httpfs)
+            #         if 'http://' not in httpfs:
+            #             httpfs = 'http://{}'.format(httpfs)
+            #         pt = get_proxy_ticket(httpfs)
+            #     return pt
 
             httpfs = get_httpfs(hdfs_conn_id, httpfs)
-            proxy_ticket = get_pt(httpfs)
+            # proxy_ticket = get_pt(httpfs)
+            access_token = get_token(g.user.username)
             return {'server': app.config.get('FILE_ROBOT_SERVER'),
                     'username': g.user.username,
                     'password': g.user.password2,
                     'httpfs': httpfs,
-                    'proxy_ticket': proxy_ticket}
+                    'proxy_ticket': None,
+                    'access_token': access_token}
 
-        def do_login(server='', username='', password='', httpfs='', proxy_ticket=None):
+        def do_login(server='', username='', password='', httpfs='',
+                     proxy_ticket=None, access_token=None):
             if not server:
                 raise ParameterException(NO_FILEROBOT_SERVER)
             if not password:
@@ -269,7 +273,8 @@ class HDFSBrowser(BaseSupersetView):
             conf = FileRobotConfiguartion()
             conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
             client = fileRobotClientFactory.getInstance(conf)
-            response = client.login(username, password, httpfs, proxy_ticket)
+            response = client.login(username, password, httpfs, proxy_ticket,
+                                    access_token)
             return client, response
 
         args = get_login_args(hdfs_conn_id, httpfs)
