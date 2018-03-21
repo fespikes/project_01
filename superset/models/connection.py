@@ -21,6 +21,7 @@ from sqlalchemy.orm.session import make_transient
 
 from superset import db, app, db_engine_specs, conf
 from superset.cas.access_token import get_token
+from superset.cas.keytab import download_keytab
 from superset.utils import GUARDIAN_AUTH
 from superset.exception import GuardianException
 from superset.message import DISABLE_GUARDIAN_FOR_KEYTAB
@@ -250,14 +251,14 @@ class Database(Model, AuditMixinNullable, ImportMixin):
                 os.makedirs(dir)
             path = os.path.join(dir, '{}.keytab'.format(username))
             if conf.get('CAS_AUTH'):
-                pass
+                download_keytab(username, path)
             elif conf.get(GUARDIAN_AUTH):
                 from superset.guardian import guardian_client
                 guardian_client.login(username, passwd)
                 guardian_client.download_keytab(username, path)
-                return path
             else:
                 raise GuardianException(DISABLE_GUARDIAN_FOR_KEYTAB)
+            return path
 
         def get_ticket():
             raise NotImplementedError
