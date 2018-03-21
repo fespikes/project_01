@@ -1883,6 +1883,9 @@ msgstr "从配置文件获取FileRobot服务地址失败"
 msgid "The default hdfs connection [{hconn}] is not exists"
 msgstr "不存在默认的HDFS连接[{hconn}]"
 
+msgid "The size of uploaded file is limited to {size}M"
+msgstr "上传文件的大小限制为{size}M"
+
 
 #========================
 # views/guardian.py

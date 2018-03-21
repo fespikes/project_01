@@ -88,14 +88,18 @@ DEFAULT_INCEPTOR_SERVER = 'node01:10000'  # should be <node01>[,node02]:<port>
 DEFAULT_HDFS_CONN_NAME = 'default_hdfs'
 DEFAULT_HTTPFS = '172.0.0.1'
 
+
+# ------------------------------
+# HDFS File Browser
+# ------------------------------
+MAX_UPLOAD_SIZE = 16 * 1024 * 1024
+
+
 # The limit of queries fetched for query search
 QUERY_SEARCH_LIMIT = 1000
 
 # Flask-WTF flag for CSRF
 CSRF_ENABLED = True
-
-# Whether to run the web server in debug mode or not
-DEBUG = False
 
 # Whether to show the stacktrace on 500 error
 SHOW_STACKTRACE = True
@@ -112,13 +116,6 @@ APP_NAME = "PILOT"
 # Uncomment to setup an App icon
 APP_ICON = "/static/assets/images/superset-logo@2x.png"
 
-# Druid query timezone
-# tz.tzutc() : Using utc timezone
-# tz.tzlocal() : Using local timezone
-# other tz can be overridden by providing a local_config
-DRUID_IS_ACTIVE = False
-DRUID_TZ = tz.tzutc()
-DRUID_ANALYSIS_TYPES = ['cardinality']
 
 # ----------------------------------------------------
 # AUTHENTICATION CONFIG
@@ -129,36 +126,6 @@ DRUID_ANALYSIS_TYPES = ['cardinality']
 # AUTH_LDAP : Is for LDAP
 # AUTH_REMOTE_USER : Is for using REMOTE_USER from web server
 AUTH_TYPE = AUTH_DB
-
-# Uncomment to setup Full admin role name
-# AUTH_ROLE_ADMIN = 'Admin'
-
-# Uncomment to setup Public role name, no authentication needed
-# AUTH_ROLE_PUBLIC = 'Public'
-
-# Will allow user self registration
-# AUTH_USER_REGISTRATION = True
-
-# The default user self registration role
-# AUTH_USER_REGISTRATION_ROLE = "Public"
-
-# When using LDAP Auth, setup the ldap server
-# AUTH_LDAP_SERVER = "ldap://ldapserver.new"
-
-# Uncomment to setup OpenID providers example for OpenID authentication
-# OPENID_PROVIDERS = [
-#    { 'name': 'Yahoo', 'url': 'https://me.yahoo.com' },
-#    { 'name': 'AOL', 'url': 'http://openid.aol.com/<username>' },
-#    { 'name': 'Flickr', 'url': 'http://www.flickr.com/<username>' },
-#    { 'name': 'MyOpenID', 'url': 'https://www.myopenid.com' }]
-
-# ---------------------------------------------------
-# Roles config
-# ---------------------------------------------------
-# Grant public role the same set of permissions as for the GAMMA role.
-# This is useful if one wants to enable anonymous users to view
-# dashboards. Explicit grant on specific datasets is still required.
-PUBLIC_ROLE_LIKE_GAMMA = False
 
 # ---------------------------------------------------
 # Babel config for translations

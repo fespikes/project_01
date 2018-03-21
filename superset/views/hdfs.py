@@ -14,7 +14,9 @@ from fileRobot_common.exception.FileRobotException import FileRobotException
 from superset import app, db
 from superset.cas.access_token import get_token
 from superset.message import *
-from superset.exception import SupersetException, ParameterException, LoginException
+from superset.exception import (
+    SupersetException, ParameterException, LoginException, HDFSException
+)
 from superset.models import HDFSConnection
 from .base import BaseSupersetView, catch_exception, json_response
 
@@ -130,7 +132,13 @@ class HDFSBrowser(BaseSupersetView):
         redirect_url = '/hdfs/?current_path={}'.format(dest_path)
         try:
             for f in request.files.getlist('list_file'):
-                files[f.filename] = f.read()
+                file_content = f.read()
+                max_size = config.get('MAX_UPLOAD_SIZE')
+                if len(file_content) > max_size:
+                    raise HDFSException(
+                        _('The size of uploaded file is limited to {size}M')
+                            .format(size=int(max_size / (1024 * 1024))))
+                files[f.filename] = file_content
             files_struct = [('files', (name, data)) for name, data in files.items()]
             self.client.upload(dest_path, files_struct)
         except FileRobotException as fe:
@@ -245,7 +253,7 @@ class HDFSBrowser(BaseSupersetView):
 
             # def get_pt(httpfs):
             #     pt = None
-            #     if app.config.get('CAS_AUTH'):
+            #     if config.get('CAS_AUTH'):
             #         from superset.cas.routing import get_proxy_ticket
             #         if ':' not in httpfs:
             #             httpfs = '{}:14000'.format(httpfs)
@@ -257,7 +265,7 @@ class HDFSBrowser(BaseSupersetView):
             httpfs = get_httpfs(hdfs_conn_id, httpfs)
             # proxy_ticket = get_pt(httpfs)
             access_token = get_token(g.user.username)
-            return {'server': app.config.get('FILE_ROBOT_SERVER'),
+            return {'server': config.get('FILE_ROBOT_SERVER'),
                     'username': g.user.username,
                     'password': g.user.password2,
                     'httpfs': httpfs,
