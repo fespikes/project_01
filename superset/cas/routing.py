@@ -2,7 +2,7 @@ import flask
 import logging
 import requests
 from xmltodict import parse
-from flask import current_app, Response, g
+from flask import current_app, Response, g, request
 from .cas_urls import create_cas_login_url
 from .cas_urls import create_cas_logout_url
 from .cas_urls import create_cas_validate_url
@@ -82,7 +82,8 @@ def logout():
     else:
         redirect_url = create_cas_logout_url(
             current_app.config['CAS_SERVER'],
-            current_app.config['CAS_LOGOUT_ROUTE'])
+            current_app.config['CAS_LOGOUT_ROUTE'],
+            request.url_root)
 
     logging.info('Redirecting to: {0}'.format(redirect_url))
     return flask.redirect(redirect_url)

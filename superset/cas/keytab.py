@@ -12,8 +12,7 @@ def download_keytab(username, keytab_file):
     logging.info(url)
     try:
         resp = requests.get(url, verify=False)
-        f = open(keytab_file, 'wb+')
-        f.write(resp.content)
-        f.close()
+        with open(keytab_file, 'wb+') as f:
+            f.write(resp.content)
     except Exception as e:
         raise Exception('Error response when downloading keytab: ' + str(e))
