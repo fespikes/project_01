@@ -56,7 +56,13 @@ db = SQLA(app)
 
 utils.pessimistic_connection_handling(db.engine.pool)
 
+# cache for slice data
 cache = Cache(app, config=app.config.get('CACHE_CONFIG'))
+
+# simple cache for share data among threads
+simple_cache = Cache(app, config={'CACHE_TYPE': 'simple',
+                                  'CACHE_DEFAULT_TIMEOUT': 24 * 60 * 60})
+
 
 migrate = Migrate(app, db, directory=APP_DIR + "/migrations")
 

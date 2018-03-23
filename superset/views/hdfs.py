@@ -2,6 +2,7 @@ import logging
 import json
 import functools
 import requests
+import threading
 from flask import g, request, redirect
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
@@ -11,7 +12,7 @@ from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
 from fileRobot_common.conf.FileRobotVars import FileRobotVars
 from fileRobot_common.exception.FileRobotException import FileRobotException
 
-from superset import app, db
+from superset import app, db, simple_cache
 from superset.cas.access_token import get_token
 from superset.message import *
 from superset.exception import (
@@ -22,6 +23,8 @@ from superset.utils import human_size
 from .base import BaseSupersetView, catch_exception, json_response
 
 config = app.config
+
+mutex = threading.Lock()
 
 
 def catch_hdfs_exception(f):
@@ -47,17 +50,18 @@ def catch_hdfs_exception(f):
 
 
 def ensure_logined(f):
-    """
+    """ Deprecated
     A decorator to label an endpoint as an API. Make ensure user has logined
     filerobot, and re_login if session is timeout.
     """
     def wraps(self, *args, **kwargs):
         username = g.user.username
-        if self.client is None or self.logined_user != username:
-            client, response = self.login_filerobot(self.hdfs_conn_id)
-            self.handle_login_result(client, response, self.hdfs_conn_id)
+        client = simple_cache.get(self.cache_key())
+        if not client:
+            client, response = self.login_filerobot()
+            self.handle_login_resp(client, response)
             try:
-                self.client.mkdir('/user', username)
+                client.mkdir('/user', username)
             except Exception as e:
                 logging.error('Failed to create default user path for [{}]. '
                               .format(username) + str(e))
@@ -65,7 +69,8 @@ def ensure_logined(f):
             return f(self, *args, **kwargs)
         except FileRobotException as fe:
             if fe.status == 401:
-                self.client, response = self.login_filerobot(self.hdfs_conn_id)
+                client, response = self.login_filerobot()
+                self.handle_login_resp(client, response)
                 return f(self, *args, **kwargs)
             else:
                 raise fe
@@ -75,61 +80,60 @@ def ensure_logined(f):
 class HDFSBrowser(BaseSupersetView):
     route_base = '/hdfs'
 
-    def __init__(self):
-        super(HDFSBrowser, self).__init__()
-        self.client = None
-        self.hdfs_conn_id = None
-        self.logined_user = ''
-
     @catch_exception
     @expose('/')
     def render_html(self):
         self.update_redirect()
+        try:
+            client = self.get_client()
+            client.mkdir('/user', g.user.username)
+        except Exception as e:
+            logging.error('Failed to create default user path for [{}]. '
+                          .format(g.user.username) + str(e))
         return self.render_template('superset/hdfsList.html')
 
     @catch_hdfs_exception
     @expose('/login/', methods=['GET'])
     def login(self):
-        hdfs_conn_id = request.args.get('hdfs_conn_id', self.hdfs_conn_id)
-        client, response = self.login_filerobot(hdfs_conn_id)
-        self.handle_login_result(client, response, hdfs_conn_id)
+        client, response = self.login_filerobot()
+        self.handle_login_resp(client, response)
         return json_response(message=LOGIN_FILEROBOT_SUCCESS,
                              status=response.status_code)
 
     @catch_hdfs_exception
     @expose('/logout/', methods=['GET'])
     def logout(self):
-        self.client.logout()
-        self.client = None
-        self.logined_user = ''
+        client = self.get_client()
+        client.logout()
+        self.delete_client()
         return json_response(message=LOGOUT_FILEROBOT_SUCCESS)
 
     @catch_hdfs_exception
-    @ensure_logined
     @expose('/list/', methods=['GET'])
     def list(self):
+        client = self.get_client()
         path = request.args.get('path')
         page_num = request.args.get('page_num', 1)
         page_size = request.args.get('page_size')
-        response = self.client.list(path, page_num, page_size)
+        response = client.list(path, page_num, page_size)
         data = json.loads(response.text)
         for file in data['files']:
             file['size'] = human_size(file['size'])
         return json_response(data=data, status=response.status_code)
 
     @catch_hdfs_exception
-    @ensure_logined
     @expose('/download/', methods=['GET'])
     def download(self):
+        client = self.get_client()
         path = request.args.get('path')
-        response = self.client.download(path)
+        response = client.download(path)
         response.encoding = 'utf-8'
         return json_response(data=response.text, status=response.status_code)
 
     @catch_hdfs_exception
-    @ensure_logined
     @expose('/upload/', methods=['POST'])
     def upload(self):
+        client = self.get_client()
         dest_path = request.args.get('dest_path')
         files = {}
         redirect_url = '/hdfs/?current_path={}'.format(dest_path)
@@ -143,7 +147,7 @@ class HDFSBrowser(BaseSupersetView):
                             .format(size=int(max_size / (1024 * 1024))))
                 files[f.filename] = file_content
             files_struct = [('files', (name, data)) for name, data in files.items()]
-            self.client.upload(dest_path, files_struct)
+            client.upload(dest_path, files_struct)
         except FileRobotException as fe:
             logging.exception(fe)
             redirect_url = '{}&error_message={}'.format(redirect_url, fe.message)
@@ -153,107 +157,96 @@ class HDFSBrowser(BaseSupersetView):
         return redirect(redirect_url)
 
     @catch_hdfs_exception
-    @ensure_logined
     @expose('/remove/', methods=['POST'])
     def remove(self):
+        client = self.get_client()
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         forever = args.get('forever', 'false')
-        response = self.client.remove(paths, forever)
+        response = client.remove(paths, forever)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
-    @ensure_logined
     @expose('/move/', methods=['POST'])
     def move(self):
+        client = self.get_client()
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         dest_path = args.get('dest_path')
-        response = self.client.move(paths, dest_path)
+        response = client.move(paths, dest_path)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
-    @ensure_logined
     @expose('/copy/', methods=['POST'])
     def copy(self):
+        client = self.get_client()
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         dest_path = args.get('dest_path')
-        response = self.client.copy(paths, dest_path)
+        response = client.copy(paths, dest_path)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
-    @ensure_logined
     @expose('/mkdir/', methods=['GET'])
     def mkdir(self):
+        client = self.get_client()
         path = request.args.get('path')
         dir_name = request.args.get('dir_name')
-        response = self.client.mkdir(path, dir_name)
+        response = client.mkdir(path, dir_name)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
-    @ensure_logined
     @expose('/preview/', methods=['GET'])
     def preview(self):
+        client = self.get_client()
         path = request.args.get('path')
         offset = request.args.get('offset', 0)
         length = request.args.get('length', 16 * 1024)
-        response = self.client.preview(path, offset=offset, length=length)
+        response = client.preview(path, offset=offset, length=length)
         return json_response(data=response.text,
                              status=response.status_code)
 
     @catch_hdfs_exception
-    @ensure_logined
     @expose('/chmod/', methods=['POST'])
     def chmod(self):
+        client = self.get_client()
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         mode = args.get('mode')
         recursive = args.get('recursive')
         recursive = True if recursive else False
-        response = self.client.chmod(paths, mode, recursive=recursive)
+        response = client.chmod(paths, mode, recursive=recursive)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
-    @ensure_logined
     @expose('/touch/', methods=['GET'])
     def touch(self):
+        client = self.get_client()
         path = request.args.get('path')
         filename = request.args.get('filename')
-        response = self.client.touch(path, filename)
+        response = client.touch(path, filename)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
     @catch_hdfs_exception
-    @ensure_logined
     @expose('/modify/', methods=['POST'])
     def modify(self):
+        client = self.get_client()
         path = request.args.get('path')
         file = request.data
-        response = self.client.modify(path, file)
+        response = client.modify(path, file)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
 
-    @staticmethod
-    def login_filerobot(hdfs_conn_id=None, httpfs=None):
-        def get_login_args(hdfs_conn_id=None, httpfs=None):
-            def get_httpfs(hdfs_conn_id=None, httpfs=None):
-                if httpfs is not None:
-                    return httpfs
-                if hdfs_conn_id:
-                    conn = db.session.query(HDFSConnection) \
-                        .filter_by(id=hdfs_conn_id).first()
-                    if not conn:
-                        raise ParameterException(NO_HDFS_CONNECTION)
-                    return conn.httpfs
-                else:
-                    return HDFSBrowser.get_default_httpfs()
+    @classmethod
+    def login_filerobot(cls, hdfs_conn_id=None):
 
+        def get_login_args(hdfs_conn_id=None):
             # def get_pt(httpfs):
             #     pt = None
             #     if config.get('CAS_AUTH'):
@@ -265,14 +258,14 @@ class HDFSBrowser(BaseSupersetView):
             #         pt = get_proxy_ticket(httpfs)
             #     return pt
 
-            httpfs = get_httpfs(hdfs_conn_id, httpfs)
-            # proxy_ticket = get_pt(httpfs)
+            httpfs = cls.get_httpfs(hdfs_conn_id)
+            proxy_ticket = None
             access_token = get_token(g.user.username)
             return {'server': config.get('FILE_ROBOT_SERVER'),
                     'username': g.user.username,
                     'password': g.user.password2,
                     'httpfs': httpfs,
-                    'proxy_ticket': None,
+                    'proxy_ticket': proxy_ticket,
                     'access_token': access_token}
 
         def do_login(server='', username='', password='', httpfs='',
@@ -286,29 +279,53 @@ class HDFSBrowser(BaseSupersetView):
             client = fileRobotClientFactory.getInstance(conf)
             response = client.login(username, password, httpfs, proxy_ticket,
                                     access_token)
+            print('logined')
             return client, response
 
-        args = get_login_args(hdfs_conn_id, httpfs)
+        args = get_login_args(hdfs_conn_id)
         return do_login(**args)
 
-    def handle_login_result(self, client, response, hdfs_conn_id=None):
-        if response.status_code == requests.codes.ok:
-            self.client = client
-            self.logined_user = g.user.username
-            self.hdfs_conn_id = hdfs_conn_id
+    @classmethod
+    def get_httpfs(cls, hdfs_conn_id=None):
+        if hdfs_conn_id:
+            conn = db.session.query(HDFSConnection) \
+                .filter_by(id=hdfs_conn_id).first()
+            if not conn:
+                raise ParameterException(NO_HDFS_CONNECTION)
+            return conn.httpfs
         else:
-            self.client = None
-            self.logined_user = ''
-            self.hdfs_conn_id = None
+            return config.get('DEFAULT_HTTPFS')
+
+    @classmethod
+    def handle_login_resp(cls, client, response):
+        if response.status_code == requests.codes.ok:
+            if mutex.acquire(1):
+                simple_cache.set(cls.cache_key(), client)
+                mutex.release()
+                print('cached')
+        else:
             raise LoginException(LOGIN_FILEROBOT_FAILED)
 
-    @staticmethod
-    def get_default_httpfs():
-        name = config.get('DEFAULT_HDFS_CONN_NAME')
-        hconn = db.session.query(HDFSConnection)\
-            .filter_by(connection_name=name)\
-            .first()
-        if not hconn:
-            raise ParameterException(_(
-                "The default hdfs connection [{hconn}] is not exists").format(hconn))
-        return hconn.httpfs
+    @classmethod
+    def get_client(cls, hdfs_conn_id=None):
+        httpfs = cls.get_httpfs(hdfs_conn_id)
+        key = cls.cache_key(httpfs)
+        client = simple_cache.get(key)
+        if not client:
+            client, response = cls.login_filerobot(hdfs_conn_id)
+            cls.handle_login_resp(client, response)
+            client = simple_cache.get(key)
+        return client
+
+    @classmethod
+    def delete_client(cls, hdfs_conn_id=None):
+        httpfs = cls.get_httpfs(hdfs_conn_id)
+        key = cls.cache_key(httpfs)
+        simple_cache.delete(key)
+
+    @classmethod
+    def cache_key(cls, httpfs=None):
+        if not httpfs:
+            return '{}_{}'.format(g.user.username, config.get('DEFAULT_HTTPFS'))
+        else:
+            return '{}_{}'.format(g.user.username, httpfs)

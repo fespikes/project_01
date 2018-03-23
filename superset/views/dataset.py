@@ -633,7 +633,7 @@ class HDFSTableModelView(SupersetModelView):
         path = request.args.get('path', '/')
         page_size = request.args.get('page_size', 1000)
         hdfs_connection_id = request.args.get('hdfs_connection_id')
-        client, _ = HDFSBrowser.login_filerobot(hdfs_connection_id)
+        client = HDFSBrowser.get_client(hdfs_connection_id)
         response = client.list(path, page_size=page_size)
         return json_response(data=json.loads(response.text))
 
@@ -672,7 +672,7 @@ class HDFSTableModelView(SupersetModelView):
         file_cache_key = '{}-{}'.format(hdfs_conn_id, path)
         file = HDFSTable.cache.get(file_cache_key)
         if not file:
-            client, _ = HDFSBrowser.login_filerobot(hdfs_conn_id)
+            client = HDFSBrowser.get_client(hdfs_conn_id)
             files = self.list_files(client, path, size)
             file_path = self.choice_one_file_path(files)
             file = self.download_file(client, file_path, size)
@@ -695,8 +695,7 @@ class HDFSTableModelView(SupersetModelView):
         dest_path = request.args.get('dest_path')
         file_name = request.args.get('file_name')
         hdfs_connection_id = request.args.get('hdfs_connection_id')
-
-        client, _ = HDFSBrowser.login_filerobot(hdfs_connection_id)
+        client = HDFSBrowser.get_client(hdfs_connection_id)
         response = client.upload(dest_path, {'files': (file_name, f)})
         return json_response(message=response.text)
 
