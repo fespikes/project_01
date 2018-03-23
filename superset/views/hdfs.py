@@ -244,9 +244,9 @@ class HDFSBrowser(BaseSupersetView):
                              status=response.status_code)
 
     @classmethod
-    def login_filerobot(cls, hdfs_conn_id=None):
+    def login_filerobot(cls, hdfs_conn_id=None, httpfs=None):
 
-        def get_login_args(hdfs_conn_id=None):
+        def get_login_args(hdfs_conn_id=None, httpfs=None):
             # def get_pt(httpfs):
             #     pt = None
             #     if config.get('CAS_AUTH'):
@@ -258,7 +258,7 @@ class HDFSBrowser(BaseSupersetView):
             #         pt = get_proxy_ticket(httpfs)
             #     return pt
 
-            httpfs = cls.get_httpfs(hdfs_conn_id)
+            httpfs = cls.get_httpfs(hdfs_conn_id) if not httpfs else httpfs
             proxy_ticket = None
             access_token = get_token(g.user.username)
             return {'server': config.get('FILE_ROBOT_SERVER'),
@@ -279,10 +279,9 @@ class HDFSBrowser(BaseSupersetView):
             client = fileRobotClientFactory.getInstance(conf)
             response = client.login(username, password, httpfs, proxy_ticket,
                                     access_token)
-            print('logined')
             return client, response
 
-        args = get_login_args(hdfs_conn_id)
+        args = get_login_args(hdfs_conn_id, httpfs)
         return do_login(**args)
 
     @classmethod
@@ -302,7 +301,6 @@ class HDFSBrowser(BaseSupersetView):
             if mutex.acquire(1):
                 simple_cache.set(cls.cache_key(), client)
                 mutex.release()
-                print('cached')
         else:
             raise LoginException(LOGIN_FILEROBOT_FAILED)
 
