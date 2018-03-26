@@ -23,8 +23,8 @@ from superset import db, app, db_engine_specs, conf
 from superset.cas.access_token import get_token
 from superset.cas.keytab import download_keytab
 from superset.utils import GUARDIAN_AUTH
-from superset.exception import GuardianException
-from superset.message import DISABLE_GUARDIAN_FOR_KEYTAB
+from superset.exception import GuardianException, PropertyException
+from superset.message import DISABLE_GUARDIAN_FOR_KEYTAB, DISABLE_CAS
 from .base import AuditMixinNullable, ImportMixin
 
 config = app.config
@@ -268,7 +268,10 @@ class Database(Model, AuditMixinNullable, ImportMixin):
         elif connect_args.get('mech', '').lower() == 'token':
             keys = [k.lower() for k in connect_args.keys()]
             if 'guardiantoken' not in keys:
-                connect_args['guardianToken'] = get_token(g.user.username)
+                if not config['CAS_AUTH']:
+                    raise PropertyException(DISABLE_CAS)
+                else:
+                    connect_args['guardianToken'] = get_token(g.user.username)
         elif connect_args.get('mech', '').lower() == 'ticket':
             connect_args['casTicket'] = get_ticket()
         return connect_args

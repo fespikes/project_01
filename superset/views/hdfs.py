@@ -260,7 +260,9 @@ class HDFSBrowser(BaseSupersetView):
 
             httpfs = cls.get_httpfs(hdfs_conn_id) if not httpfs else httpfs
             proxy_ticket = None
-            access_token = get_token(g.user.username)
+            access_token = None
+            if config['CAS_AUTH']:
+                access_token = get_token(g.user.username)
             return {'server': config.get('FILE_ROBOT_SERVER'),
                     'username': g.user.username,
                     'password': g.user.password2,

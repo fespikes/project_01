@@ -68,5 +68,10 @@ MOVE_FOLDER_SUCCESS = _("Success to move folder")
 MOVE_FOLDER_TO_CHILD_ERROR = _('Cannot move a folder to its child folder')
 NO_PERM_EDIT_ROOT_FOLDER = _('No privilege to edit root path')
 
+
+# views/gaurdian.py
+DISABLE_GAURDIAN = _('Not enable Guardian authentication')
+
 # models.py/connection
 DISABLE_GUARDIAN_FOR_KEYTAB = _('Not enable Guardian, can not download keytab file')
+DISABLE_CAS = _('Not enable CAS authentication')

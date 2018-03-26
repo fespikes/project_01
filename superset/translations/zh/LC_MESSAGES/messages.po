@@ -1665,6 +1665,15 @@ msgstr "名字只能由中文、字母、数字和下划线组成，且不能以
 msgid "No useable datasets"
 msgstr "没有可用的数据集"
 
+msgid "Not enable Guardian, can not download keytab file"
+msgstr "没有开启Guardian，不能下载keytab"
+
+msgid "Not enable Guardian authentication"
+msgstr "没有开启Gurdian认证"
+
+msgid "Not enable CAS authentication"
+msgstr "没有开启CAS认证"
+
 
 #========================
 # views/base.py
@@ -1924,9 +1933,6 @@ msgstr "测试httpfs [{httpfs}]成功"
 
 msgid "Httpfs [{httpfs}] is unavailable"
 msgstr "测试httpfs [{httpfs}]失败"
-
-msgid "Not enable Guardian, can not download keytab file"
-msgstr "没有开启Guardian，不能下载keytab"
 
 
 #========================
