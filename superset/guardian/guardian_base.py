@@ -31,15 +31,12 @@ def catch_guardian_exception(f):
 
 
 class GuardianBase(object):
-    client_jar = '/usr/local/lib/guardian-client-2.0-transwarp-5.2.0.jar'
-    site_path = '/etc/pilot/conf/'
-    service_type = 'PILOT'
 
     def __init__(self):
         self.client = None
         self.component = None
         self.global_datasource = self._datasource(['GLOBAL', ])
-        self.service_type = conf.get('GUARDIAN_SERVICE_TYPE', self.service_type)
+        self.service_type = conf.get('GUARDIAN_SERVICE_TYPE')
         self.models = JPackage('io.transwarp.guardian.common.model')
         self.PermissionVo = self.models.PermissionVo
         self.EntityPermissionVo = self.models.EntityPermissionVo

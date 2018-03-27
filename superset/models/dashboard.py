@@ -39,6 +39,7 @@ dashboard_slices = Table(
 class Dashboard(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = 'dashboards'
     model_type = 'dashboard'
+    guardian_type = model_type.upper()
     data_types = ['dashboard', 'folder']
     max_depth = 4
 

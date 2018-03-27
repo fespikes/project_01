@@ -110,9 +110,9 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
 
         readable_names = None
         if self.guardian_auth:
-            from superset.guardian import guardian_client
-            readable_names = \
-                guardian_client.search_model_permissions(g.user.username, 'database')
+            from superset.guardian import guardian_client as client
+            readable_names = client.search_model_perms(
+                g.user.username, self.model.guardian_type)
             count = len(readable_names)
         else:
             count = query.count()
@@ -269,9 +269,9 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
 
         readable_names = None
         if self.guardian_auth:
-            from superset.guardian import guardian_client
-            readable_names = \
-                guardian_client.search_model_permissions(g.user.username, self.model_type)
+            from superset.guardian import guardian_client as client
+            readable_names = client.search_model_perms(
+                g.user.username, self.model.guardian_type)
             count = len(readable_names)
         else:
             count = query.count()
@@ -611,12 +611,12 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
         readable_db_names = None
         readable_hdfs_names = None
         if self.guardian_auth:
-            from superset.guardian import guardian_client
+            from superset.guardian import guardian_client as client
             username = g.user.username
-            readable_db_names = \
-                guardian_client.search_model_permissions(username, 'database')
-            readable_hdfs_names = \
-                guardian_client.search_model_permissions(username, 'hdfsconnection')
+            readable_db_names = client.search_model_perms(
+                username, Database.guardian_type)
+            readable_hdfs_names = client.search_model_perms(
+                username, HDFSConnection.guardian_type)
             count = len(readable_db_names) + len(readable_hdfs_names)
         else:
             count = query.count()

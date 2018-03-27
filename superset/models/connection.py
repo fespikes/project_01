@@ -34,6 +34,7 @@ class Database(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = 'dbs'
     type = "table"
     model_type = 'database'
+    guardian_type = model_type.upper()
 
     id = Column(Integer, primary_key=True)
     database_name = Column(String(128), nullable=False, unique=True)
@@ -253,9 +254,9 @@ class Database(Model, AuditMixinNullable, ImportMixin):
             if conf.get('CAS_AUTH'):
                 download_keytab(username, path)
             elif conf.get(GUARDIAN_AUTH):
-                from superset.guardian import guardian_client
-                guardian_client.login(username, passwd)
-                guardian_client.download_keytab(username, path)
+                from superset.guardian import guardian_client as client
+                client.login(username, passwd)
+                client.download_keytab(username, path)
             else:
                 raise GuardianException(DISABLE_GUARDIAN_FOR_KEYTAB)
             return path
@@ -320,6 +321,7 @@ class HDFSConnection(Model, AuditMixinNullable, ImportMixin):
     __tablename__ = 'hdfs_connection'
     type = 'table'
     model_type = 'hdfsconnection'
+    guardian_type = model_type.upper()
 
     id = Column(Integer, primary_key=True)
     connection_name = Column(String(128), nullable=False, unique=True)

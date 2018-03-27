@@ -499,9 +499,9 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
 
         available_names = None
         if self.guardian_auth:
-            from superset.guardian import guardian_client
-            available_names = \
-                guardian_client.search_model_permissions(g.user.username, self.model_type)
+            from superset.guardian import guardian_client as client
+            available_names = client.search_model_perms(
+                g.user.username, self.model.guardian_type)
             count = len(available_names)
         else:
             count = query.count()

@@ -210,9 +210,9 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @expose('/add/', methods=['GET'])
     def add(self):
         if self.guardian_auth:
-            from superset.guardian import guardian_client
-            readable_names = \
-                guardian_client.search_model_permissions(g.user.username, self.model_type)
+            from superset.guardian import guardian_client as client
+            readable_names = client.search_model_perms(
+                g.user.username, Dataset.guardian_type)
             if not readable_names:
                 raise GuardianException(NO_USEABLE_DATASETS)
             dataset = db.session.query(Dataset) \
@@ -241,9 +241,9 @@ class SliceModelView(SupersetModelView, PermissionManagement):
 
         readable_names = None
         if self.guardian_auth:
-            from superset.guardian import guardian_client
-            readable_names = \
-                guardian_client.search_model_permissions(g.user.username, self.model_type)
+            from superset.guardian import guardian_client as client
+            readable_names = client.search_model_perms(
+                g.user.username, self.model.guardian_type)
             count = len(readable_names)
         else:
             count = query.count()

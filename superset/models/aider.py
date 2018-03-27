@@ -282,11 +282,13 @@ class Number(Model):
         if config.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_client as client
             if obj_type.lower() == 'connection':
-                db_names = client.search_model_permissions(username, cls.OBJECT_TYPES[3])
-                hdfs_names = client.search_model_permissions(username, cls.OBJECT_TYPES[4])
+                db_names = client.search_model_perms(
+                    username, cls.OBJECT_TYPES[3].upper())
+                hdfs_names = client.search_model_perms(
+                    username, cls.OBJECT_TYPES[4].upper())
                 return len(db_names) + len(hdfs_names)
             else:
-                names = client.search_model_permissions(username, obj_type)
+                names = client.search_model_perms(username, obj_type.upper())
                 return len(names)
         else:
             if obj_type.lower() == cls.LOG_TYPES[3]:

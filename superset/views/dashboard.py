@@ -81,9 +81,9 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         readable_names = None
         if self.guardian_auth:
-            from superset.guardian import guardian_client
-            readable_names = \
-                guardian_client.search_model_permissions(g.user.username, self.model_type)
+            from superset.guardian import guardian_client as client
+            readable_names = client.search_model_perms(
+                g.user.username, self.model.guardian_type)
             count = len(readable_names)
         else:
             count = query.count()

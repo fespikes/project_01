@@ -32,6 +32,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
     """A slice is essentially a report or a view on data"""
     __tablename__ = 'slices'
     model_type = 'slice'
+    guardian_type = model_type.upper()
 
     id = Column(Integer, primary_key=True)
     slice_name = Column(String(128), unique=True)

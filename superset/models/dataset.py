@@ -238,6 +238,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
     type = "table"
     __tablename__ = 'dataset'
     model_type = 'dataset'
+    guardian_type = model_type.upper()
 
     id = Column(Integer, primary_key=True)
     dataset_name = Column(String(128), nullable=False, unique=True)

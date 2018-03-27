@@ -81,30 +81,30 @@ class PermissionManagement(object):
 
     def add_object_permissions(self, finite_obj):
         if self.guardian_auth:
-            from superset.guardian import guardian_admin
-            guardian_admin.add_permission(finite_obj, self.ALL_PERMS)
+            from superset.guardian import guardian_admin as admin
+            admin.add_permission(finite_obj, self.ALL_PERMS)
 
     def del_perm_obj(self, finite_obj):
         if self.guardian_auth:
-            from superset.guardian import guardian_admin
-            guardian_admin.del_perm_obj(finite_obj)
+            from superset.guardian import admin as admin
+            admin.del_perm_obj(finite_obj)
 
     def rename_perm_obj(self, old_datasource, new_datasource):
         if self.guardian_auth:
-            from superset.guardian import guardian_admin
+            from superset.guardian import guardian_admin as admin
             if old_datasource == new_datasource:
                 return
-            guardian_admin.rename_perm_obj(old_datasource, new_datasource)
+            admin.rename_perm_obj(old_datasource, new_datasource)
 
     def grant_owner_permissions(self, finite_obj):
         if self.guardian_auth:
-            from superset.guardian import guardian_admin
-            guardian_admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
+            from superset.guardian import admin as admin
+            admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
 
     def grant_read_permissions(self, finite_obj):
         if self.guardian_auth:
-            from superset.guardian import guardian_admin
-            guardian_admin.grant(g.user.username, finite_obj, self.READ_PERM)
+            from superset.guardian import guardian_admin as admin
+            admin.grant(g.user.username, finite_obj, self.READ_PERM)
 
     def check_read_perm(self, finite_obj, raise_if_false=True):
         can = self.do_check(g.user.username, finite_obj, self.ALL_PERMS)
@@ -166,32 +166,32 @@ class PermissionManagement(object):
 
     def do_check(self, username, finite_obj, actions):
         if self.guardian_auth:
-            from superset.guardian import guardian_client
-            return guardian_client.check_any_access(username, finite_obj, actions)
+            from superset.guardian import guardian_client as client
+            return client.check_any_access(username, finite_obj, actions)
         else:
             return True
 
     def do_grant(self, username, finite_obj, actions):
         if self.guardian_auth:
-            from superset.guardian import guardian_admin
-            guardian_admin.grant(username, finite_obj, actions)
+            from superset.guardian import guardian_admin as admin
+            admin.grant(username, finite_obj, actions)
 
     def do_revoke(self, username, finite_obj, actions):
         if self.guardian_auth:
-            from superset.guardian import guardian_admin
-            guardian_admin.revoke(username, finite_obj, actions)
+            from superset.guardian import guardian_admin as admin
+            admin.revoke(username, finite_obj, actions)
 
     def search_object_permissions(self, finite_obj):
         if self.guardian_auth:
-            from superset.guardian import guardian_client
-            return guardian_client.search_object_permissions(finite_obj)
+            from superset.guardian import guardian_client as client
+            return client.search_object_permissions(finite_obj)
         else:
             return None
 
     def get_guardian_users(self, prefix):
         if self.guardian_auth:
-            from superset.guardian import guardian_client
-            return guardian_client.get_users(prefix)
+            from superset.guardian import guardian_client as client
+            return client.get_users(prefix)
         else:
             return []
 

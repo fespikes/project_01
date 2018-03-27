@@ -121,7 +121,7 @@ class GuardianClient(GuardianBase):
         return data
 
     @catch_guardian_exception
-    def search_model_permissions(self, username, model, component=None):
+    def search_model_perms(self, username, model, component=None):
         """
         Search user's permissions of all objects of one model
         :param username:

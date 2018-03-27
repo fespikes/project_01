@@ -8,10 +8,12 @@ from flask import g, request, redirect
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from flask_appbuilder.security.sqla.models import User
-from sqlalchemy import func, and_, or_
+from sqlalchemy import func, and_
 
 from superset import appbuilder, db, app
-from superset.models import Slice, Dashboard, FavStar, Log, str_to_model, Number
+from superset.models import (
+    Slice, Dashboard, Database, HDFSConnection, FavStar, Log, str_to_model, Number
+)
 from superset.exception import ParameterException
 from .base import BaseSupersetView, PermissionManagement, catch_exception, json_response
 
@@ -77,16 +79,16 @@ class Home(BaseSupersetView, PermissionManagement):
             if self.guardian_auth:
                 from superset.guardian import guardian_client as client
                 if type_.lower() == 'connection':
-                    names = client.search_model_permissions(username, 'database') \
-                            + client.search_model_permissions(username, 'hdfsconnection')
+                    names = client.search_model_perms(username, Database.guardian_type) +\
+                            client.search_model_perms(username, HDFSConnection.guardian_type)
                 else:
-                    names = client.search_model_permissions(username, type_)
+                    names = client.search_model_perms(username, type_.upper())
                 dt[type_] = len(names)
             else:
                 dt[type_] = str_to_model[type_].count()
         return dt
 
-    def get_object_number_trends(self, username, types, today_counts={}, limit=30):
+    def get_object_number_trends(self, username, types, today_counts, limit=30):
         trends = {}
         today = date.today()
         start_date = date.today() - timedelta(days=limit-1)
@@ -150,7 +152,7 @@ class Home(BaseSupersetView, PermissionManagement):
         readable_dashs = []
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            readable_dashs = client.search_model_permissions(username, 'dashboard')
+            readable_dashs = client.search_model_perms(username, Dashboard.guardian_type)
 
         rows = []
         index = 0
@@ -178,7 +180,7 @@ class Home(BaseSupersetView, PermissionManagement):
         readable_slices = []
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            readable_slices = client.search_model_permissions(username, 'slice')
+            readable_slices = client.search_model_perms(username, Slice.guardian_type)
 
         rows = []
         index = 0
@@ -216,7 +218,7 @@ class Home(BaseSupersetView, PermissionManagement):
         readable_slices = []
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            readable_slices = client.search_model_permissions(username, 'slice')
+            readable_slices = client.search_model_perms(username, Slice.guardian_type)
 
         rows = []
         index = 0
@@ -260,7 +262,7 @@ class Home(BaseSupersetView, PermissionManagement):
         readable_slices = []
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            readable_slices = client.search_model_permissions(username, 'slice')
+            readable_slices = client.search_model_perms(username, Slice.guardian_type)
             count = len(readable_slices)
         else:
             count = query.count()
@@ -311,7 +313,7 @@ class Home(BaseSupersetView, PermissionManagement):
         readable_dashs = []
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            readable_dashs = client.search_model_permissions(username, 'dashboard')
+            readable_dashs = client.search_model_perms(username, Dashboard.guardian_type)
             count = len(readable_dashs)
         else:
             count = query.count()
