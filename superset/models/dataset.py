@@ -925,7 +925,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         return True
 
     @classmethod
-    def import_obj(cls, session, i_dataset, solution, grant_owner_permissions):
+    def import_obj(cls, session, i_dataset, solution, grant_owner_perms):
         """Imports the dataset from the object to the database.
         """
         def add_dataset(session, i_dataset, new_dataset, database, hdfsconn):
@@ -988,11 +988,11 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         if i_dataset.database:
             database = i_dataset.database
             new_database = Database.import_obj(
-                session, database, solution, grant_owner_permissions)
+                session, database, solution, grant_owner_perms)
         if i_dataset.hdfs_table and i_dataset.hdfs_table.hdfs_connection:
             hdfsconn = i_dataset.hdfs_table.hdfs_connection
             new_hdfsconn = HDFSConnection.import_obj(
-                session, hdfsconn, solution, grant_owner_permissions)
+                session, hdfsconn, solution, grant_owner_perms)
 
         # Import dataset
         make_transient(i_dataset)
@@ -1007,7 +1007,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 session, i_dataset, new_dataset, new_database, new_hdfsconn)
             overwrite_columns_metrics(
                 session, new_dataset, i_dataset.ref_columns, i_dataset.ref_metrics)
-            grant_owner_permissions([cls.model_type, new_dataset.dataset_name])
+            grant_owner_perms([cls.model_type, new_dataset.dataset_name])
         else:
             policy, new_name = cls.get_policy(cls.model_type, i_dataset.name, solution)
             if policy == cls.Policy.OVERWRITE:
@@ -1025,7 +1025,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                     session, i_dataset, new_dataset, new_database, new_hdfsconn)
                 overwrite_columns_metrics(
                     session, new_dataset, i_dataset.ref_columns, i_dataset.ref_metrics)
-                grant_owner_permissions([cls.model_type, new_dataset.dataset_name])
+                grant_owner_perms([cls.model_type, new_dataset.dataset_name])
             elif policy == cls.Policy.SKIP:
                 logging.info('Importing dataset: [{}] (skip)'.format(i_dataset))
         return new_dataset

@@ -284,7 +284,7 @@ class Database(Model, AuditMixinNullable, ImportMixin):
             .count()
 
     @classmethod
-    def import_obj(cls, session, i_db, solution, grant_owner_permissions):
+    def import_obj(cls, session, i_db, solution, grant_owner_perms):
         make_transient(i_db)
         i_db.id = None
         existed_db = cls.get_object(name=i_db.name)
@@ -295,7 +295,7 @@ class Database(Model, AuditMixinNullable, ImportMixin):
             new_db = i_db.copy()
             session.add(new_db)
             session.commit()
-            grant_owner_permissions([cls.model_type, new_db.database_name])
+            grant_owner_perms([cls.model_type, new_db.database_name])
         else:
             policy, new_name = cls.get_policy(cls.model_type, i_db.name, solution)
             if policy == cls.Policy.OVERWRITE:
@@ -310,7 +310,7 @@ class Database(Model, AuditMixinNullable, ImportMixin):
                 new_db.database_name = new_name
                 session.add(new_db)
                 session.commit()
-                grant_owner_permissions([cls.model_type, new_db.database_name])
+                grant_owner_perms([cls.model_type, new_db.database_name])
             elif policy == cls.Policy.SKIP:
                 logging.info('Importing database connection: [{}] (skip)'.format(i_db))
 
@@ -354,7 +354,7 @@ class HDFSConnection(Model, AuditMixinNullable, ImportMixin):
         return cls.connection_name
 
     @classmethod
-    def import_obj(cls, session, i_hdfsconn, solution, grant_owner_permissions):
+    def import_obj(cls, session, i_hdfsconn, solution, grant_owner_perms):
         make_transient(i_hdfsconn)
         i_hdfsconn.id = None
         existed_hdfsconn = cls.get_object(name=i_hdfsconn.name)
@@ -365,7 +365,7 @@ class HDFSConnection(Model, AuditMixinNullable, ImportMixin):
             new_hdfsconn = i_hdfsconn.copy()
             session.add(new_hdfsconn)
             session.commit()
-            grant_owner_permissions([cls.model_type, new_hdfsconn.connection_name])
+            grant_owner_perms([cls.model_type, new_hdfsconn.connection_name])
         else:
             policy, new_name = cls.get_policy(cls.model_type, i_hdfsconn.name, solution)
             if policy == cls.Policy.OVERWRITE:
@@ -380,7 +380,7 @@ class HDFSConnection(Model, AuditMixinNullable, ImportMixin):
                 new_hdfsconn.connection_name = new_name
                 session.add(new_hdfsconn)
                 session.commit()
-                grant_owner_permissions([cls.model_type, new_hdfsconn.connection_name])
+                grant_owner_perms([cls.model_type, new_hdfsconn.connection_name])
             elif policy == cls.Policy.SKIP:
                 logging.info('Importing hdfs connection: [{}] (skip)'.format(i_hdfsconn))
 

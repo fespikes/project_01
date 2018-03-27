@@ -202,7 +202,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         )
 
     @classmethod
-    def import_obj(cls, session, i_slice, solution, grant_owner_permissions):
+    def import_obj(cls, session, i_slice, solution, grant_owner_perms):
         """Inserts or overrides slc in the database.
         """
         def link_datasource(slice, database, dataset):
@@ -224,7 +224,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
         if i_slice.database_id and i_slice.database:
             i_database = i_slice.database
             new_database = Database.import_obj(
-                session, i_database, solution, grant_owner_permissions)
+                session, i_database, solution, grant_owner_perms)
         elif i_slice.datasource_name:
             new_dataset = Dataset.lookup_object(i_slice.datasource_name, solution)
 
@@ -234,7 +234,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
             new_slice = link_datasource(new_slice, new_database, new_dataset)
             session.add(new_slice)
             session.commit()
-            grant_owner_permissions([cls.model_type, new_slice.slice_name])
+            grant_owner_perms([cls.model_type, new_slice.slice_name])
         else:
             policy, new_name = cls.get_policy(cls.model_type, i_slice.name, solution)
             if policy == cls.Policy.OVERWRITE:
@@ -250,7 +250,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
                 new_slice = link_datasource(new_slice, new_database, new_dataset)
                 session.add(new_slice)
                 session.commit()
-                grant_owner_permissions([cls.model_type, new_slice.slice_name])
+                grant_owner_perms([cls.model_type, new_slice.slice_name])
             elif policy == cls.Policy.SKIP:
                 logging.info('Importing slice: [{}] (skip)'.format(i_slice))
 

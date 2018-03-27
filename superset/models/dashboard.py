@@ -148,7 +148,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
         return []
 
     @classmethod
-    def import_obj(cls, session, i_dash, solution, grant_owner_permissions,
+    def import_obj(cls, session, i_dash, solution, grant_owner_perms,
                    folder_ids_dict):
         """Imports the dashboard from the object to the database.
         """
@@ -180,7 +180,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
 
         for slc in slices:
             old_slc_id = slc.id
-            new_slice = Slice.import_obj(session, slc, solution, grant_owner_permissions)
+            new_slice = Slice.import_obj(session, slc, solution, grant_owner_perms)
             old_to_new_slc_id_dict[old_slc_id] = new_slice.id
             # update json metadata that deals with slice ids
             new_slc_id = '{}'.format(new_slice.id)
@@ -214,7 +214,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             new_dash.slices = new_slices
             new_dash.path = new_path
             session.commit()
-            grant_owner_permissions([cls.model_type, new_dash.name])
+            grant_owner_perms([cls.model_type, new_dash.name])
         else:
             policy, new_name = cls.get_policy(cls.model_type, i_dash.name, solution)
             if policy == cls.Policy.OVERWRITE:
@@ -231,7 +231,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
                 new_dash.slices = new_slices
                 new_dash.path = new_path
                 session.commit()
-                grant_owner_permissions([cls.model_type, new_dash.name])
+                grant_owner_perms([cls.model_type, new_dash.name])
             elif policy == cls.Policy.SKIP:
                 logging.info('Importing dashboard: [{}] (skip)'.format(i_dash))
 

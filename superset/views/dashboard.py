@@ -340,10 +340,10 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
 
         for dataset in objects['datasets']:
             Dataset.import_obj(
-                session, dataset, solution, self.grant_owner_permissions)
+                session, dataset, solution, self.grant_owner_perms)
         for dashboard in objects['dashboards']:
             Dashboard.import_obj(session, dashboard, solution,
-                                 self.grant_owner_permissions, folder_ids_dict)
+                                 self.grant_owner_perms, folder_ids_dict)
             Log.log('import', dashboard, 'dashboard', g.user.id)
         return json_response('Import success')
 

@@ -79,14 +79,9 @@ class PermissionManagement(object):
     def __init__(self):
         self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
 
-    def add_object_permissions(self, finite_obj):
-        if self.guardian_auth:
-            from superset.guardian import guardian_admin as admin
-            admin.add_permission(finite_obj, self.ALL_PERMS)
-
     def del_perm_obj(self, finite_obj):
         if self.guardian_auth:
-            from superset.guardian import admin as admin
+            from superset.guardian import guardian_admin as admin
             admin.del_perm_obj(finite_obj)
 
     def rename_perm_obj(self, old_datasource, new_datasource):
@@ -96,12 +91,12 @@ class PermissionManagement(object):
                 return
             admin.rename_perm_obj(old_datasource, new_datasource)
 
-    def grant_owner_permissions(self, finite_obj):
+    def grant_owner_perms(self, finite_obj):
         if self.guardian_auth:
-            from superset.guardian import admin as admin
+            from superset.guardian import guardian_admin as admin
             admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
 
-    def grant_read_permissions(self, finite_obj):
+    def grant_read_perms(self, finite_obj):
         if self.guardian_auth:
             from superset.guardian import guardian_admin as admin
             admin.grant(g.user.username, finite_obj, self.READ_PERM)
@@ -216,7 +211,7 @@ class PermissionManagement(object):
             if objs and not self.check_read_perm([obj_type, objs[0].name],
                                                  raise_if_false=False):
                 for obj in objs:
-                    self.grant_read_permissions([obj_type, obj.name])
+                    self.grant_read_perms([obj_type, obj.name])
                     logging.info('Grant {} [READ] perm on {}: [{}]'
                                  .format(g.user.username, obj_type, obj.name))
 
@@ -331,7 +326,7 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     def post_add(self, obj):
         Log.log_add(obj, self.model_type, g.user.id)
         Number.log_number(g.user.username, self.model_type)
-        self.grant_owner_permissions(obj.guardian_datasource())
+        self.grant_owner_perms(obj.guardian_datasource())
 
     @catch_exception
     @expose('/show/<pk>/', methods=['GET'])
