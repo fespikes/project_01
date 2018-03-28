@@ -36,7 +36,7 @@ def login():
     'CAS_USERNAME_ATTRIBUTE_KEY'
     """
 
-    cas_token_session_key = current_app.config['CAS_TOKEN_SESSION_KEY']
+    cas_st_session_key = current_app.config['CAS_SERVICE_TICKET_SESSION_KEY']
 
     redirect_url = create_cas_login_url(
         current_app.config['CAS_SERVER'],
@@ -44,16 +44,16 @@ def login():
         flask.url_for('.login', _external=True))
 
     if 'ticket' in flask.request.args:
-        flask.session[cas_token_session_key] = flask.request.args['ticket']
+        flask.session[cas_st_session_key] = flask.request.args['ticket']
 
-    if cas_token_session_key in flask.session:
-        if validate(flask.session[cas_token_session_key]):
+    if cas_st_session_key in flask.session:
+        if validate(flask.session[cas_st_session_key]):
             if 'CAS_AFTER_LOGIN_SESSION_URL' in flask.session:
                 redirect_url = flask.session.pop('CAS_AFTER_LOGIN_SESSION_URL')
             else:
                 redirect_url = flask.url_for(current_app.config['CAS_AFTER_LOGIN'])
         else:
-            del flask.session[cas_token_session_key]
+            del flask.session[cas_st_session_key]
 
     logging.info('Redirecting to: {0}'.format(redirect_url))
     return flask.redirect(redirect_url)

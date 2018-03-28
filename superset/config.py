@@ -246,10 +246,10 @@ HTTP_HEADERS = {}
 DEFAULT_DB_ID = None
 
 # Timeout for database or hdfs connection
-CONNECTION_TIMEOUT = 30
+CONNECTION_TIMEOUT = 60
 
 # Timeout duration for SQL Lab synchronous queries
-SQLLAB_TIMEOUT = 30
+SQLLAB_TIMEOUT = 60
 
 # SQLLAB_DEFAULT_DBID
 SQLLAB_DEFAULT_DBID = None

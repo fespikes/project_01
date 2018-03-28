@@ -29,17 +29,17 @@ class CAS(object):
 
     Optional Configs:
 
-    |Key                        | Default                         |
-    |---------------------------|---------------------------------|
-    |CAS_TOKEN_SESSION_KEY      | _CAS_TOKEN                      |
-    |CAS_USERNAME_SESSION_KEY   | CAS_USERNAME                    |
-    |CAS_ATTRIBUTES_SESSION_KEY | CAS_ATTRIBUTES                  |
-    |CAS_LOGIN_ROUTE            | 'url_prefix/login'             |
-    |CAS_LOGOUT_ROUTE           | 'url_prefix/logout'            |
-    |CAS_SERVICE_VALIDATE_ROUTE | 'url_prefix/p3/serviceValidate'|
-    |CAS_PROXY_ROUTE            | 'url_prefix/proxy'             |
-    |CAS_PROXY_VALIDATE_ROUTE   | 'url_prefix/p3/proxyValidate'  |
-    |CAS_AFTER_LOGOUT           | None                            |
+    |Key                            | Default                        |
+    |-------------------------------|--------------------------------|
+    |CAS_SERVICE_TICKET_SESSION_KEY | CAS_SERVICE_TICKET             |
+    |CAS_USERNAME_SESSION_KEY       | CAS_USERNAME                   |
+    |CAS_ATTRIBUTES_SESSION_KEY     | CAS_ATTRIBUTES                 |
+    |CAS_LOGIN_ROUTE                | 'url_prefix/login'             |
+    |CAS_LOGOUT_ROUTE               | 'url_prefix/logout'            |
+    |CAS_SERVICE_VALIDATE_ROUTE     | 'url_prefix/p3/serviceValidate'|
+    |CAS_PROXY_ROUTE                | 'url_prefix/proxy'             |
+    |CAS_PROXY_VALIDATE_ROUTE       | 'url_prefix/p3/proxyValidate'  |
+    |CAS_AFTER_LOGOUT               | None                           |
     """
 
     def __init__(self, app=None, url_prefix=None):
@@ -49,7 +49,7 @@ class CAS(object):
 
     def init_app(self, app, url_prefix='/cas'):
         # Configuration defaults
-        app.config.setdefault('CAS_TOKEN_SESSION_KEY', '_CAS_TOKEN')
+        app.config.setdefault('CAS_SERVICE_TICKET_SESSION_KEY', 'CAS_SERVICE_TICKET')
         app.config.setdefault('CAS_USERNAME_SESSION_KEY', 'CAS_USERNAME')
         app.config.setdefault('CAS_ATTRIBUTES_SESSION_KEY', 'CAS_ATTRIBUTES')
         app.config.setdefault('CAS_PGTIOU_SESSION_KEY', 'CAS_PGTIOU')
@@ -90,9 +90,9 @@ class CAS(object):
             self.app.config['CAS_ATTRIBUTES_SESSION_KEY'], None)
 
     @property
-    def token(self):
+    def service_ticket(self):
         return flask.session.get(
-            self.app.config['CAS_TOKEN_SESSION_KEY'], None)
+            self.app.config['CAS_SERVICE_TICKET_SESSION_KEY'], None)
 
     @property
     def pgtiou(self):

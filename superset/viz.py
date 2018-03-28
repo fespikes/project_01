@@ -28,7 +28,7 @@ from werkzeug.datastructures import ImmutableMultiDict, MultiDict
 from werkzeug.urls import Href
 from dateutil import relativedelta as rdelta
 
-from superset import app, utils, cache
+from superset import app, utils, file_cache
 from superset.forms import FormFactory
 from superset.utils import flasher, DTTM_ALIAS, is_letters
 from superset.exception import ParameterException, PropertyException, DatabaseException
@@ -340,8 +340,9 @@ class BaseViz(object):
         payload = None
         force = force if force else self.form_data.get('force') == 'true'
         if not force:
-            payload = cache.get(cache_key)
+            payload = file_cache.get(cache_key)
 
+        is_cached = True
         if payload:
             is_cached = True
             try:
@@ -382,7 +383,7 @@ class BaseViz(object):
             if PY3:
                 data = bytes(data, 'utf-8')
             try:
-                cache.set(
+                file_cache.set(
                     cache_key,
                     zlib.compress(data),
                     timeout=cache_timeout)
@@ -391,7 +392,7 @@ class BaseViz(object):
                 # the key is too large or whatever other reasons
                 logging.warning("Could not cache key {}".format(cache_key))
                 logging.exception(e)
-                cache.delete(cache_key)
+                file_cache.delete(cache_key)
         payload['is_cached'] = is_cached
         return payload
 

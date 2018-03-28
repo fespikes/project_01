@@ -12,8 +12,8 @@ from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
 from fileRobot_common.conf.FileRobotVars import FileRobotVars
 from fileRobot_common.exception.FileRobotException import FileRobotException
 
-from superset import app, db, simple_cache
-from superset.cas.access_token import get_token
+from superset import app, db
+from superset.cache import TokenCache, FileRobotCache
 from superset.message import *
 from superset.exception import (
     SupersetException, ParameterException, LoginException, HDFSException
@@ -49,34 +49,6 @@ def catch_hdfs_exception(f):
     return functools.update_wrapper(wraps, f)
 
 
-def ensure_logined(f):
-    """ Deprecated
-    A decorator to label an endpoint as an API. Make ensure user has logined
-    filerobot, and re_login if session is timeout.
-    """
-    def wraps(self, *args, **kwargs):
-        username = g.user.username
-        client = simple_cache.get(self.cache_key())
-        if not client:
-            client, response = self.login_filerobot()
-            self.handle_login_resp(client, response)
-            try:
-                client.mkdir('/user', username)
-            except Exception as e:
-                logging.error('Failed to create default user path for [{}]. '
-                              .format(username) + str(e))
-        try:
-            return f(self, *args, **kwargs)
-        except FileRobotException as fe:
-            if fe.status == 401:
-                client, response = self.login_filerobot()
-                self.handle_login_resp(client, response)
-                return f(self, *args, **kwargs)
-            else:
-                raise fe
-    return functools.update_wrapper(wraps, f)
-
-
 class HDFSBrowser(BaseSupersetView):
     route_base = '/hdfs'
 
@@ -95,17 +67,16 @@ class HDFSBrowser(BaseSupersetView):
     @catch_hdfs_exception
     @expose('/login/', methods=['GET'])
     def login(self):
-        client, response = self.login_filerobot()
-        self.handle_login_resp(client, response)
-        return json_response(message=LOGIN_FILEROBOT_SUCCESS,
-                             status=response.status_code)
+        self.login_filerobot()
+        return json_response(message=LOGIN_FILEROBOT_SUCCESS)
 
     @catch_hdfs_exception
     @expose('/logout/', methods=['GET'])
     def logout(self):
+        httpfs = self.get_httpfs()
         client = self.get_client()
         client.logout()
-        self.delete_client()
+        FileRobotCache.delete(g.user.username, httpfs)
         return json_response(message=LOGOUT_FILEROBOT_SUCCESS)
 
     @catch_hdfs_exception
@@ -262,7 +233,7 @@ class HDFSBrowser(BaseSupersetView):
             proxy_ticket = None
             access_token = None
             if config['CAS_AUTH']:
-                access_token = get_token(g.user.username)
+                access_token = TokenCache.get(g.user.username)
             return {'server': config.get('FILE_ROBOT_SERVER'),
                     'username': g.user.username,
                     'password': g.user.password2,
@@ -284,13 +255,18 @@ class HDFSBrowser(BaseSupersetView):
             return client, response
 
         args = get_login_args(hdfs_conn_id, httpfs)
-        return do_login(**args)
+        client, response = do_login(**args)
+        if response.status_code == requests.codes.ok:
+            FileRobotCache.cache(g.user.username, args['httpfs'], client)
+        else:
+            FileRobotCache.delete(g.user.username, args['httpfs'])
+            raise LoginException(LOGIN_FILEROBOT_FAILED)
+        return client
 
     @classmethod
     def get_httpfs(cls, hdfs_conn_id=None):
         if hdfs_conn_id:
-            conn = db.session.query(HDFSConnection) \
-                .filter_by(id=hdfs_conn_id).first()
+            conn = db.session.query(HDFSConnection).filter_by(id=hdfs_conn_id).first()
             if not conn:
                 raise ParameterException(NO_HDFS_CONNECTION)
             return conn.httpfs
@@ -298,34 +274,9 @@ class HDFSBrowser(BaseSupersetView):
             return config.get('DEFAULT_HTTPFS')
 
     @classmethod
-    def handle_login_resp(cls, client, response):
-        if response.status_code == requests.codes.ok:
-            if mutex.acquire(1):
-                simple_cache.set(cls.cache_key(), client)
-                mutex.release()
-        else:
-            raise LoginException(LOGIN_FILEROBOT_FAILED)
-
-    @classmethod
     def get_client(cls, hdfs_conn_id=None):
         httpfs = cls.get_httpfs(hdfs_conn_id)
-        key = cls.cache_key(httpfs)
-        client = simple_cache.get(key)
+        client = FileRobotCache.get(g.user.username, httpfs)
         if not client:
-            client, response = cls.login_filerobot(hdfs_conn_id)
-            cls.handle_login_resp(client, response)
-            client = simple_cache.get(key)
+            client = cls.login_filerobot(hdfs_conn_id)
         return client
-
-    @classmethod
-    def delete_client(cls, hdfs_conn_id=None):
-        httpfs = cls.get_httpfs(hdfs_conn_id)
-        key = cls.cache_key(httpfs)
-        simple_cache.delete(key)
-
-    @classmethod
-    def cache_key(cls, httpfs=None):
-        if not httpfs:
-            return '{}_{}'.format(g.user.username, config.get('DEFAULT_HTTPFS'))
-        else:
-            return '{}_{}'.format(g.user.username, httpfs)

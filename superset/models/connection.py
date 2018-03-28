@@ -20,7 +20,7 @@ from sqlalchemy.sql.expression import TextAsFrom
 from sqlalchemy.orm.session import make_transient
 
 from superset import db, app, db_engine_specs, conf
-from superset.cas.access_token import get_token
+from superset.cache import TokenCache
 from superset.cas.keytab import download_keytab
 from superset.utils import GUARDIAN_AUTH
 from superset.exception import GuardianException, PropertyException
@@ -272,7 +272,7 @@ class Database(Model, AuditMixinNullable, ImportMixin):
                 if not config['CAS_AUTH']:
                     raise PropertyException(DISABLE_CAS)
                 else:
-                    connect_args['guardianToken'] = get_token(g.user.username)
+                    connect_args['guardianToken'] = TokenCache.get(g.user.username)
         elif connect_args.get('mech', '').lower() == 'ticket':
             connect_args['casTicket'] = get_ticket()
         return connect_args

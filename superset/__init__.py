@@ -1,9 +1,4 @@
 """Package's main module!"""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import logging
 import os
 import ssl
@@ -16,7 +11,7 @@ from flask_appbuilder.baseviews import expose
 from flask_cache import Cache
 from flask_migrate import Migrate
 from flask_compress import Compress
-from superset.cas import CAS, login_required
+from superset.cas import CAS, login_required, access_token
 from superset.source_registry import SourceRegistry
 from werkzeug.contrib.fixers import ProxyFix
 from superset import utils, config
@@ -57,11 +52,11 @@ db = SQLA(app)
 utils.pessimistic_connection_handling(db.engine.pool)
 
 # cache for slice data
-cache = Cache(app, config=app.config.get('CACHE_CONFIG'))
+file_cache = Cache(app, config=app.config.get('CACHE_CONFIG'))
 
 # simple cache for share data among threads
 simple_cache = Cache(app, config={'CACHE_TYPE': 'simple',
-                                  'CACHE_DEFAULT_TIMEOUT': 24 * 60 * 60})
+                                  'CACHE_DEFAULT_TIMEOUT': 30 * 86400})
 
 
 migrate = Migrate(app, db, directory=APP_DIR + "/migrations")
@@ -121,9 +116,12 @@ def index_view():
                 # flask.session['user'] = data
                 # return redirect(flask.url_for('AuthDBView.login'))
 
+                from superset.cache import TokenCache
+                token = access_token.get_token(cas.username)
+                TokenCache.cache(cas.username, token)
+
                 ### login here
                 utils.login_app(appbuilder, cas.username, conf.get('DEFAULT_PASSWORD'))
-
                 url = self.get_redirect()
                 if url == self.appbuilder.get_url_for_index:
                     url = '/home'
