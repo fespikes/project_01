@@ -1007,7 +1007,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 session, i_dataset, new_dataset, new_database, new_hdfsconn)
             overwrite_columns_metrics(
                 session, new_dataset, i_dataset.ref_columns, i_dataset.ref_metrics)
-            grant_owner_perms([cls.model_type, new_dataset.dataset_name])
+            grant_owner_perms([cls.guardian_type, new_dataset.dataset_name])
         else:
             policy, new_name = cls.get_policy(cls.model_type, i_dataset.name, solution)
             if policy == cls.Policy.OVERWRITE:
@@ -1025,7 +1025,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                     session, i_dataset, new_dataset, new_database, new_hdfsconn)
                 overwrite_columns_metrics(
                     session, new_dataset, i_dataset.ref_columns, i_dataset.ref_metrics)
-                grant_owner_perms([cls.model_type, new_dataset.dataset_name])
+                grant_owner_perms([cls.guardian_type, new_dataset.dataset_name])
             elif policy == cls.Policy.SKIP:
                 logging.info('Importing dataset: [{}] (skip)'.format(i_dataset))
         return new_dataset

@@ -214,7 +214,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             new_dash.slices = new_slices
             new_dash.path = new_path
             session.commit()
-            grant_owner_perms([cls.model_type, new_dash.name])
+            grant_owner_perms([cls.guardian_type, new_dash.name])
         else:
             policy, new_name = cls.get_policy(cls.model_type, i_dash.name, solution)
             if policy == cls.Policy.OVERWRITE:
@@ -231,7 +231,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
                 new_dash.slices = new_slices
                 new_dash.path = new_path
                 session.commit()
-                grant_owner_perms([cls.model_type, new_dash.name])
+                grant_owner_perms([cls.guardian_type, new_dash.name])
             elif policy == cls.Policy.SKIP:
                 logging.info('Importing dashboard: [{}] (skip)'.format(i_dash))
 

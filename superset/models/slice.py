@@ -234,7 +234,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
             new_slice = link_datasource(new_slice, new_database, new_dataset)
             session.add(new_slice)
             session.commit()
-            grant_owner_perms([cls.model_type, new_slice.slice_name])
+            grant_owner_perms([cls.guardian_type, new_slice.slice_name])
         else:
             policy, new_name = cls.get_policy(cls.model_type, i_slice.name, solution)
             if policy == cls.Policy.OVERWRITE:
@@ -250,7 +250,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
                 new_slice = link_datasource(new_slice, new_database, new_dataset)
                 session.add(new_slice)
                 session.commit()
-                grant_owner_perms([cls.model_type, new_slice.slice_name])
+                grant_owner_perms([cls.guardian_type, new_slice.slice_name])
             elif policy == cls.Policy.SKIP:
                 logging.info('Importing slice: [{}] (skip)'.format(i_slice))
 
