@@ -4,7 +4,7 @@ import logging
 import copy
 from distutils.util import strtobool
 import functools
-from flask import g, request, Response
+from flask import g, request, Response, redirect
 from flask_babel import lazy_gettext as _
 from flask_babel.speaklater import LazyString
 from flask_appbuilder import ModelView, BaseView, expose
@@ -12,7 +12,7 @@ from flask_appbuilder.security.sqla.models import User
 import sqlalchemy as sqla
 from sqlalchemy import and_, or_
 
-from superset import app, db, models, utils, conf
+from superset import app, db, models, utils, conf, appbuilder
 from superset.utils import GUARDIAN_AUTH
 from superset.models import (
     Dataset, Database, Dashboard, Slice, HDFSConnection, FavStar, Log, Number
@@ -42,12 +42,15 @@ def catch_exception(f):
         except SupersetException as e:
             logging.exception(e)
             return json_response(status=500, message=e.message, code=e.code)
-        except Exception as e:
+        except AttributeError as e:
             logging.exception(e)
             if 'AnonymousUserMixin' in str(e):
-                return json_response(status=500, message=NO_USER, code=1)
+                return redirect(appbuilder.get_url_for_logout)
             else:
                 return json_response(status=500, message=str(e), code=1)
+        except Exception as e:
+            logging.exception(e)
+            return json_response(status=500, message=str(e), code=1)
     return functools.update_wrapper(wraps, f)
 
 
@@ -290,6 +293,8 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     @expose('/list/')
     def list(self):
         self.update_redirect()
+        if not g.user or not g.user.get_id():
+            return redirect(appbuilder.get_url_for_logout)
         return self.render_template(self.list_template)
 
     @catch_exception

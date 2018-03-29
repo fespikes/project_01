@@ -12,7 +12,7 @@ from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
 from fileRobot_common.conf.FileRobotVars import FileRobotVars
 from fileRobot_common.exception.FileRobotException import FileRobotException
 
-from superset import app, db
+from superset import app, db, appbuilder
 from superset.cache import TokenCache, FileRobotCache
 from superset.message import *
 from superset.exception import (
@@ -43,6 +43,12 @@ def catch_hdfs_exception(f):
         except SupersetException as se:
             logging.exception(se)
             return json_response(status=500, message=str(se), code=se.code)
+        except AttributeError as e:
+            logging.exception(e)
+            if 'AnonymousUserMixin' in str(e):
+                return json_response(status=500, message=NO_USER, code=1)
+            else:
+                return json_response(status=500, message=str(e), code=1)
         except Exception as e:
             logging.exception(e)
             return json_response(status=500, message=str(e), code=1)
@@ -56,6 +62,8 @@ class HDFSBrowser(BaseSupersetView):
     @expose('/')
     def render_html(self):
         self.update_redirect()
+        if not g.user or not g.user.get_id():
+            return redirect(appbuilder.get_url_for_logout)
         try:
             client = self.get_client()
             client.mkdir('/user', g.user.username)

@@ -509,7 +509,7 @@ class Home(BaseSupersetView, PermissionManagement):
     def home(self):
         """default page"""
         if not g.user or not g.user.get_id():
-            return redirect(appbuilder.get_url_for_login)
+            return redirect(appbuilder.get_url_for_logout)
         self.init_examples_perms()
         self.update_redirect()
         return self.render_template('superset/home.html')
