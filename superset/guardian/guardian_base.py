@@ -2,17 +2,32 @@
 # -*- coding:utf-8 -*-
 # Author: jiajie.zhang@transwarp.io
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-import os
 import functools
 import logging
+import re
 from jpype import *
 from superset import conf
 from superset.exception import GuardianException, SupersetException
+
+
+RELOGIN_CODES = ['401', '61010']
+
+
+def need_login_guardian(error_msg):
+    def extract_error_msg(error_msg):
+        matchs = re.findall(r"ErrorCode: (.+?), ErrorMessage: (.+)", error_msg)
+        if matchs:
+            return {'code': str(matchs[0][0]), 'message': matchs[0][1]}
+        else:
+            logging.error('Failed to match error message: [{}]'.format(error_msg))
+            return {'code': '-1', 'message': None}
+
+    error = extract_error_msg(error_msg)
+    logging.info('Guardian exception: {}'.format(error))
+    if error['code'] in RELOGIN_CODES:
+        return True
+    else:
+        return False
 
 
 def catch_guardian_exception(f):
@@ -24,7 +39,21 @@ def catch_guardian_exception(f):
         try:
             return f(self, *args, **kwargs)
         except JavaException as e:
-            raise GuardianException(str(e))
+            if need_login_guardian(str(e)):
+
+                try:
+                    self.login()
+                    logging.info('Login guardian again...')
+                    return f(self, *args, **kwargs)
+                except JavaException as e:
+                    logging.exception(e.stacktrace())
+                    raise GuardianException(str(e))
+                except Exception as e:
+                    raise SupersetException(str(e))
+
+            else:
+                logging.exception(e.stacktrace())
+                raise GuardianException(str(e))
         except Exception as e:
             raise SupersetException(str(e))
     return functools.update_wrapper(wraps, f)
