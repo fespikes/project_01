@@ -24,7 +24,7 @@
     "OPERATION": "操作",
     "REFRESH_DASHBOARD": "刷新仪表板",
     "ADD_SLICE": "添加工作表",
-    "EDIT_DASHBOARD": "编辑仪表板",
+    "EDIT_DASHBOARD": "编辑",
     "SAVE_DASHBOARD": "保存仪表板",
     "OVERRIDE_DASHBOARD": "覆盖仪表板",
     "DRAG_SLICE": "拖动",
