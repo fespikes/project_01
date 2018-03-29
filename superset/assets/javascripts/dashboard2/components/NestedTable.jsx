@@ -69,7 +69,7 @@ export default class NestedTable extends React.Component {
 
     let paramData = new Object(this.state.paramData);
     let parentData = paramData[config.parent];
-    let childData = parentData[config.name];
+    let childData = parentData.names[config.name];
 
     childData.new_name = value;
 
