@@ -83,7 +83,8 @@ class GuardianBase(object):
     def _datasource(self, finite_obj):
         """Datasource is like ['DATABASE', 'name']"""
         alist = java.util.ArrayList()
-        for s in finite_obj:
+        alist.add(str(finite_obj[0]).upper())
+        for s in finite_obj[1:]:
             alist.add(str(s))
         return alist
 

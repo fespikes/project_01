@@ -380,9 +380,9 @@ class Superset(BaseSupersetView, PermissionManagement):
         db.session.add(slc)
         db.session.commit()
         flash(_("Slice [{slice}] has been saved").format(slice=slc.slice_name), "info")
-        Log.log_add(slc, 'slice', g.user.id)
-        Number.log_number(g.user.username, 'slice')
         self.grant_owner_perms(slc.guardian_datasource())
+        Number.log_number(g.user.username, Slice.model_type)
+        Log.log_add(slc, Slice.model_type, g.user.id)
 
     def overwrite_slice(self, slc):
         db.session.expunge_all()
@@ -449,8 +449,9 @@ class Superset(BaseSupersetView, PermissionManagement):
         session.add(dash)
         session.commit()
         dash_json = dash.json_data
-        Log.log_add(dash, 'dashboard', g.user.id)
         self.grant_owner_perms(dash.guardian_datasource())
+        Number.log_number(g.user.username, Dashboard.model_type)
+        Log.log_add(dash, Dashboard.model_type, g.user.id)
         return json_response(data=dash_json)
 
     @catch_exception
@@ -622,9 +623,9 @@ class Superset(BaseSupersetView, PermissionManagement):
         table.sql = q.stripped()
         db.session.add(table)
         db.session.commit()
-        Log.log_add(table, 'dataset', g.user.id)
-        Number.log_number(g.user.username, 'dataset')
         self.grant_owner_perms(table.guardian_datasource())
+        Number.log_number(g.user.username, Dataset.model_type)
+        Log.log_add(table, Dataset.model_type, g.user.id)
 
         cols = []
         dims = []
