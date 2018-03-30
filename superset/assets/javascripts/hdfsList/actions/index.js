@@ -290,7 +290,12 @@ export function fetchDownload() {
                     let url = window.URL.createObjectURL(blob);
                     aLink.href = url;
                     aLink.download = name;
-                    aLink.click();
+                    // aLink.click();     
+                    // not compatable with Firefox, changed to use below method:
+
+                    var evt = document.createEvent("MouseEvents");
+                    evt.initEvent("click", false, false);
+                    aLink.dispatchEvent(evt);
                     window.URL.revokeObjectURL(url);
                 } else {
                     renderGlobalErrorMsg(response.message);
