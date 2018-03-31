@@ -166,6 +166,15 @@ class Operate extends React.Component {
 
     onRemove() {
         const {fetchOperation, popupNormalParam, setPopupNormalParams, condition} = this.props;
+        if(condition.selectedRowNames.length === 0) {
+            const normalPopupParam = this.cleanNormalParamState(popupNormalParam);
+            Object.assign(normalPopupParam, {
+                popupType: CONSTANT.noSelect,
+                submit: fetchOperation,
+            });
+            setPopupNormalParams(normalPopupParam);
+            return;
+        }
 
         let deleteTips = intl.get('sure_to_delete') + condition.selectedRowNames.join(' ') + '?';
         let normalPopupParam = {
