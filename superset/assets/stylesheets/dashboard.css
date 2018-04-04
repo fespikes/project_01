@@ -87,6 +87,22 @@ div.widget .chart-controls {
   transition: box-shadow 1s ease-in;
 }
 
+.slice-cell .chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.slice-cell .chart-header .header-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slice-cell .chart-header .header-controls {
+  min-width: 70px;
+}
+
 .slice-cell-highlight {
   box-shadow: 0px 0px 20px 5px rgba(0,0,0,0.2);
 }
