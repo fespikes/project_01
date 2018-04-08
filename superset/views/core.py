@@ -14,7 +14,7 @@ from superset.source_registry import SourceRegistry
 from superset.sql_parse import SupersetQuery
 from superset.message import *
 from superset.exception import (
-    ParameterException, PropertyException, DatabaseException, ErrorUrlException,
+    ParameterException, PropertyException, DatabaseException, ErrorRequestException,
 )
 from superset.models import (
     Database, Dataset, Slice, Dashboard, TableColumn, SqlMetric, Query, Log,
@@ -86,7 +86,7 @@ class Superset(BaseSupersetView, PermissionManagement):
                 return json_response(message=OFFLINE_SUCCESS)
         else:
             msg = _('Error request url: [{url}]').format(url=request.url)
-            raise ErrorUrlException(msg)
+            raise ErrorRequestException(msg)
 
     @classmethod
     def release_relations(cls, obj, model, user_id):

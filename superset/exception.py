@@ -7,14 +7,14 @@ class SupersetException(Exception):
         self.code = code if code else self.exception_code
 
     def __repr__(self):
-        return 'code: [{}] message: [{}]'.format(self.code, self.message)
+        return 'Code: [{}] Message: [{}]'.format(self.code, self.message)
 
 
 class LoginException(SupersetException):
     exception_code = 2
 
 
-class ErrorUrlException(SupersetException):
+class ErrorRequestException(SupersetException):
     exception_code = 3
 
 
@@ -22,38 +22,26 @@ class ParameterException(SupersetException):
     exception_code = 4
 
 
-class PermissionException(SupersetException):
+class PropertyException(SupersetException):
     exception_code = 5
 
 
-class OfflineException(SupersetException):
+class DatabaseException(SupersetException):
     exception_code = 6
 
 
-class PropertyException(SupersetException):
+class HDFSException(SupersetException):
     exception_code = 7
 
 
-class DatabaseException(SupersetException):
+class PermissionException(SupersetException):
     exception_code = 8
 
 
-class HDFSException(SupersetException):
+class GuardianException(SupersetException):
     exception_code = 9
 
 
-class GuardianException(SupersetException):
+class TemplateException(SupersetException):
     exception_code = 10
-
-
-class SupersetTimeoutException(SupersetException):
-    pass
-
-
-class NoDataException(SupersetException):
-    pass
-
-
-class SupersetTemplateException(SupersetException):
-    pass
 

@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from superset import app, db
 from superset.exception import (
     ParameterException, DatabaseException, HDFSException, PropertyException,
-    ErrorUrlException
+    ErrorRequestException
 )
 from superset.models import (
     Database, Dataset, HDFSTable, Log, TableColumn, SqlMetric, Slice
@@ -166,7 +166,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
             raise PropertyException("Miss database connection")
         d = db.session.query(Database).filter_by(id=database_id).first()
         if not d:
-            raise ErrorUrlException(
+            raise ErrorRequestException(
                 "Error database connection id: [{}]".format(database_id))
         return json_response(data=d.all_schema_names())
 
@@ -177,7 +177,7 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
             raise PropertyException("Miss database connection")
         d = db.session.query(Database).filter_by(id=database_id).first()
         if not d:
-            raise ErrorUrlException(
+            raise ErrorRequestException(
                 "Error database connection id: [{}]".format(database_id))
         return json_response(data=d.all_table_names(schema=schema))
 
@@ -322,8 +322,8 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         dataset = self.get_object(id)
         self.check_grant_perm(dataset.guardian_datasource())
         objects = self.grant_affect_objects(dataset)
-        info = _("Granting permissions of [{dataset}] to this user, will grant "
-                 "permissions of dependencies to this user too: "
+        info = _("Granting permissions of [{dataset}] to other user, will grant "
+                 "permissions of dependencies to other user too: "
                  "\nConnection: {connection}")\
             .format(dataset=dataset, connection=objects.get('connection'))
         return json_response(data=info)

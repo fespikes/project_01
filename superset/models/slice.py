@@ -20,7 +20,7 @@ from sqlalchemy.orm.session import make_transient
 
 from superset import app, db, utils
 from superset.viz import viz_types
-from superset.exception import ParameterException, OfflineException
+from superset.exception import ParameterException, PermissionException
 from .base import AuditMixinNullable, ImportMixin
 from .dataset import Dataset
 from .connection import Database
@@ -275,7 +275,7 @@ class Slice(Model, AuditMixinNullable, ImportMixin):
                 _("Not found slice by id [{id}]").format(id=slice_id))
         if check(slice, user_id) is False:
             if raise_if_false:
-                raise OfflineException(
+                raise PermissionException(
                     _("Slice [{slice}] is offline").format(slice=slice.slice_name))
             else:
                 return False

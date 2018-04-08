@@ -1745,7 +1745,7 @@ msgstr "根据参数ids：{ids}查询到{num}个连接"
 
 
 #========================
-# views/core.py
+# views/slice.py
 #========================
 msgid "Error parameter ids: {ids}, queried {num} dashboard(s)"
 msgstr "根据参数ids：{ids}查询到{num}个仪表板"
@@ -1761,22 +1761,14 @@ msgstr "下线工作表{slice}会使其在以下仪表板中不可见：{dashboa
 msgid "Deleting slice {slice} will remove from these dashboards too: {dashboard}"
 msgstr "删除工作表{slice}会同时从以下仪表板中移除：{dashboard}"
 
+msgid ""
+"Granting permissions of [{slice}] to this user, will grant "
+"permissions of dependencies to this user too: "
+"\nDataset: {dataset}, \nConnection: {connection}"
+msgstr "赋予[{slice}]的权限给其他用户，也会同时赋予依赖的权限给其他用户：\n数据集：{dataset}，\n连接：{connection}"
+
 msgid "Error parameter ids: {ids}, queried {num} slice(s)"
 msgstr "根据参数ids：{ids}查询到{num}个工作表"
-
-msgid ""
-"Releasing dashboard {dashboard} will release these too: "
-"\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}"
-msgstr "上线仪表板{dashboard}会同时上线：\n工作表：{slice}，\n数据集：{dataset}，\n连接：{connection}"
-
-msgid "Changing dashboard {dashboard} to offline will make it invisible for other users"
-msgstr "下线仪表板{dashboard}会使其他用户不可见"
-
-msgid "Deleting dashboard {dashboard} will remove from these stories too: {story}"
-msgstr "删除仪表板{dashboard}会同时从以下故事中移除：{story}"
-
-msgid "Slice [{slice}] was added to dashboard [{dashboard}]"
-msgstr "工作表[{slice}]已被添加到仪表板[{dashboard}]"
 
 msgid "Dashboard [{dashboard}] just got created and slice [{slice}] was added to it"
 msgstr "成功创建仪表板[{dashboard}]，并且添加了工作表[{slice}]"
@@ -1790,13 +1782,31 @@ msgstr "你没有权限修改工作表[{slice}]"
 msgid "Slice [{slice}] has been overwritten"
 msgstr "成功修改工作表[{slice}]"
 
-msgid "Test connection failed! \n{msg}"
-msgstr "测试连接失败：\n{msg}"
+
+#========================
+# views/dashboard.py
+#========================
+msgid ""
+"Releasing dashboard {dashboard} will release these too: "
+"\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}"
+msgstr "上线仪表板{dashboard}会同时上线：\n工作表：{slice}，\n数据集：{dataset}，\n连接：{connection}"
+
+msgid "Changing dashboard {dashboard} to offline will make it invisible for other users"
+msgstr "下线仪表板{dashboard}会使其他用户不可见"
+
+msgid "Deleting dashboard {dashboard} will remove from these stories too: {story}"
+msgstr "删除仪表板{dashboard}会同时从以下故事中移除：{story}"
 
 msgid ""
-"The query exceeded the {SQLLAB_TIMEOUT} seconds timeout. You may want to run "
-"your query as a `CREATE TABLE AS` to prevent timeouts."
-msgstr "查询时间超过了设置的[{SQLLAB_TIMEOUT}]秒"
+"Granting permissions of [{dashboard}] to this user, will grant "
+"permissions of dependencies to this user too: "
+"\nSlice: {slice}, \nDataset: {dataset}, \nConnection: {connection}"
+msgstr ""
+"赋予[{dashboard}]的权限给其他用户，也会同时赋予依赖的权限给其他用户："
+"\n工作表：{slice},\n数据集：{dataset}，\n连接：{connection}"
+
+msgid "Slice [{slice}] was added to dashboard [{dashboard}]"
+msgstr "工作表[{slice}]已被添加到仪表板[{dashboard}]"
 
 msgid "Success to move dashboard"
 msgstr "成功移动仪表板"
@@ -1809,6 +1819,18 @@ msgstr "不能移动文件夹到其子目录"
 
 msgid "No privilege to edit root path"
 msgstr "不能编辑根目录"
+
+
+#========================
+# views/core.py
+#========================
+msgid "Test connection failed! \n{msg}"
+msgstr "测试连接失败：\n{msg}"
+
+msgid ""
+"The query exceeded the {SQLLAB_TIMEOUT} seconds timeout. You may want to run "
+"your query as a `CREATE TABLE AS` to prevent timeouts."
+msgstr "查询时间超过了设置的[{SQLLAB_TIMEOUT}]秒"
 
 
 #========================
@@ -1839,6 +1861,12 @@ msgstr "下线数据集{dataset}会使其他用户不可用这些工作表：{sl
 
 msgid "Deleting datasets {dataset} will make these slices unusable: {slice}"
 msgstr "删除数据集{dataset}会使这些工作表不可用：{slice}"
+
+msgid ""
+"Granting permissions of [{dataset}] to other user, will grant "
+"permissions of dependencies to other user too: "
+"\nConnection: {connection}"
+msgstr "赋予[{dataset}]的权限给其他用户，也会同时赋予依赖的权限给其他用户： \n连接： {connection}"
 
 msgid "Should not exist folder [{folder}] in selected path [{path}] to create external table'"
 msgstr "为了创建外表，路径[{path}]下不能存在文件夹[{folder}]"

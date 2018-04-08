@@ -15,7 +15,7 @@ import uuid
 import random
 
 from superset import app
-from superset.exception import SupersetTemplateException
+from superset.exception import TemplateException
 
 config = app.config
 BASE_CONTEXT = {
@@ -135,10 +135,9 @@ class PrestoTemplateProcessor(BaseTemplateProcessor):
         table_name, schema = self._schema_table(table_name, self.schema)
         indexes = self.database.get_indexes(table_name, schema)
         if len(indexes[0]['column_names']) < 1:
-            raise SupersetTemplateException(
-                "The table should have one partitioned field")
+            raise TemplateException("The table should have one partitioned field")
         elif len(indexes[0]['column_names']) > 1:
-            raise SupersetTemplateException(
+            raise TemplateException(
                 "The table should have a single partitioned field "
                 "to use this function. You may want to use "
                 "`presto.latest_sub_partition`")
@@ -174,13 +173,13 @@ class PrestoTemplateProcessor(BaseTemplateProcessor):
         for k in kwargs.keys():
             if k not in k in part_fields:
                 msg = "Field [{k}] is not part of the partionning key"
-                raise SupersetTemplateException(msg)
+                raise TemplateException(msg)
         if len(kwargs.keys()) != len(part_fields) - 1:
             msg = (
                 "A filter needs to be specified for {} out of the "
                 "{} fields."
             ).format(len(part_fields)-1, len(part_fields))
-            raise SupersetTemplateException(msg)
+            raise TemplateException(msg)
 
         for field in part_fields:
             if field not in kwargs.keys():

@@ -27,7 +27,7 @@ from sqlalchemy.sql.expression import ColumnClause, TextAsFrom
 from superset import db, app, utils
 from superset.utils import wrap_clause_in_parens, DTTM_ALIAS
 from superset.exception import (
-    ParameterException, PropertyException, DatabaseException, OfflineException,
+    ParameterException, PropertyException, DatabaseException, PermissionException,
     HDFSException
 )
 from superset.jinja_context import get_template_processor
@@ -899,7 +899,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         user_id = g.user.get_id()
         if check(dataset, user_id) is False:
             if raise_if_false:
-                raise OfflineException(_(
+                raise PermissionException(_(
                     "Dependent someone's dataset [{dataset}] is offline, so it's "
                     "unavailable").format(dataset=dataset))
             else:
@@ -907,7 +907,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
         # database
         if dataset.database and check(dataset.database, user_id) is False:
             if raise_if_false:
-                raise OfflineException(_(
+                raise PermissionException(_(
                     "Dependent someone's database connection [{conn}] is offline,  "
                     "so it's unavailable").format(conn=dataset.database))
             else:
@@ -917,7 +917,7 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
                 and dataset.hdfs_table.hdfs_connection \
                 and check(dataset.hdfs_table.hdfs_connection, user_id) is False:
             if raise_if_false:
-                raise OfflineException(_(
+                raise PermissionException(_(
                     "Dependent someone's HDFS connection [{conn}] is offline, so it's "
                     "unavailable").format(conn=dataset.hdfs_table.hdfs_connection))
             else:

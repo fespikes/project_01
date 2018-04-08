@@ -204,7 +204,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         if dataset and dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
             conns.append(dataset.hdfs_table.hdfs_connection)
         return {'dataset': [dataset, ] if dataset else [],
-                'connection': set(conns)}
+                'connection': list(set(conns))}
 
     @catch_exception
     @expose('/add/', methods=['GET'])

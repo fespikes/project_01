@@ -254,9 +254,9 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
                     Database.database_name != self.main_db_name) \
             .all()
         connections.extend(databases)
-        return {'slice': set(slices),
-                'dataset': set(datasets),
-                'connection': set(connections)}
+        return {'slice': list(set(slices)),
+                'dataset': list(set(datasets)),
+                'connection': list(set(connections))}
 
     @catch_exception
     @expose("/upload_image/<id>/", methods=['POST'])
