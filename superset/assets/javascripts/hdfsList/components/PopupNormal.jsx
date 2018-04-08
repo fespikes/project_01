@@ -181,7 +181,7 @@ class Popup extends React.Component {
                     title = intl.get('create_file');
                     break;
                 case CONSTANT.remove:
-                    title = intl.get('delete_HDFS_conn');
+                    title = intl.get('delete');
                     break;
                 case CONSTANT.noSelect:
                     title = intl.get('tips');
