@@ -77,6 +77,8 @@ class PermissionManagement(object):
     READ_PERMS = ALL_PERMS
     EDIT_PERMS = [EDIT_PERM, ADMIN_PERM]
     ADMIN_PERMS = [ADMIN_PERM, ]
+    GLOBAL_ADMIN_PERM = 'ADMIN'
+    GLOBAL_ACCESS_PERM = 'ACCESS'
     OBJECT_TYPES = ['database', 'hdfsconnection', 'dataset', 'slice', 'dashboard']
 
     def __init__(self):
@@ -105,7 +107,8 @@ class PermissionManagement(object):
             admin.grant(g.user.username, finite_obj, self.READ_PERM)
 
     def check_read_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.ALL_PERMS)
+        can = self.do_check(g.user.username, finite_obj, self.ALL_PERMS,
+                            global_perm=self.GLOBAL_ACCESS_PERM)
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to read [{name}]').format(name=finite_obj[-1]))
@@ -113,7 +116,8 @@ class PermissionManagement(object):
             return can
 
     def check_edit_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
+        can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS,
+                            global_perm=self.GLOBAL_ADMIN_PERM)
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to edit [{name}]').format(name=finite_obj[-1]))
@@ -121,7 +125,8 @@ class PermissionManagement(object):
             return can
 
     def check_delete_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS)
+        can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS,
+                            global_perm=self.GLOBAL_ADMIN_PERM)
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to delete [{name}]').format(name=finite_obj[-1]))
@@ -129,7 +134,8 @@ class PermissionManagement(object):
             return can
 
     def check_admin_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
+        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS,
+                            global_perm=self.GLOBAL_ADMIN_PERM)
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege ADMIN of [{name}]').format(name=finite_obj[-1]))
@@ -137,7 +143,8 @@ class PermissionManagement(object):
             return can
 
     def check_grant_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
+        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS,
+                            global_perm=self.GLOBAL_ADMIN_PERM)
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to grant permission on {obj_type}: [{name}]')
@@ -146,7 +153,8 @@ class PermissionManagement(object):
             return can
 
     def check_revoke_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
+        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS,
+                            global_perm=self.GLOBAL_ADMIN_PERM)
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to revoke permissions from {obj_type}: [{name}]')
@@ -155,17 +163,30 @@ class PermissionManagement(object):
             return can
 
     def check_release_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS)
+        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS,
+                            global_perm=self.GLOBAL_ADMIN_PERM)
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to release {name}').format(name=finite_obj[-1]))
         else:
             return can
 
-    def do_check(self, username, finite_obj, actions):
+    def do_check(self, username, finite_obj, actions, global_perm='ACCESS'):
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            return client.check_any_access(username, finite_obj, actions)
+            if global_perm == self.GLOBAL_ACCESS_PERM:
+                if client.check_global_access(username):
+                    return True
+                else:
+                    return client.check_any_access(username, finite_obj, actions)
+            elif global_perm == self.GLOBAL_ADMIN_PERM:
+                if client.check_global_admin(username):
+                    return True
+                else:
+                    return client.check_any_access(username, finite_obj, actions)
+            else:
+                raise ParameterException(
+                    'Error parameter global_perm: [{}]'.format(global_perm))
         else:
             return True
 

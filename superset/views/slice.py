@@ -239,13 +239,18 @@ class SliceModelView(SupersetModelView, PermissionManagement):
 
         query = self.query_with_favorite(self.model_type, **kwargs)
 
+        global_access = True
         readable_names = None
+        count = 0
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            readable_names = client.search_model_perms(
-                g.user.username, self.model.guardian_type)
-            count = len(readable_names)
-        else:
+            if not client.check_global_access(g.user.username):
+                global_access = False
+                readable_names = client.search_model_perms(
+                    g.user.username, self.model.guardian_type)
+                count = len(readable_names)
+
+        if global_access:
             count = query.count()
             if page is not None and page >= 0 and page_size and page_size > 0:
                 query = query.limit(page_size).offset(page * page_size)
@@ -254,7 +259,7 @@ class SliceModelView(SupersetModelView, PermissionManagement):
         data = []
         index = 0
         for obj, username, fav_id in rs:
-            if self.guardian_auth:
+            if not global_access:
                 if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:

@@ -108,13 +108,18 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
                 else:
                     query = query.order_by(column)
 
+        global_access = True
         readable_names = None
+        count = 0
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            readable_names = client.search_model_perms(
-                g.user.username, self.model.guardian_type)
-            count = len(readable_names)
-        else:
+            if not client.check_global_access(g.user.username):
+                global_access = False
+                readable_names = client.search_model_perms(
+                    g.user.username, self.model.guardian_type)
+                count = len(readable_names)
+
+        if global_access:
             count = query.count()
             if page is not None and page >= 0 and page_size and page_size > 0:
                 query = query.limit(page_size).offset(page * page_size)
@@ -123,7 +128,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
         data = []
         index = 0
         for obj, user in rs:
-            if self.guardian_auth:
+            if not global_access:
                 if obj.name in readable_names:
                     index += 1
                     if index <= page * page_size:
@@ -267,13 +272,18 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
         query = db.session.query(HDFSConnection) \
             .order_by(HDFSConnection.connection_name.desc())
 
+        global_access = True
         readable_names = None
+        count = 0
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            readable_names = client.search_model_perms(
-                g.user.username, self.model.guardian_type)
-            count = len(readable_names)
-        else:
+            if not client.check_global_access(g.user.username):
+                global_access = False
+                readable_names = client.search_model_perms(
+                    g.user.username, self.model.guardian_type)
+                count = len(readable_names)
+
+        if global_access:
             count = query.count()
             if page_size and page_size > 0:
                 query = query.limit(page_size)
@@ -282,7 +292,7 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
         data = []
         index = 0
         for obj in rs:
-            if self.guardian_auth:
+            if not global_access:
                 if obj.name in readable_names:
                     index += 1
                     if index > page_size:
@@ -608,17 +618,22 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
                 msg = _('Error order column name: [{name}]').format(name=order_column)
                 raise ParameterException(msg)
 
+        global_access = True
         readable_db_names = None
         readable_hdfs_names = None
+        count = 0
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            username = g.user.username
-            readable_db_names = client.search_model_perms(
-                username, Database.guardian_type)
-            readable_hdfs_names = client.search_model_perms(
-                username, HDFSConnection.guardian_type)
-            count = len(readable_db_names) + len(readable_hdfs_names)
-        else:
+            if not client.check_global_access(g.user.username):
+                global_access = False
+                username = g.user.username
+                readable_db_names = client.search_model_perms(
+                    username, Database.guardian_type)
+                readable_hdfs_names = client.search_model_perms(
+                    username, HDFSConnection.guardian_type)
+                count = len(readable_db_names) + len(readable_hdfs_names)
+
+        if global_access:
             count = query.count()
             if page is not None and page >= 0 and page_size and page_size > 0:
                 query = query.limit(page_size).offset(page * page_size)
@@ -628,7 +643,7 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
         index = 0
         for row in rs:
             type_ = row[5]
-            if self.guardian_auth:
+            if not global_access:
                 if (type_ == 'HDFS' and row[1] in readable_hdfs_names) \
                         or (type_ != 'HDFS' and row[1] in readable_db_names):
                     index += 1

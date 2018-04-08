@@ -8,7 +8,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from jpype import *
-from superset.exception import GuardianException
 from .guardian_base import GuardianBase, catch_guardian_exception
 
 
@@ -60,15 +59,19 @@ class GuardianClient(GuardianBase):
         else:
             perm = self._permission(finite_obj, action)
         can = self.client.checkAccess(username, perm)
-        can = True if can else False
-        return can
+        return True if can else False
 
     @catch_guardian_exception
     def check_any_access(self, username, finite_obj, actions):
         perms = self._permissions(finite_obj, actions)
         can = self.client.checkAnyAccess(username, perms)
-        can = True if can else False
-        return can
+        return True if can else False
+
+    def check_global_admin(self, username):
+        return self.check_access(username, ['GLOBAL'], 'ADMIN')
+
+    def check_global_access(self, username):
+        return self.check_any_access(username, ['GLOBAL'], ['ADMIN', 'ACCESS'])
 
     @catch_guardian_exception
     def user_permissions(self, username, component=None, finite_obj=None):
