@@ -1,11 +1,13 @@
 import logging
 import json
 import functools
+import os
 import requests
 import threading
 from flask import g, request, redirect
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
+from werkzeug.utils import secure_filename
 
 from fileRobot_client.FileRobotClientFactory import fileRobotClientFactory
 from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
@@ -57,6 +59,7 @@ def catch_hdfs_exception(f):
 
 class HDFSBrowser(BaseSupersetView):
     route_base = '/hdfs'
+    file_block_size = config.get('FILE_BLOCK_LENGTH')
 
     @catch_exception
     @expose('/')
@@ -114,25 +117,27 @@ class HDFSBrowser(BaseSupersetView):
     def upload(self):
         client = self.get_client()
         dest_path = request.args.get('dest_path')
-        files = {}
         redirect_url = '/hdfs/?current_path={}'.format(dest_path)
-        try:
-            for f in request.files.getlist('list_file'):
-                file_content = f.read()
-                max_size = config.get('MAX_UPLOAD_SIZE')
-                if len(file_content) > max_size:
-                    raise HDFSException(
-                        _('The size of uploaded file is limited to {size}M')
-                            .format(size=int(max_size / (1024 * 1024))))
-                files[f.filename] = file_content
-            files_struct = [('files', (name, data)) for name, data in files.items()]
-            client.upload(dest_path, files_struct)
-        except FileRobotException as fe:
-            logging.exception(fe)
-            redirect_url = '{}&error_message={}'.format(redirect_url, fe.message)
-        except Exception as e:
-            logging.exception(e)
-            redirect_url = '{}&error_message={}'.format(redirect_url, str(e))
+        for f in request.files.getlist('list_file'):
+            filename = secure_filename(f.filename)
+            file_path = os.path.join(dest_path, filename)
+            try:
+                client.touch(dest_path, filename)
+            except Exception as e:
+                logging.exception(e)
+                redirect_url = '{}&error_message={}'.format(redirect_url, str(e))
+            else:
+                try:
+                    while True:
+                        file_content = f.read(self.file_block_size)
+                        if file_content:
+                            client.append(file_path, {'files': (filename, file_content)})
+                        else:
+                            break
+                except Exception as e:
+                    logging.exception(e)
+                    client.remove(file_path, forever=True)
+                    redirect_url = '{}&error_message={}'.format(redirect_url, str(e))
         return redirect(redirect_url)
 
     @catch_hdfs_exception
