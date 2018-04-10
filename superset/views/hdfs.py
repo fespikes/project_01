@@ -4,10 +4,9 @@ import functools
 import os
 import requests
 import threading
-from flask import g, request, redirect
-from flask_babel import lazy_gettext as _
+from urllib.parse import quote
+from flask import g, request, redirect, Response
 from flask_appbuilder import expose
-from werkzeug.utils import secure_filename
 
 from fileRobot_client.FileRobotClientFactory import fileRobotClientFactory
 from fileRobot_common.conf.FileRobotConfiguration import FileRobotConfiguartion
@@ -108,9 +107,23 @@ class HDFSBrowser(BaseSupersetView):
     def download(self):
         client = self.get_client()
         path = request.args.get('path')
-        response = client.download(path)
-        response.encoding = 'utf-8'
-        return json_response(data=response.text, status=response.status_code)
+        filename = quote(os.path.basename(path), encoding="utf-8")
+        data = bytearray()
+        offset = 0
+        length = self.file_block_size
+        while True:
+            response = client.read(path, offset, length)
+            content = response.content
+            len_con = len(content)
+            if content:
+                data.extend(content)
+                offset += len_con
+            if not content or len_con < length:
+                break
+
+        response = Response(bytes(data), content_type='application/octet-stream')
+        response.headers['Content-Disposition'] = "attachment; filename=" + filename
+        return response
 
     @catch_hdfs_exception
     @expose('/upload/', methods=['POST'])
@@ -119,7 +132,7 @@ class HDFSBrowser(BaseSupersetView):
         dest_path = request.args.get('dest_path')
         redirect_url = '/hdfs/?current_path={}'.format(dest_path)
         for f in request.files.getlist('list_file'):
-            filename = secure_filename(f.filename)
+            filename = f.filename
             file_path = os.path.join(dest_path, filename)
             try:
                 client.touch(dest_path, filename)
