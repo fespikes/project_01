@@ -274,35 +274,36 @@ export function fetchDownload() {
         const name = fileReducer.name;
         const URL = baseURL + `download/?` +
         (path ? ('path=' + path + '&') : '');
-        dispatch(switchFetchingStatus(true));
-        return fetch(URL, {
-            credentials: 'include',
-            method: 'GET'
-        }).then(always).then(json).then(
-            response => {
-                if (response.status === 200) {
-                    let aLink = document.createElement('a');
-                    const data = response.data;
-                    let blob = new Blob([data], {
-                        type: 'plain/text',
-                        endings: 'native'
-                    });
-                    let url = window.URL.createObjectURL(blob);
-                    aLink.href = url;
-                    aLink.download = name;
-                    // aLink.click();     
-                    // not compatable with Firefox, changed to use below method:
+        // dispatch(switchFetchingStatus(true));
+        window.open(URL, '_blank', 'toolbar=yes, location=yes, status=yes, menubar=yes, scrollbars=yes');
+    /*return fetch(URL, {
+        credentials: 'include',
+        method: 'GET'
+    }).then(always).then(json).then(
+        response => {
+            if (response.status === 200) {
+                let aLink = document.createElement('a');
+                const data = response.data;
+                let blob = new Blob([data], {
+                    type: 'plain/text',
+                    endings: 'native'
+                });
+                let url = window.URL.createObjectURL(blob);
+                aLink.href = url;
+                aLink.download = name;
+                // aLink.click();     
+                // not compatable with Firefox, changed to use below method:
 
-                    var evt = document.createEvent("MouseEvents");
-                    evt.initEvent("click", false, false);
-                    aLink.dispatchEvent(evt);
-                    window.URL.revokeObjectURL(url);
-                } else {
-                    renderGlobalErrorMsg(response.message);
-                }
-                dispatch(switchFetchingStatus(false));
+                var evt = document.createEvent("MouseEvents");
+                evt.initEvent("click", false, false);
+                aLink.dispatchEvent(evt);
+                window.URL.revokeObjectURL(url);
+            } else {
+                renderGlobalErrorMsg(response.message);
             }
-        );
+            dispatch(switchFetchingStatus(false));
+        }
+    );*/
     }
 }
 

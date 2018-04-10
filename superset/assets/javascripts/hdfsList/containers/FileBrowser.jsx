@@ -54,8 +54,7 @@ class FileBrowser extends Component {
     }
 
     render() {
-        const {fileReducer, changePath, fetchDownload, //
-            condition} = this.props;
+        const {fileReducer, changePath, condition} = this.props;
         const {path, mtime, size, user, group, mode, preview} = fileReducer;
         const linkToPath = (ag) => {
             this.setState({
