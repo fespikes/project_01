@@ -10,6 +10,10 @@ body {
   font-weight: bold;
 }
 
+.alert.alert-danger {
+    word-break: break-all;
+}
+
 .alert.alert-danger > .debugger {
     color: red;
 }

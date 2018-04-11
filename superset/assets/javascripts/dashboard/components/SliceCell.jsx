@@ -12,50 +12,29 @@ function SliceCell({ expandedSlices, removeSlice, slice, intl }) {
     return (
         <div className="slice-cell" id={`${slice.token}-cell`}>
             <div className="chart-header">
-                <div className="row">
-                    <div className="col-md-12 header">
-                        <span className="text-overflow-style">{slice.slice_name}</span>
-                    </div>
-                    <div className="col-md-12 chart-controls">
-                        <div className="pull-right">
-                            <Tooltip title={intl.get('DASHBOARD.DRAG_SLICE')} placement="top">
-                                <a>
-                                    <i className="fa fa-arrows drag" />
-                                </a>
-                            </Tooltip>
-
-                            <Tooltip title={intl.get('DASHBOARD.FORCE_REFRESH')} placement="top">
-                                <a className="refresh">
-                                    <i className="fa fa-repeat" />
-                                </a>
-                            </Tooltip>
-
-                            {slice.description &&
-                            <Tooltip title={slice.description} placement="top">
-                                <a>
-                                    <i
-                                        className="fa fa-info-circle slice_info"
-                                    />
-                                </a>
-                            </Tooltip>
-                            }
-
-                            <Tooltip title={intl.get('DASHBOARD.EDIT_DASHBOARD')} placement="top">
-                                <a href={slice.slice_url}>
-                                    <i className="fa fa-pencil" />
-                                </a>
-                            </Tooltip>
-
-                            <Tooltip title={intl.get('DASHBOARD.REMOVE_SLICE')} placement="top">
-                                <a className="remove-chart">
-                                    <i
-                                        className="fa fa-close"
-                                        onClick={() => { removeSlice(slice.slice_id); }}
-                                    />
-                                </a>
-                            </Tooltip>
-                        </div>
-                    </div>
+                <div className="header-title">
+                    <Tooltip title={slice.slice_name} placement="top">
+                        <span>{slice.slice_name}</span>
+                    </Tooltip>
+                </div>
+                <div className="header-controls">
+                    <Tooltip title={intl.get('DASHBOARD.DRAG_SLICE')} placement="top">
+                        <a><i className="fa fa-arrows drag"/></a>
+                    </Tooltip>
+                    <Tooltip title={intl.get('DASHBOARD.FORCE_REFRESH')} placement="top">
+                        <a className="refresh"><i className="fa fa-repeat"/></a>
+                    </Tooltip>
+                    {slice.description &&
+                    <Tooltip title={slice.description} placement="top">
+                        <a><i className="fa fa-info-circle slice_info"/></a>
+                    </Tooltip>
+                    }
+                    <Tooltip title={intl.get('DASHBOARD.EDIT_DASHBOARD')} placement="top">
+                        <a href={slice.slice_url}><i className="fa fa-pencil"/></a>
+                    </Tooltip>
+                    <Tooltip title={intl.get('DASHBOARD.REMOVE_SLICE')} placement="top">
+                        <a className="remove-chart"><i className="fa fa-close" onClick={() => { removeSlice(slice.slice_id); }}/></a>
+                    </Tooltip>
                 </div>
             </div>
             <div
