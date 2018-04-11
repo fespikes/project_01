@@ -209,18 +209,22 @@ class SliceModelView(SupersetModelView, PermissionManagement):
     @catch_exception
     @expose('/add/', methods=['GET'])
     def add(self):
+        global_access = True
+        readable_names = []
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            readable_names = client.search_model_perms(
-                g.user.username, Dataset.guardian_type)
-            if not readable_names:
-                raise GuardianException(NO_USEABLE_DATASETS)
+            if not client.check_global_access(g.user.username):
+                global_access = False
+                readable_names = \
+                    client.search_model_perms(g.user.username, Dataset.guardian_type)
+
+        if global_access:
+            dataset = db.session.query(Dataset).order_by(Dataset.id).first()
+        else:
             dataset = db.session.query(Dataset) \
                 .filter(Dataset.dataset_name.in_(readable_names)) \
                 .order_by(Dataset.id.asc()) \
                 .first()
-        else:
-            dataset = db.session.query(Dataset).order_by(Dataset.id).first()
 
         if dataset:
             return redirect(dataset.explore_url)
