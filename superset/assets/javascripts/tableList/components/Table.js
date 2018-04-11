@@ -30,7 +30,7 @@ class SliceTable extends React.Component {
     givePerm(record) {
         const callback = (success, response) => {
             if(success) {
-                utils.renderPermModal(record.id, record.dataset_name, utils.OBJECT_TYPE.DATASET);
+                utils.renderPermModal(record.id, record.dataset_name, utils.OBJECT_TYPE.TABLE);
             }else {
                 utils.renderConfirmModal(response);
             }
