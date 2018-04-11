@@ -37,7 +37,7 @@ class SliceTable extends React.Component {
         };
 
         getPermInfo({
-            type: utils.OBJECT_TYPE.DATASET,
+            type: utils.OBJECT_TYPE.TABLE,
             id: record.id
         }, callback);
     }
