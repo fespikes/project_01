@@ -21,6 +21,9 @@ function calHeatmap(slice) {
         );
 
         d3.json(slice.jsonEndpoint(), function(error, json) {
+            if(!json) {
+                return;
+            }
             const data = json.data;
             if (error !== null) {
                 slice.error(error.responseText, error);

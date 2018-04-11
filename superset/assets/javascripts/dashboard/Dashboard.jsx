@@ -158,49 +158,46 @@ export function dashboardContainer(dashboard) {
             const refresh = slice.getWidgetHeader().find('.refresh');
             const data = slice.data;
             if (data !== undefined && data.is_cached) {
-                refresh
-                    .addClass('danger');
-                    //.attr('title',
-                    //    'Served from data cached at ' + data.cached_dttm +
-                    //    '. Click to force refresh')
-                    //.tooltip('fixTitle');
+                refresh.addClass('danger');
             } else {
-                refresh
-                    .removeClass('danger')
-                    //.attr('title', '点击强制刷新')
-                    .tooltip('fixTitle');
+                refresh.removeClass('danger').tooltip('fixTitle');
             }
             this.renderCount++;
-            if (dashboard.context.need_capture && (this.renderCount + 1) === this.sliceObjects.length && this.sliceObjects.length > 0) {
+            //not screenShot when exit slice render failed case
+            if (this.renderCount === this.sliceObjects.length && this.sliceObjects.length > 0) {
                 this.screenShot();
             }
         },
         screenShot() {
-            const container = document.getElementById('grid-container');
             setTimeout(() => {
                 try {
+                    const container = document.getElementById('grid-container');
                     const scale = 1.29;
-                    domtoimage.toPng(container, { width: container.clientWidth, height: container.clientWidth / scale })
-                        .then(function (image) {
-                            const url = `/dashboard/upload_image/${dashboard.id}/`;
-                            const formData = new FormData();
-                            if (image) {
-                                formData.append('image', image);
-                                $.ajax({
-                                    type: "POST",
-                                    url: url,
-                                    data: formData,
-                                    success: (data) => {
-                                        console.log('capture successfully', data);
-                                    },
-                                    error(error) {
-                                        //the operation should be invisible for user
-                                    },
-                                    processData: false,
-                                    contentType: false,
-                                });
-                            }
-                        });
+                    domtoimage.toPng(container, {
+                        width: container.clientWidth,
+                        height: container.clientWidth / scale,
+                        imagePlaceholder: 'data:,icon', //avoid throw error in console
+                    })
+                    .then(function (image) {
+                        const url = `/dashboard/upload_image/${dashboard.id}/`;
+                        const formData = new FormData();
+                        if (image) {
+                            formData.append('image', image);
+                            $.ajax({
+                                type: "POST",
+                                url: url,
+                                data: formData,
+                                success: (data) => {
+                                    console.log('capture successfully', data);
+                                },
+                                error(error) {
+                                    //the operation should be invisible for user
+                                },
+                                processData: false,
+                                contentType: false,
+                            });
+                        }
+                    });
                 } catch (error) {
                     console.log(error);
                 }
