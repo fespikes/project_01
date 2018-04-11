@@ -6,8 +6,8 @@ import './PermInfo.scss';
 
 const PermInfo = ({infos}) => {
     const permInfos = infos.map((info, index) => {
-        return <Tooltip placement="topLeft" title={info}>
-                <pre key={index} className="info-item">{info}</pre>
+        return <Tooltip key={index} placement="topLeft" title={info}>
+                <pre className="info-item">{info}</pre>
             </Tooltip>
     });
     return (

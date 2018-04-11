@@ -218,8 +218,9 @@ class PermPopup extends React.Component {
             }
         };
 
+        /* backend api not unified, add judge conditon */
         perm.getPermInfo({
-            type: objectType,
+            type: objectType === utils.OBJECT_TYPE.DATASET ? utils.OBJECT_TYPE.TABLE : objectType,
             id: objectId
         }, callback);
     }
@@ -287,7 +288,7 @@ class PermPopup extends React.Component {
                         </div>
                         <div className="popup-body">
                             <div className="dialog-item">
-                                <div className="item-left" style={{width: 80, 'padding-left': 20}}>
+                                <div className="item-left" style={{width: 80, 'paddingLeft': 20}}>
                                     <span>{intl.get('POPUP.USER_NAME')}</span>
                                 </div>
                                 <div className="item-right" style={{width: 480}}>
@@ -301,7 +302,7 @@ class PermPopup extends React.Component {
                                 </div>
                             </div>
                             <div className="dialog-item">
-                                <div className="item-left" style={{width: 80, 'padding-left': 20}}>
+                                <div className="item-left" style={{width: 80, 'paddingLeft': 20}}>
                                     <span>{intl.get('POPUP.PERM')}</span>
                                 </div>
                                 <div
