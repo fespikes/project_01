@@ -281,19 +281,20 @@ class Number(Model):
                 'Error object type: [] when logging number'.format(obj_type))
         if config.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_client as client
-            if obj_type.lower() == cls.LOG_TYPES[3]:
-                db_names = client.search_model_perms(username, cls.OBJECT_TYPES[3])
-                hdfs_names = client.search_model_perms(username, cls.OBJECT_TYPES[4])
-                return len(db_names) + len(hdfs_names)
-            else:
-                names = client.search_model_perms(username, obj_type)
-                return len(names)
+            if not client.check_global_access(g.user.username):
+                if obj_type.lower() == cls.LOG_TYPES[3]:
+                    db_names = client.search_model_perms(username, cls.OBJECT_TYPES[3])
+                    hdfs_names = client.search_model_perms(username, cls.OBJECT_TYPES[4])
+                    return len(db_names) + len(hdfs_names)
+                else:
+                    names = client.search_model_perms(username, obj_type)
+                    return len(names)
+
+        if obj_type.lower() == cls.LOG_TYPES[3]:
+            return Database.count() + HDFSConnection.count()
         else:
-            if obj_type.lower() == cls.LOG_TYPES[3]:
-                return Database.count() + HDFSConnection.count()
-            else:
-                model = str_to_model.get(obj_type)
-                return model.count()
+            model = str_to_model.get(obj_type)
+            return model.count()
 
     @classmethod
     def log_number(cls, username, obj_type):
