@@ -113,7 +113,7 @@ class HDFSBrowser(BaseSupersetView):
         length = self.file_block_size
         while True:
             response = client.read(path, offset, length)
-            content = response.content
+            content = response.data
             len_con = len(content)
             if content:
                 data.extend(content)
@@ -144,7 +144,7 @@ class HDFSBrowser(BaseSupersetView):
                     while True:
                         file_content = f.read(self.file_block_size)
                         if file_content:
-                            client.append(file_path, {'files': (filename, file_content)})
+                            client.append(file_path, {'files': [filename, file_content]})
                         else:
                             break
                 except Exception as e:
