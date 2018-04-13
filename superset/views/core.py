@@ -23,8 +23,9 @@ from superset.models import (
 from .base import (
     BaseSupersetView, PermissionManagement, catch_exception, json_response
 )
-from .slice import SliceModelView
+from .hdfs import HDFSBrowser
 from .dashboard import DashboardModelView
+from .slice import SliceModelView
 
 
 config = app.config
@@ -817,19 +818,36 @@ class Superset(BaseSupersetView, PermissionManagement):
     @expose("/csv/<client_id>/")
     def csv(self, client_id):
         """Download the query results as csv."""
-        query = (
-            db.session.query(Query)
-            .filter_by(client_id=client_id)
-            .one()
-        )
+        query = db.session.query(Query).filter_by(client_id=client_id).one()
         sql = query.select_sql or query.sql
-        df = query.database.get_df(sql, query.schema)
-        # TODO(bkyryliuk): add compression=gzip for big files.
-        csv = df.to_csv(index=False, encoding='utf-8')
-        response = Response(csv, mimetype='text/csv')
-        response.headers['Content-Disposition'] = (
-            'attachment; filename={}.csv'.format(query.name))
-        return response
+        database = query.database
+        stored_in_hdfs = True if database.is_inceptor else False
+
+        if stored_in_hdfs:
+            engine = database.get_sqla_engine(schema=query.schema, use_pool=False)
+            connection = engine.connect()
+            table, hdfs_path = sql_lab.store_sql_results_to_hdfs(sql, connection)
+
+            client = HDFSBrowser.get_client()
+            data = HDFSBrowser.read_folder(client, hdfs_path)
+
+            sql = 'DROP TABLE IF EXISTS {}'.format(table)
+            logging.info(sql)
+            connection.execute(sql)
+            connection.close()
+
+            response = Response(bytes(data), content_type='application/octet-stream')
+            response.headers['Content-Disposition'] = \
+                "attachment; filename={}.csv".format(query.name)
+            return response
+        else:
+            df = query.database.get_df(sql, query.schema)
+            # TODO(bkyryliuk): add compression=gzip for big files.
+            csv = df.to_csv(index=False, encoding='utf-8')
+            response = Response(csv, mimetype='text/csv')
+            response.headers['Content-Disposition'] = \
+                'attachment; filename={}.csv'.format(query.name)
+            return response
 
     @catch_exception
     @expose("/queries/<last_updated_ms>/")

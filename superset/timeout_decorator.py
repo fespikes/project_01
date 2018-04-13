@@ -108,7 +108,7 @@ def connection_timeout(f):
     """
     A decorator to add timeout restriction for database and hdfs connection
     """
-    seconds = conf.get('CONNECTION_TIMEOUT', 30)
+    seconds = conf.get('CONNECTION_TIMEOUT', 60)
     exception_message = CONNECTION_TIMEOUT
     exception = TimeoutError
 
@@ -122,7 +122,7 @@ def sql_timeout(f):
     """
     A decorator to add timeout restriction for database and hdfs connection
     """
-    seconds = conf.get('SQLLAB_TIMEOUT', 30)
+    seconds = conf.get('SQLLAB_TIMEOUT', 60)
     exception_message = "The query exceeded the {} seconds timeout.".format(seconds)
     exception = TimeoutError
 

@@ -29,7 +29,7 @@ PACKAGE_FILE = os.path.join(PACKAGE_DIR, 'package.json')
 with open(PACKAGE_FILE) as package_file:
     VERSION_STRING = json.load(package_file)['version']
 
-ROW_LIMIT = 50000
+SLICE_ROW_LIMIT = 10000
 PILOT_WORKERS = 2
 PILOT_WEBSERVER_ADDRESS = '0.0.0.0'
 PILOT_WEBSERVER_PORT = 8086
@@ -252,7 +252,7 @@ DEFAULT_DB_ID = None
 CONNECTION_TIMEOUT = 60
 
 # Timeout duration for SQL Lab synchronous queries
-SQLLAB_TIMEOUT = 60
+SQLLAB_TIMEOUT = 120
 
 # SQLLAB_DEFAULT_DBID
 SQLLAB_DEFAULT_DBID = None

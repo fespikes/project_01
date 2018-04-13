@@ -278,7 +278,7 @@ class BaseViz(object):
         limit = int(form_data.get("limit", 0))
         timeseries_limit_metric = form_data.get("timeseries_limit_metric")
         row_limit = int(
-            form_data.get("row_limit", config.get("ROW_LIMIT")))
+            form_data.get("row_limit", config.get("SLICE_ROW_LIMIT")))
         since = (
             extra_filters.get('__from') or form_data.get("since", "1 year ago")
         )
@@ -1528,7 +1528,7 @@ class HistogramViz(BaseViz):
     def query_obj(self):
         """Returns the query object for this visualization"""
         d = super(HistogramViz, self).query_obj()
-        d['row_limit'] = self.form_data.get('row_limit', int(config.get('ROW_LIMIT')))
+        d['row_limit'] = self.form_data.get('row_limit', int(config.get('SLICE_ROW_LIMIT')))
         numeric_column = self.form_data.get('all_columns_x')
         if numeric_column is None:
             raise ParameterException("Must have one numeric column specified")
