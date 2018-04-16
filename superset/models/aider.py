@@ -281,7 +281,7 @@ class Number(Model):
                 'Error object type: [] when logging number'.format(obj_type))
         if config.get(GUARDIAN_AUTH):
             from superset.guardian import guardian_client as client
-            if not client.check_global_access(g.user.username):
+            if not client.check_global_access(username):
                 if obj_type.lower() == cls.LOG_TYPES[3]:
                     db_names = client.search_model_perms(username, cls.OBJECT_TYPES[3])
                     hdfs_names = client.search_model_perms(username, cls.OBJECT_TYPES[4])
