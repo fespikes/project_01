@@ -257,12 +257,13 @@ class Database(Model, AuditMixinNullable, ImportMixin):
 
     @classmethod
     def append_args(cls, connect_args):
-        def get_keytab(username, passwd, token):
+        def get_keytab(username, passwd):
             dir = config.get('GLOBAL_FOLDER', '/tmp/pilot')
             if not os.path.exists(dir):
                 os.makedirs(dir)
             path = os.path.join(dir, '{}.keytab'.format(username))
             if conf.get('CAS_AUTH'):
+                token = TokenCache.get(g.user.username)
                 download_keytab(username, path, token=token)
             elif conf.get(GUARDIAN_AUTH):
                 from superset.guardian import guardian_client as client
@@ -275,17 +276,15 @@ class Database(Model, AuditMixinNullable, ImportMixin):
         def get_ticket():
             raise NotImplementedError
 
-        token = TokenCache.get(g.user.username)
-
         if connect_args.get('mech', '').lower() == 'kerberos':
-            connect_args['keytab'] = get_keytab(g.user.username, g.user.password2, token)
+            connect_args['keytab'] = get_keytab(g.user.username, g.user.password2)
         elif connect_args.get('mech', '').lower() == 'token':
             keys = [k.lower() for k in connect_args.keys()]
             if 'guardiantoken' not in keys:
                 if not config['CAS_AUTH']:
                     raise PropertyException(DISABLE_CAS)
                 else:
-                    connect_args['guardianToken'] = token
+                    connect_args['guardianToken'] = TokenCache.get(g.user.username)
         elif connect_args.get('mech', '').lower() == 'ticket':
             connect_args['casTicket'] = get_ticket()
         return connect_args
