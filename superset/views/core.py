@@ -922,7 +922,7 @@ class Superset(BaseSupersetView, PermissionManagement):
     def sqllab(self):
         """SQL Editor"""
         d = {
-            'defaultDbId': config.get('SQLLAB_DEFAULT_DBID'),
+            'defaultDbId': None,
         }
         self.update_redirect()
         return self.render_template(
