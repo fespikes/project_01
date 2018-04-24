@@ -10,7 +10,7 @@ import java.util.List;
  * Created by jiajie on 17-5-11.
  */
 public enum PilotFeature implements Feature {
-    PILOT("Pilot", CompLicInfoV2.LicEditionV2.WAREHOUSE);
+    PILOT("Pilot", CompLicInfoV2.LicEditionV2.APACHE);
 
     private String name;
     private CompLicInfoV2.LicEditionV2 leastEdition;
