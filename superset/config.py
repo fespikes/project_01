@@ -31,7 +31,7 @@ with open(PACKAGE_FILE) as package_file:
 PILOT_WORKERS = 2
 PILOT_WEBSERVER_ADDRESS = '0.0.0.0'
 PILOT_WEBSERVER_PORT = 8086
-PILOT_WEBSERVER_TIMEOUT = 60
+PILOT_WEBSERVER_TIMEOUT = 300
 
 CUSTOM_SECURITY_MANAGER = None
 # ---------------------------------------------------------

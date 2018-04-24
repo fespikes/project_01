@@ -565,7 +565,7 @@ class FormFactory(object):
             }),
             'row_limit': (FreeFormSelectField, {
                 "label": _('Row limit'),
-                "default": config.get("SLICE_ROW_LIMIT"),
+                "default": 100,
                 "choices": self.choicify(
                     [10, 50, 100, 250, 500, 1000, 5000, 10000, 50000])
             }),
