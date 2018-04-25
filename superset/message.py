@@ -45,6 +45,7 @@ NONE_CONNECTION_TYPE = _("Connection type can't be none")
 NONE_SQLALCHEMY_URI = _("Sqlalchemy uri can't be none")
 NONE_CONNECTION_ARGS = _("Connection args can't be none")
 NONE_HTTPFS = _("Httpfs can't be none")
+CANNOT_EDIT_DEFAULT_CONN = _("Can't edit default connection")
 
 # views/dataset.py
 NONE_COLUMN_NAME = _("Column name can't be none")

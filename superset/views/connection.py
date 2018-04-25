@@ -12,8 +12,8 @@ from sqlalchemy.engine.url import make_url
 
 from superset import app, db, models
 from superset.timeout_decorator import connection_timeout
-from superset.models import Database, HDFSConnection, Connection, Slice, Log
-from superset.exception import ParameterException
+from superset.models import Database, HDFSConnection, Connection, Slice
+from superset.exception import ParameterException, PermissionException
 from superset.views.hdfs import HDFSBrowser, catch_hdfs_exception
 from superset.message import *
 from .base import (
@@ -55,6 +55,11 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     def pre_add(self, obj):
         self.check_column_values(obj)
         obj.set_sqlalchemy_uri(obj.sqlalchemy_uri)
+
+    def pre_update(self, old_obj, new_obj):
+        if old_obj.database_name == config.get('DEFAULT_INCEPTOR_CONN_NAME'):
+            raise PermissionException(CANNOT_EDIT_DEFAULT_CONN)
+        super(DatabaseView, self).pre_update(old_obj, new_obj)
 
     def check_column_values(self, obj):
         if not obj.database_name:
@@ -312,6 +317,11 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
         response['page_size'] = page_size
         response['data'] = data
         return response
+
+    def pre_update(self, old_obj, new_obj):
+        if old_obj.connection_name == config.get('DEFAULT_HDFS_CONN_NAME'):
+            raise PermissionException(CANNOT_EDIT_DEFAULT_CONN)
+        super(HDFSConnectionModelView, self).pre_update(old_obj, new_obj)
 
     def check_column_values(self, obj):
         if not obj.connection_name:

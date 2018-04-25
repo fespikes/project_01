@@ -1742,6 +1742,8 @@ msgstr "删除连接{conn}会使以下对象不可用：\n数据集：{dataset}�
 msgid "Error parameter ids: {ids}, queried {num} connection(s)"
 msgstr "根据参数ids：{ids}查询到{num}个连接"
 
+msgid "Can't edit default connection"
+msgstr "请不要修改默认的连接"
 
 
 #========================
