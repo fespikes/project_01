@@ -1578,14 +1578,14 @@ msgstr "没有'上线'或'下线'权限"
 msgid "Success to add"
 msgstr "添加成功"
 
-msgid "Sailed to add, may cased by unique restriction"
-msgstr "添加失败，可能是因为同名了"
+msgid "Failed to add, may cased by unique restriction"
+msgstr "添加失败，可能是存在同名的对象"
 
 msgid "Success to update"
 msgstr "修改成功"
 
 msgid "Failed to update, may cased by unique restriction"
-msgstr "修改失败，可能是因为同名了"
+msgstr "修改失败，可能是存在同名的对象"
 
 msgid "Success to delete"
 msgstr "删除成功"

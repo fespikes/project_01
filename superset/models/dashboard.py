@@ -60,7 +60,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     slices = relationship('Slice', secondary=dashboard_slices, backref='dashboards')
 
     __table_args__ = (
-        UniqueConstraint('name', 'path', name='dashboard_title_uc'),
+        UniqueConstraint('name', name='dashboard_title_uc'),
     )
 
     export_fields = ('name', 'position_json', 'description', 'online',
@@ -277,15 +277,6 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             'dashboards': copied_dashs,
             'datasets': copied_datasets,
         })
-
-    @classmethod
-    def ensure_unique(cls, dash):
-        existed_dash = db.session.query(cls) \
-            .filter(cls.name == dash.name,
-                    cls.type == cls.data_types[0]) \
-            .first()
-        if existed_dash:
-            raise PropertyException(DUPLICATE_NAME)
 
     @classmethod
     def count(cls):

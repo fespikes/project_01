@@ -37,8 +37,12 @@ def catch_exception(f):
         try:
             return f(self, *args, **kwargs)
         except sqla.exc.IntegrityError as ie:
+
             logging.exception(ie)
-            return json_response(status=500, message=str(ie), code=1)
+            if 'Duplicate entry' in str(ie):
+                return json_response(status=500, message=UPDATE_FAILED, code=1)
+            else:
+                return json_response(status=500, message=str(ie), code=1)
         except SupersetException as e:
             logging.exception(e)
             return json_response(status=500, message=e.message, code=e.code)
