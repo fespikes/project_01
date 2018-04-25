@@ -115,9 +115,9 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
                     line[col] = str(getattr(obj, col, None))
                 else:
                     line[col] = getattr(obj, col, None)
-            image_bytes = getattr(obj, 'image', None)
-            image_bytes = b'' if image_bytes is None else image_bytes
-            line['image'] = str(image_bytes, encoding='utf8')
+            # image_bytes = getattr(obj, 'image', None)
+            # image_bytes = b'' if image_bytes is None else image_bytes
+            # line['image'] = str(image_bytes, encoding='utf8')
             line['created_by_user'] = username
             line['favorite'] = True if fav_id else False
             data.append(line)
