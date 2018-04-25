@@ -232,13 +232,13 @@ def json_iso_dttm_ser(obj):
 
     >>> dttm = datetime(1970, 1, 1)
     >>> json.dumps({'dttm': dttm}, default=json_iso_dttm_ser)
-    '{"dttm": "1970-01-01T00:00:00"}'
+    '{"dttm": "1970-01-01 00:00:00"}'
     """
     val = base_json_conv(obj)
     if val is not None:
         return val
     if isinstance(obj, datetime):
-        obj = obj.isoformat()
+        obj = obj.strftime("%Y-%m-%d %H:%M:%S")
     elif isinstance(obj, date):
         obj = obj.isoformat()
     elif isinstance(obj, time):
