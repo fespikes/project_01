@@ -684,9 +684,12 @@ class Superset(BaseSupersetView, PermissionManagement):
         cols = []
         try:
             t = mydb.get_columns(table_name, schema)
-            indexes = mydb.get_indexes(table_name, schema)
-            primary_key = mydb.get_pk_constraint(table_name, schema)
-            foreign_keys = mydb.get_foreign_keys(table_name, schema)
+            if mydb.backend.lower() == 'inceptor':
+                indexes, primary_key, foreign_keys = [], [], []
+            else:
+                indexes = mydb.get_indexes(table_name, schema)
+                primary_key = mydb.get_pk_constraint(table_name, schema)
+                foreign_keys = mydb.get_foreign_keys(table_name, schema)
         except Exception as e:
             raise DatabaseException(str(e))
         keys = []
@@ -731,11 +734,11 @@ class Superset(BaseSupersetView, PermissionManagement):
     @catch_exception
     @expose("/extra_table_metadata/<database_id>/<table_name>/<schema>/")
     def extra_table_metadata(self, database_id, table_name, schema):
-        schema = None if schema in ('null', 'undefined') else schema
-        mydb = db.session.query(Database).filter_by(id=database_id).one()
-        payload = mydb.db_engine_spec.extra_table_metadata(
-            mydb, table_name, schema)
-        return json_response(data=payload)
+        # schema = None if schema in ('null', 'undefined') else schema
+        # mydb = db.session.query(Database).filter_by(id=database_id).one()
+        # payload = mydb.db_engine_spec.extra_table_metadata(
+        #     mydb, table_name, schema)
+        return json_response(data={})
 
     @expose("/theme/")
     def theme(self):
