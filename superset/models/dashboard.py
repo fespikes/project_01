@@ -20,6 +20,7 @@ from sqlalchemy.orm import relationship, subqueryload
 from sqlalchemy.orm.session import make_transient
 
 from superset import app, db
+from superset.message import DUPLICATE_NAME
 from superset.exception import ParameterException, PropertyException
 from .base import AuditMixinNullable, ImportMixin
 from .slice import Slice
@@ -276,6 +277,15 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
             'dashboards': copied_dashs,
             'datasets': copied_datasets,
         })
+
+    @classmethod
+    def ensure_unique(cls, dash):
+        existed_dash = db.session.query(cls) \
+            .filter(cls.name == dash.name,
+                    cls.type == cls.data_types[0]) \
+            .first()
+        if existed_dash:
+            raise PropertyException(DUPLICATE_NAME)
 
     @classmethod
     def count(cls):

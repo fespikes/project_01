@@ -65,6 +65,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
         if not obj.name:
             raise ParameterException(NONE_DASHBOARD_NAME)
         self.model.check_name(obj.name)
+        self.model.ensure_unique(obj)
 
     def get_object_list_data(self, **kwargs):
         """

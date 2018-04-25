@@ -21,6 +21,8 @@ UPDATE_FAILED = _("Failed to update, may cased by unique restriction")
 DELETE_SUCCESS = _("Success to delete")
 DELETE_FAILED = _("Failed to delete")
 
+DUPLICATE_NAME = _("Duplicate name")
+
 MISS_PASSWORD_FOR_GUARDIAN = _("Miss password to access Guardian")
 
 COLUMN_MISS_DATASET = _("Miss parameter [dataset_id] to query columns")
