@@ -209,12 +209,11 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         database_id = request.args.get('database_id')
         full_tb_name = request.args.get('full_tb_name')
         rows = request.args.get('rows', 100)
-        if int(dataset_id) > 0:
-            data = self.get_object(dataset_id).preview_data(limit=rows)
-        elif database_id and full_tb_name:
-            dataset = Dataset.temp_dataset(database_id, full_tb_name,
-                                           need_columns=False)
+        if database_id and full_tb_name:
+            dataset = Dataset.temp_dataset(database_id, full_tb_name, need_columns=False)
             data = dataset.preview_data(limit=rows)
+        elif int(dataset_id) > 0:
+            data = self.get_object(dataset_id).preview_data(limit=rows)
         else:
             return json_response(status=400,
                                  message=_("Error request parameters: [{params}]")
