@@ -526,12 +526,12 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
 
         if filter:
             filter_str = '%{}%'.format(filter.lower())
-            if class_name.lower() == 'dashbaord':
+            if class_name.lower() == Dashboard.model_type:
                 query = query.filter(
                     or_(Dashboard.name.ilike(filter_str),
                         User.username.ilike(filter_str))
                 )
-            elif class_name.lower() == 'slice':
+            elif class_name.lower() == Slice.model_type:
                 query = query.filter(
                     or_(Slice.slice_name.ilike(filter_str),
                         User.username.ilike(filter_str))
