@@ -710,182 +710,125 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     def set_temp_columns_and_metrics(self):
         """Get table's columns and metrics"""
-        table = self.get_sqla_table_object()
-
-        any_date_col = None
-        self.temp_columns = []
-        self.temp_metrics = []
-        for col in table.columns:
-            try:
-                datatype = "{}".format(col.type).upper()
-            except Exception as e:
-                datatype = "UNKNOWN"
-                logging.error("Unrecognized data type in {}.{}".format(table, col.name))
-                logging.exception(e)
-
-            new_col = TableColumn(temp_dataset=self,
-                                  column_name=col.name,
-                                  type=datatype,
-                                  expression=col.name)
-            new_col.count_distinct = new_col.is_int or new_col.is_bool \
-                                   or new_col.is_string or new_col.is_time
-            new_col.groupby = new_col.is_int or new_col.is_bool \
-                            or new_col.is_string or new_col.is_time
-            new_col.filterable = True
-            new_col.sum = new_col.is_num
-            new_col.avg = new_col.is_num
-            new_col.max = new_col.is_num
-            new_col.min = new_col.is_num
-            new_col.is_dttm = new_col.is_time
-            self.temp_columns.append(new_col)
-
-            if not any_date_col and new_col.is_time:
-                any_date_col = col.name
-
-            quoted = "{}".format(
-                column(new_col.column_name).compile(dialect=db.engine.dialect))
-            if new_col.sum:
-                new_metric = SqlMetric(
-                    temp_dataset=self,
-                    metric_name='sum__' + new_col.column_name,
-                    metric_type='sum',
-                    expression='SUM({})'.format(quoted))
-                self.temp_metrics.append(new_metric)
-            if new_col.avg:
-                new_metric = SqlMetric(
-                    temp_dataset=self,
-                    metric_name='avg__' + new_col.column_name,
-                    metric_type='avg',
-                    expression='AVG({})'.format(quoted))
-                self.temp_metrics.append(new_metric)
-            if new_col.max:
-                new_metric = SqlMetric(
-                    temp_dataset=self,
-                    metric_name='max__' + new_col.column_name,
-                    metric_type='max',
-                    expression='MAX({})'.format(quoted))
-                self.temp_metrics.append(new_metric)
-            if new_col.min:
-                new_metric = SqlMetric(
-                    temp_dataset=self,
-                    metric_name='min__' + new_col.column_name,
-                    metric_type='min',
-                    expression='MIN({})'.format(quoted))
-                self.temp_metrics.append(new_metric)
-            if new_col.count_distinct:
-                new_metric = SqlMetric(
-                    temp_dataset=self,
-                    metric_name='count_distinct__' + new_col.column_name,
-                    metric_type='count_distinct',
-                    expression='COUNT(DISTINCT {})'.format(quoted))
-                self.temp_metrics.append(new_metric)
-
-        new_metric = SqlMetric(
-            temp_dataset=self,
-            metric_name='count(*)',
-            metric_type='count',
-            expression='COUNT(*)')
-        self.temp_metrics.append(new_metric)
-        if not self.main_dttm_col:
-            self.main_dttm_col = any_date_col
+        self.temp_columns, self.temp_metrics = self.generate_columns_and_metrics()
+        for column in self.temp_columns:
+            column.temp_dataset = self
+        for metric in self.temp_columns:
+            metric.temp_dataset = self
+        if self.temp_columns and self.temp_columns[0].is_dttm:
+            self.main_dttm_col = self.temp_columns[0].name
 
     def fetch_metadata(self):
         """Fetches the metadata for the table and merges it in"""
-        table = self.get_sqla_table_object()
+        old_columns = self.ref_columns
+        old_metrics = self.ref_metrics
+        self.ref_columns = []
+        self.ref_metrics = []
+        new_columns, new_metrics = self.generate_columns_and_metrics()
+
+        new_column_names = []
+        for c in new_columns:
+            make_transient(c)
+            new_column_names.append(c.name)
+
+        new_metric_names = []
+        for m in new_metrics:
+            make_transient(m)
+            new_metric_names.append(m.name)
+
+        for c in old_columns:
+            if c.name not in new_column_names:
+                make_transient(c)
+                if c.is_dttm:
+                    new_columns.insert(0, c)
+                else:
+                    new_columns.append(c)
+        for m in old_metrics:
+            if m.name not in new_metric_names:
+                make_transient(m)
+                new_metrics.append(m)
+
+        if new_columns and new_columns[0].is_dttm:
+            self.main_dttm_col = new_columns[0].name
+        self.ref_columns.extend(new_columns)
+        self.ref_metrics.extend(new_metrics)
+        db.session.merge(self)
+        db.session.commit()
+
+    def generate_columns_and_metrics(self):
+        """
+        :return: TableColumns[] with date columns at front and SqlMetrics[]
+        """
+        sqla_table = self.get_sqla_table_object()
         db_dialect = self.database.get_dialect()
-        TC = TableColumn
-        M = SqlMetric
-        metrics = []
-        any_date_col = None
-        for col in table.columns:
+        columns, metrics = [], []
+        for col in sqla_table.columns:
             try:
                 datatype = col.type.compile(dialect=db_dialect).upper()
-                # For MSSQL the datatype may be
+                # For MSSQL the data type may be
                 # NVARCHAR(128) COLLATE "SQL_LATIN1_GENERAL_CP1_CI_AS"
                 datatype = datatype.split(' ')[0] if ') ' in datatype else datatype
             except Exception as e:
                 datatype = "UNKNOWN"
                 logging.error("Unrecognized data type in {}.{}".format(table, col.name))
                 logging.exception(e)
-            dbcol = (
-                db.session.query(TC)
-                    .filter(TC.dataset == self)
-                    .filter(TC.column_name == col.name)
-                    .first()
-            )
-            db.session.flush()
-            if not dbcol:
-                dbcol = TableColumn(column_name=col.name,
-                                    type=datatype,
-                                    expression=col.name)
-                dbcol.count_distinct = dbcol.is_int or dbcol.is_bool \
-                                       or dbcol.is_string or dbcol.is_time
-                dbcol.groupby = dbcol.is_int or dbcol.is_bool \
-                                or dbcol.is_string or dbcol.is_time
-                dbcol.filterable = True
-                dbcol.sum = dbcol.is_num
-                dbcol.avg = dbcol.is_num
-                dbcol.max = dbcol.is_num
-                dbcol.min = dbcol.is_num
-                dbcol.is_dttm = dbcol.is_time
 
-            db.session.merge(self)
-            self.ref_columns.append(dbcol)
-
-            if not any_date_col and dbcol.is_time:
-                any_date_col = col.name
+            dbcol = TableColumn(column_name=col.name,
+                                type=datatype,
+                                expression=col.name)
+            dbcol.count_distinct = dbcol.is_int or dbcol.is_bool or dbcol.is_string \
+                                   or dbcol.is_time
+            dbcol.groupby = dbcol.is_int or dbcol.is_bool or dbcol.is_string \
+                            or dbcol.is_time
+            dbcol.filterable = True
+            dbcol.sum = dbcol.is_num
+            dbcol.avg = dbcol.is_num
+            dbcol.max = dbcol.is_num
+            dbcol.min = dbcol.is_num
+            dbcol.is_dttm = dbcol.is_time
+            if dbcol.is_dttm:
+                columns.insert(0, dbcol)
+            else:
+                columns.append(dbcol)
 
             quoted = "{}".format(column(dbcol.column_name).compile(dialect=db_dialect))
             if dbcol.sum:
-                metrics.append(M(
+                metrics.append(SqlMetric(
                     metric_name='sum__' + dbcol.column_name,
                     metric_type='sum',
                     expression="SUM({})".format(quoted)
                 ))
             if dbcol.avg:
-                metrics.append(M(
+                metrics.append(SqlMetric(
                     metric_name='avg__' + dbcol.column_name,
                     metric_type='avg',
                     expression="AVG({})".format(quoted)
                 ))
             if dbcol.max:
-                metrics.append(M(
+                metrics.append(SqlMetric(
                     metric_name='max__' + dbcol.column_name,
                     metric_type='max',
                     expression="MAX({})".format(quoted)
                 ))
             if dbcol.min:
-                metrics.append(M(
+                metrics.append(SqlMetric(
                     metric_name='min__' + dbcol.column_name,
                     metric_type='min',
                     expression="MIN({})".format(quoted)
                 ))
             if dbcol.count_distinct:
-                metrics.append(M(
+                metrics.append(SqlMetric(
                     metric_name='count_distinct__' + dbcol.column_name,
                     metric_type='count_distinct',
                     expression="COUNT(DISTINCT {})".format(quoted)
                 ))
 
-        metrics.append(M(
+        metrics.append(SqlMetric(
             metric_name='count(*)',
             metric_type='count',
             expression="COUNT(*)"
         ))
-        for metric in metrics:
-            m = (
-                db.session.query(M)
-                    .filter(M.metric_name == metric.metric_name)
-                    .filter(M.dataset_id == self.id)
-                    .first()
-            )
-            metric.dataset_id = self.id
-            if not m:
-                db.session.add(metric)
-        if not self.main_dttm_col:
-            self.main_dttm_col = any_date_col
-        db.session.merge(self)
-        db.session.commit()
+        return columns, metrics
 
     @classmethod
     def check_online(cls, dataset, raise_if_false=True):

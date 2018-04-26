@@ -49,7 +49,9 @@ class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
         if not dataset_id:
             self.handle_exception(404, Exception, COLUMN_MISS_DATASET)
         rows = db.session.query(self.model) \
-            .filter_by(dataset_id=dataset_id).all()
+            .filter_by(dataset_id=dataset_id)\
+            .order_by(self.model.column_name)\
+            .all()
         data = []
         for row in rows:
             line = {}
@@ -64,14 +66,23 @@ class TableColumnInlineView(SupersetModelView, PermissionManagement):  # noqa
     def pre_add(self, column):
         self.check_column_values(column)
 
+    def post_add(self, metric):
+        pass
+
     def pre_update(self, old_column, new_column):
         if not new_column.dataset:
             raise PropertyException('Column [{}] misses dataset'.format(new_column))
         self.check_edit_perm(new_column.dataset.guardian_datasource())
         self.pre_add(new_column)
 
+    def post_update(self, old_column, new_column):
+        pass
+
     def pre_delete(self, column):
         self.check_delete_perm(column.dataset.guardian_datasource())
+
+    def post_delete(self, column):
+        pass
 
     def check_column_values(self, obj):
         if not obj.column_name:
@@ -115,14 +126,23 @@ class SqlMetricInlineView(SupersetModelView, PermissionManagement):  # noqa
     def pre_add(self, metric):
         self.check_column_values(metric)
 
+    def post_add(self, metric):
+        pass
+
     def pre_update(self, old_metric, new_metric):
         if not new_metric.dataset:
             raise PropertyException('Metric [{}] misses dataset'.format(new_metric))
         self.check_edit_perm(new_metric.dataset.guardian_datasource())
         self.pre_add(new_metric)
 
+    def post_update(self, old_metric, new_metric):
+        pass
+
     def pre_delete(self, metric):
         self.check_delete_perm(metric.dataset.guardian_datasource())
+
+    def post_delete(self, metric):
+        pass
 
     def check_column_values(self, obj):
         if not obj.metric_name:
@@ -572,8 +592,6 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     def pre_update(self, old_table, new_table):
         self.check_edit_perm(old_table.guardian_datasource())
         self.pre_add(new_table)
-        TableColumnInlineView.datamodel.delete_all(new_table.ref_columns)
-        SqlMetricInlineView.datamodel.delete_all(new_table.ref_metrics)
 
     def post_update(self, old_table, new_table):
         new_table.fetch_metadata()
