@@ -108,19 +108,7 @@ class HDFSBrowser(BaseSupersetView):
         client = self.get_client()
         path = request.args.get('path')
         filename = quote(os.path.basename(path), encoding="utf-8")
-        data = bytearray()
-        offset = 0
-        length = self.file_block_size
-        while True:
-            response = client.read(path, offset, length)
-            content = response.content
-            len_con = len(content)
-            if content:
-                data.extend(content)
-                offset += len_con
-            if not content or len_con < length:
-                break
-
+        data = self.read_file(client, path)
         response = Response(bytes(data), content_type='application/octet-stream')
         response.headers['Content-Disposition'] = "attachment; filename=" + filename
         return response
@@ -144,7 +132,7 @@ class HDFSBrowser(BaseSupersetView):
                     while True:
                         file_content = f.read(self.file_block_size)
                         if file_content:
-                            client.append(file_path, {'files': (filename, file_content)})
+                            client.append(file_path, {'files': [filename, file_content]})
                         else:
                             break
                 except Exception as e:
@@ -306,3 +294,41 @@ class HDFSBrowser(BaseSupersetView):
         if not client:
             client = cls.login_filerobot(hdfs_conn_id)
         return client
+
+    @classmethod
+    def read_file(cls, client, path):
+        data = bytearray()
+        offset = 0
+        length = cls.file_block_size
+        while True:
+            response = client.read(path, offset, length)
+            content = response.data
+            len_con = len(content)
+            if content:
+                data.extend(content)
+                offset += len_con
+            if not content or len_con < length:
+                break
+        return data
+
+    @classmethod
+    def read_folder(cls, client, path, file_num=1000):
+        """Read the files' content of ~'path' into bytearray.
+        """
+        response = client.list(path, page_size=file_num)
+        files_json = json.loads(response.text)
+        files = files_json.get('files')
+
+        need_line_feed = False
+        all_data = bytearray()
+        for file in files:
+            if file.get('type') == 'file':
+                file_path = file.get('path')
+                data = cls.read_file(client, file_path)
+                if need_line_feed:
+                    all_data.extend(b'\t\n')
+                all_data.extend(data)
+                need_line_feed = True
+            else:
+                pass
+        return all_data

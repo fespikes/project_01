@@ -21,6 +21,8 @@ UPDATE_FAILED = _("Failed to update, may cased by unique restriction")
 DELETE_SUCCESS = _("Success to delete")
 DELETE_FAILED = _("Failed to delete")
 
+DUPLICATE_NAME = _("Duplicate name")
+
 MISS_PASSWORD_FOR_GUARDIAN = _("Miss password to access Guardian")
 
 COLUMN_MISS_DATASET = _("Miss parameter [dataset_id] to query columns")
@@ -45,6 +47,7 @@ NONE_CONNECTION_TYPE = _("Connection type can't be none")
 NONE_SQLALCHEMY_URI = _("Sqlalchemy uri can't be none")
 NONE_CONNECTION_ARGS = _("Connection args can't be none")
 NONE_HTTPFS = _("Httpfs can't be none")
+CANNOT_EDIT_DEFAULT_CONN = _("Can't edit default connection")
 
 # views/dataset.py
 NONE_COLUMN_NAME = _("Column name can't be none")

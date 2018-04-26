@@ -23,8 +23,9 @@ from superset.models import (
 from .base import (
     BaseSupersetView, PermissionManagement, catch_exception, json_response
 )
-from .slice import SliceModelView
+from .hdfs import HDFSBrowser
 from .dashboard import DashboardModelView
+from .slice import SliceModelView
 
 
 config = app.config
@@ -171,12 +172,12 @@ class Superset(BaseSupersetView, PermissionManagement):
         datasets = sorted(datasets, key=lambda ds: ds.full_name)
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            readable_dataset_names = client.search_model_perms(
-                g.user.username, Dataset.guardian_type)
-            readable_datasets = [d for d in datasets if d.name in readable_dataset_names]
-            datasets = readable_datasets
+            if not client.check_global_access(g.user.username):
+                readable_names = client.search_model_perms(
+                    g.user.username, Dataset.guardian_type)
+                readable_datasets = [d for d in datasets if d.name in readable_names]
+                datasets = readable_datasets
 
-        viz_obj = None
         try:
             viz_obj = self.get_viz(
                 datasource_type=datasource_type,
@@ -683,9 +684,12 @@ class Superset(BaseSupersetView, PermissionManagement):
         cols = []
         try:
             t = mydb.get_columns(table_name, schema)
-            indexes = mydb.get_indexes(table_name, schema)
-            primary_key = mydb.get_pk_constraint(table_name, schema)
-            foreign_keys = mydb.get_foreign_keys(table_name, schema)
+            if mydb.backend.lower() == 'inceptor':
+                indexes, primary_key, foreign_keys = [], [], []
+            else:
+                indexes = mydb.get_indexes(table_name, schema)
+                primary_key = mydb.get_pk_constraint(table_name, schema)
+                foreign_keys = mydb.get_foreign_keys(table_name, schema)
         except Exception as e:
             raise DatabaseException(str(e))
         keys = []
@@ -730,11 +734,11 @@ class Superset(BaseSupersetView, PermissionManagement):
     @catch_exception
     @expose("/extra_table_metadata/<database_id>/<table_name>/<schema>/")
     def extra_table_metadata(self, database_id, table_name, schema):
-        schema = None if schema in ('null', 'undefined') else schema
-        mydb = db.session.query(Database).filter_by(id=database_id).one()
-        payload = mydb.db_engine_spec.extra_table_metadata(
-            mydb, table_name, schema)
-        return json_response(data=payload)
+        # schema = None if schema in ('null', 'undefined') else schema
+        # mydb = db.session.query(Database).filter_by(id=database_id).one()
+        # payload = mydb.db_engine_spec.extra_table_metadata(
+        #     mydb, table_name, schema)
+        return json_response(data={})
 
     @expose("/theme/")
     def theme(self):
@@ -817,19 +821,36 @@ class Superset(BaseSupersetView, PermissionManagement):
     @expose("/csv/<client_id>/")
     def csv(self, client_id):
         """Download the query results as csv."""
-        query = (
-            db.session.query(Query)
-            .filter_by(client_id=client_id)
-            .one()
-        )
+        query = db.session.query(Query).filter_by(client_id=client_id).one()
         sql = query.select_sql or query.sql
-        df = query.database.get_df(sql, query.schema)
-        # TODO(bkyryliuk): add compression=gzip for big files.
-        csv = df.to_csv(index=False, encoding='utf-8')
-        response = Response(csv, mimetype='text/csv')
-        response.headers['Content-Disposition'] = (
-            'attachment; filename={}.csv'.format(query.name))
-        return response
+        database = query.database
+        stored_in_hdfs = True if database.is_inceptor else False
+
+        if stored_in_hdfs:
+            engine = database.get_sqla_engine(schema=query.schema, use_pool=False)
+            connection = engine.connect()
+            table, hdfs_path = sql_lab.store_sql_results_to_hdfs(sql, connection)
+
+            client = HDFSBrowser.get_client()
+            data = HDFSBrowser.read_folder(client, hdfs_path)
+
+            sql = 'DROP TABLE IF EXISTS {}'.format(table)
+            logging.info(sql)
+            connection.execute(sql)
+            connection.close()
+
+            response = Response(bytes(data), content_type='application/octet-stream')
+            response.headers['Content-Disposition'] = \
+                "attachment; filename={}.csv".format(query.name)
+            return response
+        else:
+            df = query.database.get_df(sql, query.schema)
+            # TODO(bkyryliuk): add compression=gzip for big files.
+            csv = df.to_csv(index=False, encoding='utf-8')
+            response = Response(csv, mimetype='text/csv')
+            response.headers['Content-Disposition'] = \
+                'attachment; filename={}.csv'.format(query.name)
+            return response
 
     @catch_exception
     @expose("/queries/<last_updated_ms>/")
@@ -904,7 +925,7 @@ class Superset(BaseSupersetView, PermissionManagement):
     def sqllab(self):
         """SQL Editor"""
         d = {
-            'defaultDbId': config.get('SQLLAB_DEFAULT_DBID'),
+            'defaultDbId': None,
         }
         self.update_redirect()
         return self.render_template(

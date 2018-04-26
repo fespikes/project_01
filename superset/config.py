@@ -13,13 +13,12 @@ import imp
 import json
 import os
 
-from dateutil import tz
-from flask_appbuilder.security.manager import AUTH_DB, AUTH_REMOTE_USER
+from flask_appbuilder.security.manager import AUTH_DB
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_DIR = os.path.join(os.path.expanduser('~'), 'pilot')
-if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR)
+# if not os.path.exists(DATA_DIR):
+#     os.makedirs(DATA_DIR)
 
 # ---------------------------------------------------------
 # Pilot specific config
@@ -29,11 +28,10 @@ PACKAGE_FILE = os.path.join(PACKAGE_DIR, 'package.json')
 with open(PACKAGE_FILE) as package_file:
     VERSION_STRING = json.load(package_file)['version']
 
-ROW_LIMIT = 50000
 PILOT_WORKERS = 2
 PILOT_WEBSERVER_ADDRESS = '0.0.0.0'
 PILOT_WEBSERVER_PORT = 8086
-PILOT_WEBSERVER_TIMEOUT = 60
+PILOT_WEBSERVER_TIMEOUT = 300
 
 CUSTOM_SECURITY_MANAGER = None
 # ---------------------------------------------------------
@@ -73,30 +71,35 @@ PERMANENT_SESSION_LIFETIME = 15 * 60
 METADATA_CONN_NAME = 'main'
 
 # The SQLAlchemy connection string.
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(DATA_DIR, 'pilot.db')
+SQLALCHEMY_DATABASE_URI = 'mysql://username:password@localhost:3306/db?charset=utf8'
 
-# If use mysql, the database should be existed and change its charset to 'utf8':
-# 'create/alter database db character set utf8'
-# and 'charset=utf8' should be in uri
-#SQLALCHEMY_DATABASE_URI = 'mysql://username:password@localhost:3306/db?charset=utf8'
-
-# inceptor
+# Default Inceptor
 DEFAULT_INCEPTOR_CONN_NAME = 'default_inceptor'
 DEFAULT_INCEPTOR_SERVER = 'node01:10000'  # should be <node01>[,node02]:<port>
 
-# hdfs
+# Default Hdfs
 DEFAULT_HDFS_CONN_NAME = 'default_hdfs'
 DEFAULT_HTTPFS = '172.0.0.1'
 
+# Filerobot microservice
+FILE_ROBOT_SERVER = 'localhost:5005'
 
-# ------------------------------
-# HDFS File Browser
-# ------------------------------
-MAX_UPLOAD_SIZE = 16 * 1024 * 1024
 
+# Timeout for database or hdfs connection
+CONNECTION_TIMEOUT = 60
+
+# Timeout duration for SQL Lab synchronous queries
+SQLLAB_TIMEOUT = 120
+
+# Maximum number of rows returned in the SQL editor
+SQL_MAX_ROW = 1000
 
 # The limit of queries fetched for query search
 QUERY_SEARCH_LIMIT = 1000
+
+# The limit of rows of slice
+SLICE_ROW_LIMIT = 10000
+
 
 # Flask-WTF flag for CSRF
 CSRF_ENABLED = True
@@ -152,7 +155,9 @@ IMG_UPLOAD_FOLDER = BASE_DIR + '/app/static/uploads/'
 IMG_UPLOAD_URL = '/static/uploads/'
 # Setup image size default is (300, 200, True)
 # IMG_SIZE = (300, 200, True)
-MAX_CONTENT_LENGTH = 1024 * 1024 * 1024
+
+# The max content length of HTTP request Flask received
+MAX_CONTENT_LENGTH = 4 * 1024 * 1024 * 1024
 
 # The length of file block for uploading or downloading
 FILE_BLOCK_LENGTH = 64 * 1024 * 1024
@@ -175,14 +180,8 @@ CORS_OPTIONS = {}
 # For example: Blacklist pivot table and treemap:
 #  VIZ_TYPE_BLACKLIST = ['pivot_table', 'treemap']
 # ---------------------------------------------------
-
 VIZ_TYPE_BLACKLIST = []
 
-# ---------------------------------------------------
-# List of data sources not to be refreshed in druid cluster
-# ---------------------------------------------------
-
-DRUID_DATA_SOURCE_BLACKLIST = []
 
 # --------------------------------------------------
 # Modules, datasources and middleware to be registered
@@ -215,8 +214,6 @@ BACKUP_COUNT = 30
 # Set this API key to enable Mapbox visualizations
 MAPBOX_API_KEY = "This is the key for Mapbox visualizations"
 
-# Maximum number of rows returned in the SQL editor
-SQL_MAX_ROW = 1000
 
 # If defined, shows this text in an alert-warning box in the navbar
 # one example use case may be "STAGING" to make it clear that this is
@@ -245,17 +242,6 @@ SQL_CELERY_RESULTS_DB_FILE_PATH = os.path.join(DATA_DIR, 'celery_results.sqlite'
 # HTTP_HEADERS = {'X-Frame-Options': 'SAMEORIGIN'}
 HTTP_HEADERS = {}
 
-# The db id here results in selecting this one as a default in SQL Lab
-DEFAULT_DB_ID = None
-
-# Timeout for database or hdfs connection
-CONNECTION_TIMEOUT = 60
-
-# Timeout duration for SQL Lab synchronous queries
-SQLLAB_TIMEOUT = 60
-
-# SQLLAB_DEFAULT_DBID
-SQLLAB_DEFAULT_DBID = None
 
 # An instantiated derivative of werkzeug.contrib.cache.BaseCache
 # if enabled, it can be used to store the results of long-running queries
@@ -271,10 +257,6 @@ JINJA_CONTEXT_ADDONS = {}
 # Roles that are controlled by the API / Superset and should not be changes
 # by humans.
 ROBOT_PERMISSION_ROLES = ['Public', 'Gamma', 'Alpha', 'Admin', 'sql_lab']
-
-
-# The config for file robot microservice
-FILE_ROBOT_SERVER = 'localhost:5000'
 
 
 CONFIG_PATH_ENV_VAR = 'PILOT_CONFIG_PATH'

@@ -20,6 +20,7 @@ from sqlalchemy.orm import relationship, subqueryload
 from sqlalchemy.orm.session import make_transient
 
 from superset import app, db
+from superset.message import DUPLICATE_NAME
 from superset.exception import ParameterException, PropertyException
 from .base import AuditMixinNullable, ImportMixin
 from .slice import Slice
@@ -59,7 +60,7 @@ class Dashboard(Model, AuditMixinNullable, ImportMixin):
     slices = relationship('Slice', secondary=dashboard_slices, backref='dashboards')
 
     __table_args__ = (
-        UniqueConstraint('name', 'path', name='dashboard_title_uc'),
+        UniqueConstraint('name', name='dashboard_title_uc'),
     )
 
     export_fields = ('name', 'position_json', 'description', 'online',

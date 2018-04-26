@@ -28,7 +28,7 @@ def upgrade():
     op.add_column('dashboards', sa.Column('path', sa.String(length=128)))
     op.add_column('logs', sa.Column('username', sa.String(length=128)))
 
-    op.create_unique_constraint('dashboard_name_uc', 'dashboards', ['name', 'path'])
+    op.create_unique_constraint('dashboard_name_uc', 'dashboards', ['name'])
     op.create_unique_constraint('slice_name_uc', 'slices', ['slice_name'])
     op.create_unique_constraint('dataset_name_uc', 'dataset', ['dataset_name'])
     op.create_unique_constraint('database_name_uc', 'dbs', ['database_name'])

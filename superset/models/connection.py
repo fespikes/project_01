@@ -18,6 +18,7 @@ from sqlalchemy.engine.url import make_url
 from sqlalchemy.sql import text
 from sqlalchemy.sql.expression import TextAsFrom
 from sqlalchemy.orm.session import make_transient
+from sqlalchemy.pool import NullPool
 
 from superset import db, app, db_engine_specs, conf
 from superset.cache import TokenCache
@@ -86,6 +87,13 @@ class Database(Model, AuditMixinNullable, ImportMixin):
         return url.get_backend_name()
 
     @property
+    def is_inceptor(self):
+        if self.backend and self.backend.lower() == 'inceptor':
+            return True
+        else:
+            return False
+
+    @property
     def perm(self):
         return "[{obj.database_name}].(id:{obj.id})".format(obj=self)
 
@@ -98,11 +106,14 @@ class Database(Model, AuditMixinNullable, ImportMixin):
         conn.password = password_mask if conn.password else None
         self.sqlalchemy_uri = str(conn)  # hides the password
 
-    def get_sqla_engine(self, schema=None):
+    def get_sqla_engine(self, schema=None, use_pool=True):
         url = make_url(self.sqlalchemy_uri_decrypted)
         connect_args = self.append_args(self.get_args().get('connect_args', {}))
         url = self.db_engine_spec.adjust_database_uri(url, schema)
-        return create_engine(url, connect_args=connect_args, pool_size=10)
+        if use_pool:
+            return create_engine(url, connect_args=connect_args, pool_size=10)
+        else:
+            return create_engine(url, connect_args=connect_args, poolclass=NullPool)
 
     def get_reserved_words(self):
         return self.get_sqla_engine().dialect.preparer.reserved_words
@@ -252,7 +263,8 @@ class Database(Model, AuditMixinNullable, ImportMixin):
                 os.makedirs(dir)
             path = os.path.join(dir, '{}.keytab'.format(username))
             if conf.get('CAS_AUTH'):
-                download_keytab(username, path)
+                token = TokenCache.get(g.user.username)
+                download_keytab(username, path, token=token)
             elif conf.get(GUARDIAN_AUTH):
                 from superset.guardian import guardian_client as client
                 client.login(username, passwd)

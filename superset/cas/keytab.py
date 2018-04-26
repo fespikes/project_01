@@ -1,15 +1,16 @@
 import logging
 import requests
 
-from .proxy_ticket import get_proxy_ticket
-from .access_token import guardian_server
+from .access_token import guardian_server, get_token
 
 
-def download_keytab(username, keytab_file):
+def download_keytab(username, keytab_file, token=None):
     target_service = guardian_server()
-    pt = get_proxy_ticket(target_service)
-    url = '{}/api/v1/users/{}/keytab?ticket={}'.format(target_service, username, pt)
-    logging.info(url)
+    if not token:
+        token = get_token(username)
+    url = '{}/api/v1/users/{}/keytab?guardian_access_token={}'\
+        .format(target_service, username, token)
+    logging.info('Downloading keytab file to {}'.format(keytab_file))
     try:
         resp = requests.get(url, verify=False)
         with open(keytab_file, 'wb+') as f:

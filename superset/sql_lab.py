@@ -192,3 +192,38 @@ def execute_sql(database_id, sql, schema=None):
         'sql': sql
     }
     return payload
+
+
+def store_sql_results_to_hdfs(sql, connection):
+    """
+    For inceptor, store the sql results to hdfs folders
+    :param sql: origin sql
+    :param engine: inceptor engine
+    :return: temp table name and hdfs path storing results
+    """
+    ts = datetime.now().isoformat()
+    ts = ts.replace('-', '').replace(':', '').split('.')[0]
+    tmp_table = 'pilot_sqllab_{ts}'.format(ts=ts)
+    path = '/tmp/pilot/{}/'.format(tmp_table)
+
+    drop_sql = 'DROP TABLE IF EXISTS {}'.format(tmp_table)
+    _execute(connection, drop_sql)
+
+    sql = "CREATE TABLE {table} STORED AS CSVFILE LOCATION '{path}' as {sql}"\
+        .format(table=tmp_table, path=path, sql=sql)
+    _execute(connection, sql)
+
+    sql = "SET ngmr.partition.automerge=TRUE"
+    _execute(connection, sql)
+    sql = "SET ngmr.partition.mergesize.mb=180"
+    _execute(connection, sql)
+
+    sql = "INSERT OVERWRITE TABLE {table} SELECT * FROM {table}".format(table=tmp_table)
+    _execute(connection, sql)
+    return tmp_table, path
+
+
+@sql_timeout
+def _execute(connection, sql):
+    logging.info(sql)
+    connection.execute(sql)

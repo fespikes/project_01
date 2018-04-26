@@ -37,8 +37,12 @@ def catch_exception(f):
         try:
             return f(self, *args, **kwargs)
         except sqla.exc.IntegrityError as ie:
+
             logging.exception(ie)
-            return json_response(status=500, message=str(ie), code=1)
+            if 'Duplicate entry' in str(ie):
+                return json_response(status=500, message=UPDATE_FAILED, code=1)
+            else:
+                return json_response(status=500, message=str(ie), code=1)
         except SupersetException as e:
             logging.exception(e)
             return json_response(status=500, message=e.message, code=e.code)
@@ -526,12 +530,12 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
 
         if filter:
             filter_str = '%{}%'.format(filter.lower())
-            if class_name.lower() == 'dashbaord':
+            if class_name.lower() == Dashboard.model_type:
                 query = query.filter(
                     or_(Dashboard.name.ilike(filter_str),
                         User.username.ilike(filter_str))
                 )
-            elif class_name.lower() == 'slice':
+            elif class_name.lower() == Slice.model_type:
                 query = query.filter(
                     or_(Slice.slice_name.ilike(filter_str),
                         User.username.ilike(filter_str))

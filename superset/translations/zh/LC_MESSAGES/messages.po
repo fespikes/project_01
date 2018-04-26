@@ -1578,14 +1578,14 @@ msgstr "没有'上线'或'下线'权限"
 msgid "Success to add"
 msgstr "添加成功"
 
-msgid "Sailed to add, may cased by unique restriction"
-msgstr "添加失败，可能是因为同名了"
+msgid "Failed to add, may cased by unique restriction"
+msgstr "添加失败，可能是存在同名的对象"
 
 msgid "Success to update"
 msgstr "修改成功"
 
 msgid "Failed to update, may cased by unique restriction"
-msgstr "修改失败，可能是因为同名了"
+msgstr "修改失败，可能是存在同名的对象"
 
 msgid "Success to delete"
 msgstr "删除成功"
@@ -1655,6 +1655,9 @@ msgstr "工作表名字不能为空"
 
 msgid "Dashboard name can't be none"
 msgstr "仪表板名字不能为空"
+
+msgid "Duplicate name"
+msgstr "存在同名的对象"
 
 msgid "Connecting timeout"
 msgstr "连接超时"
@@ -1742,6 +1745,8 @@ msgstr "删除连接{conn}会使以下对象不可用：\n数据集：{dataset}�
 msgid "Error parameter ids: {ids}, queried {num} connection(s)"
 msgstr "根据参数ids：{ids}查询到{num}个连接"
 
+msgid "Can't edit default connection"
+msgstr "请不要修改默认的连接"
 
 
 #========================
