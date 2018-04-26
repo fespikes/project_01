@@ -165,14 +165,6 @@ class Operations extends React.Component {
                     />
                     <i className="icon icon-search" onClick={this.clickSearchDashboard}/>
                 </div>
-                <div className="view-btn">
-                    <Link to="/table" onClick={this.switchTableMode}>
-                        <i className={viewMode === 'table' ? 'icon icon-table-mode active' : 'icon icon-table-mode'}/>
-                    </Link>
-                    <Link to="/graph" onClick={this.switchGraphMode}>
-                        <i className={viewMode === 'graph' ? 'icon icon-graph-mode active' : 'icon icon-graph-mode'}/>
-                    </Link>
-                </div>
             </div>
         );
     }
