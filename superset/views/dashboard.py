@@ -264,18 +264,6 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
                 'connection': list(set(connections))}
 
     @catch_exception
-    @expose("/upload_image/<id>/", methods=['POST'])
-    def upload_image(self, id):
-        dash = self.get_object(id)
-        data = request.form.get('image')
-        dash.image = bytes(data, encoding='utf8')
-        dash.need_capture = False
-        db.session.merge(dash)
-        db.session.commit()
-        Log.log_update(dash, 'dashboard', g.user.id)
-        return json_response(message="Update dashboard [{}] success".format(dash))
-
-    @catch_exception
     @expose("/before_import/", methods=['POST'])
     def before_import(self):
         """Before import, check same names of objects in file and database.

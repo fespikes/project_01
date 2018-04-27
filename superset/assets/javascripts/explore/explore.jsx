@@ -555,10 +555,10 @@ function initTitle() {
 
 function initDatasourceState() {
     const url = window.location.href;
-    const datasourceId = getUrlParam('datasource_id', url);
     const databaseId = getUrlParam('database_id', url);
-    const full_tb_name = getUrlParam('full_tb_name', url);
-    if(datasourceId === '0' || datasourceId === '') {
+    const fullTbName = getUrlParam('full_tb_name', url);
+
+    if(typeof databaseId === 'string' && databaseId.length >0 && typeof fullTbName === 'string' && fullTbName.length > 0) {
         document.getElementById('existed_dataset_radio').checked = false;
         document.getElementById('original_table_radio').checked = true;
         document.getElementById('existed_data_source').style.display = 'none';
@@ -571,7 +571,7 @@ function initDatasourceState() {
         document.getElementById('existed_data_source').style.display='block';
         document.getElementById('original_table').style.display='none';
     }
-    renderOriginalTable(databaseId, full_tb_name);
+    renderOriginalTable(databaseId, fullTbName);
 }
 
 let exploreController = {

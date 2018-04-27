@@ -114,7 +114,6 @@ export function dashboardContainer(dashboard) {
         filters: {},
         init() {
             this.sliceObjects = [];
-            this.renderCount = 0;
             dashboard.slices.forEach((data) => {
                 if (data.error) {
                     const html = '<div class="alert alert-danger">' + data.error + '</div>';
@@ -162,46 +161,6 @@ export function dashboardContainer(dashboard) {
             } else {
                 refresh.removeClass('danger').tooltip('fixTitle');
             }
-            this.renderCount++;
-            //not screenShot when exit slice render failed case
-            if (this.renderCount === this.sliceObjects.length && this.sliceObjects.length > 0) {
-                this.screenShot();
-            }
-        },
-        screenShot() {
-            setTimeout(() => {
-                try {
-                    const container = document.getElementById('grid-container');
-                    const scale = 1.29;
-                    domtoimage.toPng(container, {
-                        width: container.clientWidth,
-                        height: container.clientWidth / scale,
-                        imagePlaceholder: 'data:,icon', //avoid throw error in console
-                    })
-                    .then(function (image) {
-                        const url = `/dashboard/upload_image/${dashboard.id}/`;
-                        const formData = new FormData();
-                        if (image) {
-                            formData.append('image', image);
-                            $.ajax({
-                                type: "POST",
-                                url: url,
-                                data: formData,
-                                success: (data) => {
-                                    console.log('capture successfully', data);
-                                },
-                                error(error) {
-                                    //the operation should be invisible for user
-                                },
-                                processData: false,
-                                contentType: false,
-                            });
-                        }
-                    });
-                } catch (error) {
-                    console.log(error);
-                }
-            }, 500);
         },
         effectiveExtraFilters(sliceId) {
             // Summarized filter, not defined by sliceId
