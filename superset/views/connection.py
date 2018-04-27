@@ -262,9 +262,8 @@ class HDFSConnectionModelView(SupersetModelView, PermissionManagement):
     datamodel = SQLAInterface(models.HDFSConnection)
     route_base = '/hdfsconnection'
     list_columns = ['id', 'connection_name']
-    show_columns = ['id', 'connection_name', 'description', 'httpfs',
-                    'database_id', 'database']
-    add_columns = ['connection_name', 'description', 'httpfs', 'database_id']
+    show_columns = ['id', 'connection_name', 'description', 'httpfs']
+    add_columns = ['connection_name', 'description', 'httpfs']
     edit_columns = add_columns
 
     str_columns = ['database', ]
