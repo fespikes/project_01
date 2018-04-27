@@ -25,8 +25,6 @@ $(document).ready(() => {
             <Router>
                 <div>
                     <Route exact path="/" component={TableContainer} />
-                    <Route path="/table" component={TableContainer}/>
-                    <Route path="/graph" component={GraphContainer}/>
                 </div>
             </Router>
         </Provider>,
