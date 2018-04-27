@@ -172,7 +172,7 @@ class DashboardEdit extends React.Component {
                                     </Tooltip>
                                 </div>
                             </div>
-                            <div className="dialog-item">
+                            {/*<div className="dialog-item">
                                 <div className="item-left">
                                     <span>{intl.get('DASHBOARD.DATASET')}：</span>
                                 </div>
@@ -183,7 +183,7 @@ class DashboardEdit extends React.Component {
                                         disabled
                                     />
                                 </div>
-                            </div>
+                            </div>*/}
                         </div>
                         <div className="error" id="edit-dashboard-error-tip"></div>
                         <div className="popup-footer">

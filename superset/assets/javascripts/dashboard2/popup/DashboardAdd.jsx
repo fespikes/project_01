@@ -145,14 +145,6 @@ class DashboardAdd extends React.Component {
                                     </Tooltip>
                                 </div>
                             </div>
-                            <div className="dialog-item">
-                                <div className="item-left">
-                                    <span>{intl.get('DASHBOARD.DATASET')}：</span>
-                                </div>
-                                <div className="item-right">
-                                    <input className="tp-input dialog-input" disabled />
-                                </div>
-                            </div>
                         </div>
                         <div className="error" id="add-dashboard-error-tip"></div>
                         <div className="popup-footer">
