@@ -26,7 +26,7 @@ class ConnectionEdit extends React.Component {
         this.confirm = this.confirm.bind(this);
         this.testConnection = this.testConnection.bind(this);
         this.closeAlert = this.closeAlert.bind(this);
-        this.onSelectChange = this.onSelectChange.bind(this);
+        // this.onSelectChange = this.onSelectChange.bind(this);
         this.argsOnBlur = this.argsOnBlur.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
     };
@@ -176,7 +176,7 @@ class ConnectionEdit extends React.Component {
         }
     }
 
-    onSelectChange(databaseId) {
+/*    onSelectChange(databaseId) {
         const database = {
             ...this.state.database,
             database_id: databaseId
@@ -184,7 +184,7 @@ class ConnectionEdit extends React.Component {
         this.setState({
             database: database
         });
-    }
+    }*/
 
     doUpdateConnection() {
         const {dispatch} = this.props;
@@ -451,9 +451,9 @@ class ConnectionEdit extends React.Component {
                                         <div id='test-connect-tip-HDFS'></div>
                                     </div>
                                 </div>
-                                <div className="dialog-item">
+                                {/*<div className="dialog-item">
                                     <div className="item-left">
-                                        <span style={{whiteSpace:'nowrap'}}>{intl.get('DATABASE.INCEPTOR_CONNECTION')}：</span>{/*默认inceptor连接*/}
+                                        <span style={{whiteSpace:'nowrap'}}>{intl.get('DATABASE.INCEPTOR_CONNECTION')}：</span>
                                     </div>
                                     <div className="item-right">
                                         <Select
@@ -469,7 +469,7 @@ class ConnectionEdit extends React.Component {
                                             <i className="icon icon-info after-icon" />
                                         </Tooltip>
                                     </div>
-                                </div>
+                                </div>*/}
                                 <div className="dialog-item">
                                     <div className="sub-item">
                                         <div className="item-left">

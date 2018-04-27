@@ -27,7 +27,7 @@ class ConnectionAdd extends React.Component {
                 ),
                 connection_name: '',
                 httpfs: '',
-                database_id:''
+                // database_id:''
             },
             connectionNames: [],
             connected: false,
@@ -37,7 +37,7 @@ class ConnectionAdd extends React.Component {
 
         this.submit = this.submit.bind(this);
         this.closeAlert = this.closeAlert.bind(this);
-        this.setSelectConnection = this.setSelectConnection.bind(this);
+        // this.setSelectConnection = this.setSelectConnection.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.argsOnBlur = this.argsOnBlur.bind(this);
     }
@@ -93,7 +93,7 @@ class ConnectionAdd extends React.Component {
         ReactDOM.unmountComponentAtNode(document.getElementById(id));
     }
 
-    setSelectConnection(databaseId) {
+/*    setSelectConnection(databaseId) {
         const database = {
             ...this.state.database,
             database_id: databaseId
@@ -102,7 +102,7 @@ class ConnectionAdd extends React.Component {
             database: database
         });
         this.formValidate(database);
-    }
+    }*/
 
     handleChange(e) {
         const target = e.currentTarget;
@@ -175,7 +175,7 @@ class ConnectionAdd extends React.Component {
                 connection_name: this.state.database.connection_name,
                 description: this.state.database.description,
                 httpfs: this.state.database.httpfs,
-                database_id: this.state.database.database_id
+                // database_id: this.state.database.database_id
             }, callback))
         }
     }
@@ -374,7 +374,7 @@ class ConnectionAdd extends React.Component {
                                         </Tooltip>
                                     </div>
                                 </div>
-                                <div className="dialog-item">
+                                {/*<div className="dialog-item">
                                     <div className="item-left">
                                         <span>{intl.get('DATABASE.DEFAULT')}inceptor{intl.get('DATABASE.CONNECTION')}：</span>
                                     </div>
@@ -391,7 +391,7 @@ class ConnectionAdd extends React.Component {
                                             <i className="icon icon-infor after-icon"/>
                                         </Tooltip>
                                     </div>
-                                </div>
+                                </div>*/}
                             </div>
                             <div className="dialog-item">
                                 <div className="item-left">
