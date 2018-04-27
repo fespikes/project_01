@@ -116,6 +116,7 @@ class HDFSBrowser(BaseSupersetView):
     @catch_hdfs_exception
     @expose('/upload/', methods=['POST'])
     def upload(self):
+        """Upload files by form"""
         client = self.get_client()
         dest_path = request.args.get('dest_path')
         redirect_url = '/hdfs/?current_path={}'.format(dest_path)
@@ -140,6 +141,18 @@ class HDFSBrowser(BaseSupersetView):
                     client.remove(file_path, forever=True)
                     redirect_url = '{}&error_message={}'.format(redirect_url, str(e))
         return redirect(redirect_url)
+
+    @catch_hdfs_exception
+    @expose('/upload_in_body/', methods=['POST'])
+    def upload_in_body(self):
+        """Upload file by request body"""
+        client = self.get_client()
+        f = request.data
+        dest_path = request.args.get('dest_path')
+        file_name = request.args.get('file_name')
+        response = client.upload(dest_path, [('files', (file_name, f))])
+        return json_response(message=eval(response.text).get("message"),
+                             status=response.status_code)
 
     @catch_hdfs_exception
     @expose('/remove/', methods=['POST'])
