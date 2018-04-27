@@ -29,7 +29,7 @@ class DashboardModelView(SupersetModelView, PermissionManagement):
     route_base = '/dashboard'
     list_columns = ['id', 'name', 'url', 'description', 'changed_on']
     edit_columns = ['name', 'description']
-    show_columns = ['id', 'name', 'description', 'datasets']
+    show_columns = ['id', 'name', 'description']
     add_columns = edit_columns
     list_template = "superset/partials/dashboard/dashboard.html"
 
