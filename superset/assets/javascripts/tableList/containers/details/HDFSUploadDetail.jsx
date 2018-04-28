@@ -58,13 +58,13 @@ class HDFSUploadDetail extends Component {
     }
 
     onHDFSConnectChange(value, node) {
-        let objHDFS = {...this.state.dsHDFS};
-        objHDFS.hdfsConnectId = value;
-        objHDFS.hdfsConnectName = node.props.children;
-        this.doFetchHDFSFileData('/', value);
-        this.setState({
+        // let objHDFS = {...this.state.dsHDFS};
+        // objHDFS.hdfsConnectId = value;
+        // objHDFS.hdfsConnectName = node.props.children;
+        this.doFetchHDFSFileData('/');
+        /*this.setState({
             dsHDFS: objHDFS
-        });
+        });*/
     }
 
     onInceptorConnectChange(value, node) {
@@ -98,8 +98,8 @@ class HDFSUploadDetail extends Component {
     onLoadData(node) {
         const self = this;
         const hdfsPath = node.props.value;
-        const hdfsConnectId = this.state.dsHDFS.hdfsConnectId;
-        return this.props.fetchHDFSFileBrowser(hdfsPath, hdfsConnectId, callback);
+        // const hdfsConnectId = this.state.dsHDFS.hdfsConnectId;
+        return this.props.fetchHDFSFileBrowser(hdfsPath, '', callback);
         function callback(success, data) {
             if(success) {
                 let treeData = module.appendTreeChildren(
@@ -228,6 +228,7 @@ class HDFSUploadDetail extends Component {
                 this.doDatasetEdit();
             }
         }
+        this.onHDFSConnectChange();
         utils.loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
     }
 
@@ -357,15 +358,16 @@ class HDFSUploadDetail extends Component {
         const dsHDFS = this.state.dsHDFS;
         const {HDFSConnected, datasetType} = this.props;
         const Option = Select.Option;
-        let hdfsOptions = [], inceptorOptions = [];
+        // let hdfsOptions = [];
+        let inceptorOptions = [];
 
-        if(this.state.dsHDFS.hdfsConnections) {
+        /*if(this.state.dsHDFS.hdfsConnections) {
             hdfsOptions = this.state.dsHDFS.hdfsConnections.map(
                 hdfs => {
                     return <Option key={hdfs.id}>{hdfs.connection_name}</Option>
                 }
             );
-        }
+        }*/
         if(this.state.dsHDFS.inceptorConnections) {
             inceptorOptions = this.state.dsHDFS.inceptorConnections.map(
                 inceptor => {
@@ -447,7 +449,7 @@ class HDFSUploadDetail extends Component {
                         <textarea className="tp-textarea" cols="30" rows="10"/>
                     </div>
                 </div>
-                <div className={HDFSConnected===true?'':'none'}>
+                {/*<div className={HDFSConnected===true?'':'none'}>
                     <div className="data-detail-item">
                         <div>
                             <i>*</i>
@@ -466,7 +468,7 @@ class HDFSUploadDetail extends Component {
                             value={dsHDFS.hdfsConnectName}
                         />
                     </div>
-                </div>
+                </div>*/}
                 <div className="data-detail-item">
                     <div>
                         <i>*</i>

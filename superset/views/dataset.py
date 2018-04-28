@@ -614,7 +614,7 @@ class HDFSTableModelView(SupersetModelView):
     model = HDFSTable
     datamodel = SQLAInterface(HDFSTable)
     add_columns = ['hdfs_path', 'separator', 'file_type', 'quote',
-                   'next_as_header', 'charset', 'hdfs_connection_id']
+                   'next_as_header', 'charset']
     show_columns = add_columns
     edit_columns = add_columns
 
@@ -654,7 +654,8 @@ class HDFSTableModelView(SupersetModelView):
     def list_hdfs_files(self):
         path = request.args.get('path', '/')
         page_size = request.args.get('page_size', 1000)
-        hdfs_connection_id = request.args.get('hdfs_connection_id')
+        #hdfs_connection_id = request.args.get('hdfs_connection_id', None)
+        hdfs_connection_id = None
         client = HDFSBrowser.get_client(hdfs_connection_id)
         response = client.list(path, page_size=page_size)
         return json_response(data=json.loads(response.text))
@@ -669,6 +670,7 @@ class HDFSTableModelView(SupersetModelView):
         path = args.pop('path')
         size = args.pop('size', 4096)
         hdfs_conn_id = args.pop('hdfs_connection_id', None)
+        hdfs_conn_id = None
         dataset_id = args.pop('dataset_id', None)
 
         columns = []
@@ -716,7 +718,8 @@ class HDFSTableModelView(SupersetModelView):
         f = request.data
         dest_path = request.args.get('dest_path')
         file_name = request.args.get('file_name')
-        hdfs_connection_id = request.args.get('hdfs_connection_id')
+        #hdfs_connection_id = request.args.get('hdfs_connection_id', None)
+        hdfs_connection_id = None
         client = HDFSBrowser.get_client(hdfs_connection_id)
         response = client.upload(dest_path, {'files': (file_name, f)})
         return json_response(message=response.text)
