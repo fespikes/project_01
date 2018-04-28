@@ -202,17 +202,6 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         return json_response(data=d.all_table_names(schema=schema))
 
     @catch_exception
-    @expose('/edit/hdfstable/<pk>/', methods=['GET', 'POST'])
-    def edit_hdfs_table(self, pk):
-        json_data = self.get_request_data()
-        obj = self.get_object(pk)
-        self.pre_update(obj, obj)
-        self.update_hdfs_table(obj, json_data)
-        self.datamodel.edit(obj)
-        self.post_update(obj, obj)
-        return json_response(message=UPDATE_SUCCESS)
-
-    @catch_exception
     @expose('/add_dataset_types/', methods=['GET'])
     def add_dataset_types(self):
         return json_response(data=Dataset.addable_types + HDFSTable.addable_types)
@@ -580,18 +569,12 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         super(DatasetModelView, self).post_add(table)
         table.fetch_metadata()
 
-    def update_hdfs_table(self, table, json_date):
-        hdfs_table = table.hdfs_table
-        hdfs_table.separator = json_date.get('separator')
-        db.session.commit()
-        hdfs_table.create_out_table(table.table_name, json_date.get('column_desc'))
-        db.session.delete(table.ref_columns)
-        db.session.delete(table.ref_metrics)
-        table.fetch_metadata()
-
     def pre_update(self, old_table, new_table):
         self.check_edit_perm(old_table.guardian_datasource())
         self.pre_add(new_table)
+        if new_table.hdfs_table:
+            TableColumnInlineView.datamodel.delete_all(new_table.ref_columns)
+            SqlMetricInlineView.datamodel.delete_all(new_table.ref_metrics)
 
     def post_update(self, old_table, new_table):
         new_table.fetch_metadata()
@@ -658,15 +641,13 @@ class HDFSTableModelView(SupersetModelView):
             new_obj.hdfs_connection = hdfs_conn
         return old_obj, new_obj
 
-
     @catch_hdfs_exception
     @expose('/files/', methods=['GET'])
     def list_hdfs_files(self):
         path = request.args.get('path', '/')
         page_size = request.args.get('page_size', 1000)
-        #hdfs_connection_id = request.args.get('hdfs_connection_id', None)
-        hdfs_connection_id = None
-        client = HDFSBrowser.get_client(hdfs_connection_id)
+        # hdfs_connection_id = request.args.get('hdfs_connection_id', None)
+        client = HDFSBrowser.get_client()
         response = client.list(path, page_size=page_size)
         return json_response(data=json.loads(response.text))
 
@@ -679,7 +660,7 @@ class HDFSTableModelView(SupersetModelView):
         args = request.args.to_dict()
         path = args.pop('path')
         size = args.pop('size', 4096)
-        hdfs_conn_id = args.pop('hdfs_connection_id', None)
+        # hdfs_conn_id = args.pop('hdfs_connection_id', None)
         hdfs_conn_id = None
         dataset_id = args.pop('dataset_id', None)
 
@@ -728,9 +709,8 @@ class HDFSTableModelView(SupersetModelView):
         f = request.data
         dest_path = request.args.get('dest_path')
         file_name = request.args.get('file_name')
-        #hdfs_connection_id = request.args.get('hdfs_connection_id', None)
-        hdfs_connection_id = None
-        client = HDFSBrowser.get_client(hdfs_connection_id)
+        # hdfs_connection_id = request.args.get('hdfs_connection_id', None)
+        client = HDFSBrowser.get_client()
         response = client.upload(dest_path, {'files': (file_name, f)})
         return json_response(message=response.text)
 

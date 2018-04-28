@@ -720,38 +720,21 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
 
     def fetch_metadata(self):
         """Fetches the metadata for the table and merges it in"""
-        old_columns = self.ref_columns
-        old_metrics = self.ref_metrics
-        self.ref_columns = []
-        self.ref_metrics = []
+        old_column_names = [c.name for c in self.ref_columns]
+        old_metric_names = [m.name for m in self.ref_metrics]
+
         new_columns, new_metrics = self.generate_columns_and_metrics()
-
-        new_column_names = []
         for c in new_columns:
-            make_transient(c)
-            new_column_names.append(c.name)
-
-        new_metric_names = []
+            if c.name not in old_column_names:
+                c.dataset_id = self.id
+                self.ref_columns.append(c)
         for m in new_metrics:
-            make_transient(m)
-            new_metric_names.append(m.name)
+            if m.name not in old_metric_names:
+                m.dataset_id = self.id
+                self.ref_metrics.append(m)
 
-        for c in old_columns:
-            if c.name not in new_column_names:
-                make_transient(c)
-                if c.is_dttm:
-                    new_columns.insert(0, c)
-                else:
-                    new_columns.append(c)
-        for m in old_metrics:
-            if m.name not in new_metric_names:
-                make_transient(m)
-                new_metrics.append(m)
-
-        if new_columns and new_columns[0].is_dttm:
+        if not self.main_dttm_col and new_columns and new_columns[0].is_dttm:
             self.main_dttm_col = new_columns[0].name
-        self.ref_columns.extend(new_columns)
-        self.ref_metrics.extend(new_metrics)
         db.session.merge(self)
         db.session.commit()
 
