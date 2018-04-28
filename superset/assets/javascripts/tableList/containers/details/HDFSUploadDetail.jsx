@@ -314,7 +314,7 @@ class HDFSUploadDetail extends Component {
             if(success) {
                 fetchDBDetail(data.database_id, dbCallback);
                 fetchHDFSDetail(data.hdfs_connection_id, hdfsCallback);
-                self.doFetchHDFSFileData('/', data.hdfs_connection_id);
+                // self.doFetchHDFSFileData('/', '');
 
                 function dbCallback(success, dbData) {
                     if(success) {

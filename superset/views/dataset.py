@@ -615,7 +615,7 @@ class HDFSTableModelView(SupersetModelView):
     datamodel = SQLAInterface(HDFSTable)
     add_columns = ['hdfs_path', 'separator', 'file_type', 'quote',
                    'next_as_header', 'charset']
-    show_columns = add_columns
+    show_columns = add_columns + ['hdfs_connection_id']
     edit_columns = add_columns
 
     def _add(self, hdfs_table):
@@ -646,8 +646,18 @@ class HDFSTableModelView(SupersetModelView):
     def check_column_values(self, obj):
         if not obj.hdfs_path:
             raise ParameterException(NONE_HDFS_PATH)
-        if not obj.hdfs_connection_id:
-            raise ParameterException(NONE_HDFS_CONNECTION)
+        # if not obj.hdfs_connection_id:
+        #     raise ParameterException(NONE_HDFS_CONNECTION)
+
+    def populate_object(self, obj_id, user_id, data):
+        old_obj, new_obj = super(HDFSTableModelView, self).populate_object(
+            obj_id, user_id, data)
+        if not new_obj.hdfs_connection_id:
+            hdfs_conn = self.get_default_hdfs_conn()
+            new_obj.hdfs_connection_id = hdfs_conn.id
+            new_obj.hdfs_connection = hdfs_conn
+        return old_obj, new_obj
+
 
     @catch_hdfs_exception
     @expose('/files/', methods=['GET'])

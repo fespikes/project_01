@@ -416,8 +416,7 @@ export function isActive(type, location) {
 
 export function constructHDFSPreviewUrl(dataset, id) {
     let url = window.location.origin + '/hdfstable/preview/';
-    url += '?hdfs_connection_id=' + parseInt(dataset.hdfsConnectId) +
-           '&path=' + dataset.hdfsPath + '&separator=' + dataset.separator +
+    url += '?path=' + dataset.hdfsPath + '&separator=' + dataset.separator +
            '&quote=' + dataset.quote + '&next_as_header=' + dataset.next_as_header +
            '&charset=' + dataset.charset + '&dataset_id=' + id;
     return url;

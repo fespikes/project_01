@@ -634,7 +634,7 @@ export function fetchDBDetail(id, callback) {
 
 export function fetchHDFSDetail(id, callback) {
     return () => {
-        const url = window.location.origin + '/hdfsconnection/show/' + id;
+        const url = window.location.origin + '/hdfsconnection/show/'+id;
         return fetch(url, {
             credentials: 'include',
             method: 'GET'
