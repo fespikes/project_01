@@ -19,7 +19,7 @@ render(
     <Provider store={store}>
         <HashRouter>
             <div>
-                <Route path="/" component={Main} />
+                <Route exact path="/" component={Main} />
                 <Route path="/filebrowser" component={FileBrowser} />
             </div>
         </HashRouter>

@@ -203,7 +203,7 @@ export function constructHDFSDataset(dataset, title) {
     hdfsDataset.hdfs_path = dataset.hdfsPath;
     hdfsDataset.separator = dataset.separator;
     hdfsDataset.columns = constructHDFSColumns(title);
-    hdfsDataset.hdfs_connection_id = dataset.hdfsConnectId;
+    // hdfsDataset.hdfs_connection_id = dataset.hdfsConnectId;
     hdfsDataset.file_type = dataset.file_type;
     hdfsDataset.quote = dataset.quote;
     hdfsDataset.next_as_header = dataset.next_as_header;
