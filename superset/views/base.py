@@ -250,6 +250,7 @@ class BaseSupersetView(BaseView):
         super(BaseSupersetView, self).__init__()
         self.guardian_auth = conf.get(GUARDIAN_AUTH, False)
         self.main_db_name = config.get('METADATA_CONN_NAME')
+        self.default_hdfs_conn_name = config.get('DEFAULT_HDFS_CONN_NAME')
 
     def user_id(self):
         id = g.user.get_id()
@@ -272,6 +273,10 @@ class BaseSupersetView(BaseView):
     def get_main_db(self):
         return db.session.query(Database) \
             .filter_by(database_name=self.main_db_name).first()
+
+    def get_default_hdfs_conn(self):
+        return db.session.query(HDFSConnection) \
+            .filter_by(connection_name=self.default_hdfs_conn_name).one()
 
 
 class PageMixin(object):
