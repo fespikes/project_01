@@ -13,7 +13,7 @@ import random
 import logging
 
 import pandas as pd
-from sqlalchemy import String, DateTime, Date, Float, BigInteger
+from sqlalchemy import String, DateTime, Date, Float, BigInteger, Integer
 
 from superset import app, db, models, utils
 from superset.security import get_or_create_main_db
@@ -51,6 +51,7 @@ def get_slice_json(defaults, **kwargs):
 def load_energy(user_id=None):
     """Loads an energy related dataset to use with sankey and graphs"""
     tbl_name = 'energy_usage'
+    logging.info("Loading data into table [energy_usage]")
     with gzip.open(os.path.join(DATA_FOLDER, 'energy.json.gz')) as f:
         pdf = pd.read_json(f)
     pdf.to_sql(
@@ -65,7 +66,7 @@ def load_energy(user_id=None):
         },
         index=False)
 
-    logging.info("Creating table [energy_usage] reference")
+    logging.info("Creating dataset [energy_usage]")
     tbl = db.session.query(TBL).filter_by(table_name=tbl_name).first()
     if not tbl:
         tbl = TBL(dataset_name="能源消耗",
@@ -183,6 +184,7 @@ def load_energy(user_id=None):
 def load_world_bank_health_n_pop(user_id=None):
     """Loads the world bank health dataset, slices and a dashboard"""
     tbl_name = 'wb_health_population'
+    logging.info("Loading data into table [wb_health_population]")
     with gzip.open(os.path.join(DATA_FOLDER, 'countries.json.gz')) as f:
         pdf = pd.read_json(f)
     pdf.columns = [col.replace('.', '_') for col in pdf.columns]
@@ -200,7 +202,7 @@ def load_world_bank_health_n_pop(user_id=None):
         },
         index=False)
 
-    logging.info("Creating table [wb_health_population] reference")
+    logging.info("Creating dataset [wb_health_population]")
     tbl = db.session.query(TBL).filter_by(table_name=tbl_name).first()
     if not tbl:
         tbl = TBL(dataset_name='世界各国人口',
@@ -404,7 +406,7 @@ def load_world_bank_health_n_pop(user_id=None):
     for slc in slices:
         merge_slice(slc, user_id=user_id)
 
-    logging.info("Creating a World's Health Bank dashboard")
+    logging.info("Creating dashboard [世界人口]")
     dash_name = "世界人口"
     slug = "world_health"
     dash = db.session.query(Dash).filter_by(slug=slug).first()
@@ -601,6 +603,7 @@ def load_css_templates(user_id=None):
 
 def load_birth_names(user_id=None):
     """Loading birth name dataset from a zip file in the repo"""
+    logging.info("Loading data into table [birth_names]")
     with gzip.open(os.path.join(DATA_FOLDER, 'birth_names.json.gz')) as f:
         pdf = pd.read_json(f)
     pdf.ds = pd.to_datetime(pdf.ds, unit='ms')
@@ -616,11 +619,8 @@ def load_birth_names(user_id=None):
             'name': String(255),
         },
         index=False)
-    l = []
-    logging.info("Done loading table!")
-    logging.info("-" * 80)
 
-    logging.info("Creating table [birth_names] reference")
+    logging.info("Creating dataset [birth_names]")
     obj = db.session.query(TBL).filter_by(table_name='birth_names').first()
     if not obj:
         obj = TBL(dataset_name='新生婴儿统计',
@@ -655,7 +655,7 @@ def load_birth_names(user_id=None):
         "markup_type": "markdown",
     }
 
-    logging.info("Creating some slices")
+    logging.info("Creating slices")
     slices = [
         Slice(
             slice_name="女孩姓名数量",
@@ -796,7 +796,7 @@ def load_birth_names(user_id=None):
     for slc in slices:
         merge_slice(slc, user_id=user_id)
 
-    logging.info("Creating a dashboard")
+    logging.info("Creating dashboard [新生婴儿]")
     dash = db.session.query(Dash).filter_by(name="Births").first()
 
     if not dash:
@@ -883,6 +883,7 @@ def load_birth_names(user_id=None):
 
 def load_unicode_test_data(user_id=None):
     """Loading unicode test dataset from a csv file in the repo"""
+    logging.info("Loading data into table [unicode_test]")
     df = pd.read_csv(os.path.join(DATA_FOLDER, 'unicode_utf8_unixnl_test.csv'),
                      encoding="utf-8")
     # generate date/numeric data
@@ -901,10 +902,8 @@ def load_unicode_test_data(user_id=None):
             'value': Float(),
         },
         index=False)
-    logging.info("Done loading table!")
-    logging.info("-" * 80)
 
-    logging.info("Creating table [unicode_test] reference")
+    logging.info("Creating dataset [unicode_test]")
     obj = db.session.query(TBL).filter_by(table_name='unicode_test').first()
     if not obj:
         obj = TBL(dataset_name='unicode_test',
@@ -951,7 +950,7 @@ def load_unicode_test_data(user_id=None):
     )
     merge_slice(slc, user_id=user_id)
 
-    logging.info("Creating a dashboard")
+    logging.info("Creating dashboard [Unicode Test]")
     dash = (
         db.session.query(Dash)
         .filter_by(name="Unicode Test")
@@ -979,6 +978,7 @@ def load_unicode_test_data(user_id=None):
 
 def load_random_time_series_data(user_id=None):
     """Loading random time series data from a zip file in the repo"""
+    logging.info("Loading data into table [random_time_series]")
     with gzip.open(os.path.join(DATA_FOLDER, 'random_time_series.json.gz')) as f:
         pdf = pd.read_json(f)
     pdf.ds = pd.to_datetime(pdf.ds, unit='s')
@@ -991,10 +991,8 @@ def load_random_time_series_data(user_id=None):
             'ds': DateTime,
         },
         index=False)
-    logging.info("Done loading table!")
-    logging.info("-" * 80)
 
-    logging.info("Creating table [random_time_series] reference")
+    logging.info("Creating dataset [random_time_series]")
     obj = db.session.query(TBL).filter_by(table_name='random_time_series').first()
     if not obj:
         obj = TBL(dataset_name='随机时间序列',
@@ -1039,6 +1037,7 @@ def load_random_time_series_data(user_id=None):
 
 def load_long_lat_data(user_id=None):
     """Loading lat/long data from a csv file in the repo"""
+    logging.info("Loading data into table [long_lat]")
     with gzip.open(os.path.join(DATA_FOLDER, 'san_francisco.csv.gz')) as f:
         pdf = pd.read_csv(f, encoding="utf-8")
     pdf['date'] = datetime.datetime.now().date()
@@ -1065,10 +1064,8 @@ def load_long_lat_data(user_id=None):
             'radius_miles': Float(),
         },
         index=False)
-    logging.info("Done loading table!")
-    logging.info("-" * 80)
 
-    logging.info("Creating table reference")
+    logging.info("Creating dataset [long_lat]")
     obj = db.session.query(TBL).filter_by(table_name='long_lat').first()
     if not obj:
         obj = TBL(dataset_name='位置坐标',
@@ -1116,6 +1113,7 @@ def load_long_lat_data(user_id=None):
 def load_multiformat_time_series_data(user_id=None):
 
     """Loading time series data from a zip file in the repo"""
+    logging.info("Loading data into table [multiformat_time_series]")
     with gzip.open(os.path.join(DATA_FOLDER, 'multiformat_time_series.json.gz')) as f:
         pdf = pd.read_json(f)
     pdf.ds = pd.to_datetime(pdf.ds, unit='s')
@@ -1136,9 +1134,8 @@ def load_multiformat_time_series_data(user_id=None):
             "string3": String(100),
         },
         index=False)
-    logging.info("Done loading table!")
-    logging.info("-" * 80)
-    logging.info("Creating table [multiformat_time_series] reference")
+
+    logging.info("Creating dataset [multiformat_time_series]")
     obj = db.session.query(TBL).filter_by(table_name='multiformat_time_series').first()
     if not obj:
         obj = TBL(dataset_name='多种格式的时间序列',
@@ -1199,10 +1196,65 @@ def load_multiformat_time_series_data(user_id=None):
     misc_dash_slices.append(slc.slice_name)
 
 
+def load_chinese_population(user_id=None):
+    """Load China map with population data"""
+    logging.info("Loading data into table [chinese_population]")
+    df = pd.read_csv(os.path.join(DATA_FOLDER, 'chinese_population.csv'),
+                     encoding="utf-8")
+    df.to_sql(
+        'chinese_population',
+        db.engine,
+        if_exists='replace',
+        chunksize=500,
+        dtype={
+            'id': Integer(),
+            'province': String(32),
+            'population': Integer(),
+            'area': Float(),
+        },
+        index=False)
+
+    logging.info("Creating dataset [chinese_population]")
+    tbl_name = 'chinese_population'
+    tbl = db.session.query(TBL).filter_by(table_name=tbl_name).first()
+    if not tbl:
+        tbl = TBL(dataset_name='中国人口与面积', table_name=tbl_name)
+    tbl.online = True
+    tbl.database = get_or_create_main_db()
+    tbl.created_by_fk = user_id
+    db.session.merge(tbl)
+    db.session.commit()
+    Log.log_add(tbl, 'dataset', user_id)
+    tbl.fetch_metadata()
+
+    logging.info("Creating a slice")
+    params_dict = {
+        "color_value_format": ".3s",
+        "datasource_id": tbl.id,
+        "datasource_name": "\u4e2d\u56fd\u4eba\u53e3",
+        "entity": "province",
+        "rename_color_metric": "\u9762\u79ef(\u4e07\u5e73\u65b9\u5343\u7c73)",
+        "secondary_metric": "sum__area",
+        "show_color_values": "y",
+        "show_colors": "y",
+        "viz_type": "chinese_map"}
+
+    slc = Slice(
+        slice_name="中国各区面积",
+        viz_type='chinese_map',
+        datasource_type='table',
+        datasource_id=tbl.id,
+        params=get_slice_json(params_dict),
+        online=True,
+        created_by_fk=user_id
+    )
+    merge_slice(slc, user_id=user_id)
+    misc_dash_slices.append(slc.slice_name)
+
+
 def load_misc_dashboard(user_id=None):
     """Loading a dasbhoard featuring misc charts"""
-
-    logging.info("Creating the dashboard")
+    logging.info("Creating dashboard [其他类型工作表]")
     db.session.expunge_all()
     DASH_SLUG = "misc_charts"
     dash = db.session.query(Dash).filter_by(slug=DASH_SLUG).first()
@@ -1255,6 +1307,7 @@ def load_misc_dashboard(user_id=None):
         }
     ]
     """)
+
     l = json.loads(js)
     slices = (
         db.session
@@ -1265,7 +1318,7 @@ def load_misc_dashboard(user_id=None):
     slices = sorted(slices, key=lambda x: x.id)
     for i, pos in enumerate(l):
         pos['slice_id'] = str(slices[i].id)
-    dash.name = "其他类型的工作表"
+    dash.name = "其他类型工作表"
     dash.position_json = json.dumps(l, indent=4)
     dash.online = True
     dash.slices = slices

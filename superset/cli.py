@@ -191,36 +191,18 @@ def version(verbose):
 def load_examples(load_test_data, user_id=None):
     """Loads a set of Slices and Dashboards and a supporting dataset """
     logging.info("Loading examples into {}".format(db))
-
     #data.load_css_templates()
-
-    logging.info("Loading energy related dataset")
     data.load_energy(user_id=user_id)
-
-    logging.info("Loading [World Bank's Health Nutrition and Population Stats]")
     data.load_world_bank_health_n_pop(user_id=user_id)
-
-    logging.info("Loading [Birth names]")
     data.load_birth_names(user_id=user_id)
-
-    logging.info("Loading [Random time series data]")
     data.load_random_time_series_data(user_id=user_id)
-
-    logging.info("Loading [Random long/lat data]")
-    data.load_long_lat_data(user_id=user_id)
-
-    logging.info("Loading [Multiformat time series]")
+    # data.load_long_lat_data(user_id=user_id)
+    data.load_chinese_population(user_id=user_id)
     data.load_multiformat_time_series_data(user_id=user_id)
-
-    logging.info("Loading [Misc Charts] dashboard")
     data.load_misc_dashboard(user_id=user_id)
 
     if load_test_data:
-        logging.info("Loading [Unicode test data]")
         data.load_unicode_test_data(user_id=user_id)
-
-    # modify examples data's owner to default user
-    # if config.get('COMMUNITY_EDITION') is True:
 
 
 @manager.command
