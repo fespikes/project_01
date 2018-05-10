@@ -201,7 +201,6 @@ export function fetchDashboardDeleteMul(callback) {
         );
     }
 }
-
 export function setBinaryFile(binaryFile) {
     return {
         type: setBinary,
@@ -405,7 +404,7 @@ export function fetchPosts() {
         }).then(always).then(json).then(
             response => {
                 handler(response, dispatch);
-                dispatch(clearRows);
+                dispatch(clearRows());
             }
         );
     }
