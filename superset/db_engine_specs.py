@@ -252,6 +252,12 @@ class InceptorEngineSpec(BaseEngineSpec):
             metadata['owner'] = rs[1]
         return metadata
 
+    @classmethod
+    def adjust_database_uri(cls, uri, selected_schema=None):
+        if selected_schema:
+            uri.database = selected_schema
+        return uri
+
 
 class PrestoEngineSpec(BaseEngineSpec):
     engine = 'presto'

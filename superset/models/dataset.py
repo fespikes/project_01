@@ -1013,6 +1013,7 @@ class HDFSTable(Model, AuditMixinNullable, ImportMixin):
         engine = database.get_sqla_engine()
         engine.execute("drop table if exists " + table_name)
         engine.execute(sql)
+        logging.info(sql)
 
     @classmethod
     def parse_file(cls, file_content, separator=',', quote='"', next_as_header='false',

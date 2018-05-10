@@ -108,7 +108,6 @@ def get_sql_results(self, query_id, return_results=True, store_results=False):
     try:
         query.executed_sql = executed_sql
         logging.info("Running query: \n{}".format(executed_sql))
-        #result_proxy = engine.execute(query.executed_sql, schema=query.schema)
         result_proxy = engine.execute(query.executed_sql)
     except Exception as e:
         logging.exception(e)
