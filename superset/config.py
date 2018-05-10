@@ -212,7 +212,7 @@ INTERVAL = 1
 BACKUP_COUNT = 30
 
 # Set this API key to enable Mapbox visualizations
-MAPBOX_API_KEY = "This is the key for Mapbox visualizations"
+MAPBOX_API_KEY = "pk.eyJ1IjoiemhhbmdqaWFqaWUiLCJhIjoiY2o0NnFzb29hMDNzZTMzbzE0a2lrd2FvZiJ9.GajDhKuG9zZb2_g0DaEtJw"
 
 
 # If defined, shows this text in an alert-warning box in the navbar
