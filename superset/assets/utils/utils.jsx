@@ -10,6 +10,8 @@ import http from "axios";
 import _ from "lodash";
 import SUPPOER_LOCALES from '../javascripts/support_locales';
 
+const config = require('../package.json');
+
 export const PILOT_PREFIX = '/p/';
 
 export const OBJECT_TYPE = {
@@ -183,9 +185,9 @@ export function loadIntlResources(callback, module) {
     if(!currentLocale || !_.find(SUPPOER_LOCALES, { value: currentLocale })) {
         currentLocale = "zh-CN";
     }
-    const timestamp = new Date().getTime();
+    const version = config.version;
     //because in the project setting , front end source are only located under assets folder
-    http.get(`${localePath}${currentLocale}.json?timestamp=${timestamp}`)
+    http.get(`${localePath}${currentLocale}.json?v=${version}`)
         .then(res => {
             const localeResource = Object.assign(intl.options.locales[currentLocale] || {}, res.data);
             return intl.init({

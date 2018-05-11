@@ -32,7 +32,11 @@
         </div>
         <div class="operation-form">
             <input class="btn btn-primary btn-block" type="submit" value="{{_('Sign In')}}">
-            <div class="copyright">@2017 TRANSWARP ALL Rights Reserved</div>
+            <div class="copyright">
+                {% if appbuilder and appbuilder.get_app.config.get("COPYRIGHT") %}
+                    {{ appbuilder.get_app.config.get("COPYRIGHT") }}
+                {% endif %}
+            </div>
         </div>
     </form>
 </div>

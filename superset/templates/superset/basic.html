@@ -3,7 +3,7 @@
     <title>
       {% block title %}
         {% if title %}
-          {{ 'PILOT' }}
+          {{ title }}
         {% elif appbuilder and appbuilder.app_name %}
           {{ appbuilder.app_name }}
         {% endif %}

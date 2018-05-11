@@ -115,6 +115,7 @@ ENABLE_PROXY_FIX = False
 # ------------------------------
 # Uncomment to setup Your App name
 APP_NAME = "PILOT"
+COPYRIGHT = "@2017 TRANSWARP ALL Rights Reserved"
 
 # Uncomment to setup an App icon
 APP_ICON = "/static/assets/images/superset-logo@2x.png"
