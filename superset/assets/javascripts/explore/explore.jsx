@@ -19,6 +19,8 @@ import { getTableWidth } from '../tableList/module';
 import { ConfirmModal } from '../common/components';
 import { renderConfirmModal } from '../../utils/utils';
 import intl from 'react-intl-universal';
+import { replaceAppName } from '../../utils/utils.jsx';
+replaceAppName();
 
 require('jquery-ui');
 $.widget.bridge('uitooltip', $.ui.tooltip); // Shutting down jq-ui tooltips

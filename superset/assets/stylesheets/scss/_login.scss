@@ -6,7 +6,7 @@
     top: 0;
     justify-content: center;
     background-size: cover;
-    background-image: url(../../images/icon-img/login_bg.png);
+    background-image: url(/static/assets/images/icon-img/login_bg.png);
     .login-navbar {
         position: fixed;
         width: 100%;
@@ -22,8 +22,7 @@
         height:36px;
         width:165px;
         background-size: 165px 36px;
-        /* background-image: url(../../images/icon-img/logo_white.png); */
-        background-image: url(../../images/icon-img/logo_red.png);
+        background-image: url(/static/assets/images/icon-img/logo_red.png);
     }
     .login-form {
         width: 600px;
@@ -46,7 +45,7 @@
             height:65px;
             width:300px;
             background-size: 300px 65px;
-            background-image: url(../../images/icon-img/logo_label.png);
+            background-image: url(/static/assets/images/icon-img/logo_label.png);
         }
     }
     .login-form .content-form {

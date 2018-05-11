@@ -7,7 +7,8 @@ import { renderLoadingModal, loadIntlResources } from '../utils/utils';
 require('bootstrap');
 
 import fetch from 'isomorphic-fetch';
-
+import { replaceAppName } from '../utils/utils.jsx';
+replaceAppName();
 const _ = require('lodash');
 
 class App extends React.Component {

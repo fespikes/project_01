@@ -202,3 +202,22 @@ export function loadIntlResources(callback, module) {
             callback && callback();
         });
 }
+
+export const checkConfig = (key, callback) => {
+    const version = config.version;
+    let  localePath = '/static/assets/config/';
+    http.get(`${localePath}container.json?v=${version}`)
+        .then(res => {
+            const data = res.data;
+            if (data && key && data[key] && callback) {
+                callback(data[key]);
+            }
+        });
+}
+
+export const replaceAppName = () => {
+    const appName = checkConfig('appName');
+    checkConfig('appName', function(res) {
+        document.querySelector('title').innerHTML = res;
+    })
+}

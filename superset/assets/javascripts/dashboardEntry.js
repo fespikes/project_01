@@ -10,6 +10,7 @@ import { HashRouter as Router, Route } from 'react-router-dom'
 import TableContainer from './dashboard2/containers/TableContainer';
 import GraphContainer from './dashboard2/containers/GraphContainer';
 import configureStore from './dashboard2/store/configureStore';
+import { replaceAppName } from '../utils/utils.jsx';
 
 const $ = window.$ = require('jquery');
 const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
@@ -18,7 +19,7 @@ const store = configureStore();
 
 $('.nav > li:nth-child(2)').addClass('active');
 
-
+replaceAppName();
 $(document).ready(() => {
     render(
         <Provider store={store}>

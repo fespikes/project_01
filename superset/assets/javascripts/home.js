@@ -6,6 +6,8 @@ import configureStore from './home/store/configureStore';
 import { Home, EditDetail, EventDetail } from './home/containers';
 import { App } from './home/components';
 import 'babel-polyfill';
+import { replaceAppName } from '../utils/utils.jsx';
+
 const $ = window.$ = require('jquery');
 const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
 require('bootstrap');
@@ -15,7 +17,7 @@ const _ = require('lodash');
 const store = configureStore();
 
 $('.nav > li:nth-child(1)').addClass('active');
-
+replaceAppName();
 render(
     <Provider store={store}>
         <HashRouter>

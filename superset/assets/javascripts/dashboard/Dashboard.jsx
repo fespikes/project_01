@@ -14,7 +14,8 @@ import { getNewDashboard } from '../../utils/common2';
 import { PILOT_PREFIX, renderLoadingModal, getAjaxErrorMsg} from '../../utils/utils';
 import domtoimage from 'dom-to-image';
 import { ConfirmModal } from '../common/components';
-
+import { replaceAppName } from '../../utils/utils.jsx';
+replaceAppName();
 require('bootstrap');
 require('../../stylesheets/dashboard.css');
 require('../superset-select2.js');

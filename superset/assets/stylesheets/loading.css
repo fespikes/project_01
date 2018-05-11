@@ -38,7 +38,7 @@
     left: 48%;
     margin-top: 8px;
     margin-left: 12px;
-    background-image: url(../images/icon-img/loading.png);
+    background-image: url(/static/assets/images/icon-img/loading.png);
 }
 
 @-webkit-keyframes rotation {
