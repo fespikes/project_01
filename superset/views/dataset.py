@@ -651,13 +651,11 @@ class HDFSTableModelView(SupersetModelView):
     @catch_hdfs_exception
     @expose('/preview/', methods=['GET'])
     def preview_hdfs_file(self):
-        """
-        The 'path' is a folder, need to get and parse one file in the 'path'
+        """The 'path' is a folder, need to get and parse one file in the folder
         """
         args = request.args.to_dict()
         path = args.pop('path')
         size = args.pop('size', 4096)
-        hdfs_conn_id = None
         dataset_id = args.pop('dataset_id', None)
 
         columns = []
@@ -676,19 +674,11 @@ class HDFSTableModelView(SupersetModelView):
                     types.append('{}'.format(col.type).lower())
                 cols_and_types = {'columns': columns, 'types': types}
                 HDFSTable.cache[cols_cache_key] = cols_and_types
-                # just used for first time
+                # Just used for first time
                 columns = cols_and_types.get("columns")
                 types = cols_and_types.get("types")
 
-        file_cache_key = '{}-{}'.format(hdfs_conn_id, path)
-        file = HDFSTable.cache.get(file_cache_key)
-        if not file:
-            client = HDFSBrowser.get_client(hdfs_conn_id)
-            files = self.list_files(client, path, size)
-            file_path = self.choice_one_file_path(files)
-            file = self.download_file(client, file_path, size)
-            HDFSTable.cache[file_cache_key] = file
-
+        file = self.download_file(path, size)
         args['names'] = columns if columns else None
         df = HDFSTable.parse_file(file, **args)
 
@@ -710,9 +700,26 @@ class HDFSTableModelView(SupersetModelView):
         return json_response(message=response.text)
 
     @classmethod
-    def list_files(cls, client, path, size):
-        response = client.list(path, page_size=size)
-        return response.text
+    def download_file(cls, path, size=4096):
+        client = HDFSBrowser.get_client()
+        response = client.list(path, page_size=10)
+        files = response.text
+        file_path = cls.choice_one_file_path(files)
+
+        max_size = 1024 * 1024
+        while size <= max_size:
+            response = client.preview(file_path, length=4096)
+            if response.status_code != requests.codes.ok:
+                response.raise_for_status()
+            file = response.text
+            index = file.rfind('\n')
+            if index > 0:
+                file = file[:index]
+                return file
+            size = size * 2
+        raise HDFSException(
+            _("Fetched {size} bytes file, but still not a complete line").format(size=size)
+        )
 
     @classmethod
     def choice_one_file_path(cls, files_json):
@@ -742,20 +749,3 @@ class HDFSTableModelView(SupersetModelView):
             )
         return file_path
 
-    @classmethod
-    def download_file(cls, client, path, size=4096):
-        max_size = 1024 * 1024
-        while size <= max_size:
-            response = client.preview(path, length=size)
-            if response.status_code != requests.codes.ok:
-                response.raise_for_status()
-            file = response.text
-            index = file.rfind('\n')
-            if index > 0:
-                file = file[:index]
-                return file
-            size = size * 2
-        raise HDFSException(_(
-            "Fetched {size} bytes file, but still not a complete line")
-            .format(size=size)
-        )

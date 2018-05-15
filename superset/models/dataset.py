@@ -1025,5 +1025,6 @@ class HDFSTable(Model, AuditMixinNullable, ImportMixin):
                                nrows=nrows, prefix='C', encoding=charset, names=names,
                                quotechar=quote, skip_blank_lines=True)
         except Exception as e:
+            cls.cache.clear()
             raise HDFSException(_("Parse file error: {msg}").format(msg=str(e)))
 
