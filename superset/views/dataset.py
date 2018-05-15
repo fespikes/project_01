@@ -629,8 +629,6 @@ class HDFSTableModelView(SupersetModelView):
     def check_column_values(self, obj):
         if not obj.hdfs_path:
             raise ParameterException(NONE_HDFS_PATH)
-        # if not obj.hdfs_connection_id:
-        #     raise ParameterException(NONE_HDFS_CONNECTION)
 
     def populate_object(self, obj_id, user_id, data):
         old_obj, new_obj = super(HDFSTableModelView, self).populate_object(
@@ -646,7 +644,6 @@ class HDFSTableModelView(SupersetModelView):
     def list_hdfs_files(self):
         path = request.args.get('path', '/')
         page_size = request.args.get('page_size', 1000)
-        # hdfs_connection_id = request.args.get('hdfs_connection_id', None)
         client = HDFSBrowser.get_client()
         response = client.list(path, page_size=page_size)
         return json_response(data=json.loads(response.text))
@@ -660,7 +657,6 @@ class HDFSTableModelView(SupersetModelView):
         args = request.args.to_dict()
         path = args.pop('path')
         size = args.pop('size', 4096)
-        # hdfs_conn_id = args.pop('hdfs_connection_id', None)
         hdfs_conn_id = None
         dataset_id = args.pop('dataset_id', None)
 
@@ -709,7 +705,6 @@ class HDFSTableModelView(SupersetModelView):
         f = request.data
         dest_path = request.args.get('dest_path')
         file_name = request.args.get('file_name')
-        # hdfs_connection_id = request.args.get('hdfs_connection_id', None)
         client = HDFSBrowser.get_client()
         response = client.upload(dest_path, {'files': (file_name, f)})
         return json_response(message=response.text)
