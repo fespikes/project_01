@@ -18,6 +18,7 @@ class SubPreview extends Component {
         super(props);
         this.state = {
             tableWidth: '100%',
+            tbTitle: [],
             columnNames: [],
             operatorChange: false,
             initDone: false,
@@ -55,9 +56,9 @@ class SubPreview extends Component {
         } else if(datasetType === datasetTypes.hdfs
             || datasetType === datasetTypes.uploadFile) {
 
-            if(dsHDFS && dsHDFS.hdfsConnectId) {//local not cached
+            //if(dsHDFS && dsHDFS.hdfsConnectId) {//local not cached
                 this.doFetchHDFSPreviewData(dsHDFS, false);
-            }
+            //}
         }
 
         loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
@@ -162,8 +163,8 @@ class SubPreview extends Component {
     }
 
     doConstructTableData(datasetType, data, columnsNeedChange) {
-        let tbTitle=[], tbType=[], tbContentHDFS=[],
-            columnNames=this.state.columnNames;
+        let tbType = [], tbContentHDFS = [];
+        let { tbTitle, columnNames } = this.state;
         let width = datasetModule.getColumnWidth(data.columns.length);
         let tbTitleOnly = datasetModule.getTbTitle(data, width);
         let tbContent = datasetModule.getTbContent(data);
@@ -204,13 +205,13 @@ class SubPreview extends Component {
         const colWidth = datasetModule.getHDFSInputColumnWidth(
             tableWidth, tbTitle.length);
 
-        const columnNames = tbTitle.map((column) => {
+        const columnNames = tbTitle.map((column, index) => {
             return <input
                 type="text"
                 className={column.type}
                 name={column.key}
                 key={column.key}
-                style={{width: colWidth}}
+                style={{width: index === 0 && typeof colWidth === 'number' ? colWidth - 2 : colWidth}}
                 value={column.title}
                 onChange={self.hdfsColumnNameChange}
             />
@@ -273,7 +274,7 @@ class SubPreview extends Component {
     }
 
     saveHDFSDataset() {
-        const dsHDFS = datasetModule.constructHDFSDataset(this.state.dsHDFS, this.state.columnNames);
+        const dsHDFS = datasetModule.constructHDFSDataset(this.state);
         const opeType = datasetModule.extractOpeType(window.location.hash);
         if(opeType === 'add') {
             this.createHDFS(opeType, dsHDFS);
@@ -315,8 +316,7 @@ class SubPreview extends Component {
     }
 
     render() {
-        const dsHDFS = this.state.dsHDFS;
-        const tableWidth = this.state.tableWidth;
+        const {dsHDFS, tableWidth} = this.state;
         const datasetType = datasetModule.extractDatasetType(window.location.hash);
         return (this.state.initDone &&
             <div id="data-preview-id" className="data-preview-box">

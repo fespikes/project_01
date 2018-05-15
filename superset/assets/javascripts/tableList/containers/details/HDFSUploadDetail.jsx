@@ -387,7 +387,7 @@ class HDFSUploadDetail extends Component {
                         type="text"
                         name="dataset_name"
                         className="tp-input"
-                        value={dsHDFS.dataset_name}
+                        value={dsHDFS.dataset_name || ''}
                         required="required"
                         onChange={this.handleChange}
                     />
@@ -396,7 +396,7 @@ class HDFSUploadDetail extends Component {
                     <span>{intl.get('DATASET.DESCRIPTION')}：</span>
                     <textarea
                         name="description"
-                        value={dsHDFS.description}
+                        value={dsHDFS.description || ''}
                         className="tp-textarea"
                         required="required"
                         onChange={this.handleChange}
@@ -495,7 +495,7 @@ class HDFSUploadDetail extends Component {
                         <input
                             type="hidden"
                             required="required"
-                            value={dsHDFS.hdfsPath}
+                            value={dsHDFS.hdfsPath || ''}
                         />
                     </div>
                     <Tooltip title={intl.get('DATASET.SELECT_FOLDER_TIP')}>
@@ -526,7 +526,7 @@ class HDFSUploadDetail extends Component {
                     <input
                         type="hidden"
                         required="required"
-                        value={dsHDFS.inceptorConnectName}
+                        value={dsHDFS.inceptorConnectName || ''}
                     />
                 </div>
                 <div className="sub-btn">

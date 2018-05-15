@@ -62,6 +62,7 @@ export function getTbTitle(data, width) {
                 return (<span
                     className="preview-tb-cell"
                     style={{width: width - 8}}
+                    title={text}
                 >
                     {text}
                 </span>)
@@ -194,20 +195,21 @@ export function constructInceptorDataset(dataset) {
     return inceptorDataset;
 }
 
-export function constructHDFSDataset(dataset, title) {
-    let hdfsDataset = {};
-    hdfsDataset.dataset_name = dataset.dataset_name;
-    hdfsDataset.dataset_type = datasetTypes.hdfs;
-    hdfsDataset.database_id = dataset.inceptorConnectId;
-    hdfsDataset.description = dataset.description;
-    hdfsDataset.hdfs_path = dataset.hdfsPath;
-    hdfsDataset.separator = dataset.separator;
-    hdfsDataset.columns = constructHDFSColumns(title);
-    // hdfsDataset.hdfs_connection_id = dataset.hdfsConnectId;
-    hdfsDataset.file_type = dataset.file_type;
-    hdfsDataset.quote = dataset.quote;
-    hdfsDataset.next_as_header = dataset.next_as_header;
-    hdfsDataset.charset = dataset.charset;
+export function constructHDFSDataset(state) {
+    const { dsHDFS, columnNames } = state;
+    const hdfsDataset = {
+        dataset_name: dsHDFS.dataset_name,
+        database_id: dsHDFS.inceptorConnectId,
+        description: dsHDFS.description,
+        hdfs_path: dsHDFS.hdfsPath,
+        separator: dsHDFS.separator,
+        columns: constructHDFSColumns(columnNames),
+        file_type: dsHDFS.file_type,
+        quote: dsHDFS.quote,
+        next_as_header: dsHDFS.next_as_header,
+        charset: dsHDFS.charset,
+        dataset_type: datasetTypes.hdfs
+    };
     return hdfsDataset;
 }
 
