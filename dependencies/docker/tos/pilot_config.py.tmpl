@@ -8,6 +8,11 @@ SQL_MAX_ROW = {{ getenv "PILOT_SQL_MAX_ROW" "10000"}}
 SQLALCHEMY_DATABASE_URI = "{{ getenv "PILOT_SQLALCHEMY_DATABASE_URI" "mysql://root:123456@localhost:3306/pilot?charset=utf8"}}"
 
 
+CAS_AUTH = {{ getenv "PILOT_CAS_AUTH" "False"}}
+CAS_SERVER = "{{ getenv "PILOT_CAS_SERVER" "https://localhost:8393"}}"
+CAS_URL_PREFIX = "{{ getenv "PILOT_CAS_URL_PREFIX" "/cas"}}"
+
+
 GUARDIAN_AUTH = {{ getenv "PILOT_GUARDIAN_AUTH" "False"}}
 GUARDIAN_SERVER = "{{ getenv "PILOT_GUARDIAN_SERVER" "https://localhost:8380"}}"
 
