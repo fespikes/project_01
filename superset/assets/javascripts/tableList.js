@@ -4,18 +4,11 @@ import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
 import App from './tableList/containers/';
-import {
-    Main,
-    TableAdd,
-} from './tableList/containers';
+import { Main, TableAdd, } from './tableList/containers';
 import configureStore from './tableList/stores/configureStore';
-import {
-    HashRouter,
-    BrowserRouter,
-    Route,
-    IndexRoute
-} from 'react-router-dom';
-
+import { HashRouter, BrowserRouter, Route, IndexRoute } from 'react-router-dom';
+import { replaceAppName } from '../utils/utils.jsx';
+replaceAppName();
 const store = configureStore();
 const rootElement = document.querySelector('#tableList');
 

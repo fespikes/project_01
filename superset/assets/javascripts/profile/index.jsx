@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom';
 import { Badge, Col, Label, Row, Tabs, Tab, Panel } from 'react-bootstrap';
 
 import App from './components/App';
-
+import { replaceAppName } from '../../utils/utils.jsx';
+replaceAppName();
 const $ = window.$ = require('jquery');
 /* eslint no-unused-vars: 0 */
 const jQuery = window.jQuery = $;

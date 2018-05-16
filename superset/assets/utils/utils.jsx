@@ -202,3 +202,19 @@ export function loadIntlResources(callback, module) {
             callback && callback();
         });
 }
+
+export const checkConfig = (key) => {
+    const config = require('../javascripts/config');
+    let result = false;
+
+    if (config && key && config[key]) {
+        result = config[key];
+    }
+
+    return result;
+}
+
+export const replaceAppName = () => {
+    const appName = checkConfig('appName');
+    document.querySelector('title').innerHTML = appName;
+}

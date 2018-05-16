@@ -20,6 +20,8 @@ const exploreViewContainer = document.getElementById('js-explore-view-container'
 const bootstrapData = JSON.parse(exploreViewContainer.getAttribute('data-bootstrap'));
 
 import { exploreReducer } from './reducers/exploreReducer';
+import { replaceAppName } from '../../utils/utils.jsx';
+replaceAppName();
 
 const bootstrappedState = Object.assign(
   initialState(bootstrapData.viz.form_data.viz_type, bootstrapData.datasource_type), {

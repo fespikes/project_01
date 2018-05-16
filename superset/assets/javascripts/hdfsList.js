@@ -6,7 +6,9 @@ import { Main, FileBrowser } from './hdfsList/containers';
 import configureStore from './hdfsList/stores/configureStore';
 import { Route, HashRouter } from 'react-router-dom';
 import './hdfsList/style/hdfs.scss';
+import { replaceAppName } from '../utils/utils.jsx';
 
+replaceAppName();
 const $ = window.$ = require('jquery');
 const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
 require('bootstrap');

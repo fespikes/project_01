@@ -7,7 +7,8 @@ import { Provider } from 'react-redux';
 import thunkMiddleware from 'redux-thunk';
 
 import App from './components/App';
-
+import { replaceAppName } from '../../utils/utils.jsx';
+replaceAppName();
 
 require('./main.css');
 
