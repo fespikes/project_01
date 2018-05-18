@@ -745,15 +745,6 @@ class Superset(BaseSupersetView, PermissionManagement):
         return self.render_template('superset/theme.html')
 
     @catch_exception
-    @expose("/cached_key/<key>/")
-    def cached_key(self, key):
-        """Returns a key from the cache"""
-        resp = cache.get(key)
-        if resp:
-            return json_response(data=resp)
-        return json_response(data="nope")
-
-    @catch_exception
     @expose("/results/<key>/")
     def results(self, key):
         """Serves a key off of the results backend"""

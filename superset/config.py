@@ -36,10 +36,6 @@ PILOT_WEBSERVER_TIMEOUT = 300
 CUSTOM_SECURITY_MANAGER = None
 # ---------------------------------------------------------
 
-# Guardian
-GUARDIAN_AUTH = True
-GUARDIAN_SERVICE_TYPE = 'PILOT'
-
 # The default username and password when guardian is not opened
 DEFAULT_USERNAME = 'admin'
 DEFAULT_PASSWORD = '123456'
@@ -49,11 +45,16 @@ COMMUNITY_EDITION = False
 COMMUNITY_USERNAME = DEFAULT_USERNAME
 COMMUNITY_PASSWORD = DEFAULT_PASSWORD
 
+# Guardian
+GUARDIAN_AUTH = True
+GUARDIAN_SERVER = 'https://localhost:8380'  # Used for proxy ticket and access token
+GUARDIAN_SERVICE_TYPE = 'PILOT'
+GUARDIAN_ACCESS_TOKEN_NAME = 'pilot-token'
+
 # CAS
 CAS_AUTH = False
 CAS_SERVER = 'https://localhost:8393'
 CAS_URL_PREFIX = '/cas'
-GUARDIAN_SERVER = 'https://localhost:8380'  # Used for proxy ticket and access token
 
 # if load examples data when start server
 LOAD_EXAMPLES = True
@@ -79,7 +80,7 @@ DEFAULT_INCEPTOR_SERVER = 'node01:10000'  # should be <node01>[,node02]:<port>
 
 # Default Hdfs
 DEFAULT_HDFS_CONN_NAME = 'default_hdfs'
-DEFAULT_HTTPFS = '172.0.0.1'
+DEFAULT_HTTPFS = 'localhost'
 
 # Filerobot microservice
 FILE_ROBOT_SERVER = 'localhost:5005'

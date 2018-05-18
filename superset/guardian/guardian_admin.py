@@ -100,5 +100,13 @@ class GuardianAdmin(GuardianBase):
                 perm_obj = self._perm_obj(perm.getDataSource())
                 self.client.delPermObj(perm_obj)
 
+    @catch_guardian_exception
+    def create_token(self, username, password, token_name):
+        self.client.login(username, password)
+        token = self._access_token(username, token_name)
+        new_token = self.client.createAccessToken(token)
+        self.client.login()
+        return new_token.getContent()
+
 
 guardian_admin = GuardianAdmin()

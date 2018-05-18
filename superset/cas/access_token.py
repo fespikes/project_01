@@ -6,9 +6,6 @@ from flask import current_app
 from .proxy_ticket import get_proxy_ticket
 
 
-TOKEN_NAME = 'pilot-token'
-
-
 def guardian_server():
     server = current_app.config.get('GUARDIAN_SERVER')
     if 'http://' not in server and 'https://' not in server:
@@ -19,7 +16,7 @@ def guardian_server():
     return server
 
 
-def get_token(username):
+def get_token(username, token_name):
     target_service = guardian_server()
     pt = get_proxy_ticket(target_service)
     url = '{}/api/v1/accessToken?owner={}&ticket={}'.format(target_service, username, pt)
@@ -31,10 +28,10 @@ def get_token(username):
     except Exception as e:
         raise Exception('Error response when getting tokens: ' + str(resp.text))
     for token_obj in token_objs:
-        if token_obj['name'] == TOKEN_NAME:
+        if token_obj['name'] == token_name:
             return get_token_by_id(target_service, token_obj['id'])
 
-    return create_token(target_service)
+    return create_token(target_service, token_name)
 
 
 def get_token_by_id(service, id):
@@ -50,9 +47,9 @@ def get_token_by_id(service, id):
     return token_obj['content']
 
 
-def create_token(service):
+def create_token(service, token_name):
     pt = get_proxy_ticket(service)
-    new_token = {'name': TOKEN_NAME}
+    new_token = {'name': token_name}
     url = '{}/api/v1/accessToken?ticket={}'.format(service, pt)
     logging.info(url)
 

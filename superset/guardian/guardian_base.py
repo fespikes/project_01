@@ -72,6 +72,7 @@ class GuardianBase(object):
         self.PrincipalType = self.models.PrincipalType
         self.UserVo = self.models.UserVo
         self.PermObjVo = self.models.PermObjVo
+        self.AccessTokenVo = self.models.AccessTokenVo
 
     @catch_guardian_exception
     def login(self, username=None, password=None):
@@ -119,3 +120,8 @@ class GuardianBase(object):
     def _perm_obj(self, finite_obj):
         datasource = self._datasource(finite_obj)
         return self.PermObjVo(self.component, datasource)
+
+    def _access_token(self, owner, token_name):
+        token = self.AccessTokenVo(token_name)
+        token.setOwner(owner)
+        return token

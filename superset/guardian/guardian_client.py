@@ -153,12 +153,28 @@ class GuardianClient(GuardianBase):
         return sorted(names)
 
     @catch_guardian_exception
-    def download_keytab(self, username, file_path):
+    def download_keytab(self, username, password, file_path):
+        self.client.login(username, password)
         keytab = self.client.getKeytab(username)
         FileUtils = JClass('org.apache.commons.io.FileUtils')
         File = JClass('java.io.File')
         file = File(file_path)
         FileUtils.writeByteArrayToFile(file, keytab)
+
+    @catch_guardian_exception
+    def get_token(self, username, password, token_name):
+        self.client.login(username, password)
+        tokens = self.client.getAccessTokenByOwner(username)
+        token_id = None
+        for token in tokens:
+            if token.getName() == token_name:
+                token_id = token.getId().value
+                break
+        if token_id:
+            token = self.client.getAccessTokenById(token_id)
+            return token.getContent()
+        else:
+            return None
 
 
 guardian_client = GuardianClient()

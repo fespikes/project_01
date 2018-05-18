@@ -116,10 +116,6 @@ def index_view():
                 # flask.session['user'] = data
                 # return redirect(flask.url_for('AuthDBView.login'))
 
-                from superset.cache import TokenCache
-                token = access_token.get_token(cas.username)
-                TokenCache.cache(cas.username, token)
-
                 ### login here
                 utils.login_app(appbuilder, cas.username, conf.get('DEFAULT_PASSWORD'))
                 url = self.get_redirect()
