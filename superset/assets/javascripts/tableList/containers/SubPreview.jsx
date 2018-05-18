@@ -149,12 +149,15 @@ class SubPreview extends Component {
         function callback(success, data) {
             if(success) {
                 let width = datasetModule.getTableWidth(data.columns.length);
-                const columnsNeedChange = (!isClickPreview) || (isClickPreview && self.state.operatorChange);
+                let columnsNeedChange = (!isClickPreview) || (isClickPreview && self.state.operatorChange);
                 self.setState({
                     tableWidth: width,
                     data: data,
                     operatorChange: false
                 });
+                if((self.state.columnNames && self.state.columnNames.length) !== (data.columns && data.columns.length)) {
+                    columnsNeedChange = true;
+                }
                 self.doConstructTableData(datasetTypes.hdfs, data, columnsNeedChange);
             }else {
                 renderGlobalErrorMsg(data);
