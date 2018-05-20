@@ -251,7 +251,9 @@ class HDFSBrowser(BaseSupersetView):
     def login_filerobot(cls, hdfs_conn_id=None, httpfs=None):
         def get_login_args(hdfs_conn_id=None, httpfs=None):
             httpfs = cls.get_httpfs(hdfs_conn_id) if not httpfs else httpfs
-            access_token = TokenCache.get(g.user.username, g.user.password2)
+            access_token = None
+            if config['CAS_AUTH']:
+                access_token = TokenCache.get(g.user.username, g.user.password2)
             return {'server': config.get('FILE_ROBOT_SERVER'),
                     'username': g.user.username,
                     'password': g.user.password2,
