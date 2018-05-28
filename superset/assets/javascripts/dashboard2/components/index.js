@@ -1,8 +1,8 @@
 /**
  * Created by haitao on 17-5-19.
  */
-export Operations from './Operations';
-export Tables from './Tables';
-export Paginations from './Paginations';
-export Gallery from './Gallery';
-export GalleryItem from './GalleryItem';
+export { default as Operations } from './Operations';
+export { default as Tables } from './Tables';
+export { default as Paginations } from './Paginations';
+export { default as Gallery } from './Gallery';
+export { default as GalleryItem } from './GalleryItem';

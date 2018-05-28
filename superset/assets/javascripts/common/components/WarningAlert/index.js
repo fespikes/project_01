@@ -1,2 +1,2 @@
 
-export WarningAlert from './WarningAlert';
+export { default as WarningAlert } from './WarningAlert';

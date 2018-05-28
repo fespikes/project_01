@@ -1,6 +1,8 @@
 import React from 'react';
 import { render } from 'react-dom';
 import intl from "react-intl-universal";
+import "babel-polyfill";
+
 
 const jQuery = window.jQuery = require('jquery'); // eslint-disable-line
 import { renderLoadingModal, loadIntlResources } from '../utils/utils';
@@ -13,15 +15,14 @@ const _ = require('lodash');
 
 class App extends React.Component {
 
-    state = {
-        username: '',
-        login_count: '',
-        last_login: '',
-        initDone: false
-    }
-
     constructor(props) {
         super(props);
+        this.state = {
+            username: '',
+            login_count: '',
+            last_login: '',
+            initDone: false
+        };
     }
 
     componentDidMount() {
