@@ -1,4 +1,4 @@
-export Line from './Line';
-export EditList from './EditList';
-export EventList from './EventList';
-export Bar from './Bar';
+export { default as Line } from './Line';
+import { default as EditList } from './EditList';
+import { default as EventList } from './EventList';
+import { default as Bar } from './Bar';

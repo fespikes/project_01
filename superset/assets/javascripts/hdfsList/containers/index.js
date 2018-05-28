@@ -1,2 +1,2 @@
-export FileBrowser from './FileBrowser';
-export Main from './Main';
+export { default as FileBrowser } from './FileBrowser';
+export { default as Main } from './Main';

@@ -1,2 +1,2 @@
 
-export PermInfo from './PermInfo';
+export { default as PermInfo } from './PermInfo';

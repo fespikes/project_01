@@ -1,2 +1,2 @@
 
-export PermPopup from './PermPopup';
+export { default as PermPopup } from './PermPopup';

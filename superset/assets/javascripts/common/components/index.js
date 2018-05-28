@@ -1,8 +1,8 @@
 /**
  * Global components in pilot
  */
-export LoadingModal from './LoadingModal';
-export ConfirmModal from './ConfirmModal';
-export WarningAlert from './WarningAlert';
-export OperationSelect from './OperationSelect';
-export PermPopup from './PermPopup/PermPopup';
+export { default as LoadingModal } from './LoadingModal';
+export { default as ConfirmModal } from './ConfirmModal';
+export { WarningAlert } from './WarningAlert';
+export { default as OperationSelect } from './OperationSelect';
+export { PermPopup } from './PermPopup';

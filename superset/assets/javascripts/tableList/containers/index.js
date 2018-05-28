@@ -1,7 +1,10 @@
-export Main from './Main';
-export TableAdd from './TableAdd';
+import * as Main from './Main';
+import * as TableAdd from './TableAdd';
 
-export SubDetail from './SubDetail';
-export SubPreview from './SubPreview';
-export SubColumns from './SubColumns';
-export SubSqlMetric from './SubSqlMetric';
+import * as SubDetail from './SubDetail';
+import * as SubPreview from './SubPreview';
+import * as SubColumns from './SubColumns';
+import * as SubSqlMetric from './SubSqlMetric';
+
+
+export { Main, TableAdd, SubDetail, SubPreview, SubColumns, SubSqlMetric };

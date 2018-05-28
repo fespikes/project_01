@@ -2,7 +2,8 @@ import React from 'react';
 import ReactHighcharts from 'react-highcharts';
 import PropTypes from 'prop-types';
 import Highcharts from 'highcharts';
-import HighchartsNoData from "highcharts-no-data-to-display";
+// import HighchartsNoData from "highcharts-no-data-to-display";
+import HighchartsNoData from "react-highcharts";
 import intl from "react-intl-universal";
 
 HighchartsNoData(Highcharts);
