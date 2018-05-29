@@ -91,6 +91,8 @@ class HDFSBrowser(BaseSupersetView):
     def logout(self):
         httpfs = self.get_httpfs()
         client = self.get_client()
+        logging.info('[HDFS] logout {} with httpfs={} from Filerobot'
+                     .format(g.user.username, httpfs))
         client.logout()
         FileRobotCache.delete(g.user.username, httpfs)
         return json_response(message=LOGOUT_FILEROBOT_SUCCESS)
@@ -102,6 +104,8 @@ class HDFSBrowser(BaseSupersetView):
         path = request.args.get('path')
         page_num = request.args.get('page_num', 1)
         page_size = request.args.get('page_size')
+        logging.info('[HDFS] list {} with page_num={} and page_size={}'
+                     .format(path, page_num, page_size))
         response = client.list(path, page_num, page_size)
         data = json.loads(response.text)
         for file in data['files']:
@@ -114,6 +118,7 @@ class HDFSBrowser(BaseSupersetView):
         client = self.get_client()
         path = request.args.get('path')
         filename = quote(os.path.basename(path), encoding="utf-8")
+        logging.info('[HDFS] download {}'.format(path))
         data = self.read_file(client, path)
         response = Response(bytes(data), content_type='application/octet-stream')
         response.headers['Content-Disposition'] = "attachment; filename=" + filename
@@ -130,6 +135,7 @@ class HDFSBrowser(BaseSupersetView):
             filename = f.filename
             file_path = os.path.join(dest_path, filename)
             try:
+                logging.info('[HDFS] touch {} in {}'.format(filename, dest_path))
                 client.touch(dest_path, filename)
             except Exception as e:
                 logging.exception(e)
@@ -139,11 +145,14 @@ class HDFSBrowser(BaseSupersetView):
                     while True:
                         file_content = f.read(self.file_block_size)
                         if file_content:
+                            logging.info('[HDFS] append {} with {} bytes'
+                                         .format(file_path, len(file_content)))
                             client.append(file_path, {'files': [filename, file_content]})
                         else:
                             break
                 except Exception as e:
                     logging.exception(e)
+                    logging.info('[HDFS] remove {}'.format(file_path))
                     client.remove(file_path, forever=True)
                     redirect_url = '{}&error_message={}'.format(redirect_url, str(e))
         return redirect(redirect_url)
@@ -156,6 +165,8 @@ class HDFSBrowser(BaseSupersetView):
         f = request.data
         dest_path = request.args.get('dest_path')
         file_name = request.args.get('file_name')
+        logging.info('[HDFS] upload {} to {} where data in request body'
+                     .format(file_name, dest_path))
         response = client.upload(dest_path, [('files', (file_name, f))])
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
@@ -167,6 +178,7 @@ class HDFSBrowser(BaseSupersetView):
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         forever = args.get('forever', 'false')
+        logging.info('[HDFS] remove {} with forever={}'.format(args.get('path'), forever))
         response = client.remove(paths, forever)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
@@ -178,6 +190,7 @@ class HDFSBrowser(BaseSupersetView):
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         dest_path = args.get('dest_path')
+        logging.info('[HDFS] move {} to {}'.format(args.get('path'), dest_path))
         response = client.move(paths, dest_path)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
@@ -189,6 +202,7 @@ class HDFSBrowser(BaseSupersetView):
         args = self.get_request_data()
         paths = ';'.join(args.get('path'))
         dest_path = args.get('dest_path')
+        logging.info('[HDFS] copy {} to {}'.format(args.get('path'), dest_path))
         response = client.copy(paths, dest_path)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
@@ -199,6 +213,7 @@ class HDFSBrowser(BaseSupersetView):
         client = self.get_client()
         path = request.args.get('path')
         dir_name = request.args.get('dir_name')
+        logging.info('[HDFS] mkdir {} in {}'.format(dir_name, path))
         response = client.mkdir(path, dir_name)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
@@ -210,6 +225,8 @@ class HDFSBrowser(BaseSupersetView):
         path = request.args.get('path')
         offset = request.args.get('offset', 0)
         length = request.args.get('length', 16 * 1024)
+        logging.info('[HDFS] preview {} with offset={}, length={}'
+                     .format(path, offset, length))
         response = client.preview(path, offset=offset, length=length)
         return json_response(data=response.text,
                              status=response.status_code)
@@ -223,6 +240,8 @@ class HDFSBrowser(BaseSupersetView):
         mode = args.get('mode')
         recursive = args.get('recursive')
         recursive = True if recursive else False
+        logging.info('[HDFS] chmod {} with mode={}, recursive={}'
+                     .format(args.get('path'), mode, recursive))
         response = client.chmod(paths, mode, recursive=recursive)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
@@ -233,6 +252,7 @@ class HDFSBrowser(BaseSupersetView):
         client = self.get_client()
         path = request.args.get('path')
         filename = request.args.get('filename')
+        logging.info('[HDFS] touch {} in {}'.format(filename, path))
         response = client.touch(path, filename)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
@@ -243,6 +263,7 @@ class HDFSBrowser(BaseSupersetView):
         client = self.get_client()
         path = request.args.get('path')
         file = request.data
+        logging.info('[HDFS] modify file {}'.format(path))
         response = client.modify(path, file)
         return json_response(message=eval(response.text).get("message"),
                              status=response.status_code)
@@ -268,6 +289,8 @@ class HDFSBrowser(BaseSupersetView):
             conf = FileRobotConfiguartion()
             conf.set(FileRobotVars.FILEROBOT_SERVER_ADDRESS.varname, server)
             client = fileRobotClientFactory.getInstance(conf)
+            logging.debug('[HDFS] login {} with httpfs={} to Filerobot'
+                         .format(username, httpfs))
             response = client.login(username, password, httpfs, access_token=access_token)
             return client, response
 
@@ -297,6 +320,8 @@ class HDFSBrowser(BaseSupersetView):
         offset = 0
         length = cls.file_block_size
         while True:
+            logging.info('[HDFS] read {} with offest={}, length={}'
+                         .format(path, offset, length))
             response = client.read(path, offset, length)
             content = response.data
             len_con = len(content)
