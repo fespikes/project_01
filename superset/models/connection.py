@@ -110,6 +110,8 @@ class Database(Model, AuditMixinNullable, ImportMixin):
         url = make_url(self.sqlalchemy_uri_decrypted)
         connect_args = self.append_args(self.get_args().get('connect_args', {}))
         url = self.db_engine_spec.adjust_database_uri(url, schema)
+        if url.drivername == 'oracle':
+            os.environ["NLS_LANG"] = "SIMPLIFIED CHINESE_CHINA.UTF8"
         if use_pool:
             return create_engine(url, connect_args=connect_args, pool_size=10)
         else:
