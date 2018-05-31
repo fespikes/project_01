@@ -76,8 +76,9 @@ class SqlEditorLeftBar extends React.PureComponent {
         success:function(data){
           data = data.data;
           let tableOptions = data.map((s) => ({ value: s, label: s }));
-          const views = data.map((s) => ({ value: s, label: '[view] ' + s }));
-          tableOptions = [...tableOptions, ...views];
+          //const views = data.map((s) => ({ value: s, label: '[view] ' + s }));
+          //tableOptions = [...tableOptions, ...views];
+          tableOptions = [...tableOptions];
           self.setState({ tableOptions });
           self.setState({ tableLoading: false });
         },
