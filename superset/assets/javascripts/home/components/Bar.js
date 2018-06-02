@@ -2,15 +2,11 @@ import React from 'react';
 import ReactHighcharts from 'react-highcharts';
 import Highcharts from 'highcharts';
 import PropTypes from 'prop-types';
-// import HighchartsNoData from 'highcharts-no-data-to-display';
-import HighchartsNoData from "react-highcharts";
 import { Tooltip } from 'antd';
 
 import intl from "react-intl-universal";
 
 const _ = require('lodash');
-
-HighchartsNoData(Highcharts);
 
 function addLink(categories, urls) {
     let categoryLinks = {};

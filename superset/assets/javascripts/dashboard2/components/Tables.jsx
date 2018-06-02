@@ -20,7 +20,7 @@ class Tables extends React.Component {
         this.favoriteSlice = this.favoriteSlice.bind(this);
     };
 
-    onSelectChange = (selectedRowKeys, selectedRows) => {
+    onSelectChange(selectedRowKeys, selectedRows) {
         const { dispatch } = this.props;
         let selectedRowNames = [];
         selectedRows.forEach(function(row) {

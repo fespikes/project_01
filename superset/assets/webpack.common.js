@@ -9,59 +9,49 @@ const BUILD_DIR = path.resolve(__dirname, './dist'); // output dir
 const VERSION_STRING = JSON.parse(fs.readFileSync('package.json')).version;
 
 module.exports = {
-    /*node: {
-        fs: "empty"
-    },*/
-    target: 'node',
+    target: 'web',
     entry: {
         'css-theme': APP_DIR + '/javascripts/css-theme.js',
+        user: APP_DIR + '/javascripts/user.js',
+        home: APP_DIR + '/javascripts/home.js',
+        sliceList: APP_DIR + '/javascripts/sliceList.js',
+        databaseList: APP_DIR + '/javascripts/databaseList.js',
+        tableList: APP_DIR + '/javascripts/tableList.js',
+        hdfsList: APP_DIR + '/javascripts/hdfsList.js',
+        dashboardEntry: APP_DIR + '/javascripts/dashboardEntry.js',
 
-        // user: ['babel-polyfill', APP_DIR + '/javascripts/user.js'],
-        // home: ['babel-polyfill', APP_DIR + '/javascripts/home.js'],
-        // sliceList: ['babel-polyfill', APP_DIR + '/javascripts/sliceList.js'],
-        // databaseList: ['babel-polyfill', APP_DIR + '/javascripts/databaseList.js'],
-        // tableList: ['babel-polyfill', APP_DIR + '/javascripts/tableList.js'],
-        // hdfsList: ['babel-polyfill', APP_DIR + '/javascripts/hdfsList.js'],
-        // dashboardEntry: ['babel-polyfill', APP_DIR + '/javascripts/dashboardEntry.js'],
-
-    // common: APP_DIR + '/javascripts/common.js',
-    // dashboard: ['babel-polyfill', APP_DIR + '/javascripts/dashboard/Dashboard.jsx'],
-    // explore: ['babel-polyfill', APP_DIR + '/javascripts/explore/explore.jsx'],
-    // explorev2: ['babel-polyfill', APP_DIR + '/javascripts/explorev2/index.jsx'],
-    // sqllab: ['babel-polyfill', APP_DIR + '/javascripts/SqlLab/index.jsx'],
-    // standalone: ['babel-polyfill', APP_DIR + '/javascripts/standalone.js'],
-    // welcome: APP_DIR + '/javascripts/welcome.js',
-    // profile: APP_DIR + '/javascripts/profile/index.jsx'
+        common: APP_DIR + '/javascripts/common.js',
+        dashboard: APP_DIR + '/javascripts/dashboard/Dashboard.jsx',
+        explore: APP_DIR + '/javascripts/explore/explore.jsx',
+        explorev2: APP_DIR + '/javascripts/explorev2/index.jsx',
+        sqllab: APP_DIR + '/javascripts/SqlLab/index.jsx',
+        standalone: APP_DIR + '/javascripts/standalone.js', // TODO:
+        welcome: APP_DIR + '/javascripts/welcome.js',
+        profile: APP_DIR + '/javascripts/profile/index.jsx'
     },
     output: {
         path: BUILD_DIR,
         filename: `[name].${VERSION_STRING}.entry.js`,
     },
     resolve: {
-        extensions: ['.js', '.jsx', 'ts', 'tsx'],
-        alias: {
-            'mapbox-gl': path.join(__dirname, '/node_modules/mapbox-gl/dist/mapbox-gl.js')
-        }
+        extensions: ['.js', '.jsx', '.ts', '.tsx', '.css', '.sass', '.scss', '.less'],
+// alias: {
+//     'mapbox-gl/js/geo/transform': path.join(
+//         __dirname, '/node_modules/mapbox-gl/js/geo/transform'),
+//     'mapbox-gl': path.join(__dirname, '/node_modules/mapbox-gl/js/mapbox-gl.js')
+// }
     },
     module: {
         noParse: /mapbox-gl\/dist/,
         rules: [
-            // style
             {
                 test: /datatables\.net.*/,
                 use: 'imports-loader?define=>false',
             },
-            // {
-            //     test: /datatables\.net.*/,
-            //     loader: 'imports-loader?define=>false',
-            // },
+            // style
             {
-                test: /\.css$/,
+                test: /\.s?[ac]ss$/,
                 include: APP_DIR,
-                use: 'style-loader, css-loader',
-            },
-            {
-                test: /\.(scss|sass)$/,
                 use: [
                     "style-loader", // creates style nodes from JS strings
                     "css-loader", // translates CSS into CommonJS
@@ -131,35 +121,18 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: ['babel-preset-airbnb', 'babel-preset-env', 'babel-preset-airbnb', 'babel-preset-react']
+                        presets: ['babel-preset-airbnb', 'babel-preset-env', 'babel-preset-react', 'babel-preset-stage-0']
                     }
                 }
             },
-
-            // {
-            //     test: /\.jsx?$/,
-            //     exclude: APP_DIR + '/node_modules',
-            //     loader: 'babel',
-            //     query: {
-            //         presets: [
-            //             'airbnb',
-            //             'es2015',
-            //             'react', 'stage-0'
-            //         ],
-            //     },
-            // },
 
             /* for react-map-gl overlays */
             {
                 test: /\.react\.js$/,
                 include: APP_DIR + '/node_modules/react-map-gl/src/overlays',
                 use: ['babel-loader'],
+                enforce: 'post'
             },
-            // {
-            //     test: /\.react\.js$/,
-            //     include: APP_DIR + '/node_modules/react-map-gl/src/overlays',
-            //     loader: 'babel',
-            // },
             {
                 test: /\.(ts|tsx)$/,
                 use: 'ts-loader',
@@ -175,12 +148,7 @@ module.exports = {
                 test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
                 use: 'file-loader'
             }
-        ] /*,
-        postLoaders: [{
-            include: /node_modules\/mapbox-gl/,
-            loader: 'transform',
-            query: 'brfs',
-        }],*/
+        ]
     },
     externals: {
         cheerio: 'window',
@@ -193,13 +161,7 @@ module.exports = {
         new webpack.DefinePlugin({
             'process.env': {
                 NODE_ENV: JSON.stringify(process.env.NODE_ENV),
-            },
+            }
         })
-    // new MiniCssExtractPlugin({
-    //     // Options similar to the same options in webpackOptions.output
-    //     // both options are optional
-    //     filename: "[name].css",
-    //     chunkFilename: "[id].css"
-    // })
-    ],
+    ]
 };

@@ -1,4 +1,3 @@
-import * as Operate from './Operate';
-import * as Table from './Table';
-import * as Pagination from './Pagination';
-export { Operate, Table, Pagination };
+export { default as Operate } from './Operate';
+export { default as Table } from './Table';
+export { default as Pagination } from './Pagination';

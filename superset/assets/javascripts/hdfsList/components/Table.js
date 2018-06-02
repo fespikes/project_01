@@ -17,7 +17,7 @@ class InnerTable extends React.Component {
         this.clearTableState = this.clearTableState.bind(this);
     }
 
-    onSelectChange = (selectedRowKeys, selectedRows) => {
+    onSelectChange(selectedRowKeys, selectedRows) {
         let length = selectedRows.length;
         let selectedRow = selectedRows[length - 1];
 
@@ -36,7 +36,7 @@ class InnerTable extends React.Component {
         });
 
         this.props.setSelectedRows(selectedRows, selectedRowKeys, selectedRowNames);
-    };
+    }
 
     clearTableState() {
         this.setState({

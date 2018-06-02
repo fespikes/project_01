@@ -11,13 +11,12 @@ import intl from "react-intl-universal";
 
 class EditDetail extends Component {
 
-    state = {
-        initDone: false,
-        redirect: false
-    };
-
     constructor(props) {
         super(props);
+        this.state = {
+            initDone: false,
+            redirect: false
+        };
         this.goBack = this.goBack.bind(this);
         this.tableOnChange = this.tableOnChange.bind(this);
     }

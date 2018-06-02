@@ -21,8 +21,9 @@ const defaultProps = {
 };
 
 class VisualizeModal extends React.PureComponent {
-    CHART_TYPES: any[] = [];
 
+    CHART_TYPES: any[] = [];
+    
     constructor(props) {
         super(props);
         const uniqueId = shortid.generate();
