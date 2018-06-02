@@ -3,8 +3,8 @@ import * as module from '../module';
 import { HashRouter, Route, NavLink, Switch } from 'react-router-dom';
 import { connect, Provider } from 'react-redux';
 import { SubDetail, SubPreview, SubColumns, SubSqlMetric } from './';
-import '../style/tableAdd.css';
-import {loadIntlResources} from '../../../utils/utils';
+import '../style/tableAdd';
+import { loadIntlResources } from '../../../utils/utils';
 import intl from 'react-intl-universal';
 
 class TableAdd extends Component {
@@ -15,11 +15,13 @@ class TableAdd extends Component {
 
     componentDidMount() {
         console.log('componentDidMount...');
-        loadIntlResources(_ => this.setState({ initDone: true }), 'dataset');
+        loadIntlResources(_ => this.setState({
+            initDone: true
+        }), 'dataset');
     }
 
     render() {
-        const { datasetId, HDFSConfigured } = this.props;
+        const {datasetId, HDFSConfigured} = this.props;
         const path = window.location.hash;
         const datasetType = module.extractDatasetType(path);
         const tab2Name = module.getDatasetTab2Name(datasetType, intl);
@@ -56,17 +58,17 @@ class TableAdd extends Component {
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink to={`/${opeType}/preview/${datasetType}/${id}`} activeClassName="active" className={enableClickHDFSPreview?'':'link-disabled'} isActive={isPreviewActive} >
+                                    <NavLink to={`/${opeType}/preview/${datasetType}/${id}`} activeClassName="active" className={enableClickHDFSPreview ? '' : 'link-disabled'} isActive={isPreviewActive} >
                                         { tab2Name }
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink to={`/${opeType}/columns/${datasetType}/${id}`} activeClassName="active" className={enableClick?'':'link-disabled'} isActive={isColumnsActive}>
+                                    <NavLink to={`/${opeType}/columns/${datasetType}/${id}`} activeClassName="active" className={enableClick ? '' : 'link-disabled'} isActive={isColumnsActive}>
                                         {intl.get('DATASET.COLUMN_ATTRIBUTE')}
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink to={`/${opeType}/sqlMetric/${datasetType}/${id}`} activeClassName="active" className={enableClick?'':'link-disabled'} isActive={isSqlMetricActive}>
+                                    <NavLink to={`/${opeType}/sqlMetric/${datasetType}/${id}`} activeClassName="active" className={enableClick ? '' : 'link-disabled'} isActive={isSqlMetricActive}>
                                         {intl.get('DATASET.METRIC')}
                                     </NavLink>
                                 </li>
@@ -92,9 +94,9 @@ class TableAdd extends Component {
 }
 
 function mapStateToProps(state) {
-    const { subDetail } = state;
+    const {subDetail} = state;
     return {
-        datasetId:  subDetail.datasetId,
+        datasetId: subDetail.datasetId,
         HDFSConfigured: subDetail.HDFSConfigured
     };
 }

@@ -30,5 +30,3 @@ render(
     </Provider>,
     document.querySelector('#home')
 );
-
-

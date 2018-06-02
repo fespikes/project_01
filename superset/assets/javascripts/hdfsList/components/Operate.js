@@ -15,14 +15,13 @@ import intl from "react-intl-universal";
 const _ = require('lodash');
 
 class Operate extends React.Component {
-
-    manipulateOptions: any = [];
-    createOptions: any = [];
-
     constructor(props, context) {
         super(props);
         this.state = {};
         this.dispatch = context.dispatch;
+
+        this.manipulateOptions = [];
+        this.createOptions = [];
 
         this.searchOnChange = this.searchOnChange.bind(this);
         this.onRemove = this.onRemove.bind(this);
@@ -166,7 +165,7 @@ class Operate extends React.Component {
 
     onRemove() {
         const {fetchOperation, popupNormalParam, setPopupNormalParams, condition} = this.props;
-        if(condition.selectedRowNames.length === 0) {
+        if (condition.selectedRowNames.length === 0) {
             const normalPopupParam = this.cleanNormalParamState(popupNormalParam);
             Object.assign(normalPopupParam, {
                 popupType: CONSTANT.noSelect,

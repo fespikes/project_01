@@ -21,7 +21,7 @@ class SliceTable extends React.Component {
         this.dispatch = context.dispatch;
     }
 
-    onSelectChange = (selectedRowKeys, selectedRows) => {
+    onSelectChange(selectedRowKeys, selectedRows) {
         let selectedRowNames = [];
         let connToBeDeleted = {};
         selectedRows.map(function(row) {
@@ -37,7 +37,7 @@ class SliceTable extends React.Component {
             selectedRowNames.push(row.name);
         });
         this.dispatch(actions.selectRows(selectedRowKeys, connToBeDeleted, selectedRowNames));
-    };
+    }
 
     editConnection(record) {
         const dispatch = this.dispatch;

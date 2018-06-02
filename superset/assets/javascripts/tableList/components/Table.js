@@ -1,14 +1,14 @@
 import React from 'react';
-import {render} from 'react-dom';
-import {Link}  from 'react-router-dom';
-import {Table, Tooltip} from 'antd';
+import { render } from 'react-dom';
+import { Link } from 'react-router-dom';
+import { Table, Tooltip } from 'antd';
 import PropTypes from 'prop-types';
-import {datasetTypes} from '../actions';
+import { datasetTypes } from '../actions';
 import * as actions from '../actions';
-import {TableDelete} from '../popup';
+import { TableDelete } from '../popup';
 import * as utils from '../../../utils/utils';
 import intl from 'react-intl-universal';
-import {getPermInfo} from '../../perm/actions';
+import { getPermInfo } from '../../perm/actions';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -16,8 +16,8 @@ class SliceTable extends React.Component {
         this.state = {};
     }
 
-    onSelectChange = (selectedRowKeys, selectedRows) => {
-        const { dispatch } = this.props;
+    onSelectChange(selectedRowKeys, selectedRows) {
+        const {dispatch} = this.props;
         let selectedRowNames = [];
         selectedRowKeys = [];
         selectedRows.forEach(function(row) {
@@ -25,13 +25,13 @@ class SliceTable extends React.Component {
             selectedRowKeys.push(row.id);
         });
         dispatch(actions.selectRows(selectedRowKeys, selectedRowNames));
-    };
+    }
 
     givePerm(record) {
         const callback = (success, response) => {
-            if(success) {
+            if (success) {
                 utils.renderPermModal(record.id, record.dataset_name, utils.OBJECT_TYPE.DATASET);
-            }else {
+            } else {
                 utils.renderConfirmModal(response);
             }
         };
@@ -45,9 +45,9 @@ class SliceTable extends React.Component {
     viewTableDetail(url) {
         utils.viewObjectDetail(url, callback);
         function callback(success, response) {
-            if(success) {
+            if (success) {
                 window.location.href = url;
-            }else {
+            } else {
                 utils.renderGlobalErrorMsg(response);
             }
         }
@@ -55,7 +55,7 @@ class SliceTable extends React.Component {
 
     render() {
 
-        const { dispatch, data, selectedRowKeys } = this.props;
+        const {dispatch, data, selectedRowKeys} = this.props;
 
         function editTable(record) {
             dispatch(actions.switchDatasetType(record.dataset_type));
@@ -66,17 +66,17 @@ class SliceTable extends React.Component {
         function deleteTable(record) {
             dispatch(actions.fetchTableDelInfo(record.id, callback));
             function callback(success, data) {
-                if(success) {
+                if (success) {
                     let deleteTips = data;
                     render(
                         <TableDelete
-                            dispatch={dispatch}
-                            deleteType={'single'}
-                            deleteTips={deleteTips}
-                            table={record} />,
+                        dispatch={dispatch}
+                        deleteType={'single'}
+                        deleteTips={deleteTips}
+                        table={record} />,
                         document.getElementById('popup_root')
                     );
-                }else {
+                } else {
                     utils.renderConfirmModal(data);
                 }
             }
@@ -105,21 +105,25 @@ class SliceTable extends React.Component {
                     return (
                         <div className="entity-name">
                             <div
-                                className="entity-title highlight text-overflow-style"
-                                style={{maxWidth: 370}}
-                            >
+                        className="entity-title highlight text-overflow-style"
+                        style={{
+                            maxWidth: 370
+                        }}
+                        >
                                 <a
-                                    href="javascript:void(0)"
-                                    target="_blank"
-                                    onClick={() => this.viewTableDetail(record.explore_url)}
-                                >
+                        href="javascript:void(0)"
+                        target="_blank"
+                        onClick={() => this.viewTableDetail(record.explore_url)}
+                        >
                                     {record.dataset_name}
                                 </a>
                             </div>
                             <div
-                                className="entity-description text-overflow-style"
-                                style={{maxWidth: 370}}
-                            >
+                        className="entity-description text-overflow-style"
+                        style={{
+                            maxWidth: 370
+                        }}
+                        >
                                 {record.dataset_type} | {record.connection}
                             </div>
                         </div>
@@ -136,8 +140,10 @@ class SliceTable extends React.Component {
                 render: (text, record) => {
                     return (
                         <div
-                            className="text-overflow-style"
-                            style={{maxWidth: 270}}
+                        className="text-overflow-style"
+                        style={{
+                            maxWidth: 270
+                        }}
                         >
                             {record.created_by_user}
                         </div>
@@ -163,25 +169,30 @@ class SliceTable extends React.Component {
                         <div className="icon-group">
                             <Tooltip placement="top" title={intl.get('DATASET.EDIT')} arrowPointAtCenter>
                                 <Link
-                                    onClick={() => editTable(record)}
-                                    style={{position: 'relative', top: 1}}
-                                    to={`/edit/detail/${record.dataset_type===datasetTypes.hdfs?datasetTypes.hdfs:datasetTypes.database}/${record.id}`}
-                                >
+                        onClick={() => editTable(record)}
+                        style={{
+                            position: 'relative',
+                            top: 1
+                        }}
+                        to={`/edit/detail/${record.dataset_type === datasetTypes.hdfs ? datasetTypes.hdfs : datasetTypes.database}/${record.id}`}
+                        >
                                     <i className="icon icon-edit"/>
                                 </Link>
                             </Tooltip>
                             <Tooltip placement="top" title={intl.get('DATASET.DELETE')} arrowPointAtCenter>
                                 <i
-                                    className="icon icon-delete"
-                                    style={{margin: '0 20'}}
-                                    onClick={() => deleteTable(record)}
-                                />
+                        className="icon icon-delete"
+                        style={{
+                            margin: '0 20'
+                        }}
+                        onClick={() => deleteTable(record)}
+                        />
                             </Tooltip>
                             <Tooltip placement="top" title={intl.get('DATASET.GRANT_PERM')} arrowPointAtCenter>
                                 <i
-                                    className="icon icon-perm"
-                                    onClick={() => this.givePerm(record)}
-                                />
+                        className="icon icon-perm"
+                        onClick={() => this.givePerm(record)}
+                        />
                             </Tooltip>
                         </div>
                     )
@@ -191,11 +202,11 @@ class SliceTable extends React.Component {
 
         return (
             <Table
-                rowSelection={rowSelection}
-                dataSource={data}
-                columns={columns}
-                pagination={false}
-                rowKey={record => record.id}
+            rowSelection={rowSelection}
+            dataSource={data}
+            columns={columns}
+            pagination={false}
+            rowKey={record => record.id}
             />
         );
     }

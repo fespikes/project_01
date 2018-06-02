@@ -12,13 +12,11 @@ import intl from "react-intl-universal";
 import '../style/file-browser.scss';
 
 class FileBrowser extends Component {
-
-    state = {
-        initDone: true
-    };
-
     constructor(props) {
         super(props);
+        this.state = {
+            initDone: true
+        };
     }
 
     componentDidMount() {

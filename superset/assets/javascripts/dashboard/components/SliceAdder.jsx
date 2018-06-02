@@ -36,7 +36,7 @@ class SliceAdder extends React.Component {
         this.getSliceList(1, keyword);
     }
 
-    onChange = (selectedRowKeys) => {//for show selected state in table
+    onChange(selectedRowKeys) {//for show selected state in table
         let _selectedKeys = {...this.state.selectedRowKeys};
         _selectedKeys[this.state.pageNumber] = selectedRowKeys;
         const enableAddSlice = this.judgeEnableAddSlice(_selectedKeys);
@@ -46,7 +46,7 @@ class SliceAdder extends React.Component {
         });
     };
 
-    onSelect = (record, selected) => {//for make selected ids
+    onSelect(record, selected) {//for make selected ids
         let _selectedRows = {...this.state.selectedRows};
         if(selected) {
             _selectedRows[record.id] = record;

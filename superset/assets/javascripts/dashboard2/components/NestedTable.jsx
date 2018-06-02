@@ -13,12 +13,11 @@ const POLICY = {
 };
 
 export default class NestedTable extends React.Component {
-  
-  state = {};
-  renameInfo = null;
 
   constructor(props, context, updater) {
     super(props);
+    this.state = {};
+    this.renameInfo = null;
     this.expandedRowRender = this.expandedRowRender.bind(this);
     this.renderNormal = this.renderNormal.bind(this);
     this.renderExpanded = this.renderExpanded.bind(this);
@@ -409,7 +408,7 @@ export default class NestedTable extends React.Component {
       );
   }
 
-  expandedRowRender = (data) => {
+  expandedRowRender(data) {
     return () => {
       const expandedColumns = [
         { title: 'Name', dataIndex: 'name', key: 'name' },

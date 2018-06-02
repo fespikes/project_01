@@ -8,11 +8,9 @@ import intl from "react-intl-universal";
 import * as utils  from '../../../utils/utils.jsx';
 
 class Home extends Component {
-
-    state = { initDone: false };
-
     constructor(props) {
         super(props);
+        this.state = { initDone: false };
     }
 
     componentDidMount() {

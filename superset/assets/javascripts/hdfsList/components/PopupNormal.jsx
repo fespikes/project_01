@@ -30,6 +30,7 @@ class Popup extends React.Component {
         this.onRecursivePermChange = this.onRecursivePermChange.bind(this);
 
         this.state = {}
+        this.timer = 0;
     }
 
     componentDidUpdate() {
@@ -56,8 +57,6 @@ class Popup extends React.Component {
             alertType: ''
         });
     }
-
-    timer = 0;
 
     removeAlert() {
         this.props.setPopupNormalParam({
