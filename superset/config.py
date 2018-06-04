@@ -93,13 +93,13 @@ CONNECTION_TIMEOUT = 60
 SQLLAB_TIMEOUT = 120
 
 # Maximum number of rows returned in the SQL editor
-SQL_MAX_ROW = 1000
+SQL_MAX_ROW = 200
 
 # The limit of queries fetched for query search
-QUERY_SEARCH_LIMIT = 1000
+QUERY_SEARCH_LIMIT = 200
 
 # The limit of rows of slice
-SLICE_ROW_LIMIT = 10000
+SLICE_ROW_LIMIT = 2000
 
 
 # Flask-WTF flag for CSRF

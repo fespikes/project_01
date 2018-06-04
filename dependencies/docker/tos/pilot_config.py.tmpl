@@ -1,9 +1,6 @@
 PILOT_WORKERS = {{ getenv "PILOT_WORKERS" "4"}}
 PILOT_WEBSERVER_PORT = {{ getenv "PILOT_WEBSERVER_PORT" "8086"}}
 
-ROW_LIMIT = {{ getenv "PILOT_ROW_LIMIT" "5000"}}
-SQL_MAX_ROW = {{ getenv "PILOT_SQL_MAX_ROW" "10000"}}
-
 
 SQLALCHEMY_DATABASE_URI = "{{ getenv "PILOT_SQLALCHEMY_DATABASE_URI" "mysql://root:123456@localhost:3306/pilot?charset=utf8"}}"
 
