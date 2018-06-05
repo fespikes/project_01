@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "node --max_old_space_size=4096 ./node_modules/webpack/bin/webpack.js --config webpack.dev.js --output-pathinfo --watch --colors --progress",
     "stage": "node --max_old_space_size=4096 ./node_modules/webpack/bin/webpack.js -p --config webpack.prod.js --color --progress",
-    "prod": "node --max_old_space_size=4096 ./node_modules/webpack/bin/webpack.js -p --config webpack.prod.js --color --progress",
+    "prod": "node --max_old_space_size=6144 ./node_modules/webpack/bin/webpack.js -p --config webpack.prod.js --color --progress",
     "test": "mocha --require ignore-styles --compilers js:babel-core/register --require spec/helpers/browser.js --require babel-polyfill --recursive spec/**/*_spec.*",
     "cover": "babel-node ./node_modules/.bin/istanbul cover _mocha -- --require spec/helpers/browser.js --recursive spec/**/*_spec.*",
     "build": "NODE_ENV=production webpack --colors --progress",
