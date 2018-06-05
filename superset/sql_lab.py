@@ -193,7 +193,7 @@ def execute_sql(database_id, sql, schema=None):
     return payload
 
 
-def store_sql_results_to_hdfs(sql, connection):
+def store_sql_results_to_hdfs(sql, engine):
     """
     For inceptor, store the sql results to hdfs folders
     :param sql: origin sql
@@ -202,27 +202,31 @@ def store_sql_results_to_hdfs(sql, connection):
     """
     ts = datetime.now().isoformat()
     ts = ts.replace('-', '').replace(':', '').split('.')[0]
-    tmp_table = 'pilot_sqllab_{ts}'.format(ts=ts)
+    tmp_table = 'pilot_sqllab_{ts}'.format(ts=ts).lower()
     path = '/tmp/pilot/{}/'.format(tmp_table)
 
-    drop_sql = 'DROP TABLE IF EXISTS {}'.format(tmp_table)
-    _execute(connection, drop_sql)
+    connect = engine.connect()
+    try:
+        drop_sql = 'DROP TABLE IF EXISTS {}'.format(tmp_table)
+        _execute(connect, drop_sql)
 
-    sql = "CREATE TABLE {table} STORED AS CSVFILE LOCATION '{path}' as {sql}"\
-        .format(table=tmp_table, path=path, sql=sql)
-    _execute(connection, sql)
+        sql = "CREATE TABLE {table} STORED AS CSVFILE LOCATION '{path}' as {sql}"\
+            .format(table=tmp_table, path=path, sql=sql)
+        _execute(connect, sql)
 
-    sql = "SET ngmr.partition.automerge=TRUE"
-    _execute(connection, sql)
-    sql = "SET ngmr.partition.mergesize.mb=180"
-    _execute(connection, sql)
+        sql = "SET ngmr.partition.automerge=TRUE"
+        _execute(connect, sql)
+        sql = "SET ngmr.partition.mergesize.mb=180"
+        _execute(connect, sql)
 
-    sql = "INSERT OVERWRITE TABLE {table} SELECT * FROM {table}".format(table=tmp_table)
-    _execute(connection, sql)
-    return tmp_table, path
+        sql = "INSERT OVERWRITE TABLE {table} SELECT * FROM {table}".format(table=tmp_table)
+        _execute(connect, sql)
+        return tmp_table, path
+    finally:
+        connect.close()
 
 
 @sql_timeout
-def _execute(connection, sql):
+def _execute(connect, sql):
     logging.info(sql)
-    connection.execute(sql)
+    connect.execute(sql)

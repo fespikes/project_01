@@ -812,6 +812,9 @@ class Superset(BaseSupersetView, PermissionManagement):
     @expose("/csv/<client_id>/")
     def csv(self, client_id):
         """Download the query results as csv."""
+        with_header = request.args.get('header', 'true')
+        with_header = True if with_header.lower() == 'true' else False
+
         query = db.session.query(Query).filter_by(client_id=client_id).one()
         sql = query.select_sql or query.sql
         database = query.database
@@ -819,16 +822,24 @@ class Superset(BaseSupersetView, PermissionManagement):
 
         if stored_in_hdfs:
             engine = database.get_sqla_engine(schema=query.schema, use_pool=False)
-            connection = engine.connect()
-            table, hdfs_path = sql_lab.store_sql_results_to_hdfs(sql, connection)
+            table_name, hdfs_path = sql_lab.store_sql_results_to_hdfs(sql, engine)
 
             client = HDFSBrowser.get_client()
             data = HDFSBrowser.read_folder(client, hdfs_path)
 
-            sql = 'DROP TABLE IF EXISTS {}'.format(table)
+            if with_header is True:
+                columns = database.get_columns(table_name, schema=query.schema)
+                names = [c['name'] for c in columns]
+                names = ['"{}"'.format(n) for n in names]
+                name_str = ','.join(names)
+                tmp_barray = bytearray()
+                tmp_barray.extend(name_str.encode('utf8'))
+                tmp_barray.extend(b'\t\n')
+                data[0:0] = tmp_barray
+
+            sql = 'DROP TABLE IF EXISTS {}'.format(table_name)
             logging.info(sql)
-            connection.execute(sql)
-            connection.close()
+            engine.execute(sql)
 
             response = Response(bytes(data), content_type='application/octet-stream')
             response.headers['Content-Disposition'] = \
@@ -837,7 +848,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         else:
             df = query.database.get_df(sql, query.schema)
             # TODO(bkyryliuk): add compression=gzip for big files.
-            csv = df.to_csv(index=False, encoding='utf-8')
+            csv = df.to_csv(index=False, header=with_header, encoding='utf-8')
             response = Response(csv, mimetype='text/csv')
             response.headers['Content-Disposition'] = \
                 'attachment; filename={}.csv'.format(query.name)
