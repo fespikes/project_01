@@ -335,7 +335,7 @@ export function setPermMode(permMode) {
 
 export function setRecursivePerm(isRecursive) {
     return {
-        type: popupNormalActions,
+        type: popupNormalActions.setRecursivePerm,
         recursivePerm: isRecursive
     }
 }
@@ -518,6 +518,14 @@ export function fetchIfNeeded(condition) {
 }
 
 export function setSelectedRows(selectedRows, selectedRowKeys, selectedRowNames) {
+    selectedRowNames.length > 1 && selectedRowNames.forEach((name, idx) => {
+        if (name === '".."') {
+            selectedRows.splice(idx, 1);
+            selectedRowKeys.splice(idx, 1);
+            selectedRowNames.splice(idx, 1);
+        }
+    });
+
     return {
         type: actionTypes.setSelectedRows,
         selectedRows,
