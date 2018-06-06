@@ -66,9 +66,7 @@ class SouthPane extends React.PureComponent {
                         title={intl.get('result')}
                         eventKey="Results"
                     >
-                        <div style={{ overflow: 'auto' }}>
-                            {results}
-                        </div>
+                        {results}                    
                     </Tab>
                     <Tab
                         title={intl.get('query_history')}
