@@ -129,5 +129,9 @@
   "dimension": "维度",
   "polymerization_function": "聚合函数",
 
-  "please_select": "请选择"
+  "please_select": "请选择",
+  "csv_download": "csv下载",
+  "download_with_title": "是否需要表头",
+  "with_title": "是",
+  "without_title": "否"
 }

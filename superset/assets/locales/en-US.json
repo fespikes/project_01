@@ -128,5 +128,10 @@
   "dimension": "Dimension",
   "polymerization_function": "Polymerization function",
 
-  "please_select": "Please Select"
+  "please_select": "Please Select",
+  "csv_download": "csv download",
+  "download_with_title": "Need column names",
+  "with_title": "Yes",
+  "without_title": "No"
+
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Button, ButtonGroup, ProgressBar } from 'react-bootstrap';
+import { Alert, Button, Col, Modal, ButtonGroup, ProgressBar } from 'react-bootstrap';
 import { Table } from 'reactable';
 import shortid from 'shortid';
 import { Input } from 'antd';
@@ -38,7 +38,11 @@ class ResultSet extends React.PureComponent {
             searchText: '',
             showModal: false,
             data: [],
+            cvsDownload: false,      // show the CVS confirm model
+            withTitle: true         // param of show header
         };
+        this.confirmCSVDownloadWithTitle = this.confirmCSVDownloadWithTitle.bind(this);
+        this.setCSVDownloadState = this.setCSVDownloadState.bind(this);
     }
     componentWillReceiveProps(nextProps) {
         // when new results comes in, save them locally and clear in store
@@ -51,12 +55,24 @@ class ResultSet extends React.PureComponent {
             );
         }
     }
+    confirmCSVDownloadWithTitle() {
+        const url = PILOT_PREFIX + 'csv/' + this.props.query.id + '?header=' + this.state.withTitle;
+        this.setState({cvsDownload: false})
+        window.open(url);
+    }
+    setCSVDownloadState(withTitle) {
+        const tr = document.querySelector('.true');
+        this.setState({withTitle: tr.checked});
+    }
     getControls() {
         if (this.props.search || this.props.visualize || this.props.csv) {
             let csvButton;
             if (this.props.csv) {
                 csvButton = (
-                    <Button bsSize="small" href={PILOT_PREFIX + 'csv/' + this.props.query.id}>
+                    <Button 
+                        onClick={_ => this.setState({cvsDownload: true, withTitle: true})}
+                        bsSize="small"
+                    >
                         <i className="fa fa-file-text-o" /> .CSV
                     </Button>
                 );
@@ -68,7 +84,7 @@ class ResultSet extends React.PureComponent {
                         bsSize="small"
                         onClick={this.showModal.bind(this)}
                     >
-                        <i className="fa fa-bar-chart m-l-1" />{intl.get('创建工作表')}
+                        <i className="fa fa-bar-chart m-l-1" />{intl.get('create_slice')}
                     </Button>
                 );
             }
@@ -91,6 +107,58 @@ class ResultSet extends React.PureComponent {
                             {csvButton}
                         </ButtonGroup>
                         {searchBox}
+                        {/*S: below is the confirm download column title model*/}
+                        <div className="VisualizeModal" style={{display: this.state.cvsDownload?'': 'none'}}>
+                            <Modal show={this.state.cvsDownload} >
+                                <Modal.Header>
+                                    <div className="popup-header">
+                                        <div className="header-left">
+                                            <span>{intl.get('csv_download')}</span>
+                                        </div>
+                                        <div className="header-right">
+                                            <i className="icon icon-close" onClick={_ => this.setState({cvsDownload: false})}/>
+                                        </div>
+                                    </div>
+                                </Modal.Header>
+
+                                <Modal.Body style={{maxHeight: 150}}>
+                                    <div className="row">
+                                        <Col md={6}>
+                                            <span className="if-download">{intl.get('download_with_title')}:</span>
+                                            <label>
+                                                <input 
+                                                    className="cvs-radio true" 
+                                                    type="radio" 
+                                                    name="header"
+                                                    onChange={this.setCSVDownloadState}
+                                                    checked={!!this.state.withTitle?true: false}
+                                                />
+                                                {intl.get('with_title')}
+                                            </label>
+                                            <label>
+                                                <input 
+                                                    className="cvs-radio false" 
+                                                    type="radio" 
+                                                    name="header"
+                                                    onChange={this.setCSVDownloadState}
+                                                />
+                                                {intl.get('without_title')}
+                                            </label>
+                                        </Col>
+                                    </div>
+                                    <div style={{textAlign: 'center'}}>
+                                        <button
+                                            onClick={this.confirmCSVDownloadWithTitle}
+                                            className="tp-btn tp-btn-middle tp-btn-primary"
+                                            disabled={(!this.state.cvsDownload)}
+                                        >
+                                            <span style={{color: '#fff'}}>{intl.get('download')}</span>
+                                        </button>
+                                    </div>
+                                </Modal.Body>
+                            </Modal>
+                        </div>
+                        {/*E: below is the confirm download column title model*/}
                     </div>
                 </div>
             );
