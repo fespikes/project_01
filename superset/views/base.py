@@ -37,7 +37,6 @@ def catch_exception(f):
         try:
             return f(self, *args, **kwargs)
         except sqla.exc.IntegrityError as ie:
-
             logging.exception(ie)
             if 'Duplicate entry' in str(ie):
                 return json_response(status=500, message=UPDATE_FAILED, code=1)
@@ -47,10 +46,11 @@ def catch_exception(f):
             logging.exception(e)
             return json_response(status=500, message=e.message, code=e.code)
         except AttributeError as e:
-            logging.exception(e)
             if 'AnonymousUserMixin' in str(e):
+                logging.error(e)
                 return redirect(appbuilder.get_url_for_logout)
             else:
+                logging.exception(e)
                 return json_response(status=500, message=str(e), code=1)
         except Exception as e:
             logging.exception(e)

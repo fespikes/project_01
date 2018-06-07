@@ -48,15 +48,14 @@ def dedup(l, suffix='__'):
 @celery_app.task(bind=True)
 def get_sql_results(self, query_id, return_results=True, store_results=False):
     """Executes the sql query returns the results."""
-    if not self.request.called_directly:
-        engine = sqlalchemy.create_engine(
-            app.config.get('SQLALCHEMY_DATABASE_URI'), poolclass=NullPool)
-        session_class = sessionmaker()
-        session_class.configure(bind=engine)
-        session = session_class()
-    else:
-        session = db.session()
-        session.commit()  # HACK
+    # if not self.request.called_directly:
+    #     engine = sqlalchemy.create_engine(
+    #         app.config.get('SQLALCHEMY_DATABASE_URI'), poolclass=NullPool)
+    #     session_class = sessionmaker()
+    #     session_class.configure(bind=engine)
+    #     session = session_class()
+    # else:
+    session = db.session()
     query = session.query(models.Query).filter_by(id=query_id).one()
     database = query.database
     db_engine_spec = database.db_engine_spec
@@ -76,13 +75,11 @@ def get_sql_results(self, query_id, return_results=True, store_results=False):
     superset_query = SupersetQuery(query.sql)
     executed_sql = superset_query.stripped()
     if not superset_query.is_select() and not database.allow_dml:
-        handle_error(
-            "Only `SELECT` statements are allowed against this database")
+        handle_error("Only `SELECT` statements are allowed against this database")
     if query.select_as_cta:
         if not superset_query.is_select():
             handle_error(
-                "Only `SELECT` statements can be used with the CREATE TABLE "
-                "feature.")
+                "Only `SELECT` statements can be used with the CREATE TABLE feature.")
         if not query.tmp_table_name:
             start_dttm = datetime.fromtimestamp(query.start_time)
             query.tmp_table_name = 'tmp_{}_table_{}'.format(
@@ -90,32 +87,34 @@ def get_sql_results(self, query_id, return_results=True, store_results=False):
                 start_dttm.strftime('%Y_%m_%d_%H_%M_%S'))
         executed_sql = superset_query.as_create_table(query.tmp_table_name)
         query.select_as_cta_used = True
-    elif (
-            query.limit and superset_query.is_select() and
-            db_engine_spec.limit_method == LimitMethod.WRAP_SQL):
+    elif query.limit and superset_query.is_select() and \
+                    db_engine_spec.limit_method == LimitMethod.FETCH_MANY:
         executed_sql = database.wrap_sql_limit(executed_sql, query.limit)
         query.limit_used = True
-    engine = database.get_sqla_engine(schema=query.schema)
+
     try:
-        template_processor = get_template_processor(
-            database=database, query=query)
+        template_processor = get_template_processor(database=database, query=query)
         executed_sql = template_processor.process_template(executed_sql)
         executed_sql = db_engine_spec.sql_preprocessor(executed_sql)
     except Exception as e:
         logging.exception(e)
         msg = "Template rendering failed: " + utils.error_msg_from_exception(e)
         handle_error(msg)
+
     try:
         query.executed_sql = executed_sql
+        query.status = QueryStatus.RUNNING
+        session.flush()
+        #session.close()
+
+        engine = database.get_sqla_engine(schema=query.schema)
         logging.info("Running query: \n{}".format(executed_sql))
-        result_proxy = engine.execute(query.executed_sql)
+        result_proxy = engine.execute(executed_sql)
     except Exception as e:
         logging.exception(e)
         handle_error(utils.error_msg_from_exception(e))
 
     cursor = result_proxy.cursor
-    query.status = QueryStatus.RUNNING
-    session.flush()
     db_engine_spec.handle_cursor(cursor, query, session)
 
     cdf = None
@@ -126,43 +125,38 @@ def get_sql_results(self, query_id, return_results=True, store_results=False):
             data = result_proxy.fetchmany(query.limit)
         else:
             data = result_proxy.fetchall()
-        cdf = dataframe.SupersetDataFrame(
-            pd.DataFrame(data, columns=column_names))
+        cdf = dataframe.SupersetDataFrame(pd.DataFrame(data, columns=column_names))
 
+    query = session.query(models.Query).filter_by(id=query_id).one()
     query.rows = result_proxy.rowcount
     query.progress = 100
     query.status = QueryStatus.SUCCESS
     if query.rows == -1 and cdf:
         # Presto doesn't provide result_proxy.row_count
         query.rows = cdf.size
-    if query.select_as_cta:
-        query.select_sql = '{}'.format(database.select_sql(
-            query.tmp_table_name,
-            limit=query.limit,
-            schema=database.force_ctas_schema
-        ))
+    # if query.select_as_cta:
+    #     query.select_sql = '{}'.format(database.select_sql(
+    #         query.tmp_table_name,
+    #         limit=query.limit,
+    #         schema=database.force_ctas_schema
+    #     ))
     query.end_time = utils.now_as_float()
     session.flush()
 
-    payload = {
-        'query_id': query.id,
-        'status': query.status,
-        'data': [],
-    }
+    payload = {'query_id': query.id, 'status': query.status}
     payload['data'] = cdf.data if cdf else []
     payload['columns'] = cdf.columns_dict if cdf else []
     payload['query'] = query.to_dict()
     payload = json.dumps(payload, default=utils.json_iso_dttm_ser)
 
-    if store_results:
-        key = '{}'.format(uuid.uuid4())
-        logging.info("Storing results in results backend, key: {}".format(key))
-        results_backend.set(key, zlib.compress(payload))
-        query.results_key = key
+    # if store_results:
+    #     key = '{}'.format(uuid.uuid4())
+    #     logging.info("Storing results in results backend, key: {}".format(key))
+    #     results_backend.set(key, zlib.compress(payload))
+    #     query.results_key = key
 
     session.flush()
     session.commit()
-
     if return_results:
         return payload
 
@@ -205,28 +199,24 @@ def store_sql_results_to_hdfs(sql, engine):
     tmp_table = 'pilot_sqllab_{ts}'.format(ts=ts).lower()
     path = '/tmp/pilot/{}/'.format(tmp_table)
 
-    connect = engine.connect()
-    try:
-        drop_sql = 'DROP TABLE IF EXISTS {}'.format(tmp_table)
-        _execute(connect, drop_sql)
+    drop_sql = 'DROP TABLE IF EXISTS {}'.format(tmp_table)
+    _execute(engine, drop_sql)
 
-        sql = "CREATE TABLE {table} STORED AS CSVFILE LOCATION '{path}' as {sql}"\
-            .format(table=tmp_table, path=path, sql=sql)
-        _execute(connect, sql)
+    sql = "CREATE TABLE {table} STORED AS CSVFILE LOCATION '{path}' as {sql}"\
+        .format(table=tmp_table, path=path, sql=sql)
+    _execute(engine, sql)
 
-        sql = "SET ngmr.partition.automerge=TRUE"
-        _execute(connect, sql)
-        sql = "SET ngmr.partition.mergesize.mb=180"
-        _execute(connect, sql)
+    sql = "SET ngmr.partition.automerge=TRUE"
+    _execute(engine, sql)
+    sql = "SET ngmr.partition.mergesize.mb=180"
+    _execute(engine, sql)
 
-        sql = "INSERT OVERWRITE TABLE {table} SELECT * FROM {table}".format(table=tmp_table)
-        _execute(connect, sql)
-        return tmp_table, path
-    finally:
-        connect.close()
+    sql = "INSERT OVERWRITE TABLE {table} SELECT * FROM {table}".format(table=tmp_table)
+    _execute(engine, sql)
+    return tmp_table, path
 
 
 @sql_timeout
-def _execute(connect, sql):
+def _execute(engine, sql):
     logging.info(sql)
-    connect.execute(sql)
+    engine.execute(sql)

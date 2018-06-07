@@ -156,7 +156,7 @@ class Database(Model, AuditMixinNullable, ImportMixin):
             sql = sqlparse.format(sql, reindent=True)
         return sql
 
-    def wrap_sql_limit(self, sql, limit=1000):
+    def wrap_sql_limit(self, sql, limit=100):
         qry = (
             select('*')
                 .select_from(TextAsFrom(text(sql), ['*'])

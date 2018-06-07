@@ -7,6 +7,7 @@ from flask import g, request, redirect, flash, Response
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
 from sqlalchemy import create_engine
+from urllib.parse import quote
 
 from superset import app, cache, db, sql_lab, results_backend, viz, utils
 from superset.timeout_decorator import connection_timeout
@@ -521,7 +522,6 @@ class Superset(BaseSupersetView, PermissionManagement):
         connect_args = Database.append_args(connect_args)
         engine = create_engine(uri, connect_args=connect_args)
         try:
-            engine.connect()
             tables = engine.table_names()
             return json_response(data=tables)
         except Exception as e:
@@ -768,24 +768,21 @@ class Superset(BaseSupersetView, PermissionManagement):
         """Runs arbitrary sql and returns and json"""
         sql = request.form.get('sql')
         database_id = request.form.get('database_id')
+        schema = request.form.get('schema', None)
 
         session = db.session()
-        mydb = session.query(Database).filter_by(id=database_id).one()
-
+        mydb = session.query(Database).filter_by(id=database_id).first()
         if not mydb:
             raise PropertyException(
                 'Database with id {} is missing.'.format(database_id))
 
-        schema = request.form.get('schema')
-        schema = schema if schema else None
-
-        select_as_cta = request.form.get('select_as_cta') == 'true'
         tmp_table_name = request.form.get('tmp_table_name')
-        if select_as_cta and mydb.force_ctas_schema:
-            tmp_table_name = '{}.{}'.format(
-                mydb.force_ctas_schema,
-                tmp_table_name
-            )
+        # select_as_cta = request.form.get('select_as_cta') == 'true'
+        # if select_as_cta and mydb.force_ctas_schema:
+        #     tmp_table_name = '{}.{}'.format(
+        #         mydb.force_ctas_schema,
+        #         tmp_table_name
+        #     )
 
         query = Query(
             database_id=int(database_id),
@@ -803,22 +800,23 @@ class Superset(BaseSupersetView, PermissionManagement):
         )
         session.add(query)
         session.commit()
-        query_id = query.id
 
-        data = sql_lab.get_sql_results(query_id, return_results=True)
+        data = sql_lab.get_sql_results(query.id, return_results=True)
         return json_response(data=json.loads(data))
 
     @catch_exception
     @expose("/csv/<client_id>/")
     def csv(self, client_id):
         """Download the query results as csv."""
-        with_header = request.args.get('header', 'true')
-        with_header = True if with_header.lower() == 'true' else False
+        with_header = request.args.get('header') == 'true'
 
-        query = db.session.query(Query).filter_by(client_id=client_id).one()
+        session = db.session()
+        query = session.query(Query).filter_by(client_id=client_id).one()
         sql = query.select_sql or query.sql
         database = query.database
+        session.close()
         stored_in_hdfs = True if database.is_inceptor else False
+        filename = quote('{}.csv'.format(query.name), encoding="utf-8")
 
         if stored_in_hdfs:
             engine = database.get_sqla_engine(schema=query.schema, use_pool=False)
@@ -843,7 +841,7 @@ class Superset(BaseSupersetView, PermissionManagement):
 
             response = Response(bytes(data), content_type='application/octet-stream')
             response.headers['Content-Disposition'] = \
-                "attachment; filename={}.csv".format(query.name)
+                "attachment; filename={}".format(filename)
             return response
         else:
             df = query.database.get_df(sql, query.schema)
@@ -851,7 +849,7 @@ class Superset(BaseSupersetView, PermissionManagement):
             csv = df.to_csv(index=False, header=with_header, encoding='utf-8')
             response = Response(csv, mimetype='text/csv')
             response.headers['Content-Disposition'] = \
-                'attachment; filename={}.csv'.format(query.name)
+                'attachment; filename={}'.format(filename)
             return response
 
     @catch_exception
