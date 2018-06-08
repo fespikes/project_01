@@ -1,9 +1,12 @@
+from datetime import datetime
 import logging
 import json
 import functools
 import os
 import requests
+import shutil
 import threading
+import zipfile
 from urllib.parse import quote
 from flask import g, request, redirect, Response
 from flask_appbuilder import expose
@@ -65,6 +68,7 @@ def catch_hdfs_exception(f):
 class HDFSBrowser(BaseSupersetView):
     route_base = '/hdfs'
     file_block_size = config.get('FILE_BLOCK_LENGTH')
+    special_folders = ['.', '..', '.Trash']
 
     @catch_exception
     @expose('/')
@@ -113,13 +117,12 @@ class HDFSBrowser(BaseSupersetView):
         return json_response(data=data, status=response.status_code)
 
     @catch_hdfs_exception
-    @expose('/download/', methods=['GET'])
+    @expose('/download/', methods=['POST'])
     def download(self):
         client = self.get_client()
-        path = request.args.get('path')
-        filename = quote(os.path.basename(path), encoding="utf-8")
-        logging.info('[HDFS] download {}'.format(path))
-        data = self.read_file(client, path)
+        args = self.get_request_data()
+        paths = args.get('paths')
+        data, filename = self.multi_download(client, paths)
         response = Response(bytes(data), content_type='application/octet-stream')
         response.headers['Content-Disposition'] = "attachment; filename=" + filename
         return response
@@ -353,3 +356,99 @@ class HDFSBrowser(BaseSupersetView):
             else:
                 pass
         return all_data
+
+    @classmethod
+    def multi_download(cls, client, paths):
+        """Download multiple files and folders
+        :param client: Filerobot client
+        :param paths: {'files': [], 'folders': []}
+        :return: data of zip file and filename
+        """
+        if not isinstance(paths, dict):
+            raise ParameterException("Parameter 'paths' should be 'dict'")
+        files = paths.get('files')
+        folders = paths.get('folders')
+        len_files = len(files)
+        len_folders = len(folders)
+
+        if len_files == 0 and len_folders == 0:
+            raise ParameterException("Parameter 'paths' should not be empty")
+
+        ts = datetime.now().isoformat()
+        ts = ts.replace('-', '').replace(':', '').split('.')[0]
+        root_path = os.path.join(config.get("GLOBAL_FOLDER"), "download")
+        if os.path.exists(root_path):
+            shutil.rmtree(root_path)
+
+        if len_files == 1 and len_folders == 0:  # Only one file
+            hdfs_path = files[0]
+            filename = os.path.basename(hdfs_path)
+            data = cls.read_file(client, hdfs_path)
+            return data, quote(filename, encoding="utf-8")
+        elif len_files == 0 and len_folders == 1:  # Only one folder
+            hdfs_path = folders[0]
+            local_path = os.path.join(root_path, os.path.basename(hdfs_path))
+            cls.download_folder(client, hdfs_path, local_path)
+            filepath = os.path.join(root_path, '{}.zip'.format(os.path.basename(hdfs_path)))
+            data, filename = cls.zip_folder(local_path, filepath)
+            return data, filename
+        else:
+            work_path = os.path.join(root_path, ts)
+            if not os.path.exists(work_path):
+                os.makedirs(work_path)
+            for file in files:
+                cls.download_file(client,
+                                  file,
+                                  os.path.join(work_path, os.path.basename(file)))
+            for folder in folders:
+                cls.download_folder(client,
+                                    folder,
+                                    os.path.join(work_path, os.path.basename(folder)))
+            filepath = os.path.join(root_path, 'hdfs_{}.zip'.format(ts))
+            data, filename = cls.zip_folder(work_path, filepath)
+            return data, filename
+
+    @classmethod
+    def download_file(cls, client, hdfs_path, local_path):
+        logging.info("[HDFS] download hdfs file [{}] to local [{}]"
+                     .format(hdfs_path, local_path))
+        data = cls.read_file(client, hdfs_path)
+        with open(local_path, "wb") as f:
+            f.write(data)
+
+    @classmethod
+    def download_folder(cls, client, hdfs_path, local_path):
+        logging.info("[HDFS] download hdfs folder [{}] to local [{}]"
+                     .format(hdfs_path, local_path))
+        os.makedirs(local_path)
+
+        response = client.list(hdfs_path, page_size=1000)
+        files_json = json.loads(response.text)
+        paths = files_json.get('files')
+
+        for path in paths:
+            name = path.get('name')
+            if name not in cls.special_folders:
+                ptype = path.get('type')
+                hdfs_path = path.get('path')
+                local_path = os.path.join(local_path, name)
+                if ptype == 'dir':
+                    cls.download_folder(client, hdfs_path, local_path)
+                elif ptype == 'file':
+                    cls.download_file(client, hdfs_path, local_path)
+
+    @classmethod
+    def zip_folder(cls, source_path, dest_file):
+        logging.info('[HDFS] zip [{}] to [{}]'.format(source_path, dest_file))
+        zipf = zipfile.ZipFile(dest_file, 'w')
+        pre_len = len(os.path.dirname(source_path))
+        for parent, dirnames, filenames in os.walk(source_path):
+            for filename in filenames:
+                pathfile = os.path.join(parent, filename)
+                arcname = pathfile[pre_len:].strip(os.path.sep)
+                zipf.write(pathfile, arcname)
+        zipf.close()
+
+        with open(dest_file, 'rb') as f:
+            data = f.read()
+        return data, quote(os.path.basename(dest_file), encoding="utf-8")
