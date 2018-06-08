@@ -198,25 +198,26 @@ def store_sql_results_to_hdfs(sql, engine):
     ts = ts.replace('-', '').replace(':', '').split('.')[0]
     tmp_table = 'pilot_sqllab_{ts}'.format(ts=ts).lower()
     path = '/tmp/pilot/{}/'.format(tmp_table)
+    connect = engine.connect()
 
     drop_sql = 'DROP TABLE IF EXISTS {}'.format(tmp_table)
-    _execute(engine, drop_sql)
+    _execute(connect, drop_sql)
 
     sql = "CREATE TABLE {table} STORED AS CSVFILE LOCATION '{path}' as {sql}"\
         .format(table=tmp_table, path=path, sql=sql)
-    _execute(engine, sql)
+    _execute(connect, sql)
 
     sql = "SET ngmr.partition.automerge=TRUE"
-    _execute(engine, sql)
+    _execute(connect, sql)
     sql = "SET ngmr.partition.mergesize.mb=180"
-    _execute(engine, sql)
+    _execute(connect, sql)
 
     sql = "INSERT OVERWRITE TABLE {table} SELECT * FROM {table}".format(table=tmp_table)
-    _execute(engine, sql)
+    _execute(connect, sql)
     return tmp_table, path
 
 
 @sql_timeout
-def _execute(engine, sql):
+def _execute(connect, sql):
     logging.info(sql)
-    engine.execute(sql)
+    connect.execute(sql)
