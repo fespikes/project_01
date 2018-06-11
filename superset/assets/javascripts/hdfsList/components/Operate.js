@@ -41,6 +41,10 @@ class Operate extends React.Component {
                 name: intl.get('copy')
             },
             {
+                id: CONSTANT.download,
+                name: intl.get('download')
+            },
+            {
                 id: CONSTANT.auth,
                 name: intl.get('chang_right')
             }
@@ -82,7 +86,7 @@ class Operate extends React.Component {
 
         let normalPopupParam = {};
         if (condition.selectedRows.length !== 0 || _.indexOf([CONSTANT.mkdir, CONSTANT.touch], popupType) >= 0) {
-            if (popupType === CONSTANT.auth || popupType === CONSTANT.copy || popupType === CONSTANT.move) {
+            if (popupType === CONSTANT.auth || popupType === CONSTANT.copy || popupType === CONSTANT.move || popupType === CONSTANT.download) {
                 normalPopupParam = {
                     ...obj,
                     popupType: popupType,

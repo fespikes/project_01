@@ -140,7 +140,10 @@ class Popup extends React.Component {
     }
 
     submit() {
-        this.props.popupNormalParam.submit();
+        const popupNormalParam = this.props.popupNormalParam;
+        popupNormalParam.submit();
+
+        popupNormalParam.popupType === CONSTANT.download && this.closeDialog();
     }
 
     render() {
@@ -165,6 +168,9 @@ class Popup extends React.Component {
                     break;
                 case CONSTANT.copy:
                     title = intl.get('copy_to');
+                    break;
+                case CONSTANT.download:
+                    title = intl.get('download');
                     break;
                 case CONSTANT.auth:
                     title = intl.get('change_auth');
@@ -243,6 +249,24 @@ class Popup extends React.Component {
                                         setPopupNormalParams={setPopupNormalParams}
                                     />
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    break;
+                case CONSTANT.download:
+                    return <div
+                        className="popup-body move"
+                        style={{
+                        height: '200px'
+                        }}
+                    >
+                        <div id="hdfs-tree-select" className="hdfs-tree-select"></div>
+                        <div className="dialog-item">
+                            <div className="item-left">
+                                <span></span>
+                            </div>
+                            <div className="item-right">
+                                {intl.get('download_tip')} ?
                             </div>
                         </div>
                     </div>

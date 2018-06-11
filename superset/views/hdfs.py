@@ -117,12 +117,14 @@ class HDFSBrowser(BaseSupersetView):
         return json_response(data=data, status=response.status_code)
 
     @catch_hdfs_exception
-    @expose('/download/', methods=['POST'])
+    @expose('/download/', methods=['GET'])
     def download(self):
         client = self.get_client()
-        args = self.get_request_data()
-        paths = args.get('paths')
-        data, filename = self.multi_download(client, paths)
+        files = request.args.get('files', None)
+        folders = request.args.get('folders', None)
+        files = files.split(',') if files else []
+        folders = folders.split(',') if folders else []
+        data, filename = self.multi_download(client, {'files': files, 'folders': folders})
         response = Response(bytes(data), content_type='application/octet-stream')
         response.headers['Content-Disposition'] = "attachment; filename=" + filename
         return response
@@ -431,11 +433,11 @@ class HDFSBrowser(BaseSupersetView):
             if name not in cls.special_folders:
                 ptype = path.get('type')
                 hdfs_path = path.get('path')
-                local_path = os.path.join(local_path, name)
+                local_path2 = os.path.join(local_path, name)
                 if ptype == 'dir':
-                    cls.download_folder(client, hdfs_path, local_path)
+                    cls.download_folder(client, hdfs_path, local_path2)
                 elif ptype == 'file':
-                    cls.download_file(client, hdfs_path, local_path)
+                    cls.download_file(client, hdfs_path, local_path2)
 
     @classmethod
     def zip_folder(cls, source_path, dest_file):

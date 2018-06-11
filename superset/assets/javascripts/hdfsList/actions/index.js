@@ -39,6 +39,7 @@ export const CONSTANT = {
 
     move: 'move',
     copy: 'copy',
+    download: 'download',
     auth: 'auth',
     upload: 'upload',
     remove: 'remove',
@@ -109,6 +110,9 @@ export function fetchOperation(param) {
             break;
         case CONSTANT.auth:
             submit = fetchAuth;
+            break;
+        case CONSTANT.download:
+            submit = fetchDownload;
             break;
         case CONSTANT.upload:
             submit = fetchUpload;
@@ -269,40 +273,70 @@ function fetchRemove() {
 
 export function fetchDownload() {
     return (dispatch, getState) => {
-        const fileReducer = getState().fileReducer;
-        const path = fileReducer.path;
-        const name = fileReducer.name;
-        const URL = baseURL + `download/?` +
-        (path ? ('path=' + path + '&') : '');
-        // dispatch(switchFetchingStatus(true));
+        // TODO: file download in detaild page
+        const state = getState();
+        let URL = baseURL + `download/?`;
+        const selectedRows = state.condition.selectedRows;
+
+        if (selectedRows.length > 0) {
+            const paths = {
+                files: [],
+                folders: []
+            };
+
+            selectedRows.forEach(item => {
+                switch (item.type) {
+                case 'dir':
+                    paths.folders.push(item.path);
+                    break;
+                case 'file':
+                    paths.files.push(item.path);
+                    break;
+                default:
+                    console.log('no type');
+                    return;
+                }
+            });
+
+            paths.files.length > 0 && (URL += ('files=' + paths.files.toLocaleString()) + `&`);
+            paths.folders.length > 0 && (URL += ('folders=' + paths.folders.toLocaleString()));
+        } else {
+            const fileReducer = state.fileReducer;
+            const path = fileReducer.path;
+            URL += ('files=' + path);
+        }
         window.open(URL, '_blank', 'toolbar=yes, location=yes, status=yes, menubar=yes, scrollbars=yes');
+
     /*return fetch(URL, {
         credentials: 'include',
-        method: 'GET'
+        method: 'POST',
+        body: JSON.stringify({
+            paths: paths
+        })
     }).then(always).then(json).then(
-        response => {
-            if (response.status === 200) {
-                let aLink = document.createElement('a');
-                const data = response.data;
-                let blob = new Blob([data], {
-                    type: 'plain/text',
-                    endings: 'native'
-                });
-                let url = window.URL.createObjectURL(blob);
-                aLink.href = url;
-                aLink.download = name;
-                // aLink.click();     
-                // not compatable with Firefox, changed to use below method:
+    response => {
+        if (response.status === 200) {
+            let aLink = document.createElement('a');
+            const data = response.data;
+            let blob = new Blob([data], {
+                type: 'plain/text',
+                endings: 'native'
+            });
+            let url = window.URL.createObjectURL(blob);
+            aLink.href = url;
+            aLink.download = name;
+            // aLink.click();     
+            // not compatable with Firefox, changed to use below method:
 
-                var evt = document.createEvent("MouseEvents");
-                evt.initEvent("click", false, false);
-                aLink.dispatchEvent(evt);
-                window.URL.revokeObjectURL(url);
-            } else {
-                renderGlobalErrorMsg(response.message);
-            }
-            dispatch(switchFetchingStatus(false));
+            var evt = document.createEvent("MouseEvents");
+            evt.initEvent("click", false, false);
+            aLink.dispatchEvent(evt);
+            window.URL.revokeObjectURL(url);
+        } else {
+            renderGlobalErrorMsg(response.message);
         }
+        dispatch(switchFetchingStatus(false));
+    }
     );*/
     }
 }
@@ -518,11 +552,11 @@ export function fetchIfNeeded(condition) {
 }
 
 export function setSelectedRows(selectedRows, selectedRowKeys, selectedRowNames) {
-    selectedRowNames.length > 1 && selectedRowNames.forEach((name, idx) => {
-        if (name === '".."') {
-            selectedRows.splice(idx, 1);
-            selectedRowKeys.splice(idx, 1);
-            selectedRowNames.splice(idx, 1);
+    selectedRowNames && (selectedRowNames.length > 1) && selectedRowNames.forEach((name, idx) => {
+        if (name === '".."' || name === '"."') {
+            selectedRows = selectedRows.splice(idx, 1);
+            selectedRowKeys = selectedRowKeys.sort((a, b) => (a - b)).splice(idx, 1);
+            selectedRowNames = selectedRowNames.splice(idx, 1);
         }
     });
 
