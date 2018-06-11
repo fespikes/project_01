@@ -719,17 +719,20 @@ class Dataset(Model, Queryable, AuditMixinNullable, ImportMixin):
             self.main_dttm_col = self.temp_columns[0].name
 
     def fetch_metadata(self):
-        """Fetches the metadata for the table and merges it in"""
-        old_column_names = [c.name for c in self.ref_columns]
-        old_metric_names = [m.name for m in self.ref_metrics]
+        """Fetches the metadata for the table and merges it in.
+        TableColumn.column_name and SqlMetric.metric_name are not case sensitive,
+        so need to compare with xxx_name.lower().
+        """
+        old_column_names = [c.name.lower() for c in self.ref_columns]
+        old_metric_names = [m.name.lower() for m in self.ref_metrics]
 
         new_columns, new_metrics = self.generate_columns_and_metrics()
         for c in new_columns:
-            if c.name not in old_column_names:
+            if c.name.lower() not in old_column_names:
                 c.dataset_id = self.id
                 self.ref_columns.append(c)
         for m in new_metrics:
-            if m.name not in old_metric_names:
+            if m.name.lower() not in old_metric_names:
                 m.dataset_id = self.id
                 self.ref_metrics.append(m)
 

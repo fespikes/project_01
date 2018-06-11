@@ -215,10 +215,11 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
     @expose('/preview_data/', methods=['GET', ])
     def preview_table(self):
         dataset_id = request.args.get('dataset_id', 0)
-        database_id = request.args.get('database_id')
-        full_tb_name = request.args.get('full_tb_name')
+        database_id = request.args.get('database_id', None)
+        full_tb_name = request.args.get('full_tb_name', None)
         rows = request.args.get('rows', 100)
-        if database_id and full_tb_name:
+        if database_id and full_tb_name and 'undifined' not in database_id \
+                and 'undefined' not in full_tb_name:
             dataset = Dataset.temp_dataset(database_id, full_tb_name, need_columns=False)
             data = dataset.preview_data(limit=rows)
         elif int(dataset_id) > 0:
