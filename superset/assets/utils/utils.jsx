@@ -5,7 +5,7 @@ import {LoadingModal, ConfirmModal, PermPopup} from '../javascripts/common/compo
 import {MESSAGE_DURATION, always, json, callbackHandler} from '../javascripts/global.jsx';
 import fetch from 'isomorphic-fetch';
 
-import intl from "react-intl-universal";
+import intl from "../intl";
 import http from "axios";
 import _ from "lodash";
 import SUPPOER_LOCALES from '../javascripts/support_locales';
@@ -177,7 +177,7 @@ export function getAntdLocale(zhCN, enUS) {
 
 //load intl resources at the very beginning or from cache
 export function loadIntlResources(callback, module) {
-    let  localePath = '/static/assets/locales/';
+    let  localePath = '/static/assets/intl/locales/';
     if(module) {
         localePath = localePath + module + '/';
     }
