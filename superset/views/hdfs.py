@@ -6,7 +6,6 @@ import os
 import requests
 import shutil
 import threading
-import zipfile
 from urllib.parse import quote
 from flask import g, request, redirect, Response
 from flask_appbuilder import expose
@@ -19,9 +18,7 @@ from fileRobot_common.exception.FileRobotException import FileRobotException
 from superset import app, db, appbuilder
 from superset.cache import TokenCache, FileRobotCache
 from superset.message import *
-from superset.exception import (
-    SupersetException, ParameterException, LoginException, HDFSException
-)
+from superset.exception import SupersetException, ParameterException, LoginException
 from superset.models import HDFSConnection
 from superset.utils import human_size
 from .base import BaseSupersetView, catch_exception, json_response
@@ -391,11 +388,10 @@ class HDFSBrowser(BaseSupersetView):
             hdfs_path = folders[0]
             local_path = os.path.join(root_path, os.path.basename(hdfs_path))
             cls.download_folder(client, hdfs_path, local_path)
-            filepath = os.path.join(root_path, '{}.zip'.format(os.path.basename(hdfs_path)))
-            data, filename = cls.zip_folder(local_path, filepath)
+            data, filename = cls.zip_folder(local_path)
             return data, filename
         else:
-            work_path = os.path.join(root_path, ts)
+            work_path = os.path.join(root_path, 'hdfs_{}'.format(ts))
             if not os.path.exists(work_path):
                 os.makedirs(work_path)
             for file in files:
@@ -406,8 +402,7 @@ class HDFSBrowser(BaseSupersetView):
                 cls.download_folder(client,
                                     folder,
                                     os.path.join(work_path, os.path.basename(folder)))
-            filepath = os.path.join(root_path, 'hdfs_{}.zip'.format(ts))
-            data, filename = cls.zip_folder(work_path, filepath)
+            data, filename = cls.zip_folder(work_path)
             return data, filename
 
     @classmethod
@@ -440,17 +435,10 @@ class HDFSBrowser(BaseSupersetView):
                     cls.download_file(client, hdfs_path, local_path2)
 
     @classmethod
-    def zip_folder(cls, source_path, dest_file):
-        logging.info('[HDFS] zip [{}] to [{}]'.format(source_path, dest_file))
-        zipf = zipfile.ZipFile(dest_file, 'w')
-        pre_len = len(os.path.dirname(source_path))
-        for parent, dirnames, filenames in os.walk(source_path):
-            for filename in filenames:
-                pathfile = os.path.join(parent, filename)
-                arcname = pathfile[pre_len:].strip(os.path.sep)
-                zipf.write(pathfile, arcname)
-        zipf.close()
-
-        with open(dest_file, 'rb') as f:
+    def zip_folder(cls, folder_path):
+        logging.info('[HDFS] zip [{0}] to [{0}].zip'.format(folder_path))
+        shutil.make_archive(folder_path, 'zip', folder_path)
+        zip_file = '{}.zip'.format(folder_path)
+        with open(zip_file, 'rb') as f:
             data = f.read()
-        return data, quote(os.path.basename(dest_file), encoding="utf-8")
+        return data, quote(os.path.basename(zip_file), encoding="utf-8")
