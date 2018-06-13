@@ -71,7 +71,8 @@
   "execute": "执行",
 
   "_below are for sqllab module": "",
-  "copy_to_clipboard": "复制URL到粘贴板",
+  "copy_URL_to_clipboard": "复制URL到粘贴板",
+  "copy_to_clipboard": "复制到粘贴板",
   "condition": "状态",
   "start_time": "开始时间",
   "begin": "开始",
