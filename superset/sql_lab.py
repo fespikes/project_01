@@ -3,12 +3,6 @@ from datetime import datetime
 import json
 import logging
 import pandas as pd
-import sqlalchemy
-import uuid
-import zlib
-
-from sqlalchemy.pool import NullPool
-from sqlalchemy.orm import sessionmaker
 
 from superset import (
     app, db, models, utils, dataframe, results_backend)
@@ -21,6 +15,9 @@ from superset.timeout_decorator import sql_timeout
 QueryStatus = models.QueryStatus
 
 celery_app = celery.Celery(config_source=app.config.get('CELERY_CONFIG'))
+
+
+INCEPTOR_WORK_SCHEMA = 'pilot'  # The schema used for download sql result as csv
 
 
 def dedup(l, suffix='__'):
@@ -74,20 +71,20 @@ def get_sql_results(self, query_id, return_results=True, store_results=False):
     # Limit enforced only for retrieving the data, not for the CTA queries.
     superset_query = SupersetQuery(query.sql)
     executed_sql = superset_query.stripped()
-    if not superset_query.is_select() and not database.allow_dml:
-        handle_error("Only `SELECT` statements are allowed against this database")
-    if query.select_as_cta:
-        if not superset_query.is_select():
-            handle_error(
-                "Only `SELECT` statements can be used with the CREATE TABLE feature.")
-        if not query.tmp_table_name:
-            start_dttm = datetime.fromtimestamp(query.start_time)
-            query.tmp_table_name = 'tmp_{}_table_{}'.format(
-                query.user_id,
-                start_dttm.strftime('%Y_%m_%d_%H_%M_%S'))
-        executed_sql = superset_query.as_create_table(query.tmp_table_name)
-        query.select_as_cta_used = True
-    elif query.limit and superset_query.is_select() and \
+    # if not superset_query.is_select() and not database.allow_dml:
+    #     handle_error("Only `SELECT` statements are allowed against this database")
+    # if query.select_as_cta:
+    #     if not superset_query.is_select():
+    #         handle_error(
+    #             "Only `SELECT` statements can be used with the CREATE TABLE feature.")
+    #     if not query.tmp_table_name:
+    #         start_dttm = datetime.fromtimestamp(query.start_time)
+    #         query.tmp_table_name = 'tmp_{}_table_{}'.format(
+    #             query.user_id,
+    #             start_dttm.strftime('%Y_%m_%d_%H_%M_%S'))
+    #     executed_sql = superset_query.as_create_table(query.tmp_table_name)
+    #     query.select_as_cta_used = True
+    if query.limit and superset_query.is_select() and \
                     db_engine_spec.limit_method == LimitMethod.FETCH_MANY:
         executed_sql = database.wrap_sql_limit(executed_sql, query.limit)
         query.limit_used = True
@@ -121,10 +118,11 @@ def get_sql_results(self, query_id, return_results=True, store_results=False):
     if result_proxy.cursor:
         column_names = [col[0] for col in result_proxy.cursor.description]
         column_names = dedup(column_names)
-        if db_engine_spec.limit_method == LimitMethod.FETCH_MANY:
-            data = result_proxy.fetchmany(query.limit)
-        else:
-            data = result_proxy.fetchall()
+        # if db_engine_spec.limit_method == LimitMethod.FETCH_MANY:
+        #     data = result_proxy.fetchmany(query.limit)
+        # else:
+        #     data = result_proxy.fetchall()
+        data = result_proxy.fetchall()
         cdf = dataframe.SupersetDataFrame(pd.DataFrame(data, columns=column_names))
 
     query = session.query(models.Query).filter_by(id=query_id).one()
@@ -187,24 +185,29 @@ def execute_sql(database_id, sql, schema=None):
     return payload
 
 
-def store_sql_results_to_hdfs(sql, engine):
+def store_sql_results_to_hdfs(select_sql, engine):
     """
     For inceptor, store the sql results to hdfs folders
-    :param sql: origin sql
+    :param sql: origin select sql
     :param engine: inceptor engine
     :return: temp table name and hdfs path storing results
     """
     ts = datetime.now().isoformat()
     ts = ts.replace('-', '').replace(':', '').split('.')[0]
-    tmp_table = 'pilot_sqllab_{ts}'.format(ts=ts).lower()
-    path = '/tmp/pilot/{}/'.format(tmp_table)
+    table_name = 'pilot_sqllab_{}'.format(ts).lower()
+    path = '/tmp/pilot/{}/'.format(table_name)
+    table_name = '{}.{}'.format(INCEPTOR_WORK_SCHEMA, table_name).lower()
+
     connect = engine.connect()
 
-    drop_sql = 'DROP TABLE IF EXISTS {}'.format(tmp_table)
-    _execute(connect, drop_sql)
+    sql = 'CREATE DATABASE IF NOT EXISTS {}'.format(INCEPTOR_WORK_SCHEMA)
+    _execute(connect, sql)
+
+    sql = 'DROP TABLE IF EXISTS {}'.format(table_name)
+    _execute(connect, sql)
 
     sql = "CREATE TABLE {table} STORED AS CSVFILE LOCATION '{path}' as {sql}"\
-        .format(table=tmp_table, path=path, sql=sql)
+        .format(table=table_name, path=path, sql=select_sql)
     _execute(connect, sql)
 
     sql = "SET ngmr.partition.automerge=TRUE"
@@ -212,9 +215,9 @@ def store_sql_results_to_hdfs(sql, engine):
     sql = "SET ngmr.partition.mergesize.mb=180"
     _execute(connect, sql)
 
-    sql = "INSERT OVERWRITE TABLE {table} SELECT * FROM {table}".format(table=tmp_table)
+    sql = "INSERT OVERWRITE TABLE {table} SELECT * FROM {table}".format(table=table_name)
     _execute(connect, sql)
-    return tmp_table, path
+    return table_name, path
 
 
 @sql_timeout

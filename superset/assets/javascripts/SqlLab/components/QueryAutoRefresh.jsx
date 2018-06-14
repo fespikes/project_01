@@ -5,7 +5,7 @@ import * as Actions from '../actions';
 import {PILOT_PREFIX} from '../../../utils/utils'
 
 const $ = require('jquery');
-const QUERY_UPDATE_FREQ = 1000;
+const QUERY_UPDATE_FREQ = 5000;
 const QUERY_UPDATE_BUFFER_MS = 5000;
 
 class QueryAutoRefresh extends React.PureComponent {

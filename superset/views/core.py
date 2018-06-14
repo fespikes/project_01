@@ -807,14 +807,18 @@ class Superset(BaseSupersetView, PermissionManagement):
     @catch_exception
     @expose("/csv/<client_id>/")
     def csv(self, client_id):
-        """Download the query results as csv."""
+        """Download the query results as csv.
+        For inceptor, pilot will create a temp table stored as csv file.
+        If the size of results is too large, pilot will retain the data files
+        in HDFS folder for a period of time, and then drop the temp table.
+        """
         with_header = request.args.get('header') == 'true'
-
         session = db.session()
         query = session.query(Query).filter_by(client_id=client_id).one()
         sql = query.select_sql or query.sql
         database = query.database
         session.close()
+
         stored_in_hdfs = True if database.is_inceptor else False
         filename = quote('{}.csv'.format(query.name), encoding="utf-8")
 
@@ -824,6 +828,11 @@ class Superset(BaseSupersetView, PermissionManagement):
 
             client = HDFSBrowser.get_client()
             data = HDFSBrowser.read_folder(client, hdfs_path)
+            if data is None:  # File is too big
+                # return json_response('Data size is huge. You can go to HDFS [{}] to '
+                #                      'download it'.format(hdfs_path))
+                # TODO create a thread to drop old temp tables
+                return redirect('/hdfs/?current_path={}'.format(hdfs_path))
 
             if with_header is True:
                 columns = database.get_columns(table_name, schema=query.schema)
@@ -838,6 +847,9 @@ class Superset(BaseSupersetView, PermissionManagement):
             sql = 'DROP TABLE IF EXISTS {}'.format(table_name)
             logging.info(sql)
             engine.execute(sql)
+
+            data = HDFSBrowser.gzip_compress(data)
+            filename = '{}.gz'.format(filename)
 
             response = Response(bytes(data), content_type='application/octet-stream')
             response.headers['Content-Disposition'] = \

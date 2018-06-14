@@ -1,7 +1,7 @@
-from datetime import datetime
 import logging
 import json
 import functools
+import gzip
 import os
 import requests
 import shutil
@@ -67,6 +67,7 @@ class HDFSBrowser(BaseSupersetView):
     route_base = '/hdfs'
     file_block_size = config.get('FILE_BLOCK_LENGTH')
     special_folders = ['.', '..', '.Trash']
+    gzip_avg_ratio = 5
 
     @catch_exception
     @expose('/')
@@ -335,11 +336,20 @@ class HDFSBrowser(BaseSupersetView):
 
     @classmethod
     def read_folder(cls, client, path, file_num=1000):
-        """Read the files' content of ~'path' into bytearray.
+        """Read the files' content of ~'path' into a bytearray.
+        If data size exceeds the limit, will not download it.
         """
         response = client.list(path, page_size=file_num)
         files_json = json.loads(response.text)
         files = files_json.get('files')
+
+        sum_size = 0
+        for file in files:
+            sum_size += file.get('size')
+        if sum_size > cls.gzip_avg_ratio * config.get('MAX_DOWNLOAD_SIZE'):
+            logging.info("The files' size in [{}] is {},  and will not download them"
+                         .format(path, sum_size))
+            return None
 
         need_line_feed = False
         all_data = bytearray()
@@ -435,9 +445,20 @@ class HDFSBrowser(BaseSupersetView):
 
     @classmethod
     def zip_folder(cls, folder_path):
-        logging.info('[HDFS] zip [{0}] to [{0}].zip'.format(folder_path))
+        logging.info('[HDFS] zip [{0}] to [{0}.zip]'.format(folder_path))
         shutil.make_archive(folder_path, 'zip', folder_path)
         zip_file = '{}.zip'.format(folder_path)
         with open(zip_file, 'rb') as f:
             data = f.read()
         return data, quote(os.path.basename(zip_file), encoding="utf-8")
+
+    @classmethod
+    def gzip_compress(cls, data, level=5):
+        uncompressed_len = len(data)
+        start_time = datetime.now()
+        data = gzip.compress(data, level)
+        end_time = datetime.now()
+        compressed_len = len(data)
+        logging.info('Compressed data from {} to {} with {}s time spend'
+                     .format(uncompressed_len, compressed_len, (end_time-start_time)))
+        return data

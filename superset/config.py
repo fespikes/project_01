@@ -93,7 +93,7 @@ CONNECTION_TIMEOUT = 60
 SQLLAB_TIMEOUT = 120
 
 # Maximum number of rows returned in the SQL editor
-SQL_MAX_ROW = 100
+SQL_MAX_ROW = 20
 
 # The limit of queries fetched for query search
 QUERY_SEARCH_LIMIT = 100
@@ -163,6 +163,9 @@ MAX_CONTENT_LENGTH = 4 * 1024 * 1024 * 1024
 
 # The length of file block for uploading or downloading
 FILE_BLOCK_LENGTH = 64 * 1024 * 1024
+
+# Max size of downloaded file in HDFS
+MAX_DOWNLOAD_SIZE = 512 * 1024 * 1024
 
 # Global folder for slice cache, keytab, cas file
 GLOBAL_FOLDER = '/tmp/pilot'
