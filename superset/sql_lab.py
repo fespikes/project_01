@@ -3,9 +3,7 @@ from datetime import datetime
 import json
 import logging
 import pandas as pd
-
-from superset import (
-    app, db, models, utils, dataframe, results_backend)
+from superset import app, db, models, utils, dataframe, results_backend
 from superset.models import Database
 from superset.sql_parse import SupersetQuery
 from superset.db_engine_specs import LimitMethod
@@ -18,6 +16,7 @@ celery_app = celery.Celery(config_source=app.config.get('CELERY_CONFIG'))
 
 
 INCEPTOR_WORK_SCHEMA = 'pilot'  # The schema used for download sql result as csv
+INCEPTOR_TEMP_TABLE_PREFIX = 'pilot_sqllab_'
 
 
 def dedup(l, suffix='__'):
@@ -194,7 +193,7 @@ def store_sql_results_to_hdfs(select_sql, engine):
     """
     ts = datetime.now().isoformat()
     ts = ts.replace('-', '').replace(':', '').split('.')[0]
-    table_name = 'pilot_sqllab_{}'.format(ts).lower()
+    table_name = '{}{}'.format(INCEPTOR_TEMP_TABLE_PREFIX, ts).lower()
     path = '/tmp/pilot/{}/'.format(table_name)
     table_name = '{}.{}'.format(INCEPTOR_WORK_SCHEMA, table_name).lower()
 
@@ -224,3 +223,30 @@ def store_sql_results_to_hdfs(select_sql, engine):
 def _execute(connect, sql):
     logging.info(sql)
     connect.execute(sql)
+
+
+def drop_inceptor_temp_table(username):
+    """Drop redundant temp tables in inceptor created when downloading sql results.
+    """
+    keep_temp_table_name = 3
+
+    logging.info('Begin to drop redundant temp tables in Inceptor')
+    default_inceptor = db.session.query(Database)\
+        .filter_by(database_name=app.config.get('DEFAULT_INCEPTOR_CONN_NAME'))\
+        .one()
+    engine = default_inceptor.get_sqla_engine()
+    sql = "SELECT table_name, create_time FROM system.tables_v " \
+          "WHERE database_name='{schema}' and owner_name='{owner}' " \
+          "      and table_name like '{prefix}%' " \
+          "ORDER BY create_time DESC LIMIT {offset}, 10" \
+        .format(schema=INCEPTOR_WORK_SCHEMA,
+                owner=username,
+                prefix=INCEPTOR_TEMP_TABLE_PREFIX,
+                offset=keep_temp_table_name)
+    logging.info(sql)
+
+    rs = engine.execute(sql)
+    for row in rs:
+        sql = 'DROP TABLE IF EXISTS {}.{}'.format(INCEPTOR_WORK_SCHEMA, row[0])
+        logging.info(sql)
+        engine.execute(sql)

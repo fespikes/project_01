@@ -823,6 +823,11 @@ class Superset(BaseSupersetView, PermissionManagement):
         filename = quote('{}.csv'.format(query.name), encoding="utf-8")
 
         if stored_in_hdfs:
+            # Beacuse of JVM attached threads, can't get super user 'pilot' 's token
+            # by Guardian api, thus can't create a APScheduler thread to drop old
+            # temp tables at backend
+            sql_lab.drop_inceptor_temp_table(g.user.username)
+
             engine = database.get_sqla_engine(schema=query.schema, use_pool=False)
             table_name, hdfs_path = sql_lab.store_sql_results_to_hdfs(sql, engine)
 
@@ -831,7 +836,6 @@ class Superset(BaseSupersetView, PermissionManagement):
             if data is None:  # File is too big
                 # return json_response('Data size is huge. You can go to HDFS [{}] to '
                 #                      'download it'.format(hdfs_path))
-                # TODO create a thread to drop old temp tables
                 return redirect('/hdfs/?current_path={}'.format(hdfs_path))
 
             if with_header is True:

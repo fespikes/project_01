@@ -105,7 +105,7 @@ class GuardianAdmin(GuardianBase):
         self.client.login(username, password)
         token = self._access_token(username, token_name)
         new_token = self.client.createAccessToken(token)
-        self.client.login()
+        self.client.logout()
         return new_token.getContent()
 
 

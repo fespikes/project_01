@@ -156,6 +156,7 @@ class GuardianClient(GuardianBase):
     def download_keytab(self, username, password, file_path):
         self.client.login(username, password)
         keytab = self.client.getKeytab(username)
+        self.client.logout()
         FileUtils = JClass('org.apache.commons.io.FileUtils')
         File = JClass('java.io.File')
         file = File(file_path)
