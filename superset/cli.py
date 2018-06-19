@@ -123,8 +123,28 @@ def register_in_guardian():
         logging.info("Finish to register service in Guardian")
 
 
+def init_studio_role():
+    if config.get('GUARDIAN_AUTH') is True:
+        from superset.guardian import guardian_client, guardian_admin
+        admin_role = config.get('STUDIO_ADMIN_ROLE_NAME')
+        if admin_role and guardian_client.get_role(admin_role):
+            logging.info('Grant role [{}] global admin permission'.format(admin_role))
+            guardian_admin.grant_admin_role(admin_role)
+
+        developer_role = config.get('STUDIO_DEVELOPER_ROLE_NAME')
+        if developer_role and guardian_client.get_role(developer_role):
+            logging.info('Grant role [{}] global developer permission'.format(developer_role))
+            guardian_admin.grant_developer_role(developer_role)
+
+        viewer_role = config.get('STUDIO_VIEWER_ROLE_NAME')
+        if viewer_role and guardian_client.get_role(viewer_role):
+            logging.info('Grant role [{}] global viewer permission'.format(viewer_role))
+            guardian_admin.grant_viewer_role(viewer_role)
+
+
 def init_pilot():
     register_in_guardian()
+    init_studio_role()
     # init_tables_and_roles()
     create_default_user()
     init_examples()

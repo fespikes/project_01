@@ -2,11 +2,7 @@
 # -*- coding:utf-8 -*-
 # Author: jiajie.zhang@transwarp.io
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
+import logging
 from jpype import *
 from .guardian_base import GuardianBase, catch_guardian_exception
 
@@ -211,6 +207,15 @@ class GuardianClient(GuardianBase):
             return token.getContent()
         else:
             return None
+
+    @catch_guardian_exception
+    def get_role(self, role_name):
+        try:
+            return self.client.getRole(role_name)
+        except Exception as e:
+            logging.info('Failed to get role [{}].'.format(role_name))
+            logging.error((str(e)))
+        return None
 
 
 guardian_client = GuardianClient()

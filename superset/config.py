@@ -51,6 +51,10 @@ GUARDIAN_SERVER = 'https://localhost:8380'  # Used for proxy ticket and access t
 GUARDIAN_SERVICE_TYPE = 'PILOT'
 GUARDIAN_ACCESS_TOKEN_NAME = 'pilot-token'
 
+STUDIO_ADMIN_ROLE_NAME = 'Admin'
+STUDIO_DEVELOPER_ROLE_NAME = 'Developer'
+STUDIO_VIEWER_ROLE_NAME = 'Viewer'
+
 # CAS
 CAS_AUTH = False
 CAS_SERVER = 'https://localhost:8393'

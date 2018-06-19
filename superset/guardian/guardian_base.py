@@ -5,6 +5,7 @@
 import functools
 import logging
 import re
+from enum import Enum
 from jpype import *
 from superset import conf
 from superset.exception import GuardianException, SupersetException
@@ -59,6 +60,12 @@ def catch_guardian_exception(f):
     return functools.update_wrapper(wraps, f)
 
 
+class PrincipalType(Enum):
+    USER = 'USER'
+    ROLE = 'ROLE'
+    GROUP = 'GROUP'
+
+
 class GuardianBase(object):
 
     GLOBAL_OBJECT = ['GLOBAL', ]
@@ -89,6 +96,7 @@ class GuardianBase(object):
         self.UserVo = self.models.UserVo
         self.PermObjVo = self.models.PermObjVo
         self.AccessTokenVo = self.models.AccessTokenVo
+        self.RoleVo = self.models.RoleVo
 
     @catch_guardian_exception
     def login(self, username=None, password=None):
@@ -125,9 +133,9 @@ class GuardianBase(object):
         return perms
 
     def _entity_permission(self, name, principal_type, finite_obj, action):
-        if principal_type.upper() == 'GROUP':
+        if principal_type.upper() == PrincipalType.GROUP.value:
             principal_type = self.PrincipalType.GROUP
-        elif principal_type.upper() == 'ROLE':
+        elif principal_type.upper() == PrincipalType.ROLE.value:
             principal_type = self.PrincipalType.ROLE
         else:
             principal_type = self.PrincipalType.USER
@@ -142,6 +150,9 @@ class GuardianBase(object):
         token = self.AccessTokenVo(token_name)
         token.setOwner(owner)
         return token
+
+    def _role(self, role_name):
+        return self.RoleVo(role_name)
 
     def _global_perm_admin(self):
         return self._permission(self.GLOBAL_OBJECT, self.GLOBAL_PERM_ADMIN)

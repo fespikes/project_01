@@ -89,19 +89,27 @@ class PermissionManagement(object):
             return
         if self.guardian_auth:
             from superset.guardian import guardian_admin as admin
+            logging.info('Rename permission object {} to {}'
+                         .format(old_datasource, new_datasource))
             admin.rename_perm_obj(old_datasource, new_datasource)
 
     def grant_owner_perms(self, finite_obj):
         if self.guardian_auth:
             from superset.guardian import guardian_admin as admin
+            logging.info('Grant owner permissions of {} to user [{}]'
+                         .format(finite_obj, g.user.username))
             admin.grant_owner_perm(g.user.username, finite_obj)
 
     def grant_read_perm(self, finite_obj):
         if self.guardian_auth:
             from superset.guardian import guardian_admin as admin
+            logging.info('Grant read permission of {} to user [{}]'
+                         .format(finite_obj, g.user.username))
             admin.grant_read_perm(g.user.username, finite_obj)
 
     def check_read_perm(self, finite_obj, raise_if_false=True):
+        logging.info('Check read permission of {} for user [{}]'
+                     .format(finite_obj, g.user.username))
         can = self.do_check(g.user.username, finite_obj, 'check_read_access',
                             global_check_api='check_global_access')
         if not can and raise_if_false:
@@ -111,6 +119,8 @@ class PermissionManagement(object):
             return can
 
     def check_edit_perm(self, finite_obj, raise_if_false=True):
+        logging.info('Check edit permission of {} for user [{}]'
+                     .format(finite_obj, g.user.username))
         can = self.do_check(g.user.username, finite_obj, 'check_edit_access',
                             global_check_api='check_global_edit')
         if not can and raise_if_false:
@@ -120,6 +130,8 @@ class PermissionManagement(object):
             return can
 
     def check_delete_perm(self, finite_obj, raise_if_false=True):
+        logging.info('Check delete permission of {} for user [{}]'
+                     .format(finite_obj, g.user.username))
         can = self.do_check(g.user.username, finite_obj, 'check_delete_access',
                             global_check_api='check_global_edit')
         if not can and raise_if_false:
@@ -129,6 +141,8 @@ class PermissionManagement(object):
             return can
 
     def check_admin_perm(self, finite_obj, raise_if_false=True):
+        logging.info('Check admin permission of {} for user [{}]'
+                     .format(finite_obj, g.user.username))
         can = self.do_check(g.user.username, finite_obj, 'check_admin_access',
                             global_check_api='check_global_admin')
         if not can and raise_if_false:
@@ -138,6 +152,8 @@ class PermissionManagement(object):
             return can
 
     def check_grant_perm(self, finite_obj, raise_if_false=True):
+        logging.info('Check grant permission of {} for user [{}]'
+                     .format(finite_obj, g.user.username))
         can = self.do_check(g.user.username, finite_obj, 'check_grant_access',
                             global_check_api='check_global_admin')
         if not can and raise_if_false:
@@ -148,6 +164,8 @@ class PermissionManagement(object):
             return can
 
     def check_revoke_perm(self, finite_obj, raise_if_false=True):
+        logging.info('Check revoke permission of {} for user [{}]'
+                     .format(finite_obj, g.user.username))
         can = self.do_check(g.user.username, finite_obj, 'check_revoke_access',
                             global_check_api='check_global_admin')
         if not can and raise_if_false:
@@ -158,6 +176,8 @@ class PermissionManagement(object):
             return can
 
     def check_release_perm(self, finite_obj, raise_if_false=True):
+        logging.info('Check release permission of {} for user [{}]'
+                     .format(finite_obj, g.user.username))
         can = self.do_check(g.user.username, finite_obj, 'check_release_access',
                             global_check_api='check_global_admin')
         if not can and raise_if_false:
@@ -223,8 +243,6 @@ class PermissionManagement(object):
                                                  raise_if_false=False):
                 for obj in objs:
                     self.grant_read_perm([obj_type, obj.name])
-                    logging.info('Grant {} [READ] perm on {}: [{}]'
-                                 .format(g.user.username, obj_type, obj.name))
 
 
 class BaseSupersetView(BaseView):

@@ -8,7 +8,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from jpype import *
-from .guardian_base import GuardianBase, catch_guardian_exception
+from .guardian_base import PrincipalType, GuardianBase, catch_guardian_exception
 
 
 class GuardianAdmin(GuardianBase):
@@ -74,6 +74,18 @@ class GuardianAdmin(GuardianBase):
     def grant_owner_perm(self, name, finite_obj, principal_type='USER'):
         self.grant(name, finite_obj, self.OWNER_PERMS, principal_type)
 
+    def grant_admin_role(self, role_name):
+        self.grant(role_name, self.GLOBAL_OBJECT, self.GLOBAL_PERM_ADMIN,
+                   principal_type=PrincipalType.ROLE.value)
+
+    def grant_developer_role(self, role_name):
+        self.grant(role_name, self.GLOBAL_OBJECT, self.GLOBAL_PERM_EDIT,
+                   principal_type=PrincipalType.ROLE.value)
+
+    def grant_viewer_role(self, role_name):
+        self.grant(role_name, self.GLOBAL_OBJECT, self.GLOBAL_PERM_ACCESS,
+                   principal_type=PrincipalType.ROLE.value)
+
     @catch_guardian_exception
     def revoke(self, name, finite_obj, action, principal_type='USER'):
         if isinstance(action, list):
@@ -85,6 +97,18 @@ class GuardianAdmin(GuardianBase):
             entity_perm = \
                 self._entity_permission(name, principal_type, finite_obj, action)
             self.client.revoke(entity_perm)
+
+    def revoke_admin_role(self, role_name):
+        self.revoke(role_name, self.GLOBAL_OBJECT, self.GLOBAL_PERM_ADMIN,
+                    principal_type=PrincipalType.ROLE.value)
+
+    def revoke_developer_role(self, role_name):
+        self.revoke(role_name, self.GLOBAL_OBJECT, self.GLOBAL_PERM_EDIT,
+                    principal_type=PrincipalType.ROLE.value)
+
+    def revoke_viewer_role(self, role_name):
+        self.revoke(role_name, self.GLOBAL_OBJECT, self.GLOBAL_PERM_ACCESS,
+                    principal_type=PrincipalType.ROLE.value)
 
     @catch_guardian_exception
     def clean_perm_objs(self, finite_obj=None):
@@ -114,5 +138,19 @@ class GuardianAdmin(GuardianBase):
         self.client.logout()
         return new_token.getContent()
 
+    @catch_guardian_exception
+    def add_role(self, role_name, usernames=()):
+        role = self._role(role_name)
+        if usernames:
+            user_list = java.util.ArrayList()
+            for u in usernames:
+                user_list.add(u)
+            role.setUsers(user_list)
+        self.client.addRole(role)
+
+    @catch_guardian_exception
+    def delete_role(self, role_name):
+        role = self._role(role_name)
+        self.client.delRole(role)
 
 guardian_admin = GuardianAdmin()
