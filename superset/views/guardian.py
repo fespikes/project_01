@@ -28,6 +28,7 @@ def guardian_entry(f):
 class GuardianView(BaseSupersetView, PermissionManagement):
     route_base = '/guardian'
     OBJECT_TYPES = ['dashboard', 'slice', 'dataset', 'database', 'hdfsconnection']
+    ALL_PERMS = ['READ', 'EDIT', 'ADMIN']
 
     @catch_exception
     @guardian_entry

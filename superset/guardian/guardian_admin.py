@@ -68,6 +68,12 @@ class GuardianAdmin(GuardianBase):
                 self._entity_permission(name, principal_type, finite_obj, action)
             self.client.grant(entity_perm)
 
+    def grant_read_perm(self, name, finite_obj, principal_type='USER'):
+        self.grant(name, finite_obj, self.PERM_READ, principal_type)
+
+    def grant_owner_perm(self, name, finite_obj, principal_type='USER'):
+        self.grant(name, finite_obj, self.OWNER_PERMS, principal_type)
+
     @catch_guardian_exception
     def revoke(self, name, finite_obj, action, principal_type='USER'):
         if isinstance(action, list):

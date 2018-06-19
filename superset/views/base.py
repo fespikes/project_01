@@ -73,16 +73,7 @@ def json_response(message='', status=200, data=None, code=0):
 
 
 class PermissionManagement(object):
-    READ_PERM = 'READ'
-    EDIT_PERM = 'EDIT'
-    ADMIN_PERM = 'ADMIN'
-    ALL_PERMS = [READ_PERM, EDIT_PERM, ADMIN_PERM]
-    OWNER_PERMS = [READ_PERM, EDIT_PERM]
-    READ_PERMS = ALL_PERMS
-    EDIT_PERMS = [EDIT_PERM, ADMIN_PERM]
-    ADMIN_PERMS = [ADMIN_PERM, ]
-    GLOBAL_ADMIN_PERM = 'ADMIN'
-    GLOBAL_ACCESS_PERM = 'ACCESS'
+
     OBJECT_TYPES = ['database', 'hdfsconnection', 'dataset', 'slice', 'dashboard']
 
     def __init__(self):
@@ -94,25 +85,25 @@ class PermissionManagement(object):
             admin.del_perm_obj(finite_obj)
 
     def rename_perm_obj(self, old_datasource, new_datasource):
+        if old_datasource == new_datasource:
+            return
         if self.guardian_auth:
             from superset.guardian import guardian_admin as admin
-            if old_datasource == new_datasource:
-                return
             admin.rename_perm_obj(old_datasource, new_datasource)
 
     def grant_owner_perms(self, finite_obj):
         if self.guardian_auth:
             from superset.guardian import guardian_admin as admin
-            admin.grant(g.user.username, finite_obj, self.OWNER_PERMS)
+            admin.grant_owner_perm(g.user.username, finite_obj)
 
-    def grant_read_perms(self, finite_obj):
+    def grant_read_perm(self, finite_obj):
         if self.guardian_auth:
             from superset.guardian import guardian_admin as admin
-            admin.grant(g.user.username, finite_obj, self.READ_PERM)
+            admin.grant_read_perm(g.user.username, finite_obj)
 
     def check_read_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.ALL_PERMS,
-                            global_perm=self.GLOBAL_ACCESS_PERM)
+        can = self.do_check(g.user.username, finite_obj, 'check_read_access',
+                            global_check_api='check_global_access')
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to read [{name}]').format(name=finite_obj[-1]))
@@ -120,8 +111,8 @@ class PermissionManagement(object):
             return can
 
     def check_edit_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS,
-                            global_perm=self.GLOBAL_ADMIN_PERM)
+        can = self.do_check(g.user.username, finite_obj, 'check_edit_access',
+                            global_check_api='check_global_edit')
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to edit [{name}]').format(name=finite_obj[-1]))
@@ -129,8 +120,8 @@ class PermissionManagement(object):
             return can
 
     def check_delete_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.EDIT_PERMS,
-                            global_perm=self.GLOBAL_ADMIN_PERM)
+        can = self.do_check(g.user.username, finite_obj, 'check_delete_access',
+                            global_check_api='check_global_edit')
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to delete [{name}]').format(name=finite_obj[-1]))
@@ -138,8 +129,8 @@ class PermissionManagement(object):
             return can
 
     def check_admin_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS,
-                            global_perm=self.GLOBAL_ADMIN_PERM)
+        can = self.do_check(g.user.username, finite_obj, 'check_admin_access',
+                            global_check_api='check_global_admin')
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege ADMIN of [{name}]').format(name=finite_obj[-1]))
@@ -147,8 +138,8 @@ class PermissionManagement(object):
             return can
 
     def check_grant_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS,
-                            global_perm=self.GLOBAL_ADMIN_PERM)
+        can = self.do_check(g.user.username, finite_obj, 'check_grant_access',
+                            global_check_api='check_global_admin')
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to grant permission on {obj_type}: [{name}]')
@@ -157,8 +148,8 @@ class PermissionManagement(object):
             return can
 
     def check_revoke_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS,
-                            global_perm=self.GLOBAL_ADMIN_PERM)
+        can = self.do_check(g.user.username, finite_obj, 'check_revoke_access',
+                            global_check_api='check_global_admin')
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to revoke permissions from {obj_type}: [{name}]')
@@ -167,30 +158,22 @@ class PermissionManagement(object):
             return can
 
     def check_release_perm(self, finite_obj, raise_if_false=True):
-        can = self.do_check(g.user.username, finite_obj, self.ADMIN_PERMS,
-                            global_perm=self.GLOBAL_ADMIN_PERM)
+        can = self.do_check(g.user.username, finite_obj, 'check_release_access',
+                            global_check_api='check_global_admin')
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to release {name}').format(name=finite_obj[-1]))
         else:
             return can
 
-    def do_check(self, username, finite_obj, actions, global_perm='ACCESS'):
+    def do_check(self, username, finite_obj, client_check_api, global_check_api=None):
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            if global_perm == self.GLOBAL_ACCESS_PERM:
-                if client.check_global_access(username):
+            if global_check_api is not None:
+                can = getattr(client, global_check_api)(username)
+                if can:
                     return True
-                else:
-                    return client.check_any_access(username, finite_obj, actions)
-            elif global_perm == self.GLOBAL_ADMIN_PERM:
-                if client.check_global_admin(username):
-                    return True
-                else:
-                    return client.check_any_access(username, finite_obj, actions)
-            else:
-                raise ParameterException(
-                    'Error parameter global_perm: [{}]'.format(global_perm))
+            return getattr(client, client_check_api)(username, finite_obj)
         else:
             return True
 
@@ -239,7 +222,7 @@ class PermissionManagement(object):
             if objs and not self.check_read_perm([obj_type, objs[0].name],
                                                  raise_if_false=False):
                 for obj in objs:
-                    self.grant_read_perms([obj_type, obj.name])
+                    self.grant_read_perm([obj_type, obj.name])
                     logging.info('Grant {} [READ] perm on {}: [{}]'
                                  .format(g.user.username, obj_type, obj.name))
 

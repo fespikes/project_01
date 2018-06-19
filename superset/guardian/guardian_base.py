@@ -61,10 +61,26 @@ def catch_guardian_exception(f):
 
 class GuardianBase(object):
 
+    GLOBAL_OBJECT = ['GLOBAL', ]
+    GLOBAL_PERM_ADMIN = 'ADMIN'
+    GLOBAL_PERM_EDIT = 'EDIT'
+    GLOBAL_PERM_ACCESS = 'ACCESS'
+    GLOBAL_PERMS_EDIT = ['ADMIN', 'EDIT']
+    GLOBAL_PERMS_ACCESS = ['ADMIN', 'EDIT', 'ACCESS']
+
+    PERM_READ = 'READ'
+    PERM_EDIT = 'EDIT'
+    PERM_ADMIN = 'ADMIN'
+    ALL_PERMS = [PERM_READ, PERM_EDIT, PERM_ADMIN]
+    OWNER_PERMS = [PERM_READ, PERM_EDIT]
+    PERMS_READ = ALL_PERMS
+    PERMS_EDIT = [PERM_EDIT, PERM_ADMIN]
+    PERMS_ADMIN = [PERM_ADMIN, ]
+
     def __init__(self):
         self.client = None
         self.component = None
-        self.global_datasource = self._datasource(['GLOBAL', ])
+        self.global_datasource = self._datasource(self.GLOBAL_OBJECT)
         self.service_type = conf.get('GUARDIAN_SERVICE_TYPE')
         self.models = JPackage('io.transwarp.guardian.common.model')
         self.PermissionVo = self.models.PermissionVo
@@ -85,8 +101,9 @@ class GuardianBase(object):
         """Datasource is like ['DATABASE', 'name']"""
         alist = java.util.ArrayList()
         alist.add(str(finite_obj[0]).upper())
-        for s in finite_obj[1:]:
-            alist.add(str(s))
+        if len(finite_obj) > 1:
+            for s in finite_obj[1:]:
+                alist.add(str(s))
         return alist
 
     def _permission(self, finite_obj, action):
@@ -125,3 +142,21 @@ class GuardianBase(object):
         token = self.AccessTokenVo(token_name)
         token.setOwner(owner)
         return token
+
+    def _global_perm_admin(self):
+        return self._permission(self.GLOBAL_OBJECT, self.GLOBAL_PERM_ADMIN)
+
+    def _global_perm_edit(self):
+        return self._permission(self.GLOBAL_OBJECT, self.GLOBAL_PERM_EDIT)
+
+    def _global_perm_access(self):
+        return self._permission(self.GLOBAL_OBJECT, self.GLOBAL_PERM_ACCESS)
+
+    def _perm_read(self, finite_obj):
+        return self._permission(finite_obj, self.PERM_READ)
+
+    def _perm_edit(self, finite_obj):
+        return self._permission(finite_obj, self.PERM_EDIT)
+
+    def _perm_admin(self, finite_obj):
+        return self._permission(finite_obj, self.PERM_ADMIN)

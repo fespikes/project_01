@@ -45,12 +45,18 @@ class GuardianClient(GuardianBase):
             users = self.client.getUsers(prefix)
         return sorted([user.getUserName() for user in users])
 
+    def _check_access(self, username, permission):
+        return self.client.checkAccess(username, permission)
+
+    def _check_any_access(self, username, permissions):
+        return self.client.checkAnyAccess(username, permissions)
+
     @catch_guardian_exception
     def check_access(self, username, finite_obj, action):
         """
         :param username:
         :param finite_obj: a list of object's finite_obj structure:
-                           [object_type, object_id], such as ['database', 1]
+                           [object_type, object_name], such as ['database', 'xxx]
         :param actions:
         :return:
         """
@@ -58,20 +64,49 @@ class GuardianClient(GuardianBase):
             perm = self._permissions(finite_obj, action)
         else:
             perm = self._permission(finite_obj, action)
-        can = self.client.checkAccess(username, perm)
+        can = self._check_access(username, perm)
         return True if can else False
 
     @catch_guardian_exception
     def check_any_access(self, username, finite_obj, actions):
         perms = self._permissions(finite_obj, actions)
-        can = self.client.checkAnyAccess(username, perms)
+        can = self._check_any_access(username, perms)
         return True if can else False
 
+    @catch_guardian_exception
     def check_global_admin(self, username):
-        return self.check_access(username, ['GLOBAL'], 'ADMIN')
+        return self._check_access(username, self._global_perm_admin())
 
+    @catch_guardian_exception
+    def check_global_edit(self, username):
+        perms = self._permissions(self.GLOBAL_OBJECT, self.GLOBAL_PERMS_EDIT)
+        return self.client.checkAnyAccess(username, perms)
+
+    @catch_guardian_exception
     def check_global_access(self, username):
-        return self.check_any_access(username, ['GLOBAL'], ['ADMIN', 'ACCESS'])
+        perms = self._permissions(self.GLOBAL_OBJECT, self.GLOBAL_PERMS_ACCESS)
+        return self.client.checkAnyAccess(username, perms)
+
+    def check_read_access(self, username, finite_obj):
+        return self.check_any_access(username, finite_obj, self.PERMS_READ)
+
+    def check_edit_access(self, username, finite_obj):
+        return self.check_any_access(username, finite_obj, self.PERMS_EDIT)
+
+    def check_delete_access(self, username, finite_obj):
+        return self.check_edit_access(username, finite_obj)
+
+    def check_admin_access(self, username, finite_obj):
+        return self.check_access(username, finite_obj, self.PERM_ADMIN)
+
+    def check_grant_access(self, username, finite_obj):
+        return self.check_admin_access(username, finite_obj)
+
+    def check_revoke_access(self, username, finite_obj):
+        return self.check_admin_access(username, finite_obj)
+
+    def check_release_access(self, username, finite_obj):
+        return self.check_admin_access(username, finite_obj)
 
     @catch_guardian_exception
     def user_permissions(self, username, component=None, finite_obj=None):
