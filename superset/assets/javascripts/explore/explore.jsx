@@ -176,6 +176,12 @@ function initExploreView() {
 
     $('#viz_type').change(function () {
         localStorage.setItem('explore:firstEntry', 'false');
+
+        let databaseId = getUrlParam('database_id', slice.data.json_endpoint);
+        let fullTbName = getUrlParam('full_tb_name', slice.data.json_endpoint);
+        $('#save_as_database_id').val(databaseId);
+        $('#save_as_full_tb_name').val(fullTbName);
+
         $('#query').submit();
     });
 
