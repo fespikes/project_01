@@ -170,12 +170,19 @@ class Main extends Component {
             return result;
         };
 
-        const paths = translate(breadCrumbText);
-
-
-        const breadCrumbChildren = paths.map((obj, idx) => {
-            return <a key={idx + 1} data-href={obj.href}>{(idx >= 2 ? '/' : '') + obj.show}</a>;
-        });
+        let paths = translate(breadCrumbText);
+        let breadCrumbChildren;
+        if (paths.length >3 ) {
+            paths = paths.slice(paths.length-3);
+            breadCrumbChildren = paths.map((obj, idx) => {
+                console.log(obj.show, obj.href);
+                return <a key={idx + 1} data-href={obj.href}>{(idx >= 1 ? '/' : '') + obj.show}</a>;
+            });
+        } else {
+            breadCrumbChildren = paths.map((obj, idx) => {
+                return <a key={idx + 1} data-href={obj.href}>{(idx >= 2 ? '/' : '') + obj.show}</a>;
+            });
+        }
 
         return (this.state.initDone && 
             <div className="pilot-panel hdfs-panel">
