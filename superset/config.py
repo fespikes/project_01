@@ -31,7 +31,7 @@ with open(PACKAGE_FILE) as package_file:
 PILOT_WORKERS = 2
 PILOT_WEBSERVER_ADDRESS = '0.0.0.0'
 PILOT_WEBSERVER_PORT = 8086
-PILOT_WEBSERVER_TIMEOUT = 300
+PILOT_WEBSERVER_TIMEOUT = 600
 
 CUSTOM_SECURITY_MANAGER = None
 # ---------------------------------------------------------
@@ -70,7 +70,7 @@ LICENSE_CHECK = True
 SECRET_KEY = '=== Transwarp Studio Pilot ==='  # noqa
 
 # Session timeout
-PERMANENT_SESSION_LIFETIME = 15 * 60
+PERMANENT_SESSION_LIFETIME = 30 * 60
 
 
 METADATA_CONN_NAME = 'main'
@@ -94,7 +94,7 @@ FILE_ROBOT_SERVER = 'localhost:5005'
 CONNECTION_TIMEOUT = 60
 
 # Timeout duration for SQL Lab synchronous queries
-SQLLAB_TIMEOUT = 120
+SQLLAB_TIMEOUT = 300
 
 # Maximum number of rows returned in the SQL editor
 SQL_MAX_ROW = 20
