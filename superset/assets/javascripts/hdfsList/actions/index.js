@@ -248,7 +248,7 @@ function fetchMakeFile() {
 
 function fetchRemove() {
     return (dispatch, getState) => {
-        const state = getState();
+        let state = getState();
         const selectedRows = state.condition.selectedRows;
         const popupNormalParam = state.popupNormalParam;
         let path = [];
@@ -265,6 +265,8 @@ function fetchRemove() {
             })
         }).then(always).then(json).then(
             response => {
+                dispatch(navigateTo(1));
+                state = getState();
                 popupHandler(response, popupNormalParam, dispatch, state.condition);
             }
         );
