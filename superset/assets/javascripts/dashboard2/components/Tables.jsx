@@ -207,7 +207,7 @@ class Tables extends React.Component {
 
         const rowSelection = {
             selectedRowKeys,
-            onChange: this.onSelectChange
+            onChange: this.onSelectChange.bind(this)
         };
 
         return (

@@ -104,7 +104,7 @@ class SliceTable extends React.Component {
 
         const rowSelection = {
             selectedRowKeys,
-            onChange: this.onSelectChange
+            onChange: this.onSelectChange.bind(this)
         };
 
         const columns = [
