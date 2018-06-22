@@ -146,7 +146,10 @@ class InnerTable extends React.Component {
                 key: 'size',
                 width: '16%',
                 sorter(a, b) {
-                    return a.size - b.size;
+                    let aa = +a.size.replace(/[a-zA-Z]/g, '');
+                    let bb = +b.size.replace(/[a-zA-Z]/g, '');
+
+                    return aa - bb;
                 }
             }, {
                 title: intl.get('users'),
@@ -154,7 +157,7 @@ class InnerTable extends React.Component {
                 key: 'user',
                 width: '10%',
                 sorter(a, b) {
-                    return a.stats.user - b.stats.user;
+                    return a.stats.user.substring(0, 1).charCodeAt() - b.stats.user.substring(0, 1).charCodeAt();
                 },
                 render: (text, record) => {
 
@@ -166,7 +169,11 @@ class InnerTable extends React.Component {
                 key: 'group',
                 width: '10%',
                 sorter(a, b) {
-                    return a.stats.group - b.stats.group;
+                    if (a.stats.group && b.stats.group) {
+                        return a.stats.group.substring(0, 1).charCodeAt() - b.stats.group.substring(0, 1).charCodeAt();
+                    } else {
+                        return false;
+                    }
                 },
                 render: (text, record) => {
                     return (<span>{record.stats ? (record.stats.group || ' ') : ' '}</span>);
@@ -180,7 +187,11 @@ class InnerTable extends React.Component {
                     return (<span>{record.rwx ? record.rwx : ' '}</span>);
                 },
                 sorter(a, b) {
-                    return a.rwx - b.rwx;
+                    if (a.rwx.substring(0, 1) === b.rwx.substring(0, 1)) {
+                        return a.rwx.substring(1, 1).charCodeAt() - b.rwx.substring(1, 1).charCodeAt();
+                    } else if (a.rwx.substring(0, 1) !== b.rwx.substring(0, 1)) {
+                        return a.rwx.substring(0, 1).charCodeAt() - b.rwx.substring(0, 1).charCodeAt();
+                    }
                 }
             }, {
                 title: intl.get('date'),
@@ -188,7 +199,7 @@ class InnerTable extends React.Component {
                 key: 'mtime',
                 width: '25%',
                 sorter(a, b) {
-                    return a.mtime - b.mtime ? 1 : -1;
+                    return a.stats.mtime - b.stats.mtime;
                 }
             }
         ];
