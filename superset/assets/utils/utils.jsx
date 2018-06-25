@@ -221,3 +221,23 @@ export const replaceAppName = () => {
         document.querySelector('title').innerHTML = res;
     })
 }
+
+export const sorterFn = function sorterFn(a, b) {
+    let length = a.length >= b.length ? a.length : b.length;
+    let idx = 0;
+    let flag = true;
+    while (idx < length) {
+        if (a.substr(idx, 1).charCodeAt() !== b.substr(idx, 1).charCodeAt()) {
+            flag = false;
+            return a.substr(idx, 1).charCodeAt() - b.substr(idx, 1).charCodeAt();
+        }
+        idx++;
+    }
+    if (flag) {
+        if (a.length !== b.length) {
+            return a.length - b.length;
+        } else {
+            return true
+        }
+    }
+}

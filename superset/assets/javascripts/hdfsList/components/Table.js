@@ -7,6 +7,7 @@ import { fetchStateChange, setSelectedRows, fetchSliceDelete, fetchSliceDetail }
 import { sortHDFSFiles } from '../module';
 import style from '../style/hdfs.scss'
 import intl from "react-intl-universal";
+import { sorterFn } from '../../../utils/utils';
 
 class InnerTable extends React.Component {
     constructor(props, context) {
@@ -109,7 +110,7 @@ class InnerTable extends React.Component {
                     }
                 },
                 sorter(a, b) {
-                    return a.name.substring(0, 1).charCodeAt() - b.name.substring(0, 1).charCodeAt();
+                    return sorterFn(a.name, b.name);
                 }
             },
             {
@@ -157,10 +158,9 @@ class InnerTable extends React.Component {
                 key: 'user',
                 width: '10%',
                 sorter(a, b) {
-                    return a.stats.user.substring(0, 1).charCodeAt() - b.stats.user.substring(0, 1).charCodeAt();
+                    return sorterFn(a.stats.user, b.stats.user);
                 },
                 render: (text, record) => {
-
                     return (<span>{record.stats ? (record.stats.user || ' ') : ' '}</span>);
                 }
             }, {
@@ -169,11 +169,7 @@ class InnerTable extends React.Component {
                 key: 'group',
                 width: '10%',
                 sorter(a, b) {
-                    if (a.stats.group && b.stats.group) {
-                        return a.stats.group.substring(0, 1).charCodeAt() - b.stats.group.substring(0, 1).charCodeAt();
-                    } else {
-                        return false;
-                    }
+                    return sorterFn(a.stats.group, b.stats.group);
                 },
                 render: (text, record) => {
                     return (<span>{record.stats ? (record.stats.group || ' ') : ' '}</span>);
@@ -187,11 +183,7 @@ class InnerTable extends React.Component {
                     return (<span>{record.rwx ? record.rwx : ' '}</span>);
                 },
                 sorter(a, b) {
-                    if (a.rwx.substring(0, 1) === b.rwx.substring(0, 1)) {
-                        return a.rwx.substring(1, 1).charCodeAt() - b.rwx.substring(1, 1).charCodeAt();
-                    } else if (a.rwx.substring(0, 1) !== b.rwx.substring(0, 1)) {
-                        return a.rwx.substring(0, 1).charCodeAt() - b.rwx.substring(0, 1).charCodeAt();
-                    }
+                    return sorterFn(a.rwx, b.rwx);
                 }
             }, {
                 title: intl.get('date'),
