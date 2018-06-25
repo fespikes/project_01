@@ -189,7 +189,7 @@ CORS_OPTIONS = {}
 # For example: Blacklist pivot table and treemap:
 #  VIZ_TYPE_BLACKLIST = ['pivot_table', 'treemap']
 # ---------------------------------------------------
-VIZ_TYPE_BLACKLIST = []
+VIZ_TYPE_BLACKLIST = ['mapbox']
 
 
 # --------------------------------------------------
