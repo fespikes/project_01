@@ -9,22 +9,23 @@ lock = threading.Lock()
 class PgtFile(object):
 
     pgt_file = '/tmp/pilot/pilot.cas'
-    read_max_bytes = 16 * 1024
+    strip_str = ' : '
+    read_max_bytes = 4 * 1024
 
     @classmethod
     def get_pgt(cls, pgtiou):
         if not os.path.exists(cls.pgt_file):
-            logging.error('Pgt file: [{}] is not existed'.format(cls.pgt_file))
-            return None
+            os.mknod(cls.pgt_file)
         pgt = None
-        if lock.acquire(1):
-            with open(cls.pgt_file, 'rb') as f:
-                line = f.readline()
-                line = str(line, encoding='utf-8')
-                kv = line.split(' = ')
-                if pgtiou == kv[0].strip():
-                    pgt = kv[1].rstrip('\n').strip()
-        lock.release()
+        with open(cls.pgt_file, 'rb') as f:
+            logging.info('Read pgt file: [{}]'.format(cls.pgt_file))
+            lines = f.readlines(cls.read_max_bytes)
+        for line in lines:
+            line = str(line, encoding='utf-8')
+            kv = line.split(cls.strip_str)
+            if pgtiou == kv[0].strip():
+                pgt = kv[1].rstrip('\n').strip()
+                break
         return pgt
 
     @classmethod
@@ -33,10 +34,10 @@ class PgtFile(object):
             if not os.path.exists(cls.pgt_file):
                 os.mknod(cls.pgt_file)
             with open(cls.pgt_file, 'rb+') as f:
+                logging.info('Write pgt file: [{}]'.format(cls.pgt_file))
                 lines = f.readlines(cls.read_max_bytes)
-                new_line = '{} = {}\n'.format(pgtiou, pgt)
+                new_line = '{}{}{}\n'.format(pgtiou, cls.strip_str, pgt)
                 lines.insert(0, new_line.encode('utf-8'))
-
                 f.seek(0)
                 f.writelines(lines)
                 f.truncate()

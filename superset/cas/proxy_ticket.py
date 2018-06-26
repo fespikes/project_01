@@ -19,12 +19,11 @@ def get_proxy_ticket(target_service):
     cas_pgtiou_session_key = current_app.config['CAS_PGTIOU_SESSION_KEY']
     pgtiou = flask.session[cas_pgtiou_session_key]
     if not pgtiou:
-        logging.error('No CAS_PGTIOU in session')
-        return None
+        raise Exception('No CAS_PGTIOU in session')
     pgt = PgtFile.get_pgt(pgtiou)
     if not pgt:
-        logging.error('Not found pgt in file by pgtiou: {}...'.format(pgtiou[:20]))
-        return None
+        raise Exception('Not found pgt in file by pgtiou: {}...'.format(pgtiou[:20]))
+
     cas_proxy_url = create_cas_proxy_url(
         current_app.config['CAS_SERVER'],
         current_app.config['CAS_PROXY_ROUTE'],
