@@ -35,5 +35,8 @@ COPY requirements.txt /tmp/
 RUN pip install --no-cache-dir -r /tmp/requirements.txt -i http://pypi.douban.com/simple --trusted-host pypi.douban.com && \
     pip uninstall -y sqlalchemy flask-appbuilder
 
+# update confd
+RUN wget ftp://172.16.1.32/pub/tos/build/confd_modified -O /usr/bin/confd && \
+    chmod +x /usr/bin/confd
 
 CMD ["/bin/bash"]
