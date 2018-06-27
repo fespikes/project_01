@@ -1,6 +1,8 @@
 import json
 import requests
 import copy
+import time
+from datetime import datetime
 from flask import request, g
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
@@ -537,6 +539,9 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
                     continue
             line = {}
             for col in self.list_columns:
+                if col == 'changed_on':
+                    t = getattr(obj, col, datetime(1970, 1, 1))
+                    line['changed_time'] = time.mktime(t.timetuple())
                 if col in self.str_columns:
                     line[col] = str(getattr(obj, col, None))
                 else:

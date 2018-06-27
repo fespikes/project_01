@@ -1,5 +1,7 @@
 import json
 import requests
+import time
+from datetime import datetime
 from flask import g, request
 from flask_babel import lazy_gettext as _
 from flask_appbuilder import expose
@@ -666,11 +668,13 @@ class ConnectionView(BaseSupersetView, PageMixin, PermissionManagement):
             if type_ != 'HDFS':
                 url = make_url(type_)
                 type_ = url.get_backend_name().upper()
+            t = row[4] if row[4] else datetime(1970, 1, 1)
             data.append({
                 'id': row[0],
                 'name': row[1],
                 'online': row[2],
                 'changed_on': str(row[4]),
+                'changed_time': time.mktime(t.timetuple()),
                 'connection_type': type_,
                 'owner': row[7],
             })
