@@ -9,6 +9,7 @@ import {ConfirmModal, PermPopup} from '../../common/components';
 import {getPermInfo} from '../../perm/actions';
 import {Table, Tooltip} from 'antd';
 import intl from "react-intl-universal";
+import { sorterFn } from '../../../utils/utils';
 
 class Tables extends React.Component {
     constructor(props) {
@@ -145,7 +146,7 @@ class Tables extends React.Component {
                 )
             },
             sorter(a, b) {
-                return utils.sortByInitials(a.description, b.description);
+                return sorterFn(a.name, b.name);
             }
         }, {
             title: intl.get('DASHBOARD.OWNER'),
@@ -163,7 +164,7 @@ class Tables extends React.Component {
                 )
             },
             sorter(a, b) {
-                return utils.sortByInitials(a.created_by_user, b.created_by_user);
+                return sorterFn(a.created_by_user, b.created_by_user);
             }
         }, {
             title: intl.get('DASHBOARD.LAST_MODIFIED_TIME'),
@@ -171,7 +172,7 @@ class Tables extends React.Component {
             key: 'changed_on',
             width: '25%',
             sorter(a, b) {
-                return a.changed_on - b.changed_on ? 1 : -1;
+                return sorterFn(a.changed_time, b.changed_time);
             }
         }, {
             title: intl.get('DASHBOARD.OPERATION'),
