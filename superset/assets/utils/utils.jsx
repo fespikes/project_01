@@ -132,6 +132,9 @@ export function getAjaxErrorMsg(error) {
         error.responseText;
 }
 
+/**
+* deprecated
+*/
 export function sortByInitials(a, b) {//add null check
     if((!a && !b) || (a && !b)) {
         return -1;
@@ -223,6 +226,13 @@ export const replaceAppName = () => {
 }
 
 export const sorterFn = function sorterFn(a, b) {
+    if(a != null && b==null ) {
+        return true;
+    } else if (a ==null && b!=null ) {
+        return false
+    } else if (a==null && b==null) {
+        return ;
+    }
     let length = a.length >= b.length ? a.length : b.length;
     let idx = 0;
     let flag = true;

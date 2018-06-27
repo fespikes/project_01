@@ -7,6 +7,7 @@ import {getPermInfo} from '../../perm/actions';
 import * as actions from '../actions';
 import * as utils from '../../../utils/utils';
 import intl from 'react-intl-universal';
+import { sorterFn } from '../../../utils/utils';
 
 class SliceTable extends React.Component {
     constructor(props) {
@@ -148,7 +149,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return utils.sortByInitials(a.description, b.description);
+                    return sorterFn(a.slice_name, b.slice_name);
                 }
             }, {
                 title: intl.get('SLICE.CHART_TYPE'),
@@ -166,7 +167,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return utils.sortByInitials(a.viz_type, b.viz_type);
+                    return sorterFn(a.viz_type, b.viz_type);
                 }
 
             }, {
@@ -186,7 +187,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return utils.sortByInitials(a.datasource, b.datasource);
+                    return sorterFn(a.datasource, b.datasource);
                 }
             }, {
                 title: intl.get('SLICE.OWNER'),
@@ -204,7 +205,7 @@ class SliceTable extends React.Component {
                     )
                 },
                 sorter(a, b) {
-                    return utils.sortByInitials(a.created_by_user, b.created_by_user);
+                    return sorterFn(a.created_by_user, b.created_by_user);
                 }
             }, {
                 title: intl.get('SLICE.LAST_MODIFIED_TIME'),
@@ -212,7 +213,7 @@ class SliceTable extends React.Component {
                 key: 'changed_on',
                 width: '15%',
                 sorter(a, b) {
-                    return a.changed_on - b.changed_on ? 1 : -1;
+                    return a.changed_time - b.changed_time ;
                 }
             }, {
                 title: intl.get('SLICE.OPERATION'),
