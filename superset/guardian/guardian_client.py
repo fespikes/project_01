@@ -79,8 +79,8 @@ class GuardianClient(GuardianBase):
         return self.client.checkAnyAccess(username, perms)
 
     @catch_guardian_exception
-    def check_global_access(self, username):
-        perms = self._permissions(self.GLOBAL_OBJECT, self.GLOBAL_PERMS_ACCESS)
+    def check_global_read(self, username):
+        perms = self._permissions(self.GLOBAL_OBJECT, self.GLOBAL_PERMS_READ)
         return self.client.checkAnyAccess(username, perms)
 
     def check_read_access(self, username, finite_obj):

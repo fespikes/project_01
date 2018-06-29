@@ -62,7 +62,7 @@ class Home(BaseSupersetView, PermissionManagement):
         self.status = 201
         self.success = True
         self.message = []
-        self.global_access = True
+        self.global_read = True
 
     def get_obj_class(self, type_):
         try:
@@ -77,7 +77,7 @@ class Home(BaseSupersetView, PermissionManagement):
     def get_object_counts(self, username, types):
         dt = {}
         for type_ in types:
-            if self.global_access:
+            if self.global_read:
                 dt[type_] = str_to_model[type_].count()
             else:
                 from superset.guardian import guardian_client as client
@@ -151,7 +151,7 @@ class Home(BaseSupersetView, PermissionManagement):
         rs = query.all()
 
         readable_dashs = []
-        if not self.global_access:
+        if not self.global_read:
             from superset.guardian import guardian_client as client
             readable_dashs = client.search_model_perms(username, Dashboard.guardian_type)
 
@@ -160,7 +160,7 @@ class Home(BaseSupersetView, PermissionManagement):
         for count, dash in rs:
             if index >= limit:
                 break
-            if not self.global_access:
+            if not self.global_read:
                 if dash.name not in readable_dashs:
                     continue
             rows.append({'name': dash.name, 'link': dash.url, 'count': count})
@@ -179,7 +179,7 @@ class Home(BaseSupersetView, PermissionManagement):
         rs = query.all()
 
         readable_slices = []
-        if not self.global_access:
+        if not self.global_read:
             from superset.guardian import guardian_client as client
             readable_slices = client.search_model_perms(username, Slice.guardian_type)
 
@@ -188,7 +188,7 @@ class Home(BaseSupersetView, PermissionManagement):
         for count, slice in rs:
             if index >= limit:
                 break
-            if not self.global_access:
+            if not self.global_read:
                 if slice.name not in readable_slices:
                     continue
             rows.append({'name': slice.name, 'link': slice.slice_url, 'count': count})
@@ -217,7 +217,7 @@ class Home(BaseSupersetView, PermissionManagement):
         rs = db.session.execute(sql)
 
         readable_slices = []
-        if not self.global_access:
+        if not self.global_read:
             from superset.guardian import guardian_client as client
             readable_slices = client.search_model_perms(username, Slice.guardian_type)
 
@@ -226,7 +226,7 @@ class Home(BaseSupersetView, PermissionManagement):
         for row in rs:
             if index >= limit:
                 break
-            if not self.global_access:
+            if not self.global_read:
                 if row[0] not in readable_slices:
                     continue
             try:
@@ -261,7 +261,7 @@ class Home(BaseSupersetView, PermissionManagement):
             query = query.order_by(Slice.changed_on.desc())
 
         readable_slices = []
-        if not self.global_access:
+        if not self.global_read:
             from superset.guardian import guardian_client as client
             readable_slices = client.search_model_perms(username, Slice.guardian_type)
             count = len(readable_slices)
@@ -275,7 +275,7 @@ class Home(BaseSupersetView, PermissionManagement):
         rows = []
         index = 0
         for obj in query.all():
-            if not self.global_access:
+            if not self.global_read:
                 if obj.name in readable_slices:
                     index += 1
                     if index <= page * page_size:
@@ -312,7 +312,7 @@ class Home(BaseSupersetView, PermissionManagement):
             query = query.order_by(Dashboard.changed_on.desc())
 
         readable_dashs = []
-        if not self.global_access:
+        if not self.global_read:
             from superset.guardian import guardian_client as client
             readable_dashs = client.search_model_perms(username, Dashboard.guardian_type)
             count = len(readable_dashs)
@@ -326,7 +326,7 @@ class Home(BaseSupersetView, PermissionManagement):
         rows = []
         index = 0
         for obj in query.all():
-            if not self.global_access:
+            if not self.global_read:
                 if obj.name in readable_dashs:
                     index += 1
                     if index <= page * page_size:
@@ -364,7 +364,7 @@ class Home(BaseSupersetView, PermissionManagement):
     @catch_exception
     @expose('/edits/slice/')
     def get_edited_slices_by_url(self):
-        self.set_global_access()
+        self.set_global_read()
         kwargs = self.get_request_args(request.args)
         kwargs['username'] = g.user.username
         count, data = self.get_edited_slices(**kwargs)
@@ -388,7 +388,7 @@ class Home(BaseSupersetView, PermissionManagement):
     @catch_exception
     @expose('/edits/dashboard/')
     def get_edited_dashboards_by_url(self):
-        self.set_global_access()
+        self.set_global_read()
         kwargs = self.get_request_args(request.args)
         kwargs['username'] = g.user.username
         count, data = self.get_edited_dashboards(**kwargs)
@@ -520,7 +520,7 @@ class Home(BaseSupersetView, PermissionManagement):
     @catch_exception
     @expose('/alldata/')
     def get_all_statistics_data(self):
-        self.set_global_access()
+        self.set_global_read()
         username = g.user.username
         user_id = g.user.id
         response = {}
@@ -563,10 +563,10 @@ class Home(BaseSupersetView, PermissionManagement):
         self.message = []
         return json_response(data={'index': response})
 
-    def set_global_access(self):
+    def set_global_read(self):
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            if not client.check_global_access(g.user.username):
-                self.global_access = False
+            if not client.check_global_read(g.user.username):
+                self.global_read = False
         else:
-            self.global_access = True
+            self.global_read = True

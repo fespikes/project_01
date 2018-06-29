@@ -277,7 +277,8 @@ try:
         imp.load_source('pilot_config', os.environ[CONFIG_PATH_ENV_VAR])
 
     from pilot_config import *  # noqa
-    print('Loaded your LOCAL configuration')
+    import pilot_config
+    print('Loaded your LOCAL configuration at [{}]'.format(pilot_config.__file__))
 except ImportError:
     pass
 

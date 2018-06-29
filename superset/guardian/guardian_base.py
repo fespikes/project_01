@@ -71,15 +71,15 @@ class GuardianBase(object):
     GLOBAL_OBJECT = ['GLOBAL', ]
     GLOBAL_PERM_ADMIN = 'ADMIN'
     GLOBAL_PERM_EDIT = 'EDIT'
-    GLOBAL_PERM_ACCESS = 'ACCESS'
+    GLOBAL_PERM_READ = 'READ'
     GLOBAL_PERMS_EDIT = ['ADMIN', 'EDIT']
-    GLOBAL_PERMS_ACCESS = ['ADMIN', 'EDIT', 'ACCESS']
+    GLOBAL_PERMS_READ = ['ADMIN', 'EDIT', 'READ']
 
     PERM_READ = 'READ'
     PERM_EDIT = 'EDIT'
     PERM_ADMIN = 'ADMIN'
     ALL_PERMS = [PERM_READ, PERM_EDIT, PERM_ADMIN]
-    OWNER_PERMS = [PERM_READ, PERM_EDIT]
+    OWNER_PERMS = ALL_PERMS
     PERMS_READ = ALL_PERMS
     PERMS_EDIT = [PERM_EDIT, PERM_ADMIN]
     PERMS_ADMIN = [PERM_ADMIN, ]
@@ -160,8 +160,8 @@ class GuardianBase(object):
     def _global_perm_edit(self):
         return self._permission(self.GLOBAL_OBJECT, self.GLOBAL_PERM_EDIT)
 
-    def _global_perm_access(self):
-        return self._permission(self.GLOBAL_OBJECT, self.GLOBAL_PERM_ACCESS)
+    def _global_perm_read(self):
+        return self._permission(self.GLOBAL_OBJECT, self.GLOBAL_PERM_READ)
 
     def _perm_read(self, finite_obj):
         return self._permission(finite_obj, self.PERM_READ)

@@ -111,7 +111,7 @@ class PermissionManagement(object):
         logging.info('Check read permission of {} for user [{}]'
                      .format(finite_obj, g.user.username))
         can = self.do_check(g.user.username, finite_obj, 'check_read_access',
-                            global_check_api='check_global_access')
+                            global_check_api='check_global_read')
         if not can and raise_if_false:
             raise PermissionException(
                 _('No privilege to read [{name}]').format(name=finite_obj[-1]))

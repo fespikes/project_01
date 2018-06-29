@@ -83,7 +83,7 @@ class GuardianAdmin(GuardianBase):
                    principal_type=PrincipalType.ROLE.value)
 
     def grant_viewer_role(self, role_name):
-        self.grant(role_name, self.GLOBAL_OBJECT, self.GLOBAL_PERM_ACCESS,
+        self.grant(role_name, self.GLOBAL_OBJECT, self.GLOBAL_PERM_READ,
                    principal_type=PrincipalType.ROLE.value)
 
     @catch_guardian_exception
@@ -107,7 +107,7 @@ class GuardianAdmin(GuardianBase):
                     principal_type=PrincipalType.ROLE.value)
 
     def revoke_viewer_role(self, role_name):
-        self.revoke(role_name, self.GLOBAL_OBJECT, self.GLOBAL_PERM_ACCESS,
+        self.revoke(role_name, self.GLOBAL_OBJECT, self.GLOBAL_PERM_READ,
                     principal_type=PrincipalType.ROLE.value)
 
     @catch_guardian_exception
@@ -152,5 +152,10 @@ class GuardianAdmin(GuardianBase):
     def delete_role(self, role_name):
         role = self._role(role_name)
         self.client.delRole(role)
+
+    def add_global_perms(self):
+        self.add_permission(self.GLOBAL_OBJECT,
+                            [self.GLOBAL_PERM_READ, self.GLOBAL_PERM_EDIT])
+
 
 guardian_admin = GuardianAdmin()

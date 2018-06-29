@@ -173,7 +173,7 @@ class Superset(BaseSupersetView, PermissionManagement):
         datasets = sorted(datasets, key=lambda ds: ds.full_name)
         if self.guardian_auth:
             from superset.guardian import guardian_client as client
-            if not client.check_global_access(g.user.username):
+            if not client.check_global_read(g.user.username):
                 readable_names = client.search_model_perms(
                     g.user.username, Dataset.guardian_type)
                 readable_datasets = [d for d in datasets if d.name in readable_names]
