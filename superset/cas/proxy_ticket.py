@@ -3,8 +3,9 @@ import logging
 from xmltodict import parse
 from flask import current_app
 
+from . import keys
 from .cas_urls import create_cas_proxy_url
-from .pgt_file import PgtFile
+from .store import cas_session_store as store
 
 try:
     from urllib import urlopen
@@ -16,20 +17,19 @@ def get_proxy_ticket(target_service):
     """
     Get 'proxy ticket for' 'target_service'.
     """
-    cas_pgtiou_session_key = current_app.config['CAS_PGTIOU_SESSION_KEY']
-    pgtiou = flask.session[cas_pgtiou_session_key]
+    pgtiou = flask.session[keys.CAS_PGTIOU]
     if not pgtiou:
-        raise Exception('No CAS_PGTIOU in session')
-    pgt = PgtFile.get_pgt(pgtiou)
+        raise Exception('[CAS] No CAS_PGTIOU in session')
+    pgt = store.get(pgtiou)
     if not pgt:
-        raise Exception('Not found pgt in file by pgtiou: {}...'.format(pgtiou[:20]))
+        raise Exception('[CAS] Not found PGT by PGTIOU: {}...'.format(pgtiou[:20]))
 
     cas_proxy_url = create_cas_proxy_url(
-        current_app.config['CAS_SERVER'],
-        current_app.config['CAS_PROXY_ROUTE'],
+        current_app.config[keys.CAS_SERVER],
+        current_app.config[keys.CAS_PROXY_ROUTE],
         target_service,
         pgt)
-    logging.info('Try to get proxy ticket for service: {} by PGT: {}...'
+    logging.info('[CAS] Try to get proxy ticket for service: {} by PGT: {}...'
                  .format(target_service, pgt[0:20]))
 
     pt = None
@@ -42,10 +42,10 @@ def get_proxy_ticket(target_service):
             logging.info('Success to get proxy ticket: {}...'.format(pt[0:20]))
         elif 'cas:proxyFailure' in xml_from:
             logging.error(
-                'Failed to get proxy ticket: ' + str(dict(xml_from['cas:proxyFailure'])))
+                '[CAS] Failed to get proxy ticket: ' + str(dict(xml_from['cas:proxyFailure'])))
         else:
-            logging.error('Error response when getting proxy ticket: ' + xml_from)
+            logging.error('[CAS] Error response when getting proxy ticket: ' + xml_from)
     except ValueError:
-        logging.error("CAS returned unexpected result")
+        logging.error("[CAS] CAS returned unexpected result")
 
     return pt

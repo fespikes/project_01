@@ -7,7 +7,10 @@ lock = threading.Lock()
 
 
 class PgtFile(object):
+    """Use file to store pgt and pgtiou
 
+    Deprecated
+    """
     pgt_file = '/tmp/pilot/pilot.cas'
     strip_str = ' : '
     read_max_bytes = 4 * 1024
@@ -18,7 +21,7 @@ class PgtFile(object):
             os.mknod(cls.pgt_file)
         pgt = None
         with open(cls.pgt_file, 'rb') as f:
-            logging.info('Read pgt file: [{}]'.format(cls.pgt_file))
+            logging.info('[CAS] Read pgt file: [{}]'.format(cls.pgt_file))
             lines = f.readlines(cls.read_max_bytes)
         for line in lines:
             line = str(line, encoding='utf-8')
@@ -34,7 +37,7 @@ class PgtFile(object):
             if not os.path.exists(cls.pgt_file):
                 os.mknod(cls.pgt_file)
             with open(cls.pgt_file, 'rb+') as f:
-                logging.info('Write pgt file: [{}]'.format(cls.pgt_file))
+                logging.info('[CAS] Write pgt file: [{}]'.format(cls.pgt_file))
                 lines = f.readlines(cls.read_max_bytes)
                 new_line = '{}{}{}\n'.format(pgtiou, cls.strip_str, pgt)
                 lines.insert(0, new_line.encode('utf-8'))

@@ -13,9 +13,8 @@ try:
 except ImportError:
     from flask import _request_ctx_stack as stack
 
-from . import routing
-
 from functools import wraps
+from . import routing, keys
 
 
 class CAS(object):
@@ -49,19 +48,15 @@ class CAS(object):
 
     def init_app(self, app, url_prefix='/cas'):
         # Configuration defaults
-        app.config.setdefault('CAS_SERVICE_TICKET_SESSION_KEY', 'CAS_SERVICE_TICKET')
-        app.config.setdefault('CAS_USERNAME_SESSION_KEY', 'CAS_USERNAME')
-        app.config.setdefault('CAS_ATTRIBUTES_SESSION_KEY', 'CAS_ATTRIBUTES')
-        app.config.setdefault('CAS_PGTIOU_SESSION_KEY', 'CAS_PGTIOU')
-        app.config.setdefault('CAS_LOGIN_ROUTE', '{}/login'.format(url_prefix))
-        app.config.setdefault('CAS_LOGOUT_ROUTE', '{}/logout'.format(url_prefix))
-        app.config.setdefault('CAS_PROXY_ROUTE', '{}/proxy'.format(url_prefix))
-        app.config.setdefault('CAS_SERVICE_VALIDATE_ROUTE', '{}/p3/serviceValidate'.format(url_prefix))
-        app.config.setdefault('CAS_PROXY_VALIDATE_ROUTE', '{}/p3/proxyValidate'.format(url_prefix))
-        app.config.setdefault('CAS_PROXY_CALLBACK_ROUTE', '{}/proxyCallback'.format(url_prefix))
+        app.config.setdefault(keys.CAS_LOGIN_ROUTE, '{}/login'.format(url_prefix))
+        app.config.setdefault(keys.CAS_LOGOUT_ROUTE, '{}/logout'.format(url_prefix))
+        app.config.setdefault(keys.CAS_PROXY_ROUTE, '{}/proxy'.format(url_prefix))
+        app.config.setdefault(keys.CAS_SERVICE_VALIDATE_ROUTE, '{}/p3/serviceValidate'.format(url_prefix))
+        app.config.setdefault(keys.CAS_PROXY_VALIDATE_ROUTE, '{}/p3/proxyValidate'.format(url_prefix))
+        app.config.setdefault(keys.CAS_PROXY_CALLBACK_ROUTE, '{}/proxyCallback'.format(url_prefix))
         # Requires CAS 2.0
-        app.config.setdefault('CAS_AFTER_LOGIN', '/')
-        app.config.setdefault('CAS_AFTER_LOGOUT', None)
+        app.config.setdefault(keys.CAS_AFTER_LOGIN, '/')
+        app.config.setdefault(keys.CAS_AFTER_LOGOUT, None)
         # Register Blueprint
         app.register_blueprint(routing.blueprint, url_prefix=url_prefix)
 
@@ -81,23 +76,19 @@ class CAS(object):
 
     @property
     def username(self):
-        return flask.session.get(
-            self.app.config['CAS_USERNAME_SESSION_KEY'], None)
+        return flask.session.get(keys.CAS_USERNAME, None)
 
     @property
     def attributes(self):
-        return flask.session.get(
-            self.app.config['CAS_ATTRIBUTES_SESSION_KEY'], None)
+        return flask.session.get(keys.CAS_ATTRIBUTES, None)
 
     @property
     def service_ticket(self):
-        return flask.session.get(
-            self.app.config['CAS_SERVICE_TICKET_SESSION_KEY'], None)
+        return flask.session.get(keys.CAS_SERVICE_TICKET, None)
 
     @property
     def pgtiou(self):
-        return flask.session.get(
-            self.app.config['CAS_PGTIOU_SESSION_KEY'], None)
+        return flask.session.get(keys.CAS_PGTIOU, None)
 
 
 def login():
@@ -111,8 +102,8 @@ def logout():
 def login_required(function):
     @wraps(function)
     def wrap(*args, **kwargs):
-        if 'CAS_USERNAME' not in flask.session:
-            flask.session['CAS_AFTER_LOGIN_SESSION_URL'] = flask.request.path
+        if keys.CAS_USERNAME not in flask.session:
+            flask.session[keys.CAS_AFTER_LOGIN_SESSION_URL] = flask.request.path
             return login()
         else:
             return function(*args, **kwargs)

@@ -3,24 +3,27 @@ import logging
 import requests
 from xmltodict import parse
 from flask import current_app, Response, g, request
-from .cas_urls import create_cas_login_url
-from .cas_urls import create_cas_logout_url
-from .cas_urls import create_cas_validate_url
-from .cas_urls import create_cas_callback_url
+
+from . import keys
 from .access_token import get_token
-from .pgt_file import PgtFile
+from .cas_urls import (
+    create_cas_login_url, create_cas_logout_url, create_cas_validate_url,
+    create_cas_callback_url
+)
 from .proxy_ticket import get_proxy_ticket
+from .store import cas_session_store as store
 
 
 try:
-    from urllib import urlopen
+    from urllib import urlopen, urlprase
 except ImportError:
     from urllib.request import urlopen
+    from urllib.parse import urlparse
 
 blueprint = flask.Blueprint('cas', __name__)
 
 
-@blueprint.route('/login/')
+@blueprint.route('/login/', methods=['GET', 'POST'])
 def login():
     """
     This route has two purposes. First, it is used by the user
@@ -35,27 +38,38 @@ def login():
     the user's attributes are saved under the key
     'CAS_USERNAME_ATTRIBUTE_KEY'
     """
-
-    cas_st_session_key = current_app.config['CAS_SERVICE_TICKET_SESSION_KEY']
+    # Single Logout
+    if request.form.get('logoutRequest'):
+        logout_request = parse(request.form['logoutRequest'])
+        ticket = logout_request.get('samlp:LogoutRequest', {}).get('samlp:SessionIndex')
+        if store.is_service_ticket(ticket):
+            logging.info('[CAS] Handle logout request. Logout service ticket: {}...'
+                         .format(ticket[:20]))
+            store.logout_st(ticket)
+        elif store.is_proxy_grant_ticket(ticket):
+            logging.info('[CAS] Handle logout request. Destory proxy grant ticket: {}...'
+                         .format(ticket[:20]))
+            store.destroy(ticket)
+        return Response('[CAS] Handled the logout request.')
 
     redirect_url = create_cas_login_url(
-        current_app.config['CAS_SERVER'],
-        current_app.config['CAS_LOGIN_ROUTE'],
+        current_app.config[keys.CAS_SERVER],
+        current_app.config[keys.CAS_LOGIN_ROUTE],
         flask.url_for('.login', _external=True))
 
     if 'ticket' in flask.request.args:
-        flask.session[cas_st_session_key] = flask.request.args['ticket']
+        flask.session[keys.CAS_SERVICE_TICKET] = flask.request.args['ticket']
 
-    if cas_st_session_key in flask.session:
-        if validate(flask.session[cas_st_session_key]):
-            if 'CAS_AFTER_LOGIN_SESSION_URL' in flask.session:
-                redirect_url = flask.session.pop('CAS_AFTER_LOGIN_SESSION_URL')
+    if keys.CAS_SERVICE_TICKET in flask.session:
+        if validate(flask.session[keys.CAS_SERVICE_TICKET]):
+            if keys.CAS_AFTER_LOGIN_SESSION_URL in flask.session:
+                redirect_url = flask.session.pop(keys.CAS_AFTER_LOGIN_SESSION_URL)
             else:
-                redirect_url = flask.url_for(current_app.config['CAS_AFTER_LOGIN'])
+                redirect_url = flask.url_for(current_app.config[keys.CAS_AFTER_LOGIN])
         else:
-            del flask.session[cas_st_session_key]
+            del flask.session[keys.CAS_SERVICE_TICKET]
 
-    logging.info('Redirecting to: {0}'.format(redirect_url))
+    logging.info('[CAS] Redirecting to: {0}'.format(redirect_url))
     return flask.redirect(redirect_url)
 
 
@@ -64,28 +78,27 @@ def logout():
     """
     When the user accesses this route they are logged out.
     """
+    if keys.CAS_USERNAME in flask.session:
+        del flask.session[keys.CAS_USERNAME]
 
-    cas_username_session_key = current_app.config['CAS_USERNAME_SESSION_KEY']
-    cas_attributes_session_key = current_app.config['CAS_ATTRIBUTES_SESSION_KEY']
+    if keys.CAS_SERVICE_TICKET in flask.session:
+        del flask.session[keys.CAS_SERVICE_TICKET]
 
-    if cas_username_session_key in flask.session:
-        del flask.session[cas_username_session_key]
+    if keys.CAS_PGTIOU in flask.session:
+        del flask.session[keys.CAS_PGTIOU]
 
-    if cas_attributes_session_key in flask.session:
-        del flask.session[cas_attributes_session_key]
-
-    if current_app.config['CAS_AFTER_LOGOUT'] is not None:
+    if current_app.config[keys.CAS_AFTER_LOGOUT] is not None:
         redirect_url = create_cas_logout_url(
-            current_app.config['CAS_SERVER'],
-            current_app.config['CAS_LOGOUT_ROUTE'],
-            current_app.config['CAS_AFTER_LOGOUT'])
+            current_app.config[keys.CAS_SERVER],
+            current_app.config[keys.CAS_LOGOUT_ROUTE],
+            current_app.config[keys.CAS_AFTER_LOGOUT])
     else:
         redirect_url = create_cas_logout_url(
-            current_app.config['CAS_SERVER'],
-            current_app.config['CAS_LOGOUT_ROUTE'],
-            request.url_root)
+            current_app.config[keys.CAS_SERVER],
+            current_app.config[keys.CAS_LOGOUT_ROUTE],
+            url_root())
 
-    logging.info('Redirecting to: {0}'.format(redirect_url))
+    logging.info('[CAS] Redirecting to: {0}'.format(redirect_url))
     return flask.redirect(redirect_url)
 
 
@@ -97,56 +110,52 @@ def validate(ticket):
     key `CAS_USERNAME_SESSION_KEY` while tha validated attributes dictionary
     is saved under the key 'CAS_ATTRIBUTES_SESSION_KEY'.
     """
-
-    cas_username_session_key = current_app.config['CAS_USERNAME_SESSION_KEY']
-    cas_attributes_session_key = current_app.config['CAS_ATTRIBUTES_SESSION_KEY']
-    cas_pgtiou_session_key = current_app.config['CAS_PGTIOU_SESSION_KEY']
-
-    logging.info("Validating token {0}".format(ticket))
+    logging.info("[CAS] Validating service ticket {0}".format(ticket))
 
     cas_callback_url = create_cas_callback_url(
-        flask.request.url_root,
-        current_app.config['CAS_PROXY_CALLBACK_ROUTE'])
+        url_root(),
+        current_app.config[keys.CAS_PROXY_CALLBACK_ROUTE])
     cas_validate_url = create_cas_validate_url(
-        current_app.config['CAS_SERVER'],
-        current_app.config['CAS_SERVICE_VALIDATE_ROUTE'],
-        flask.url_for('.login', _external=True),
-        ticket,
-        None,
-        cas_callback_url)
+        current_app.config[keys.CAS_SERVER],
+        current_app.config[keys.CAS_SERVICE_VALIDATE_ROUTE],
+        service=flask.url_for('.login', _external=True),
+        ticket=ticket,
+        renew=None,
+        pgtUrl=cas_callback_url)
 
-    logging.info("Making GET request to {0}".format(cas_validate_url))
+    logging.info("[CAS] Making GET request to {0}".format(cas_validate_url))
 
     xml_from = {}
     isValid = False
-
     try:
         xmldump = urlopen(cas_validate_url).read().strip().decode('utf8', 'ignore')
         xml_from = parse(xmldump)
         isValid = True \
             if "cas:authenticationSuccess" in xml_from["cas:serviceResponse"] else False
     except ValueError:
-        logging.error("CAS returned unexpected result")
+        logging.error("[CAS] CAS returned unexpected result")
 
     if isValid:
-        logging.info("Valid Service Ticket: {}...".format(ticket[:20]))
+        logging.info("[CAS] Valid Service Ticket: {}...".format(ticket[:20]))
         xml_from = xml_from["cas:serviceResponse"]["cas:authenticationSuccess"]
         username = xml_from["cas:user"]
         pgtiou = xml_from["cas:proxyGrantingTicket"]
-        attributes = xml_from.get("cas:attributes", {})
 
-        if "cas:memberOf" in attributes:
-            attributes["cas:memberOf"] = \
-                attributes["cas:memberOf"].lstrip('[').rstrip(']').split(',')
-            for group_number in range(0, len(attributes['cas:memberOf'])):
-                attributes['cas:memberOf'][group_number] = \
-                    attributes['cas:memberOf'][group_number].lstrip(' ').rstrip(' ')
+        # Deprecated attributes
+        # attributes = xml_from.get("cas:attributes", {})
+        # if "cas:memberOf" in attributes:
+        #     attributes["cas:memberOf"] = \
+        #         attributes["cas:memberOf"].lstrip('[').rstrip(']').split(',')
+        #     for group_number in range(0, len(attributes['cas:memberOf'])):
+        #         attributes['cas:memberOf'][group_number] = \
+        #             attributes['cas:memberOf'][group_number].lstrip(' ').rstrip(' ')
 
-        flask.session[cas_username_session_key] = username
-        flask.session[cas_attributes_session_key] = attributes
-        flask.session[cas_pgtiou_session_key] = pgtiou
+        flask.session[keys.CAS_USERNAME] = username
+        flask.session[keys.CAS_SERVICE_TICKET] = ticket
+        flask.session[keys.CAS_PGTIOU] = pgtiou
+        store.record(ticket, username, clear_logout=True)
     else:
-        logging.info("Invalid Service Ticket: {}...".format(ticket[:20]))
+        logging.info("[CAS] Invalid Service Ticket: {}...".format(ticket[:20]))
 
     return isValid
 
@@ -160,11 +169,11 @@ def pgt_callback():
     pgtid = flask.request.args.get('pgtId')
     pgtiou = flask.request.args.get('pgtIou')
     if not pgtid:
-        logging.info('Not received pgtIou and pgtId')
+        logging.info('[CAS] Not received pgtiou and pgt')
     else:
-        PgtFile.add_pgt_to_file(pgtiou, pgtid)
-        logging.info(
-            'Received pgtIou: {}... and pgtId: {}...'.format(pgtiou[:20], pgtid[:20]))
+        logging.info('[CAS] Store pgtiou: {}... and pgt: {}...'
+                     .format(pgtiou[:20], pgtid[:20]))
+        store.record(pgtiou, pgtid)
     return Response()
 
 
@@ -183,5 +192,10 @@ def test_proxy_ticket():
 
 @blueprint.route('/test_token/')
 def test_token():
-    token = get_token(g.user.username)
+    token = get_token(g.user.username, 'pilot-token')
     return Response(token)
+
+
+def url_root():
+    u = urlparse(flask.url_for('.login', _external=True))
+    return '{}://{}'.format(u.scheme, u.netloc)

@@ -26,7 +26,7 @@ def get_token(username, token_name):
     try:
         token_objs = eval(resp.text)
     except Exception as e:
-        raise Exception('Error response when getting tokens: ' + str(resp.text))
+        raise Exception('[CAS] Error response when getting tokens: ' + str(resp.text))
     for token_obj in token_objs:
         if token_obj['name'] == token_name:
             return get_token_by_id(target_service, token_obj['id'])
@@ -43,7 +43,7 @@ def get_token_by_id(service, id):
     try:
         token_obj = json.loads(resp.text)
     except Exception as e:
-        raise Exception('Error response when getting token by id: ' + str(resp.text))
+        raise Exception('[CAS] Error response when getting token by id: ' + str(resp.text))
     return token_obj['content']
 
 
@@ -57,5 +57,5 @@ def create_token(service, token_name):
     try:
         token = json.loads(resp.text)
     except Exception as e:
-        raise Exception('Error response when creating token: ' + str(resp.text))
+        raise Exception('[CAS] Error response when creating token: ' + str(resp.text))
     return token['content']

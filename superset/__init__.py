@@ -1,4 +1,5 @@
 """Package's main module!"""
+import flask
 import logging
 import os
 import ssl
@@ -11,7 +12,8 @@ from flask_appbuilder.baseviews import expose
 from flask_cache import Cache
 from flask_migrate import Migrate
 from flask_compress import Compress
-from superset.cas import CAS, login_required, access_token
+from superset.cas import CAS, login_required
+from superset.cas.store import cas_session_store
 from superset.source_registry import SourceRegistry
 from werkzeug.contrib.fixers import ProxyFix
 from superset import utils, config
@@ -150,4 +152,27 @@ module_datasource_map.update(app.config.get("ADDITIONAL_MODULE_DS_MAP"))
 SourceRegistry.register_sources(module_datasource_map)
 
 from superset import views, config  # noqa
+
+
+@app.before_request
+def before_request():
+    """Used for CAS Single Logout
+    """
+    if app.config.get("CAS_AUTH") is True:
+        if 'CAS_SERVICE_TICKET' not in flask.session \
+                or 'CAS_USERNAME' not in flask.session:
+            st = 'ST-anonymous'
+            username = 'anonymous'
+            flask.session['CAS_SERVICE_TICKET'] = st
+            cas_session_store.record(st, username, clear_logout=False)
+            cas_session_store.logout_st(st)
+            cas_session_store.verify_st(st)
+
+        st = flask.session.get('CAS_SERVICE_TICKET')
+        if cas_session_store.is_logout_st(st):
+            if cas_session_store.is_verified_st(st):
+                pass
+            else:
+                cas_session_store.verify_st(st)
+                return flask.redirect(appbuilder.get_url_for_logout)
 
