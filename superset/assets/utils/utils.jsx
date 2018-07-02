@@ -233,16 +233,37 @@ export const sorterFn = function sorterFn(a, b) {
     } else if (a==null && b==null) {
         return ;
     }
-    let length = a.length >= b.length ? a.length : b.length;
+    let length = a.length < b.length ? a.length : b.length;
     let idx = 0;
     let flag = true;
-    while (idx < length) {
-        if (a.substr(idx, 1).charCodeAt() !== b.substr(idx, 1).charCodeAt()) {
-            flag = false;
-            return a.substr(idx, 1).charCodeAt() - b.substr(idx, 1).charCodeAt();
+    let aCode = a.substr(idx, 1).charCodeAt();
+    let bCode = b.substr(idx, 1).charCodeAt();
+
+    // 如果是汉字，Unicode 字符>255
+    if(aCode>255 && bCode>255) {
+        while (idx < length) {
+            if (a.substr(idx, 1).charCodeAt() !== b.substr(idx, 1).charCodeAt()) {
+                flag = false;
+                return a.substr(idx, 1).localeCompare(b.substr(idx, 1), 'zh');
+            }
+            idx++;
         }
-        idx++;
-    }
+    } else if(aCode>255 || bCode>255) {
+        if(aCode>255 && bCode<=255) {
+            return 1;
+        } else {
+            return -1;
+        }
+    } else {
+        while (idx < length) {
+            if (a.substr(idx, 1).charCodeAt() !== b.substr(idx, 1).charCodeAt()) {
+                flag = false;
+                return a.substr(idx, 1).charCodeAt() - b.substr(idx, 1).charCodeAt();
+            }
+            idx++;
+        }
+    };
+
     if (flag) {
         if (a.length !== b.length) {
             return a.length - b.length;
@@ -250,4 +271,34 @@ export const sorterFn = function sorterFn(a, b) {
             return true
         }
     }
+}
+
+/** 
+* https://www.cnblogs.com/wteng/p/5658972.html
+* js中文汉字按拼音排序
+*/
+function sorter(arr,empty) {
+    if(!String.prototype.localeCompare)
+        return null;
+     
+    var letters = "*abcdefghjklmnopqrstwxyz".split('');
+    var zh = "阿八嚓哒妸发旮哈讥咔垃痳拏噢妑七呥扨它穵夕丫帀".split('');
+     
+    var segs = [];
+    var curr;
+    letters.forEach(function(me, i){
+        curr = {letter: me, data:[]};
+        arr.forEach(function(the) {
+            if((!zh[i-1] || zh[i-1].localeCompare(the,"zh") <= 0) && the.localeCompare(zh[i],"zh") == -1) {
+                curr.data.push(the);
+            }
+        });
+        if(empty || curr.data.length) {
+            segs.push(curr);
+            curr.data.sort(function(a,b){
+                return a.localeCompare(b,"zh");
+            });
+        }
+    });
+    return segs;
 }
