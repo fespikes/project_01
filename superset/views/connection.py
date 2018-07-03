@@ -211,7 +211,7 @@ class DatabaseView(SupersetModelView, PermissionManagement):  # noqa
     @expose("/delete_info/<id>/", methods=['GET'])
     def delete_info(self, id):
         database = self.get_object(id)
-        self.check_delete_perm(database.guardian_datasource)
+        self.check_delete_perm(database.guardian_datasource())
         objects = self.delete_affect_objects(database)
         info = _("Deleting connection {conn} will make these unusable: "
                  "\nDataset: {dataset}, \nSlice: {slice}")\
