@@ -123,8 +123,8 @@ class SliceAdder extends React.Component {
 
         const rowSelection = {
             selectedRowKeys: selectedRowKeys[pageNumber],
-            onSelect: this.onSelect,
-            onChange: this.onChange
+            onSelect: this.onSelect.bind(this),
+            onChange: this.onChange.bind(this)
         };
 
         const columns = [
