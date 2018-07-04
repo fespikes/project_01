@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import threading
-
+from superset.exception import ParameterException
 
 lock = threading.Lock()
 
@@ -65,26 +65,32 @@ class FileStore(BaseStore):
     def __init__(self):
         self.filename = 'file.store'
         if not os.path.exists(self.path):
-            os.makedirs(self.filepath)
+            os.makedirs(self.path)
 
     def get_data_dict(self):
         logging.debug('[CAS] Get store file: [{}]'.format(self.filepath))
         if not os.path.exists(self.filepath):
             os.mknod(self.filepath)
-        with open(self.filepath, 'rb') as f:
-            data = f.read()
-        return json.loads(str(data, encoding='utf-8')) if data else {}
+            return {}
+        else:
+            with open(self.filepath, 'rb') as f:
+                data = f.read()
+            try:
+                return json.loads(str(data, encoding='utf-8')) if data else {}
+            except json.decoder.JSONDecodeError:
+                logging.error('[CAS] {}\'s data is not a dict, will be removed: {}'
+                              .format(self.filename, str(data, encoding='utf-8')))
+                os.remove(self.filepath)
 
     def set_data_dict(self, data):
         logging.debug('[CAS] Write store file: [{}]'.format(self.filepath))
-        if not os.path.exists(self.filepath):
-            os.mknod(self.filepath)
+        if not isinstance(data, dict):
+            raise ParameterException('[CAS] Parameter [data] is not a dict')
         data = bytes(json.dumps(data), encoding='utf-8')
+
         if lock.acquire(1):
-            with open(self.filepath, 'rb+') as f:
-                f.seek(0)
+            with open(self.filepath, 'wb') as f:
                 f.write(data)
-                f.truncate()
         lock.release()
 
     @property
@@ -179,7 +185,8 @@ class ServiceTicketStore(FileStore, CheckTicketMinix):
     def logout(self, key):
         self.check_key(key)
         data = self.get_data_dict()
-        data[key] = '{}{}'.format(data[key], self.LOGOUT_MARK)
+        if key in data:
+            data[key] = '{}{}'.format(data[key], self.LOGOUT_MARK)
         self.set_data_dict(data)
 
     def is_logout(self, key):
@@ -189,7 +196,8 @@ class ServiceTicketStore(FileStore, CheckTicketMinix):
     def verify(self, key):
         self.check_key(key)
         data = self.get_data_dict()
-        data[key] = '{}{}'.format(self.VERIFIED_MARK, data[key])
+        if key in data:
+            data[key] = '{}{}'.format(self.VERIFIED_MARK, data[key])
         self.set_data_dict(data)
 
     def is_verified(self, key):
