@@ -132,14 +132,12 @@ class Superset(BaseSupersetView, PermissionManagement):
                 database_id=database_id,
                 full_tb_name=full_tb_name,
                 args=request.args)
-            if slice_id:
-                slice = db.session.query(Slice).filter_by(id=slice_id).first()
-                self.check_read_perm(slice.guardian_datasource())
+            self.check_slice_explore_perm(
+                slice_id, datasource_id, database_id, full_tb_name)
         except Exception as e:
             logging.exception(e)
             return Response(utils.error_msg_from_exception(e), status=500)
 
-        payload = {}
         status = 200
         try:
             payload = viz_obj.get_payload()
@@ -149,7 +147,6 @@ class Superset(BaseSupersetView, PermissionManagement):
 
         if payload.get('status') == QueryStatus.FAILED:
             status = 500
-
         return Response(
             viz_obj.json_dumps(payload),
             status=status,
@@ -288,6 +285,20 @@ class Superset(BaseSupersetView, PermissionManagement):
         status = 200
         payload = obj.get_values_for_column(column)
         return json_response(data=payload)
+
+    def check_slice_explore_perm(self, slice_id, dataset_id, database_id, full_tb_name):
+        if self.guardian_auth is True:
+            if slice_id:
+                slice = Slice.get_object(id=slice_id)
+                self.check_read_perm(slice.guardian_datasource())
+            if database_id and full_tb_name:
+                database = Database.get_object(id=database_id)
+                self.check_read_perm(database.guardian_datasource())
+            else:
+                dataset = Dataset.get_object(id=dataset_id)
+                self.check_read_perm(dataset.guardian_datasource())
+                if dataset.database:
+                    self.check_read_perm(dataset.database.guardian_datasource())
 
     def save_or_overwrite_slice(self, args, slc, slice_add_perm, slice_edit_perm):
         """Save or overwrite a slice"""
