@@ -114,7 +114,7 @@ class PermissionManagement(object):
                             global_check_api='check_global_read')
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to read [{name}]').format(name=finite_obj[-1]))
+                _('No privilege to read {name}').format(name=finite_obj))
         else:
             return can
 
@@ -125,7 +125,7 @@ class PermissionManagement(object):
                             global_check_api='check_global_edit')
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to edit [{name}]').format(name=finite_obj[-1]))
+                _('No privilege to edit {name}').format(name=finite_obj))
         else:
             return can
 
@@ -136,7 +136,7 @@ class PermissionManagement(object):
                             global_check_api='check_global_edit')
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to delete [{name}]').format(name=finite_obj[-1]))
+                _('No privilege to delete {name}').format(name=finite_obj))
         else:
             return can
 
@@ -147,7 +147,7 @@ class PermissionManagement(object):
                             global_check_api='check_global_admin')
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege ADMIN of [{name}]').format(name=finite_obj[-1]))
+                _('No privilege ADMIN of {name}').format(name=finite_obj))
         else:
             return can
 
@@ -158,8 +158,8 @@ class PermissionManagement(object):
                             global_check_api='check_global_admin')
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to grant permission on {obj_type}: [{name}]')
-                .format(obj_type=finite_obj[-2], name=finite_obj[-1]))
+                _('No privilege to grant permission on {name}')
+                .format(name=finite_obj))
         else:
             return can
 
@@ -170,8 +170,8 @@ class PermissionManagement(object):
                             global_check_api='check_global_admin')
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to revoke permissions from {obj_type}: [{name}]')
-                .format(obj_type=finite_obj[-2], name=finite_obj[-1]))
+                _('No privilege to revoke permissions from {name}')
+                .format(name=finite_obj))
         else:
             return can
 
@@ -182,7 +182,7 @@ class PermissionManagement(object):
                             global_check_api='check_global_admin')
         if not can and raise_if_false:
             raise PermissionException(
-                _('No privilege to release {name}').format(name=finite_obj[-1]))
+                _('No privilege to release {name}').format(name=finite_obj))
         else:
             return can
 

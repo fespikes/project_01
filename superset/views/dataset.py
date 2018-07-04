@@ -222,10 +222,19 @@ class DatasetModelView(SupersetModelView, PermissionManagement):  # noqa
         rows = request.args.get('rows', 100)
         if database_id and full_tb_name and 'undifined' not in database_id \
                 and 'undefined' not in full_tb_name:
+            database = Database.get_object(id=database_id)
+            self.check_read_perm(database.guardian_datasource())
             dataset = Dataset.temp_dataset(database_id, full_tb_name, need_columns=False)
             data = dataset.preview_data(limit=rows)
         elif int(dataset_id) > 0:
-            data = self.get_object(dataset_id).preview_data(limit=rows)
+            dataset = Dataset.get_object(id=dataset_id)
+            self.check_read_perm(dataset.guardian_datasource())
+            if dataset.database:
+                self.check_read_perm(dataset.database.guardian_datasource())
+            if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
+                self.check_read_perm(
+                    dataset.hdfs_table.hdfs_connection.guardian_datasource())
+            data = dataset.preview_data(limit=rows)
         else:
             return json_response(status=400,
                                  message=_("Error request parameters: [{params}]")

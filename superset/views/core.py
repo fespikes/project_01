@@ -299,6 +299,9 @@ class Superset(BaseSupersetView, PermissionManagement):
                 self.check_read_perm(dataset.guardian_datasource())
                 if dataset.database:
                     self.check_read_perm(dataset.database.guardian_datasource())
+                if dataset.hdfs_table and dataset.hdfs_table.hdfs_connection:
+                    self.check_read_perm(
+                        dataset.hdfs_table.hdfs_connection.guardian_datasource())
 
     def save_or_overwrite_slice(self, args, slc, slice_add_perm, slice_edit_perm):
         """Save or overwrite a slice"""
