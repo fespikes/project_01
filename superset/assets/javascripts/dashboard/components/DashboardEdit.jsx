@@ -22,6 +22,7 @@ class DashboardEdit extends React.Component {
             enableConfirm: true,
             selectedSlices: [],
             availableSlices: [],
+            selectedSliceObjs: [],
             availableOptions: [],
             slicesLoaded: false
         };
@@ -51,6 +52,7 @@ class DashboardEdit extends React.Component {
                 this.setState({
                     dashboard: response.data,
                     selectedSlices: selectedSlices,
+                    selectedSliceObjs: response.data.slices,
                     slicesLoaded: true,
                 });
             },

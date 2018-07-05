@@ -18,7 +18,8 @@ class SliceEdit extends React.Component {
             sliceDetail: {},
             availableDashboards: [],
             dashboardOptions: [],
-            selectedDashboards: initDefaultOptions()
+            selectedDashboards: initDefaultOptions(),
+            selectedDashboardObjs: props.sliceDetail.dashboards
         };
 
         function initDefaultOptions() {
@@ -62,8 +63,18 @@ class SliceEdit extends React.Component {
     }
 
     onSelectChange(value) {
+        const arr = [];
+        const availableDashboards = this.state.availableDashboards;
+        value.forEach(v => {
+            availableDashboards.forEach(i => {
+                if (i.name ===v) {
+                    arr.push(i);
+                }
+            })
+        });
         this.setState({
-            selectedDashboards: value
+            selectedDashboards: value,
+            selectedDashboardObjs: arr
         });
         this.closeAlert('edit-slice-error-tip');
     }
