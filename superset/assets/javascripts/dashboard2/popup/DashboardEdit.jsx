@@ -12,6 +12,14 @@ import intl from 'react-intl-universal';
 class DashboardEdit extends React.Component {
     constructor(props) {
         super(props);
+        function initDefaultOptions() {
+            let selectedSlices = [];
+            props.dashboardDetail.slices.map(slice => {
+                selectedSlices.push(slice.slice_name);
+            });
+            return selectedSlices;
+        };
+
         this.state = {
             exception: {},
             enableConfirm: true,
@@ -20,16 +28,11 @@ class DashboardEdit extends React.Component {
             },
             availableSlices: [],
             sliceOptions: [],
-            selectedSlices: initDefaultOptions()
+            selectedSlices: initDefaultOptions(),
+
+            selectedSliceObjs: props.dashboardDetail.slices       //for get the ids
         };
 
-        function initDefaultOptions() {
-            let defaultOptions = [];
-            props.dashboardDetail.slices.map(slice => {
-                defaultOptions.push(slice.slice_name);
-            });
-            return defaultOptions;
-        }
         // bindings
         this.confirm = this.confirm.bind(this);
         this.closeAlert = this.closeAlert.bind(this);
@@ -65,8 +68,18 @@ class DashboardEdit extends React.Component {
     }
 
     onSelectChange(value) {
+        const arr = [];
+        const availableSlices = this.state.availableSlices;
+        value.forEach(v => {
+            availableSlices.forEach(i => {
+                if (i.slice_name === v) {
+                    arr.push(i);
+                }
+            });
+        })
         this.setState({
-            selectedSlices: value
+            selectedSlices: value,
+            selectedSliceObjs: arr
         });
         this.closeAlert('edit-dashboard-error-tip');
     }

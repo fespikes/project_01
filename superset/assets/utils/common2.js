@@ -14,7 +14,7 @@ export function getSelectedDashboards(selectedDashboards, availableDashboards) {
     let array = [];
     selectedDashboards.forEach(function(selected) {
         availableDashboards.forEach(function(dashboard) {
-            if(selected === dashboard.id.toString()) {
+            if (selected === dashboard.id.toString()) {
                 array.push(dashboard);
             }
         });
@@ -22,23 +22,32 @@ export function getSelectedDashboards(selectedDashboards, availableDashboards) {
     return array;
 }
 
-export function getNewDashboard(dashboard, selectedSlices, available_slices) {
+export function getNewDashboard(dashboard, selectedSliceObjs, available_slices) {
     let obj = {};
     obj.id = dashboard.id;
     obj.name = dashboard.name;
     obj.description = dashboard.description;
-    obj.slices = getSelectedSlices(selectedSlices, available_slices);
+    obj.slices = selectedSliceObjs;
     return obj;
 }
 
+// deprecated,previously used by getNewDashboard to build obj.slices
 export function getSelectedSlices(selectedSlices, availableSlices) {
     let array = [];
-    selectedSlices.forEach(function(selected) {
+    let json = {};
+    selectedSlices.forEach(function(selected, idx) {
         availableSlices.forEach(function(slice) {
-            if(selected === slice.slice_name.toString()) {
+            json[slice.slice_name] = true;
+            if (selected === slice.slice_name.toString()) {
                 array.push(slice);
             }
+
         });
+        if (!json[selected]) {
+            array.push({
+                'selected': selected
+            });
+        }
     });
     return array;
 }
@@ -59,7 +68,7 @@ export function constructTreeData(entities, isLeaf, category) {
 
 export function appendTreeData(schemaAppended, tables, treeData) {
     treeData.map(schema => {
-        if(schema.value === schemaAppended) {
+        if (schema.value === schemaAppended) {
             schema.children = constructTreeData(tables, true, 'file');
         }
     });

@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-fetch';
-import {renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX} from '../../../utils/utils'
-import {always, json, callbackHandler} from '../../global.jsx';
+import { renderLoadingModal, renderGlobalErrorMsg, PILOT_PREFIX } from '../../../utils/utils'
+import { always, json, callbackHandler } from '../../global.jsx';
 
 export const SHOW_ALL = 'showAll';
 export const SHOW_FAVORITE = 'showFavorite';
@@ -27,16 +27,16 @@ export const CONDITION_PARAMS = {
 };
 
 const handler = (response, dispatch) => {
-    if(response.status === 200) {
+    if (response.status === 200) {
         dispatch(receiveLists(response.data));
-    }else {
+    } else {
         renderGlobalErrorMsg(response.message);
     }
 };
 
 const baseURL = window.location.origin + '/slice/';
 
-export function navigateTo(pageNumber){
+export function navigateTo(pageNumber) {
     return {
         type: CONDITION_PARAMS.PAGE_NUMBER,
         pageNumber: pageNumber
@@ -50,7 +50,7 @@ export function setPageSize(pageSize) {
     }
 }
 
-export function switchFavorite(typeName){
+export function switchFavorite(typeName) {
     return {
         type: CONDITION_PARAMS.SHOW_TYPE,
         typeName: typeName
@@ -142,7 +142,7 @@ export function fetchSliceDelete(sliceId, callback) {
         }).then(always).then(json).then(
             response => {
                 callbackHandler(response, callback);
-                if(response.status === 200) {
+                if (response.status === 200) {
                     dispatch(fetchLists());
                 }
             }
@@ -170,7 +170,9 @@ export function fetchSliceDeleteMul(callback) {
     const url = baseURL + "muldelete/";
     return (dispatch, getState) => {
         const selectedRowKeys = getState().conditions.selectedRowKeys;
-        let data = {selectedRowKeys: selectedRowKeys};
+        let data = {
+            selectedRowKeys: selectedRowKeys
+        };
         return fetch(url, {
             credentials: 'include',
             method: 'POST',
@@ -178,7 +180,7 @@ export function fetchSliceDeleteMul(callback) {
         }).then(always).then(json).then(
             response => {
                 callbackHandler(response, callback);
-                if(response.status === 200) {
+                if (response.status === 200) {
                     dispatch(fetchLists());
                 }
             }
@@ -191,7 +193,9 @@ export function fetchSliceDelMulInfo(callback) {
     return (dispatch, getState) => {
         dispatch(switchFetchingState(true));
         const selectedRowKeys = getState().conditions.selectedRowKeys;
-        let data = {selectedRowKeys: selectedRowKeys};
+        let data = {
+            selectedRowKeys: selectedRowKeys
+        };
         return fetch(url, {
             credentials: 'include',
             method: 'POST',
@@ -221,7 +225,7 @@ export function fetchSliceDetail(sliceId, callback) {
 
 export function fetchUpdateSlice(state, slice, callback) {
     const url = baseURL + "edit/" + slice.id + "/";
-    const newSlice = getNewSlice(slice, state.selectedDashboards, state.availableDashboards);
+    const newSlice = getNewSlice(slice, state.selectedDashboardObjs, state.availableDashboards);
     return dispatch => {
         return fetch(url, {
             credentials: "include",
@@ -231,7 +235,7 @@ export function fetchUpdateSlice(state, slice, callback) {
             response => {
                 callbackHandler(response, callback);
                 dispatch(switchFetchingState(false));
-                if(response.status === 200) {
+                if (response.status === 200) {
                     dispatch(fetchLists());
                 }
             }
@@ -241,9 +245,9 @@ export function fetchUpdateSlice(state, slice, callback) {
 
 export function switchFetchingState(isFetching) {
     const loadingModal = renderLoadingModal();
-    if(isFetching) {
+    if (isFetching) {
         loadingModal.show();
-    }else {
+    } else {
         loadingModal.hide();
     }
     return {
@@ -266,47 +270,48 @@ export function fetchDashboardList(callback) {
 
 function getSliceListUrl(state) {
     let url = baseURL + "listdata/?page=" + (state.conditions.pageNumber - 1) +
-        "&page_size=" + state.conditions.pageSize + "&filter=" + state.conditions.keyword;
-    if(state.conditions.type === SHOW_FAVORITE) {
+    "&page_size=" + state.conditions.pageSize + "&filter=" + state.conditions.keyword;
+    if (state.conditions.type === SHOW_FAVORITE) {
         url += "&only_favorite=1";
     }
     return url;
 }
 
 function getStateChangeUrl(record, type) {
-    if(type === "favorite") {
+    if (type === "favorite") {
         let url_favorite = window.location.origin + PILOT_PREFIX + "favstar/Slice/" + record.id;
-        if(record.favorite) {
+        if (record.favorite) {
             url_favorite += "/unselect";
-        }else {
+        } else {
             url_favorite += "/select";
         }
         return url_favorite;
-    }else if(type === "publish") {
+    } else if (type === "publish") {
         let url_publish = window.location.origin + PILOT_PREFIX + "release/slice/";
-        if(record.online) {
+        if (record.online) {
             url_publish += "offline/" + record.id;
-        }else {
+        } else {
             url_publish += "online/" + record.id;
         }
         return url_publish;
     }
 }
 
-function getNewSlice(slice, selectedDashboards, availableDashboards) {
+function getNewSlice(slice, selectedDashboardObjs, availableDashboards) {
     let obj = {};
     obj.id = slice.id;
     obj.slice_name = slice.slice_name;
     obj.description = slice.description;
-    obj.dashboards = getSelectedSlices(selectedDashboards, availableDashboards);
+    obj.dashboards = selectedDashboardObjs; //getSelectedSlices(selectedDashboards, availableDashboards);
     return obj;
 }
 
+// deprecated, used by up function
 function getSelectedSlices(selectedDashboards, availableDashboards) {
     let array = [];
     selectedDashboards.forEach(function(selected) {
         availableDashboards.forEach(function(dashboard) {
-            if(selected === dashboard.name) {
+            if (selected === dashboard.name) {
                 array.push(dashboard);
             }
         });

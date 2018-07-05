@@ -336,7 +336,7 @@ export function dashboardContainer(dashboard) {
                 url: `/dashboard/edit/${dashboard.id}/`,
                 contentType: 'application/json',
                 data: JSON.stringify(getNewDashboard(
-                    state.dashboard, state.selectedSlices, state.availableSlices
+                    state.dashboard, state.selectedSliceObjs, state.availableSlices
                 )),
                 success() {
                     loadingModal.hide();

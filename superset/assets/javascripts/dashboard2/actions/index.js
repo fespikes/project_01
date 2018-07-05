@@ -327,7 +327,7 @@ export function fetchAvailableSlices(callback) {
 
 export function fetchUpdateDashboard(state, dashboard, callback) {
     const url = window.location.origin + "/dashboard/edit/" + dashboard.id + '/';
-    const newDashboard = getNewDashboard(dashboard, state.selectedSlices, state.availableSlices);
+    const newDashboard = getNewDashboard(dashboard, state.selectedSliceObjs, state.availableSlices);
     return dispatch => {
         return fetch(url, {
             credentials: "same-origin",
@@ -347,7 +347,7 @@ export function fetchUpdateDashboard(state, dashboard, callback) {
 
 export function fetchAddDashboard(state, availableSlices, callback) {
     const url = window.location.origin + "/dashboard/add/";
-    const dashboard = getNewDashboard(state.dashboard, state.selectedSlices, availableSlices);
+    const dashboard = getNewDashboard(state.dashboard, state.selectedSliceObjs, availableSlices);
     return dispatch => {
         dispatch(switchFetchingState(true));
         return fetch(url, {

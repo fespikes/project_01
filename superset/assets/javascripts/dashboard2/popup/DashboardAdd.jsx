@@ -15,7 +15,8 @@ class DashboardAdd extends React.Component {
         this.state = {
             selectedSlices: [],
             enableConfirm: false,
-            exception: {}
+            exception: {},
+            selectedSliceObjs: []
         };
         // bindings
         this.confirm = this.confirm.bind(this);
@@ -54,8 +55,18 @@ class DashboardAdd extends React.Component {
     }
 
     onSelectChange(value) {
+        const arr = [];
+        const availableSlices = this.props.availableSlices;
+        value.forEach(v => {
+            availableSlices.forEach(i => {
+                if (i.slice_name === v) {
+                    arr.push(i);
+                }
+            });
+        })
         this.setState({
-            selectedSlices: value
+            selectedSlices: value,
+            selectedSliceObjs: arr
         });
         this.closeAlert('add-dashboard-error-tip');
     }
