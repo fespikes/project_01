@@ -26,19 +26,15 @@ class CheckTicketMinix(object):
 class BaseStore(object):
 
     def get(self, key):
-        self.check_key(key)
         data = self.get_data_dict()
         return data.get(key, None)
 
     def set(self, key, value, clear_logout=False):
-        self.check_key(key)
-        self.check_value(value)
         data = self.get_data_dict()
         data[key] = value
         self.set_data_dict(data)
 
     def remove(self, key):
-        self.check_key(key)
         data = self.get_data_dict()
         data.pop(key, None)
         self.set_data_dict(data)
@@ -266,4 +262,4 @@ class CASSessionStore(CheckTicketMinix):
         return self.st_store.is_verified(key)
 
 
-cas_session_store = CASSessionStore()
+cas_session = CASSessionStore()

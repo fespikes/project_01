@@ -11,7 +11,7 @@ from .cas_urls import (
     create_cas_callback_url
 )
 from .proxy_ticket import get_proxy_ticket
-from .store import cas_session_store as store
+from .cas_session import cas_session
 
 
 try:
@@ -42,14 +42,14 @@ def login():
     if request.form.get('logoutRequest'):
         logout_request = parse(request.form['logoutRequest'])
         ticket = logout_request.get('samlp:LogoutRequest', {}).get('samlp:SessionIndex')
-        if store.is_service_ticket(ticket):
+        if cas_session.is_service_ticket(ticket):
             logging.info('[CAS] Handle logout request. Logout service ticket: {}...'
                          .format(ticket[:20]))
-            store.logout_st(ticket)
-        elif store.is_proxy_grant_ticket(ticket):
+            cas_session.logout_st(ticket)
+        elif cas_session.is_proxy_grant_ticket(ticket):
             logging.info('[CAS] Handle logout request. Destory proxy grant ticket: {}...'
                          .format(ticket[:20]))
-            store.destroy(ticket)
+            cas_session.destroy(ticket)
         return Response('[CAS] Handled the logout request.')
 
     redirect_url = create_cas_login_url(
@@ -65,7 +65,7 @@ def login():
             if keys.CAS_AFTER_LOGIN_SESSION_URL in flask.session:
                 redirect_url = flask.session.pop(keys.CAS_AFTER_LOGIN_SESSION_URL)
             else:
-                redirect_url = flask.url_for(current_app.config[keys.CAS_AFTER_LOGIN])
+                redirect_url = current_app.config[keys.CAS_AFTER_LOGIN]
         else:
             del flask.session[keys.CAS_SERVICE_TICKET]
 
@@ -153,7 +153,7 @@ def validate(ticket):
         flask.session[keys.CAS_USERNAME] = username
         flask.session[keys.CAS_SERVICE_TICKET] = ticket
         flask.session[keys.CAS_PGTIOU] = pgtiou
-        store.record(ticket, username, clear_logout=True)
+        cas_session.record(ticket, username, clear_logout=True)
     else:
         logging.info("[CAS] Invalid Service Ticket: {}...".format(ticket[:20]))
 
@@ -173,7 +173,7 @@ def pgt_callback():
     else:
         logging.info('[CAS] Store pgtiou: {}... and pgt: {}...'
                      .format(pgtiou[:20], pgtid[:20]))
-        store.record(pgtiou, pgtid)
+        cas_session.record(pgtiou, pgtid)
     return Response()
 
 

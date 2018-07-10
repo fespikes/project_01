@@ -70,13 +70,13 @@ LICENSE_CHECK = True
 SECRET_KEY = '=== Transwarp Studio Pilot ==='  # noqa
 
 # Session timeout
-PERMANENT_SESSION_LIFETIME = 30 * 60
+PERMANENT_SESSION_LIFETIME = 86400
 
 
 METADATA_CONN_NAME = 'main'
 
 # The SQLAlchemy connection string.
-SQLALCHEMY_DATABASE_URI = 'mysql://username:password@localhost:3306/db?charset=utf8'
+SQLALCHEMY_DATABASE_URI = 'mysql://username:password@localhost:3306/test?charset=utf8'
 
 # Default Inceptor
 DEFAULT_INCEPTOR_CONN_NAME = 'default_inceptor'

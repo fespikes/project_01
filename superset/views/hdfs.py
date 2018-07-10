@@ -73,8 +73,8 @@ class HDFSBrowser(BaseSupersetView):
     @expose('/')
     def render_html(self):
         self.update_redirect()
-        if not g.user or not g.user.get_id():
-            return redirect(appbuilder.get_url_for_logout)
+        if g.user.get_id() is None:
+            return redirect(appbuilder.get_url_for_login)
         try:
             client = self.get_client()
             client.mkdir('/user', g.user.username)
