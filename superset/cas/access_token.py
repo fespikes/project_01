@@ -24,7 +24,7 @@ def get_token(username, token_name):
 
     resp = requests.get(url, verify=False)
     try:
-        token_objs = eval(resp.text)
+        token_objs = json.loads(resp.text)
     except Exception as e:
         raise Exception('[CAS] Error response when getting tokens: ' + str(resp.text))
     for token_obj in token_objs:
