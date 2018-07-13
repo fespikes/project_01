@@ -60,8 +60,9 @@ def login():
     if 'ticket' in flask.request.args:
         flask.session[keys.CAS_SERVICE_TICKET] = flask.request.args['ticket']
 
-    if keys.CAS_SERVICE_TICKET in flask.session:
-        if validate(flask.session[keys.CAS_SERVICE_TICKET]):
+    ticket = flask.session.get(keys.CAS_SERVICE_TICKET, None)
+    if ticket is not None and ticket != keys.CAS_FAKE_SERVICE_TICKET:
+        if validate(ticket):
             if keys.CAS_AFTER_LOGIN_SESSION_URL in flask.session:
                 redirect_url = flask.session.pop(keys.CAS_AFTER_LOGIN_SESSION_URL)
             else:

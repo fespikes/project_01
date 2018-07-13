@@ -69,24 +69,24 @@ class FileStore(BaseStore):
             os.mknod(self.filepath)
             return {}
         else:
-            with open(self.filepath, 'rb') as f:
+            with open(self.filepath, 'r') as f:
                 data = f.read()
             try:
-                return json.loads(str(data, encoding='utf-8')) if data else {}
+                return json.loads(data) if data else {}
             except json.decoder.JSONDecodeError:
-                logging.error('[CAS] {}\'s data is not a dict, will be removed: {}'
-                              .format(self.filename, str(data, encoding='utf-8')))
-                os.remove(self.filepath)
+                logging.exception('[CAS] {}\'s data is not a dict, will be removed: {}'
+                              .format(self.filename, data))
+                #os.remove(self.filepath)
 
     def set_data_dict(self, data):
         logging.debug('[CAS] Write store file: [{}]'.format(self.filepath))
         if not isinstance(data, dict):
             raise ParameterException('[CAS] Parameter [data] is not a dict')
-        data = bytes(json.dumps(data), encoding='utf-8')
+        data = json.dumps(data)
 
-        if lock.acquire(1):
-            with open(self.filepath, 'wb') as f:
-                f.write(data)
+        lock.acquire()
+        with open(self.filepath, 'w') as f:
+            f.write(data)
         lock.release()
 
     @property
