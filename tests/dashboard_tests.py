@@ -17,18 +17,12 @@ from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 
 
-class DashboardCRUDTests(SupersetTestCase, PageMixin):
+class DashboardTests(SupersetTestCase, PageMixin):
     require_examples = True
 
     def __init__(self, *args, **kwargs):
-        super(DashboardCRUDTests, self).__init__(*args, **kwargs)
+        super(DashboardTests, self).__init__(*args, **kwargs)
         self.view = DashboardModelView()
-
-    def setUp(self):
-        self.login()
-
-    def tearDown(self):
-        pass
 
     def test_listdata(self):
         resp_data = self.get_json_resp('/dashboard/listdata/')
@@ -54,17 +48,8 @@ class DashboardCRUDTests(SupersetTestCase, PageMixin):
             assert one_dash.get('url') == queried_dash.url
             assert one_dash.get('description') == queried_dash.description
 
-    def test_show(self):
-        one_dash = db.session.query(Dashboard).first()
-        resp_data = self.get_json_resp('/dashboard/show/{}/'.format(one_dash.id))
-        resp_data = resp_data.get('data')
-        assert one_dash.id == resp_data.get('id')
-        assert one_dash.name == resp_data.get('name')
-        assert one_dash.description == resp_data.get('description')
-        assert len(one_dash.slices) == len(resp_data.get('slices'))
-
-    def test_add_edit_delete(self):
-        # add
+    def test_add_show_edit_delete(self):
+        ### add
         new_slices = self.get_slices(2)
         ts = datetime.now().isoformat()
         ts = ts.replace('-', '').replace(':', '').split('.')[0]
@@ -74,18 +59,19 @@ class DashboardCRUDTests(SupersetTestCase, PageMixin):
                 }
         resp = self.get_json_resp('/dashboard/add/', data=json.dumps(data))
         new_dash_id = resp.get('data').get('object_id')
-
         added_dash = Dashboard.get_object(id=new_dash_id)
-        assert added_dash.name == data.get('name')
-        assert added_dash.description == data.get('description')
-        new_slices_name = [slc.slice_name for slc in new_slices]
-        for slc in added_dash.slices:
-            assert slc.slice_name in new_slices_name
+        assert added_dash is not None
 
-        # edit
+        ### show
+        resp_data = self.get_json_resp('/dashboard/show/{}/'.format(new_dash_id))
+        resp_data = resp_data.get('data')
+        assert added_dash.id == resp_data.get('id')
+        assert added_dash.name == resp_data.get('name')
+        assert added_dash.description == resp_data.get('description')
+        assert len(added_dash.slices) == len(resp_data.get('slices'))
+
+        ### edit
         new_slices = self.get_slices(3)
-        ts = datetime.now().isoformat()
-        ts = ts.replace('-', '').replace(':', '').split('.')[0]
         data = {'name': 'edited_dashboard_{}'.format(ts),
                 'description': 'edit dashboard',
                 'slices': self.view.slices_to_dict(new_slices)}
@@ -100,11 +86,14 @@ class DashboardCRUDTests(SupersetTestCase, PageMixin):
         for slc in edited_dash.slices:
             assert slc.slice_name in new_slices_name
 
-        # delete
+        ### delete
         resp = self.get_json_resp('/dashboard/delete/{}/'.format(new_dash_id))
         assert resp.get('status') == 200
         dash = Dashboard.get_object(id=new_dash_id)
         assert dash is None
+
+    def test_save_dashboard(self):
+        pass
 
 
 if __name__ == '__main__':
