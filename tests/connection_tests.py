@@ -14,8 +14,8 @@ from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 
 
-class DatabaseCRUDTests(SupersetTestCase,PageMixin):
-    #requires_examples = True
+class DatabaseCRUDTests(SupersetTestCase, PageMixin):
+    require_examples = True
 
     def __init__(self, *args, **kwargs):
         super(DatabaseCRUDTests, self).__init__(*args, **kwargs)

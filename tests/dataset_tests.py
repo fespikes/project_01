@@ -18,7 +18,7 @@ from tests.base_tests import PageMixin
 
 
 class TableCRUDTests(SupersetTestCase, PageMixin):
-    #requires_examples = True
+    require_examples = True
 
     def __init__(self, *args, **kwargs):
         super(TableCRUDTests, self).__init__(*args, **kwargs)
