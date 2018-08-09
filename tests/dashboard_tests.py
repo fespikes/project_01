@@ -10,7 +10,6 @@ import json
 import unittest
 
 from datetime import datetime
-from superset import db, sm
 from superset.models import Dashboard
 from superset.views.core import DashboardModelView
 from tests.base_tests import SupersetTestCase
@@ -19,13 +18,14 @@ from tests.base_tests import PageMixin
 
 class DashboardTests(SupersetTestCase, PageMixin):
     require_examples = True
+    route_base = '/dashboard'
 
     def __init__(self, *args, **kwargs):
         super(DashboardTests, self).__init__(*args, **kwargs)
         self.view = DashboardModelView()
 
     def test_listdata(self):
-        resp_data = self.get_json_resp('/dashboard/listdata/')
+        resp_data = self.get_json_resp('{}/listdata/'.format(self.route_base))
         assert resp_data.get('status') == 200
 
         data = resp_data.get('data')
@@ -57,13 +57,15 @@ class DashboardTests(SupersetTestCase, PageMixin):
                 'description': 'new dashboard',
                 'slices': self.view.slices_to_dict(new_slices)
                 }
-        resp = self.get_json_resp('/dashboard/add/', data=json.dumps(data))
+        resp = self.get_json_resp('{}/add/'.format(self.route_base),
+                                  data=json.dumps(data))
         new_dash_id = resp.get('data').get('object_id')
         added_dash = Dashboard.get_object(id=new_dash_id)
         assert added_dash is not None
 
         ### show
-        resp_data = self.get_json_resp('/dashboard/show/{}/'.format(new_dash_id))
+        resp_data = self.get_json_resp(
+            '{}/show/{}/'.format(self.route_base, new_dash_id))
         resp_data = resp_data.get('data')
         assert added_dash.id == resp_data.get('id')
         assert added_dash.name == resp_data.get('name')
@@ -75,7 +77,7 @@ class DashboardTests(SupersetTestCase, PageMixin):
         data = {'name': 'edited_dashboard_{}'.format(ts),
                 'description': 'edit dashboard',
                 'slices': self.view.slices_to_dict(new_slices)}
-        resp = self.get_json_resp('/dashboard/edit/{}/'.format(new_dash_id),
+        resp = self.get_json_resp('{}/edit/{}/'.format(self.route_base, new_dash_id),
                                   data=json.dumps(data))
         assert resp.get('status') == 200
 
@@ -87,7 +89,7 @@ class DashboardTests(SupersetTestCase, PageMixin):
             assert slc.slice_name in new_slices_name
 
         ### delete
-        resp = self.get_json_resp('/dashboard/delete/{}/'.format(new_dash_id))
+        resp = self.get_json_resp('{}/delete/{}/'.format(self.route_base, new_dash_id))
         assert resp.get('status') == 200
         dash = Dashboard.get_object(id=new_dash_id)
         assert dash is None

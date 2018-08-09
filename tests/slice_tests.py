@@ -6,124 +6,88 @@ from __future__ import unicode_literals
 
 import unittest
 from datetime import datetime
+import json
 
-from flask_appbuilder.security.sqla.models import User
 from superset import db
 from superset.views.core import SliceModelView
-from superset.models.core import Dashboard
-from superset.models.core import Slice
+from superset.models import Dashboard, Slice
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 
 
-class SliceCRUDTests(SupersetTestCase, PageMixin):
+class SliceTests(SupersetTestCase, PageMixin):
     require_examples = True
+    route_base = '/slice'
 
     def __init__(self, *args, **kwargs):
-        super(SliceCRUDTests, self).__init__(*args, **kwargs)
+        super(SliceTests, self).__init__(*args, **kwargs)
         self.view = SliceModelView()
 
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
     def test_listdata(self):
-        self.check_base_param()
+        resp_data = self.get_json_resp('{}/listdata/'.format(self.route_base))
+        assert resp_data.get('status') == 200
+        list_data = resp_data.get('data').get('data')
+        for metric_dict in list_data:
+            assert 'id' in metric_dict
+            assert 'slice_name' in metric_dict
+            assert 'slice_url' in metric_dict
+            assert 'viz_type' in metric_dict
+            assert 'description' in metric_dict
+            assert 'datasource' in metric_dict
+            assert 'explore_url' in metric_dict
+            assert 'favorite' in metric_dict
 
-        slice_list = self.real_value.get('data')
-        one_slice = None
-        if slice_list:
-            one_slice = slice_list[0]
-        for slice_dic in slice_list:
-            assert isinstance(slice_dic.get('favorite'), bool)
-            assert '/p/explore/table/' in slice_dic.get('slice_url')
+    def test_add(self):
+        pass
 
-        rs = db.session.query(Slice, User.username) \
-            .join(User, Slice.created_by_fk == User.id) \
-            .filter(Slice.id == one_slice.get('id')) \
-            .first()
-        [target_slice, user_name] = rs
-
-        assert one_slice.get('id') == target_slice.id
-        assert one_slice.get('slice_url') == target_slice.slice_url
-        assert one_slice.get('viz_type') == target_slice.viz_type
-        assert one_slice.get('slice_name') == target_slice.slice_name
-        assert one_slice.get('created_by_user') == user_name
-
-    def test_show(self):
-        one_slice = db.session.query(Slice).first()
-        showed_attributes = self.view.get_show_attributes(one_slice, self.user.id)
-        assert one_slice.id == showed_attributes.get('id')
-        assert one_slice.slice_name == showed_attributes.get('slice_name')
-        assert len(one_slice.dashboards) == len(showed_attributes['dashboards'])
-
-    def test_online_and_offline(self):
-        one_slice = db.session.query(Slice).first()
-        if not one_slice:
-            return
-        # set online
-        one_slice.online = True
-        db.session.commit()
-        edited_slice = db.session.query(Slice).filter_by(id=one_slice.id).first()
-        assert edited_slice.online is True
-        # set offline
-        one_slice.online = False
-        db.session.commit()
-        edited_slice = db.session.query(Slice).filter_by(id=one_slice.id).first()
-        assert edited_slice.online is False
-
-    def test_add_edit_delete(self):
+    def test_show_edit_delete(self):
         # add
-        new_slice_name = 'new_slice'
-        new_slice = self.add_slice(new_slice_name, self.user.id)
+        ts = datetime.now().isoformat()
+        ts = ts.replace('-', '').replace(':', '').split('.')[0]
+        new_slice = self.add_slice('new_slice_{}'.format(ts))
+        new_slice_id = new_slice.id
+
+        ### show
+        resp_data = self.get_json_resp(
+            '{}/show/{}/'.format(self.route_base, new_slice_id))
+        resp_data = resp_data.get('data')
+        assert new_slice.slice_name == resp_data.get('slice_name')
+        assert len(new_slice.dashboards) == len(resp_data.get('dashboards'))
 
         # edit
-        one_dashboard = db.session.query(Dashboard).first()
-        new_slice_name = 'edit_slice_{}'.format(str(datetime.now()))
-        json_data = {
-            'dashboards': [
-                {'dashboard_title': one_dashboard.dashboard_title, 'id': one_dashboard.id},
-            ],
-            'slice_name': new_slice_name,
-            'description': 'for test',
+        one_dash = db.session.query(Dashboard).first()
+        data = {
+            'dashboards': [{'dashboard_title': one_dash.name, 'id': one_dash.id}, ],
+            'slice_name': 'edit_slice_{}'.format(ts),
+            'description': 'edit',
         }
-        obj = self.view.populate_object(new_slice.id, self.user.id, json_data)
-        self.view.datamodel.edit(obj)
-
-        included_dashboards = new_slice.dashboards
-        assert new_slice.description == json_data.get('description')
-        assert new_slice.slice_name == json_data.get('slice_name')
-        assert len(included_dashboards) == len(json_data['dashboards'])
-        assert included_dashboards[0].id == json_data['dashboards'][0]['id']
+        resp = self.get_json_resp('{}/edit/{}/'.format(self.route_base, new_slice_id),
+                                  data=json.dumps(data))
+        assert resp.get('status') == 200
+        edited_slice = Slice.get_object(id=new_slice_id)
+        assert edited_slice.slice_name == data.get('slice_name')
+        assert len(edited_slice.dashboards) == len(data.get('dashboards'))
 
         # delete
-        self.view.datamodel.delete(new_slice)
-        target_slice = db.session.query(Slice) \
-            .filter_by(slice_name=new_slice_name).first()
-        assert target_slice is None
+        resp = self.get_json_resp('{}/delete/{}/'.format(self.route_base, new_slice_id))
+        assert resp.get('status') == 200
+        slice = Slice.get_object(id=new_slice_id)
+        assert slice is None
 
     @staticmethod
-    def add_slice(slice_name, user_id):
-        slice = db.session.query(Slice).filter_by(slice_name=slice_name).first()
-        if slice:
-            slice.created_by_fk = user_id
-        else:
-            one_slice = db.session.query(Slice).first()
-            slice = Slice(
-                slice_name=slice_name,
-                online=True,
-                datasource_id=one_slice.datasource_id,
-                datasource_type=one_slice.datasource_type,
-                datasource_name=one_slice.datasource_name,
-                database_id=one_slice.database_id,
-                full_table_name=one_slice.full_table_name,
-                viz_type=one_slice.viz_type,
-                params=one_slice.params,
-                created_by_fk=user_id
-            )
-            db.session.add(slice)
+    def add_slice(slice_name):
+        one_slice = db.session.query(Slice).order_by(Slice.id).first()
+        slice = Slice(
+            slice_name=slice_name,
+            datasource_id=one_slice.datasource_id,
+            datasource_type=one_slice.datasource_type,
+            datasource_name=one_slice.datasource_name,
+            database_id=one_slice.database_id,
+            full_table_name=one_slice.full_table_name,
+            viz_type=one_slice.viz_type,
+            params=one_slice.params
+        )
+        db.session.add(slice)
         db.session.commit()
         return slice
 

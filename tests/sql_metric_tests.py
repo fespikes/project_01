@@ -5,85 +5,71 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import unittest
-
 from datetime import datetime
+import json
 
 from superset import db
-from superset.views.dataset import SqlMetricInlineView
 from superset.models.dataset import SqlMetric
 from superset.models.dataset import Dataset
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 
 
-class SqlMetricCRUDTests(SupersetTestCase, PageMixin):
+class SqlMetricTests(SupersetTestCase, PageMixin):
     require_examples = True
+    route_base = '/sqlmetric'
 
     def __init__(self, *args, **kwargs):
-        super(SqlMetricCRUDTests, self).__init__(*args, **kwargs)
-        self.view = SqlMetricInlineView()
+        super(SqlMetricTests, self).__init__(*args, **kwargs)
 
-    def setUp(self):
-        pass
+    def test_list(self):
+        one_dataset = db.session.query(Dataset).order_by(Dataset.id).first()
+        resp_data = self.get_json_resp(
+            '{}/listdata/?dataset_id={}'.format(self.route_base, one_dataset.id))
+        assert resp_data.get('status') == 200
+        list_data = resp_data.get('data').get('data')
+        for metric_dict in list_data:
+            assert 'id' in metric_dict
+            assert 'metric_name' in metric_dict
+            assert 'expression' in metric_dict
+            assert 'metric_type' in metric_dict
 
-    def tearDown(self):
-        pass
+    def test_add_show_edit_delete(self):
+        one_dataset = db.session.query(Dataset).order_by(Dataset.id).first()
+        ### add
+        ts = datetime.now().isoformat()
+        ts = ts.replace('-', '').replace(':', '').split('.')[0]
+        data = {"metric_name": "new_metric_{}".format(ts),
+                "expression": "count(*)",
+                "metric_type": "COUNT",
+                "description": "",
+                "dataset_id": one_dataset.id}
+        resp = self.get_json_resp('{}/add/'.format(self.route_base),
+                                  data=json.dumps(data))
+        new_object_id = resp.get('data').get('object_id')
+        added_object = SqlMetric.get_object(id=new_object_id)
+        assert added_object is not None
 
-    def test_listdata(self):
-        one_dataset = db.session.query(Dataset).first()
-        if not one_dataset:
-            return
-        self.kwargs['dataset_id'] = one_dataset.id
-        self.check_base_param(no_check=True)
-        sql_metric_data_list = self.real_value.get('data')
+        ### show
+        resp_data = self.get_json_resp(
+            '{}/show/{}/'.format(self.route_base, new_object_id))
+        resp_data = resp_data.get('data')
+        assert added_object.metric_name == resp_data.get('metric_name')
+        assert added_object.expression == resp_data.get('expression')
 
-        for sql_metric_data in sql_metric_data_list:
-            sql_metric = db.session.query(SqlMetric) \
-                .filter_by(id=sql_metric_data.get('id')) \
-                .first()
-            assert sql_metric.metric_name == sql_metric_data['metric_name']
-            assert sql_metric.expression == sql_metric_data['expression']
+        ### edit
+        data['metric_name'] = 'edited_metric_{}'.format(ts)
+        resp = self.get_json_resp('{}/edit/{}/'.format(self.route_base, new_object_id),
+                                  data=json.dumps(data))
+        assert resp.get('status') == 200
+        edited_object = SqlMetric.get_object(id=new_object_id)
+        assert edited_object.metric_name == data.get('metric_name')
 
-    def test_add_edit_delete(self):
-        one_dataset = db.session.query(Dataset).first()
-        if not one_dataset:
-            return
-        # add
-        new_metric_name = 'new_metric_{}'.format(str(datetime.now()))
-        json_data = {
-            'metric_name': new_metric_name,
-            'expression': 'AVG(num)',
-            'metric_type': 'avg',
-            'dataset_id': one_dataset.id
-        }
-        new_metric = self.view.populate_object(None, self.user.id, json_data)
-        self.view.datamodel.add(new_metric)
-
-        new_metric = db.session.query(SqlMetric)\
-            .filter(
-                SqlMetric.metric_name == new_metric_name,
-                SqlMetric.dataset_id == one_dataset.id
-            )\
-            .first()
-        assert new_metric is not None
-
-        # edit
-        json_data['metric_type'] = 'sum'
-        json_data['expression'] = 'AVG(num)'
-        obj = self.view.populate_object(new_metric.id, self.user.id, json_data)
-        self.view.datamodel.edit(obj)
-        new_metric = db.session.query(SqlMetric) \
-            .filter(
-                SqlMetric.metric_name == new_metric_name,
-                SqlMetric.dataset_id == one_dataset.id
-            ) \
-            .first()
-        assert new_metric.expression == json_data['expression']
-
-        # delete
-        self.view.datamodel.delete(new_metric)
-        metric = db.session.query(SqlMetric).filter_by(id=new_metric.id).first()
-        assert metric is None
+        ### delete
+        resp = self.get_json_resp('{}/delete/{}/'.format(self.route_base, new_object_id))
+        assert resp.get('status') == 200
+        column = SqlMetric.get_object(id=new_object_id)
+        assert column is None
 
 
 if __name__ == '__main__':

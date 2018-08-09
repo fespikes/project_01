@@ -22,6 +22,7 @@ import unittest
 
 from superset import app, cli, db, models
 
+
 config = app.config
 
 
@@ -65,10 +66,11 @@ class PageMixin(object):
 
 class SupersetTestCase(unittest.TestCase):
     require_examples = True
+    route_base = ''
 
     def __init__(self, *args, **kwargs):
         super(SupersetTestCase, self).__init__(*args, **kwargs)
-        self.init()
+        #self.init()
         app.testing = True
         self.client = app.test_client()
 
@@ -114,19 +116,33 @@ class SupersetTestCase(unittest.TestCase):
 
     @staticmethod
     def get_slice_by_name(slice_name):
-        return db.session.query(models.Slice).filter_by(slice_name=slice_name).one()
+        return db.session.query(models.Slice)\
+            .filter_by(slice_name=slice_name).one()
 
     @staticmethod
     def get_dataset(id):
-        return db.session.query(models.Dataset).filter_by(id=id).first()
+        return db.session.query(models.Dataset)\
+            .filter_by(id=id).first()
 
     @staticmethod
     def get_dataset_by_name(name):
-        return db.session.query(models.Dataset).filter_by(dataset_name=name).first()
+        return db.session.query(models.Dataset)\
+            .filter_by(dataset_name=name).first()
 
     @staticmethod
     def get_main_database():
-        return db.session.query(models.Database).filter_by(database_name='main').first()
+        return db.session.query(models.Database)\
+            .filter_by(database_name='main').first()
+
+    @staticmethod
+    def get_default_inceptor():
+        return db.session.query(models.Database)\
+            .filter_by(database_name='default_inceptor').first()
+
+    @staticmethod
+    def get_default_hdfs_conn():
+        return db.session.query(models.HDFSConnection)\
+            .filter_by(connection_name='default_hdfs').first()
 
     def get_resp(self, url, data=None, follow_redirects=True, raise_on_error=True):
         """Shortcut to get the parsed results while following redirects"""

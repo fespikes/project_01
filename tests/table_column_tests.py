@@ -6,95 +6,80 @@ from __future__ import unicode_literals
 
 import unittest
 from datetime import datetime
+import json
 
 from superset import db
-from superset.views.dataset import TableColumnInlineView
 from superset.models.dataset import TableColumn
 from superset.models.dataset import Dataset
 from tests.base_tests import SupersetTestCase
 from tests.base_tests import PageMixin
 
 
-class TableColumnCRUDTests(SupersetTestCase, PageMixin):
+class TableColumnTests(SupersetTestCase, PageMixin):
     require_examples = True
+    route_base = '/tablecolumn'
 
     def __init__(self, *args, **kwargs):
-        super(TableColumnCRUDTests, self).__init__(*args, **kwargs)
-        self.view = TableColumnInlineView()
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
+        super(TableColumnTests, self).__init__(*args, **kwargs)
 
     def test_listdata(self):
-        one_dataset = db.session.query(TableColumn).first()
-        if not one_dataset:
-            return
-        self.kwargs['dataset_id'] = one_dataset.dataset_id
-        kwargs = self.kwargs
-        self.real_value = self.view.get_object_list_data(**kwargs)
-        real_data = self.real_value.get('data')
+        one_dataset = db.session.query(Dataset).order_by(Dataset.id).first()
+        resp_data = self.get_json_resp(
+            '{}/listdata/?dataset_id={}'.format(self.route_base, one_dataset.id))
+        assert resp_data.get('status') == 200
+        list_data = resp_data.get('data').get('data')
+        for column_dict in list_data:
+            assert 'id' in column_dict
+            assert 'column_name' in column_dict
+            assert 'expression' in column_dict
+            assert 'type' in column_dict
+            assert 'max' in column_dict
+            assert 'max' in column_dict
 
-        for one_column in real_data:
-            column = db.session.query(TableColumn) \
-                .filter(
-                    TableColumn.id == one_column.get('id'),
-                    TableColumn.dataset_id == one_dataset.id) \
-                .first()
-            assert column is not None
+    def test_add_show_edit_delete(self):
+        one_dataset = db.session.query(Dataset).order_by(Dataset.id).first()
+        ### add
+        ts = datetime.now().isoformat()
+        ts = ts.replace('-', '').replace(':', '').split('.')[0]
+        data = {"column_name": "new_column_{}".format(ts),
+                "filterable": True,
+                "count_distinct": False,
+                "expression": "test",
+                "type": "STRING",
+                "max": False,
+                "min": False,
+                "sum": False,
+                "avg": False,
+                "groupby": True,
+                "is_dttm": False,
+                "dataset_id": one_dataset.id}
+        resp = self.get_json_resp('{}/add/'.format(self.route_base, ),
+                                  data=json.dumps(data))
+        new_column_id = resp.get('data').get('object_id')
+        added_column = TableColumn.get_object(id=new_column_id)
+        assert added_column is not None
 
-    def test_add_edit_delete(self):
-        one_dataset = db.session.query(Dataset).first()
-        if not one_dataset:
-            return
-        # add
-        new_column_name = 'new_column_{}'.format(str(datetime.now()))
-        json_data = {
-            'column_name': new_column_name,
-            'expression': 'source',
-            'verbose_name': new_column_name,
-            'type': 'STRING',
-            'filterable': True,
-            'count_distinct': True,
-            'max': False,
-            'min': False,
-            'sum': False,
-            'avg': False,
-            'groupby': True,
-            'is_dttm': False,
-            'dataset_id': one_dataset.id,
-        }
-        new_column = self.view.populate_object(None, self.user.id, json_data)
-        self.view.datamodel.add(new_column)
-        
-        new_column = db.session.query(TableColumn) \
-            .filter(
-                TableColumn.column_name == new_column_name,
-                TableColumn.dataset_id == one_dataset.id) \
-            .first()
-        assert new_column is not None
+        ### show
+        resp_data = self.get_json_resp(
+            '{}/show/{}/'.format(self.route_base,  new_column_id))
+        resp_data = resp_data.get('data')
+        assert added_column.column_name == resp_data.get('column_name')
+        assert added_column.expression == resp_data.get('expression')
 
-        #edit
-        json_data['expression'] = 'target'
-        obj = self.view.populate_object(new_column.id, self.user.id, json_data)
-        self.view.datamodel.edit(obj)
-        new_column = db.session.query(TableColumn) \
-            .filter(
-                TableColumn.column_name == new_column_name,
-                TableColumn.dataset_id == one_dataset.id) \
-            .first()
-        assert new_column.expression == json_data['expression']
+        ### edit
+        data['column_name'] = 'edited_column_{}'.format(ts)
+        resp = self.get_json_resp('{}/edit/{}/'.format(self.route_base, new_column_id),
+                                  data=json.dumps(data))
+        assert resp.get('status') == 200
+        edited_column = TableColumn.get_object(id=new_column_id)
+        assert edited_column.column_name == data.get('column_name')
 
-        #delete
-        self.view.datamodel.delete(new_column)
-        column = db.session.query(TableColumn).filter_by(id=new_column.id).first()
+        ### delete
+        resp = self.get_json_resp('{}/delete/{}/'.format(self.route_base, new_column_id))
+        assert resp.get('status') == 200
+        column = TableColumn.get_object(id=new_column_id)
         assert column is None
+
 
 if __name__ == '__main__':
     unittest.main()
-
-
-
-
