@@ -107,10 +107,6 @@ class HDFSConnectionTests(SupersetTestCase, PageMixin):
 
         data = resp_data.get('data')
         assert 'count' in data
-        assert 'order_column' in data
-        assert 'order_direction' in data
-        assert 'page' in data
-        assert 'page_size' in data
 
         hdfs_list = data.get('data')
         for hdfs in hdfs_list:
