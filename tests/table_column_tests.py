@@ -12,10 +12,9 @@ from superset import db
 from superset.models.dataset import TableColumn
 from superset.models.dataset import Dataset
 from tests.base_tests import SupersetTestCase
-from tests.base_tests import PageMixin
 
 
-class TableColumnTests(SupersetTestCase, PageMixin):
+class TableColumnTests(SupersetTestCase):
     require_examples = True
     route_base = '/tablecolumn'
 

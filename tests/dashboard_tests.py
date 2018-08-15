@@ -13,10 +13,9 @@ from datetime import datetime
 from superset.models import Dashboard
 from superset.views.core import DashboardModelView
 from tests.base_tests import SupersetTestCase
-from tests.base_tests import PageMixin
 
 
-class DashboardTests(SupersetTestCase, PageMixin):
+class DashboardTests(SupersetTestCase):
     require_examples = True
     route_base = '/dashboard'
 

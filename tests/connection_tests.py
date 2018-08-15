@@ -12,10 +12,9 @@ from superset import db
 from superset.models.connection import Database, HDFSConnection, Connection
 from superset.views.connection import DatabaseView, HDFSConnectionModelView
 from tests.base_tests import SupersetTestCase
-from tests.base_tests import PageMixin
 
 
-class DatabaseTests(SupersetTestCase, PageMixin):
+class DatabaseTests(SupersetTestCase):
     require_examples = True
     route_base = '/database'
 
@@ -93,7 +92,7 @@ class DatabaseTests(SupersetTestCase, PageMixin):
         pass
 
 
-class HDFSConnectionTests(SupersetTestCase, PageMixin):
+class HDFSConnectionTests(SupersetTestCase):
     require_examples = True
     route_base = '/hdfsconnection'
 
@@ -154,7 +153,7 @@ class HDFSConnectionTests(SupersetTestCase, PageMixin):
         pass
 
 
-class ConnectionTests(SupersetTestCase, PageMixin):
+class ConnectionTests(SupersetTestCase):
     require_examples = True
     route_base = '/connection'
 

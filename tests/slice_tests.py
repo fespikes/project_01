@@ -12,10 +12,9 @@ from superset import db
 from superset.views.core import SliceModelView
 from superset.models import Dashboard, Slice
 from tests.base_tests import SupersetTestCase
-from tests.base_tests import PageMixin
 
 
-class SliceTests(SupersetTestCase, PageMixin):
+class SliceTests(SupersetTestCase):
     require_examples = True
     route_base = '/slice'
 

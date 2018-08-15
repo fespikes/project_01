@@ -17,6 +17,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from datetime import datetime
 import json
 import unittest
 
@@ -24,44 +25,6 @@ from superset import app, cli, db, models
 
 
 config = app.config
-
-
-class PageMixin(object):
-    order_column = 'changed_on'
-    order_direction = 'desc'
-    page = 0
-    page_size = 10
-    filter = None
-    only_favorite = False
-    view = None
-    real_value = None
-    kwargs = {
-        'order_column': order_column,
-        'order_direction': order_direction,
-        'page': page,
-        'page_size': page_size,
-        'filter': filter,
-        'only_favorite': only_favorite
-    }
-
-    def check_base_param(self, no_check=False):
-        kwargs = self.kwargs
-        self.real_value = self.view.get_object_list_data(**kwargs)
-
-        if no_check:
-            pass
-        else:
-            assert self.page == self.real_value.get('page')
-            assert self.page_size == self.real_value.get('page_size')
-            assert self.order_column == self.real_value.get('order_column')
-            assert self.order_direction == self.real_value.get('order_direction')
-
-    def check_param_same(self, src_list, des_list):
-        if len(src_list) != len(des_list):
-            print('the source list and the destination list is not the same length')
-            return
-        for x in range(len(src_list)):
-            assert src_list[x] == des_list[x]
 
 
 class SupersetTestCase(unittest.TestCase):
@@ -175,3 +138,6 @@ class SupersetTestCase(unittest.TestCase):
             raise Exception("run_sql failed")
         return resp
 
+    def time_string(self):
+        ts = datetime.now().isoformat()
+        return ts.replace('-', '').replace(':', '').split('.')[0]

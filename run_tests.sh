@@ -47,17 +47,19 @@ if [ $debug == $FALSE ]; then
   cd superset
   sudo python3 setup.py install
   pilot db upgrade
+  pilot init_all
 fi
 
 
 if [ $file != $ALL ]; then
-    #python setup.py nosetests
     nosetests $file
 else
+    # python setup.py nosetests
     nosetests tests/connection_tests.py
     nosetests tests/dashboard_tests.py
     nosetests tests/dataset_tests.py
     nosetests tests/slice_tests.py
     nosetests tests/sql_metric_tests.py
     nosetests tests/table_column_tests.py
+    # nosetests tests/hdfs_tests.py
 fi

@@ -12,10 +12,9 @@ from superset import db
 from superset.models.dataset import SqlMetric
 from superset.models.dataset import Dataset
 from tests.base_tests import SupersetTestCase
-from tests.base_tests import PageMixin
 
 
-class SqlMetricTests(SupersetTestCase, PageMixin):
+class SqlMetricTests(SupersetTestCase):
     require_examples = True
     route_base = '/sqlmetric'
 

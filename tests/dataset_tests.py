@@ -13,10 +13,9 @@ from superset import db
 from superset.views.dataset import DatasetModelView
 from superset.models.dataset import Dataset, Database
 from tests.base_tests import SupersetTestCase
-from tests.base_tests import PageMixin
 
 
-class DatasetTests(SupersetTestCase, PageMixin):
+class DatasetTests(SupersetTestCase):
     require_examples = True
     route_base = '/table'
 
