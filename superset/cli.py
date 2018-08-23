@@ -29,7 +29,7 @@ def init():
     security.sync_role_definitions()
 
 
-def init_tables_and_roles():
+def init_meta_tables():
     logging.info("Start to upgrade metadata tables...")
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     migration_dir = os.path.join(BASE_DIR, 'migrations')
@@ -142,10 +142,11 @@ def init_studio_role():
             guardian_admin.grant_viewer_role(viewer_role)
 
 
-def init_pilot():
+@manager.command
+def init_all():
     register_in_guardian()
     init_studio_role()
-    # init_tables_and_roles()
+    # init_meta_tables()
     create_default_user()
     init_examples()
     create_default_inceptor_conn()
@@ -169,7 +170,7 @@ def init_pilot():
     help="Specify the timeout (seconds) for the gunicorn web server")
 def runserver(debug, address, port, timeout, workers):
     """Starts a web server"""
-    init_pilot()
+    init_all()
     debug = debug or config.get("DEBUG")
     if debug:
         app.run(

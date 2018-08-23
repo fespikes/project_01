@@ -13,7 +13,10 @@ from flask_cache import Cache
 from flask_migrate import Migrate
 from flask_compress import Compress
 from superset.cas import CAS, login_required
-from superset.cas.store import cas_session_store
+from superset.cas.cas_session import cas_session
+from superset.cas.keys import (
+    CAS_FAKE_SERVICE_TICKET, CAS_FAKE_USERNAME, CAS_SERVICE_TICKET, CAS_USERNAME
+)
 from superset.source_registry import SourceRegistry
 from werkzeug.contrib.fixers import ProxyFix
 from superset import utils, config
@@ -159,20 +162,19 @@ def before_request():
     """Used for CAS Single Logout
     """
     if app.config.get("CAS_AUTH") is True:
-        if 'CAS_SERVICE_TICKET' not in flask.session \
-                or 'CAS_USERNAME' not in flask.session:
-            st = 'ST-anonymous'
-            username = 'anonymous'
-            flask.session['CAS_SERVICE_TICKET'] = st
-            cas_session_store.record(st, username, clear_logout=False)
-            cas_session_store.logout_st(st)
-            cas_session_store.verify_st(st)
+        if CAS_SERVICE_TICKET not in flask.session \
+                or CAS_USERNAME not in flask.session:
+            st = CAS_FAKE_SERVICE_TICKET
+            flask.session[CAS_SERVICE_TICKET] = st
+            cas_session.record(st, CAS_FAKE_USERNAME, clear_logout=False)
+            cas_session.logout_st(st)
+            cas_session.verify_st(st)
 
-        st = flask.session.get('CAS_SERVICE_TICKET')
-        if cas_session_store.is_logout_st(st):
-            if cas_session_store.is_verified_st(st):
+        st = flask.session.get(CAS_SERVICE_TICKET)
+        if cas_session.is_logout_st(st):
+            if cas_session.is_verified_st(st):
                 pass
             else:
-                cas_session_store.verify_st(st)
+                cas_session.verify_st(st)
                 return flask.redirect(appbuilder.get_url_for_logout)
 

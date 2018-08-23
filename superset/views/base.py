@@ -48,7 +48,7 @@ def catch_exception(f):
         except AttributeError as e:
             if 'AnonymousUserMixin' in str(e):
                 logging.error(e)
-                return redirect(appbuilder.get_url_for_logout)
+                return redirect(appbuilder.get_url_for_login)
             else:
                 logging.exception(e)
                 return json_response(status=500, message=str(e), code=1)
@@ -66,7 +66,7 @@ def json_response(message='', status=200, data=None, code=0):
             'message': message,
             'data': data}
     return Response(
-        json.dumps(resp, default=utils.json_iso_dttm_ser),
+        json.dumps(resp, default=utils.json_iso_dttm_ser, ensure_ascii=False),
         status=status,
         mimetype="application/json"
     )
@@ -324,8 +324,8 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
     @expose('/list/')
     def list(self):
         self.update_redirect()
-        if not g.user or not g.user.get_id():
-            return redirect(appbuilder.get_url_for_logout)
+        if g.user.get_id() is None:
+            return redirect(appbuilder.get_url_for_login)
         return self.render_template(self.list_template)
 
     @catch_exception
@@ -334,12 +334,6 @@ class SupersetModelView(BaseSupersetView, ModelView, PageMixin, PermissionManage
         kwargs = self.get_list_args(request.args)
         list_data = self.get_object_list_data(**kwargs)
         return json_response(data=list_data)
-
-    @catch_exception
-    @expose('/addablechoices/', methods=['GET'])
-    def addable_choices(self):
-        data = self.get_addable_choices()
-        return json_response(data={'data': data})
 
     @catch_exception
     @expose('/add/', methods=['GET', 'POST'])

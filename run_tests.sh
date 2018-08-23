@@ -1,32 +1,65 @@
 #!/usr/bin/env bash
 
-sudo rm /usr/bin/python
-sudo ln -s /usr/local/bin/python3 /usr/bin/python
-# sudo update-alternatives --install /usr/bin/python python /usr/local/bin/python3 150
+set -ex
 
-echo $(python --version)
-echo $DB
-
-echo "rm ~/pilot/unittests.db"
-rm ~/pilot/unittests.db
-
-echo "rm -f .coverage"
-rm -f .coverage
-
-echo "export SUPERSET_CONFIG=tests.pilot_test_config"
 export SUPERSET_CONFIG=tests.pilot_test_config
-set -e
 
-echo "superset/bin/pilot db upgrade"
-superset/bin/pilot db upgrade
-superset/bin/pilot version -v
+FALSE=false
+ALL=all
+debug=$FALSE
+file=$ALL
 
-echo "python setup.py nosetests"
-python setup.py nosetests
+##### args
+for arg in "$@"
+ do
+     if [ $arg == "-d" ]; then
+         debug="true"
+     else
+         file=$arg
+     fi
+ done
 
-# submit the test report to coveralls.io, requires packages: coveralls and pyyaml
-# echo "coveralls"
-# coveralls
 
-# sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 100
+if [ $debug == $FALSE ]; then
+  sudo ln -s /usr/local/bin/python3 /usr/bin/python3
 
+  cd ..
+  ##### fileRobot
+  git clone http://jiajie:zjj02355331675@172.16.1.41:10080/studio/fileRobot.git
+  cd fileRobot/fileRobot-client
+  sudo python3 setup.py install
+  cd ../..
+
+  ##### sqlalchemy
+  pip uninstall -y sqlalchemy
+  git clone http://jiajie:zjj02355331675@172.16.1.41:10080/studio/sqlalchemy.git
+  cd sqlalchemy
+  sudo python3 setup.py install
+  cd ..
+
+  ##### flask-appbuilder
+  pip uninstall -y flask-appbuilder
+  git clone http://jiajie:zjj02355331675@172.16.1.41:10080/studio/flask-appbuilder.git
+  cd flask-appbuilder
+  sudo python3 setup.py install
+  cd ..
+
+  cd superset
+  sudo python3 setup.py install
+  pilot db upgrade
+  pilot init_all
+fi
+
+
+if [ $file != $ALL ]; then
+    nosetests $file
+else
+    # python setup.py nosetests
+    nosetests tests/connection_tests.py
+    nosetests tests/dashboard_tests.py
+    nosetests tests/dataset_tests.py
+    nosetests tests/slice_tests.py
+    nosetests tests/sql_metric_tests.py
+    nosetests tests/table_column_tests.py
+    # nosetests tests/hdfs_tests.py
+fi

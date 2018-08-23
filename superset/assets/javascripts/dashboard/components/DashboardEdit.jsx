@@ -1,11 +1,13 @@
 import $ from 'jquery';
 import React, { PropTypes } from 'react';
+import { Select } from 'antd';
+import intl from 'react-intl-universal';
+
 import ModalTrigger from '../../components/ModalTrigger';
 require('react-bootstrap-table/css/react-bootstrap-table.css');
-import { Select } from 'antd';
 import { renderGlobalErrorMsg } from '../../../utils/utils';
 import { fetchAvailableSlices } from '../../dashboard2/actions/index';
-import intl from 'react-intl-universal';
+import { getSelectedSlices } from '../../../utils/common2';
 
 const propTypes = {
     dashboard: PropTypes.object.isRequired,
@@ -113,8 +115,10 @@ class DashboardEdit extends React.Component {
     }
 
     onChange(value) {
+        const selectedSlices = getSelectedSlices(value, this.state.availableSlices);
         this.setState({
-            selectedSlices: value
+            selectedSlices: value,
+            selectedSliceObjs: selectedSlices
         });
     }
 
@@ -152,7 +156,7 @@ class DashboardEdit extends React.Component {
                     <div className="item-right">
                         <textarea
                             className="tp-textarea dialog-area"
-                            value={this.state.dashboard.description}
+                            value={this.state.dashboard.description || ''}
                             onChange={this.handleDescriptionChange}
                         />
                     </div>

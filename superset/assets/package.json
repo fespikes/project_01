@@ -62,6 +62,7 @@
     "font-awesome": "^4.6.3",
     "griddle-react": "^0.6.0",
     "gridster": "^0.5.6",
+    "has-symbols": "^1.0.0",
     "history": "^4.6.1",
     "immutability-helper": "^2.0.0",
     "immutable": "^3.8.1",

@@ -47,6 +47,7 @@ setup(
         'fileRobot-client==0.0.1',
         'flask-appbuilder==1.8.1',
         'flask-cache==0.13.1',
+        'flask-cors==3.0.6',
         'flask-compress==1.4.0',
         'flask-migrate==1.5.1',
         'flask-restful==0.3.6',
