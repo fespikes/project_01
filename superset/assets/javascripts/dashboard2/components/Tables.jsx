@@ -172,7 +172,8 @@ class Tables extends React.Component {
             key: 'changed_on',
             width: '25%',
             sorter(a, b) {
-                return sorterFn(a.changed_time, b.changed_time);
+                // changed_time is timestamp
+                return a.changed_time - b.changed_time;
             }
         }, {
             title: intl.get('DASHBOARD.OPERATION'),
