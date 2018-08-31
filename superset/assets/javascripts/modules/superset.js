@@ -33,8 +33,8 @@ const px = function () {
                 let url = baseUrl + $(this).attr('class_name');
                 const star = this;
                 url += '/' + $(this).attr('obj_id') + '/';
-                $.getJSON(url + 'count/', function (data) {
-                    if (data.count > 0) {
+                $.getJSON(url + 'count/', function (res) {
+                    if (res.data.count > 0) {
                         $(star).addClass('selected').each(show);
                     }
                 });
